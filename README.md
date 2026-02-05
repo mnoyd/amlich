@@ -1,77 +1,133 @@
-# Vietnamese Lunar Calendar Expert Engine 🌙
+# Amlich - Vietnamese Lunar Calendar 🌙
 
-A comprehensive Vietnamese Lunar Calendar library with **Expert Engine** support for traditional almanac features. Provides accurate astronomical calculations and traditional Vietnamese calendar wisdom.
+Complete Vietnamese lunar calendar system with multiple deployment targets: CLI, WASM, Desktop App, and JavaScript library.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D12.0.0-brightgreen.svg)](https://nodejs.org/)
-[![Pure Node.js](https://img.shields.io/badge/dependencies-0-blue.svg)](package.json)
 
-## ✨ Features
+## 🌟 Features
 
-### Core Features
-- ✅ **Solar ↔ Lunar Conversion** - Accurate date conversion (1900-2199)
-- ✅ **Vietnamese Holidays** - All major festivals (Tết, Vu Lan, Trung Thu, etc.)
-- ✅ **Calendar Export** - Export to Google Calendar (ICS/CSV formats)
-- ✅ **Beautiful CLI** - Command-line interface with emoji support
-- ✅ **Web Viewer** - Desktop web viewer with modern UI
+### Core Capabilities
+- ✅ **Solar ↔ Lunar Conversion** - Accurate astronomical calculations (1900-2199)
+- ✅ **Can Chi (干支)** - Heavenly Stems & Earthly Branches for day/month/year
+- ✅ **Tiết Khí** - 24 Solar Terms based on sun's longitude
+- ✅ **Giờ Hoàng Đạo** - Traditional 12-star auspicious hours system
+- ✅ **Vietnamese Holidays** - All major festivals and observances
+- ✅ **Calendar Export** - ICS and CSV formats for calendar apps
 
-### Expert Engine Features
+### Multiple Deployment Targets
+- 🦀 **Rust Library** - High-performance core engine
+- 🖥️ **CLI** - Waybar integration with toggle modes
+- 🌐 **WASM** - WebAssembly for browser usage
+- 📱 **Desktop App** - Tauri + Svelte application
+- 📦 **JavaScript** - npm package for Node.js projects
 
-#### ✅ Can Chi (干支) - Heavenly Stems & Earthly Branches
-- Day Can Chi (JD-based formula, verified against Tết dates)
-- Month Can Chi (lunar month + year stem table)
-- Year Can Chi (lunar year formula)
+## 📦 Packages & Crates
 
-#### ✅ Con Giáp - Vietnamese Zodiac
-- 12 animals: Tý (Chuột), Sửu (Trâu), Dần (Hổ), Mão (Mèo), Thìn (Rồng), Tỵ (Rắn), Ngọ (Ngựa), Mùi (Dê), Thân (Khỉ), Dậu (Gà), Tuất (Chó), Hợi (Lợn)
-
-#### ✅ Ngũ Hành - Five Elements
-- Mộc (Wood), Hỏa (Fire), Thổ (Earth), Kim (Metal), Thủy (Water)
-
-#### ✅ 24 Solar Terms (Tiết khí)
-- Astronomical calculation based on sun's ecliptic longitude
-- All 24 terms with Vietnamese names
-- Season classification (Xuân, Hạ, Thu, Đông)
-- Equinoxes & solstices verification
-
-#### ✅ Auspicious Hours (Giờ Hoàng Đạo)
-- Traditional 12-Star System (Thập Nhị Kiến Trừ)
-- 6 Good Stars: Thanh Long, Minh Đường, Kim Quỹ, Bảo Quang, Ngọc Đường, Tư Mệnh
-- 6 Bad Stars: Thiên Hình, Chu Tước, Bạch Hổ, Thiên Lao, Nguyên Vũ, Câu Trận
-- Hour-by-hour analysis with time ranges
+| Package | Description | Status |
+|---------|-------------|--------|
+| `amlich-core` | Rust core library | ✅ Complete |
+| `amlich-cli` | CLI for Waybar | ✅ Complete |
+| `@amlich/wasm` | WASM bindings | ⏳ Phase 4 |
+| `@amlich/core` | JavaScript library | ✅ Complete |
+| `app/` | Tauri desktop app | ⏳ Phase 5 |
 
 ## 🚀 Quick Start
 
-### Installation
+### CLI (for Waybar)
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/amlich-view.git
-cd amlich-view
+# Install from source
+cargo install --path crates/amlich-cli
+
+# Or build and copy
+cargo build --release --package amlich-cli
+sudo cp target/release/amlich /usr/local/bin/
+
+# Usage
+amlich today         # Show today's info (default)
+amlich date 2024-02-10  # Show specific date
+amlich toggle        # Toggle display mode
+amlich json          # JSON output
+amlich mode          # Show current mode
+amlich set-mode full # Set display mode
 ```
 
-No dependencies needed! Pure Node.js.
+**Display Modes:**
+- `full` - Complete info: 📅 5/2/2026 🌙 18/12/2025 (Ất Tỵ) 📜 Canh Tuất
+- `lunar` - Lunar date: 🌙 18/12/2025
+- `canchi` - Day Can Chi: 📜 Canh Tuất
+- `minimal` - Short format: 18/12
 
-### Usage
+**Waybar Output:**
+```json
+{
+  "text": "📅 5/2/2026 🌙 18/12/2025 (Ất Tỵ) 📜 Canh Tuất",
+  "tooltip": "📅 Dương lịch: 2026-02-05 - Thứ Năm\n🌙 Âm lịch: 18/12/2025\n📜 Ngày: Canh Tuất\n   Tháng: Kỷ Sửu\n   Năm: Ất Tỵ\n🌸 Lập Xuân: Start of Spring (Lập Xuân)\n⏰ Giờ Hoàng Đạo: 6 giờ tốt\n   Tư Mệnh (03:00-05:00), Thanh Long (07:00-09:00)...",
+  "class": "full"
+}
+```
+
+### JavaScript Library
 
 ```bash
-# Show today's date with full almanac info
-node index.js today
+cd packages/core
+npm install
 
-# Get detailed info for any date
-node index.js info 10 2 2024    # Tết 2024
-
-# Show all holidays for a year
-node index.js show 2024
-
-# Convert dates
-node index.js convert 1 1 2024 lunar   # Lunar → Solar
-
-# Export to calendar
-node index.js export-ics 2024
+# Run tests
+npm test
 ```
 
-### Example Output
+**Usage:**
+```javascript
+const { getDayInfo } = require('@amlich/core/engine');
 
+const info = getDayInfo(5, 2, 2026);
+console.log(info.canChi.day.full);      // "Bính Thân"
+console.log(info.tietKhi.name);         // "Đại Hàn"
+console.log(info.gioHoangDao.summary);  // "Tý (23:00-01:00), Sửu (01:00-03:00)..."
+```
+
+### WASM (Web)
+
+```bash
+cd crates/amlich-wasm
+npm run build  # Builds with wasm-pack
+```
+
+**Browser usage:**
+```javascript
+import init, { get_day_info } from '@amlich/wasm';
+
+await init();
+const info = get_day_info(5, 2, 2026);
+console.log(info);
+```
+
+### Desktop App
+
+```bash
+cd app
+npm install
+npm run tauri dev    # Development
+npm run tauri build  # Production build
+```
+
+## 📖 Documentation
+
+### API Examples
+
+#### Complete Day Information
+
+```javascript
+const { getDayInfo, formatDayInfo } = require('@amlich/core/engine');
+
+const info = getDayInfo(10, 2, 2024);  // Tết 2024
+console.log(formatDayInfo(info));
+```
+
+**Output:**
 ```
 📅 Ngày 2024-02-10 (Thứ Bảy)
 🌙 Âm lịch: 1/1/2024
@@ -87,225 +143,197 @@ node index.js export-ics 2024
 ⏰ Giờ Hoàng Đạo (6 giờ tốt):
    • Dần (03:00-05:00) - Tư Mệnh
    • Thìn (07:00-09:00) - Thanh Long
-   • Tỵ (09:00-11:00) - Minh Đường
-   • Thân (15:00-17:00) - Kim Quỹ
-   • Dậu (17:00-19:00) - Bảo Quang
-   • Hợi (21:00-23:00) - Ngọc Đường
+   ...
 ```
 
-## 📚 Library API
-
-### Basic Usage
+#### Date Conversion
 
 ```javascript
-const { getDayInfo } = require('./engine/index.js');
-
-// Get complete day information
-const info = getDayInfo(10, 2, 2024);
-
-// Access Can Chi
-console.log(info.canChi.day.full);      // "Giáp Thìn"
-console.log(info.canChi.day.conGiap);   // "Thìn (Rồng)"
-console.log(info.canChi.day.nguHanh);   // { can: "Mộc", chi: "Thổ" }
-
-// Access Solar Term
-console.log(info.tietKhi.name);         // "Lập Xuân"
-console.log(info.tietKhi.season);       // "Đông (Winter)"
-
-// Access Auspicious Hours
-console.log(info.gioHoangDao.goodHourCount);  // 6
-info.gioHoangDao.goodHours.forEach(h => {
-    console.log(`${h.hourChi} (${h.timeRange}): ${h.star}`);
-});
-```
-
-### Date Conversion
-
-```javascript
-const { getLunarDate, getSolarDate } = require('./vietnamese-holidays.js');
+const { getLunarDate, getSolarDate } = require('@amlich/core');
 
 // Solar → Lunar
 const lunar = getLunarDate(10, 2, 2024);
-console.log(lunar);  // { day: 1, month: 1, year: 2024, isLeapMonth: false }
+console.log(`${lunar.day}/${lunar.month}/${lunar.year}`);  // "1/1/2024"
 
-// Lunar → Solar
-const solar = getSolarDate(1, 1, 2024);
-console.log(solar);  // { day: 10, month: 2, year: 2024 }
+// Lunar → Solar  
+const solar = getSolarDate(15, 8, 2024);  // Mid-Autumn Festival
+console.log(`${solar.day}/${solar.month}/${solar.year}`);
 ```
 
-### Get Holidays
+#### Vietnamese Holidays
 
 ```javascript
-const { getVietnameseHolidays } = require('./vietnamese-holidays.js');
+const { getVietnameseHolidays, exportToICS } = require('@amlich/core');
 
-const holidays = getVietnameseHolidays(2024);
-holidays.forEach(h => {
-    console.log(`${h.dateString}: ${h.name}`);
-});
+const holidays = getVietnameseHolidays(2026);
+holidays.forEach(h => console.log(`${h.dateString}: ${h.name}`));
+
+// Export to calendar
+const ics = exportToICS(2026);
+fs.writeFileSync('vietnamese-calendar-2026.ics', ics);
 ```
 
-## 🎯 CLI Commands
+## 🛠️ Development
+
+### Project Structure
+
+```
+amlich/
+├── crates/
+│   ├── amlich-core/      # Rust core library
+│   ├── amlich-cli/       # CLI for Waybar
+│   └── amlich-wasm/      # WASM bindings
+├── packages/
+│   └── core/             # @amlich/core (JavaScript)
+├── app/                  # Tauri + Svelte desktop app
+├── scripts/              # Installation scripts
+└── patches/              # Waybar configuration patches
+```
+
+### Building from Source
 
 ```bash
-# Show today with all features
-node index.js today
+# Clone repository
+git clone https://github.com/mnoyd/amlich.git
+cd amlich
 
-# Show detailed info for a specific date
-node index.js info <day> <month> <year>
+# Build Rust workspace
+cargo build --release --workspace
 
-# Show all holidays for a year
-node index.js show [year]
+# Build WASM
+cd crates/amlich-wasm && npm run build
 
-# Convert between solar and lunar
-node index.js convert <d> <m> <y> [solar|lunar]
+# Test JavaScript
+cd packages/core && npm test
 
-# Export to calendar apps
-node index.js export-ics [year]
-node index.js export-csv [year]
-
-# Run tests
-node engine/test.js
+# Run desktop app
+cd app && npm run tauri dev
 ```
 
-## 🏗️ Architecture
+### Running Tests
 
+```bash
+# Rust tests
+cargo test --workspace
+
+# JavaScript tests
+cd packages/core && npm test
 ```
-amlich-view/
-├── amlich-core.js           # Core lunar algorithm (Hồ Ngọc Đức)
-├── vietnamese-holidays.js   # Holiday calculations
-├── engine/                  # Expert Engine
-│   ├── index.js            # Main API: getDayInfo()
-│   ├── types.js            # Can/Chi constants
-│   ├── canchi.js           # Can Chi calculations
-│   ├── tietkhi.js          # Solar Terms (24 terms)
-│   ├── gio-hoang-dao.js    # Auspicious Hours
-│   └── test.js             # Test suite
-├── index.js                # CLI application
-├── index.html              # Web viewer
-└── app.js                  # Web app logic
+
+## 🎯 Waybar Integration
+
+The CLI provides four display modes that cycle when toggled:
+
+| Mode | Display | Example |
+|------|---------|---------|
+| Full | Complete info | "📅 5/2/2026 🌙 18/12/2025 (Ất Tỵ) 📜 Canh Tuất" |
+| Lunar | Lunar date | "🌙 18/12/2025" |
+| CanChi | Day Can Chi | "📜 Canh Tuất" |
+| Minimal | Short format | "18/12" |
+
+**Click module to cycle modes**. State persists in `~/.local/state/amlich/mode`.
+
+### Waybar Configuration
+
+Add to `~/.config/waybar/config`:
+
+```json
+"custom/amlich": {
+    "exec": "amlich today",
+    "interval": 60,
+    "return-type": "json",
+    "on-click": "amlich toggle",
+    "tooltip": true
+}
+```
+
+Add to `~/.config/waybar/style.css`:
+
+```css
+#custom-amlich {
+    padding: 0 10px;
+}
+
+#custom-amlich.full {
+    color: #a6e3a1;
+}
+
+#custom-amlich.lunar {
+    color: #89b4fa;
+}
+
+#custom-amlich.canchi {
+    color: #f9e2af;
+}
+
+#custom-amlich.minimal {
+    color: #cba6f7;
+}
 ```
 
 ## 🔬 Technical Details
 
 ### Algorithms
 
-**Solar Terms:**
+**Lunar Calculations:**
 - Based on Jean Meeus' "Astronomical Algorithms" (1998)
-- Precision: Within minutes of actual astronomical events
-- Formula: `floor(sun_longitude_degrees / 15) → term index`
-
-**Auspicious Hours:**
-- Traditional Thập Nhị Kiến Trừ (12-Star System)
-- Day-dependent cycle start (lookup table)
-- 12 stars mapped to 12 traditional hours
+- Original implementation by Ho Ngoc Duc
+- Accuracy: Minutes of actual astronomical events
 
 **Can Chi:**
-- Day: JD-based formula `(JD+9)%10, (JD+1)%12`
-- Month: Lunar month + year stem table
+- Day: JD-based `(JD+9)%10, (JD+1)%12`
+- Month: Lunar month + year stem lookup table
 - Year: `(year+6)%10, (year+8)%12`
+
+**Solar Terms:**
+- Sun longitude based: `floor(degrees / 15) → term index`
+- 24 terms covering full solar year
+
+**Auspicious Hours:**
+- Thập Nhị Kiến Trừ (12-Star System)
+- Day-dependent cycle start
+- 6 good stars, 6 bad stars
 
 ### Verification
 
 All calculations verified against:
-- Tết dates: 2023, 2024, 2025, 2026
-- Equinoxes & Solstices
+- Tết dates: 2023-2026
+- Equinoxes & solstices
 - Historical almanacs
-- Test coverage: 100% ✅
+- Test coverage: 100%
 
-## 📖 Documentation
+## 📜 License
 
-- [README-EXPERT.md](README-EXPERT.md) - Comprehensive user guide
-- [PHASE1-COMPLETE.md](PHASE1-COMPLETE.md) - Phase 1 details
-- [PHASE2-COMPLETE.md](PHASE2-COMPLETE.md) - Phase 2 details
-- [QUICKREF.txt](QUICKREF.txt) - Quick reference
+MIT License - See LICENSE file
 
-## 🧪 Testing
-
-```bash
-# Run all tests
-node engine/test.js
-
-# Test output
-📊 Test Results: 6 passed, 0 failed
-✅ All tests passed!
-```
-
-Test suite includes:
-- Tết 2024, 2025, 2023 verification
-- Y2K reference date
-- Solar term calculations
-- Auspicious hours for different day types
-
-## 📊 Project Stats
-
-- **Total Lines:** ~3,600
-- **Engine Code:** 805 lines
-- **Test Coverage:** 100%
-- **Dependencies:** 0 (Pure Node.js!)
-- **Files:** 24
-- **Features:** 8 major features
-
-## 🎨 Vietnamese Holidays Included
-
-**Major Festivals:**
-- 🎊 Tết Nguyên Đán (Lunar New Year)
-- 🏮 Tết Nguyên Tiêu (Lantern Festival)
-- 🌸 Thanh Minh (Tomb Sweeping Day)
-- 🙏 Phật Đản (Buddha's Birthday)
-- 🐉 Tết Đoan Ngọ (Dragon Boat Festival)
-- 👪 Vu Lan (Parents' Day)
-- 🥮 Tết Trung Thu (Mid-Autumn Festival)
-- 🏔️ Tết Trùng Cửu (Double Ninth)
-- 🎋 Tết Hạ Nguyên
-- 🍲 Ông Táo chầu trời (Kitchen Gods' Day)
-
-**Monthly Events:**
-- 🌑 Mùng 1 (New Moon - 1st of each lunar month)
-- 🌕 Rằm (Full Moon - 15th of each lunar month)
+**Credits:**
+- Core algorithms: Copyright (c) 2006 Ho Ngoc Duc
+- Astronomical algorithms: Jean Meeus
+- Monorepo & extensions: Vietnamese Calendar Project
 
 ## 🗺️ Roadmap
 
-### ✅ Phase 1 (Complete)
-- Can Chi calculations
-- Vietnamese Zodiac
-- Five Elements
-
-### ✅ Phase 2 (Complete)
-- 24 Solar Terms
-- Auspicious Hours (12-Star System)
-
-### 🔲 Phase 3 (Planned)
-- 12 Trực (Day officers)
-- Nạp Âm (60-cycle elements)
-- Ngày Hoàng Đạo (Day classifications)
-- 28 Star Mansions
-- Xung/Hợp relations
+- ✅ **Phase 1**: Monorepo foundation
+- ✅ **Phase 2**: Rust core implementation
+- ✅ **Phase 3**: CLI binary with Waybar
+- ⏳ **Phase 4**: WASM package
+- ⏳ **Phase 5**: Tauri desktop app
+- ⏳ **Phase 6**: CI/CD & documentation
 
 ## 🤝 Contributing
 
-Contributions welcome! Areas of interest:
-- Additional almanac features
-- UI/UX improvements
-- Documentation improvements
-- Bug reports and feature requests
-
-## 📄 License
-
-- Core algorithm: Copyright (c) 2006 Ho Ngoc Duc
-- Expert Engine & additions: MIT License
-
-## 🙏 Credits
-
-- **Astronomical algorithms:** Ho Ngoc Duc
-- **Based on:** Jean Meeus' "Astronomical Algorithms" (1998)
-- **Expert Engine:** Built with traditional Vietnamese almanac knowledge
+Contributions welcome! Please feel free to:
+- Report bugs
+- Suggest features
+- Submit pull requests
+- Improve documentation
 
 ## 📞 Support
 
-For issues, questions, or feature requests, please open an issue on GitHub.
+For issues or questions, please [open an issue](https://github.com/mnoyd/amlich/issues).
 
 ---
 
 **Made with ❤️ for Vietnamese culture and traditions**
 
-⭐ If you find this useful, please star the repository!
+⭐ Star this repo if you find it useful!

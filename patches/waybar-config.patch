@@ -1,0 +1,38 @@
+--- config.jsonc.orig	2026-02-02 00:00:00.000000000 +0000
++++ config.jsonc	2026-02-02 00:00:00.000000000 +0000
+@@ -5,7 +5,7 @@
+   "spacing": 0,
+   "height": 26,
+   "modules-left": ["custom/omarchy", "hyprland/workspaces"],
+-  "modules-center": ["clock", "custom/update", "custom/voxtype", "custom/screenrecording-indicator"],
++  "modules-center": ["custom/amlich", "custom/update", "custom/voxtype", "custom/screenrecording-indicator"],
+   "modules-right": [
+     "group/tray-expander",
+     "bluetooth",
+@@ -60,12 +60,20 @@
+     "on-click": "omarchy-launch-or-focus-tui btop",
+     "on-click-right": "alacritty"
+   },
+-  "clock": {
+-    "format": "{:L%A %H:%M}",
+-    "format-alt": "{:L%d %B W%V %Y}",
+-    "tooltip": false,
+-    "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
++  "custom/amlich": {
++    "exec": "amlich once",
++    "format": "{}",
++    "return-type": "json",
++    "interval": 30,
++    "signal": 9,
++    "on-click": "amlich toggle",
++    "tooltip": true
+   },
++  "clock": {
++    "format": "{:L%A %H:%M}",
++    "format-alt": "{:L%d %B W%V %Y}",
++    "tooltip": false,
++    "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
++  },
+   "network": {
+     "format-icons": ["󰤯", "󰤟", "󰤢", "󰤥", "󰤨"],
+     "format": "{icon}",

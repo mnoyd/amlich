@@ -1,0 +1,27 @@
+{
+  "name": "@amlich/wasm",
+  "version": "0.1.0",
+  "description": "Vietnamese Lunar Calendar - WASM bindings",
+  "main": "pkg/amlich_wasm.js",
+  "types": "pkg/amlich_wasm.d.ts",
+  "files": [
+    "pkg"
+  ],
+  "scripts": {
+    "build": "wasm-pack build --target web"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mnoyd/amlich.git",
+    "directory": "crates/amlich-wasm"
+  },
+  "keywords": [
+    "wasm",
+    "vietnamese",
+    "lunar",
+    "calendar",
+    "amlich"
+  ],
+  "author": "Vietnamese Calendar Project",
+  "license": "MIT"
+}

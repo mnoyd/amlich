@@ -1,35 +1,28 @@
 {
-  "name": "vietnamese-lunar-calendar-expert",
-  "version": "2.0.0",
-  "description": "Vietnamese Lunar Calendar Expert Engine with Can Chi, Solar Terms, and Auspicious Hours",
-  "main": "index.js",
+  "name": "amlich-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Vietnamese Lunar Calendar - Monorepo with Rust, WASM, and Tauri",
   "scripts": {
-    "test": "node test.js && node engine/test.js",
-    "demo": "node index.js today"
+    "test:core": "cd packages/core && npm test",
+    "build:rust": "cargo build --release",
+    "build:wasm": "cd crates/amlich-wasm && wasm-pack build --target web",
+    "dev:app": "cd app && npm run tauri dev",
+    "build:app": "cd app && npm run tauri build"
   },
-  "keywords": [
-    "vietnamese",
-    "lunar",
-    "calendar",
-    "amlich",
-    "can-chi",
-    "solar-terms",
-    "hoang-dao",
-    "almanac",
-    "tiet-khi",
-    "gio-hoang-dao"
+  "workspaces": [
+    "packages/*",
+    "app",
+    "crates/amlich-wasm"
   ],
   "author": "Vietnamese Calendar Project",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mnoyd/amlich-view.git"
+    "url": "https://github.com/mnoyd/amlich.git"
   },
   "bugs": {
-    "url": "https://github.com/mnoyd/amlich-view/issues"
+    "url": "https://github.com/mnoyd/amlich/issues"
   },
-  "homepage": "https://github.com/mnoyd/amlich-view#readme",
-  "engines": {
-    "node": ">=12.0.0"
-  }
+  "homepage": "https://github.com/mnoyd/amlich#readme"
 }

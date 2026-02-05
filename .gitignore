@@ -27,3 +27,21 @@ Thumbs.db
 # Temporary files
 tmp/
 temp/
+
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# WASM
+crates/amlich-wasm/pkg/
+crates/amlich-wasm/wasm-pack.log
+
+# Tauri
+app/src-tauri/target/
+app/src-tauri/Cargo.lock
+
+# Build artifacts
+dist/
+build/

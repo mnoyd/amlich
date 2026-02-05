@@ -169,493 +169,770 @@
   const monthTitle = () => `${monthNames[viewMonth - 1]} ${viewYear}`;
 </script>
 
-<div class="page">
-  <header class="hero">
-    <div>
-      <p class="eyebrow">Am Lich Desktop</p>
-      <h1>Lich am va tiet khi</h1>
-      <p class="subhead">
-        Tra cuu lich am, Can Chi, tiet khi va gio hoang dao theo thang.
-      </p>
+<div class="app-container">
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-mark">AL</div>
+      <span class="brand-name">Âm Lịch</span>
     </div>
-    <div class="hero-actions">
-      <button class="ghost" type="button" onclick={goToday}>Hom nay</button>
-      <button class="ghost" type="button" onclick={cycleHolidayFilter}>
-        {holidayFilter === "all" ? "Tat ca ngay le" : "Ngay le chinh"}
+
+    <div class="month-navigator">
+      <button class="icon-btn" onclick={prevMonth} aria-label="Previous Month">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
       </button>
-      <div class="switcher">
-        <button class="nav" type="button" onclick={prevMonth}>◀</button>
-        <span>{monthTitle()}</span>
-        <button class="nav" type="button" onclick={nextMonth}>▶</button>
-      </div>
-      <div class="legend">
-        <span class="legend-label">Hien thi:</span>
-        <span class="legend-chip">
-          {holidayFilter === "all" ? "Tat ca ngay le + mung 1/ram" : "Ngay le chinh"}
-        </span>
-      </div>
+      <span class="current-month">{monthTitle()}</span>
+      <button class="icon-btn" onclick={nextMonth} aria-label="Next Month">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+      </button>
+    </div>
+
+    <div class="actions">
+      <button class="action-btn secondary" onclick={goToday}>Hôm nay</button>
+      <button class="action-btn {holidayFilter === 'major' ? 'active' : ''}" onclick={cycleHolidayFilter} title="Toggle Holiday View">
+        {holidayFilter === "all" ? "Tất cả lễ" : "Lễ chính"}
+      </button>
     </div>
   </header>
 
-  <section class="content">
-    <div class="calendar">
-      <div class="weekdays">
-        {#each weekLabels as label}
-          <div>{label}</div>
+  <!-- Main Content Area -->
+  <main class="main-layout">
+    
+    <!-- Left: Calendar Grid -->
+    <section class="calendar-section">
+      <div class="weekday-header">
+        {#each weekLabels as label, i}
+          <div class="weekday-label" class:weekend={i === 0 || i === 6}>{label}</div>
         {/each}
       </div>
 
       {#if isLoading}
-        <div class="loading">Dang tai du lieu...</div>
+        <div class="status-message loading">
+          <div class="spinner"></div>
+          <p>Đang tải dữ liệu...</p>
+        </div>
       {:else if error}
-        <div class="error">{error}</div>
+        <div class="status-message error">{error}</div>
       {:else}
-        <div class="grid">
+        <div class="calendar-grid">
           {#each dayRows() as row}
             {#each row as day}
               {#if day}
+                {@const activeHolidays = filterHolidays(day.holidays)}
                 <button
                   type="button"
+                  class="day-card"
                   class:selected={selectedDay?.solar_date === day.solar_date}
                   class:today={
                     day.day === today.getDate() &&
                     day.month === today.getMonth() + 1 &&
                     day.year === today.getFullYear()
                   }
+                  class:has-holiday={activeHolidays.length > 0}
                   onclick={() => selectDay(day)}
                 >
-                  <span class="solar">{day.day}</span>
-                  <span class="lunar">
-                    {day.lunar_day}/{day.lunar_month}
-                  </span>
-                  <span class="canchi">{day.canchi_day}</span>
-                  {#if filterHolidays(day.holidays).length}
-                    <span class="holiday">{filterHolidays(day.holidays)[0].name}</span>
-                  {/if}
+                  <div class="day-header">
+                    <span class="solar-date">{day.day}</span>
+                    <div class="lunar-stack">
+                      <span class="lunar-date">{day.lunar_day}</span>
+                      <span class="lunar-month">/{day.lunar_month}</span>
+                    </div>
+                  </div>
+                  
+                  <div class="day-body">
+                    {#if day.day === 1 || day.day === 15}
+                      <div class="moon-phase">
+                        {day.day === 1 ? "🌑 Sóc" : "🌕 Vọng"}
+                      </div>
+                    {/if}
+                    
+                    <div class="holiday-pills">
+                      {#each activeHolidays.slice(0, 2) as holiday}
+                        <div class="pill {holiday.is_major ? 'major' : 'minor'}">
+                          {holiday.name}
+                        </div>
+                      {/each}
+                      {#if activeHolidays.length > 2}
+                        <div class="pill more">+{activeHolidays.length - 2}</div>
+                      {/if}
+                    </div>
+                  </div>
                 </button>
               {:else}
-                <div class="empty"></div>
+                <div class="day-card empty"></div>
               {/if}
             {/each}
           {/each}
         </div>
       {/if}
-    </div>
+    </section>
 
-    <aside class="detail">
+    <!-- Right: Detail Sidebar -->
+    <aside class="detail-panel">
       {#if selectedDay}
-        <div class="detail-card">
-          <p class="detail-date">{selectedDay.solar_date}</p>
-          <h2>
-            {selectedDay.day_of_week} · Am {selectedDay.lunar_date}
-          </h2>
-          <p class="detail-canchi">
-            Ngay {selectedDay.canchi_day} · Thang {selectedDay.canchi_month}
-          </p>
-          <p class="detail-canchi">Nam {selectedDay.canchi_year}</p>
+        <div class="detail-content">
+          <!-- Header Card -->
+          <div class="detail-header-card">
+            <div class="detail-solar-large">{selectedDay.day}</div>
+            <div class="detail-meta">
+              <div class="detail-weekday">{selectedDay.day_of_week}</div>
+              <div class="detail-full-date">Tháng {selectedDay.month}, {selectedDay.year}</div>
+            </div>
+            <div class="detail-lunar-box">
+              <div class="label">Âm Lịch</div>
+              <div class="value">{selectedDay.lunar_date}</div>
+              <div class="year-canchi">Năm {selectedDay.canchi_year}</div>
+            </div>
+          </div>
 
-          <div class="detail-section">
-            <h3>Ngay le</h3>
-            {#if filterHolidays(selectedDay.holidays).length}
+          <!-- Can Chi & Tiet Khi -->
+          <div class="info-group">
+            <div class="info-row">
+              <span class="label">Ngày</span>
+              <span class="value strong">{selectedDay.canchi_day}</span>
+            </div>
+            <div class="info-row">
+              <span class="label">Tháng</span>
+              <span class="value">{selectedDay.canchi_month}</span>
+            </div>
+            <div class="info-row highlight-jade">
+              <span class="label">Tiết Khí</span>
+              <span class="value">{selectedDay.tiet_khi}</span>
+            </div>
+          </div>
+
+          <!-- Holidays -->
+          {#if filterHolidays(selectedDay.holidays).length}
+            <div class="section-block">
+              <h3 class="section-title">Sự Kiện & Lễ</h3>
               <div class="holiday-list">
                 {#each filterHolidays(selectedDay.holidays) as holiday}
-                  <div class="holiday-item">
-                    <p class="holiday-name">{holiday.name}</p>
-                    <p class="holiday-desc">{holiday.description}</p>
-                    {#if holiday.lunar_day && holiday.lunar_month}
-                      <p class="holiday-lunar">
-                        Am: {holiday.lunar_day}/{holiday.lunar_month}
-                      </p>
+                  <div class="holiday-item {holiday.is_major ? 'major' : ''}">
+                    <div class="h-name">{holiday.name}</div>
+                    {#if holiday.description}
+                      <div class="h-desc">{holiday.description}</div>
                     {/if}
                   </div>
                 {/each}
               </div>
-            {:else}
-              <p class="detail-muted">Khong co ngay le ghi nhan.</p>
-            {/if}
-          </div>
+            </div>
+          {/if}
 
-          <div class="detail-section">
-            <h3>Tiet khi</h3>
-            <p class="detail-title">{selectedDay.tiet_khi}</p>
-            <p class="detail-subtitle">{selectedDay.tiet_khi_season}</p>
-            <p>{selectedDay.tiet_khi_description}</p>
-          </div>
-
-          <div class="detail-section">
-            <h3>Gio hoang dao</h3>
-            <div class="good-hours">
+          <!-- Good Hours -->
+          <div class="section-block">
+            <h3 class="section-title">Giờ Hoàng Đạo</h3>
+            <div class="good-hours-grid">
               {#each selectedDay.good_hours as hour}
-                <div class="hour">
-                  <span>{hour.hour_chi}</span>
-                  <span>{hour.time_range}</span>
-                  <span>{hour.star}</span>
+                <div class="good-hour-chip">
+                  <span class="chi">{hour.hour_chi}</span>
+                  <span class="range">{hour.time_range}</span>
                 </div>
               {/each}
             </div>
           </div>
         </div>
       {:else}
-        <div class="detail-card empty-state">
-          <p>Chon mot ngay de xem chi tiet.</p>
+        <div class="empty-state">
+          <p>Chọn một ngày để xem chi tiết</p>
         </div>
       {/if}
     </aside>
-  </section>
+
+  </main>
 </div>
 
 <style>
-  @import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&display=swap");
+  @import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600&display=swap");
+
+  :global(:root) {
+    /* Color Palette - Neo-Indochine Vibrant */
+    --bg-base: #FDFBF7;
+    --bg-gradient: radial-gradient(circle at 50% 0%, #FFF5E6 0%, #F5E6D3 100%);
+    
+    --primary-red: #D93025;
+    --primary-red-hover: #B31F15;
+    --accent-gold: #D4AF37;
+    --accent-jade: #2A6E64;
+    --accent-jade-light: #E0F2F1;
+    
+    --text-primary: #2C241B;
+    --text-secondary: #6B5D4D;
+    --text-tertiary: #9D8C78;
+    
+    --surface-white: rgba(255, 255, 255, 0.85);
+    --surface-hover: rgba(255, 255, 255, 0.95);
+    --border-subtle: rgba(107, 93, 77, 0.15);
+    
+    --shadow-soft: 0 8px 24px rgba(44, 36, 27, 0.06);
+    --shadow-hover: 0 12px 32px rgba(44, 36, 27, 0.1);
+    
+    --font-serif: "Source Serif 4", serif;
+    --font-sans: "Inter", sans-serif;
+  }
+
   :global(body) {
     margin: 0;
-    font-family: "Source Serif 4", "Iowan Old Style", "Palatino Linotype", serif;
-    background: radial-gradient(circle at top, #f3efe7 0%, #efe3cf 35%, #e2d6be 100%);
-    color: #1c1a14;
+    font-family: var(--font-serif);
+    background: var(--bg-gradient);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 
   :global(*) {
     box-sizing: border-box;
   }
 
-  .page {
-    min-height: 100vh;
-    padding: 32px 40px 48px;
+  /* App Container */
+  .app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 32px;
     display: flex;
     flex-direction: column;
-    gap: 32px;
-  }
-
-  .hero {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+    height: 100vh;
     gap: 24px;
   }
 
-  .eyebrow {
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 0.75rem;
-    margin: 0 0 8px;
-    color: #7a6345;
-  }
-
-  h1 {
-    font-size: 2.6rem;
-    margin: 0;
-  }
-
-  .subhead {
-    margin: 12px 0 0;
-    max-width: 440px;
-    color: #5a4a35;
-  }
-
-  .hero-actions {
+  /* Header */
+  .app-header {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    align-items: flex-end;
-  }
-
-  .legend {
-    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    font-size: 0.8rem;
-    color: #6b563c;
+    padding: 12px 24px;
+    background: var(--surface-white);
+    backdrop-filter: blur(12px);
+    border-radius: 100px; /* Pill shape header */
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-subtle);
   }
 
-  .legend-label {
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-size: 0.7rem;
-  }
-
-  .legend-chip {
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: rgba(58, 45, 28, 0.08);
-    border: 1px solid rgba(58, 45, 28, 0.2);
-    font-weight: 600;
-  }
-
-  .switcher {
+  .brand {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 10px 14px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 999px;
-    border: 1px solid rgba(121, 97, 61, 0.25);
-    font-weight: 600;
   }
 
-  .switcher span {
-    min-width: 120px;
-    text-align: center;
-  }
-
-  .nav {
-    border: none;
-    background: #3a2d1c;
-    color: #f7efe2;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    font-size: 0.9rem;
-    cursor: pointer;
-  }
-
-  .ghost {
-    background: transparent;
-    border: 1px solid rgba(58, 45, 28, 0.35);
-    border-radius: 999px;
-    padding: 8px 16px;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .content {
-    display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    gap: 32px;
-  }
-
-  .calendar {
-    background: rgba(255, 255, 255, 0.82);
-    padding: 24px;
-    border-radius: 24px;
-    box-shadow: 0 24px 60px rgba(41, 30, 16, 0.15);
-    backdrop-filter: blur(6px);
-  }
-
-  .weekdays {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    color: #7a6345;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(122, 99, 69, 0.2);
-  }
-
-  .grid {
-    margin-top: 16px;
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 12px;
-  }
-
-  .grid button,
-  .empty {
-    min-height: 96px;
-    border-radius: 16px;
-    padding: 12px;
-    border: 1px solid rgba(122, 99, 69, 0.2);
-    background: #fff9f0;
-    text-align: left;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .grid button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 20px rgba(41, 30, 16, 0.18);
-  }
-
-  .grid button.selected {
-    border-color: #3a2d1c;
-    background: #f7efe2;
-    box-shadow: 0 12px 24px rgba(58, 45, 28, 0.2);
-  }
-
-  .grid button.today {
-    outline: 2px solid rgba(202, 144, 80, 0.7);
-  }
-
-  .empty {
-    background: transparent;
-    border: 1px dashed rgba(122, 99, 69, 0.2);
-  }
-
-  .solar {
-    font-size: 1.15rem;
-    font-weight: 700;
-  }
-
-  .lunar,
-  .canchi {
-    font-size: 0.78rem;
-    color: #6b563c;
-  }
-
-  .canchi {
-    font-weight: 600;
-  }
-
-  .holiday {
-    font-size: 0.7rem;
-    color: #8a5a1c;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-
-  .detail {
-    position: sticky;
-    top: 24px;
-    align-self: start;
-  }
-
-  .detail-card {
-    background: #1f1710;
-    color: #f9f4ea;
-    padding: 24px;
-    border-radius: 24px;
-    box-shadow: 0 20px 40px rgba(31, 23, 16, 0.35);
-  }
-
-  .detail-card h2 {
-    margin: 8px 0 12px;
-    font-size: 1.5rem;
-  }
-
-  .detail-date {
-    margin: 0;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.18em;
-    color: rgba(249, 244, 234, 0.7);
-  }
-
-  .detail-canchi {
-    margin: 0;
-    color: rgba(249, 244, 234, 0.82);
-  }
-
-  .detail-section {
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid rgba(249, 244, 234, 0.18);
-  }
-
-  .holiday-list {
-    display: grid;
-    gap: 10px;
-  }
-
-  .holiday-item {
-    background: rgba(249, 244, 234, 0.08);
-    padding: 10px 12px;
-    border-radius: 12px;
-  }
-
-  .holiday-name {
-    margin: 0;
-    font-weight: 600;
-  }
-
-  .holiday-desc,
-  .holiday-lunar,
-  .detail-muted {
-    margin: 4px 0 0;
-    color: rgba(249, 244, 234, 0.75);
-    font-size: 0.85rem;
-  }
-
-  .detail-section h3 {
-    margin: 0 0 10px;
-    font-size: 0.95rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-  }
-
-  .detail-title {
-    margin: 0;
-    font-size: 1.2rem;
-    font-weight: 600;
-  }
-
-  .detail-subtitle {
-    margin: 4px 0 8px;
-    color: rgba(249, 244, 234, 0.7);
-  }
-
-  .good-hours {
-    display: grid;
-    gap: 10px;
-  }
-
-  .hour {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1.2fr;
-    gap: 8px;
-    font-size: 0.88rem;
-  }
-
-  .loading,
-  .error {
-    padding: 20px;
-    text-align: center;
-    font-weight: 600;
-  }
-
-  .error {
-    color: #a0342a;
-  }
-
-  .empty-state {
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    background: var(--primary-red);
+    color: white;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 240px;
+    font-weight: 700;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(217, 48, 37, 0.25);
+  }
+
+  .brand-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+
+  .month-navigator {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .current-month {
+    font-size: 1.35rem;
+    font-weight: 600;
+    min-width: 140px;
+    text-align: center;
+    font-feature-settings: "tnum";
+  }
+
+  .icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    display: flex;
+  }
+
+  .icon-btn:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-primary);
+  }
+
+  .actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .action-btn {
+    padding: 8px 16px;
+    border-radius: 99px;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--border-subtle);
+    background: transparent;
+    color: var(--text-secondary);
+  }
+
+  .action-btn:hover {
+    background: rgba(0,0,0,0.04);
+    color: var(--text-primary);
+  }
+
+  .action-btn.secondary {
+    background: rgba(42, 110, 100, 0.1);
+    color: var(--accent-jade);
+    border-color: transparent;
+  }
+
+  .action-btn.active {
+    background: var(--primary-red);
+    color: white;
+    border-color: var(--primary-red);
+    box-shadow: 0 4px 12px rgba(217, 48, 37, 0.2);
+  }
+
+  /* Main Layout */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    flex: 1;
+    min-height: 0; /* Prevent overflow */
+  }
+
+  /* Calendar Section */
+  .calendar-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .weekday-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 12px;
+    padding: 0 12px;
+  }
+
+  .weekday-label {
+    text-align: center;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .weekday-label.weekend {
+    color: var(--primary-red);
+    opacity: 0.7;
+  }
+
+  .calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 1fr); /* Force exactly 6 equal rows */
+    gap: 12px;
+    height: 100%;
+    min-height: 0; /* Important for grid nesting */
+    padding: 4px; 
+  }
+
+  /* Day Card */
+  .day-card {
+    background: var(--surface-white);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: 16px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Clip content that overflows */
+    min-height: 0; /* Allow shrinking below content size */
+  }
+
+  .day-card:hover {
+    transform: translateY(-4px);
+    background: var(--surface-hover);
+    box-shadow: var(--shadow-hover);
+    z-index: 2;
+  }
+
+  .day-card.selected {
+    border: 2px solid var(--accent-jade);
+    background: #fff;
+  }
+
+  .day-card.today {
+    background: #FFF8F7;
+  }
+  
+  .day-card.today::after {
+    content: "";
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    border-radius: 16px;
+    border: 2px solid var(--primary-red);
+    pointer-events: none;
+  }
+
+  .day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  .solar-date {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+  }
+
+  .today .solar-date {
+    color: var(--primary-red);
+  }
+
+  .lunar-stack {
+    display: flex;
+    align-items: baseline;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .lunar-month {
+    font-size: 0.65rem;
+    opacity: 0.8;
+  }
+
+  .day-body {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    justify-content: flex-end;
+  }
+
+  .moon-phase {
+    font-size: 0.7rem;
+    color: var(--accent-jade);
+    font-weight: 600;
+    font-family: var(--font-sans);
+  }
+
+  .holiday-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .pill {
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .pill.major {
+    background: var(--primary-red);
+    color: white;
+  }
+
+  .pill.minor {
+    background: rgba(212, 175, 55, 0.15);
+    color: #8A6D1C;
+  }
+  
+  .pill.more {
+    background: var(--text-tertiary);
+    color: white;
+  }
+
+  .day-card.empty {
+    background: transparent;
+    border: none;
+    cursor: default;
+    box-shadow: none;
+  }
+
+  /* Detail Panel */
+  .detail-panel {
+    background: var(--surface-white);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  .detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .detail-header-card {
+    text-align: center;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 20px;
+  }
+
+  .detail-solar-large {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--primary-red);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .detail-meta {
+    font-family: var(--font-sans);
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+  }
+
+  .detail-weekday {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .detail-full-date {
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
+
+  .detail-lunar-box {
+    background: rgba(44, 36, 27, 0.03);
+    border-radius: 12px;
+    padding: 12px;
+  }
+
+  .detail-lunar-box .label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    letter-spacing: 0.1em;
+  }
+
+  .detail-lunar-box .value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 4px 0;
+  }
+  
+  .year-canchi {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
+  }
+
+  .info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border-subtle);
+  }
+
+  .info-row .label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .info-row .value {
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+
+  .info-row .value.strong {
+    font-weight: 700;
+  }
+
+  .info-row.highlight-jade .value {
+    color: var(--accent-jade);
+    font-weight: 700;
+  }
+
+  .section-block {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .section-title {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-tertiary);
+    margin: 0;
+    font-weight: 700;
+    border-left: 3px solid var(--accent-gold);
+    padding-left: 8px;
+  }
+
+  .holiday-item {
+    background: #FFF8F0;
+    border-left: 3px solid var(--accent-gold);
+    padding: 10px 12px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .holiday-item.major {
+    background: #FFF0F0;
+    border-left-color: var(--primary-red);
+  }
+
+  .h-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+  }
+
+  .h-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .good-hours-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .good-hour-chip {
+    background: var(--accent-jade-light);
+    color: var(--accent-jade);
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
   }
 
-  @media (max-width: 980px) {
-    .page {
-      padding: 24px;
-    }
+  .good-hour-chip .chi {
+    font-weight: 700;
+  }
+  
+  .good-hour-chip .range {
+    font-size: 0.7rem;
+    opacity: 0.8;
+  }
 
-    .hero {
-      flex-direction: column;
-      align-items: flex-start;
-    }
+  .status-message {
+    grid-column: span 7;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: var(--text-tertiary);
+  }
 
-    .hero-actions {
-      align-items: flex-start;
-    }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid rgba(0,0,0,0.1);
+    border-top-color: var(--primary-red);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
 
-    .content {
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Responsive Adjustments */
+  @media (max-width: 1024px) {
+    .main-layout {
       grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+    }
+    
+    .detail-panel {
+      height: auto;
+      max-height: 500px;
     }
 
-    .detail {
-      position: static;
+    .calendar-grid {
+      height: auto;
+      overflow: visible;
     }
   }
 
   @media (max-width: 640px) {
-    h1 {
-      font-size: 2rem;
+    .app-container {
+      padding: 16px;
     }
 
-    .grid {
-      gap: 8px;
+    .app-header {
+      padding: 12px;
+      flex-direction: column;
+      gap: 12px;
+      border-radius: 24px;
     }
 
-    .grid button,
-    .empty {
-      min-height: 84px;
+    .actions {
+      width: 100%;
+      justify-content: space-between;
     }
 
-    .hour {
-      grid-template-columns: 1fr;
+    .calendar-grid {
+      gap: 6px;
+    }
+    
+    .day-card {
+      min-height: 70px;
+      padding: 6px;
+    }
+
+    .solar-date {
+      font-size: 1.2rem;
+    }
+    
+    .pill {
+      font-size: 0.6rem;
+      padding: 1px 4px;
     }
   }
 </style>
