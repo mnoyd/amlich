@@ -167,6 +167,23 @@
   };
 
   const monthTitle = () => `${monthNames[viewMonth - 1]} ${viewYear}`;
+
+  const ZODIAC_HOURS = [
+    { name: "Tý", time: "23:00-01:00" },
+    { name: "Sửu", time: "01:00-03:00" },
+    { name: "Dần", time: "03:00-05:00" },
+    { name: "Mão", time: "05:00-07:00" },
+    { name: "Thìn", time: "07:00-09:00" },
+    { name: "Tỵ", time: "09:00-11:00" },
+    { name: "Ngọ", time: "11:00-13:00" },
+    { name: "Mùi", time: "13:00-15:00" },
+    { name: "Thân", time: "15:00-17:00" },
+    { name: "Dậu", time: "17:00-19:00" },
+    { name: "Tuất", time: "19:00-21:00" },
+    { name: "Hợi", time: "21:00-23:00" },
+  ];
+
+  let hoveredZodiac = $state<{name: string, time: string} | null>(null);
 </script>
 
 <div class="app-container">
@@ -318,16 +335,44 @@
             </div>
           {/if}
 
-          <!-- Good Hours -->
+          <!-- Good Hours (Circular Zodiac Clock) -->
           <div class="section-block">
-            <h3 class="section-title">Giờ Hoàng Đạo</h3>
-            <div class="good-hours-grid">
-              {#each selectedDay.good_hours as hour}
-                <div class="good-hour-chip">
-                  <span class="chi">{hour.hour_chi}</span>
-                  <span class="range">{hour.time_range}</span>
+            <h3 class="section-title">Giờ Hoàng Đạo (Zodiac Clock)</h3>
+            <div class="zodiac-clock-container">
+              <div class="zodiac-clock">
+                <!-- Center Info -->
+                <div class="clock-center">
+                  {#if hoveredZodiac}
+                    <div class="center-label">{hoveredZodiac.name}</div>
+                    <div class="center-time">{hoveredZodiac.time}</div>
+                  {:else}
+                    <div class="center-label">Giờ</div>
+                    <div class="center-time">Hoàng Đạo</div>
+                  {/if}
                 </div>
-              {/each}
+
+                <!-- Clock Segments -->
+                {#each ZODIAC_HOURS as zodiac, i}
+                  {@const isGood = selectedDay.good_hours.some(h => h.hour_chi.includes(zodiac.name))}
+                  {@const rotation = i * 30}
+                  <!-- Outer wrapper rotates to position the segment -->
+                  <div 
+                    class="clock-segment-wrapper" 
+                    style="transform: rotate({rotation}deg);"
+                  >
+                    <!-- Inner content rotates back to keep text upright, or just holds the shape -->
+                    <button 
+                      class="clock-segment {isGood ? 'good' : ''}"
+                      onmouseenter={() => hoveredZodiac = zodiac}
+                      onmouseleave={() => hoveredZodiac = null}
+                      aria-label="{zodiac.name} {isGood ? '(Good)' : ''}"
+                    >
+                      <span class="segment-mark"></span>
+                      <span class="segment-text" style="transform: rotate(-{rotation}deg)">{zodiac.name}</span>
+                    </button>
+                  </div>
+                {/each}
+              </div>
             </div>
           </div>
         </div>
@@ -834,31 +879,115 @@
     line-height: 1.4;
   }
 
-  .good-hours-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+  /* Zodiac Clock */
+  .zodiac-clock-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
   }
 
-  .good-hour-chip {
-    background: var(--accent-jade-light);
-    color: var(--accent-jade);
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 0.8rem;
+  .zodiac-clock {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 2px solid rgba(212, 175, 55, 0.2); /* Subtle Gold Ring */
+    background: radial-gradient(circle, #fff 40%, rgba(255,248,240, 0.5) 100%);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  }
+
+  .clock-center {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 100px;
+    height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .center-label {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-red);
+    font-family: var(--font-serif);
+  }
+
+  .center-time {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    margin-top: 2px;
+  }
+
+  /* Segments */
+  .clock-segment-wrapper {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+
+  .clock-segment {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 50%; /* Reaches from top to center */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    pointer-events: auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    text-align: center;
+    padding-top: 10px;
+    transition: all 0.2s;
   }
 
-  .good-hour-chip .chi {
+  .segment-mark {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.1);
+    margin-bottom: 4px;
+    transition: all 0.3s;
+  }
+
+  .segment-text {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    transition: all 0.3s;
+  }
+
+  /* Active/Good State */
+  .clock-segment.good .segment-mark {
+    background: var(--accent-jade);
+    box-shadow: 0 0 8px rgba(42, 110, 100, 0.5);
+    transform: scale(1.5);
+  }
+
+  .clock-segment.good .segment-text {
+    color: var(--accent-jade);
     font-weight: 700;
   }
-  
-  .good-hour-chip .range {
-    font-size: 0.7rem;
-    opacity: 0.8;
+
+  .clock-segment:hover .segment-mark {
+    background: var(--primary-red);
+  }
+
+  .clock-segment:hover .segment-text {
+    color: var(--primary-red);
   }
 
   .status-message {
