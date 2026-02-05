@@ -1,0 +1,170 @@
+═══════════════════════════════════════════════════════════════
+🌙 VIETNAMESE LUNAR CALENDAR - COMPLETE PACKAGE 🌙
+═══════════════════════════════════════════════════════════════
+
+✅ WHAT YOU HAVE:
+
+1. ✨ CORE ALGORITHM (amlich-core.js)
+   - Hồ Ngọc Đức's astronomical calculations
+   - Converts between Solar ↔ Lunar dates
+   - Accurate for years 1900-2199
+
+2. 🎊 VIETNAMESE HOLIDAYS (vietnamese-holidays.js)
+   - All major festivals (Tết, Phật Đản, Vu Lan, Trung Thu, etc.)
+   - Monthly Rằm (full moon) and Mùng 1 (new moon)
+   - Export to Google Calendar (CSV & iCal)
+
+3. 💻 COMMAND LINE APP (index.js)
+   - Run without browser: node index.js
+   - Check today's lunar date
+   - List all holidays
+   - Convert any date
+   - Export to calendar files
+
+4. 🖥️ DESKTOP WEB APP (index.html)
+   - Beautiful visual interface
+   - Works offline
+   - Just open in browser - no server needed!
+   - Export calendar files directly
+
+═══════════════════════════════════════════════════════════════
+🚀 QUICK START - 3 WAYS TO USE:
+═══════════════════════════════════════════════════════════════
+
+METHOD 1: Check Today (Fastest)
+───────────────────────────────
+$ node index.js today
+
+Output:
+📆 Today (5/2/2026):
+   Âm lịch: 18/12/2025
+
+
+METHOD 2: Export to Google Calendar
+────────────────────────────────────
+$ node index.js export-ics 2024
+
+Then:
+1. Go to calendar.google.com
+2. Settings → Import & Export
+3. Upload vietnamese-calendar-2024.ics
+✅ Done! All Vietnamese holidays added!
+
+
+METHOD 3: Desktop App (No Terminal)
+────────────────────────────────────
+Just double-click: index.html
+
+You'll see:
+- Today's solar & lunar dates
+- All Vietnamese holidays for the year
+- Date converter (solar ↔ lunar)
+- Export buttons for calendar files
+
+═══════════════════════════════════════════════════════════════
+📅 HOLIDAYS INCLUDED:
+═══════════════════════════════════════════════════════════════
+
+Major Festivals:
+🎊 Tết Nguyên Đán (1/1 Lunar) - Vietnamese New Year
+🏮 Tết Nguyên Tiêu (15/1 Lunar) - Lantern Festival
+🌸 Thanh Minh (~5/4 Solar) - Tomb Sweeping Day
+🙏 Phật Đản (15/4 Lunar) - Buddha's Birthday
+🐉 Tết Đoan Ngọ (5/5 Lunar) - Dragon Boat Festival
+👪 Vu Lan (15/7 Lunar) - Parents' Day
+🥮 Tết Trung Thu (15/8 Lunar) - Mid-Autumn Festival
+🏔️ Tết Trùng Cửu (9/9 Lunar) - Double Ninth
+🎋 Tết Hạ Nguyên (15/10 Lunar) - Lower Nguyên
+🍲 Ông Táo (23/12 Lunar) - Kitchen Gods' Day
+
+Monthly Events:
+🌑 Mùng 1 - New Moon (1st of each lunar month) x12
+🌕 Rằm - Full Moon (15th of each lunar month) x12
+
+═══════════════════════════════════════════════════════════════
+📖 COMMAND REFERENCE:
+═══════════════════════════════════════════════════════════════
+
+node index.js today
+  → Show today's lunar date
+
+node index.js show 2024
+  → List all holidays for 2024
+
+node index.js export-ics 2024
+  → Export to .ics (Google/Apple/Outlook)
+
+node index.js export-csv 2024
+  → Export to .csv (Google Calendar)
+
+node index.js convert 1 1 2024 lunar
+  → Convert 1/1/2024 Lunar → Solar
+  
+node index.js convert 10 2 2024 solar
+  → Convert 10/2/2024 Solar → Lunar
+
+node test.js
+  → Run tests
+
+═══════════════════════════════════════════════════════════════
+📂 FILES:
+═══════════════════════════════════════════════════════════════
+
+amlich-core.js                    Core algorithm
+vietnamese-holidays.js            Holiday definitions (Node.js)
+vietnamese-holidays-browser.js    Holiday definitions (Browser)
+index.js                          CLI app
+index.html                        Web viewer
+app.js                           Web app logic
+test.js                          Tests
+README.md                        Full documentation
+QUICKSTART.md                    Quick guide
+vietnamese-calendar-2024.ics     Sample export (iCal)
+vietnamese-calendar-2024.csv     Sample export (CSV)
+
+═══════════════════════════════════════════════════════════════
+💡 USE CASES:
+═══════════════════════════════════════════════════════════════
+
+1. Add to Google Calendar
+   → Never miss Rằm or important lunar dates
+   
+2. Desktop Widget
+   → Keep index.html open in a browser tab
+   
+3. Planning Tool
+   → Check lunar dates for weddings, ceremonies
+   
+4. Family Sharing
+   → Export .ics and share with relatives
+   
+5. Custom Development
+   → Use the algorithm in your own apps
+
+═══════════════════════════════════════════════════════════════
+🎯 NEXT STEPS:
+═══════════════════════════════════════════════════════════════
+
+1. Try it now:
+   $ node index.js today
+
+2. Add to Google Calendar:
+   $ node index.js export-ics 2024
+   Then import the .ics file
+
+3. Open desktop app:
+   $ open index.html
+   (or just double-click the file)
+
+4. Read full docs:
+   $ cat README.md
+   $ cat QUICKSTART.md
+
+═══════════════════════════════════════════════════════════════
+
+Enjoy your Vietnamese Lunar Calendar! 🌙
+
+Created with ❤️ using Hồ Ngọc Đức's algorithm
+Based on Jean Meeus' "Astronomical Algorithms" (1998)
+
+═══════════════════════════════════════════════════════════════

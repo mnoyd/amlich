@@ -1,0 +1,14 @@
+{
+  "name": "amlich-view",
+  "version": "1.0.0",
+  "description": "Vietnamese Lunar Calendar Viewer & Google Calendar Sync",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js"
+  },
+  "keywords": ["amlich", "vietnamese", "lunar", "calendar"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
