@@ -139,6 +139,20 @@
     viewMonth = today.getMonth() + 1;
   }
 
+  function toggleSettings() {
+    isSettingsOpen = !isSettingsOpen;
+    if (isSettingsOpen) {
+      jumpMonth = viewMonth;
+      jumpYear = viewYear;
+    }
+  }
+
+  function applyJump() {
+    viewMonth = jumpMonth;
+    viewYear = jumpYear;
+    isSettingsOpen = false;
+  }
+
   const dayRows = () => {
     if (!monthData) return [] as (DayCell | null)[][];
     const rows: (DayCell | null)[][] = [];
@@ -185,6 +199,11 @@
 
   let hoveredZodiac = $state<{name: string, time: string} | null>(null);
   let currentHandRotation = $state(0);
+  
+  // Settings & Menu State
+  let isSettingsOpen = $state(false);
+  let jumpMonth = $state(viewMonth);
+  let jumpYear = $state(viewYear);
 
   $effect(() => {
     const updateHand = () => {
@@ -223,9 +242,51 @@
 
     <div class="actions">
       <button class="action-btn secondary" onclick={goToday}>Hôm nay</button>
-      <button class="action-btn {holidayFilter === 'major' ? 'active' : ''}" onclick={cycleHolidayFilter} title="Toggle Holiday View">
-        {holidayFilter === "all" ? "Tất cả lễ" : "Lễ chính"}
-      </button>
+      
+      <!-- Settings Toggle -->
+      <div class="settings-wrapper">
+        <button class="icon-btn settings-btn {isSettingsOpen ? 'active' : ''}" onclick={toggleSettings} aria-label="Settings">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+
+        <!-- Popover Menu -->
+        {#if isSettingsOpen}
+          <div class="settings-popover">
+            <div class="popover-header">Cài đặt</div>
+            
+            <div class="popover-row">
+              <div class="popover-label">
+                <span>Lễ hội chính</span>
+                <span class="sub-label">Chỉ hiện ngày lễ lớn</span>
+              </div>
+              <button 
+                class="toggle-switch {holidayFilter === 'major' ? 'checked' : ''}" 
+                onclick={cycleHolidayFilter}
+                aria-label="Toggle Holiday Filter"
+              >
+                <div class="toggle-thumb"></div>
+              </button>
+            </div>
+            
+            <div class="popover-divider"></div>
+
+            <div class="popover-section">
+              <div class="popover-label">Đi tới ngày</div>
+              <div class="jump-inputs">
+                <div class="input-group">
+                  <label for="jump-month">Tháng</label>
+                  <input id="jump-month" type="number" min="1" max="12" bind:value={jumpMonth} class="jump-input">
+                </div>
+                <div class="input-group">
+                  <label for="jump-year">Năm</label>
+                  <input id="jump-year" type="number" min="1900" max="2100" bind:value={jumpYear} class="jump-input">
+                </div>
+              </div>
+              <button class="apply-btn" onclick={applyJump}>Xác nhận</button>
+            </div>
+          </div>
+        {/if}
+      </div>
     </div>
   </header>
 
@@ -415,6 +476,8 @@
   :global(:root) {
     /* Color Palette - Neo-Indochine Vibrant */
     --bg-base: #FDFBF7;
+    /* Adding texture via noise pattern */
+    --bg-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
     --bg-gradient: radial-gradient(circle at 50% 0%, #FFF5E6 0%, #F5E6D3 100%);
     
     --primary-red: #D93025;
@@ -441,7 +504,9 @@
   :global(body) {
     margin: 0;
     font-family: var(--font-serif);
-    background: var(--bg-gradient);
+    background-color: var(--bg-base);
+    background-image: var(--bg-pattern), var(--bg-gradient);
+    background-blend-mode: overlay, normal;
     color: var(--text-primary);
     min-height: 100vh;
     overflow-x: hidden;
@@ -509,11 +574,13 @@
   }
 
   .current-month {
-    font-size: 1.35rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    font-weight: 700;
     min-width: 140px;
     text-align: center;
     font-feature-settings: "tnum";
+    color: var(--primary-red);
+    letter-spacing: -0.01em;
   }
 
   .icon-btn {
@@ -561,11 +628,166 @@
     border-color: transparent;
   }
 
-  .action-btn.active {
+  /* Settings Menu */
+  .settings-wrapper {
+    position: relative;
+  }
+
+  .settings-btn.active {
+    background: var(--surface-hover);
+    color: var(--primary-red);
+  }
+
+  .settings-popover {
+    position: absolute;
+    top: 140%;
+    right: 0;
+    width: 280px;
+    background: #fff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+    padding: 16px;
+    z-index: 100;
+    animation: popIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .popover-header {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .popover-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+  }
+
+  .popover-label {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .sub-label {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    font-weight: 400;
+    margin-top: 2px;
+  }
+
+  /* Toggle Switch */
+  .toggle-switch {
+    width: 44px;
+    height: 24px;
+    background: #E0E0E0;
+    border-radius: 99px;
+    position: relative;
+    cursor: pointer;
+    border: none;
+    padding: 2px;
+    transition: all 0.3s;
+  }
+
+  .toggle-switch.checked {
     background: var(--primary-red);
+  }
+
+  .toggle-thumb {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+
+  .toggle-switch.checked .toggle-thumb {
+    transform: translateX(20px);
+  }
+
+  .popover-divider {
+    height: 1px;
+    background: var(--border-subtle);
+    margin: 16px 0;
+  }
+
+  .popover-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .jump-inputs {
+    display: flex;
+    gap: 12px;
+  }
+
+  .input-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .input-group label {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .jump-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    text-align: center;
+    background: #FAFAFA;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    transition: all 0.2s;
+  }
+
+  .jump-input:focus {
+    outline: none;
+    border-color: var(--accent-jade);
+    background: white;
+    box-shadow: 0 0 0 3px var(--accent-jade-light);
+  }
+
+  .apply-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--accent-jade);
     color: white;
-    border-color: var(--primary-red);
-    box-shadow: 0 4px 12px rgba(217, 48, 37, 0.2);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    margin-top: 4px;
+  }
+
+  .apply-btn:hover {
+    background: #235c53;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(42, 110, 100, 0.2);
   }
 
   /* Main Layout */
@@ -594,16 +816,18 @@
   .weekday-label {
     text-align: center;
     font-family: var(--font-sans);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-tertiary);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
+    padding-bottom: 4px;
+    border-bottom: 1px solid transparent;
   }
 
   .weekday-label.weekend {
     color: var(--primary-red);
-    opacity: 0.7;
+    opacity: 0.8;
   }
 
   .calendar-grid {
@@ -643,9 +867,14 @@
     z-index: 2;
   }
 
+  .day-card:active {
+    transform: scale(0.98);
+  }
+
   .day-card.selected {
     border: 2px solid var(--accent-jade);
     background: #fff;
+    box-shadow: 0 4px 12px rgba(42, 110, 100, 0.15);
   }
 
   .day-card.today {
@@ -807,10 +1036,11 @@
   }
 
   .detail-lunar-box .label {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     text-transform: uppercase;
     color: var(--text-tertiary);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
+    font-weight: 600;
   }
 
   .detail-lunar-box .value {
@@ -842,7 +1072,10 @@
 
   .info-row .label {
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-variant: small-caps;
   }
 
   .info-row .value {
@@ -866,14 +1099,15 @@
   }
 
   .section-title {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     color: var(--text-tertiary);
     margin: 0;
     font-weight: 700;
     border-left: 3px solid var(--accent-gold);
-    padding-left: 8px;
+    padding-left: 10px;
+    font-family: var(--font-sans);
   }
 
   .holiday-item {
