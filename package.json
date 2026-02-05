@@ -1,14 +1,35 @@
 {
-  "name": "amlich-view",
-  "version": "1.0.0",
-  "description": "Vietnamese Lunar Calendar Viewer & Google Calendar Sync",
+  "name": "vietnamese-lunar-calendar-expert",
+  "version": "2.0.0",
+  "description": "Vietnamese Lunar Calendar Expert Engine with Can Chi, Solar Terms, and Auspicious Hours",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "node test.js"
+    "test": "node test.js && node engine/test.js",
+    "demo": "node index.js today"
   },
-  "keywords": ["amlich", "vietnamese", "lunar", "calendar"],
-  "author": "",
+  "keywords": [
+    "vietnamese",
+    "lunar",
+    "calendar",
+    "amlich",
+    "can-chi",
+    "solar-terms",
+    "hoang-dao",
+    "almanac",
+    "tiet-khi",
+    "gio-hoang-dao"
+  ],
+  "author": "Vietnamese Calendar Project",
   "license": "MIT",
-  "dependencies": {}
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/amlich-view.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_USERNAME/amlich-view/issues"
+  },
+  "homepage": "https://github.com/YOUR_USERNAME/amlich-view#readme",
+  "engines": {
+    "node": ">=12.0.0"
+  }
 }
