@@ -223,5 +223,6 @@ module.exports = {
 	convertLunar2Solar: convertLunar2Solar,
 	convertSolar2Lunar: convertSolar2Lunar,
 	jdFromDate: jdFromDate,
-	jdToDate: jdToDate
+	jdToDate: jdToDate,
+	SunLongitude: SunLongitude
 };

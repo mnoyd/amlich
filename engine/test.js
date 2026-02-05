@@ -1,7 +1,8 @@
 /**
  * Test suite for Vietnamese Lunar Calendar Expert Engine
  * 
- * Verifies Can Chi calculations against known reference dates
+ * Verifies Can Chi calculations, Solar Terms, and Auspicious Hours
+ * against known reference dates
  */
 
 const { getDayInfo, formatDayInfo } = require('./index.js');
@@ -121,6 +122,26 @@ REFERENCE_DATES.forEach((testCase, index) => {
             console.log(`✅ Lunar date: ${info.lunar.dateString} (PASS)`);
         } else {
             console.log(`❌ Lunar date: Expected ${testCase.expected.lunar.day}/${testCase.expected.lunar.month}/${testCase.expected.lunar.year}, got ${info.lunar.dateString} (FAIL)`);
+            testPassed = false;
+        }
+    }
+    
+    // Verify Solar Terms (Tiết khí) if expected
+    if (testCase.expected.tietKhi) {
+        if (info.tietKhi.name === testCase.expected.tietKhi) {
+            console.log(`✅ Tiết khí: ${info.tietKhi.name} (PASS)`);
+        } else {
+            console.log(`❌ Tiết khí: Expected ${testCase.expected.tietKhi}, got ${info.tietKhi.name} (FAIL)`);
+            testPassed = false;
+        }
+    }
+    
+    // Verify Auspicious Hours count
+    if (testCase.expected.goodHoursCount) {
+        if (info.gioHoangDao.goodHourCount === testCase.expected.goodHoursCount) {
+            console.log(`✅ Good hours count: ${info.gioHoangDao.goodHourCount} (PASS)`);
+        } else {
+            console.log(`❌ Good hours count: Expected ${testCase.expected.goodHoursCount}, got ${info.gioHoangDao.goodHourCount} (FAIL)`);
             testPassed = false;
         }
     }

@@ -16,6 +16,8 @@
 const { jdFromDate, convertSolar2Lunar } = require('../amlich-core.js');
 const { getDayCanChi, getMonthCanChi, getYearCanChi } = require('./canchi.js');
 const { THU } = require('./types.js');
+const { getTietKhi } = require('./tietkhi.js');
+const { getGioHoangDao } = require('./gio-hoang-dao.js');
 
 /**
  * Get comprehensive information for a given solar date
@@ -47,6 +49,12 @@ function getDayInfo(dd, mm, yyyy, options = {}) {
     const dayCanChi = getDayCanChi(jd);
     const monthCanChi = getMonthCanChi(lunarMonth, lunarYear, isLeapMonth);
     const yearCanChi = getYearCanChi(lunarYear);
+    
+    // Calculate Solar Term (Tiết Khí)
+    const tietKhi = getTietKhi(jd, timeZone);
+    
+    // Calculate Auspicious Hours (Giờ Hoàng Đạo)
+    const gioHoangDao = getGioHoangDao(dayCanChi.chiIndex);
     
     return {
         // Solar date information
@@ -81,6 +89,24 @@ function getDayInfo(dd, mm, yyyy, options = {}) {
             full: `${dayCanChi.full}, tháng ${monthCanChi.full}, năm ${yearCanChi.full}`
         },
         
+        // Solar Term (Tiết Khí)
+        tietKhi: {
+            name: tietKhi.name,
+            description: tietKhi.description,
+            index: tietKhi.index,
+            longitude: tietKhi.longitude,
+            currentLongitude: tietKhi.currentLongitude,
+            season: tietKhi.season
+        },
+        
+        // Auspicious Hours (Giờ Hoàng Đạo)
+        gioHoangDao: {
+            goodHours: gioHoangDao.goodHours,
+            goodHourCount: gioHoangDao.goodHourCount,
+            summary: gioHoangDao.summary,
+            allHours: gioHoangDao.allHours
+        },
+        
         // Metadata about calculation methods
         _meta: {
             version: '1.0.0',
@@ -88,7 +114,9 @@ function getDayInfo(dd, mm, yyyy, options = {}) {
             methods: {
                 dayCanChi: 'jd-based: (jd+9)%10, (jd+1)%12',
                 monthCanChi: 'lunar-month-based with year-stem table',
-                yearCanChi: 'lunar-year-based: (year+6)%10, (year+8)%12'
+                yearCanChi: 'lunar-year-based: (year+6)%10, (year+8)%12',
+                tietKhi: 'sun-longitude-based: floor(degrees/15)',
+                gioHoangDao: '12-star-system: day-branch determines cycle start'
             },
             conventions: {
                 lunarMonth1Branch: 'Dần (index 2)',
@@ -130,6 +158,13 @@ function formatDayInfo(dayInfo) {
     lines.push(`   • Năm: ${dayInfo.canChi.year.full} (${dayInfo.canChi.year.conGiap})`);
     lines.push(`🌟 Ngũ hành:`);
     lines.push(`   • Ngày: ${dayInfo.canChi.day.nguHanh.can} (Can) - ${dayInfo.canChi.day.nguHanh.chi} (Chi)`);
+    lines.push(`🌤️  Tiết khí: ${dayInfo.tietKhi.name} - ${dayInfo.tietKhi.season}`);
+    lines.push(`   • ${dayInfo.tietKhi.description}`);
+    lines.push(`   • Kinh độ mặt trời: ${dayInfo.tietKhi.currentLongitude}°`);
+    lines.push(`⏰ Giờ Hoàng Đạo (${dayInfo.gioHoangDao.goodHourCount} giờ tốt):`);
+    dayInfo.gioHoangDao.goodHours.forEach(h => {
+        lines.push(`   • ${h.hourChi} (${h.timeRange}) - ${h.star}`);
+    });
     
     return lines.join('\n');
 }
