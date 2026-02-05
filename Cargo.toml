@@ -1,0 +1,28 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/amlich-core",
+    "crates/amlich-cli",
+    "crates/amlich-wasm",
+    "app/src-tauri",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Vietnamese Calendar Project"]
+license = "MIT"
+repository = "https://github.com/mnoyd/amlich"
+homepage = "https://github.com/mnoyd/amlich"
+
+[workspace.dependencies]
+# Shared dependencies across workspace
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+chrono = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

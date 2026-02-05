@@ -1,0 +1,191 @@
+use serde::Serialize;
+use std::collections::HashMap;
+
+use amlich_core::holidays::{get_vietnamese_holidays, Holiday};
+
+#[derive(Debug, Serialize, Clone)]
+struct GoodHour {
+    hour_chi: String,
+    time_range: String,
+    star: String,
+}
+
+#[derive(Debug, Serialize, Clone)]
+struct HolidayInfo {
+    name: String,
+    description: String,
+    is_solar: bool,
+    lunar_day: Option<i32>,
+    lunar_month: Option<i32>,
+    is_major: bool,
+}
+
+#[derive(Debug, Serialize, Clone)]
+struct DayCell {
+    day: i32,
+    month: i32,
+    year: i32,
+    day_of_week_index: usize,
+    day_of_week: String,
+    solar_date: String,
+    lunar_day: i32,
+    lunar_month: i32,
+    lunar_year: i32,
+    lunar_leap: bool,
+    lunar_date: String,
+    canchi_day: String,
+    canchi_month: String,
+    canchi_year: String,
+    tiet_khi: String,
+    tiet_khi_description: String,
+    tiet_khi_season: String,
+    good_hours: Vec<GoodHour>,
+    holidays: Vec<HolidayInfo>,
+}
+
+#[derive(Debug, Serialize, Clone)]
+struct MonthData {
+    month: u32,
+    year: i32,
+    first_weekday: usize,
+    days: Vec<DayCell>,
+}
+
+fn to_day_cell(day_info: amlich_core::DayInfo, holidays: Vec<HolidayInfo>) -> DayCell {
+    let good_hours = day_info
+        .gio_hoang_dao
+        .good_hours
+        .iter()
+        .map(|h| GoodHour {
+            hour_chi: h.hour_chi.clone(),
+            time_range: h.time_range.clone(),
+            star: h.star.clone(),
+        })
+        .collect::<Vec<_>>();
+
+    DayCell {
+        day: day_info.solar.day,
+        month: day_info.solar.month,
+        year: day_info.solar.year,
+        day_of_week_index: day_info.solar.day_of_week,
+        day_of_week: day_info.solar.day_of_week_name,
+        solar_date: day_info.solar.date_string,
+        lunar_day: day_info.lunar.day,
+        lunar_month: day_info.lunar.month,
+        lunar_year: day_info.lunar.year,
+        lunar_leap: day_info.lunar.is_leap_month,
+        lunar_date: day_info.lunar.date_string,
+        canchi_day: day_info.canchi.day.full,
+        canchi_month: day_info.canchi.month.full,
+        canchi_year: day_info.canchi.year.full,
+        tiet_khi: day_info.tiet_khi.name,
+        tiet_khi_description: day_info.tiet_khi.description,
+        tiet_khi_season: day_info.tiet_khi.season,
+        good_hours,
+        holidays,
+    }
+}
+
+fn holiday_to_info(holiday: &Holiday, is_major: bool) -> HolidayInfo {
+    HolidayInfo {
+        name: holiday.name.clone(),
+        description: holiday.description.clone(),
+        is_solar: holiday.is_solar,
+        lunar_day: holiday.lunar_date.as_ref().map(|d| d.day),
+        lunar_month: holiday.lunar_date.as_ref().map(|d| d.month),
+        is_major,
+    }
+}
+
+#[tauri::command]
+fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
+    if month < 1 || month > 12 {
+        return Err("month must be 1-12".to_string());
+    }
+
+    let mut days = Vec::new();
+    let mut first_weekday = 0;
+    let mut holidays_by_day: HashMap<i32, Vec<HolidayInfo>> = HashMap::new();
+    let holidays = get_vietnamese_holidays(year);
+    let major_keys = get_major_holiday_keys(year);
+
+    for holiday in holidays {
+        let key = holiday_key(&holiday);
+        let is_major = major_keys.contains(&key);
+        if holiday.solar_year == year && holiday.solar_month == month as i32 {
+            holidays_by_day
+                .entry(holiday.solar_day)
+                .or_default()
+                .push(holiday_to_info(&holiday, is_major));
+        }
+    }
+
+    for day in 1..=31 {
+        let date = chrono::NaiveDate::from_ymd_opt(year, month, day as u32);
+        if date.is_none() {
+            break;
+        }
+
+        let holiday_list = holidays_by_day.remove(&(day as i32)).unwrap_or_default();
+        let info = amlich_core::get_day_info(day as i32, month as i32, year);
+        if day == 1 {
+            first_weekday = info.solar.day_of_week;
+        }
+        days.push(to_day_cell(info, holiday_list));
+    }
+
+    Ok(MonthData {
+        month,
+        year,
+        first_weekday,
+        days,
+    })
+}
+
+#[tauri::command]
+fn get_day_detail(day: i32, month: i32, year: i32) -> Result<DayCell, String> {
+    if month < 1 || month > 12 {
+        return Err("month must be 1-12".to_string());
+    }
+    if day < 1 || day > 31 {
+        return Err("day must be 1-31".to_string());
+    }
+
+    let major_keys = get_major_holiday_keys(year);
+    let holidays = get_vietnamese_holidays(year)
+        .into_iter()
+        .filter(|h| h.solar_year == year && h.solar_month == month && h.solar_day == day)
+        .map(|h| {
+            let is_major = major_keys.contains(&holiday_key(&h));
+            holiday_to_info(&h, is_major)
+        })
+        .collect::<Vec<_>>();
+
+    Ok(to_day_cell(
+        amlich_core::get_day_info(day, month, year),
+        holidays,
+    ))
+}
+
+fn holiday_key(holiday: &Holiday) -> String {
+    format!(
+        "{}-{}-{}-{}",
+        holiday.solar_year, holiday.solar_month, holiday.solar_day, holiday.name
+    )
+}
+
+fn get_major_holiday_keys(year: i32) -> Vec<String> {
+    amlich_core::holidays::get_major_holidays(year)
+        .into_iter()
+        .map(|h| holiday_key(&h))
+        .collect()
+}
+
+#[cfg_attr(mobile, tauri::mobile_entry_point)]
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![get_month_data, get_day_detail])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
