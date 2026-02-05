@@ -11,20 +11,31 @@ A comprehensive Vietnamese Lunar Calendar library with **Expert Engine** support
 - Beautiful desktop web viewer
 - Command-line interface (CLI)
 
-### 🌟 Expert Engine (NEW!)
+### 🌟 Expert Engine Features
+
+#### ✅ Implemented
 - **Can Chi (干支)** - Heavenly Stems & Earthly Branches
   - Day Can Chi (JD-based: verified against Tết dates)
   - Month Can Chi (lunar month + year stem table)
   - Year Can Chi (lunar year formula)
 - **Con Giáp** - Vietnamese Zodiac animals (12 animals)
 - **Ngũ Hành** - Five Elements (Mộc, Hỏa, Thổ, Kim, Thủy)
+- **24 Solar Terms (Tiết khí)** - Seasonal markers
+  - Astronomical calculation based on sun longitude
+  - All 24 terms with Vietnamese names
+  - Season classification (Spring/Summer/Autumn/Winter)
+- **Giờ Hoàng Đạo** - Auspicious Hours
+  - 12-Star System (Thập Nhị Kiến Trừ)
+  - 6 Good Stars: Thanh Long, Minh Đường, Kim Quỹ, Bảo Quang, Ngọc Đường, Tư Mệnh
+  - 6 Bad Stars: Thiên Hình, Chu Tước, Bạch Hổ, Thiên Lao, Nguyên Vũ, Câu Trận
+  - Hour-by-hour analysis with time ranges
 
-### 🔲 Coming Soon
-- **24 Solar Terms** (Tiết khí)
-- **Giờ Hoàng Đạo** - Auspicious hours
+#### 🔲 Coming Soon
 - **12 Trực** - 12 day officers
 - **Nạp Âm** - 60-cycle element mapping
+- **Ngày Hoàng Đạo/Hắc Đạo** - Day classifications
 - **Nhị thập bát tú** - 28 star mansions
+- **Xung/Hợp** - Conflict/harmony relations
 
 ---
 
@@ -56,6 +67,16 @@ node index.js today
    • Năm: Giáp Thìn (Thìn (Rồng))
 🌟 Ngũ hành:
    • Ngày: Mộc (Can) - Thổ (Chi)
+🌤️  Tiết khí: Lập Xuân - Đông (Winter)
+   • Start of Spring (Lập Xuân)
+   • Kinh độ mặt trời: 320.44°
+⏰ Giờ Hoàng Đạo (6 giờ tốt):
+   • Dần (03:00-05:00) - Tư Mệnh
+   • Thìn (07:00-09:00) - Thanh Long
+   • Tỵ (09:00-11:00) - Minh Đường
+   • Thân (15:00-17:00) - Kim Quỹ
+   • Dậu (17:00-19:00) - Bảo Quang
+   • Hợi (21:00-23:00) - Ngọc Đường
 ```
 
 ### Get Detailed Info for Any Date
@@ -125,6 +146,17 @@ console.log(info.canChi.year.full);     // "Giáp Thìn"
 console.log(info.canChi.day.conGiap);   // "Thìn (Rồng)"
 console.log(info.canChi.day.nguHanh);   // { can: "Mộc", chi: "Thổ" }
 
+// Access Solar Term
+console.log(info.tietKhi.name);         // "Lập Xuân"
+console.log(info.tietKhi.season);       // "Đông (Winter)"
+console.log(info.tietKhi.currentLongitude); // 320.44
+
+// Access Auspicious Hours
+console.log(info.gioHoangDao.goodHourCount);  // 6
+info.gioHoangDao.goodHours.forEach(h => {
+    console.log(`${h.hourChi} (${h.timeRange}): ${h.star}`);
+});
+
 // Pretty print
 console.log(formatDayInfo(info));
 ```
@@ -184,10 +216,12 @@ Chi: (lunar_year + 8) % 12
 amlich-view/
 ├── amlich-core.js           # Core lunar algorithm (Hồ Ngọc Đức)
 ├── vietnamese-holidays.js   # Holiday calculations
-├── engine/                  # 🌟 Expert Engine (NEW!)
+├── engine/                  # 🌟 Expert Engine
 │   ├── index.js            # Main entry: getDayInfo()
 │   ├── types.js            # Can/Chi constants & types
 │   ├── canchi.js           # Can Chi calculations
+│   ├── tietkhi.js          # Solar Terms (24 terms)
+│   ├── gio-hoang-dao.js    # Auspicious Hours (12-Star System)
 │   └── test.js             # Test suite (6 reference dates)
 ├── index.js                # CLI application
 ├── app.js                  # Web app logic
@@ -275,13 +309,15 @@ Same import process as above.
 - [x] Test suite with verified dates
 - [x] CLI integration
 
-### Phase 2: Solar Terms 🔲 In Progress
-- [ ] 24 Tiết khí calculations
-- [ ] Solar term names in Vietnamese
-- [ ] Integration with getDayInfo()
+### Phase 2: Solar Terms & Hours ✅ COMPLETE
+- [x] 24 Tiết khí calculations
+- [x] Solar term names in Vietnamese
+- [x] Season classification
+- [x] Giờ Hoàng Đạo (auspicious hours)
+- [x] 12-Star System (Thập Nhị Kiến Trừ)
+- [x] Integration with getDayInfo()
 
-### Phase 3: Hour & Day Classifications 🔲 Planned
-- [ ] Giờ Hoàng Đạo (auspicious hours)
+### Phase 3: Day Classifications 🔲 Planned
 - [ ] Ngày Hoàng Đạo/Hắc Đạo (auspicious days)
 - [ ] 12 Trực (day officers)
 
