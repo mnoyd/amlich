@@ -1,0 +1,21 @@
+#custom-amlich {
+  min-width: 12px;
+  margin: 0 7.5px;
+  padding: 0 10px;
+}
+
+#custom-amlich.full {
+  color: #a6e3a1;
+}
+
+#custom-amlich.lunar {
+  color: #89b4fa;
+}
+
+#custom-amlich.canchi {
+  color: #f9e2af;
+}
+
+#custom-amlich.minimal {
+  color: #cba6f7;
+}

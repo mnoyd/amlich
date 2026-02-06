@@ -1,0 +1,9 @@
+"custom/amlich": {
+  "exec": "amlich today",
+  "format": "{}",
+  "return-type": "json",
+  "interval": 30,
+  "signal": 9,
+  "on-click": "amlich toggle",
+  "tooltip": true
+}

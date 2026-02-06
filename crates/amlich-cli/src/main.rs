@@ -7,6 +7,8 @@
 // - JSON output for scripting
 // - Waybar integration with tooltips
 
+mod waybar;
+
 use amlich_core::{get_day_info, DayInfo};
 use chrono::{Datelike, Local};
 use clap::{Parser, Subcommand};
@@ -216,109 +218,6 @@ fn parse_date(date_str: &str) -> Result<(i32, i32, i32), String> {
     Ok((day, month, year))
 }
 
-fn format_full(info: &DayInfo) -> String {
-    format!(
-        "📅 {}/{}/{} 🌙 {}/{}/{} ({}) 📜 {}",
-        info.solar.day,
-        info.solar.month,
-        info.solar.year,
-        info.lunar.day,
-        info.lunar.month,
-        info.lunar.year,
-        info.canchi.year.full,
-        info.canchi.day.full
-    )
-}
-
-fn format_lunar(info: &DayInfo) -> String {
-    if info.lunar.is_leap_month {
-        format!(
-            "🌙 {}/{}/{} (Nhuận)",
-            info.lunar.day, info.lunar.month, info.lunar.year
-        )
-    } else {
-        format!(
-            "🌙 {}/{}/{}",
-            info.lunar.day, info.lunar.month, info.lunar.year
-        )
-    }
-}
-
-fn format_canchi(info: &DayInfo) -> String {
-    format!("📜 {}", info.canchi.day.full)
-}
-
-fn format_minimal(info: &DayInfo) -> String {
-    format!("{}/{}", info.lunar.day, info.lunar.month)
-}
-
-fn format_tooltip(info: &DayInfo) -> String {
-    let mut lines = Vec::new();
-
-    // Solar date
-    lines.push(format!(
-        "📅 Dương lịch: {} - {}",
-        info.solar.date_string, info.solar.day_of_week_name
-    ));
-
-    // Lunar date
-    let lunar_str = if info.lunar.is_leap_month {
-        format!("{} (Nhuận)", info.lunar.date_string)
-    } else {
-        info.lunar.date_string.clone()
-    };
-    lines.push(format!("🌙 Âm lịch: {}", lunar_str));
-
-    // Can Chi
-    lines.push(format!("📜 Ngày: {}", info.canchi.day.full));
-    lines.push(format!("   Tháng: {}", info.canchi.month.full));
-    lines.push(format!("   Năm: {}", info.canchi.year.full));
-
-    // Solar term
-    lines.push(format!(
-        "🌸 {}: {}",
-        info.tiet_khi.name, info.tiet_khi.description
-    ));
-
-    // Good hours
-    lines.push(format!(
-        "⏰ Giờ Hoàng Đạo: {} giờ tốt",
-        info.gio_hoang_dao.good_hour_count
-    ));
-
-    let good_hours: Vec<String> = info
-        .gio_hoang_dao
-        .good_hours
-        .iter()
-        .map(|h| format!("{} ({})", h.star, h.time_range))
-        .collect();
-
-    if !good_hours.is_empty() {
-        lines.push(format!("   {}", good_hours.join(", ")));
-    }
-
-    lines.join("\n")
-}
-
-fn format_waybar_json(info: &DayInfo, mode: &DisplayMode) -> String {
-    let text = match mode {
-        DisplayMode::Full => format_full(info),
-        DisplayMode::Lunar => format_lunar(info),
-        DisplayMode::CanChi => format_canchi(info),
-        DisplayMode::Minimal => format_minimal(info),
-    };
-
-    let tooltip = format_tooltip(info);
-    let class = mode.to_string();
-
-    serde_json::json!({
-        "text": text,
-        "tooltip": tooltip,
-        "class": class
-    })
-    .to_string()
-}
-
 fn convert_to_json(info: &DayInfo) -> JsonOutput {
     JsonOutput {
         solar: JsonSolar {
@@ -377,14 +276,14 @@ fn main() {
             let now = Local::now();
             let info = get_day_info(now.day() as i32, now.month() as i32, now.year());
             let mode = read_mode();
-            println!("{}", format_waybar_json(&info, &mode));
+            println!("{}", waybar::format_waybar_json(&info, &mode));
         }
 
         Some(Commands::Date { date }) => match parse_date(&date) {
             Ok((day, month, year)) => {
                 let info = get_day_info(day, month, year);
                 let mode = read_mode();
-                println!("{}", format_waybar_json(&info, &mode));
+                println!("{}", waybar::format_waybar_json(&info, &mode));
             }
             Err(e) => {
                 eprintln!("Error: {}", e);
@@ -404,7 +303,7 @@ fn main() {
             // Output current state for Waybar
             let now = Local::now();
             let info = get_day_info(now.day() as i32, now.month() as i32, now.year());
-            println!("{}", format_waybar_json(&info, &new_mode));
+            println!("{}", waybar::format_waybar_json(&info, &new_mode));
         }
 
         Some(Commands::Json { date }) => {
