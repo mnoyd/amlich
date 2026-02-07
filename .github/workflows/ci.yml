@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, master]
   pull_request:
-    branches: [main]
+    branches: [main, master]
 
 env:
   CARGO_TERM_COLOR: always
@@ -30,25 +30,6 @@ jobs:
 
       - name: Run tests
         run: cargo test --workspace --exclude app
-
-  build-wasm:
-    name: Build WASM
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: wasm32-unknown-unknown
-
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-
-      - name: Build WASM
-        run: |
-          cd crates/amlich-wasm
-          wasm-pack build --target web
 
   build-cli:
     name: Build CLI
@@ -135,7 +116,6 @@ jobs:
       - name: Build Tauri app
         working-directory: apps/desktop
         run: pnpm tauri build
-        # Don't fail CI if bundle creation fails (e.g., missing linuxdeploy)
         continue-on-error: true
 
       - name: Verify binary exists
