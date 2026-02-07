@@ -253,7 +253,11 @@ pub fn lunar_to_solar(day: i32, month: i32, year: i32, is_leap: bool) -> JsValue
     if d == 0 {
         return JsValue::NULL;
     }
-    let result = WasmSolarDate { day: d, month: m, year: y };
+    let result = WasmSolarDate {
+        day: d,
+        month: m,
+        year: y,
+    };
     serde_wasm_bindgen::to_value(&result).unwrap_or(JsValue::NULL)
 }
 
@@ -270,7 +274,11 @@ pub fn lunar_to_solar_with_timezone(
     if d == 0 {
         return JsValue::NULL;
     }
-    let result = WasmSolarDate { day: d, month: m, year: y };
+    let result = WasmSolarDate {
+        day: d,
+        month: m,
+        year: y,
+    };
     serde_wasm_bindgen::to_value(&result).unwrap_or(JsValue::NULL)
 }
 
