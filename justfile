@@ -58,7 +58,7 @@ build-all: build build-wasm build-app
 
 # Run all tests
 test:
-    cargo test --workspace --exclude app
+    cargo test --workspace --exclude am-lich
 
 # Run core library tests
 test-core:
@@ -66,7 +66,7 @@ test-core:
 
 # Run tests with output
 test-verbose:
-    cargo test --workspace --exclude app -- --nocapture
+    cargo test --workspace --exclude am-lich -- --nocapture
 
 # ============== Development ==============
 
@@ -76,7 +76,7 @@ dev:
 
 # Check code without building
 check:
-    cargo check --workspace --exclude app
+    cargo check --workspace --exclude am-lich
 
 # Format code
 fmt:
@@ -84,7 +84,7 @@ fmt:
 
 # Lint code
 lint:
-    cargo clippy --workspace --exclude app -- -D warnings
+    cargo clippy --workspace --exclude am-lich -- -D warnings
 
 # ============== Install ==============
 
