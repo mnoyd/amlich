@@ -1,10 +1,25 @@
 # Amlich - Vietnamese Lunar Calendar 🌙
 
-Complete Vietnamese lunar calendar system with multiple deployment targets: CLI, WASM, Desktop App, and JavaScript library.
+Complete Vietnamese lunar calendar system with multiple deployment targets: CLI, Desktop App, and JavaScript library.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Rust](https://img.shields.io/badge/rust-1.70+-orange.svg)](https://www.rust-lang.org/)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D12.0.0-brightgreen.svg)](https://nodejs.org/)
+
+## 📥 Downloads
+
+Download the latest release for your platform:
+
+| Platform | Download | Format |
+|----------|----------|--------|
+| **Windows** | [AmLich_0.1.0_x64-setup.exe](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_x64-setup.exe) | Installer |
+| **Windows** | [AmLich_0.1.0_x64_en-US.msi](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_x64_en-US.msi) | MSI |
+| **macOS** | [AmLich_0.1.0_universal.dmg](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_universal.dmg) | Universal (Intel + Apple Silicon) |
+| **Linux** | [AmLich_0.1.0_amd64.AppImage](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_amd64.AppImage) | AppImage |
+| **Linux** | [AmLich_0.1.0_amd64.deb](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_amd64.deb) | Debian/Ubuntu |
+| **Linux** | [AmLich-0.1.0-1.x86_64.rpm](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich-0.1.0-1.x86_64.rpm) | Fedora/RHEL |
+
+[View all releases →](https://github.com/mnoyd/amlich/releases)
 
 ## 🌟 Features
 
@@ -19,8 +34,7 @@ Complete Vietnamese lunar calendar system with multiple deployment targets: CLI,
 ### Multiple Deployment Targets
 - 🦀 **Rust Library** - High-performance core engine
 - 🖥️ **CLI** - Waybar integration with toggle modes
-- 🌐 **WASM** - WebAssembly for browser usage
-- 📱 **Desktop App** - Tauri + Svelte application
+- 🖥️ **Desktop App** - Cross-platform Tauri + Svelte application
 - 📦 **JavaScript** - npm package for Node.js projects
 
 ## 📦 Packages & Crates
@@ -29,11 +43,20 @@ Complete Vietnamese lunar calendar system with multiple deployment targets: CLI,
 |---------|-------------|--------|
 | `amlich-core` | Rust core library | ✅ Complete |
 | `amlich-cli` | CLI for Waybar | ✅ Complete |
-| `@amlich/wasm` | WASM bindings | ⏳ Phase 4 |
 | `@amlich/core` | JavaScript library | ✅ Complete |
-| `app/` | Tauri desktop app | ⏳ Phase 5 |
+| Desktop App | Tauri + Svelte app | ✅ Complete |
 
 ## 🚀 Quick Start
+
+### Desktop App
+
+**Installation:**
+
+- **Windows**: Download and run the `.exe` installer or `.msi` file
+- **macOS**: Download the `.dmg`, open it, and drag AmLich to Applications
+- **Linux (AppImage)**: Download, make executable (`chmod +x`), and run
+- **Linux (Debian/Ubuntu)**: `sudo dpkg -i AmLich_0.1.0_amd64.deb`
+- **Linux (Fedora/RHEL)**: `sudo rpm -i AmLich-0.1.0-1.x86_64.rpm`
 
 ### CLI (for Waybar)
 
@@ -87,31 +110,6 @@ const info = getDayInfo(5, 2, 2026);
 console.log(info.canChi.day.full);      // "Bính Thân"
 console.log(info.tietKhi.name);         // "Đại Hàn"
 console.log(info.gioHoangDao.summary);  // "Tý (23:00-01:00), Sửu (01:00-03:00)..."
-```
-
-### WASM (Web)
-
-```bash
-cd crates/amlich-wasm
-npm run build  # Builds with wasm-pack
-```
-
-**Browser usage:**
-```javascript
-import init, { get_day_info } from '@amlich/wasm';
-
-await init();
-const info = get_day_info(5, 2, 2026);
-console.log(info);
-```
-
-### Desktop App
-
-```bash
-cd app
-npm install
-npm run tauri dev    # Development
-npm run tauri build  # Production build
 ```
 
 ## 📖 Documentation
@@ -181,11 +179,11 @@ fs.writeFileSync('vietnamese-calendar-2026.ics', ics);
 amlich/
 ├── crates/
 │   ├── amlich-core/      # Rust core library
-│   ├── amlich-cli/       # CLI for Waybar
-│   └── amlich-wasm/      # WASM bindings
+│   └── amlich-cli/       # CLI for Waybar
 ├── packages/
 │   └── core/             # @amlich/core (JavaScript)
-├── app/                  # Tauri + Svelte desktop app
+├── apps/
+│   └── desktop/          # Tauri + Svelte desktop app
 ├── scripts/              # Installation scripts
 └── patches/              # Waybar configuration patches
 ```
@@ -200,14 +198,14 @@ cd amlich
 # Build Rust workspace
 cargo build --release --workspace
 
-# Build WASM
-cd crates/amlich-wasm && npm run build
-
 # Test JavaScript
 cd packages/core && npm test
 
 # Run desktop app
-cd app && npm run tauri dev
+cd apps/desktop && npm run tauri dev
+
+# Build desktop app
+cd apps/desktop && npm run tauri build
 ```
 
 ### Running Tests
@@ -225,7 +223,7 @@ cd packages/core && npm test
 The CLI provides four display modes that cycle when toggled:
 
 | Mode | Display | Example |
-|------|---------|---------|
+|------|---------|---------
 | Full | Complete info | "📅 5/2/2026 🌙 18/12/2025 (Ất Tỵ) 📜 Canh Tuất" |
 | Lunar | Lunar date | "🌙 18/12/2025" |
 | CanChi | Day Can Chi | "📜 Canh Tuất" |
@@ -316,9 +314,9 @@ MIT License - See LICENSE file
 - ✅ **Phase 1**: Monorepo foundation
 - ✅ **Phase 2**: Rust core implementation
 - ✅ **Phase 3**: CLI binary with Waybar
-- ⏳ **Phase 4**: WASM package
-- ⏳ **Phase 5**: Tauri desktop app
-- ⏳ **Phase 6**: CI/CD & documentation
+- ✅ **Phase 4**: Tauri desktop app
+- ✅ **Phase 5**: CI/CD & GitHub releases
+- ⏳ **Phase 6**: WASM package (planned)
 
 ## 🤝 Contributing
 
