@@ -166,17 +166,13 @@ jobs:
           cp artifacts/amlich-macos-x64/amlich-macos-x64 release-files/
           cp artifacts/amlich-macos-arm64/amlich-macos-arm64 release-files/
           
-          # Desktop Linux
-          cp artifacts/amlich-desktop-linux-x64/*.deb release-files/ 2>/dev/null || true
-          cp artifacts/amlich-desktop-linux-x64/*.rpm release-files/ 2>/dev/null || true
-          cp artifacts/amlich-desktop-linux-x64/*.AppImage release-files/ 2>/dev/null || true
+          # Desktop Linux (files are in subdirectories)
+          find artifacts/amlich-desktop-linux-x64 -name "*.deb" -exec cp {} release-files/ \;
+          find artifacts/amlich-desktop-linux-x64 -name "*.rpm" -exec cp {} release-files/ \;
+          find artifacts/amlich-desktop-linux-x64 -name "*.AppImage" -exec cp {} release-files/ \;
           
           # Desktop macOS
-          cd artifacts/amlich-desktop-macos-universal
-          for dmg in *.dmg; do
-            [ -f "$dmg" ] && cp "$dmg" ../../release-files/
-          done
-          cd ../..
+          find artifacts/amlich-desktop-macos-universal -name "*.dmg" -exec cp {} release-files/ \;
           
           ls -la release-files/
 
