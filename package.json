@@ -4,16 +4,19 @@
   "private": true,
   "description": "Vietnamese Lunar Calendar - Monorepo with Rust, WASM, and Tauri",
   "scripts": {
-    "test:core": "cd packages/core && npm test",
+    "test": "pnpm -r test",
+    "test:core": "cd packages/core && pnpm test",
+    "build": "pnpm build:rust && pnpm build:wasm",
     "build:rust": "cargo build --release",
-    "build:wasm": "cd crates/amlich-wasm && wasm-pack build --target web",
-    "dev:app": "cd app && npm run tauri dev",
-    "build:app": "cd app && npm run tauri build"
+    "build:wasm": "cd crates/amlich-wasm && wasm-pack build --target web --out-dir ../../dist/wasm",
+    "build:cli": "cargo build --release --package amlich-cli",
+    "dev:app": "cd apps/desktop && pnpm tauri dev",
+    "build:app": "cd apps/desktop && pnpm tauri build",
+    "clean": "cargo clean && rm -rf dist"
   },
   "workspaces": [
     "packages/*",
-    "app",
-    "crates/amlich-wasm"
+    "apps/*"
   ],
   "author": "Vietnamese Calendar Project",
   "license": "MIT",

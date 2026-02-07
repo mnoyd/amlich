@@ -13,6 +13,7 @@ use amlich_core::{get_day_info, DayInfo};
 use chrono::{Datelike, Local};
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::fs;
 use std::path::PathBuf;
 
@@ -82,15 +83,6 @@ impl DisplayMode {
         }
     }
 
-    fn to_string(&self) -> String {
-        match self {
-            DisplayMode::Full => "full".to_string(),
-            DisplayMode::Lunar => "lunar".to_string(),
-            DisplayMode::CanChi => "canchi".to_string(),
-            DisplayMode::Minimal => "minimal".to_string(),
-        }
-    }
-
     fn next(&self) -> Self {
         match self {
             DisplayMode::Full => DisplayMode::Lunar,
@@ -98,6 +90,18 @@ impl DisplayMode {
             DisplayMode::CanChi => DisplayMode::Minimal,
             DisplayMode::Minimal => DisplayMode::Full,
         }
+    }
+}
+
+impl fmt::Display for DisplayMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let s = match self {
+            DisplayMode::Full => "full",
+            DisplayMode::Lunar => "lunar",
+            DisplayMode::CanChi => "canchi",
+            DisplayMode::Minimal => "minimal",
+        };
+        write!(f, "{}", s)
     }
 }
 

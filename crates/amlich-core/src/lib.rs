@@ -20,9 +20,9 @@ pub mod types;
 pub use types::*;
 
 use canchi::{get_day_canchi, get_month_canchi, get_year_canchi};
-use gio_hoang_dao::{get_gio_hoang_dao, GioHoangDao, HourInfo};
+use gio_hoang_dao::{get_gio_hoang_dao, GioHoangDao};
 use julian::jd_from_date;
-use lunar::{convert_solar_to_lunar, LunarDate};
+use lunar::convert_solar_to_lunar;
 use tietkhi::{get_tiet_khi, SolarTerm};
 
 /// Solar date information
@@ -86,7 +86,7 @@ pub struct DayInfo {
 /// println!("Day Can Chi: {}", info.canchi.day.full);
 /// ```
 pub fn get_day_info(day: i32, month: i32, year: i32) -> DayInfo {
-    get_day_info_with_timezone(day, month, year, 7.0)
+    get_day_info_with_timezone(day, month, year, VIETNAM_TIMEZONE)
 }
 
 /// Get comprehensive information for a given solar date with custom timezone
@@ -95,7 +95,7 @@ pub fn get_day_info(day: i32, month: i32, year: i32) -> DayInfo {
 /// * `day` - Day (1-31)
 /// * `month` - Month (1-12)
 /// * `year` - Year
-/// * `time_zone` - Timezone offset (default: 7.0 for Vietnam UTC+7)
+/// * `time_zone` - Timezone offset (default: VIETNAM_TIMEZONE for Vietnam UTC+7)
 ///
 /// # Returns
 /// Complete day information

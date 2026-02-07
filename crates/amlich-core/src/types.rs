@@ -7,6 +7,9 @@
  * - Lunar month 1 branch = Dần (index 2)
  */
 
+/// Vietnam timezone offset (UTC+7)
+pub const VIETNAM_TIMEZONE: f64 = 7.0;
+
 // Thiên Can (Heavenly Stems) - 10 elements
 pub const CAN: [&str; 10] = [
     "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý",

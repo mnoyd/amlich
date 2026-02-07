@@ -39,8 +39,9 @@ crates/amlich-wasm/pkg/
 crates/amlich-wasm/wasm-pack.log
 
 # Tauri
-app/src-tauri/target/
-app/src-tauri/Cargo.lock
+apps/desktop/src-tauri/target/
+apps/desktop/src-tauri/Cargo.lock
+apps/desktop/.svelte-kit/
 
 # Build artifacts
 dist/

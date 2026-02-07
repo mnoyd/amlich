@@ -1,4 +1,4 @@
-use crate::sun::sun_longitude;
+use crate::sun::get_sun_longitude;
 /**
  * Lunar Calendar Conversion
  *
@@ -53,20 +53,6 @@ pub fn new_moon(k: i32) -> f64 {
     };
 
     jd1 + c1 - deltat
-}
-
-/// Compute sun position at midnight of the day with the given Julian day number
-///
-/// # Arguments
-/// * `day_number` - Julian day number
-/// * `time_zone` - Time zone offset (7.0 for UTC+7:00)
-///
-/// # Returns
-/// Sun longitude index (0-11)
-pub fn get_sun_longitude(day_number: i32, time_zone: f64) -> i32 {
-    let jdn = day_number as f64 - 0.5 - time_zone / 24.0;
-    let longitude = sun_longitude(jdn);
-    (longitude / PI * 6.0).floor() as i32
 }
 
 /// Compute the day of the k-th new moon in the given time zone

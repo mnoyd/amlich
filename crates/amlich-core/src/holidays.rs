@@ -4,6 +4,7 @@
  * Provides functions to get Vietnamese lunar holidays for a given year
  */
 use crate::lunar::{convert_lunar_to_solar, LunarDate};
+use crate::types::VIETNAM_TIMEZONE;
 
 /// Information about a Vietnamese holiday
 #[derive(Debug, Clone)]
@@ -55,7 +56,7 @@ fn create_lunar_holiday(
 /// # Returns
 /// Vector of holidays sorted by date
 pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
-    let time_zone = 7.0;
+    let time_zone = VIETNAM_TIMEZONE;
     let mut holidays = Vec::new();
 
     // Add major holidays
