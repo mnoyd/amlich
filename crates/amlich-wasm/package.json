@@ -1,6 +1,6 @@
 {
   "name": "@amlich/wasm",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Vietnamese Lunar Calendar - WASM bindings",
   "main": "pkg/amlich_wasm.js",
   "types": "pkg/amlich_wasm.d.ts",
