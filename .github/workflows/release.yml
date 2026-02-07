@@ -59,6 +59,99 @@ jobs:
           name: ${{ matrix.artifact }}
           path: dist/${{ matrix.artifact }}
 
+  build-desktop:
+    name: Build Desktop - ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux
+            os: ubuntu-22.04
+            target: ''
+            artifact-suffix: linux-x64
+          - platform: macos-universal
+            os: macos-latest
+            target: universal-apple-darwin
+            artifact-suffix: macos-universal
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-action@stable
+
+      - name: Add macOS targets
+        if: matrix.platform == 'macos-universal'
+        run: |
+          rustup target add aarch64-apple-darwin
+          rustup target add x86_64-apple-darwin
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: apps/desktop/pnpm-lock.yaml
+
+      - name: Install frontend dependencies
+        working-directory: apps/desktop
+        run: pnpm install
+
+      - name: Sync SvelteKit
+        working-directory: apps/desktop
+        run: pnpm exec svelte-kit sync
+
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/desktop/src-tauri
+
+      - name: Build Tauri app (Linux)
+        if: matrix.platform == 'linux'
+        working-directory: apps/desktop
+        run: pnpm tauri build
+
+      - name: Build Tauri app (macOS Universal)
+        if: matrix.platform == 'macos-universal'
+        working-directory: apps/desktop
+        run: pnpm tauri build --target universal-apple-darwin
+
+      - name: Upload Linux artifacts
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: amlich-desktop-${{ matrix.artifact-suffix }}
+          path: |
+            target/release/bundle/deb/*.deb
+            target/release/bundle/rpm/*.rpm
+            target/release/bundle/appimage/*.AppImage
+
+      - name: Upload macOS artifacts
+        if: matrix.platform == 'macos-universal'
+        uses: actions/upload-artifact@v4
+        with:
+          name: amlich-desktop-${{ matrix.artifact-suffix }}
+          path: |
+            target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            target/universal-apple-darwin/release/bundle/macos/*.app
+
   build-wasm:
     name: Build WASM
     runs-on: ubuntu-latest
@@ -86,7 +179,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: [build-cli, build-wasm]
+    needs: [build-cli, build-desktop, build-wasm]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -96,20 +189,50 @@ jobs:
         with:
           path: artifacts
 
+      - name: Display structure of downloaded files
+        run: ls -R artifacts
+
+      - name: Prepare release files
+        run: |
+          mkdir -p release-files
+          
+          # CLI binaries
+          cp artifacts/amlich-linux-x64/amlich-linux-x64 release-files/
+          cp artifacts/amlich-linux-arm64/amlich-linux-arm64 release-files/
+          cp artifacts/amlich-macos-x64/amlich-macos-x64 release-files/
+          cp artifacts/amlich-macos-arm64/amlich-macos-arm64 release-files/
+          
+          # Desktop Linux
+          cp artifacts/amlich-desktop-linux-x64/*.deb release-files/ 2>/dev/null || true
+          cp artifacts/amlich-desktop-linux-x64/*.rpm release-files/ 2>/dev/null || true
+          cp artifacts/amlich-desktop-linux-x64/*.AppImage release-files/ 2>/dev/null || true
+          
+          # Desktop macOS
+          cd artifacts/amlich-desktop-macos-universal
+          for dmg in *.dmg; do
+            [ -f "$dmg" ] && cp "$dmg" ../../release-files/
+          done
+          cd ../..
+          
+          # WASM (zip it)
+          cd artifacts/amlich-wasm
+          zip -r ../../release-files/amlich-wasm.zip .
+          cd ../..
+          
+          ls -la release-files/
+
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
-          files: |
-            artifacts/amlich-linux-x64/amlich-linux-x64
-            artifacts/amlich-linux-arm64/amlich-linux-arm64
-            artifacts/amlich-macos-x64/amlich-macos-x64
-            artifacts/amlich-macos-arm64/amlich-macos-arm64
+          files: release-files/*
           generate_release_notes: true
+          draft: false
 
   publish-crates:
     name: Publish to crates.io
     needs: release
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, 'beta') && !contains(github.ref, 'alpha') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -118,9 +241,11 @@ jobs:
 
       - name: Publish amlich-core
         run: cargo publish --package amlich-core --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        continue-on-error: true
 
       - name: Wait for crates.io
         run: sleep 30
 
       - name: Publish amlich-cli
         run: cargo publish --package amlich-cli --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        continue-on-error: true

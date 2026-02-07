@@ -471,51 +471,6 @@
 </div>
 
 <style>
-  @import url("https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600&display=swap");
-
-  :global(:root) {
-    /* Color Palette - Neo-Indochine Vibrant */
-    --bg-base: #FDFBF7;
-    /* Adding texture via noise pattern */
-    --bg-pattern: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-    --bg-gradient: radial-gradient(circle at 50% 0%, #FFF5E6 0%, #F5E6D3 100%);
-    
-    --primary-red: #D93025;
-    --primary-red-hover: #B31F15;
-    --accent-gold: #D4AF37;
-    --accent-jade: #2A6E64;
-    --accent-jade-light: #E0F2F1;
-    
-    --text-primary: #2C241B;
-    --text-secondary: #6B5D4D;
-    --text-tertiary: #9D8C78;
-    
-    --surface-white: rgba(255, 255, 255, 0.85);
-    --surface-hover: rgba(255, 255, 255, 0.95);
-    --border-subtle: rgba(107, 93, 77, 0.15);
-    
-    --shadow-soft: 0 8px 24px rgba(44, 36, 27, 0.06);
-    --shadow-hover: 0 12px 32px rgba(44, 36, 27, 0.1);
-    
-    --font-serif: "Source Serif 4", serif;
-    --font-sans: "Inter", sans-serif;
-  }
-
-  :global(body) {
-    margin: 0;
-    font-family: var(--font-serif);
-    background-color: var(--bg-base);
-    background-image: var(--bg-pattern), var(--bg-gradient);
-    background-blend-mode: overlay, normal;
-    color: var(--text-primary);
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  :global(*) {
-    box-sizing: border-box;
-  }
-
   /* App Container */
   .app-container {
     max-width: 1400px;

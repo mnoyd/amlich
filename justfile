@@ -21,11 +21,37 @@ build-cli:
 build-wasm:
     cd crates/amlich-wasm && wasm-pack build --target web --out-dir ../../dist/wasm
 
-# Build desktop app
+# Build desktop app (current platform)
 build-app:
-    cd apps/desktop && pnpm tauri build
+    cd apps/desktop && pnpm install && pnpm exec svelte-kit sync && pnpm tauri build
 
-# Build everything
+# Build desktop app for Linux (AppImage, deb, rpm)
+build-app-linux:
+    cd apps/desktop && pnpm install && pnpm exec svelte-kit sync && pnpm tauri build
+    @echo ""
+    @echo "Build outputs:"
+    @ls -1 apps/desktop/src-tauri/target/release/bundle/appimage/*.AppImage 2>/dev/null || true
+    @ls -1 apps/desktop/src-tauri/target/release/bundle/deb/*.deb 2>/dev/null || true
+
+# Build desktop app for macOS Universal (Intel + Apple Silicon)
+build-app-macos:
+    rustup target add aarch64-apple-darwin x86_64-apple-darwin 2>/dev/null || true
+    cd apps/desktop && pnpm install && pnpm exec svelte-kit sync && pnpm tauri build --target universal-apple-darwin
+    @echo ""
+    @echo "Build outputs:"
+    @ls -1 apps/desktop/src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg 2>/dev/null || true
+
+# Build desktop app for macOS Apple Silicon only
+build-app-macos-arm:
+    rustup target add aarch64-apple-darwin 2>/dev/null || true
+    cd apps/desktop && pnpm install && pnpm exec svelte-kit sync && pnpm tauri build --target aarch64-apple-darwin
+
+# Build desktop app for macOS Intel only
+build-app-macos-intel:
+    rustup target add x86_64-apple-darwin 2>/dev/null || true
+    cd apps/desktop && pnpm install && pnpm exec svelte-kit sync && pnpm tauri build --target x86_64-apple-darwin
+
+# Build everything (current platform)
 build-all: build build-wasm build-app
 
 # ============== Test ==============
