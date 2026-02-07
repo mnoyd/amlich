@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "app",
+  "productName": "AmLich",
   "version": "0.1.0",
-  "identifier": "com.noy.app",
+  "identifier": "com.amlich.calendar",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -12,9 +12,11 @@
   "app": {
     "windows": [
       {
-        "title": "app",
-        "width": 800,
-        "height": 600
+        "title": "Âm Lịch - Vietnamese Lunar Calendar",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 600
       }
     ],
     "security": {
@@ -30,6 +32,21 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "category": "Utility",
+    "shortDescription": "Vietnamese Lunar Calendar",
+    "longDescription": "Âm Lịch is a beautiful Vietnamese lunar calendar app that displays lunar dates, Can Chi (Heavenly Stems and Earthly Branches), Tiết Khí (Solar Terms), auspicious hours, and Vietnamese holidays.",
+    "copyright": "© 2024 Âm Lịch",
+    "linux": {
+      "appimage": {
+        "bundleMediaFramework": false
+      },
+      "deb": {
+        "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0"]
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
   }
 }

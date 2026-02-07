@@ -1,7 +1,7 @@
 {
-  "name": "app",
+  "name": "amlich-desktop",
   "version": "0.1.0",
-  "description": "",
+  "description": "Âm Lịch - Vietnamese Lunar Calendar desktop app with Can Chi, Tiết Khí, and holiday information",
   "type": "module",
   "scripts": {
     "dev": "vite dev",
