@@ -47,7 +47,7 @@ fn current_hour_chi_index() -> usize {
     if hour == 23 {
         0
     } else {
-        (hour + 1) / 2
+        hour.div_ceil(2)
     }
 }
 

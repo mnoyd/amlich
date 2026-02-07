@@ -189,8 +189,8 @@ pub fn get_major_holidays(solar_year: i32) -> Vec<Holiday> {
         .into_iter()
         .filter(|h| {
             // Filter out the monthly Mùng 1 and Rằm except the special ones
-            !(h.name.starts_with("Mùng 1 tháng") && !h.name.contains("Tết"))
-                && !(h.name.starts_with("Rằm tháng") && !h.description.contains("Festival"))
+            (!h.name.starts_with("Mùng 1 tháng") || h.name.contains("Tết"))
+                && (!h.name.starts_with("Rằm tháng") || h.description.contains("Festival"))
         })
         .collect()
 }

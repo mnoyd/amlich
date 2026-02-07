@@ -212,10 +212,10 @@ fn parse_date(date_str: &str) -> Result<(i32, i32, i32), String> {
         .parse::<i32>()
         .map_err(|_| "Invalid day".to_string())?;
 
-    if month < 1 || month > 12 {
+    if !(1..=12).contains(&month) {
         return Err("Month must be between 1 and 12".to_string());
     }
-    if day < 1 || day > 31 {
+    if !(1..=31).contains(&day) {
         return Err("Day must be between 1 and 31".to_string());
     }
 
@@ -331,7 +331,7 @@ fn main() {
 
         Some(Commands::Mode) => {
             let mode = read_mode();
-            println!("{}", mode.to_string());
+            println!("{mode}");
         }
 
         Some(Commands::SetMode { mode }) => match DisplayMode::from_str(&mode) {
@@ -340,7 +340,7 @@ fn main() {
                     eprintln!("Error saving mode: {}", e);
                     std::process::exit(1);
                 }
-                println!("Mode set to: {}", new_mode.to_string());
+                println!("Mode set to: {new_mode}");
             }
             None => {
                 eprintln!("Invalid mode: {}", mode);

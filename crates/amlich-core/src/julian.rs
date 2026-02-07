@@ -1,9 +1,7 @@
-/**
- * Julian Day Number Calculations
- *
- * Formula from http://www.tondering.dk/claus/calendar.html
- * Based on algorithms from "Astronomical Algorithms" by Jean Meeus, 1998
- */
+//! Julian Day Number Calculations
+//!
+//! Formula from <http://www.tondering.dk/claus/calendar.html>
+//! Based on algorithms from "Astronomical Algorithms" by Jean Meeus, 1998
 
 /// Compute the (integral) Julian day number of day dd/mm/yyyy
 ///

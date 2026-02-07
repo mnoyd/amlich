@@ -1,11 +1,9 @@
-/**
- * Core Type Definitions and Constants for Vietnamese Lunar Calendar
- *
- * Conventions:
- * - Indices are 0-based
- * - Timezone: UTC+7 (Vietnam)
- * - Lunar month 1 branch = Dần (index 2)
- */
+//! Core Type Definitions and Constants for Vietnamese Lunar Calendar
+//!
+//! Conventions:
+//! - Indices are 0-based
+//! - Timezone: UTC+7 (Vietnam)
+//! - Lunar month 1 branch = Dần (index 2)
 
 /// Vietnam timezone offset (UTC+7)
 pub const VIETNAM_TIMEZONE: f64 = 7.0;
