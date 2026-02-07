@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd -- "${SCRIPT_DIR}/.." && pwd)"
-TARGET_BIN="${PROJECT_DIR}/target/release/amlich-rs"
+TARGET_BIN="${PROJECT_DIR}/target/release/amlich"
 INSTALL_PATH="${HOME}/.local/bin/amlich"
 
 WAYBAR_CONFIG="${HOME}/.config/waybar/config.jsonc"

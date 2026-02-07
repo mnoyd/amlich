@@ -10,14 +10,14 @@ Complete Vietnamese lunar calendar system with multiple deployment targets: CLI,
 
 Download the latest release for your platform:
 
-| Platform | Download | Format |
+| Platform | Artifact | Format |
 |----------|----------|--------|
-| **Windows** | [AmLich_0.1.0_x64-setup.exe](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_x64-setup.exe) | Installer |
-| **Windows** | [AmLich_0.1.0_x64_en-US.msi](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_x64_en-US.msi) | MSI |
-| **macOS** | [AmLich_0.1.0_universal.dmg](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_universal.dmg) | Universal (Intel + Apple Silicon) |
-| **Linux** | [AmLich_0.1.0_amd64.AppImage](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_amd64.AppImage) | AppImage |
-| **Linux** | [AmLich_0.1.0_amd64.deb](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich_0.1.0_amd64.deb) | Debian/Ubuntu |
-| **Linux** | [AmLich-0.1.0-1.x86_64.rpm](https://github.com/mnoyd/amlich/releases/download/v0.1.0/AmLich-0.1.0-1.x86_64.rpm) | Fedora/RHEL |
+| **Windows** | `AmLich_*_x64-setup.exe` | Installer |
+| **Windows** | `AmLich_*.msi` | MSI |
+| **macOS** | `AmLich_*_universal.dmg` | Universal (Intel + Apple Silicon) |
+| **Linux** | `AmLich_*_amd64.AppImage` | AppImage |
+| **Linux** | `AmLich_*_amd64.deb` | Debian/Ubuntu |
+| **Linux** | `AmLich-*-1.x86_64.rpm` | Fedora/RHEL |
 
 [View all releases →](https://github.com/mnoyd/amlich/releases)
 
@@ -55,8 +55,8 @@ Download the latest release for your platform:
 - **Windows**: Download and run the `.exe` installer or `.msi` file
 - **macOS**: Download the `.dmg`, open it, and drag AmLich to Applications
 - **Linux (AppImage)**: Download, make executable (`chmod +x`), and run
-- **Linux (Debian/Ubuntu)**: `sudo dpkg -i AmLich_0.1.0_amd64.deb`
-- **Linux (Fedora/RHEL)**: `sudo rpm -i AmLich-0.1.0-1.x86_64.rpm`
+- **Linux (Debian/Ubuntu)**: `sudo dpkg -i AmLich_*_amd64.deb`
+- **Linux (Fedora/RHEL)**: `sudo rpm -i AmLich-*.x86_64.rpm`
 
 ### CLI (for Waybar)
 
@@ -96,10 +96,10 @@ amlich set-mode full # Set display mode
 
 ```bash
 cd packages/core
-npm install
+pnpm install
 
 # Run tests
-npm test
+pnpm test
 ```
 
 **Usage:**
@@ -199,13 +199,13 @@ cd amlich
 cargo build --release --workspace
 
 # Test JavaScript
-cd packages/core && npm test
+cd packages/core && pnpm test
 
 # Run desktop app
-cd apps/desktop && npm run tauri dev
+cd apps/desktop && pnpm tauri dev
 
 # Build desktop app
-cd apps/desktop && npm run tauri build
+cd apps/desktop && pnpm tauri build
 ```
 
 ### Running Tests
@@ -215,7 +215,7 @@ cd apps/desktop && npm run tauri build
 cargo test --workspace
 
 # JavaScript tests
-cd packages/core && npm test
+cd packages/core && pnpm test
 ```
 
 ## 🎯 Waybar Integration

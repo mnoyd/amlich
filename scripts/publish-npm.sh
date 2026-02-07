@@ -6,6 +6,8 @@ ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 
 cd "$ROOT_DIR"
 
+VERSION=$(node -p "require('./crates/amlich-wasm/package.json').version")
+
 echo "=== Publishing Amlich WASM to npm ==="
 echo ""
 
@@ -20,7 +22,7 @@ echo "→ Preparing package..."
 cat > package.json << 'EOF'
 {
   "name": "@amlich/wasm",
-  "version": "0.1.0",
+  "version": "__VERSION__",
   "description": "Vietnamese Lunar Calendar - WASM bindings",
   "main": "amlich_wasm.js",
   "types": "amlich_wasm.d.ts",
@@ -37,6 +39,8 @@ cat > package.json << 'EOF'
   "keywords": ["vietnamese", "lunar", "calendar", "wasm"]
 }
 EOF
+
+sed -i "s/__VERSION__/${VERSION}/" package.json
 
 echo "→ Publishing to npm..."
 npm publish --access public
