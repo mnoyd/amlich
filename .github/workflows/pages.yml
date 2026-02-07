@@ -33,6 +33,8 @@ jobs:
         run: |
           cd crates/amlich-wasm
           wasm-pack build --target web --out-dir ../../dist/wasm
+        env:
+          WASM_PACK_SKIP_OPT: 1
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
