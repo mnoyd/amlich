@@ -235,7 +235,9 @@
   <!-- Top Navigation Bar -->
   <header class="app-header">
     <div class="brand">
-      <div class="brand-mark">AL</div>
+      <div class="brand-mark">
+        <img class="brand-logo" src="/amlich-logo.svg" alt="Amlich logo" />
+      </div>
       <span class="brand-name">Âm Lịch</span>
     </div>
 
@@ -638,17 +640,17 @@
   .brand-mark {
     width: 40px;
     height: 40px;
-    background: linear-gradient(145deg, #e85045 0%, #ba2519 100%);
-    color: white;
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    box-shadow:
-      0 7px 16px rgba(217, 48, 37, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    overflow: hidden;
+  }
+
+  .brand-logo {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
 
   .brand-name {
