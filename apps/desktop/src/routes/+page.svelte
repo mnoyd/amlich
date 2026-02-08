@@ -1,5 +1,6 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
+  import DateInsightBox from "$lib/components/DateInsightBox.svelte";
 
   type GoodHour = {
     hour_chi: string;
@@ -542,6 +543,11 @@
       {/if}
     </aside>
   </main>
+
+  <!-- Date Insight Section -->
+  {#if selectedDay}
+    <DateInsightBox day={selectedDay} />
+  {/if}
 </div>
 
 <style>
@@ -552,7 +558,7 @@
     padding: 24px 32px;
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    min-height: 100vh;
     gap: 24px;
   }
 

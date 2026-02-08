@@ -1,0 +1,390 @@
+{
+  "can": [
+    {
+      "name": "Giáp",
+      "element": "Mộc",
+      "meaning": {
+        "vi": "Giáp là can đầu tiên, tượng trưng cho sự khởi đầu, sinh sôi. Mộc dương (cây gỗ lớn), thể hiện sức sống mạnh mẽ, vươn lên.",
+        "en": "Giáp is the first stem, symbolizing beginnings and growth. Yang Wood (large tree), represents strong vitality and upward growth."
+      },
+      "nature": {
+        "vi": "Mạnh mẽ, thẳng thắn, có chí tiến thủ. Như cây cổ thụ vươn cao.",
+        "en": "Strong, straightforward, ambitious. Like a tall ancient tree reaching upward."
+      }
+    },
+    {
+      "name": "Ất",
+      "element": "Mộc",
+      "meaning": {
+        "vi": "Ất là Mộc âm, tượng trưng cho cỏ cây mềm mại, uốn éo. Linh hoạt, thích nghi, sống dai.",
+        "en": "Ất is Yin Wood, symbolizing soft, bending plants. Flexible, adaptable, resilient."
+      },
+      "nature": {
+        "vi": "Mềm dẻo, nhẫn nại, khéo léo. Như dây leo bám trụ, vượt khó khăn.",
+        "en": "Supple, patient, skillful. Like climbing vines, overcoming difficulties."
+      }
+    },
+    {
+      "name": "Bính",
+      "element": "Hỏa",
+      "meaning": {
+        "vi": "Bính là Hỏa dương, tượng trưng cho mặt trời, ánh sáng rực rỡ. Nhiệt huyết, lạc quan, soi sáng.",
+        "en": "Bính is Yang Fire, symbolizing the sun, brilliant light. Passionate, optimistic, illuminating."
+      },
+      "nature": {
+        "vi": "Nồng nhiệt, hào phóng, thu hút. Như mặt trời chiếu sáng muôn nơi.",
+        "en": "Warm, generous, attractive. Like the sun shining everywhere."
+      }
+    },
+    {
+      "name": "Đinh",
+      "element": "Hỏa",
+      "meaning": {
+        "vi": "Đinh là Hỏa âm, tượng trưng cho ngọn nến, bếp lửa. Ấm áp, tinh tế, nuôi dưỡng.",
+        "en": "Đinh is Yin Fire, symbolizing candle flame, hearth fire. Warm, refined, nurturing."
+      },
+      "nature": {
+        "vi": "Dịu dàng, chu đáo, sâu sắc. Như ngọn nến soi sáng trong đêm.",
+        "en": "Gentle, thoughtful, profound. Like a candle lighting the darkness."
+      }
+    },
+    {
+      "name": "Mậu",
+      "element": "Thổ",
+      "meaning": {
+        "vi": "Mậu là Thổ dương, tượng trưng cho núi cao, đất liền rộng lớn. Vững chắc, bao dung, đáng tin cậy.",
+        "en": "Mậu is Yang Earth, symbolizing high mountains, vast land. Solid, tolerant, reliable."
+      },
+      "nature": {
+        "vi": "Chắc chắn, trầm tĩnh, rộng lượng. Như núi cao vững vàng giữa trời.",
+        "en": "Steady, calm, magnanimous. Like a mountain standing firm."
+      }
+    },
+    {
+      "name": "Kỷ",
+      "element": "Thổ",
+      "meaning": {
+        "vi": "Kỷ là Thổ âm, tượng trưng cho ruộng vườn, đất canh tác. Nuôi dưỡng, chăm sóc, tỉ mỉ.",
+        "en": "Kỷ is Yin Earth, symbolizing fields, cultivated land. Nurturing, caring, meticulous."
+      },
+      "nature": {
+        "vi": "Cần cù, chịu khó, thực tế. Như mảnh đất màu mỡ nuôi cây.",
+        "en": "Diligent, hardworking, practical. Like fertile soil nurturing plants."
+      }
+    },
+    {
+      "name": "Canh",
+      "element": "Kim",
+      "meaning": {
+        "vi": "Canh là Kim dương, tượng trưng cho kiếm sắc, khí cụ. Cương quyết, dứt khoát, công bằng.",
+        "en": "Canh is Yang Metal, symbolizing sharp swords, tools. Resolute, decisive, fair."
+      },
+      "nature": {
+        "vi": "Cứng rắn, nguyên tắc, trực tính. Như thanh kiếm sắc bén.",
+        "en": "Tough, principled, straightforward. Like a sharp sword."
+      }
+    },
+    {
+      "name": "Tân",
+      "element": "Kim",
+      "meaning": {
+        "vi": "Tân là Kim âm, tượng trưng cho trang sức, ngọc ngà. Tinh tế, thẩm mỹ, giá trị.",
+        "en": "Tân is Yin Metal, symbolizing jewelry, precious gems. Refined, aesthetic, valuable."
+      },
+      "nature": {
+        "vi": "Nhạy cảm, tinh tế, hoàn hảo. Như viên ngọc được mài giũa.",
+        "en": "Sensitive, refined, perfectionist. Like a polished gem."
+      }
+    },
+    {
+      "name": "Nhâm",
+      "element": "Thủy",
+      "meaning": {
+        "vi": "Nhâm là Thủy dương, tượng trưng cho sông lớn, biển cả. Bao la, uyên bác, linh hoạt.",
+        "en": "Nhâm is Yang Water, symbolizing great rivers, oceans. Vast, profound, flexible."
+      },
+      "nature": {
+        "vi": "Thông minh, nhanh nhạy, sâu rộng. Như dòng sông cuồn cuộn chảy.",
+        "en": "Intelligent, quick, expansive. Like a rushing river."
+      }
+    },
+    {
+      "name": "Quý",
+      "element": "Thủy",
+      "meaning": {
+        "vi": "Quý là Thủy âm, tượng trưng cho mưa, sương, nước ngầm. Nuôi dưỡng thầm lặng, tế nhị.",
+        "en": "Quý is Yin Water, symbolizing rain, dew, groundwater. Quietly nurturing, subtle."
+      },
+      "nature": {
+        "vi": "Tinh tế, trực giác, sâu sắc. Như mưa rơi thấm đẫm đất đai.",
+        "en": "Delicate, intuitive, deep. Like rain soaking into the earth."
+      }
+    }
+  ],
+  "chi": [
+    {
+      "name": "Tý",
+      "animal": { "vi": "Chuột", "en": "Rat" },
+      "element": "Thủy",
+      "meaning": {
+        "vi": "Tý khởi đầu 12 chi, mang năng lượng Thủy. Tượng trưng cho sự thông minh, nhanh nhẹn và khả năng thích nghi.",
+        "en": "Tý begins the 12 branches with Water energy. Symbolizes intelligence, agility and adaptability."
+      },
+      "hours": "23:00-01:00"
+    },
+    {
+      "name": "Sửu",
+      "animal": { "vi": "Trâu", "en": "Ox" },
+      "element": "Thổ",
+      "meaning": {
+        "vi": "Sửu mang năng lượng Thổ, tượng trưng cho sự cần cù, kiên nhẫn và đáng tin cậy. Như con trâu chăm chỉ cày ruộng.",
+        "en": "Sửu carries Earth energy, symbolizing diligence, patience and reliability. Like an ox plowing fields."
+      },
+      "hours": "01:00-03:00"
+    },
+    {
+      "name": "Dần",
+      "animal": { "vi": "Hổ", "en": "Tiger" },
+      "element": "Mộc",
+      "meaning": {
+        "vi": "Dần mang năng lượng Mộc, tượng trưng cho sức mạnh, dũng cảm và uy quyền. Như chúa sơn lâm oai hùng.",
+        "en": "Dần carries Wood energy, symbolizing strength, courage and authority. Like the majestic king of the forest."
+      },
+      "hours": "03:00-05:00"
+    },
+    {
+      "name": "Mão",
+      "animal": { "vi": "Mèo", "en": "Cat" },
+      "element": "Mộc",
+      "meaning": {
+        "vi": "Mão mang năng lượng Mộc, tượng trưng cho sự dịu dàng, khéo léo và tinh tế. (Việt Nam: Mèo, Trung Quốc: Thỏ)",
+        "en": "Mão carries Wood energy, symbolizing gentleness, skill and refinement. (Vietnam: Cat, China: Rabbit)"
+      },
+      "hours": "05:00-07:00"
+    },
+    {
+      "name": "Thìn",
+      "animal": { "vi": "Rồng", "en": "Dragon" },
+      "element": "Thổ",
+      "meaning": {
+        "vi": "Thìn mang năng lượng Thổ, tượng trưng cho sự cao quý, quyền lực và may mắn. Rồng là linh vật thiêng liêng nhất.",
+        "en": "Thìn carries Earth energy, symbolizing nobility, power and fortune. Dragon is the most sacred creature."
+      },
+      "hours": "07:00-09:00"
+    },
+    {
+      "name": "Tỵ",
+      "animal": { "vi": "Rắn", "en": "Snake" },
+      "element": "Hỏa",
+      "meaning": {
+        "vi": "Tỵ mang năng lượng Hỏa, tượng trưng cho sự khôn ngoan, bí ẩn và trực giác sâu sắc.",
+        "en": "Tỵ carries Fire energy, symbolizing wisdom, mystery and deep intuition."
+      },
+      "hours": "09:00-11:00"
+    },
+    {
+      "name": "Ngọ",
+      "animal": { "vi": "Ngựa", "en": "Horse" },
+      "element": "Hỏa",
+      "meaning": {
+        "vi": "Ngọ mang năng lượng Hỏa, tượng trưng cho sự tự do, nhiệt huyết và năng động. Như ngựa phi đường trường.",
+        "en": "Ngọ carries Fire energy, symbolizing freedom, passion and dynamism. Like a galloping horse."
+      },
+      "hours": "11:00-13:00"
+    },
+    {
+      "name": "Mùi",
+      "animal": { "vi": "Dê", "en": "Goat" },
+      "element": "Thổ",
+      "meaning": {
+        "vi": "Mùi mang năng lượng Thổ, tượng trưng cho sự hiền lành, nghệ thuật và tình cảm sâu sắc.",
+        "en": "Mùi carries Earth energy, symbolizing gentleness, artistry and deep emotion."
+      },
+      "hours": "13:00-15:00"
+    },
+    {
+      "name": "Thân",
+      "animal": { "vi": "Khỉ", "en": "Monkey" },
+      "element": "Kim",
+      "meaning": {
+        "vi": "Thân mang năng lượng Kim, tượng trưng cho sự thông minh, linh hoạt và khéo léo.",
+        "en": "Thân carries Metal energy, symbolizing intelligence, flexibility and cleverness."
+      },
+      "hours": "15:00-17:00"
+    },
+    {
+      "name": "Dậu",
+      "animal": { "vi": "Gà", "en": "Rooster" },
+      "element": "Kim",
+      "meaning": {
+        "vi": "Dậu mang năng lượng Kim, tượng trưng cho sự chăm chỉ, chính xác và thức tỉnh. Gà gáy báo hiệu bình minh.",
+        "en": "Dậu carries Metal energy, symbolizing diligence, precision and awakening. Rooster crows to herald dawn."
+      },
+      "hours": "17:00-19:00"
+    },
+    {
+      "name": "Tuất",
+      "animal": { "vi": "Chó", "en": "Dog" },
+      "element": "Thổ",
+      "meaning": {
+        "vi": "Tuất mang năng lượng Thổ, tượng trưng cho lòng trung thành, bảo vệ và tình bạn chân thành.",
+        "en": "Tuất carries Earth energy, symbolizing loyalty, protection and sincere friendship."
+      },
+      "hours": "19:00-21:00"
+    },
+    {
+      "name": "Hợi",
+      "animal": { "vi": "Lợn", "en": "Pig" },
+      "element": "Thủy",
+      "meaning": {
+        "vi": "Hợi mang năng lượng Thủy, tượng trưng cho sự sung túc, hạnh phúc và thuần khiết. Kết thúc 12 chi.",
+        "en": "Hợi carries Water energy, symbolizing abundance, happiness and purity. Ends the 12 branches."
+      },
+      "hours": "21:00-23:00"
+    }
+  ],
+  "elements": {
+    "Mộc": {
+      "name": { "vi": "Mộc (Gỗ)", "en": "Wood" },
+      "nature": { "vi": "Sinh trưởng, phát triển, vươn lên. Mùa xuân, hướng Đông, màu xanh lá.", "en": "Growth, development, upward movement. Spring, East, green color." }
+    },
+    "Hỏa": {
+      "name": { "vi": "Hỏa (Lửa)", "en": "Fire" },
+      "nature": { "vi": "Nhiệt huyết, biến đổi, chiếu sáng. Mùa hạ, hướng Nam, màu đỏ.", "en": "Passion, transformation, illumination. Summer, South, red color." }
+    },
+    "Thổ": {
+      "name": { "vi": "Thổ (Đất)", "en": "Earth" },
+      "nature": { "vi": "Ổn định, nuôi dưỡng, cân bằng. Giữa các mùa, trung tâm, màu vàng.", "en": "Stability, nurturing, balance. Between seasons, center, yellow color." }
+    },
+    "Kim": {
+      "name": { "vi": "Kim (Kim loại)", "en": "Metal" },
+      "nature": { "vi": "Thu lại, kết tinh, sắc bén. Mùa thu, hướng Tây, màu trắng.", "en": "Contraction, crystallization, sharpness. Autumn, West, white color." }
+    },
+    "Thủy": {
+      "name": { "vi": "Thủy (Nước)", "en": "Water" },
+      "nature": { "vi": "Tàng trữ, chảy xuống, uyển chuyển. Mùa đông, hướng Bắc, màu đen.", "en": "Storage, flowing down, flexibility. Winter, North, black color." }
+    }
+  },
+  "dayGuidance": {
+    "Tý": {
+      "goodFor": {
+        "vi": ["Khởi sự mới", "Giao dịch tài chính", "Học tập, nghiên cứu"],
+        "en": ["Starting new ventures", "Financial transactions", "Study, research"]
+      },
+      "avoidFor": {
+        "vi": ["Kiện tụng", "Xây dựng lớn"],
+        "en": ["Litigation", "Major construction"]
+      }
+    },
+    "Sửu": {
+      "goodFor": {
+        "vi": ["Công việc đòi hỏi kiên nhẫn", "Nông nghiệp", "Tích lũy, tiết kiệm"],
+        "en": ["Work requiring patience", "Agriculture", "Saving, accumulating"]
+      },
+      "avoidFor": {
+        "vi": ["Vội vàng", "Đầu tư mạo hiểm"],
+        "en": ["Rushing", "Risky investments"]
+      }
+    },
+    "Dần": {
+      "goodFor": {
+        "vi": ["Khởi đầu dự án lớn", "Thể hiện bản thân", "Đàm phán, thuyết trình"],
+        "en": ["Starting large projects", "Self-expression", "Negotiations, presentations"]
+      },
+      "avoidFor": {
+        "vi": ["Việc cần khéo léo tinh tế", "Nhún nhường"],
+        "en": ["Delicate, subtle matters", "Yielding"]
+      }
+    },
+    "Mão": {
+      "goodFor": {
+        "vi": ["Nghệ thuật, sáng tạo", "Gặp gỡ bạn bè", "Việc đòi hỏi khéo léo"],
+        "en": ["Art, creativity", "Meeting friends", "Tasks requiring skill"]
+      },
+      "avoidFor": {
+        "vi": ["Đối đầu trực tiếp", "Công việc nặng nhọc"],
+        "en": ["Direct confrontation", "Heavy labor"]
+      }
+    },
+    "Thìn": {
+      "goodFor": {
+        "vi": ["Việc quan trọng, trọng đại", "Khởi công xây dựng", "Ra mắt, khai trương"],
+        "en": ["Important matters", "Groundbreaking", "Launches, openings"]
+      },
+      "avoidFor": {
+        "vi": ["Việc nhỏ nhặt", "Cầu toàn quá mức"],
+        "en": ["Trivial matters", "Excessive perfectionism"]
+      }
+    },
+    "Tỵ": {
+      "goodFor": {
+        "vi": ["Nghiên cứu, học hỏi", "Việc đòi hỏi trực giác", "Kế hoạch dài hạn"],
+        "en": ["Research, learning", "Intuitive work", "Long-term planning"]
+      },
+      "avoidFor": {
+        "vi": ["Quyết định vội vàng", "Tin người xa lạ"],
+        "en": ["Hasty decisions", "Trusting strangers"]
+      }
+    },
+    "Ngọ": {
+      "goodFor": {
+        "vi": ["Hoạt động xã hội", "Thể thao, vận động", "Việc cần nhiệt huyết"],
+        "en": ["Social activities", "Sports, exercise", "Passionate work"]
+      },
+      "avoidFor": {
+        "vi": ["Việc cần bình tĩnh", "Quyết định quan trọng"],
+        "en": ["Calm, careful work", "Important decisions"]
+      }
+    },
+    "Mùi": {
+      "goodFor": {
+        "vi": ["Nghệ thuật, thẩm mỹ", "Chăm sóc gia đình", "Thiện nguyện, từ thiện"],
+        "en": ["Art, aesthetics", "Family care", "Charity, volunteering"]
+      },
+      "avoidFor": {
+        "vi": ["Cạnh tranh gay gắt", "Việc đòi hỏi quyết đoán"],
+        "en": ["Fierce competition", "Decisive action"]
+      }
+    },
+    "Thân": {
+      "goodFor": {
+        "vi": ["Giải quyết vấn đề phức tạp", "Đàm phán thương lượng", "Học kỹ năng mới"],
+        "en": ["Solving complex problems", "Negotiations", "Learning new skills"]
+      },
+      "avoidFor": {
+        "vi": ["Việc đòi hỏi kiên nhẫn lâu", "Cam kết dài hạn"],
+        "en": ["Long patience work", "Long-term commitments"]
+      }
+    },
+    "Dậu": {
+      "goodFor": {
+        "vi": ["Công việc chi tiết, chính xác", "Sắp xếp, tổ chức", "Kiểm tra, đánh giá"],
+        "en": ["Detailed, precise work", "Organizing", "Review, evaluation"]
+      },
+      "avoidFor": {
+        "vi": ["Sáng tạo tự do", "Linh hoạt, ứng biến"],
+        "en": ["Free creativity", "Flexibility, improvisation"]
+      }
+    },
+    "Tuất": {
+      "goodFor": {
+        "vi": ["Gặp gỡ bạn bè thân", "Bảo vệ gia đình", "Việc cần lòng trung thành"],
+        "en": ["Meeting close friends", "Protecting family", "Loyalty-based work"]
+      },
+      "avoidFor": {
+        "vi": ["Tin người mới quen", "Thay đổi đột ngột"],
+        "en": ["Trusting new acquaintances", "Sudden changes"]
+      }
+    },
+    "Hợi": {
+      "goodFor": {
+        "vi": ["Nghỉ ngơi, thư giãn", "Tận hưởng cuộc sống", "Việc gia đình ấm cúng"],
+        "en": ["Rest, relaxation", "Enjoying life", "Cozy family matters"]
+      },
+      "avoidFor": {
+        "vi": ["Công việc căng thẳng", "Cạnh tranh"],
+        "en": ["Stressful work", "Competition"]
+      }
+    }
+  }
+}

@@ -1,0 +1,988 @@
+{
+  "tietKhi": [
+    {
+      "id": "xuan-phan",
+      "name": { "vi": "Xuân Phân", "en": "Spring Equinox" },
+      "longitude": 0,
+      "meaning": {
+        "vi": "\"Xuân\" là mùa xuân, \"Phân\" là chia đều. Đây là điểm phân chia giữa mùa xuân, khi ngày và đêm dài bằng nhau. Từ đây, ngày sẽ dài hơn đêm ở Bắc bán cầu.",
+        "en": "\"Spring\" equinox marks the midpoint of spring when day and night are equal. From here, days become longer than nights in the Northern Hemisphere."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 0° trên hoàng đạo, chiếu thẳng vào xích đạo. Thời điểm này ngày và đêm dài đúng 12 giờ tại mọi nơi trên Trái Đất.",
+        "en": "Sun is at 0° on the ecliptic, shining directly on the equator. At this moment, day and night are exactly 12 hours everywhere on Earth."
+      },
+      "agriculture": {
+        "vi": [
+          "Thời điểm tốt để gieo hạt các loại rau màu",
+          "Chăm sóc lúa đông xuân đang trổ bông",
+          "Phòng trừ sâu bệnh khi thời tiết ấm lên"
+        ],
+        "en": [
+          "Good time to sow vegetable seeds",
+          "Care for winter-spring rice during flowering",
+          "Prevent pests as weather warms"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Cân bằng âm dương trong ăn uống",
+          "Tập thể dục ngoài trời tận dụng tiết trời đẹp",
+          "Bổ gan, thanh nhiệt với các loại rau xanh"
+        ],
+        "en": [
+          "Balance yin-yang in diet",
+          "Exercise outdoors in beautiful weather",
+          "Nourish liver, clear heat with green vegetables"
+        ]
+      },
+      "weather": {
+        "vi": "Thời tiết ấm dần, độ ẩm cao. Miền Bắc có mưa phùn, miền Nam bắt đầu nóng. Đây là giai đoạn chuyển tiếp, thời tiết hay thay đổi.",
+        "en": "Weather gradually warms, high humidity. North has drizzle, South starts getting hot. This is a transition period with changeable weather."
+      }
+    },
+    {
+      "id": "thanh-minh",
+      "name": { "vi": "Thanh Minh", "en": "Pure Brightness" },
+      "longitude": 15,
+      "meaning": {
+        "vi": "\"Thanh\" là trong sạch, \"Minh\" là sáng sủa. Tiết trời trong xanh, sáng sủa sau những ngày mưa xuân. Đây cũng là dịp tảo mộ, viếng thăm mộ tổ tiên.",
+        "en": "\"Pure\" and \"Brightness\" - the sky becomes clear and bright after spring rains. This is also the time for tomb sweeping, visiting ancestral graves."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 15° trên hoàng đạo. Ngày tiếp tục dài thêm, nhiệt độ tăng rõ rệt.",
+        "en": "Sun at 15° on the ecliptic. Days continue to lengthen, temperature rises noticeably."
+      },
+      "agriculture": {
+        "vi": [
+          "Gieo trồng các loại đậu, bắp",
+          "Thu hoạch lúa đông xuân (miền Nam)",
+          "Trồng cây ăn trái mùa hè"
+        ],
+        "en": [
+          "Sow beans and corn",
+          "Harvest winter-spring rice (South)",
+          "Plant summer fruit trees"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Tăng cường vận động ngoài trời",
+          "Ăn nhiều rau xanh, trái cây tươi",
+          "Phòng các bệnh dị ứng mùa xuân"
+        ],
+        "en": [
+          "Increase outdoor activities",
+          "Eat more green vegetables and fresh fruits",
+          "Prevent spring allergies"
+        ]
+      },
+      "weather": {
+        "vi": "Trời trong xanh, ít mưa hơn Xuân Phân. Nhiệt độ ôn hòa, thích hợp du ngoạn. Gió nhẹ, độ ẩm vừa phải.",
+        "en": "Clear skies, less rain than Spring Equinox. Moderate temperature, suitable for outings. Light breeze, moderate humidity."
+      }
+    },
+    {
+      "id": "coc-vu",
+      "name": { "vi": "Cốc Vũ", "en": "Grain Rain" },
+      "longitude": 30,
+      "meaning": {
+        "vi": "\"Cốc\" là ngũ cốc, \"Vũ\" là mưa. Mưa rơi tưới tẩm cho các loại ngũ cốc phát triển. Đây là tiết mưa quan trọng cho mùa vụ.",
+        "en": "\"Grain\" and \"Rain\" - rain falls to nourish grain crops. This is an important rainy period for farming."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 30° trên hoàng đạo. Cuối xuân, chuẩn bị chuyển sang hạ.",
+        "en": "Sun at 30° on the ecliptic. Late spring, preparing to transition to summer."
+      },
+      "agriculture": {
+        "vi": [
+          "Thời điểm vàng để cấy lúa vụ hè thu",
+          "Chăm sóc cây trồng tận dụng mưa",
+          "Trồng các loại rau mùa hè"
+        ],
+        "en": [
+          "Golden time for summer-autumn rice transplanting",
+          "Care for crops utilizing rain",
+          "Plant summer vegetables"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Chú ý phòng ẩm mốc, nấm",
+          "Bổ sung vitamin C tăng đề kháng",
+          "Tránh để thức ăn ôi thiu"
+        ],
+        "en": [
+          "Prevent mold and fungus",
+          "Supplement vitamin C for immunity",
+          "Avoid letting food spoil"
+        ]
+      },
+      "weather": {
+        "vi": "Mưa nhiều hơn, độ ẩm cao. Nhiệt độ tăng dần, bắt đầu nóng. Thời tiết thay đổi thất thường.",
+        "en": "More rain, high humidity. Temperature rising, starting to get hot. Weather changes erratically."
+      }
+    },
+    {
+      "id": "lap-ha",
+      "name": { "vi": "Lập Hạ", "en": "Start of Summer" },
+      "longitude": 45,
+      "meaning": {
+        "vi": "\"Lập\" là bắt đầu, \"Hạ\" là mùa hè. Đây là mốc chính thức bắt đầu mùa hè theo lịch tiết khí. Cây cối tươi tốt, vạn vật sinh sôi.",
+        "en": "\"Start\" of \"Summer\" - official beginning of summer in the solar term calendar. Plants flourish, all things multiply."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 45° trên hoàng đạo. Ngày dài hơn đêm đáng kể, nắng gay gắt.",
+        "en": "Sun at 45° on the ecliptic. Days noticeably longer than nights, intense sunshine."
+      },
+      "agriculture": {
+        "vi": [
+          "Chăm sóc lúa hè thu đang phát triển",
+          "Tưới tiêu hợp lý, tránh úng nước",
+          "Thu hoạch rau quả đầu hè"
+        ],
+        "en": [
+          "Care for developing summer-autumn rice",
+          "Irrigate properly, avoid waterlogging",
+          "Harvest early summer vegetables and fruits"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Uống nhiều nước, tránh mất nước",
+          "Ăn thức ăn mát như đậu xanh, bí đao",
+          "Tránh hoạt động ngoài trời lúc nắng gắt"
+        ],
+        "en": [
+          "Drink more water, avoid dehydration",
+          "Eat cooling foods like mung beans, winter melon",
+          "Avoid outdoor activities during intense sun"
+        ]
+      },
+      "weather": {
+        "vi": "Nắng nóng bắt đầu, nhiệt độ tăng nhanh. Miền Nam vào mùa mưa. Miền Bắc nắng nóng kèm giông.",
+        "en": "Heat begins, temperature rises rapidly. South enters rainy season. North has hot sun with thunderstorms."
+      }
+    },
+    {
+      "id": "tieu-man",
+      "name": { "vi": "Tiểu Mãn", "en": "Grain Buds" },
+      "longitude": 60,
+      "meaning": {
+        "vi": "\"Tiểu\" là nhỏ, \"Mãn\" là đầy. Hạt ngũ cốc bắt đầu đầy đặn nhưng chưa chín hẳn. Đây là giai đoạn sinh trưởng quan trọng của lúa.",
+        "en": "\"Small\" and \"Full\" - grain kernels start filling but not fully ripe. This is an important growth stage for rice."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 60° trên hoàng đạo. Giữa mùa hạ, nắng dài và gay gắt.",
+        "en": "Sun at 60° on the ecliptic. Mid-summer, long and intense sunshine."
+      },
+      "agriculture": {
+        "vi": [
+          "Theo dõi sâu bệnh hại lúa",
+          "Quản lý nước ruộng hợp lý",
+          "Chuẩn bị thu hoạch lúa chín sớm"
+        ],
+        "en": [
+          "Monitor rice pests and diseases",
+          "Manage paddy water properly",
+          "Prepare to harvest early-ripening rice"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Ăn nhiều trái cây mùa hè giàu nước",
+          "Nghỉ ngơi hợp lý, tránh làm việc quá sức",
+          "Bổ sung điện giải khi ra mồ hôi nhiều"
+        ],
+        "en": [
+          "Eat water-rich summer fruits",
+          "Rest properly, avoid overworking",
+          "Replenish electrolytes when sweating heavily"
+        ]
+      },
+      "weather": {
+        "vi": "Nắng nóng cao điểm, nhiều nơi trên 35°C. Mưa giông buổi chiều phổ biến. Độ ẩm cao, oi bức.",
+        "en": "Peak heat, many areas over 35°C. Afternoon thunderstorms common. High humidity, muggy."
+      }
+    },
+    {
+      "id": "mang-chung",
+      "name": { "vi": "Mang Chủng", "en": "Grain in Ear" },
+      "longitude": 75,
+      "meaning": {
+        "vi": "\"Mang\" là râu lúa mạch, \"Chủng\" là gieo trồng. Đây là thời điểm lúa mạch chín có râu, đồng thời gieo trồng lúa mùa mới.",
+        "en": "\"Awn\" (grain beard) and \"Sow\" - time when barley ripens with awns, and new rice crops are sown."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 75° trên hoàng đạo. Gần điểm Hạ Chí, ngày dài nhất sắp đến.",
+        "en": "Sun at 75° on the ecliptic. Near Summer Solstice, longest day approaching."
+      },
+      "agriculture": {
+        "vi": [
+          "Thu hoạch lúa hè thu sớm",
+          "Gieo mạ lúa mùa",
+          "Chăm sóc cây ăn trái mùa hè"
+        ],
+        "en": [
+          "Harvest early summer-autumn rice",
+          "Sow seasonal rice seedlings",
+          "Care for summer fruit trees"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Tăng cường giải nhiệt với nước mát",
+          "Ăn ít đồ cay nóng, nhiều rau quả",
+          "Ngủ đủ giấc dù ngày dài"
+        ],
+        "en": [
+          "Increase cooling with refreshing drinks",
+          "Eat less spicy food, more vegetables and fruits",
+          "Sleep enough despite long days"
+        ]
+      },
+      "weather": {
+        "vi": "Nắng nóng kéo dài, oi bức. Mưa giông nhiều hơn, có thể có mưa đá. Độ ẩm rất cao.",
+        "en": "Prolonged heat, muggy. More thunderstorms, possible hail. Very high humidity."
+      }
+    },
+    {
+      "id": "ha-chi",
+      "name": { "vi": "Hạ Chí", "en": "Summer Solstice" },
+      "longitude": 90,
+      "meaning": {
+        "vi": "\"Hạ\" là mùa hè, \"Chí\" là điểm cực. Đây là ngày dài nhất trong năm tại Bắc bán cầu, mặt trời lên cao nhất. Từ đây ngày sẽ ngắn dần.",
+        "en": "\"Summer\" and \"Extreme\" - the longest day of the year in Northern Hemisphere, sun at its highest. From here, days will shorten."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 90° trên hoàng đạo, chiếu thẳng vào chí tuyến Bắc (23.5°N). Ngày dài nhất, đêm ngắn nhất trong năm.",
+        "en": "Sun at 90° on the ecliptic, directly over Tropic of Cancer (23.5°N). Longest day, shortest night of the year."
+      },
+      "agriculture": {
+        "vi": [
+          "Chăm sóc cây trồng chịu nắng",
+          "Tưới nước vào sáng sớm hoặc chiều muộn",
+          "Che chắn cho cây non tránh nắng gắt"
+        ],
+        "en": [
+          "Care for sun-tolerant crops",
+          "Water in early morning or late afternoon",
+          "Shade young plants from intense sun"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Tránh phơi nắng trực tiếp buổi trưa",
+          "Uống nước đều đặn suốt ngày",
+          "Ăn dưa hấu, bí đao giải nhiệt"
+        ],
+        "en": [
+          "Avoid direct midday sun exposure",
+          "Drink water regularly throughout day",
+          "Eat watermelon, winter melon to cool down"
+        ]
+      },
+      "weather": {
+        "vi": "Nắng gay gắt nhất năm, nhiệt độ có thể vượt 40°C. Mưa giông đột ngột. Đây là đỉnh điểm của mùa hè.",
+        "en": "Most intense sunshine of year, temperature can exceed 40°C. Sudden thunderstorms. Peak of summer."
+      }
+    },
+    {
+      "id": "tieu-thu",
+      "name": { "vi": "Tiểu Thử", "en": "Slight Heat" },
+      "longitude": 105,
+      "meaning": {
+        "vi": "\"Tiểu\" là nhỏ, \"Thử\" là nóng. Trời nóng nhưng chưa đến đỉnh điểm. Đây là giai đoạn nóng tăng dần.",
+        "en": "\"Slight\" and \"Heat\" - hot but not yet at peak. This is a phase of gradually increasing heat."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 105° trên hoàng đạo. Ngày bắt đầu ngắn lại nhưng nhiệt độ vẫn cao.",
+        "en": "Sun at 105° on the ecliptic. Days start shortening but temperature remains high."
+      },
+      "agriculture": {
+        "vi": [
+          "Phòng hạn cho cây trồng",
+          "Chuẩn bị vụ mùa mới",
+          "Thu hoạch trái cây mùa hè"
+        ],
+        "en": [
+          "Prevent drought for crops",
+          "Prepare new season",
+          "Harvest summer fruits"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Ăn đồ mát, tránh đồ chiên xào",
+          "Nghỉ trưa để phục hồi sức khỏe",
+          "Tránh thức khuya trong thời tiết nóng"
+        ],
+        "en": [
+          "Eat cooling foods, avoid fried foods",
+          "Take afternoon naps for recovery",
+          "Avoid staying up late in hot weather"
+        ]
+      },
+      "weather": {
+        "vi": "Nắng nóng kéo dài, oi bức. Mưa giông chiều và đêm phổ biến. Nhiệt độ cao đều đặn.",
+        "en": "Prolonged heat, muggy. Afternoon and evening thunderstorms common. Consistently high temperature."
+      }
+    },
+    {
+      "id": "dai-thu",
+      "name": { "vi": "Đại Thử", "en": "Great Heat" },
+      "longitude": 120,
+      "meaning": {
+        "vi": "\"Đại\" là lớn, \"Thử\" là nóng. Đây là thời điểm nóng nhất trong năm. Nhiệt độ đạt đỉnh, nắng cháy da.",
+        "en": "\"Great\" and \"Heat\" - hottest time of the year. Temperature peaks, scorching sun."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 120° trên hoàng đạo. Mặc dù ngày đã ngắn hơn Hạ Chí, nhiệt độ tích lũy đạt cực đại.",
+        "en": "Sun at 120° on the ecliptic. Although days shorter than Solstice, accumulated heat reaches maximum."
+      },
+      "agriculture": {
+        "vi": [
+          "Tưới tiêu thường xuyên cho cây",
+          "Che phủ đất giữ ẩm",
+          "Phòng trừ sâu bệnh mùa nóng"
+        ],
+        "en": [
+          "Irrigate crops frequently",
+          "Mulch soil to retain moisture",
+          "Prevent hot season pests and diseases"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Ở trong nhà mát vào trưa nắng gắt",
+          "Uống nước dừa, nước mía giải nhiệt",
+          "Cẩn thận say nắng, sốc nhiệt"
+        ],
+        "en": [
+          "Stay indoors during midday heat",
+          "Drink coconut water, sugarcane juice to cool",
+          "Beware of heatstroke and heat shock"
+        ]
+      },
+      "weather": {
+        "vi": "Nóng nhất năm, nhiều nơi trên 40°C. Mưa giông mạnh có thể gây ngập. Khí hậu khắc nghiệt.",
+        "en": "Hottest of year, many areas over 40°C. Strong storms may cause flooding. Harsh climate."
+      }
+    },
+    {
+      "id": "lap-thu",
+      "name": { "vi": "Lập Thu", "en": "Start of Autumn" },
+      "longitude": 135,
+      "meaning": {
+        "vi": "\"Lập\" là bắt đầu, \"Thu\" là mùa thu. Mùa thu bắt đầu theo lịch tiết khí, dù thời tiết vẫn còn nóng. Đây là dấu hiệu mùa hè sắp kết thúc.",
+        "en": "\"Start\" of \"Autumn\" - autumn begins in solar term calendar, though weather still hot. Sign that summer is ending."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 135° trên hoàng đạo. Ngày tiếp tục ngắn lại, đêm dài hơn.",
+        "en": "Sun at 135° on the ecliptic. Days continue shortening, nights lengthening."
+      },
+      "agriculture": {
+        "vi": [
+          "Chuẩn bị vụ đông",
+          "Thu hoạch lúa mùa sớm",
+          "Gieo trồng rau vụ thu"
+        ],
+        "en": [
+          "Prepare winter season",
+          "Harvest early seasonal rice",
+          "Sow autumn vegetables"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Điều chỉnh chế độ ăn theo mùa",
+          "Bổ phổi với lê, mật ong",
+          "Tập thể dục buổi sáng tận dụng khí mát"
+        ],
+        "en": [
+          "Adjust diet according to season",
+          "Nourish lungs with pears, honey",
+          "Exercise in morning to enjoy cool air"
+        ]
+      },
+      "weather": {
+        "vi": "Còn nóng nhưng bớt oi bức. Sáng sớm và chiều tối bắt đầu mát. Mưa giảm dần.",
+        "en": "Still hot but less muggy. Early morning and evening start cooling. Rain decreasing."
+      }
+    },
+    {
+      "id": "xu-thu",
+      "name": { "vi": "Xử Thử", "en": "End of Heat" },
+      "longitude": 150,
+      "meaning": {
+        "vi": "\"Xử\" là ngừng, \"Thử\" là nóng. Thời tiết nóng bắt đầu giảm, hết nắng gắt mùa hè. Chuyển dần sang tiết thu mát mẻ.",
+        "en": "\"Stop\" and \"Heat\" - hot weather begins to subside, intense summer sun ends. Gradually transitioning to cool autumn."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 150° trên hoàng đạo. Gần điểm Thu Phân, ngày đêm sắp cân bằng.",
+        "en": "Sun at 150° on the ecliptic. Near Autumn Equinox, day and night approaching balance."
+      },
+      "agriculture": {
+        "vi": [
+          "Thu hoạch lúa mùa",
+          "Chuẩn bị đất cho vụ đông",
+          "Trồng rau thu đông"
+        ],
+        "en": [
+          "Harvest seasonal rice",
+          "Prepare soil for winter season",
+          "Plant autumn-winter vegetables"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Bổ sung độ ẩm cho da khô hanh",
+          "Ăn thực phẩm nhuận phổi",
+          "Ngủ sớm dậy sớm theo nhịp sinh học"
+        ],
+        "en": [
+          "Add moisture for dry skin",
+          "Eat lung-moistening foods",
+          "Sleep early, wake early following circadian rhythm"
+        ]
+      },
+      "weather": {
+        "vi": "Bớt nóng, tiết trời dễ chịu. Sáng sớm se lạnh. Không khí khô hơn.",
+        "en": "Less hot, pleasant weather. Early morning slightly cold. Drier air."
+      }
+    },
+    {
+      "id": "bach-lo",
+      "name": { "vi": "Bạch Lộ", "en": "White Dew" },
+      "longitude": 165,
+      "meaning": {
+        "vi": "\"Bạch\" là trắng, \"Lộ\" là sương. Sương trắng xuất hiện vào sáng sớm, báo hiệu mùa thu đã thực sự đến. Đêm lạnh, ngày mát.",
+        "en": "\"White\" and \"Dew\" - white dew appears in early morning, signaling autumn has truly arrived. Cold nights, cool days."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 165° trên hoàng đạo. Nhiệt độ ban đêm giảm đủ để hơi nước đọng thành sương.",
+        "en": "Sun at 165° on the ecliptic. Nighttime temperature drops enough for water vapor to condense into dew."
+      },
+      "agriculture": {
+        "vi": [
+          "Thu hoạch các loại đậu",
+          "Trồng rau vụ đông",
+          "Chuẩn bị vụ đông xuân"
+        ],
+        "en": [
+          "Harvest various beans",
+          "Plant winter vegetables",
+          "Prepare winter-spring season"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Giữ ấm buổi sáng sớm",
+          "Bổ phổi, dưỡng da với thức ăn nhuận",
+          "Chú ý phòng cảm lạnh khi thay đổi thời tiết"
+        ],
+        "en": [
+          "Keep warm in early morning",
+          "Nourish lungs, moisturize skin with hydrating foods",
+          "Prevent colds during weather changes"
+        ]
+      },
+      "weather": {
+        "vi": "Sáng sớm có sương, ngày mát mẻ. Chênh lệch nhiệt độ ngày đêm lớn. Tiết trời khô ráo.",
+        "en": "Morning dew, cool days. Large day-night temperature difference. Dry weather."
+      }
+    },
+    {
+      "id": "thu-phan",
+      "name": { "vi": "Thu Phân", "en": "Autumn Equinox" },
+      "longitude": 180,
+      "meaning": {
+        "vi": "\"Thu\" là mùa thu, \"Phân\" là chia đều. Điểm giữa mùa thu, ngày đêm lại bằng nhau. Từ đây, đêm sẽ dài hơn ngày.",
+        "en": "\"Autumn\" and \"Equinox\" - midpoint of autumn, day and night equal again. From here, nights become longer than days."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 180° trên hoàng đạo, chiếu thẳng vào xích đạo. Ngày và đêm dài đúng 12 giờ.",
+        "en": "Sun at 180° on the ecliptic, shining directly on equator. Day and night exactly 12 hours."
+      },
+      "agriculture": {
+        "vi": [
+          "Thu hoạch lúa mùa đợt cuối",
+          "Gieo trồng cây vụ đông",
+          "Chuẩn bị phân bón cho vụ đông xuân"
+        ],
+        "en": [
+          "Final harvest of seasonal rice",
+          "Sow winter crops",
+          "Prepare fertilizer for winter-spring season"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Ăn thức ăn ấm, hạn chế đồ lạnh",
+          "Tập thể dục vừa phải",
+          "Bổ sung vitamin chuẩn bị cho mùa đông"
+        ],
+        "en": [
+          "Eat warm foods, limit cold foods",
+          "Exercise moderately",
+          "Supplement vitamins preparing for winter"
+        ]
+      },
+      "weather": {
+        "vi": "Tiết trời mát mẻ, dễ chịu nhất trong năm. Trời trong xanh, ít mưa. Chênh lệch nhiệt độ ngày đêm vừa phải.",
+        "en": "Most pleasant weather of year. Clear skies, little rain. Moderate day-night temperature difference."
+      }
+    },
+    {
+      "id": "han-lo",
+      "name": { "vi": "Hàn Lộ", "en": "Cold Dew" },
+      "longitude": 195,
+      "meaning": {
+        "vi": "\"Hàn\" là lạnh, \"Lộ\" là sương. Sương lạnh hơn Bạch Lộ, báo hiệu mùa đông sắp đến. Thời tiết chuyển lạnh rõ rệt.",
+        "en": "\"Cold\" and \"Dew\" - dew colder than White Dew, signaling winter approaching. Weather turning noticeably cold."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 195° trên hoàng đạo. Đêm dài hơn ngày đáng kể.",
+        "en": "Sun at 195° on the ecliptic. Nights noticeably longer than days."
+      },
+      "agriculture": {
+        "vi": [
+          "Thu hoạch cây trồng vụ thu",
+          "Gieo lúa đông xuân sớm (miền Bắc)",
+          "Che chắn cây chịu lạnh kém"
+        ],
+        "en": [
+          "Harvest autumn crops",
+          "Sow early winter-spring rice (North)",
+          "Protect cold-sensitive plants"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Mặc ấm, đặc biệt buổi sáng sớm",
+          "Ăn thức ăn ấm nóng",
+          "Phòng cảm lạnh, viêm họng"
+        ],
+        "en": [
+          "Dress warmly, especially early morning",
+          "Eat warm foods",
+          "Prevent colds, sore throat"
+        ]
+      },
+      "weather": {
+        "vi": "Lạnh hơn, nhất là sáng sớm và đêm. Trời hanh khô. Gió mùa đông bắc bắt đầu về (miền Bắc).",
+        "en": "Colder, especially early morning and night. Dry weather. Northeast monsoon beginning (North)."
+      }
+    },
+    {
+      "id": "suong-giang",
+      "name": { "vi": "Sương Giáng", "en": "Frost Descent" },
+      "longitude": 210,
+      "meaning": {
+        "vi": "\"Sương\" là sương giá, \"Giáng\" là rơi xuống. Sương muối bắt đầu xuất hiện ở vùng cao và phía Bắc. Đây là tiết cuối thu.",
+        "en": "\"Frost\" and \"Descend\" - frost begins appearing in highlands and North. This is late autumn."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 210° trên hoàng đạo. Chuẩn bị bước vào mùa đông.",
+        "en": "Sun at 210° on the ecliptic. Preparing to enter winter."
+      },
+      "agriculture": {
+        "vi": [
+          "Thu hoạch hết cây trồng vụ thu",
+          "Chuẩn bị đất cho vụ đông xuân",
+          "Bảo quản nông sản cho mùa đông"
+        ],
+        "en": [
+          "Complete autumn crop harvest",
+          "Prepare soil for winter-spring",
+          "Store agricultural products for winter"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Tăng cường giữ ấm cơ thể",
+          "Ăn thức ăn bổ dưỡng, tăng đề kháng",
+          "Tránh gió lạnh vào người"
+        ],
+        "en": [
+          "Strengthen body warmth",
+          "Eat nutritious foods, boost immunity",
+          "Avoid cold wind exposure"
+        ]
+      },
+      "weather": {
+        "vi": "Lạnh rõ rệt, có thể có sương muối ở vùng núi cao. Trời khô hanh. Gió mùa đông bắc mạnh.",
+        "en": "Noticeably cold, possible frost in high mountains. Dry weather. Strong northeast monsoon."
+      }
+    },
+    {
+      "id": "lap-dong",
+      "name": { "vi": "Lập Đông", "en": "Start of Winter" },
+      "longitude": 225,
+      "meaning": {
+        "vi": "\"Lập\" là bắt đầu, \"Đông\" là mùa đông. Mùa đông chính thức bắt đầu. Vạn vật bước vào giai đoạn nghỉ ngơi, tích trữ năng lượng.",
+        "en": "\"Start\" of \"Winter\" - winter officially begins. All things enter a phase of rest and energy storage."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 225° trên hoàng đạo. Đêm tiếp tục dài hơn, ngày ngắn lại.",
+        "en": "Sun at 225° on the ecliptic. Nights continue lengthening, days shortening."
+      },
+      "agriculture": {
+        "vi": [
+          "Chăm sóc lúa đông xuân gieo sớm",
+          "Bón phân cho cây qua đông",
+          "Chuẩn bị giống cho vụ xuân"
+        ],
+        "en": [
+          "Care for early-sown winter-spring rice",
+          "Fertilize plants for winter",
+          "Prepare seeds for spring season"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Bổ sung thực phẩm ấm, giàu năng lượng",
+          "Giữ ấm đặc biệt vùng ngực, bụng, chân",
+          "Tập thể dục trong nhà khi trời quá lạnh"
+        ],
+        "en": [
+          "Supplement warm, energy-rich foods",
+          "Keep warm especially chest, belly, feet",
+          "Exercise indoors when too cold outside"
+        ]
+      },
+      "weather": {
+        "vi": "Lạnh, gió mùa đông bắc mạnh (miền Bắc). Miền Nam vẫn còn ấm. Trời khô hanh, ít mưa.",
+        "en": "Cold, strong northeast monsoon (North). South still warm. Dry weather, little rain."
+      }
+    },
+    {
+      "id": "tieu-tuyet",
+      "name": { "vi": "Tiểu Tuyết", "en": "Slight Snow" },
+      "longitude": 240,
+      "meaning": {
+        "vi": "\"Tiểu\" là nhỏ, \"Tuyết\" là tuyết. Ở vùng ôn đới bắt đầu có tuyết nhẹ. Tại Việt Nam, đây là thời điểm rét đậm hơn.",
+        "en": "\"Slight\" and \"Snow\" - light snow begins in temperate zones. In Vietnam, this marks deeper cold."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 240° trên hoàng đạo. Gần điểm Đông Chí, ngày ngắn nhất sắp đến.",
+        "en": "Sun at 240° on the ecliptic. Near Winter Solstice, shortest day approaching."
+      },
+      "agriculture": {
+        "vi": [
+          "Bảo vệ cây trồng khỏi rét",
+          "Tưới nước ấm cho cây",
+          "Che phủ gốc cây giữ ấm"
+        ],
+        "en": [
+          "Protect crops from cold",
+          "Water plants with warm water",
+          "Mulch tree bases for warmth"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Ăn thức ăn nóng, nấu canh xương",
+          "Tắm nước ấm, không tắm quá lâu",
+          "Giữ ấm đầu, cổ, tay, chân"
+        ],
+        "en": [
+          "Eat hot foods, make bone broth",
+          "Bathe with warm water, not too long",
+          "Keep head, neck, hands, feet warm"
+        ]
+      },
+      "weather": {
+        "vi": "Rét đậm (miền Bắc), có thể có băng giá ở vùng núi cao. Trời u ám, độ ẩm cao. Miền Nam se lạnh.",
+        "en": "Deep cold (North), possible frost in high mountains. Overcast, high humidity. South slightly cold."
+      }
+    },
+    {
+      "id": "dai-tuyet",
+      "name": { "vi": "Đại Tuyết", "en": "Great Snow" },
+      "longitude": 255,
+      "meaning": {
+        "vi": "\"Đại\" là lớn, \"Tuyết\" là tuyết. Ở vùng ôn đới tuyết rơi dày. Tại Việt Nam, đây là thời điểm rét nhất.",
+        "en": "\"Great\" and \"Snow\" - heavy snow in temperate zones. In Vietnam, this is the coldest time."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 255° trên hoàng đạo. Ngày rất ngắn, đêm rất dài.",
+        "en": "Sun at 255° on the ecliptic. Very short days, very long nights."
+      },
+      "agriculture": {
+        "vi": [
+          "Bảo vệ trâu bò, gia súc khỏi rét",
+          "Che chắn cây trồng",
+          "Chuẩn bị vật tư cho vụ xuân"
+        ],
+        "en": [
+          "Protect cattle and livestock from cold",
+          "Cover crops",
+          "Prepare materials for spring season"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Bổ thận, dưỡng âm theo Đông y",
+          "Ăn thức ăn bổ dưỡng như thịt dê, gà",
+          "Hạn chế ra ngoài khi rét đậm"
+        ],
+        "en": [
+          "Nourish kidneys, yin according to Eastern medicine",
+          "Eat nutritious foods like goat, chicken",
+          "Limit going outside during deep cold"
+        ]
+      },
+      "weather": {
+        "vi": "Rét đậm rét hại, có thể có tuyết ở Sa Pa, mưa phùn rét buốt. Gió mùa đông bắc cường độ mạnh.",
+        "en": "Severe cold, possible snow in Sa Pa, chilling drizzle. Intense northeast monsoon."
+      }
+    },
+    {
+      "id": "dong-chi",
+      "name": { "vi": "Đông Chí", "en": "Winter Solstice" },
+      "longitude": 270,
+      "meaning": {
+        "vi": "\"Đông\" là mùa đông, \"Chí\" là điểm cực. Ngày ngắn nhất, đêm dài nhất trong năm. Từ đây, ngày sẽ dài dần, mang ý nghĩa dương khí bắt đầu sinh.",
+        "en": "\"Winter\" and \"Extreme\" - shortest day, longest night of year. From here, days lengthen, meaning yang energy begins to rise."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 270° trên hoàng đạo, chiếu thẳng vào chí tuyến Nam (23.5°S). Ngày ngắn nhất năm tại Bắc bán cầu.",
+        "en": "Sun at 270° on the ecliptic, directly over Tropic of Capricorn (23.5°S). Shortest day of year in Northern Hemisphere."
+      },
+      "agriculture": {
+        "vi": [
+          "Nghỉ ngơi, bảo dưỡng công cụ",
+          "Chuẩn bị giống, phân bón cho vụ xuân",
+          "Bảo vệ cây trồng qua rét"
+        ],
+        "en": [
+          "Rest, maintain tools",
+          "Prepare seeds, fertilizer for spring",
+          "Protect crops through cold"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Dưỡng sinh, nghỉ ngơi nhiều hơn",
+          "Ăn thức ăn bổ dưỡng, tăng cường miễn dịch",
+          "Tránh làm việc quá sức"
+        ],
+        "en": [
+          "Rest more for health cultivation",
+          "Eat nutritious foods, boost immunity",
+          "Avoid overexertion"
+        ]
+      },
+      "weather": {
+        "vi": "Rét đậm, có thể có rét hại. Trời u ám, mưa phùn (miền Bắc). Thời điểm lạnh nhất hoặc gần lạnh nhất.",
+        "en": "Deep cold, possibly severe. Overcast, drizzle (North). Coldest or near-coldest time."
+      }
+    },
+    {
+      "id": "tieu-han",
+      "name": { "vi": "Tiểu Hàn", "en": "Slight Cold" },
+      "longitude": 285,
+      "meaning": {
+        "vi": "\"Tiểu\" là nhỏ, \"Hàn\" là lạnh. Thời tiết lạnh nhưng chưa đến đỉnh điểm. Đây là giai đoạn giữa mùa đông.",
+        "en": "\"Slight\" and \"Cold\" - cold but not yet at peak. This is mid-winter phase."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 285° trên hoàng đạo. Ngày bắt đầu dài ra dần.",
+        "en": "Sun at 285° on the ecliptic. Days starting to lengthen gradually."
+      },
+      "agriculture": {
+        "vi": [
+          "Chuẩn bị vụ xuân",
+          "Bảo vệ cây trồng khỏi rét",
+          "Làm đất, bón phân chuẩn bị gieo cấy"
+        ],
+        "en": [
+          "Prepare spring season",
+          "Protect crops from cold",
+          "Till soil, fertilize for sowing"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Tránh ra ngoài khi quá lạnh",
+          "Ăn cháo nóng, uống nước gừng",
+          "Giữ ấm, đặc biệt khi đi ngủ"
+        ],
+        "en": [
+          "Avoid going outside when too cold",
+          "Eat hot porridge, drink ginger water",
+          "Keep warm, especially when sleeping"
+        ]
+      },
+      "weather": {
+        "vi": "Rét, có đợt rét đậm. Gió mùa đông bắc về theo đợt. Trời u ám, mưa phùn (miền Bắc).",
+        "en": "Cold, with severe cold spells. Northeast monsoon comes in waves. Overcast, drizzle (North)."
+      }
+    },
+    {
+      "id": "dai-han",
+      "name": { "vi": "Đại Hàn", "en": "Great Cold" },
+      "longitude": 300,
+      "meaning": {
+        "vi": "\"Đại\" là lớn, \"Hàn\" là lạnh. Đây là thời điểm lạnh nhất trong năm theo lịch tiết khí. Cuối mùa đông, chuẩn bị đón xuân.",
+        "en": "\"Great\" and \"Cold\" - coldest time of year in solar term calendar. Late winter, preparing to welcome spring."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 300° trên hoàng đạo. Gần cuối mùa đông theo thiên văn.",
+        "en": "Sun at 300° on the ecliptic. Near end of astronomical winter."
+      },
+      "agriculture": {
+        "vi": [
+          "Hoàn tất chuẩn bị vụ xuân",
+          "Kiểm tra giống, phân bón",
+          "Bảo vệ trâu bò qua rét"
+        ],
+        "en": [
+          "Complete spring preparation",
+          "Check seeds, fertilizer",
+          "Protect cattle through cold"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Dưỡng sinh, tích trữ năng lượng cho mùa xuân",
+          "Ăn thức ăn ấm, bổ dưỡng",
+          "Tập thể dục nhẹ trong nhà"
+        ],
+        "en": [
+          "Cultivate health, store energy for spring",
+          "Eat warm, nutritious foods",
+          "Light indoor exercise"
+        ]
+      },
+      "weather": {
+        "vi": "Lạnh nhất năm, rét đậm rét hại. Có thể có sương muối, băng giá. Cuối tiết này chuyển dần sang xuân.",
+        "en": "Coldest of year, severe cold. Possible frost, ice. Late in this term transitions toward spring."
+      }
+    },
+    {
+      "id": "lap-xuan",
+      "name": { "vi": "Lập Xuân", "en": "Start of Spring" },
+      "longitude": 315,
+      "meaning": {
+        "vi": "\"Lập\" là bắt đầu, \"Xuân\" là mùa xuân. Mùa xuân bắt đầu, vạn vật hồi sinh. Dù thời tiết còn lạnh, sinh khí đã bắt đầu trỗi dậy.",
+        "en": "\"Start\" of \"Spring\" - spring begins, all things revive. Though weather still cold, life energy starts rising."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 315° trên hoàng đạo. Ngày tiếp tục dài ra, sắp đến điểm Xuân Phân.",
+        "en": "Sun at 315° on the ecliptic. Days continue lengthening, approaching Spring Equinox."
+      },
+      "agriculture": {
+        "vi": [
+          "Bắt đầu gieo mạ vụ đông xuân",
+          "Chuẩn bị đất, phân bón",
+          "Trồng rau xanh đầu xuân"
+        ],
+        "en": [
+          "Begin sowing winter-spring rice seedlings",
+          "Prepare soil, fertilizer",
+          "Plant early spring green vegetables"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Tăng cường vận động, đón khí xuân",
+          "Ăn rau xanh, bổ gan",
+          "Điều chỉnh giấc ngủ theo nhịp mới"
+        ],
+        "en": [
+          "Increase activity, welcome spring energy",
+          "Eat green vegetables, nourish liver",
+          "Adjust sleep to new rhythm"
+        ]
+      },
+      "weather": {
+        "vi": "Còn lạnh nhưng bớt rét. Thỉnh thoảng có nắng ấm. Giao thời đông xuân, thời tiết thay đổi.",
+        "en": "Still cold but less severe. Occasional warm sunshine. Winter-spring transition, changeable weather."
+      }
+    },
+    {
+      "id": "vu-thuy",
+      "name": { "vi": "Vũ Thủy", "en": "Rain Water" },
+      "longitude": 330,
+      "meaning": {
+        "vi": "\"Vũ\" là mưa, \"Thủy\" là nước. Thời tiết ấm lên, tuyết tan thành nước, mưa xuân bắt đầu. Đất đai ẩm ướt thuận lợi gieo trồng.",
+        "en": "\"Rain\" and \"Water\" - weather warms, snow melts to water, spring rain begins. Moist soil favorable for sowing."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 330° trên hoàng đạo. Giữa Lập Xuân và Xuân Phân.",
+        "en": "Sun at 330° on the ecliptic. Between Start of Spring and Spring Equinox."
+      },
+      "agriculture": {
+        "vi": [
+          "Gieo cấy lúa đông xuân",
+          "Tưới tiêu hợp lý cho cây",
+          "Trồng cây ăn trái"
+        ],
+        "en": [
+          "Sow and transplant winter-spring rice",
+          "Irrigate crops properly",
+          "Plant fruit trees"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Phòng bệnh đường hô hấp",
+          "Tăng đề kháng với vitamin C",
+          "Chú ý giữ ấm khi mưa phùn"
+        ],
+        "en": [
+          "Prevent respiratory diseases",
+          "Boost immunity with vitamin C",
+          "Keep warm during drizzle"
+        ]
+      },
+      "weather": {
+        "vi": "Mưa phùn ẩm ướt (miền Bắc), ấm dần. Độ ẩm cao, thời tiết ẩm thấp. Miền Nam nắng nóng hơn.",
+        "en": "Damp drizzle (North), gradually warming. High humidity, damp weather. South sunnier and hotter."
+      }
+    },
+    {
+      "id": "kinh-trap",
+      "name": { "vi": "Kinh Trập", "en": "Awakening of Insects" },
+      "longitude": 345,
+      "meaning": {
+        "vi": "\"Kinh\" là kinh động, \"Trập\" là côn trùng ngủ đông. Sấm xuân đầu tiên đánh thức côn trùng đang ngủ đông. Vạn vật bừng tỉnh, sinh sôi.",
+        "en": "\"Startling\" and \"Hibernating insects\" - first spring thunder awakens hibernating insects. All things awaken and multiply."
+      },
+      "astronomy": {
+        "vi": "Mặt Trời ở vị trí 345° trên hoàng đạo. Gần điểm Xuân Phân, chuẩn bị cân bằng ngày đêm.",
+        "en": "Sun at 345° on the ecliptic. Near Spring Equinox, approaching day-night balance."
+      },
+      "agriculture": {
+        "vi": [
+          "Phòng trừ sâu bệnh khi côn trùng hoạt động",
+          "Tiếp tục gieo cấy",
+          "Chăm sóc cây đang phát triển"
+        ],
+        "en": [
+          "Prevent pests as insects become active",
+          "Continue sowing and transplanting",
+          "Care for growing plants"
+        ]
+      },
+      "health": {
+        "vi": [
+          "Tăng vận động đón năng lượng xuân",
+          "Ăn nhẹ nhàng, dễ tiêu",
+          "Ngủ sớm dậy sớm theo mặt trời"
+        ],
+        "en": [
+          "Increase activity to welcome spring energy",
+          "Eat light, easily digestible foods",
+          "Sleep early, wake early with the sun"
+        ]
+      },
+      "weather": {
+        "vi": "Ấm hơn, có sấm xuân đầu tiên. Mưa giông bắt đầu. Thời tiết chuyển biến tích cực.",
+        "en": "Warmer, first spring thunder. Thunderstorms begin. Weather changing positively."
+      }
+    }
+  ]
+}
