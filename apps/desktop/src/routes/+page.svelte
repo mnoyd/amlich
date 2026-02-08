@@ -207,11 +207,11 @@
   let jumpMonth = $state(viewMonth);
   let jumpYear = $state(viewYear);
 
-  // Insight Drawer State
-  let isDrawerExpanded = $state(false);
+  // Cultural Detail Visibility
+  let isInsightVisible = $state(false);
 
-  function toggleDrawer() {
-    isDrawerExpanded = !isDrawerExpanded;
+  function toggleInsight() {
+    isInsightVisible = !isInsightVisible;
   }
 
   $effect(() => {
@@ -284,6 +284,14 @@
 
     <div class="actions">
       <button class="action-btn secondary" onclick={goToday}>Hôm nay</button>
+      <button
+        class="action-btn insight-toggle {isInsightVisible ? 'active' : ''}"
+        onclick={toggleInsight}
+        disabled={!selectedDay}
+        aria-pressed={isInsightVisible}
+      >
+        {isInsightVisible ? "Ẩn chi tiết văn hóa" : "Xem chi tiết văn hóa"}
+      </button>
 
       <!-- Settings Toggle -->
       <div class="settings-wrapper">
@@ -366,7 +374,7 @@
   </header>
 
   <!-- Main Content Area -->
-  <main class="main-layout">
+  <main class="main-layout" class:insight-mode={isInsightVisible}>
     <!-- Left: Calendar Grid -->
     <section class="calendar-section">
       <div class="weekday-header">
@@ -440,122 +448,151 @@
       {/if}
     </section>
 
-    <!-- Right: Detail Sidebar -->
-    <aside class="detail-panel">
+    <!-- Right: Detail / Cultural Panel -->
+    <aside class={isInsightVisible ? "focus-panel" : "detail-panel"}>
       {#if selectedDay}
-        <div class="detail-content">
-          <!-- Header Card -->
-          <!-- Header Card -->
-          <div class="detail-header-card">
-            <div class="header-main-row">
-              <div class="detail-solar-large">{selectedDay.day}</div>
-              <div class="detail-right-col">
-                <div class="detail-weekday">{selectedDay.day_of_week}</div>
-                <div class="detail-full-date">
-                  Tháng {selectedDay.month}, {selectedDay.year}
-                </div>
-                <div class="detail-lunar-line">
-                  <span class="lunar-tag">Âm:</span>
-                  <span class="lunar-val">{selectedDay.lunar_date}</span>
-                  <span class="lunar-year">{selectedDay.canchi_year}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Good Hours (Living Compass) - Moved Up -->
-          <div class="section-block">
-            <div class="zodiac-clock-container">
-              <div class="zodiac-clock">
-                <!-- Living Hand (Current Time) -->
-                <div
-                  class="clock-hand"
-                  style="transform: rotate({currentHandRotation}deg);"
-                ></div>
-
-                <!-- Center Info -->
-                <div class="clock-center">
-                  {#if hoveredZodiac}
-                    <div class="center-label">{hoveredZodiac.name}</div>
-                    <div class="center-time">{hoveredZodiac.time}</div>
-                  {:else}
-                    <div class="center-label">Hiện tại</div>
-                    <div class="center-time">
-                      {new Date().toLocaleTimeString("vi-VN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </div>
-                  {/if}
-                </div>
-
-                <!-- Clock Segments -->
-                {#each ZODIAC_HOURS as zodiac, i}
-                  {@const isGood = selectedDay.good_hours.some((h) =>
-                    h.hour_chi.includes(zodiac.name),
-                  )}
-                  {@const rotation = i * 30}
-                  <div
-                    class="clock-segment-wrapper"
-                    style="transform: rotate({rotation}deg);"
-                  >
-                    <button
-                      class="clock-segment {isGood ? 'good' : ''}"
-                      onmouseenter={() => (hoveredZodiac = zodiac)}
-                      onmouseleave={() => (hoveredZodiac = null)}
-                    >
-                      <!-- Wedge Shape for Good Hours -->
-                      <div class="segment-shape"></div>
-
-                      <!-- Text: Counter-rotated to stay upright -->
-                      <span
-                        class="segment-text"
-                        style="transform: rotate({-rotation}deg)"
-                      >
-                        {zodiac.name}
-                      </span>
-                    </button>
+        {#if isInsightVisible}
+          <div class="focus-content">
+            <div class="focus-header-card">
+              <div class="header-main-row">
+                <div class="detail-solar-large">{selectedDay.day}</div>
+                <div class="detail-right-col">
+                  <div class="detail-weekday">{selectedDay.day_of_week}</div>
+                  <div class="detail-full-date">
+                    Tháng {selectedDay.month}, {selectedDay.year}
                   </div>
-                {/each}
+                  <div class="detail-lunar-line">
+                    <span class="lunar-tag">Âm:</span>
+                    <span class="lunar-val">{selectedDay.lunar_date}</span>
+                    <span class="lunar-year">{selectedDay.canchi_year}</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Can Chi & Tiet Khi (Compact 3 Cols) -->
-          <div class="info-group-compact">
-            <div class="info-col">
-              <span class="label">Ngày</span>
-              <span class="value strong">{selectedDay.canchi_day}</span>
+            <div class="focus-meta">
+              <div class="focus-meta-item">
+                <span class="label">Can Chi ngày</span>
+                <span class="value strong">{selectedDay.canchi_day}</span>
+              </div>
+              <div class="focus-meta-item">
+                <span class="label">Can Chi tháng</span>
+                <span class="value">{selectedDay.canchi_month}</span>
+              </div>
+              <div class="focus-meta-item">
+                <span class="label">Tiết Khí</span>
+                <span class="value">{selectedDay.tiet_khi}</span>
+              </div>
             </div>
-            <div class="divider"></div>
-            <div class="info-col">
-              <span class="label">Tháng</span>
-              <span class="value">{selectedDay.canchi_month}</span>
-            </div>
-            <div class="divider"></div>
-            <div class="info-col highlight-jade">
-              <span class="label">Tiết Khí</span>
-              <span class="value">{selectedDay.tiet_khi}</span>
+
+            <div class="focus-insight">
+              <DateInsightBox day={selectedDay} />
             </div>
           </div>
+        {:else}
+          <div class="detail-content">
+            <div class="detail-header-card">
+              <div class="header-main-row">
+                <div class="detail-solar-large">{selectedDay.day}</div>
+                <div class="detail-right-col">
+                  <div class="detail-weekday">{selectedDay.day_of_week}</div>
+                  <div class="detail-full-date">
+                    Tháng {selectedDay.month}, {selectedDay.year}
+                  </div>
+                  <div class="detail-lunar-line">
+                    <span class="lunar-tag">Âm:</span>
+                    <span class="lunar-val">{selectedDay.lunar_date}</span>
+                    <span class="lunar-year">{selectedDay.canchi_year}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <!-- Holidays -->
-          {#if filterHolidays(selectedDay.holidays).length}
             <div class="section-block">
-              <h3 class="section-title">Sự Kiện & Lễ</h3>
-              <div class="holiday-list">
-                {#each filterHolidays(selectedDay.holidays) as holiday}
-                  <div class="holiday-item {holiday.is_major ? 'major' : ''}">
-                    <div class="h-name">{holiday.name}</div>
-                    {#if holiday.description}
-                      <div class="h-desc">{holiday.description}</div>
+              <div class="zodiac-clock-container">
+                <div class="zodiac-clock">
+                  <div
+                    class="clock-hand"
+                    style="transform: rotate({currentHandRotation}deg);"
+                  ></div>
+
+                  <div class="clock-center">
+                    {#if hoveredZodiac}
+                      <div class="center-label">{hoveredZodiac.name}</div>
+                      <div class="center-time">{hoveredZodiac.time}</div>
+                    {:else}
+                      <div class="center-label">Hiện tại</div>
+                      <div class="center-time">
+                        {new Date().toLocaleTimeString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
                     {/if}
                   </div>
-                {/each}
+
+                  {#each ZODIAC_HOURS as zodiac, i}
+                    {@const isGood = selectedDay.good_hours.some((h) =>
+                      h.hour_chi.includes(zodiac.name),
+                    )}
+                    {@const rotation = i * 30}
+                    <div
+                      class="clock-segment-wrapper"
+                      style="transform: rotate({rotation}deg);"
+                    >
+                      <button
+                        class="clock-segment {isGood ? 'good' : ''}"
+                        onmouseenter={() => (hoveredZodiac = zodiac)}
+                        onmouseleave={() => (hoveredZodiac = null)}
+                      >
+                        <div class="segment-shape"></div>
+                        <span
+                          class="segment-text"
+                          style="transform: rotate({-rotation}deg)"
+                        >
+                          {zodiac.name}
+                        </span>
+                      </button>
+                    </div>
+                  {/each}
+                </div>
               </div>
             </div>
-          {/if}
-        </div>
+
+            <div class="info-group-compact">
+              <div class="info-col">
+                <span class="label">Ngày</span>
+                <span class="value strong">{selectedDay.canchi_day}</span>
+              </div>
+              <div class="divider"></div>
+              <div class="info-col">
+                <span class="label">Tháng</span>
+                <span class="value">{selectedDay.canchi_month}</span>
+              </div>
+              <div class="divider"></div>
+              <div class="info-col highlight-jade">
+                <span class="label">Tiết Khí</span>
+                <span class="value">{selectedDay.tiet_khi}</span>
+              </div>
+            </div>
+
+            {#if filterHolidays(selectedDay.holidays).length}
+              <div class="section-block">
+                <h3 class="section-title">Sự Kiện & Lễ</h3>
+                <div class="holiday-list">
+                  {#each filterHolidays(selectedDay.holidays) as holiday}
+                    <div class="holiday-item {holiday.is_major ? 'major' : ''}">
+                      <div class="h-name">{holiday.name}</div>
+                      {#if holiday.description}
+                        <div class="h-desc">{holiday.description}</div>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              </div>
+            {/if}
+          </div>
+        {/if}
       {:else}
         <div class="empty-state">
           <p>Chọn một ngày để xem chi tiết</p>
@@ -563,39 +600,6 @@
       {/if}
     </aside>
   </main>
-
-  <!-- Collapsible Insight Drawer -->
-  {#if selectedDay}
-    <section class="insight-drawer" class:expanded={isDrawerExpanded}>
-      <!-- Drawer Handle / Preview Bar -->
-      <button class="drawer-handle" onclick={toggleDrawer}>
-        <div class="drawer-preview">
-          <span class="preview-label">
-            {#if selectedDay.holidays.length > 0}
-              {selectedDay.holidays[0].name}
-            {:else if selectedDay.tiet_khi}
-              {selectedDay.tiet_khi}
-            {:else}
-              Tìm hiểu thêm
-            {/if}
-          </span>
-          <span class="preview-hint">
-            {isDrawerExpanded ? "Thu gọn" : "Xem chi tiết văn hóa"}
-          </span>
-        </div>
-        <div class="drawer-chevron" class:up={isDrawerExpanded}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="m18 15-6-6-6 6"/>
-          </svg>
-        </div>
-      </button>
-
-      <!-- Drawer Content (DateInsightBox) -->
-      <div class="drawer-content">
-        <DateInsightBox day={selectedDay} />
-      </div>
-    </section>
-  {/if}
 </div>
 
 <style>
@@ -775,6 +779,24 @@
     box-shadow: 0 5px 12px rgba(42, 110, 100, 0.16);
   }
 
+  .action-btn.insight-toggle.active {
+    background: linear-gradient(
+      140deg,
+      rgba(212, 175, 55, 0.16) 0%,
+      rgba(212, 175, 55, 0.26) 100%
+    );
+    border-color: rgba(160, 126, 52, 0.28);
+    color: #7a5120;
+    box-shadow: 0 5px 12px rgba(160, 126, 52, 0.14);
+  }
+
+  .action-btn.insight-toggle:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
   /* Settings Menu */
   .settings-wrapper {
     position: relative;
@@ -951,6 +973,11 @@
     gap: 32px;
     flex: 1;
     min-height: 0; /* Prevent overflow */
+  }
+
+  .main-layout.insight-mode {
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 16px;
   }
 
   /* Calendar Section */
@@ -1135,6 +1162,80 @@
     box-shadow: none;
   }
 
+  .main-layout.insight-mode .weekday-header {
+    margin-bottom: 6px;
+    padding: 0 2px;
+  }
+
+  .main-layout.insight-mode .weekday-label {
+    font-size: 0.56rem;
+    letter-spacing: 0.02em;
+    font-weight: 700;
+    padding-bottom: 2px;
+  }
+
+  .main-layout.insight-mode .calendar-grid {
+    grid-template-rows: repeat(6, 34px);
+    gap: 3px;
+    padding: 0;
+    height: auto;
+  }
+
+  .main-layout.insight-mode .day-card {
+    min-height: 34px;
+    border-radius: 8px;
+    padding: 3px 4px;
+    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    transition: border-color 0.15s ease;
+  }
+
+  .main-layout.insight-mode .day-header {
+    margin-bottom: 0;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2px;
+  }
+
+  .main-layout.insight-mode .solar-date {
+    font-size: 0.94rem;
+    line-height: 1;
+  }
+
+  .main-layout.insight-mode .lunar-stack {
+    display: none;
+  }
+
+  .main-layout.insight-mode .day-body {
+    display: none;
+  }
+
+  .main-layout.insight-mode .day-card:hover {
+    transform: none;
+    box-shadow: none;
+    background: var(--surface-white);
+    border-color: rgba(212, 175, 55, 0.5);
+  }
+
+  .main-layout.insight-mode .day-card.selected {
+    border-width: 2px;
+    box-shadow: none;
+  }
+
+  .main-layout.insight-mode .day-card.today::after {
+    border-width: 1.5px;
+    border-radius: 8px;
+  }
+
+  .main-layout.insight-mode .calendar-section {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    border-radius: 14px;
+    padding: 8px;
+    align-self: start;
+    height: auto;
+  }
+
   /* Detail Panel */
   /* Detail Panel */
   .detail-panel {
@@ -1155,6 +1256,70 @@
     display: flex;
     flex-direction: column;
     gap: 16px;
+  }
+
+  .focus-panel {
+    background: var(--surface-white);
+    border-radius: 24px;
+    padding: 14px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    height: auto;
+    max-height: 100%;
+    align-self: start;
+    min-width: 0;
+  }
+
+  .focus-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .focus-header-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, #fff7ed 100%);
+    border: 1px solid rgba(212, 175, 55, 0.26);
+    border-radius: 16px;
+    padding: 10px 12px;
+  }
+
+  .focus-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .focus-meta-item {
+    background: rgba(255, 255, 255, 0.86);
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .focus-meta-item .label {
+    font-size: 0.68rem;
+  }
+
+  .focus-meta-item .value {
+    font-size: 0.88rem;
+    line-height: 1.35;
+  }
+
+  .focus-insight {
+    min-width: 0;
+  }
+
+  .focus-insight :global(.insight-box) {
+    border-radius: 16px;
+    border: 1px solid rgba(212, 175, 55, 0.22);
+    box-shadow: none;
   }
 
   .detail-header-card {
@@ -1603,88 +1768,4 @@
     }
   }
 
-  /* Collapsible Insight Drawer */
-  .insight-drawer {
-    background: var(--surface-white);
-    border-radius: 24px 24px 0 0;
-    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08);
-    border: 1px solid var(--border-subtle);
-    border-bottom: none;
-    overflow: hidden;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .drawer-handle {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 24px;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-
-  .drawer-handle:hover {
-    background: rgba(0, 0, 0, 0.02);
-  }
-
-  .drawer-preview {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .preview-label {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-  }
-
-  .preview-hint {
-    font-size: 0.8rem;
-    color: var(--text-tertiary);
-    font-weight: 500;
-  }
-
-  .drawer-chevron {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.04);
-    color: var(--text-secondary);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .drawer-chevron.up {
-    transform: rotate(180deg);
-    background: var(--accent-jade);
-    color: white;
-  }
-
-  .drawer-content {
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .insight-drawer.expanded .drawer-content {
-    max-height: 600px;
-    opacity: 1;
-    overflow-y: auto;
-  }
-
-  /* Adjust inner DateInsightBox styling when in drawer */
-  .insight-drawer :global(.insight-box) {
-    border-radius: 0;
-    box-shadow: none;
-    border: none;
-    border-top: 1px solid var(--border-subtle);
-  }
 </style>
