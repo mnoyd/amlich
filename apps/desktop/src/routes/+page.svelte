@@ -207,6 +207,13 @@
   let jumpMonth = $state(viewMonth);
   let jumpYear = $state(viewYear);
 
+  // Insight Drawer State
+  let isDrawerExpanded = $state(false);
+
+  function toggleDrawer() {
+    isDrawerExpanded = !isDrawerExpanded;
+  }
+
   $effect(() => {
     const updateHand = () => {
       const now = new Date();
@@ -544,9 +551,37 @@
     </aside>
   </main>
 
-  <!-- Date Insight Section -->
+  <!-- Collapsible Insight Drawer -->
   {#if selectedDay}
-    <DateInsightBox day={selectedDay} />
+    <section class="insight-drawer" class:expanded={isDrawerExpanded}>
+      <!-- Drawer Handle / Preview Bar -->
+      <button class="drawer-handle" onclick={toggleDrawer}>
+        <div class="drawer-preview">
+          <span class="preview-label">
+            {#if selectedDay.holidays.length > 0}
+              {selectedDay.holidays[0].name}
+            {:else if selectedDay.tiet_khi}
+              {selectedDay.tiet_khi}
+            {:else}
+              Tìm hiểu thêm
+            {/if}
+          </span>
+          <span class="preview-hint">
+            {isDrawerExpanded ? "Thu gọn" : "Xem chi tiết văn hóa"}
+          </span>
+        </div>
+        <div class="drawer-chevron" class:up={isDrawerExpanded}>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m18 15-6-6-6 6"/>
+          </svg>
+        </div>
+      </button>
+
+      <!-- Drawer Content (DateInsightBox) -->
+      <div class="drawer-content">
+        <DateInsightBox day={selectedDay} />
+      </div>
+    </section>
   {/if}
 </div>
 
@@ -1437,5 +1472,90 @@
       font-size: 0.6rem;
       padding: 1px 4px;
     }
+  }
+
+  /* Collapsible Insight Drawer */
+  .insight-drawer {
+    background: var(--surface-white);
+    border-radius: 24px 24px 0 0;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border-subtle);
+    border-bottom: none;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .drawer-handle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .drawer-handle:hover {
+    background: rgba(0, 0, 0, 0.02);
+  }
+
+  .drawer-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .preview-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .preview-hint {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+
+  .drawer-chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--text-secondary);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .drawer-chevron.up {
+    transform: rotate(180deg);
+    background: var(--accent-jade);
+    color: white;
+  }
+
+  .drawer-content {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .insight-drawer.expanded .drawer-content {
+    max-height: 600px;
+    opacity: 1;
+    overflow-y: auto;
+  }
+
+  /* Adjust inner DateInsightBox styling when in drawer */
+  .insight-drawer :global(.insight-box) {
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    border-top: 1px solid var(--border-subtle);
   }
 </style>
