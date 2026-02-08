@@ -508,6 +508,8 @@
     flex-direction: column;
     min-height: 100vh;
     gap: 24px;
+    user-select: none;
+    -webkit-user-select: none;
   }
 
   /* Header */
@@ -699,7 +701,6 @@
     display: grid;
     grid-template-columns: 1fr 340px;
     gap: 32px;
-    flex: 1;
     min-height: 0; /* Prevent overflow */
   }
 
@@ -742,9 +743,9 @@
   .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-template-rows: repeat(6, 1fr); /* Force exactly 6 equal rows */
+    grid-auto-rows: minmax(110px, auto);
     gap: 12px;
-    height: 100%;
+    height: auto;
     min-height: 0; /* Important for grid nesting */
     padding: 4px;
   }
@@ -763,7 +764,7 @@
     transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
     position: relative;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-    height: 100%;
+    height: auto;
     width: 100%;
     overflow: hidden; /* Clip content that overflows */
     min-height: 0; /* Allow shrinking below content size */
@@ -903,7 +904,7 @@
   }
 
   .main-layout.insight-mode .calendar-grid {
-    grid-template-rows: repeat(6, 34px);
+    grid-auto-rows: 34px;
     gap: 3px;
     padding: 0;
     height: auto;
