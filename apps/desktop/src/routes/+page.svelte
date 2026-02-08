@@ -81,7 +81,8 @@
       const data = await invoke<MonthData>("get_month_data", { month, year });
       monthData = data;
       const todayMatch = data.days.find(
-        (d) => d.day === today.getDate() && d.month === month && d.year === year,
+        (d) =>
+          d.day === today.getDate() && d.month === month && d.year === year,
       );
       selectedDay = todayMatch ?? data.days[0] ?? null;
     } catch (err) {
@@ -197,9 +198,9 @@
     { name: "Hợi", time: "21:00-23:00" },
   ];
 
-  let hoveredZodiac = $state<{name: string, time: string} | null>(null);
+  let hoveredZodiac = $state<{ name: string; time: string } | null>(null);
   let currentHandRotation = $state(0);
-  
+
   // Settings & Menu State
   let isSettingsOpen = $state(false);
   let jumpMonth = $state(viewMonth);
@@ -213,9 +214,9 @@
       // 00:00 (Midnight) is aligned with Tý (Top/0deg)
       // Map 24h to 360deg
       const totalMinutes = hours * 60 + minutes;
-      currentHandRotation = (totalMinutes / 1440) * 360; 
+      currentHandRotation = (totalMinutes / 1440) * 360;
     };
-    
+
     updateHand();
     const interval = setInterval(updateHand, 60000); // Update every minute
     return () => clearInterval(interval);
@@ -232,42 +233,81 @@
 
     <div class="month-navigator">
       <button class="icon-btn" onclick={prevMonth} aria-label="Previous Month">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg
+        >
       </button>
       <span class="current-month">{monthTitle()}</span>
       <button class="icon-btn" onclick={nextMonth} aria-label="Next Month">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"><path d="m9 18 6-6-6-6" /></svg
+        >
       </button>
     </div>
 
     <div class="actions">
       <button class="action-btn secondary" onclick={goToday}>Hôm nay</button>
-      
+
       <!-- Settings Toggle -->
       <div class="settings-wrapper">
-        <button class="icon-btn settings-btn {isSettingsOpen ? 'active' : ''}" onclick={toggleSettings} aria-label="Settings">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        <button
+          class="icon-btn settings-btn {isSettingsOpen ? 'active' : ''}"
+          onclick={toggleSettings}
+          aria-label="Settings"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            ><path
+              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+            /><circle cx="12" cy="12" r="3" /></svg
+          >
         </button>
 
         <!-- Popover Menu -->
         {#if isSettingsOpen}
           <div class="settings-popover">
             <div class="popover-header">Cài đặt</div>
-            
+
             <div class="popover-row">
               <div class="popover-label">
                 <span>Lễ hội chính</span>
                 <span class="sub-label">Chỉ hiện ngày lễ lớn</span>
               </div>
-              <button 
-                class="toggle-switch {holidayFilter === 'major' ? 'checked' : ''}" 
+              <button
+                class="toggle-switch {holidayFilter === 'major'
+                  ? 'checked'
+                  : ''}"
                 onclick={cycleHolidayFilter}
                 aria-label="Toggle Holiday Filter"
               >
                 <div class="toggle-thumb"></div>
               </button>
             </div>
-            
+
             <div class="popover-divider"></div>
 
             <div class="popover-section">
@@ -275,11 +315,25 @@
               <div class="jump-inputs">
                 <div class="input-group">
                   <label for="jump-month">Tháng</label>
-                  <input id="jump-month" type="number" min="1" max="12" bind:value={jumpMonth} class="jump-input">
+                  <input
+                    id="jump-month"
+                    type="number"
+                    min="1"
+                    max="12"
+                    bind:value={jumpMonth}
+                    class="jump-input"
+                  />
                 </div>
                 <div class="input-group">
                   <label for="jump-year">Năm</label>
-                  <input id="jump-year" type="number" min="1900" max="2100" bind:value={jumpYear} class="jump-input">
+                  <input
+                    id="jump-year"
+                    type="number"
+                    min="1900"
+                    max="2100"
+                    bind:value={jumpYear}
+                    class="jump-input"
+                  />
                 </div>
               </div>
               <button class="apply-btn" onclick={applyJump}>Xác nhận</button>
@@ -292,12 +346,13 @@
 
   <!-- Main Content Area -->
   <main class="main-layout">
-    
     <!-- Left: Calendar Grid -->
     <section class="calendar-section">
       <div class="weekday-header">
         {#each weekLabels as label, i}
-          <div class="weekday-label" class:weekend={i === 0 || i === 6}>{label}</div>
+          <div class="weekday-label" class:weekend={i === 0 || i === 6}>
+            {label}
+          </div>
         {/each}
       </div>
 
@@ -318,11 +373,9 @@
                   type="button"
                   class="day-card"
                   class:selected={selectedDay?.solar_date === day.solar_date}
-                  class:today={
-                    day.day === today.getDate() &&
+                  class:today={day.day === today.getDate() &&
                     day.month === today.getMonth() + 1 &&
-                    day.year === today.getFullYear()
-                  }
+                    day.year === today.getFullYear()}
                   class:has-holiday={activeHolidays.length > 0}
                   onclick={() => selectDay(day)}
                 >
@@ -333,22 +386,26 @@
                       <span class="lunar-month">/{day.lunar_month}</span>
                     </div>
                   </div>
-                  
+
                   <div class="day-body">
                     {#if day.day === 1 || day.day === 15}
                       <div class="moon-phase">
                         {day.day === 1 ? "🌑 Sóc" : "🌕 Vọng"}
                       </div>
                     {/if}
-                    
+
                     <div class="holiday-pills">
                       {#each activeHolidays.slice(0, 2) as holiday}
-                        <div class="pill {holiday.is_major ? 'major' : 'minor'}">
+                        <div
+                          class="pill {holiday.is_major ? 'major' : 'minor'}"
+                        >
                           {holiday.name}
                         </div>
                       {/each}
                       {#if activeHolidays.length > 2}
-                        <div class="pill more">+{activeHolidays.length - 2}</div>
+                        <div class="pill more">
+                          +{activeHolidays.length - 2}
+                        </div>
                       {/if}
                     </div>
                   </div>
@@ -367,16 +424,21 @@
       {#if selectedDay}
         <div class="detail-content">
           <!-- Header Card -->
+          <!-- Header Card -->
           <div class="detail-header-card">
-            <div class="detail-solar-large">{selectedDay.day}</div>
-            <div class="detail-meta">
-              <div class="detail-weekday">{selectedDay.day_of_week}</div>
-              <div class="detail-full-date">Tháng {selectedDay.month}, {selectedDay.year}</div>
-            </div>
-            <div class="detail-lunar-box">
-              <div class="label">Âm Lịch</div>
-              <div class="value">{selectedDay.lunar_date}</div>
-              <div class="year-canchi">Năm {selectedDay.canchi_year}</div>
+            <div class="header-main-row">
+              <div class="detail-solar-large">{selectedDay.day}</div>
+              <div class="detail-right-col">
+                <div class="detail-weekday">{selectedDay.day_of_week}</div>
+                <div class="detail-full-date">
+                  Tháng {selectedDay.month}, {selectedDay.year}
+                </div>
+                <div class="detail-lunar-line">
+                  <span class="lunar-tag">Âm:</span>
+                  <span class="lunar-val">{selectedDay.lunar_date}</span>
+                  <span class="lunar-year">{selectedDay.canchi_year}</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -385,7 +447,10 @@
             <div class="zodiac-clock-container">
               <div class="zodiac-clock">
                 <!-- Living Hand (Current Time) -->
-                <div class="clock-hand" style="transform: rotate({currentHandRotation}deg);"></div>
+                <div
+                  class="clock-hand"
+                  style="transform: rotate({currentHandRotation}deg);"
+                ></div>
 
                 <!-- Center Info -->
                 <div class="clock-center">
@@ -395,29 +460,37 @@
                   {:else}
                     <div class="center-label">Hiện tại</div>
                     <div class="center-time">
-                      {new Date().toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'})}
+                      {new Date().toLocaleTimeString("vi-VN", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
                     </div>
                   {/if}
                 </div>
 
                 <!-- Clock Segments -->
                 {#each ZODIAC_HOURS as zodiac, i}
-                  {@const isGood = selectedDay.good_hours.some(h => h.hour_chi.includes(zodiac.name))}
+                  {@const isGood = selectedDay.good_hours.some((h) =>
+                    h.hour_chi.includes(zodiac.name),
+                  )}
                   {@const rotation = i * 30}
-                  <div 
-                    class="clock-segment-wrapper" 
+                  <div
+                    class="clock-segment-wrapper"
                     style="transform: rotate({rotation}deg);"
                   >
-                    <button 
+                    <button
                       class="clock-segment {isGood ? 'good' : ''}"
-                      onmouseenter={() => hoveredZodiac = zodiac}
-                      onmouseleave={() => hoveredZodiac = null}
+                      onmouseenter={() => (hoveredZodiac = zodiac)}
+                      onmouseleave={() => (hoveredZodiac = null)}
                     >
                       <!-- Wedge Shape for Good Hours -->
                       <div class="segment-shape"></div>
-                      
+
                       <!-- Text: Counter-rotated to stay upright -->
-                      <span class="segment-text" style="transform: rotate({-rotation}deg)">
+                      <span
+                        class="segment-text"
+                        style="transform: rotate({-rotation}deg)"
+                      >
                         {zodiac.name}
                       </span>
                     </button>
@@ -427,17 +500,19 @@
             </div>
           </div>
 
-          <!-- Can Chi & Tiet Khi -->
-          <div class="info-group">
-            <div class="info-row">
+          <!-- Can Chi & Tiet Khi (Compact 3 Cols) -->
+          <div class="info-group-compact">
+            <div class="info-col">
               <span class="label">Ngày</span>
               <span class="value strong">{selectedDay.canchi_day}</span>
             </div>
-            <div class="info-row">
+            <div class="divider"></div>
+            <div class="info-col">
               <span class="label">Tháng</span>
               <span class="value">{selectedDay.canchi_month}</span>
             </div>
-            <div class="info-row highlight-jade">
+            <div class="divider"></div>
+            <div class="info-col highlight-jade">
               <span class="label">Tiết Khí</span>
               <span class="value">{selectedDay.tiet_khi}</span>
             </div>
@@ -466,7 +541,6 @@
         </div>
       {/if}
     </aside>
-
   </main>
 </div>
 
@@ -550,7 +624,7 @@
   }
 
   .icon-btn:hover {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
     color: var(--text-primary);
   }
 
@@ -573,7 +647,7 @@
   }
 
   .action-btn:hover {
-    background: rgba(0,0,0,0.04);
+    background: rgba(0, 0, 0, 0.04);
     color: var(--text-primary);
   }
 
@@ -601,15 +675,21 @@
     background: #fff;
     border: 1px solid var(--border-subtle);
     border-radius: 16px;
-    box-shadow: 0 16px 48px rgba(0,0,0,0.12);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
     padding: 16px;
     z-index: 100;
     animation: popIn 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   @keyframes popIn {
-    from { opacity: 0; transform: translateY(-8px) scale(0.96); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 
   .popover-header {
@@ -647,7 +727,7 @@
   .toggle-switch {
     width: 44px;
     height: 24px;
-    background: #E0E0E0;
+    background: #e0e0e0;
     border-radius: 99px;
     position: relative;
     cursor: pointer;
@@ -666,7 +746,7 @@
     background: white;
     border-radius: 50%;
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .toggle-switch.checked .toggle-thumb {
@@ -710,7 +790,7 @@
     border-radius: 8px;
     font-family: var(--font-sans);
     text-align: center;
-    background: #FAFAFA;
+    background: #fafafa;
     font-size: 0.95rem;
     font-weight: 500;
     color: var(--text-primary);
@@ -792,13 +872,13 @@
     gap: 12px;
     height: 100%;
     min-height: 0; /* Important for grid nesting */
-    padding: 4px; 
+    padding: 4px;
   }
 
   /* Day Card */
   .day-card {
     background: var(--surface-white);
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 16px;
     padding: 10px 12px;
     display: flex;
@@ -808,7 +888,7 @@
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
     position: relative;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     height: 100%;
     width: 100%;
     overflow: hidden; /* Clip content that overflows */
@@ -833,13 +913,16 @@
   }
 
   .day-card.today {
-    background: #FFF8F7;
+    background: #fff8f7;
   }
-  
+
   .day-card.today::after {
     content: "";
     position: absolute;
-    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    top: -1px;
+    left: -1px;
+    right: -1px;
+    bottom: -1px;
     border-radius: 16px;
     border: 2px solid var(--primary-red);
     pointer-events: none;
@@ -918,9 +1001,9 @@
 
   .pill.minor {
     background: rgba(212, 175, 55, 0.15);
-    color: #8A6D1C;
+    color: #8a6d1c;
   }
-  
+
   .pill.more {
     background: var(--text-tertiary);
     color: white;
@@ -934,115 +1017,134 @@
   }
 
   /* Detail Panel */
+  /* Detail Panel */
   .detail-panel {
     background: var(--surface-white);
     border-radius: 24px;
-    padding: 24px;
+    padding: 16px;
     box-shadow: var(--shadow-soft);
     border: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
     overflow-y: auto;
-    height: 100%;
+    height: auto;
+    max-height: 100%;
+    align-self: start;
   }
 
   .detail-content {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: 16px;
   }
 
   .detail-header-card {
-    text-align: center;
     border-bottom: 1px solid var(--border-subtle);
-    padding-bottom: 20px;
+    padding-bottom: 12px;
+  }
+
+  .header-main-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
   }
 
   .detail-solar-large {
-    font-size: 4rem;
+    font-size: 3.5rem;
     font-weight: 700;
     color: var(--primary-red);
     line-height: 1;
-    margin-bottom: 8px;
   }
 
-  .detail-meta {
-    font-family: var(--font-sans);
-    color: var(--text-secondary);
-    margin-bottom: 16px;
+  .detail-right-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
   }
 
   .detail-weekday {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    line-height: 1.2;
   }
 
   .detail-full-date {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     opacity: 0.8;
+    margin-bottom: 4px;
   }
 
-  .detail-lunar-box {
-    background: rgba(44, 36, 27, 0.03);
-    border-radius: 12px;
-    padding: 12px;
+  .detail-lunar-line {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
   }
 
-  .detail-lunar-box .label {
+  .lunar-tag {
     font-size: 0.7rem;
     text-transform: uppercase;
     color: var(--text-tertiary);
-    letter-spacing: 0.12em;
     font-weight: 600;
   }
 
-  .detail-lunar-box .value {
-    font-size: 1.25rem;
+  .lunar-val {
     font-weight: 600;
     color: var(--text-primary);
-    margin: 4px 0;
   }
-  
-  .year-canchi {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+
+  .lunar-year {
     font-style: italic;
+    opacity: 0.8;
+    font-size: 0.8rem;
   }
 
-  .info-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .info-row {
+  .info-group-compact {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px dashed var(--border-subtle);
+    align-items: flex-start;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-subtle);
   }
 
-  .info-row .label {
-    color: var(--text-secondary);
-    font-size: 0.85rem;
+  .info-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    gap: 4px;
+  }
+
+  .divider {
+    width: 1px;
+    height: 24px;
+    background: var(--border-subtle);
+    margin: 4px 8px;
+  }
+
+  .info-col .label {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-variant: small-caps;
+    font-weight: 600;
   }
 
-  .info-row .value {
-    font-weight: 500;
+  .info-col .value {
+    font-size: 0.9rem;
+    font-weight: 600;
     color: var(--text-primary);
+    line-height: 1.2;
   }
 
-  .info-row .value.strong {
-    font-weight: 700;
-  }
-
-  .info-row.highlight-jade .value {
+  .info-col.highlight-jade .value {
     color: var(--accent-jade);
     font-weight: 700;
   }
@@ -1066,15 +1168,15 @@
   }
 
   .holiday-item {
-    background: #FFF8F0;
+    background: #fff8f0;
     border-left: 3px solid var(--accent-gold);
-    padding: 10px 12px;
+    padding: 8px 10px;
     border-radius: 4px;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .holiday-item.major {
-    background: #FFF0F0;
+    background: #fff0f0;
     border-left-color: var(--primary-red);
   }
 
@@ -1095,39 +1197,45 @@
   .zodiac-clock-container {
     display: flex;
     justify-content: center;
-    padding: 10px 0 20px 0;
+    padding: 0;
+    margin-bottom: 8px;
   }
 
   .zodiac-clock {
     position: relative;
-    width: 220px;
-    height: 220px;
+    width: 160px;
+    height: 160px;
     border-radius: 50%;
     border: 1px solid rgba(212, 175, 55, 0.3);
-    background: radial-gradient(circle, #fff 50%, rgba(255,248,240, 0.8) 100%);
-    box-shadow: 
+    background: radial-gradient(
+      circle,
+      #fff 50%,
+      rgba(255, 248, 240, 0.8) 100%
+    );
+    box-shadow:
       inset 0 0 20px rgba(212, 175, 55, 0.1),
-      0 8px 24px rgba(0,0,0,0.08);
+      0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
   .clock-center {
     position: absolute;
-    top: 50%; left: 50%;
+    top: 50%;
+    left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
-    width: 90px;
-    height: 90px;
+    width: 60px;
+    height: 60px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     border-radius: 50%;
-    background: rgba(255,255,255,0.9);
+    background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(4px);
     z-index: 10;
     pointer-events: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    border: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.5);
   }
 
   .center-label {
@@ -1149,9 +1257,15 @@
   /* Clock Hand */
   .clock-hand {
     position: absolute;
-    top: 0; left: 50%;
-    width: 2px; height: 50%;
-    background: linear-gradient(to top, var(--primary-red) 50%, transparent 100%); /* Fade tip */
+    top: 0;
+    left: 50%;
+    width: 2px;
+    height: 50%;
+    background: linear-gradient(
+      to top,
+      var(--primary-red) 50%,
+      transparent 100%
+    ); /* Fade tip */
     transform-origin: bottom center;
     z-index: 5;
     pointer-events: none;
@@ -1160,8 +1274,10 @@
   .clock-hand::after {
     content: "";
     position: absolute;
-    top: 0; left: -3px;
-    width: 8px; height: 8px;
+    top: 0;
+    left: -3px;
+    width: 8px;
+    height: 8px;
     background: var(--primary-red);
     border-radius: 50%;
     box-shadow: 0 0 4px rgba(217, 48, 37, 0.4);
@@ -1170,8 +1286,10 @@
   /* Segments */
   .clock-segment-wrapper {
     position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
   }
 
@@ -1198,7 +1316,7 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: rgba(0,0,0,0.1);
+    background: rgba(0, 0, 0, 0.1);
     margin-bottom: 4px;
     transition: all 0.3s;
   }
@@ -1246,15 +1364,20 @@
   }
 
   .spinner {
-    width: 40px; height: 40px;
-    border: 3px solid rgba(0,0,0,0.1);
+    width: 40px;
+    height: 40px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
     border-top-color: var(--primary-red);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 16px;
   }
 
-  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 
   /* Responsive Adjustments */
   @media (max-width: 1024px) {
@@ -1262,7 +1385,7 @@
       grid-template-columns: 1fr;
       grid-template-rows: auto auto;
     }
-    
+
     .detail-panel {
       height: auto;
       max-height: 500px;
@@ -1294,7 +1417,7 @@
     .calendar-grid {
       gap: 6px;
     }
-    
+
     .day-card {
       min-height: 70px;
       padding: 6px;
@@ -1303,7 +1426,7 @@
     .solar-date {
       font-size: 1.2rem;
     }
-    
+
     .pill {
       font-size: 0.6rem;
       padding: 1px 4px;
