@@ -240,7 +240,11 @@
     </div>
 
     <div class="month-navigator">
-      <button class="icon-btn" onclick={prevMonth} aria-label="Previous Month">
+      <button
+        class="icon-btn nav-arrow"
+        onclick={prevMonth}
+        aria-label="Previous Month"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="20"
@@ -253,8 +257,15 @@
           stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg
         >
       </button>
-      <span class="current-month">{monthTitle()}</span>
-      <button class="icon-btn" onclick={nextMonth} aria-label="Next Month">
+      <div class="month-pill">
+        <span class="month-caption">Lịch tháng</span>
+        <span class="current-month">{monthTitle()}</span>
+      </div>
+      <button
+        class="icon-btn nav-arrow"
+        onclick={nextMonth}
+        aria-label="Next Month"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="20"
@@ -602,12 +613,20 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 24px;
-    background: var(--surface-white);
-    backdrop-filter: blur(12px);
-    border-radius: 100px; /* Pill shape header */
-    box-shadow: var(--shadow-soft);
-    border: 1px solid var(--border-subtle);
+    padding: 14px 20px;
+    background:
+      radial-gradient(
+        120% 200% at 0% 0%,
+        rgba(212, 175, 55, 0.13) 0%,
+        rgba(212, 175, 55, 0) 52%
+      ),
+      linear-gradient(120deg, #fffefb 0%, #fef8f1 100%);
+    border-radius: 24px;
+    box-shadow: 0 12px 28px rgba(64, 43, 14, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.34);
+    position: relative;
+    overflow: visible;
+    gap: 16px;
   }
 
   .brand {
@@ -617,85 +636,141 @@
   }
 
   .brand-mark {
-    width: 36px;
-    height: 36px;
-    background: var(--primary-red);
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(145deg, #e85045 0%, #ba2519 100%);
     color: white;
-    border-radius: 8px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
     font-size: 14px;
-    box-shadow: 0 4px 12px rgba(217, 48, 37, 0.25);
+    box-shadow:
+      0 7px 16px rgba(217, 48, 37, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
 
   .brand-name {
-    font-size: 1.25rem;
+    font-size: 1.18rem;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     color: var(--text-primary);
   }
 
   .month-navigator {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  .month-pill {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 220px;
+    padding: 7px 16px 8px;
+    border-radius: 14px;
+    border: 1px solid rgba(212, 175, 55, 0.46);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, #fff8ef 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  }
+
+  .month-caption {
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #a28043;
+    margin-bottom: 3px;
   }
 
   .current-month {
-    font-size: 1.5rem;
+    font-size: 1.28rem;
     font-weight: 700;
-    min-width: 140px;
+    min-width: 0;
     text-align: center;
     font-feature-settings: "tnum";
-    color: var(--primary-red);
+    color: #8d251a;
     letter-spacing: -0.01em;
+    line-height: 1.15;
   }
 
   .icon-btn {
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     color: var(--text-secondary);
     cursor: pointer;
-    padding: 8px;
-    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border-radius: 10px;
     transition: all 0.2s;
     display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .icon-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(250, 240, 226, 0.95);
+    border-color: rgba(212, 175, 55, 0.35);
     color: var(--text-primary);
+  }
+
+  .nav-arrow {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(212, 175, 55, 0.3);
+    color: #8f4e1f;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+
+  .nav-arrow:hover {
+    color: var(--primary-red);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(217, 48, 37, 0.14);
   }
 
   .actions {
     display: flex;
+    align-items: center;
     gap: 12px;
   }
 
   .action-btn {
-    padding: 8px 16px;
+    padding: 8px 14px;
     border-radius: 99px;
     font-family: var(--font-sans);
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
     cursor: pointer;
     transition: all 0.2s;
     border: 1px solid var(--border-subtle);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.9);
     color: var(--text-secondary);
   }
 
   .action-btn:hover {
-    background: rgba(0, 0, 0, 0.04);
+    background: #fff;
     color: var(--text-primary);
+    transform: translateY(-1px);
   }
 
   .action-btn.secondary {
-    background: rgba(42, 110, 100, 0.1);
-    color: var(--accent-jade);
-    border-color: transparent;
+    background: linear-gradient(
+      140deg,
+      rgba(42, 110, 100, 0.14) 0%,
+      rgba(42, 110, 100, 0.23) 100%
+    );
+    color: #1f5f55;
+    border-color: rgba(42, 110, 100, 0.24);
+    box-shadow: 0 5px 12px rgba(42, 110, 100, 0.16);
   }
 
   /* Settings Menu */
@@ -704,7 +779,8 @@
   }
 
   .settings-btn.active {
-    background: var(--surface-hover);
+    background: rgba(250, 240, 226, 0.95);
+    border-color: rgba(217, 48, 37, 0.35);
     color: var(--primary-red);
   }
 
@@ -1238,24 +1314,35 @@
   .zodiac-clock-container {
     display: flex;
     justify-content: center;
-    padding: 0;
-    margin-bottom: 8px;
+    padding: 4px 0;
+    margin-bottom: 10px;
   }
 
   .zodiac-clock {
     position: relative;
-    width: 160px;
-    height: 160px;
+    width: 220px;
+    height: 220px;
     border-radius: 50%;
-    border: 1px solid rgba(212, 175, 55, 0.3);
+    border: 1px solid rgba(212, 175, 55, 0.45);
     background: radial-gradient(
       circle,
-      #fff 50%,
-      rgba(255, 248, 240, 0.8) 100%
+      #ffffff 0%,
+      #fff9f1 62%,
+      #f8ede1 100%
     );
     box-shadow:
-      inset 0 0 20px rgba(212, 175, 55, 0.1),
-      0 8px 24px rgba(0, 0, 0, 0.08);
+      inset 0 2px 18px rgba(255, 255, 255, 0.95),
+      inset 0 -12px 26px rgba(212, 175, 55, 0.16),
+      0 16px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .zodiac-clock::before {
+    content: "";
+    position: absolute;
+    inset: 10px;
+    border-radius: 50%;
+    border: 1px dashed rgba(160, 126, 52, 0.3);
+    pointer-events: none;
   }
 
   .clock-center {
@@ -1264,34 +1351,37 @@
     left: 50%;
     transform: translate(-50%, -50%);
     text-align: center;
-    width: 60px;
-    height: 60px;
+    width: 86px;
+    height: 86px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(4px);
+    background: linear-gradient(160deg, #ffffff 0%, #f9f1e6 100%);
     z-index: 10;
     pointer-events: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow:
+      0 8px 16px rgba(0, 0, 0, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(212, 175, 55, 0.4);
   }
 
   .center-label {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 700;
     color: var(--primary-red);
     font-family: var(--font-serif);
-    line-height: 1.1;
+    line-height: 1;
   }
 
   .center-time {
-    font-size: 0.75rem;
+    font-size: 0.82rem;
     color: var(--text-secondary);
     font-family: var(--font-sans);
-    margin-top: 4px;
+    margin-top: 5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     font-variant-numeric: tabular-nums;
   }
 
@@ -1300,13 +1390,13 @@
     position: absolute;
     top: 0;
     left: 50%;
-    width: 2px;
+    width: 3px;
     height: 50%;
     background: linear-gradient(
       to top,
-      var(--primary-red) 50%,
+      rgba(217, 48, 37, 0.92) 55%,
       transparent 100%
-    ); /* Fade tip */
+    );
     transform-origin: bottom center;
     z-index: 5;
     pointer-events: none;
@@ -1316,12 +1406,14 @@
     content: "";
     position: absolute;
     top: 0;
-    left: -3px;
-    width: 8px;
-    height: 8px;
+    left: -3.5px;
+    width: 10px;
+    height: 10px;
     background: var(--primary-red);
     border-radius: 50%;
-    box-shadow: 0 0 4px rgba(217, 48, 37, 0.4);
+    box-shadow:
+      0 0 8px rgba(217, 48, 37, 0.45),
+      0 0 0 2px rgba(255, 255, 255, 0.8);
   }
 
   /* Segments */
@@ -1339,7 +1431,7 @@
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 40px; /* Wider hit area */
+    width: 50px;
     height: 50%;
     background: transparent;
     border: none;
@@ -1348,34 +1440,33 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 8px;
+    padding-top: 10px;
     transition: all 0.2s;
   }
 
-  /* The Wedge Shape */
   .segment-shape {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.1);
-    margin-bottom: 4px;
+    background: rgba(83, 70, 50, 0.24);
+    margin-bottom: 6px;
     transition: all 0.3s;
   }
 
   .segment-text {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--text-tertiary);
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #7c6849;
     transition: all 0.3s;
-    /* Important: Text is upright due to inline style, just need positioning */
     margin-top: 2px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
   }
 
   /* Active/Good State */
   .clock-segment.good .segment-shape {
     background: var(--accent-jade);
-    box-shadow: 0 0 8px rgba(42, 110, 100, 0.4);
-    transform: scale(1.4);
+    box-shadow: 0 0 10px rgba(42, 110, 100, 0.42);
+    transform: scale(1.45);
   }
 
   .clock-segment.good .segment-text {
@@ -1386,7 +1477,7 @@
   /* Hover State */
   .clock-segment:hover .segment-shape {
     background: var(--primary-red);
-    transform: scale(1.2);
+    transform: scale(1.25);
   }
 
   .clock-segment:hover .segment-text {
@@ -1450,9 +1541,18 @@
       border-radius: 24px;
     }
 
+    .month-navigator {
+      width: 100%;
+    }
+
+    .month-pill {
+      min-width: 0;
+      flex: 1;
+    }
+
     .actions {
       width: 100%;
-      justify-content: space-between;
+      justify-content: flex-end;
     }
 
     .calendar-grid {
@@ -1471,6 +1571,33 @@
     .pill {
       font-size: 0.6rem;
       padding: 1px 4px;
+    }
+
+    .zodiac-clock {
+      width: 188px;
+      height: 188px;
+    }
+
+    .clock-center {
+      width: 74px;
+      height: 74px;
+    }
+
+    .center-label {
+      font-size: 1.05rem;
+    }
+
+    .center-time {
+      font-size: 0.76rem;
+    }
+
+    .clock-segment {
+      width: 44px;
+      padding-top: 8px;
+    }
+
+    .segment-text {
+      font-size: 0.68rem;
     }
   }
 
