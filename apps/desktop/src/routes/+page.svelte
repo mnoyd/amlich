@@ -1,5 +1,7 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
+  import { relaunch } from "@tauri-apps/plugin-process";
+  import { check } from "@tauri-apps/plugin-updater";
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
 
   type GoodHour = {
@@ -69,6 +71,9 @@
   let selectedDay = $state<DayCell | null>(null);
   let isLoading = $state(false);
   let error = $state<string | null>(null);
+  let isCheckingUpdate = $state(false);
+  let updateStatus = $state<string | null>(null);
+  let updateStatusKind = $state<"info" | "success" | "error">("info");
 
   $effect(() => {
     loadMonth(viewMonth, viewYear);
@@ -132,6 +137,32 @@
   function goToday() {
     viewYear = today.getFullYear();
     viewMonth = today.getMonth() + 1;
+  }
+
+  async function checkForUpdates() {
+    if (isCheckingUpdate) return;
+    isCheckingUpdate = true;
+    updateStatusKind = "info";
+    updateStatus = "Dang kiem tra ban cap nhat...";
+
+    try {
+      const update = await check();
+      if (!update) {
+        updateStatusKind = "success";
+        updateStatus = "Ban dang dung phien ban moi nhat.";
+        return;
+      }
+
+      updateStatus = "Dang tai va cai dat ban cap nhat...";
+      await update.downloadAndInstall();
+      updateStatus = "Da cai dat. Dang khoi dong lai ung dung...";
+      await relaunch();
+    } catch (err) {
+      updateStatusKind = "error";
+      updateStatus = err instanceof Error ? err.message : String(err);
+    } finally {
+      isCheckingUpdate = false;
+    }
   }
 
   const dayRows = () => {
@@ -259,6 +290,13 @@
     <div class="actions">
       <button class="action-btn secondary" onclick={goToday}>Hôm nay</button>
       <button
+        class="action-btn update-btn"
+        onclick={checkForUpdates}
+        disabled={isCheckingUpdate}
+      >
+        {isCheckingUpdate ? "Dang cap nhat..." : "Kiem tra cap nhat"}
+      </button>
+      <button
         class="action-btn insight-toggle {isInsightVisible ? 'active' : ''}"
         onclick={toggleInsight}
         disabled={!selectedDay}
@@ -268,6 +306,10 @@
       </button>
     </div>
   </header>
+
+  {#if updateStatus}
+    <p class="update-status {updateStatusKind}">{updateStatus}</p>
+  {/if}
 
   <!-- Main Content Area -->
   <main class="main-layout" class:insight-mode={isInsightVisible}>
@@ -678,6 +720,24 @@
     box-shadow: 0 5px 12px rgba(42, 110, 100, 0.16);
   }
 
+  .action-btn.update-btn {
+    background: linear-gradient(
+      140deg,
+      rgba(217, 48, 37, 0.12) 0%,
+      rgba(217, 48, 37, 0.2) 100%
+    );
+    color: #8e2119;
+    border-color: rgba(217, 48, 37, 0.24);
+    box-shadow: 0 5px 12px rgba(217, 48, 37, 0.14);
+  }
+
+  .action-btn.update-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
   .action-btn.insight-toggle.active {
     background: linear-gradient(
       140deg,
@@ -702,6 +762,35 @@
     grid-template-columns: 1fr 340px;
     gap: 32px;
     min-height: 0; /* Prevent overflow */
+  }
+
+  .update-status {
+    margin: -12px 0 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 600;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.75);
+  }
+
+  .update-status.info {
+    color: #9d5f08;
+    border-color: rgba(212, 175, 55, 0.38);
+    background: rgba(255, 248, 232, 0.85);
+  }
+
+  .update-status.success {
+    color: #1d6a42;
+    border-color: rgba(29, 106, 66, 0.25);
+    background: rgba(232, 248, 239, 0.9);
+  }
+
+  .update-status.error {
+    color: #a3271d;
+    border-color: rgba(217, 48, 37, 0.3);
+    background: rgba(255, 239, 237, 0.92);
   }
 
   .main-layout.insight-mode {
@@ -1448,7 +1537,8 @@
 
     .actions {
       width: 100%;
-      justify-content: flex-end;
+      justify-content: center;
+      flex-wrap: wrap;
     }
 
     .calendar-grid {
