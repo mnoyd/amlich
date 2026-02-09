@@ -1,8 +1,7 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
-  import { relaunch } from "@tauri-apps/plugin-process";
-  import { check } from "@tauri-apps/plugin-updater";
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
+  import SettingsPanel from "$lib/components/SettingsPanel.svelte";
 
   type GoodHour = {
     hour_chi: string;
@@ -71,9 +70,7 @@
   let selectedDay = $state<DayCell | null>(null);
   let isLoading = $state(false);
   let error = $state<string | null>(null);
-  let isCheckingUpdate = $state(false);
-  let updateStatus = $state<string | null>(null);
-  let updateStatusKind = $state<"info" | "success" | "error">("info");
+  let isSettingsOpen = $state(false);
 
   $effect(() => {
     loadMonth(viewMonth, viewYear);
@@ -139,29 +136,26 @@
     viewMonth = today.getMonth() + 1;
   }
 
-  async function checkForUpdates() {
-    if (isCheckingUpdate) return;
-    isCheckingUpdate = true;
-    updateStatusKind = "info";
-    updateStatus = "Dang kiem tra ban cap nhat...";
-
-    try {
-      const update = await check();
-      if (!update) {
-        updateStatusKind = "success";
-        updateStatus = "Ban dang dung phien ban moi nhat.";
-        return;
-      }
-
-      updateStatus = "Dang tai va cai dat ban cap nhat...";
-      await update.downloadAndInstall();
-      updateStatus = "Da cai dat. Dang khoi dong lai ung dung...";
-      await relaunch();
-    } catch (err) {
-      updateStatusKind = "error";
-      updateStatus = err instanceof Error ? err.message : String(err);
-    } finally {
-      isCheckingUpdate = false;
+  function handleKeydown(e: KeyboardEvent) {
+    // Don't handle shortcuts when typing in inputs
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+    
+    switch (e.key) {
+      case "ArrowLeft":
+        prevMonth();
+        break;
+      case "ArrowRight":
+        nextMonth();
+        break;
+      case "t":
+      case "T":
+        goToday();
+        break;
+      case "?":
+        isSettingsOpen = true;
+        break;
     }
   }
 
@@ -236,6 +230,8 @@
   });
 </script>
 
+<svelte:window onkeydown={handleKeydown} />
+
 <div class="app-container">
   <!-- Top Navigation Bar -->
   <header class="app-header">
@@ -290,13 +286,6 @@
     <div class="actions">
       <button class="action-btn secondary" onclick={goToday}>Hôm nay</button>
       <button
-        class="action-btn update-btn"
-        onclick={checkForUpdates}
-        disabled={isCheckingUpdate}
-      >
-        {isCheckingUpdate ? "Dang cap nhat..." : "Kiem tra cap nhat"}
-      </button>
-      <button
         class="action-btn insight-toggle {isInsightVisible ? 'active' : ''}"
         onclick={toggleInsight}
         disabled={!selectedDay}
@@ -304,12 +293,28 @@
       >
         {isInsightVisible ? "Ẩn văn hóa" : "Xem văn hóa"}
       </button>
+      <button
+        class="icon-btn settings-btn"
+        onclick={() => (isSettingsOpen = true)}
+        aria-label="Cài đặt"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      </button>
     </div>
   </header>
-
-  {#if updateStatus}
-    <p class="update-status {updateStatusKind}">{updateStatus}</p>
-  {/if}
 
   <!-- Main Content Area -->
   <main class="main-layout" class:insight-mode={isInsightVisible}>
@@ -540,6 +545,9 @@
   </main>
 </div>
 
+<!-- Settings Panel -->
+<SettingsPanel bind:open={isSettingsOpen} />
+
 <style>
   /* App Container */
   .app-container {
@@ -720,22 +728,19 @@
     box-shadow: 0 5px 12px rgba(42, 110, 100, 0.16);
   }
 
-  .action-btn.update-btn {
-    background: linear-gradient(
-      140deg,
-      rgba(217, 48, 37, 0.12) 0%,
-      rgba(217, 48, 37, 0.2) 100%
-    );
-    color: #8e2119;
-    border-color: rgba(217, 48, 37, 0.24);
-    box-shadow: 0 5px 12px rgba(217, 48, 37, 0.14);
+  .settings-btn {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(212, 175, 55, 0.3);
+    color: var(--text-secondary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   }
 
-  .action-btn.update-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+  .settings-btn:hover {
+    color: var(--accent-jade);
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(42, 110, 100, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(42, 110, 100, 0.14);
   }
 
   .action-btn.insight-toggle.active {
@@ -762,35 +767,6 @@
     grid-template-columns: 1fr 340px;
     gap: 32px;
     min-height: 0; /* Prevent overflow */
-  }
-
-  .update-status {
-    margin: -12px 0 0;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-family: var(--font-sans);
-    font-size: 0.82rem;
-    font-weight: 600;
-    border: 1px solid transparent;
-    background: rgba(255, 255, 255, 0.75);
-  }
-
-  .update-status.info {
-    color: #9d5f08;
-    border-color: rgba(212, 175, 55, 0.38);
-    background: rgba(255, 248, 232, 0.85);
-  }
-
-  .update-status.success {
-    color: #1d6a42;
-    border-color: rgba(29, 106, 66, 0.25);
-    background: rgba(232, 248, 239, 0.9);
-  }
-
-  .update-status.error {
-    color: #a3271d;
-    border-color: rgba(217, 48, 37, 0.3);
-    background: rgba(255, 239, 237, 0.92);
   }
 
   .main-layout.insight-mode {
