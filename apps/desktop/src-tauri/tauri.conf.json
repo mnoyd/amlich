@@ -59,7 +59,7 @@
       "endpoints": [
         "https://github.com/mnoyd/amlich/releases/latest/download/latest.json"
       ],
-      "pubkey": "REPLACE_WITH_TAURI_UPDATER_PUBLIC_KEY"
+      "pubkey": "$TAURI_SIGNING_PUBLIC_KEY"
     }
   }
 }
