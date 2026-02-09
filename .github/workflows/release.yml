@@ -94,5 +94,5 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
-          uploadUpdaterJson: true
+          includeUpdaterJson: true
           updaterJsonPreferNsis: true
