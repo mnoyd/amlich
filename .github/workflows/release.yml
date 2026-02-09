@@ -77,6 +77,12 @@ jobs:
         with:
           workspaces: apps/desktop/src-tauri
 
+      - name: Inject updater public key into Tauri config
+        if: ${{ secrets.TAURI_SIGNING_PUBLIC_KEY != '' }}
+        env:
+          TAURI_SIGNING_PUBLIC_KEY: ${{ secrets.TAURI_SIGNING_PUBLIC_KEY }}
+        run: node -e "const fs=require('fs');const p='apps/desktop/src-tauri/tauri.conf.json';const c=JSON.parse(fs.readFileSync(p,'utf8'));c.plugins??={};c.plugins.updater??={};c.plugins.updater.pubkey=process.env.TAURI_SIGNING_PUBLIC_KEY;fs.writeFileSync(p,JSON.stringify(c,null,2)+'\\n');"
+
       - name: Build and publish release assets
         uses: tauri-apps/tauri-action@v0
         env:
