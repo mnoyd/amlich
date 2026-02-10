@@ -88,7 +88,4 @@ jobs:
           releaseDraft: false
           prerelease: false
           updaterJsonPreferNsis: true
-          args: >-
-            ${{ matrix.args }}
-            --config
-            '{"plugins":{"updater":{"pubkey":"${{ secrets.TAURI_UPDATER_PUBKEY }}","endpoints":["https://github.com/${{ github.repository }}/releases/latest/download/latest.json"]}}}'
+          args: ${{ matrix.args }}

@@ -183,16 +183,11 @@ fn get_major_holiday_keys(year: i32) -> Vec<String> {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let mut builder = tauri::Builder::default()
+    tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_process::init());
-
-    if !cfg!(debug_assertions) {
-        builder = builder.plugin(tauri_plugin_updater::Builder::new().build());
-    }
-
-    builder
+        .plugin(tauri_plugin_process::init())
         .invoke_handler(tauri::generate_handler![get_month_data, get_day_detail])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

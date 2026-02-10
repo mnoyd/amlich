@@ -1,6 +1,8 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
+  import { getVersion } from "@tauri-apps/api/app";
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
+  import { checkForAppUpdates } from "$lib/updater";
 
   type GoodHour = {
     hour_chi: string;
@@ -188,6 +190,30 @@
     isInsightVisible = !isInsightVisible;
   }
 
+  // Settings menu
+  let showSettingsMenu = $state(false);
+  let appVersion = $state("");
+
+  $effect(() => {
+    getVersion().then((v) => (appVersion = v));
+  });
+
+  function toggleSettings() {
+    showSettingsMenu = !showSettingsMenu;
+  }
+
+  function handleCheckUpdate() {
+    showSettingsMenu = false;
+    checkForAppUpdates(true);
+  }
+
+  function handleClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (showSettingsMenu && !target.closest(".settings-wrapper")) {
+      showSettingsMenu = false;
+    }
+  }
+
   $effect(() => {
     const updateHand = () => {
       const now = new Date();
@@ -205,7 +231,9 @@
   });
 </script>
 
-<div class="app-container">
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<div class="app-container" onclick={handleClickOutside}>
   <!-- Top Navigation Bar -->
   <header class="app-header">
     <div class="brand">
@@ -266,6 +294,30 @@
       >
         {isInsightVisible ? "Ẩn văn hóa" : "Xem văn hóa"}
       </button>
+      <div class="settings-wrapper">
+        <button
+          class="icon-btn settings-btn"
+          onclick={toggleSettings}
+          aria-label="Settings"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+        {#if showSettingsMenu}
+          <div class="settings-dropdown">
+            <button class="dropdown-item" onclick={handleCheckUpdate}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+              </svg>
+              Kiểm tra cập nhật
+            </button>
+            <div class="dropdown-version">v{appVersion}</div>
+          </div>
+        {/if}
+      </div>
     </div>
   </header>
 
@@ -1495,6 +1547,74 @@
     .segment-text {
       font-size: 0.68rem;
     }
+  }
+
+  /* Settings Menu */
+  .settings-wrapper {
+    position: relative;
+  }
+
+  .settings-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .settings-btn:hover {
+    color: var(--primary-red);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(217, 48, 37, 0.14);
+  }
+
+  .settings-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    min-width: 200px;
+    padding: 6px;
+    z-index: 100;
+  }
+
+  .dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: none;
+    border-radius: 8px;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .dropdown-item:hover {
+    background: rgba(42, 110, 100, 0.08);
+  }
+
+  .dropdown-version {
+    padding: 8px 12px 6px;
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    border-top: 1px solid var(--border-subtle);
+    margin-top: 4px;
   }
 
 </style>
