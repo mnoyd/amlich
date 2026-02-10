@@ -2,6 +2,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { getVersion } from "@tauri-apps/api/app";
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
+  import { hasFestivalData } from "$lib/insights/date-insight-engine";
   import { checkForAppUpdates } from "$lib/updater";
 
   type GoodHour = {
@@ -346,6 +347,7 @@
             {#each row as day}
               {#if day}
                 {@const activeHolidays = filterHolidays(day.holidays)}
+                {@const hasInsight = hasFestivalData(day)}
                 <button
                   type="button"
                   class="day-card"
@@ -354,10 +356,14 @@
                     day.month === today.getMonth() + 1 &&
                     day.year === today.getFullYear()}
                   class:has-holiday={activeHolidays.length > 0}
+                  class:has-insight={hasInsight}
                   onclick={() => selectDay(day)}
                 >
                   <div class="day-header">
                     <span class="solar-date">{day.day}</span>
+                    {#if hasInsight}
+                      <span class="insight-dot" title="Có nội dung văn hóa"></span>
+                    {/if}
                     <div class="lunar-stack">
                       <span class="lunar-date">{day.lunar_day}</span>
                       <span class="lunar-month">/{day.lunar_month}</span>
@@ -886,6 +892,31 @@
   .lunar-month {
     font-size: 0.65rem;
     opacity: 0.8;
+  }
+
+  /* Insight indicator dot — shows days with rich cultural content */
+  .insight-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-jade);
+    flex-shrink: 0;
+    margin-left: 3px;
+    margin-bottom: 2px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+
+  .day-card:hover .insight-dot {
+    opacity: 1;
+  }
+
+  .main-layout.insight-mode .insight-dot {
+    width: 4px;
+    height: 4px;
+    margin-left: 2px;
+    margin-bottom: 1px;
   }
 
   .day-body {

@@ -58,6 +58,28 @@ export type FestivalData = {
 };
 
 // ============================================
+// National Holiday Data Types
+// ============================================
+
+export type NationalHolidayData = {
+  id: string;
+  isSolar: true; // Always true for national holidays
+  solarDay: number;
+  solarMonth: number;
+  category: "public-holiday" | "commemorative" | "professional" | "social" | "international";
+  names: BilingualList;
+  origin: BilingualText;
+  significance?: BilingualText;
+  activities?: BilingualList;
+  traditions?: BilingualList;
+  food?: FoodItem[];
+  symbols?: string[];
+  taboos?: TabooItem[];
+  proverbs?: ProverbItem[];
+  regions?: RegionalCustoms;
+};
+
+// ============================================
 // Tiết Khí (Solar Term) Data Types
 // ============================================
 
@@ -158,6 +180,15 @@ export type FestivalInsight = {
   cards: InsightCard[];
 };
 
+export type NationalHolidayInsight = {
+  mode: "national-holiday";
+  holidayId: string;
+  category: "public-holiday" | "commemorative" | "professional" | "social" | "international";
+  title: string;
+  subtitle: string;
+  cards: InsightCard[];
+};
+
 export type NormalDayInsight = {
   mode: "normal";
   termName: string;
@@ -166,7 +197,7 @@ export type NormalDayInsight = {
   cards: InsightCard[];
 };
 
-export type DateInsight = FestivalInsight | NormalDayInsight;
+export type DateInsight = FestivalInsight | NationalHolidayInsight | NormalDayInsight;
 
 // ============================================
 // Input Day Type (from calendar)

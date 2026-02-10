@@ -8,9 +8,11 @@ import type {
   DayForInsight,
   DateInsight,
   FestivalInsight,
+  NationalHolidayInsight,
   NormalDayInsight,
   InsightCard,
   FestivalData,
+  NationalHolidayData,
   TietKhiData,
   CanInfo,
   ChiInfo,
@@ -18,11 +20,13 @@ import type {
 } from "./types";
 
 import festivalsData from "./data/festivals.json";
+import nationalHolidaysData from "./data/national-holidays.json";
 import tietKhiData from "./data/tiet-khi.json";
 import canchiData from "./data/canchi.json";
 
 // Type assertions for imported JSON
 const festivals = festivalsData.festivals as FestivalData[];
+const nationalHolidays = nationalHolidaysData.holidays as NationalHolidayData[];
 const tietKhiList = tietKhiData.tietKhi as TietKhiData[];
 const canList = canchiData.can as CanInfo[];
 const chiList = canchiData.chi as ChiInfo[];
@@ -41,6 +45,15 @@ function findFestival(day: DayForInsight): FestivalData | null {
     // Lunar-based festival
     return f.lunarDay === day.lunar_day && f.lunarMonth === day.lunar_month;
   }) || null;
+}
+
+/**
+ * Find a national holiday that matches the given day (always solar-based)
+ */
+function findNationalHoliday(day: DayForInsight): NationalHolidayData | null {
+  return nationalHolidays.find((h) =>
+    h.solarDay === day.day && h.solarMonth === day.month
+  ) || null;
 }
 
 /**
@@ -173,6 +186,126 @@ function buildFestivalInsight(festival: FestivalData, day: DayForInsight, lang: 
 }
 
 /**
+ * Build national holiday insight content
+ */
+function buildNationalHolidayInsight(holiday: NationalHolidayData, day: DayForInsight, lang: Lang): NationalHolidayInsight {
+  const cards: InsightCard[] = [];
+
+  // Origin card
+  cards.push({
+    id: "origin",
+    title: lang === "vi" ? "Lịch sử & Nguồn gốc" : "History & Origin",
+    content: holiday.origin[lang],
+    type: "text",
+  });
+
+  // Significance card
+  if (holiday.significance) {
+    cards.push({
+      id: "significance",
+      title: lang === "vi" ? "Ý nghĩa" : "Significance",
+      content: holiday.significance[lang],
+      type: "text",
+    });
+  }
+
+  // Activities card
+  if (holiday.activities && holiday.activities[lang].length > 0) {
+    cards.push({
+      id: "activities",
+      title: lang === "vi" ? "Hoạt động" : "Activities",
+      content: holiday.activities[lang],
+      type: "list",
+    });
+  }
+
+  // Traditions card
+  if (holiday.traditions && holiday.traditions[lang].length > 0) {
+    cards.push({
+      id: "traditions",
+      title: lang === "vi" ? "Phong tục" : "Traditions",
+      content: holiday.traditions[lang],
+      type: "list",
+    });
+  }
+
+  // Food card
+  if (holiday.food && holiday.food.length > 0) {
+    const foodItems = holiday.food.map((f) =>
+      `${f.name[lang]}: ${f.description[lang]}`
+    );
+    cards.push({
+      id: "food",
+      title: lang === "vi" ? "Ẩm thực" : "Food",
+      content: foodItems,
+      type: "list",
+    });
+  }
+
+  // Taboos card
+  if (holiday.taboos && holiday.taboos.length > 0) {
+    const tabooItems = holiday.taboos.map((t) =>
+      `${t.action[lang]} — ${t.reason[lang]}`
+    );
+    cards.push({
+      id: "taboos",
+      title: lang === "vi" ? "Điều kiêng kỵ" : "Taboos to Avoid",
+      content: tabooItems,
+      type: "list",
+    });
+  }
+
+  // Proverbs card
+  if (holiday.proverbs && holiday.proverbs.length > 0) {
+    cards.push({
+      id: "proverbs",
+      title: lang === "vi" ? "Ca dao - Tục ngữ" : "Proverbs & Sayings",
+      content: holiday.proverbs.map((p) => p.text),
+      type: "proverb",
+      extra: {
+        proverbs: holiday.proverbs.map((p) => ({
+          text: p.text,
+          meaning: p.meaning[lang],
+        })),
+      },
+    });
+  }
+
+  // Regional customs card
+  if (holiday.regions) {
+    cards.push({
+      id: "regions",
+      title: lang === "vi" ? "Phong tục vùng miền" : "Regional Customs",
+      content: "",
+      type: "region-tabs",
+      extra: {
+        north: {
+          title: lang === "vi" ? "Miền Bắc" : "North",
+          content: holiday.regions.north[lang],
+        },
+        central: {
+          title: lang === "vi" ? "Miền Trung" : "Central",
+          content: holiday.regions.central[lang],
+        },
+        south: {
+          title: lang === "vi" ? "Miền Nam" : "South",
+          content: holiday.regions.south[lang],
+        },
+      },
+    });
+  }
+
+  return {
+    mode: "national-holiday",
+    holidayId: holiday.id,
+    category: holiday.category,
+    title: holiday.names[lang][0],
+    subtitle: holiday.names[lang].slice(1).join(" • ") || holiday.names[lang === "vi" ? "en" : "vi"][0],
+    cards,
+  };
+}
+
+/**
  * Build normal day insight content (tiết khí + can chi focused)
  */
 function buildNormalDayInsight(day: DayForInsight, lang: Lang): NormalDayInsight {
@@ -289,27 +422,39 @@ function buildNormalDayInsight(day: DayForInsight, lang: Lang): NormalDayInsight
  * Main function to build date insight
  */
 export function buildDateInsight(day: DayForInsight, lang: Lang = "vi"): DateInsight {
-  // Check if this day has a major festival
+  // Check if this day has a major festival (traditional lunar/solar festivals take priority)
   const festival = findFestival(day);
   
   if (festival) {
     return buildFestivalInsight(festival, day, lang);
+  }
+
+  // Check if this day has a national holiday
+  const nationalHoliday = findNationalHoliday(day);
+
+  if (nationalHoliday) {
+    return buildNationalHolidayInsight(nationalHoliday, day, lang);
   }
   
   return buildNormalDayInsight(day, lang);
 }
 
 /**
- * Check if a day has festival data available
+ * Check if a day has festival or national holiday data available
  */
 export function hasFestivalData(day: DayForInsight): boolean {
-  return findFestival(day) !== null;
+  return findFestival(day) !== null || findNationalHoliday(day) !== null;
 }
 
 /**
- * Get festival names for a day (if any)
+ * Get festival or national holiday names for a day (if any)
  */
 export function getFestivalNames(day: DayForInsight, lang: Lang = "vi"): string[] {
   const festival = findFestival(day);
-  return festival ? festival.names[lang] : [];
+  if (festival) return festival.names[lang];
+  
+  const nationalHoliday = findNationalHoliday(day);
+  if (nationalHoliday) return nationalHoliday.names[lang];
+  
+  return [];
 }

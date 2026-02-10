@@ -1,0 +1,872 @@
+{
+  "holidays": [
+    {
+      "id": "tet-duong-lich",
+      "isSolar": true,
+      "solarDay": 1,
+      "solarMonth": 1,
+      "category": "public-holiday",
+      "names": {
+        "vi": ["Tết Dương Lịch", "Ngày đầu năm mới"],
+        "en": ["New Year's Day", "Solar New Year"]
+      },
+      "origin": {
+        "vi": "Tết Dương Lịch được công nhận là ngày lễ chính thức tại Việt Nam từ sau năm 1945. Trước đó, người Việt chủ yếu đón năm mới theo lịch âm (Tết Nguyên Đán). Khi Việt Nam hội nhập quốc tế, Tết Dương Lịch trở thành dịp để người dân nghỉ ngơi, chào đón năm mới theo lịch phương Tây, đồng thời giữ gìn truyền thống Tết Âm Lịch.",
+        "en": "New Year's Day was recognized as an official holiday in Vietnam after 1945. Previously, Vietnamese mainly celebrated the new year according to the lunar calendar (Tết Nguyên Đán). As Vietnam integrated internationally, Solar New Year became an occasion for rest and welcoming the new year by the Western calendar, while preserving the Lunar New Year tradition."
+      },
+      "significance": {
+        "vi": "Là ngày nghỉ lễ chính thức, dịp chào đón năm mới dương lịch và đếm ngược giao thừa.",
+        "en": "An official public holiday, an occasion to welcome the solar new year with New Year's Eve countdowns."
+      },
+      "activities": {
+        "vi": [
+          "Đếm ngược giao thừa tại các quảng trường",
+          "Bắn pháo hoa chào mừng năm mới",
+          "Tụ họp bạn bè, gia đình",
+          "Tham gia các chương trình ca nhạc, lễ hội"
+        ],
+        "en": [
+          "New Year's Eve countdown at public squares",
+          "Fireworks celebrating the new year",
+          "Gatherings with friends and family",
+          "Attending concerts and festivals"
+        ]
+      }
+    },
+    {
+      "id": "ngay-hoc-sinh",
+      "isSolar": true,
+      "solarDay": 9,
+      "solarMonth": 1,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Truyền Thống Học Sinh - Sinh Viên Việt Nam"],
+        "en": ["Vietnamese Students' Day"]
+      },
+      "origin": {
+        "vi": "Ngày 9 tháng 1 năm 1950, Đoàn Thanh Niên Cứu Quốc và Đoàn Học Sinh Sài Gòn - Chợ Lớn tổ chức cuộc biểu tình lớn trước Dinh Norodom (nay là Dinh Độc Lập) đòi thực hiện các quyền dân sinh, dân chủ và bảo vệ nền độc lập. Học sinh Trần Văn Ơn bị bắn chết trong cuộc biểu tình, trở thành biểu tượng cho tinh thần đấu tranh của học sinh, sinh viên Việt Nam.",
+        "en": "On January 9, 1950, the National Salvation Youth League and Saigon-Chợ Lớn Student Union organized a large protest in front of Norodom Palace (now Independence Palace) demanding civil rights, democracy, and defending independence. Student Trần Văn Ơn was shot dead during the protest, becoming a symbol of the fighting spirit of Vietnamese students."
+      },
+      "significance": {
+        "vi": "Tôn vinh truyền thống yêu nước và tinh thần đấu tranh của học sinh, sinh viên Việt Nam. Là dịp nhắc nhở thế hệ trẻ về trách nhiệm học tập và cống hiến.",
+        "en": "Honors the patriotic tradition and fighting spirit of Vietnamese students. A reminder for younger generations about their responsibility to study and contribute."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm tại các trường học",
+          "Các hoạt động văn hóa, thể thao học đường",
+          "Trao giải thưởng cho học sinh xuất sắc"
+        ],
+        "en": [
+          "Commemorative ceremonies at schools",
+          "School cultural and sports activities",
+          "Awards for outstanding students"
+        ]
+      }
+    },
+    {
+      "id": "thanh-lap-dang",
+      "isSolar": true,
+      "solarDay": 3,
+      "solarMonth": 2,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Thành Lập Đảng Cộng Sản Việt Nam"],
+        "en": ["Founding Anniversary of the Communist Party of Vietnam"]
+      },
+      "origin": {
+        "vi": "Ngày 3 tháng 2 năm 1930, Đảng Cộng Sản Việt Nam được thành lập tại Hương Cảng (Hong Kong) dưới sự chủ trì của Nguyễn Ái Quốc (Hồ Chí Minh). Sự kiện này đánh dấu bước ngoặt quan trọng trong lịch sử cách mạng Việt Nam, thống nhất ba tổ chức cộng sản thành một đảng duy nhất lãnh đạo phong trào cách mạng.",
+        "en": "On February 3, 1930, the Communist Party of Vietnam was founded in Hong Kong under the leadership of Nguyễn Ái Quốc (Hồ Chí Minh). This event marked a crucial turning point in Vietnam's revolutionary history, unifying three communist organizations into a single party to lead the revolutionary movement."
+      },
+      "significance": {
+        "vi": "Kỷ niệm sự ra đời của Đảng Cộng Sản Việt Nam, sự kiện lịch sử quan trọng nhất trong phong trào cách mạng Việt Nam hiện đại.",
+        "en": "Commemorates the founding of the Communist Party of Vietnam, the most significant event in Vietnam's modern revolutionary movement."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm tại các cơ quan, đơn vị",
+          "Mít tinh, diễu hành",
+          "Treo cờ Đảng, cờ Tổ quốc",
+          "Các cuộc thi tìm hiểu lịch sử Đảng"
+        ],
+        "en": [
+          "Commemorative ceremonies at government offices",
+          "Rallies and parades",
+          "Display Party flag and national flag",
+          "History knowledge competitions about the Party"
+        ]
+      }
+    },
+    {
+      "id": "ngay-thay-thuoc",
+      "isSolar": true,
+      "solarDay": 27,
+      "solarMonth": 2,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Thầy Thuốc Việt Nam"],
+        "en": ["Vietnamese Doctors' Day", "Vietnamese Physicians' Day"]
+      },
+      "origin": {
+        "vi": "Ngày 27 tháng 2 năm 1955, Chủ tịch Hồ Chí Minh viết thư gửi Hội nghị cán bộ y tế toàn quốc, căn dặn \"Lương y như từ mẫu\" (người thầy thuốc giỏi như mẹ hiền). Năm 1955, ngày này được chọn làm Ngày Thầy Thuốc Việt Nam để tôn vinh những người làm trong ngành y tế.",
+        "en": "On February 27, 1955, President Hồ Chí Minh wrote a letter to the National Health Workers' Conference, instructing 'A good doctor is like a kind mother.' This date was chosen as Vietnamese Doctors' Day to honor those working in healthcare."
+      },
+      "significance": {
+        "vi": "Tôn vinh đội ngũ y bác sĩ, nhân viên y tế và truyền thống \"Lương y như từ mẫu\".",
+        "en": "Honors doctors, medical staff and the tradition of 'A good doctor is like a kind mother.'"
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm tại các bệnh viện, cơ sở y tế",
+          "Tặng hoa, quà cho y bác sĩ",
+          "Trao giải thưởng cho cán bộ y tế xuất sắc"
+        ],
+        "en": [
+          "Commemorative ceremonies at hospitals and clinics",
+          "Give flowers and gifts to doctors",
+          "Awards for outstanding medical workers"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-phu-nu",
+      "isSolar": true,
+      "solarDay": 8,
+      "solarMonth": 3,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Quốc Tế Phụ Nữ"],
+        "en": ["International Women's Day"]
+      },
+      "origin": {
+        "vi": "Ngày 8 tháng 3 được Liên Hợp Quốc công nhận là Ngày Quốc Tế Phụ Nữ từ năm 1977, nhưng có nguồn gốc từ phong trào đấu tranh của phụ nữ lao động ở Mỹ và châu Âu đầu thế kỷ 20. Tại Việt Nam, ngày này được kỷ niệm rộng rãi để tôn vinh phụ nữ trong gia đình và xã hội.",
+        "en": "March 8 was recognized by the United Nations as International Women's Day in 1977, but originated from women workers' movements in America and Europe in the early 20th century. In Vietnam, this day is widely celebrated to honor women in family and society."
+      },
+      "significance": {
+        "vi": "Tôn vinh phụ nữ, đấu tranh cho bình đẳng giới và quyền phụ nữ trên toàn thế giới.",
+        "en": "Honors women, advocates for gender equality and women's rights worldwide."
+      },
+      "activities": {
+        "vi": [
+          "Tặng hoa, quà cho phụ nữ",
+          "Tổ chức các chương trình văn nghệ, thi tài",
+          "Tôn vinh phụ nữ xuất sắc trong các lĩnh vực",
+          "Các hoạt động từ thiện vì phụ nữ"
+        ],
+        "en": [
+          "Give flowers and gifts to women",
+          "Organize performances and talent shows",
+          "Honor outstanding women in various fields",
+          "Charity activities for women"
+        ]
+      }
+    },
+    {
+      "id": "thanh-lap-doan",
+      "isSolar": true,
+      "solarDay": 26,
+      "solarMonth": 3,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Thành Lập Đoàn Thanh Niên Cộng Sản Hồ Chí Minh"],
+        "en": ["Founding Anniversary of Hồ Chí Minh Communist Youth Union"]
+      },
+      "origin": {
+        "vi": "Ngày 26 tháng 3 năm 1931, tại Hội nghị Ban Chấp hành Trung ương Đảng lần thứ 2, Đoàn Thanh Niên Cộng Sản Đông Dương (nay là Đoàn TNCS Hồ Chí Minh) được chính thức thành lập. Đoàn là tổ chức chính trị - xã hội của thanh niên Việt Nam, đóng vai trò nòng cốt trong các phong trào cách mạng và xây dựng đất nước.",
+        "en": "On March 26, 1931, at the 2nd session of the Party Central Committee, the Indochina Communist Youth Union (now Hồ Chí Minh Communist Youth Union) was officially established. The Union is the political-social organization of Vietnamese youth, playing a core role in revolutionary movements and national development."
+      },
+      "significance": {
+        "vi": "Ngày truyền thống của tuổi trẻ Việt Nam, tôn vinh vai trò của thanh niên trong sự nghiệp cách mạng và xây dựng đất nước.",
+        "en": "Traditional day of Vietnamese youth, honoring the role of young people in revolution and national development."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm, mít tinh tại các cấp Đoàn",
+          "Kết nạp đoàn viên mới",
+          "Các hoạt động tình nguyện, vì cộng đồng",
+          "Thi tìm hiểu truyền thống Đoàn"
+        ],
+        "en": [
+          "Commemorative ceremonies at Union levels",
+          "Admission of new Union members",
+          "Volunteer and community activities",
+          "Union history knowledge contests"
+        ]
+      }
+    },
+    {
+      "id": "ngay-sach",
+      "isSolar": true,
+      "solarDay": 21,
+      "solarMonth": 4,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Sách và Văn Hóa Đọc Việt Nam"],
+        "en": ["Vietnamese Book and Reading Culture Day"]
+      },
+      "origin": {
+        "vi": "Ngày 21 tháng 4 được Thủ tướng Chính phủ quyết định là Ngày Sách Việt Nam từ năm 2014 (Quyết định số 284/QĐ-TTg). Ngày này được chọn vì gần với Ngày Sách và Bản quyền Thế giới (23/4) của UNESCO, đồng thời kỷ niệm sự ra đời của ngành xuất bản Việt Nam.",
+        "en": "April 21 was designated as Vietnamese Book Day by the Prime Minister since 2014 (Decision No. 284/QĐ-TTg). This date was chosen for its proximity to UNESCO's World Book and Copyright Day (April 23), and to commemorate the birth of Vietnam's publishing industry."
+      },
+      "significance": {
+        "vi": "Khuyến khích văn hóa đọc, tôn vinh giá trị của sách và tri thức trong đời sống.",
+        "en": "Encourages reading culture, honors the value of books and knowledge in life."
+      },
+      "activities": {
+        "vi": [
+          "Hội sách, triển lãm sách",
+          "Giao lưu tác giả - độc giả",
+          "Quyên góp sách cho vùng khó khăn",
+          "Cuộc thi viết, đọc sách"
+        ],
+        "en": [
+          "Book fairs and exhibitions",
+          "Author-reader meetups",
+          "Book donation drives for disadvantaged areas",
+          "Writing and reading contests"
+        ]
+      }
+    },
+    {
+      "id": "ngay-kien-truc-su",
+      "isSolar": true,
+      "solarDay": 27,
+      "solarMonth": 4,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Kiến Trúc Sư Việt Nam"],
+        "en": ["Vietnamese Architects' Day"]
+      },
+      "origin": {
+        "vi": "Ngày 27 tháng 4 năm 1948, Hội Kiến trúc sư Việt Nam được thành lập tại chiến khu Việt Bắc trong thời kỳ kháng chiến chống Pháp. Đây là tổ chức nghề nghiệp đầu tiên của giới kiến trúc sư Việt Nam, đánh dấu sự hình thành chính thức của ngành kiến trúc Việt Nam hiện đại.",
+        "en": "On April 27, 1948, the Vietnam Architects' Association was established in the Việt Bắc resistance base during the anti-French war. This was the first professional organization for Vietnamese architects, marking the formal establishment of modern Vietnamese architecture."
+      },
+      "significance": {
+        "vi": "Tôn vinh đóng góp của kiến trúc sư trong xây dựng và phát triển đô thị Việt Nam.",
+        "en": "Honors architects' contributions to Vietnam's urban construction and development."
+      }
+    },
+    {
+      "id": "giai-phong-mien-nam",
+      "isSolar": true,
+      "solarDay": 30,
+      "solarMonth": 4,
+      "category": "public-holiday",
+      "names": {
+        "vi": ["Ngày Giải Phóng Miền Nam", "Ngày Thống Nhất Đất Nước"],
+        "en": ["Reunification Day", "Liberation Day of South Vietnam"]
+      },
+      "origin": {
+        "vi": "Ngày 30 tháng 4 năm 1975, xe tăng của Quân đội Nhân dân Việt Nam húc đổ cổng Dinh Độc Lập tại Sài Gòn, kết thúc cuộc chiến tranh kéo dài hơn 20 năm. Tổng thống Việt Nam Cộng Hòa Dương Văn Minh tuyên bố đầu hàng vô điều kiện. Sự kiện này đánh dấu sự thống nhất đất nước Việt Nam sau hơn một thế kỷ bị chia cắt và chiến tranh.",
+        "en": "On April 30, 1975, tanks of the People's Army of Vietnam crashed through the gates of Independence Palace in Saigon, ending a war that lasted over 20 years. Republic of Vietnam President Dương Văn Minh declared unconditional surrender. This event marked the reunification of Vietnam after more than a century of division and war."
+      },
+      "significance": {
+        "vi": "Kỷ niệm ngày đất nước hoàn toàn thống nhất, chấm dứt chiến tranh. Là ngày nghỉ lễ chính thức.",
+        "en": "Commemorates national reunification and the end of war. An official public holiday."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm tại Dinh Độc Lập và các địa phương",
+          "Diễu binh, diễu hành",
+          "Chương trình văn nghệ đặc biệt",
+          "Treo cờ Tổ quốc"
+        ],
+        "en": [
+          "Ceremonies at Independence Palace and nationwide",
+          "Military parades",
+          "Special cultural performances",
+          "Display national flag"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-lao-dong",
+      "isSolar": true,
+      "solarDay": 1,
+      "solarMonth": 5,
+      "category": "public-holiday",
+      "names": {
+        "vi": ["Ngày Quốc Tế Lao Động"],
+        "en": ["International Workers' Day", "May Day", "Labour Day"]
+      },
+      "origin": {
+        "vi": "Ngày 1 tháng 5 được chọn để kỷ niệm cuộc đấu tranh của công nhân tại Chicago (Mỹ) năm 1886, đòi giảm giờ làm việc xuống 8 tiếng/ngày. Cuộc biểu tình bị đàn áp đẫm máu nhưng đã thúc đẩy phong trào lao động toàn cầu. Quốc tế Cộng sản lần thứ 2 (1889) chọn ngày 1/5 làm Ngày Quốc Tế Lao Động.",
+        "en": "May 1 was chosen to commemorate the 1886 workers' struggle in Chicago, USA, demanding an 8-hour workday. The bloody suppression of protests spurred the global labor movement. The Second International (1889) designated May 1 as International Workers' Day."
+      },
+      "significance": {
+        "vi": "Tôn vinh người lao động và quyền lợi của họ. Là ngày nghỉ lễ chính thức tại Việt Nam.",
+        "en": "Honors workers and their rights. An official public holiday in Vietnam."
+      },
+      "activities": {
+        "vi": [
+          "Mít tinh, diễu hành của người lao động",
+          "Nghỉ lễ, du lịch",
+          "Tôn vinh người lao động tiêu biểu",
+          "Các hoạt động công đoàn"
+        ],
+        "en": [
+          "Workers' rallies and marches",
+          "Holiday and travel",
+          "Honor exemplary workers",
+          "Trade union activities"
+        ]
+      }
+    },
+    {
+      "id": "chien-thang-dien-bien-phu",
+      "isSolar": true,
+      "solarDay": 7,
+      "solarMonth": 5,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Chiến Thắng Điện Biên Phủ"],
+        "en": ["Điện Biên Phủ Victory Day"]
+      },
+      "origin": {
+        "vi": "Ngày 7 tháng 5 năm 1954, quân đội Việt Nam do Đại tướng Võ Nguyên Giáp chỉ huy đã đánh bại hoàn toàn cứ điểm Điện Biên Phủ của Pháp sau 56 ngày đêm chiến đấu ác liệt. Chiến thắng \"lừng lẫy năm châu, chấn động địa cầu\" này buộc Pháp ký Hiệp định Genève, chấm dứt chế độ thực dân ở Đông Dương.",
+        "en": "On May 7, 1954, Vietnamese forces commanded by General Võ Nguyên Giáp completely defeated the French garrison at Điện Biên Phủ after 56 days and nights of fierce combat. This victory 'resounding across five continents, shaking the globe' forced France to sign the Geneva Accords, ending colonialism in Indochina."
+      },
+      "significance": {
+        "vi": "Chiến thắng quân sự vĩ đại nhất trong lịch sử chống ngoại xâm, chấm dứt gần 100 năm đô hộ của thực dân Pháp.",
+        "en": "The greatest military victory in Vietnam's anti-colonial history, ending nearly 100 years of French colonialism."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm tại Điện Biên và cả nước",
+          "Gặp mặt cựu chiến binh",
+          "Chương trình truyền hình, phim tài liệu đặc biệt",
+          "Viếng nghĩa trang liệt sĩ"
+        ],
+        "en": [
+          "Ceremonies in Điện Biên and nationwide",
+          "Veterans' reunions",
+          "Special TV programs and documentaries",
+          "Visit martyrs' cemeteries"
+        ]
+      }
+    },
+    {
+      "id": "chien-thang-phat-xit",
+      "isSolar": true,
+      "solarDay": 9,
+      "solarMonth": 5,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Chiến Thắng Phát Xít"],
+        "en": ["Victory Day over Fascism", "Victory in Europe Day"]
+      },
+      "origin": {
+        "vi": "Ngày 9 tháng 5 năm 1945, Đức Quốc Xã chính thức đầu hàng vô điều kiện, kết thúc Chiến tranh Thế giới thứ 2 tại châu Âu. Tại Việt Nam, ngày này được ghi nhận như một sự kiện lịch sử thế giới quan trọng, đánh dấu chiến thắng của phe Đồng Minh và các lực lượng tiến bộ trước chủ nghĩa phát xít.",
+        "en": "On May 9, 1945, Nazi Germany officially surrendered unconditionally, ending World War II in Europe. In Vietnam, this day is recognized as a major world historical event, marking the Allied and progressive forces' victory over fascism."
+      },
+      "significance": {
+        "vi": "Kỷ niệm chiến thắng của nhân loại trước chủ nghĩa phát xít, bảo vệ hòa bình thế giới.",
+        "en": "Commemorates humanity's victory over fascism, defending world peace."
+      }
+    },
+    {
+      "id": "sinh-ho-chi-minh",
+      "isSolar": true,
+      "solarDay": 19,
+      "solarMonth": 5,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Sinh Chủ Tịch Hồ Chí Minh"],
+        "en": ["President Hồ Chí Minh's Birthday"]
+      },
+      "origin": {
+        "vi": "Chủ tịch Hồ Chí Minh sinh ngày 19 tháng 5 năm 1890 tại làng Hoàng Trù (nay thuộc xã Kim Liên, huyện Nam Đàn, tỉnh Nghệ An). Người là lãnh tụ vĩ đại của dân tộc Việt Nam, người sáng lập Đảng Cộng Sản Việt Nam, khai sinh nước Việt Nam Dân Chủ Cộng Hòa. UNESCO công nhận Hồ Chí Minh là \"Anh hùng giải phóng dân tộc, Nhà văn hóa kiệt xuất\" năm 1990.",
+        "en": "President Hồ Chí Minh was born on May 19, 1890, in Hoàng Trù village (now Kim Liên commune, Nam Đàn district, Nghệ An province). He was the great leader of the Vietnamese nation, founder of the Communist Party of Vietnam, and founder of the Democratic Republic of Vietnam. UNESCO recognized Hồ Chí Minh as a 'Hero of National Liberation and Outstanding Cultural Figure' in 1990."
+      },
+      "significance": {
+        "vi": "Kỷ niệm ngày sinh của vị lãnh tụ kính yêu nhất của dân tộc Việt Nam.",
+        "en": "Commemorates the birthday of the most beloved leader of the Vietnamese nation."
+      },
+      "activities": {
+        "vi": [
+          "Lễ dâng hương tại Lăng Chủ tịch Hồ Chí Minh",
+          "Chương trình văn nghệ, triển lãm về Bác Hồ",
+          "Cuộc thi tìm hiểu về cuộc đời và sự nghiệp của Bác",
+          "Phong trào \"Học tập và làm theo tư tưởng, đạo đức, phong cách Hồ Chí Minh\""
+        ],
+        "en": [
+          "Incense offering ceremony at Hồ Chí Minh Mausoleum",
+          "Cultural programs and exhibitions about Uncle Hồ",
+          "Contests about his life and career",
+          "Movement to 'Study and follow Hồ Chí Minh's ideology, ethics and style'"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-thieu-nhi",
+      "isSolar": true,
+      "solarDay": 1,
+      "solarMonth": 6,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Quốc Tế Thiếu Nhi", "Tết Thiếu Nhi"],
+        "en": ["International Children's Day"]
+      },
+      "origin": {
+        "vi": "Ngày 1 tháng 6 được Liên đoàn Phụ nữ Dân chủ Quốc tế chọn là Ngày Quốc Tế Bảo Vệ Thiếu Nhi từ năm 1950, để kỷ niệm vụ thảm sát trẻ em tại Lidice (Tiệp Khắc) năm 1942 bởi phát xít Đức. Tại Việt Nam, ngày này trở thành \"Tết Thiếu Nhi\" - dịp vui chơi đặc biệt dành cho trẻ em.",
+        "en": "June 1 was chosen by the Women's International Democratic Federation as International Day for Protection of Children since 1950, commemorating the Nazi massacre of children in Lidice (Czechoslovakia) in 1942. In Vietnam, this became 'Children's Festival' - a special occasion for children's enjoyment."
+      },
+      "significance": {
+        "vi": "Ngày dành riêng cho trẻ em, bảo vệ quyền lợi và mang lại niềm vui cho thiếu nhi.",
+        "en": "A day dedicated to children, protecting their rights and bringing them joy."
+      },
+      "activities": {
+        "vi": [
+          "Tặng quà, đồ chơi cho trẻ em",
+          "Tổ chức các trò chơi, liên hoan thiếu nhi",
+          "Đưa trẻ đi chơi công viên, khu vui chơi",
+          "Chương trình biểu diễn dành cho thiếu nhi"
+        ],
+        "en": [
+          "Give gifts and toys to children",
+          "Organize games and children's festivals",
+          "Take children to parks and amusement centers",
+          "Performances for children"
+        ]
+      }
+    },
+    {
+      "id": "ngay-gia-dinh",
+      "isSolar": true,
+      "solarDay": 28,
+      "solarMonth": 6,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Gia Đình Việt Nam"],
+        "en": ["Vietnamese Family Day"]
+      },
+      "origin": {
+        "vi": "Ngày 28 tháng 6 được Thủ tướng Chính phủ quyết định là Ngày Gia Đình Việt Nam từ năm 2001 (Quyết định số 72/2001/QĐ-TTg). Ngày này ra đời nhằm tôn vinh giá trị gia đình - nền tảng của xã hội Việt Nam, đề cao trách nhiệm của mỗi người trong việc xây dựng gia đình hạnh phúc.",
+        "en": "June 28 was designated as Vietnamese Family Day by the Prime Minister since 2001 (Decision No. 72/2001/QĐ-TTg). This day was established to honor family values - the foundation of Vietnamese society, and to promote each person's responsibility in building a happy family."
+      },
+      "significance": {
+        "vi": "Đề cao vai trò của gia đình trong xã hội Việt Nam, khuyến khích xây dựng gia đình văn hóa, hạnh phúc.",
+        "en": "Promotes the role of family in Vietnamese society, encouraging the building of cultured, happy families."
+      },
+      "activities": {
+        "vi": [
+          "Các buổi sinh hoạt gia đình, sum họp",
+          "Tọa đàm về giá trị gia đình",
+          "Tôn vinh gia đình văn hóa tiêu biểu",
+          "Hoạt động truyền thông về phòng chống bạo lực gia đình"
+        ],
+        "en": [
+          "Family gatherings and activities",
+          "Discussions on family values",
+          "Honor exemplary cultural families",
+          "Campaigns against domestic violence"
+        ]
+      }
+    },
+    {
+      "id": "thuong-binh-liet-si",
+      "isSolar": true,
+      "solarDay": 27,
+      "solarMonth": 7,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Thương Binh - Liệt Sĩ"],
+        "en": ["War Invalids and Martyrs Day"]
+      },
+      "origin": {
+        "vi": "Ngày 27 tháng 7 năm 1947, Chủ tịch Hồ Chí Minh ký sắc lệnh chọn ngày này là \"Ngày Thương binh toàn quốc\" (sau đổi thành Ngày Thương Binh - Liệt Sĩ). Đây là dịp để toàn dân tri ân những người đã hy sinh xương máu, cống hiến tuổi thanh xuân cho nền độc lập tự do của đất nước.",
+        "en": "On July 27, 1947, President Hồ Chí Minh signed a decree designating this as 'National Day for War Invalids' (later renamed War Invalids and Martyrs Day). This is an occasion for the nation to express gratitude to those who sacrificed their blood and youth for national independence and freedom."
+      },
+      "significance": {
+        "vi": "Tri ân những thương binh, liệt sĩ và gia đình có công với cách mạng. Ngày lễ truyền thống sâu sắc của dân tộc.",
+        "en": "Expresses gratitude to war invalids, martyrs and families with revolutionary contributions. A deeply meaningful national tradition."
+      },
+      "activities": {
+        "vi": [
+          "Viếng nghĩa trang liệt sĩ, thắp hương",
+          "Thăm hỏi, tặng quà gia đình chính sách",
+          "Lễ tưởng niệm các anh hùng liệt sĩ",
+          "Phong trào đền ơn đáp nghĩa"
+        ],
+        "en": [
+          "Visit martyrs' cemeteries, light incense",
+          "Visit and give gifts to policy families",
+          "Memorial ceremonies for heroes and martyrs",
+          "Gratitude and repayment movements"
+        ]
+      }
+    },
+    {
+      "id": "cach-mang-thang-8",
+      "isSolar": true,
+      "solarDay": 19,
+      "solarMonth": 8,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Cách Mạng Tháng Tám"],
+        "en": ["August Revolution Day"]
+      },
+      "origin": {
+        "vi": "Ngày 19 tháng 8 năm 1945, hàng vạn người dân Hà Nội và các tỉnh lân cận đã xuống đường biểu tình, chiếm phủ Khâm Sai, trại lính Bảo an và các cơ sở chính quyền. Tổng khởi nghĩa thành công trên cả nước, lật đổ chế độ thực dân - phong kiến, dẫn đến sự ra đời của nước Việt Nam Dân Chủ Cộng Hòa.",
+        "en": "On August 19, 1945, tens of thousands of Hà Nội residents and neighboring provinces took to the streets, seizing the Imperial Delegate's office, security barracks and government facilities. The general uprising succeeded nationwide, overthrowing the colonial-feudal regime, leading to the birth of the Democratic Republic of Vietnam."
+      },
+      "significance": {
+        "vi": "Cuộc cách mạng giành độc lập vĩ đại, mở ra kỷ nguyên mới cho dân tộc Việt Nam.",
+        "en": "The great revolution for independence, opening a new era for the Vietnamese nation."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm tại Quảng trường Ba Đình và các địa phương",
+          "Chương trình truyền hình, phim tài liệu đặc biệt",
+          "Triển lãm ảnh, hiện vật lịch sử",
+          "Gặp mặt nhân chứng lịch sử"
+        ],
+        "en": [
+          "Ceremonies at Ba Đình Square and nationwide",
+          "Special TV programs and documentaries",
+          "Photo and historical artifact exhibitions",
+          "Meetings with historical witnesses"
+        ]
+      }
+    },
+    {
+      "id": "quoc-khanh",
+      "isSolar": true,
+      "solarDay": 2,
+      "solarMonth": 9,
+      "category": "public-holiday",
+      "names": {
+        "vi": ["Ngày Quốc Khánh", "Ngày Tuyên Ngôn Độc Lập"],
+        "en": ["National Day", "Independence Day"]
+      },
+      "origin": {
+        "vi": "Ngày 2 tháng 9 năm 1945, tại Quảng trường Ba Đình (Hà Nội), Chủ tịch Hồ Chí Minh đọc bản Tuyên Ngôn Độc Lập, khai sinh nước Việt Nam Dân Chủ Cộng Hòa. Bản tuyên ngôn mở đầu bằng: \"Tất cả mọi người đều sinh ra có quyền bình đẳng. Tạo hóa cho họ những quyền không ai có thể xâm phạm được; trong những quyền ấy, có quyền được sống, quyền tự do và quyền mưu cầu hạnh phúc.\"",
+        "en": "On September 2, 1945, at Ba Đình Square (Hà Nội), President Hồ Chí Minh read the Declaration of Independence, establishing the Democratic Republic of Vietnam. The declaration opened with: 'All men are created equal. They are endowed by their Creator with certain inalienable rights; among these are Life, Liberty, and the pursuit of Happiness.'"
+      },
+      "significance": {
+        "vi": "Ngày lễ lớn nhất của dân tộc, kỷ niệm sự ra đời của nước Việt Nam độc lập. Ngày nghỉ lễ chính thức.",
+        "en": "The nation's greatest holiday, commemorating the birth of independent Vietnam. An official public holiday."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm trọng thể tại Quảng trường Ba Đình",
+          "Diễu binh, diễu hành",
+          "Bắn pháo hoa trên toàn quốc",
+          "Treo cờ Tổ quốc",
+          "Chương trình văn nghệ đặc biệt"
+        ],
+        "en": [
+          "Grand ceremony at Ba Đình Square",
+          "Military and civilian parades",
+          "Nationwide fireworks",
+          "Display national flag",
+          "Special cultural performances"
+        ]
+      }
+    },
+    {
+      "id": "giai-phong-thu-do",
+      "isSolar": true,
+      "solarDay": 10,
+      "solarMonth": 10,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Giải Phóng Thủ Đô"],
+        "en": ["Liberation Day of the Capital"]
+      },
+      "origin": {
+        "vi": "Ngày 10 tháng 10 năm 1954, quân đội Việt Nam tiến vào tiếp quản Hà Nội sau khi quân Pháp rút lui theo Hiệp định Genève. Đây là sự kiện lịch sử trọng đại, đánh dấu Thủ đô Hà Nội hoàn toàn giải phóng sau 9 năm kháng chiến chống Pháp. Hàng vạn người dân Hà Nội đổ ra đường chào đón bộ đội trong niềm hân hoan.",
+        "en": "On October 10, 1954, Vietnamese forces entered and took over Hà Nội after French troops withdrew per the Geneva Accords. This historic event marked the complete liberation of the capital after 9 years of resistance against France. Tens of thousands of Hà Nội residents flooded the streets to welcome soldiers with joy."
+      },
+      "significance": {
+        "vi": "Kỷ niệm ngày Thủ đô Hà Nội hoàn toàn giải phóng, là ngày lễ lớn của người dân Hà Nội.",
+        "en": "Commemorates the complete liberation of the capital Hà Nội, a major celebration for Hà Nội residents."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm tại Hà Nội",
+          "Diễu hành trên các tuyến phố lịch sử",
+          "Triển lãm ảnh, hiện vật về ngày tiếp quản",
+          "Chương trình nghệ thuật đặc biệt"
+        ],
+        "en": [
+          "Ceremonies in Hà Nội",
+          "Parades on historic streets",
+          "Photo and artifact exhibitions about the takeover",
+          "Special artistic programs"
+        ]
+      }
+    },
+    {
+      "id": "ngay-doanh-nhan",
+      "isSolar": true,
+      "solarDay": 13,
+      "solarMonth": 10,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Doanh Nhân Việt Nam"],
+        "en": ["Vietnamese Entrepreneurs' Day"]
+      },
+      "origin": {
+        "vi": "Ngày 13 tháng 10 được chọn là Ngày Doanh Nhân Việt Nam từ năm 2004 (Quyết định số 990/QĐ-TTg của Thủ tướng). Ngày này được chọn vì vào ngày 13/10/1945, Chủ tịch Hồ Chí Minh đã gửi thư cho giới công thương Việt Nam, khẳng định vai trò quan trọng của doanh nhân trong công cuộc kiến thiết đất nước.",
+        "en": "October 13 was chosen as Vietnamese Entrepreneurs' Day since 2004 (Prime Minister's Decision No. 990/QĐ-TTg). This date was chosen because on October 13, 1945, President Hồ Chí Minh sent a letter to Vietnam's industrial and commercial circles, affirming the important role of entrepreneurs in national development."
+      },
+      "significance": {
+        "vi": "Tôn vinh cộng đồng doanh nhân và vai trò của họ trong phát triển kinh tế đất nước.",
+        "en": "Honors the business community and their role in national economic development."
+      },
+      "activities": {
+        "vi": [
+          "Lễ tôn vinh doanh nhân tiêu biểu",
+          "Hội nghị, diễn đàn doanh nghiệp",
+          "Trao giải thưởng cho doanh nghiệp xuất sắc",
+          "Giao lưu, kết nối doanh nhân"
+        ],
+        "en": [
+          "Ceremonies honoring outstanding entrepreneurs",
+          "Business conferences and forums",
+          "Awards for excellent enterprises",
+          "Entrepreneur networking events"
+        ]
+      }
+    },
+    {
+      "id": "ngay-phu-nu-vn",
+      "isSolar": true,
+      "solarDay": 20,
+      "solarMonth": 10,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Phụ Nữ Việt Nam", "Ngày Thành Lập Hội Liên Hiệp Phụ Nữ Việt Nam"],
+        "en": ["Vietnamese Women's Day", "Founding of Vietnam Women's Union"]
+      },
+      "origin": {
+        "vi": "Ngày 20 tháng 10 năm 1930, Hội Liên Hiệp Phụ Nữ Việt Nam được thành lập dưới sự chỉ đạo của Đảng Cộng Sản Việt Nam. Phụ nữ Việt Nam có truyền thống yêu nước từ thời Hai Bà Trưng (40 SCN) khởi nghĩa chống quân Hán, Bà Triệu (248 SCN) cưỡi voi ra trận. Trong kháng chiến, phụ nữ Việt Nam được phong danh hiệu \"Anh hùng, Bất khuất, Trung hậu, Đảm đang\".",
+        "en": "On October 20, 1930, the Vietnam Women's Union was established under the Communist Party's guidance. Vietnamese women have a patriotic tradition dating from the Trưng Sisters (40 AD) revolting against Chinese Han rule, Lady Triệu (248 AD) riding elephants into battle. During wartime, Vietnamese women earned the title 'Heroic, Unyielding, Faithful, Resourceful.'"
+      },
+      "significance": {
+        "vi": "Tôn vinh phụ nữ Việt Nam và truyền thống đấu tranh, cống hiến của phụ nữ trong lịch sử dân tộc.",
+        "en": "Honors Vietnamese women and their tradition of struggle and dedication throughout national history."
+      },
+      "activities": {
+        "vi": [
+          "Tặng hoa, quà cho phụ nữ",
+          "Các chương trình thi tài: nấu ăn, cắm hoa, thời trang",
+          "Tôn vinh phụ nữ tiêu biểu",
+          "Liên hoan văn nghệ",
+          "Các hoạt động của Hội Liên Hiệp Phụ Nữ"
+        ],
+        "en": [
+          "Give flowers and gifts to women",
+          "Talent contests: cooking, flower arranging, fashion",
+          "Honor exemplary women",
+          "Cultural performances",
+          "Vietnam Women's Union activities"
+        ]
+      },
+      "traditions": {
+        "vi": [
+          "Nam giới tặng hoa và quà cho phụ nữ trong gia đình và đồng nghiệp",
+          "Cơ quan, công ty tổ chức buổi lễ chúc mừng chị em",
+          "Gia đình nấu bữa ăn đặc biệt để tôn vinh người phụ nữ"
+        ],
+        "en": [
+          "Men give flowers and gifts to women in family and at work",
+          "Offices and companies organize congratulatory events for women",
+          "Families cook special meals to honor women"
+        ]
+      },
+      "taboos": [
+        {
+          "action": { "vi": "Quên chúc mừng phụ nữ", "en": "Forgetting to congratulate women" },
+          "reason": { "vi": "Được coi là thiếu tôn trọng, nam giới thường bị phàn nàn nếu quên", "en": "Considered disrespectful, men are often complained about if they forget" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Giặc đến nhà đàn bà cũng đánh",
+          "meaning": { "vi": "Phụ nữ Việt Nam sẵn sàng chiến đấu bảo vệ đất nước khi cần", "en": "Vietnamese women are ready to fight to defend the country when needed" }
+        },
+        {
+          "text": "Nhất vợ nhì trời",
+          "meaning": { "vi": "Câu nói hài hước nâng cao vị thế người vợ trong gia đình", "en": "Humorous saying elevating the wife's status in the family" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Miền Bắc tổ chức long trọng tại các cơ quan, đoàn thể. Hội Phụ Nữ các cấp tổ chức nhiều hoạt động sôi nổi.",
+          "en": "Northern Vietnam holds solemn celebrations at organizations. Women's Unions at all levels organize vibrant activities."
+        },
+        "central": {
+          "vi": "Miền Trung kết hợp với các hoạt động từ thiện, thăm hỏi phụ nữ vùng khó khăn, bão lũ.",
+          "en": "Central Vietnam combines with charity activities, visiting women in difficult areas and flood-affected regions."
+        },
+        "south": {
+          "vi": "Miền Nam tổ chức sôi nổi với các cuộc thi tài năng, thời trang. Không khí vui vẻ, phóng khoáng hơn.",
+          "en": "Southern Vietnam holds vibrant talent and fashion contests. Atmosphere is more cheerful and relaxed."
+        }
+      }
+    },
+    {
+      "id": "ngay-nha-giao",
+      "isSolar": true,
+      "solarDay": 20,
+      "solarMonth": 11,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Nhà Giáo Việt Nam", "Ngày Hiến Chương Nhà Giáo"],
+        "en": ["Vietnamese Teachers' Day", "Teachers' Charter Day"]
+      },
+      "origin": {
+        "vi": "Ngày 20 tháng 11 năm 1958, Hội nghị quốc tế các nhà giáo họp tại Warszawa (Ba Lan) đã thông qua bản \"Hiến chương các nhà giáo\". Từ năm 1982, Hội đồng Bộ trưởng Việt Nam quyết định lấy ngày 20/11 hàng năm là Ngày Nhà Giáo Việt Nam. Đây là truyền thống \"Tôn sư trọng đạo\" ngàn đời của người Việt - thầy cô được xếp ngang hàng với cha mẹ trong đạo lý.",
+        "en": "On November 20, 1958, the International Teachers' Conference in Warsaw (Poland) adopted the 'Teachers' Charter.' Since 1982, Vietnam's Council of Ministers designated November 20 as Vietnamese Teachers' Day. This reflects Vietnam's thousand-year tradition of 'Honoring teachers and respecting the way' - teachers are placed alongside parents in moral principles."
+      },
+      "significance": {
+        "vi": "Ngày tôn vinh nghề giáo và truyền thống \"Tôn sư trọng đạo\" của dân tộc Việt Nam.",
+        "en": "A day honoring the teaching profession and Vietnam's tradition of 'Honoring teachers and respecting the way.'"
+      },
+      "activities": {
+        "vi": [
+          "Học sinh, sinh viên tặng hoa và quà cho thầy cô",
+          "Lễ kỷ niệm tại các trường học",
+          "Cựu học sinh về thăm trường cũ, thầy cô",
+          "Trao giải thưởng cho giáo viên xuất sắc",
+          "Liên hoan văn nghệ học đường"
+        ],
+        "en": [
+          "Students give flowers and gifts to teachers",
+          "Commemorative ceremonies at schools",
+          "Alumni visit former schools and teachers",
+          "Awards for outstanding teachers",
+          "School cultural performances"
+        ]
+      },
+      "traditions": {
+        "vi": [
+          "Học trò mang hoa và quà đến nhà thầy cô để bày tỏ lòng biết ơn",
+          "Cựu học sinh từ nhiều thế hệ cùng về trường cũ họp mặt",
+          "Phụ huynh đến cảm ơn thầy cô đã dạy dỗ con em",
+          "Các trường tổ chức chương trình văn nghệ, thi đua dạy tốt"
+        ],
+        "en": [
+          "Students bring flowers and gifts to teachers' homes to express gratitude",
+          "Alumni from multiple generations reunite at former schools",
+          "Parents visit to thank teachers for educating their children",
+          "Schools organize performances and teaching excellence competitions"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Mâm cỗ tri ân", "en": "Gratitude feast" },
+          "description": { "vi": "Cựu học sinh tổ chức bữa ăn mời thầy cô, thể hiện lòng biết ơn", "en": "Alumni organize meals for teachers, expressing gratitude" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Quên ngày 20/11", "en": "Forgetting November 20" },
+          "reason": { "vi": "Bị coi là vô ơn, thiếu lễ phép đối với thầy cô", "en": "Considered ungrateful and disrespectful toward teachers" }
+        },
+        {
+          "action": { "vi": "Tặng quà không phù hợp", "en": "Giving inappropriate gifts" },
+          "reason": { "vi": "Quà quá đắt tiền có thể bị xem là hối lộ, quà quá rẻ có thể thiếu tôn trọng", "en": "Too expensive gifts may be seen as bribery, too cheap may seem disrespectful" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Nhất tự vi sư, bán tự vi sư",
+          "meaning": { "vi": "Một chữ cũng là thầy, nửa chữ cũng là thầy - tôn trọng mọi người dạy mình", "en": "One word makes a teacher, half a word makes a teacher - respect all who teach you" }
+        },
+        {
+          "text": "Không thầy đố mày làm nên",
+          "meaning": { "vi": "Không có thầy thì không thể thành đạt", "en": "Without a teacher, you cannot succeed" }
+        },
+        {
+          "text": "Mồng một Tết cha, mồng hai Tết mẹ, mồng ba Tết thầy",
+          "meaning": { "vi": "Thầy giáo được xếp thứ ba sau cha mẹ trong đạo lý Việt Nam", "en": "Teachers rank third after parents in Vietnamese moral principles" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Miền Bắc kỷ niệm rất long trọng, học trò mang hoa đến tận nhà thầy cô. Truyền thống \"Tôn sư trọng đạo\" rất đậm nét.",
+          "en": "Northern Vietnam celebrates very solemnly, students bring flowers to teachers' homes. 'Honoring teachers' tradition is very prominent."
+        },
+        "central": {
+          "vi": "Miền Trung giữ gìn lễ nghĩa, các thế hệ học trò cùng về thăm thầy cô. Huế là nơi truyền thống sư phạm rất mạnh.",
+          "en": "Central Vietnam maintains proper etiquette, generations of students visit teachers. Huế has a very strong teaching tradition."
+        },
+        "south": {
+          "vi": "Miền Nam tổ chức sôi nổi tại trường, nhiều chương trình tri ân sáng tạo. Không khí vui vẻ nhưng vẫn trang trọng.",
+          "en": "Southern Vietnam holds vibrant school events with creative appreciation programs. Atmosphere is cheerful yet respectful."
+        }
+      }
+    },
+    {
+      "id": "ngay-van-hoa",
+      "isSolar": true,
+      "solarDay": 23,
+      "solarMonth": 11,
+      "category": "public-holiday",
+      "names": {
+        "vi": ["Ngày Di Sản Văn Hóa Việt Nam"],
+        "en": ["Vietnamese Cultural Heritage Day"]
+      },
+      "origin": {
+        "vi": "Ngày 24 tháng 11 năm 1945, Chủ tịch Hồ Chí Minh ký Sắc lệnh số 65/SL về bảo tồn cổ tích. Năm 2005, Thủ tướng Chính phủ quyết định lấy ngày 23/11 hàng năm là Ngày Di Sản Văn Hóa Việt Nam (Quyết định số 36/2005/QĐ-TTg). Ngày này nhằm phát huy ý thức giữ gìn di sản văn hóa dân tộc.",
+        "en": "On November 24, 1945, President Hồ Chí Minh signed Decree No. 65/SL on preserving historical relics. In 2005, the Prime Minister designated November 23 as Vietnamese Cultural Heritage Day (Decision No. 36/2005/QĐ-TTg). This day aims to promote awareness of preserving national cultural heritage."
+      },
+      "significance": {
+        "vi": "Nâng cao ý thức bảo tồn và phát huy giá trị di sản văn hóa của dân tộc Việt Nam.",
+        "en": "Raises awareness of preserving and promoting Vietnamese cultural heritage values."
+      },
+      "activities": {
+        "vi": [
+          "Triển lãm di sản văn hóa",
+          "Các chương trình biểu diễn nghệ thuật truyền thống",
+          "Trao giải thưởng bảo tồn di sản",
+          "Tham quan các di tích lịch sử, bảo tàng"
+        ],
+        "en": [
+          "Cultural heritage exhibitions",
+          "Traditional art performances",
+          "Heritage preservation awards",
+          "Visits to historical sites and museums"
+        ]
+      }
+    },
+    {
+      "id": "thanh-lap-quan-doi",
+      "isSolar": true,
+      "solarDay": 22,
+      "solarMonth": 12,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Thành Lập Quân Đội Nhân Dân Việt Nam", "Ngày Quốc Phòng Toàn Dân"],
+        "en": ["Vietnam People's Army Founding Day", "All-People's National Defense Day"]
+      },
+      "origin": {
+        "vi": "Ngày 22 tháng 12 năm 1944, tại khu rừng Trần Hưng Đạo (Cao Bằng), Đội Việt Nam Tuyên Truyền Giải Phóng Quân được thành lập theo chỉ thị của Chủ tịch Hồ Chí Minh, với 34 chiến sĩ đầu tiên do Đại tướng Võ Nguyên Giáp chỉ huy. Đây là tiền thân của Quân đội Nhân dân Việt Nam ngày nay.",
+        "en": "On December 22, 1944, in Trần Hưng Đạo forest (Cao Bằng), the Vietnam Propaganda Liberation Army was established by President Hồ Chí Minh's directive, with 34 initial soldiers commanded by General Võ Nguyên Giáp. This was the predecessor of today's Vietnam People's Army."
+      },
+      "significance": {
+        "vi": "Kỷ niệm ngày thành lập lực lượng vũ trang nhân dân Việt Nam, tôn vinh truyền thống quân đội anh hùng.",
+        "en": "Commemorates the founding of Vietnam's armed forces, honoring the heroic military tradition."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm trọng thể",
+          "Diễu binh, diễu hành quân sự",
+          "Gặp mặt cựu chiến binh",
+          "Thăm hỏi gia đình quân nhân",
+          "Triển lãm vũ khí, khí tài quân sự"
+        ],
+        "en": [
+          "Grand commemorative ceremonies",
+          "Military parades",
+          "Veterans' reunions",
+          "Visit military families",
+          "Military equipment exhibitions"
+        ]
+      }
+    }
+  ]
+}

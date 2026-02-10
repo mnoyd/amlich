@@ -141,6 +141,120 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
         is_solar: true,
     });
 
+    // National / Solar holidays
+    let national_holidays = vec![
+        // Public holidays (ngày lễ chính thức, nghỉ lễ)
+        ("Tết Dương Lịch", 1, 1, "New Year's Day"),
+        ("Ngày Giải Phóng Miền Nam", 30, 4, "Reunification Day"),
+        ("Ngày Quốc Tế Lao Động", 1, 5, "International Workers' Day"),
+        ("Ngày Quốc Khánh", 2, 9, "National Day / Independence Day"),
+        // Commemorative days (ngày kỷ niệm)
+        (
+            "Ngày Thành Lập Đảng",
+            3,
+            2,
+            "Founding of the Communist Party of Vietnam",
+        ),
+        (
+            "Ngày Chiến Thắng Điện Biên Phủ",
+            7,
+            5,
+            "Điện Biên Phủ Victory Day",
+        ),
+        (
+            "Ngày Sinh Chủ Tịch Hồ Chí Minh",
+            19,
+            5,
+            "President Hồ Chí Minh's Birthday",
+        ),
+        (
+            "Ngày Thương Binh - Liệt Sĩ",
+            27,
+            7,
+            "War Invalids and Martyrs Day",
+        ),
+        ("Ngày Cách Mạng Tháng Tám", 19, 8, "August Revolution Day"),
+        (
+            "Ngày Giải Phóng Thủ Đô",
+            10,
+            10,
+            "Liberation Day of the Capital",
+        ),
+        (
+            "Ngày Thành Lập Quân Đội",
+            22,
+            12,
+            "Vietnam People's Army Founding Day",
+        ),
+        // Professional / tradition days (ngày truyền thống ngành)
+        (
+            "Ngày Học Sinh - Sinh Viên",
+            9,
+            1,
+            "Vietnamese Students' Day",
+        ),
+        ("Ngày Thầy Thuốc Việt Nam", 27, 2, "Vietnamese Doctors' Day"),
+        (
+            "Ngày Thành Lập Đoàn TNCS",
+            26,
+            3,
+            "Founding of Hồ Chí Minh Communist Youth Union",
+        ),
+        (
+            "Ngày Sách Việt Nam",
+            21,
+            4,
+            "Vietnamese Book and Reading Culture Day",
+        ),
+        (
+            "Ngày Kiến Trúc Sư Việt Nam",
+            27,
+            4,
+            "Vietnamese Architects' Day",
+        ),
+        ("Ngày Gia Đình Việt Nam", 28, 6, "Vietnamese Family Day"),
+        (
+            "Ngày Doanh Nhân Việt Nam",
+            13,
+            10,
+            "Vietnamese Entrepreneurs' Day",
+        ),
+        ("Ngày Phụ Nữ Việt Nam", 20, 10, "Vietnamese Women's Day"),
+        ("Ngày Nhà Giáo Việt Nam", 20, 11, "Vietnamese Teachers' Day"),
+        (
+            "Ngày Di Sản Văn Hóa",
+            23,
+            11,
+            "Vietnamese Cultural Heritage Day",
+        ),
+        // International days observed in Vietnam
+        ("Ngày Quốc Tế Phụ Nữ", 8, 3, "International Women's Day"),
+        (
+            "Ngày Quốc Tế Thiếu Nhi",
+            1,
+            6,
+            "International Children's Day",
+        ),
+        (
+            "Ngày Chiến Thắng Phát Xít",
+            9,
+            5,
+            "Victory Day over Fascism",
+        ),
+    ];
+
+    for (name, day, month, desc) in national_holidays {
+        holidays.push(Holiday {
+            name: name.to_string(),
+            description: desc.to_string(),
+            lunar_date: None,
+            solar_day: day,
+            solar_month: month,
+            solar_year,
+            is_solar: true,
+        });
+    }
+
     // Add all Rằm (15th) and Mùng 1 (1st) of each lunar month
     for month in 1..=12 {
         if let Some(h) = create_lunar_holiday(
@@ -188,6 +302,10 @@ pub fn get_major_holidays(solar_year: i32) -> Vec<Holiday> {
     all_holidays
         .into_iter()
         .filter(|h| {
+            // Keep all solar holidays (national/commemorative/professional days + Thanh Minh)
+            if h.is_solar {
+                return true;
+            }
             // Filter out the monthly Mùng 1 and Rằm except the special ones
             (!h.name.starts_with("Mùng 1 tháng") || h.name.contains("Tết"))
                 && (!h.name.starts_with("Rằm tháng") || h.description.contains("Festival"))

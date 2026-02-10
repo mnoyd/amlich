@@ -9,6 +9,33 @@
 
   const insight = $derived(day ? buildDateInsight(day, lang) : null);
 
+  // Derived helpers for template rendering — avoids Svelte template type narrowing issues
+  const isSpecialDay = $derived(insight != null && insight.mode !== "normal");
+  const specialDayTitle = $derived(
+    insight != null && insight.mode !== "normal" ? insight.title : ""
+  );
+  const specialDaySubtitle = $derived(
+    insight != null && insight.mode !== "normal" ? insight.subtitle : ""
+  );
+
+  // National holiday category helpers
+  const isNationalHoliday = $derived(insight != null && insight.mode === ("national-holiday" as string));
+  const holidayCategory = $derived(
+    isNationalHoliday && insight != null ? (insight as any).category as string | null : null
+  );
+
+  const categoryLabels: Record<string, { vi: string; en: string }> = {
+    "public-holiday": { vi: "Ngày lễ", en: "Public Holiday" },
+    "commemorative": { vi: "Ngày kỷ niệm", en: "Commemorative" },
+    "professional": { vi: "Ngày truyền thống", en: "Professional Day" },
+    "social": { vi: "Ngày xã hội", en: "Social Day" },
+    "international": { vi: "Quốc tế", en: "International" },
+  };
+
+  const categoryLabel = $derived(
+    holidayCategory ? categoryLabels[holidayCategory]?.[lang] ?? "" : ""
+  );
+
   // Region tab state for regional customs card
   let activeRegion = $state<"north" | "central" | "south">("north");
 
@@ -19,18 +46,29 @@
 </script>
 
 {#if insight}
-  <section class="insight-box">
+  <section
+    class="insight-box"
+    class:national-holiday={isNationalHoliday}
+    class:cat-public-holiday={holidayCategory === "public-holiday"}
+    class:cat-commemorative={holidayCategory === "commemorative"}
+    class:cat-professional={holidayCategory === "professional"}
+    class:cat-social={holidayCategory === "social"}
+    class:cat-international={holidayCategory === "international"}
+  >
     <header class="insight-header">
       <div class="header-left">
+        {#if isNationalHoliday && categoryLabel}
+          <span class="category-badge">{categoryLabel}</span>
+        {/if}
         <h2>
-          {#if insight.mode === "festival"}
-            {insight.title}
+          {#if isSpecialDay}
+            {specialDayTitle}
           {:else}
             {lang === "vi" ? "Tìm hiểu về ngày này" : "Learn About This Day"}
           {/if}
         </h2>
-        {#if insight.mode === "festival" && insight.subtitle}
-          <span class="subtitle">{insight.subtitle}</span>
+        {#if isSpecialDay && specialDaySubtitle}
+          <span class="subtitle">{specialDaySubtitle}</span>
         {:else if insight.mode === "normal"}
           <span class="subtitle">
             {lang === "vi" ? "Tiết khí" : "Solar Term"}: {insight.termName} • {insight.canchiDay}
@@ -190,6 +228,63 @@
     border-radius: 24px;
     padding: 24px;
     box-shadow: var(--shadow-soft);
+  }
+
+  /* National holiday category-specific styling */
+  .insight-box.national-holiday {
+    border-left: 4px solid var(--cat-color, var(--accent-jade));
+  }
+
+  .insight-box.cat-public-holiday {
+    --cat-color: #C62828;
+    --cat-bg: rgba(198, 40, 40, 0.06);
+    --cat-badge-bg: #C62828;
+  }
+
+  .insight-box.cat-commemorative {
+    --cat-color: #1565C0;
+    --cat-bg: rgba(21, 101, 192, 0.06);
+    --cat-badge-bg: #1565C0;
+  }
+
+  .insight-box.cat-professional {
+    --cat-color: #2E7D32;
+    --cat-bg: rgba(46, 125, 50, 0.06);
+    --cat-badge-bg: #2E7D32;
+  }
+
+  .insight-box.cat-social {
+    --cat-color: #E65100;
+    --cat-bg: rgba(230, 81, 0, 0.06);
+    --cat-badge-bg: #E65100;
+  }
+
+  .insight-box.cat-international {
+    --cat-color: #6A1B9A;
+    --cat-bg: rgba(106, 27, 154, 0.06);
+    --cat-badge-bg: #6A1B9A;
+  }
+
+  .national-holiday .insight-header h2 {
+    color: var(--cat-color, var(--primary-red));
+  }
+
+  .national-holiday .card-title {
+    color: var(--cat-color, var(--accent-jade));
+  }
+
+  .category-badge {
+    display: inline-block;
+    font-family: var(--font-sans);
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: var(--cat-badge-bg, var(--accent-jade));
+    color: white;
+    width: fit-content;
   }
 
   .insight-header {
