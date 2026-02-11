@@ -867,6 +867,781 @@
           "Military equipment exhibitions"
         ]
       }
+    },
+    {
+      "id": "le-tinh-nhan",
+      "isSolar": true,
+      "solarDay": 14,
+      "solarMonth": 2,
+      "category": "social",
+      "names": {
+        "vi": ["Lễ Tình Nhân", "Valentine"],
+        "en": ["Valentine's Day", "Saint Valentine's Day"]
+      },
+      "origin": {
+        "vi": "Lễ Tình Nhân có nguồn gốc từ châu Âu, gắn với truyền thuyết Thánh Valentine. Tại Việt Nam, ngày 14/2 được đón nhận rộng rãi từ thập niên 1990 như dịp bày tỏ tình cảm và sự quan tâm giữa các cặp đôi.",
+        "en": "Valentine's Day originated in Europe and is associated with Saint Valentine legends. In Vietnam, February 14 became widely celebrated from the 1990s as a day to express affection and care among couples."
+      },
+      "significance": {
+        "vi": "Dịp tôn vinh tình yêu, sự quan tâm và kết nối cảm xúc giữa những người thân yêu.",
+        "en": "An occasion to celebrate love, care, and emotional connection among loved ones."
+      },
+      "activities": {
+        "vi": [
+          "Tặng hoa, socola, thiệp",
+          "Hẹn hò, ăn tối cùng nhau",
+          "Viết lời chúc hoặc thư tay"
+        ],
+        "en": [
+          "Giving flowers, chocolate, and cards",
+          "Dating and dining together",
+          "Writing wishes or handwritten notes"
+        ]
+      }
+    },
+    {
+      "id": "ca-thang-tu",
+      "isSolar": true,
+      "solarDay": 1,
+      "solarMonth": 4,
+      "category": "social",
+      "names": {
+        "vi": ["Ngày Cá Tháng Tư", "Ngày Nói Dối"],
+        "en": ["April Fools' Day"]
+      },
+      "origin": {
+        "vi": "Ngày Cá Tháng Tư có nguồn gốc từ phương Tây và lan rộng toàn cầu. Tại Việt Nam, đây là ngày vui vẻ với những trò đùa nhẹ nhàng, tạo không khí thư giãn trong bạn bè và đồng nghiệp.",
+        "en": "April Fools' Day originated in the West and spread globally. In Vietnam, it is a playful day for harmless jokes that create a relaxed atmosphere among friends and colleagues."
+      },
+      "significance": {
+        "vi": "Khuyến khích tinh thần hài hước, giao tiếp vui vẻ và giảm căng thẳng trong đời sống thường ngày.",
+        "en": "Encourages humor, cheerful interaction, and stress relief in everyday life."
+      },
+      "activities": {
+        "vi": [
+          "Trêu đùa vui vẻ, không gây hại",
+          "Chia sẻ câu chuyện hài hước",
+          "Tạo các thử thách vui trên mạng xã hội"
+        ],
+        "en": [
+          "Making harmless pranks",
+          "Sharing humorous stories",
+          "Creating playful social media challenges"
+        ]
+      }
+    },
+    {
+      "id": "ngay-dan-so-the-gioi",
+      "isSolar": true,
+      "solarDay": 11,
+      "solarMonth": 7,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Dân Số Thế Giới"],
+        "en": ["World Population Day"]
+      },
+      "origin": {
+        "vi": "Ngày Dân Số Thế Giới được Chương trình Phát triển Liên Hợp Quốc (UNDP) khởi xướng từ năm 1989 nhằm nâng cao nhận thức về các vấn đề dân số toàn cầu.",
+        "en": "World Population Day was established by the United Nations Development Programme (UNDP) in 1989 to raise awareness of global population issues."
+      },
+      "significance": {
+        "vi": "Nhấn mạnh mối liên hệ giữa dân số, sức khỏe sinh sản, bình đẳng giới và phát triển bền vững.",
+        "en": "Highlights links between population, reproductive health, gender equality, and sustainable development."
+      },
+      "activities": {
+        "vi": [
+          "Truyền thông về sức khỏe sinh sản",
+          "Tọa đàm về dân số và phát triển",
+          "Các chiến dịch nâng cao nhận thức cộng đồng"
+        ],
+        "en": [
+          "Reproductive health communications",
+          "Forums on population and development",
+          "Public awareness campaigns"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-nguoi-cao-tuoi",
+      "isSolar": true,
+      "solarDay": 1,
+      "solarMonth": 10,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Quốc Tế Người Cao Tuổi"],
+        "en": ["International Day of Older Persons"]
+      },
+      "origin": {
+        "vi": "Ngày Quốc tế Người cao tuổi được Đại hội đồng Liên Hợp Quốc chọn từ năm 1990 nhằm tôn vinh vai trò của người cao tuổi trong gia đình và xã hội.",
+        "en": "The International Day of Older Persons was designated by the UN General Assembly in 1990 to honor the role of older persons in families and society."
+      },
+      "significance": {
+        "vi": "Thúc đẩy chăm sóc sức khỏe, an sinh và môi trường sống thân thiện cho người cao tuổi.",
+        "en": "Promotes healthcare, social protection, and age-friendly environments for older persons."
+      },
+      "activities": {
+        "vi": [
+          "Thăm hỏi, tri ân người cao tuổi",
+          "Khám sức khỏe định kỳ",
+          "Sinh hoạt văn nghệ, thể dục dưỡng sinh"
+        ],
+        "en": [
+          "Visiting and honoring seniors",
+          "Periodic health checkups",
+          "Cultural and wellness activities"
+        ]
+      }
+    },
+    {
+      "id": "halloween",
+      "isSolar": true,
+      "solarDay": 31,
+      "solarMonth": 10,
+      "category": "international",
+      "names": {
+        "vi": ["Halloween", "Lễ Hội Hóa Trang"],
+        "en": ["Halloween"]
+      },
+      "origin": {
+        "vi": "Halloween bắt nguồn từ lễ Samhain của người Celt cổ và phát triển mạnh ở châu Âu - Bắc Mỹ trước khi phổ biến toàn cầu. Ở Việt Nam, ngày này chủ yếu được tổ chức trong trường học, khu vui chơi và cộng đồng trẻ.",
+        "en": "Halloween originated from the ancient Celtic Samhain festival and developed strongly in Europe and North America before becoming global. In Vietnam, it is mainly celebrated in schools, entertainment venues, and youth communities."
+      },
+      "significance": {
+        "vi": "Tạo không gian sáng tạo, gắn kết cộng đồng qua hóa trang và các hoạt động vui chơi theo chủ đề.",
+        "en": "Creates a space for creativity and community bonding through costumes and themed activities."
+      },
+      "activities": {
+        "vi": [
+          "Hóa trang theo chủ đề",
+          "Trang trí bí ngô, không gian lễ hội",
+          "Tổ chức trò chơi và tiệc hóa trang"
+        ],
+        "en": [
+          "Theme-based costumes",
+          "Pumpkin and festive decorations",
+          "Games and costume parties"
+        ]
+      }
+    },
+    {
+      "id": "ngay-phap-luat-viet-nam",
+      "isSolar": true,
+      "solarDay": 9,
+      "solarMonth": 11,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Pháp Luật Việt Nam"],
+        "en": ["Vietnam Law Day"]
+      },
+      "origin": {
+        "vi": "Ngày Pháp luật Việt Nam được quy định trong Luật Phổ biến, giáo dục pháp luật năm 2012 và tổ chức hằng năm vào ngày 9/11 để tôn vinh Hiến pháp, pháp luật.",
+        "en": "Vietnam Law Day is stipulated in the 2012 Law on Legal Dissemination and Education and is held annually on November 9 to honor the Constitution and laws."
+      },
+      "significance": {
+        "vi": "Nâng cao ý thức thượng tôn pháp luật và trách nhiệm công dân trong xã hội pháp quyền.",
+        "en": "Raises awareness of the rule of law and civic responsibility in a law-governed society."
+      },
+      "activities": {
+        "vi": [
+          "Tuyên truyền, phổ biến pháp luật",
+          "Thi tìm hiểu pháp luật",
+          "Tư vấn pháp lý cộng đồng"
+        ],
+        "en": [
+          "Legal awareness campaigns",
+          "Law knowledge contests",
+          "Community legal consultations"
+        ]
+      }
+    },
+    {
+      "id": "thanh-lap-chu-thap-do",
+      "isSolar": true,
+      "solarDay": 23,
+      "solarMonth": 11,
+      "category": "social",
+      "names": {
+        "vi": ["Ngày Thành Lập Hội Chữ Thập Đỏ Việt Nam"],
+        "en": ["Vietnam Red Cross Society Founding Day"]
+      },
+      "origin": {
+        "vi": "Hội Chữ thập đỏ Việt Nam được thành lập ngày 23/11/1946. Tổ chức đóng vai trò nòng cốt trong hoạt động nhân đạo, cứu trợ thiên tai, chăm sóc sức khỏe cộng đồng.",
+        "en": "The Vietnam Red Cross Society was founded on November 23, 1946. It plays a core role in humanitarian activities, disaster relief, and community healthcare support."
+      },
+      "significance": {
+        "vi": "Tôn vinh tinh thần nhân ái, sẻ chia và trách nhiệm cộng đồng trong các hoạt động thiện nguyện.",
+        "en": "Honors compassion, solidarity, and community responsibility in humanitarian work."
+      },
+      "activities": {
+        "vi": [
+          "Hiến máu tình nguyện",
+          "Cứu trợ khẩn cấp, hỗ trợ thiên tai",
+          "Chăm sóc người yếu thế"
+        ],
+        "en": [
+          "Voluntary blood donation",
+          "Emergency relief and disaster support",
+          "Care for vulnerable groups"
+        ]
+      }
+    },
+    {
+      "id": "the-gioi-phong-chong-aids",
+      "isSolar": true,
+      "solarDay": 1,
+      "solarMonth": 12,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Thế Giới Phòng Chống AIDS"],
+        "en": ["World AIDS Day"]
+      },
+      "origin": {
+        "vi": "Ngày Thế giới Phòng chống AIDS được phát động từ năm 1988 bởi WHO và Liên Hợp Quốc nhằm nâng cao nhận thức về HIV/AIDS và thúc đẩy hành động toàn cầu.",
+        "en": "World AIDS Day was launched in 1988 by WHO and the United Nations to raise awareness of HIV/AIDS and promote global action."
+      },
+      "significance": {
+        "vi": "Kêu gọi phòng ngừa lây nhiễm HIV, giảm kỳ thị và tăng cường tiếp cận điều trị cho người bệnh.",
+        "en": "Calls for HIV prevention, stigma reduction, and improved access to treatment."
+      },
+      "activities": {
+        "vi": [
+          "Truyền thông về HIV/AIDS",
+          "Tư vấn, xét nghiệm tự nguyện",
+          "Các chiến dịch chống kỳ thị"
+        ],
+        "en": [
+          "HIV/AIDS communication campaigns",
+          "Counseling and voluntary testing",
+          "Anti-stigma initiatives"
+        ]
+      }
+    },
+    {
+      "id": "toan-quoc-khang-chien",
+      "isSolar": true,
+      "solarDay": 19,
+      "solarMonth": 12,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Toàn Quốc Kháng Chiến"],
+        "en": ["National Resistance Day"]
+      },
+      "origin": {
+        "vi": "Ngày 19/12/1946, Chủ tịch Hồ Chí Minh ra Lời kêu gọi Toàn quốc kháng chiến, mở đầu cuộc kháng chiến chống thực dân Pháp trên phạm vi cả nước.",
+        "en": "On December 19, 1946, President Hồ Chí Minh issued the Call for National Resistance, marking the start of the nationwide resistance against French colonial forces."
+      },
+      "significance": {
+        "vi": "Nhắc nhớ tinh thần độc lập, ý chí đoàn kết và lòng yêu nước trong lịch sử dân tộc.",
+        "en": "Reminds people of national independence, unity, and patriotism in Vietnamese history."
+      },
+      "activities": {
+        "vi": [
+          "Lễ tưởng niệm, dâng hương",
+          "Triển lãm, tọa đàm lịch sử",
+          "Giáo dục truyền thống cho thế hệ trẻ"
+        ],
+        "en": [
+          "Memorial ceremonies and incense offerings",
+          "Historical exhibitions and forums",
+          "Tradition education for younger generations"
+        ]
+      }
+    },
+    {
+      "id": "le-giang-sinh",
+      "isSolar": true,
+      "solarDay": 25,
+      "solarMonth": 12,
+      "category": "international",
+      "names": {
+        "vi": ["Lễ Giáng Sinh", "Noel"],
+        "en": ["Christmas Day", "Christmas"]
+      },
+      "origin": {
+        "vi": "Lễ Giáng Sinh là ngày kỷ niệm Chúa Jesus ra đời trong Kitô giáo. Tại Việt Nam, Giáng Sinh được tổ chức rộng rãi tại nhà thờ, khu dân cư và trung tâm thương mại như một dịp lễ hội cuối năm.",
+        "en": "Christmas commemorates the birth of Jesus Christ in Christianity. In Vietnam, it is widely celebrated at churches, neighborhoods, and shopping areas as a year-end festive occasion."
+      },
+      "significance": {
+        "vi": "Thúc đẩy tinh thần yêu thương, sẻ chia và đoàn tụ trong mùa lễ cuối năm.",
+        "en": "Promotes love, sharing, and reunion during the year-end festive season."
+      },
+      "activities": {
+        "vi": [
+          "Tham dự thánh lễ đêm Noel",
+          "Trang trí cây thông, hang đá",
+          "Tặng quà và tụ họp gia đình, bạn bè"
+        ],
+        "en": [
+          "Attending Christmas Eve mass",
+          "Decorating trees and nativity scenes",
+          "Giving gifts and gathering with family and friends"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-hanh-phuc",
+      "isSolar": true,
+      "solarDay": 20,
+      "solarMonth": 3,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Quốc Tế Hạnh Phúc"],
+        "en": ["International Day of Happiness"]
+      },
+      "origin": {
+        "vi": "Ngày Quốc tế Hạnh phúc được Liên Hợp Quốc chọn từ năm 2012 nhằm nhấn mạnh rằng hạnh phúc và an sinh là mục tiêu phổ quát của nhân loại.",
+        "en": "The International Day of Happiness was established by the United Nations in 2012 to emphasize happiness and well-being as universal human goals."
+      },
+      "significance": {
+        "vi": "Khuyến khích lối sống tích cực, cân bằng sức khỏe tinh thần và lan tỏa điều tử tế trong cộng đồng.",
+        "en": "Encourages positive living, mental well-being, and kindness in communities."
+      },
+      "activities": {
+        "vi": [
+          "Chia sẻ thông điệp tích cực",
+          "Hoạt động kết nối cộng đồng",
+          "Chăm sóc sức khỏe tinh thần"
+        ],
+        "en": [
+          "Sharing positive messages",
+          "Community bonding activities",
+          "Mental wellness practices"
+        ]
+      }
+    },
+    {
+      "id": "ngay-trai-dat",
+      "isSolar": true,
+      "solarDay": 22,
+      "solarMonth": 4,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Trái Đất"],
+        "en": ["Earth Day"]
+      },
+      "origin": {
+        "vi": "Ngày Trái Đất ra đời từ năm 1970 tại Hoa Kỳ, sau đó trở thành phong trào toàn cầu về bảo vệ môi trường và ứng phó biến đổi khí hậu.",
+        "en": "Earth Day began in 1970 in the United States and became a global movement for environmental protection and climate action."
+      },
+      "significance": {
+        "vi": "Nâng cao ý thức bảo vệ hành tinh, giảm rác thải và thay đổi thói quen tiêu dùng theo hướng bền vững.",
+        "en": "Raises awareness about protecting the planet, reducing waste, and adopting sustainable consumption habits."
+      },
+      "activities": {
+        "vi": [
+          "Trồng cây, dọn rác",
+          "Giảm nhựa dùng một lần",
+          "Chiến dịch truyền thông xanh"
+        ],
+        "en": [
+          "Tree planting and cleanup drives",
+          "Reducing single-use plastics",
+          "Green awareness campaigns"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-gia-dinh",
+      "isSolar": true,
+      "solarDay": 15,
+      "solarMonth": 5,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Quốc Tế Gia Đình"],
+        "en": ["International Day of Families"]
+      },
+      "origin": {
+        "vi": "Ngày Quốc tế Gia đình do Liên Hợp Quốc chọn từ năm 1993 để đề cao vai trò của gia đình trong phát triển xã hội.",
+        "en": "The International Day of Families was designated by the United Nations in 1993 to highlight the role of families in social development."
+      },
+      "significance": {
+        "vi": "Tôn vinh sự gắn kết gia đình, nuôi dưỡng giá trị yêu thương, trách nhiệm và chia sẻ giữa các thế hệ.",
+        "en": "Celebrates family cohesion and nurtures values of love, responsibility, and intergenerational care."
+      },
+      "activities": {
+        "vi": [
+          "Sinh hoạt gia đình",
+          "Tọa đàm về kỹ năng làm cha mẹ",
+          "Chương trình hỗ trợ trẻ em và người già"
+        ],
+        "en": [
+          "Family bonding activities",
+          "Parenting skill forums",
+          "Programs supporting children and the elderly"
+        ]
+      }
+    },
+    {
+      "id": "moi-truong-the-gioi",
+      "isSolar": true,
+      "solarDay": 5,
+      "solarMonth": 6,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Môi Trường Thế Giới"],
+        "en": ["World Environment Day"]
+      },
+      "origin": {
+        "vi": "Ngày Môi trường Thế giới được Liên Hợp Quốc phát động từ năm 1972 sau Hội nghị Stockholm về môi trường con người.",
+        "en": "World Environment Day was launched by the United Nations in 1972 following the Stockholm Conference on the Human Environment."
+      },
+      "significance": {
+        "vi": "Kêu gọi hành động vì môi trường sống trong lành, bảo tồn hệ sinh thái và phát triển bền vững.",
+        "en": "Calls for action toward a cleaner environment, ecosystem conservation, and sustainable development."
+      },
+      "activities": {
+        "vi": [
+          "Phát động phong trào xanh",
+          "Ngày không rác thải nhựa",
+          "Giáo dục môi trường tại trường học"
+        ],
+        "en": [
+          "Green movement campaigns",
+          "Plastic-free day initiatives",
+          "Environmental education in schools"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-thanh-nien",
+      "isSolar": true,
+      "solarDay": 12,
+      "solarMonth": 8,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Quốc Tế Thanh Niên"],
+        "en": ["International Youth Day"]
+      },
+      "origin": {
+        "vi": "Ngày Quốc tế Thanh niên được Liên Hợp Quốc công bố từ năm 1999 nhằm thúc đẩy sự tham gia của thanh niên vào các vấn đề phát triển.",
+        "en": "International Youth Day was proclaimed by the United Nations in 1999 to promote youth participation in development issues."
+      },
+      "significance": {
+        "vi": "Khẳng định vai trò của thanh niên trong đổi mới sáng tạo, tình nguyện và xây dựng xã hội bền vững.",
+        "en": "Affirms the role of youth in innovation, volunteering, and building a sustainable society."
+      },
+      "activities": {
+        "vi": [
+          "Diễn đàn thanh niên",
+          "Hoạt động tình nguyện",
+          "Các chương trình khởi nghiệp"
+        ],
+        "en": [
+          "Youth forums",
+          "Volunteering activities",
+          "Entrepreneurship programs"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-hoa-binh",
+      "isSolar": true,
+      "solarDay": 21,
+      "solarMonth": 9,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Quốc Tế Hòa Bình"],
+        "en": ["International Day of Peace"]
+      },
+      "origin": {
+        "vi": "Ngày Quốc tế Hòa bình được Liên Hợp Quốc khởi xướng từ năm 1981 và ấn định vào ngày 21/9 để kêu gọi chấm dứt xung đột, thúc đẩy hòa bình.",
+        "en": "The International Day of Peace was initiated by the United Nations in 1981 and set on September 21 to call for ending conflict and advancing peace."
+      },
+      "significance": {
+        "vi": "Đề cao đối thoại, khoan dung và hợp tác quốc tế vì một thế giới hòa bình.",
+        "en": "Promotes dialogue, tolerance, and international cooperation for a peaceful world."
+      },
+      "activities": {
+        "vi": [
+          "Sự kiện giáo dục hòa bình",
+          "Chiến dịch chống bạo lực",
+          "Hoạt động giao lưu văn hóa"
+        ],
+        "en": [
+          "Peace education events",
+          "Anti-violence campaigns",
+          "Cultural exchange activities"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-nam-gioi",
+      "isSolar": true,
+      "solarDay": 19,
+      "solarMonth": 11,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Quốc Tế Nam Giới"],
+        "en": ["International Men's Day"]
+      },
+      "origin": {
+        "vi": "Ngày Quốc tế Nam giới được kỷ niệm tại nhiều quốc gia từ cuối thế kỷ 20 nhằm ghi nhận đóng góp của nam giới trong gia đình và xã hội.",
+        "en": "International Men's Day has been observed in many countries since the late 20th century to recognize men's contributions in families and society."
+      },
+      "significance": {
+        "vi": "Khuyến khích hình mẫu nam giới tích cực, quan tâm sức khỏe thể chất - tinh thần và trách nhiệm xã hội.",
+        "en": "Encourages positive male role models, physical and mental health awareness, and social responsibility."
+      },
+      "activities": {
+        "vi": [
+          "Chương trình truyền thông về sức khỏe nam giới",
+          "Tọa đàm về vai trò làm cha",
+          "Tôn vinh đóng góp trong cộng đồng"
+        ],
+        "en": [
+          "Men's health awareness programs",
+          "Forums on fatherhood roles",
+          "Recognition of community contributions"
+        ]
+      }
+    },
+    {
+      "id": "quoc-te-nguoi-khuyet-tat",
+      "isSolar": true,
+      "solarDay": 3,
+      "solarMonth": 12,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Quốc Tế Người Khuyết Tật"],
+        "en": ["International Day of Persons with Disabilities"]
+      },
+      "origin": {
+        "vi": "Ngày Quốc tế Người khuyết tật được Liên Hợp Quốc công bố từ năm 1992 nhằm thúc đẩy quyền và sự hòa nhập của người khuyết tật.",
+        "en": "The International Day of Persons with Disabilities was proclaimed by the United Nations in 1992 to promote rights and inclusion of persons with disabilities."
+      },
+      "significance": {
+        "vi": "Nâng cao nhận thức về tiếp cận bình đẳng, xóa rào cản và xây dựng xã hội không bỏ lại ai phía sau.",
+        "en": "Raises awareness of equal access, barrier removal, and building an inclusive society."
+      },
+      "activities": {
+        "vi": [
+          "Truyền thông về hòa nhập",
+          "Sự kiện thể thao - văn hóa dành cho người khuyết tật",
+          "Thúc đẩy thiết kế tiếp cận trong cộng đồng"
+        ],
+        "en": [
+          "Inclusion awareness campaigns",
+          "Sports and cultural events for persons with disabilities",
+          "Promoting accessible design in communities"
+        ]
+      }
+    },
+    {
+      "id": "ngay-quyen-nguoi-tieu-dung-vn",
+      "isSolar": true,
+      "solarDay": 15,
+      "solarMonth": 3,
+      "category": "social",
+      "names": {
+        "vi": ["Ngày Quyền Của Người Tiêu Dùng Việt Nam"],
+        "en": ["Vietnam Consumer Rights Day"]
+      },
+      "origin": {
+        "vi": "Ngày 15/3 được Việt Nam chọn là Ngày Quyền của Người tiêu dùng để hưởng ứng phong trào bảo vệ người tiêu dùng trên thế giới và tăng cường thực thi pháp luật liên quan.",
+        "en": "March 15 is observed in Vietnam as Consumer Rights Day to align with the global consumer protection movement and strengthen law enforcement in this area."
+      },
+      "significance": {
+        "vi": "Nâng cao nhận thức về quyền lợi người tiêu dùng, thúc đẩy tiêu dùng an toàn và minh bạch thông tin hàng hóa dịch vụ.",
+        "en": "Raises awareness of consumer rights and promotes safe consumption and transparent product and service information."
+      },
+      "activities": {
+        "vi": [
+          "Truyền thông về quyền người tiêu dùng",
+          "Tư vấn, hỗ trợ khiếu nại",
+          "Kết nối doanh nghiệp với người dân"
+        ],
+        "en": [
+          "Consumer rights communication campaigns",
+          "Consultation and complaint support",
+          "Business-consumer engagement activities"
+        ]
+      }
+    },
+    {
+      "id": "ngay-nuoc-the-gioi",
+      "isSolar": true,
+      "solarDay": 22,
+      "solarMonth": 3,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Nước Thế Giới"],
+        "en": ["World Water Day"]
+      },
+      "origin": {
+        "vi": "Ngày Nước Thế giới được Liên Hợp Quốc khởi xướng từ năm 1993 nhằm nhấn mạnh vai trò của tài nguyên nước ngọt đối với sự sống và phát triển.",
+        "en": "World Water Day was initiated by the United Nations in 1993 to highlight the importance of freshwater for life and development."
+      },
+      "significance": {
+        "vi": "Kêu gọi sử dụng nước tiết kiệm, bảo vệ nguồn nước và thích ứng với biến đổi khí hậu.",
+        "en": "Calls for water conservation, source protection, and climate adaptation."
+      },
+      "activities": {
+        "vi": [
+          "Chiến dịch tiết kiệm nước",
+          "Làm sạch sông, kênh rạch",
+          "Giáo dục cộng đồng về tài nguyên nước"
+        ],
+        "en": [
+          "Water-saving campaigns",
+          "River and canal cleanups",
+          "Community education on water resources"
+        ]
+      }
+    },
+    {
+      "id": "suc-khoe-the-gioi",
+      "isSolar": true,
+      "solarDay": 7,
+      "solarMonth": 4,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Sức Khỏe Thế Giới"],
+        "en": ["World Health Day"]
+      },
+      "origin": {
+        "vi": "Ngày Sức khỏe Thế giới được Tổ chức Y tế Thế giới (WHO) tổ chức hằng năm vào ngày 7/4 để kỷ niệm ngày thành lập WHO năm 1948.",
+        "en": "World Health Day is observed annually on April 7 by the World Health Organization (WHO), marking WHO's founding in 1948."
+      },
+      "significance": {
+        "vi": "Nâng cao nhận thức về phòng bệnh, chăm sóc sức khỏe toàn dân và tăng cường hệ thống y tế.",
+        "en": "Raises awareness of disease prevention, universal health care, and stronger health systems."
+      },
+      "activities": {
+        "vi": [
+          "Khám sức khỏe cộng đồng",
+          "Tuyên truyền phòng bệnh",
+          "Tập huấn kỹ năng sơ cứu cơ bản"
+        ],
+        "en": [
+          "Community health checkups",
+          "Disease prevention campaigns",
+          "Basic first-aid training"
+        ]
+      }
+    },
+    {
+      "id": "khoa-hoc-cong-nghe-vn",
+      "isSolar": true,
+      "solarDay": 18,
+      "solarMonth": 5,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Khoa Học và Công Nghệ Việt Nam"],
+        "en": ["Vietnam Science and Technology Day"]
+      },
+      "origin": {
+        "vi": "Ngày 18/5 được chọn là Ngày Khoa học và Công nghệ Việt Nam nhằm tôn vinh đội ngũ trí thức khoa học, nhà nghiên cứu và các thành tựu đổi mới sáng tạo.",
+        "en": "May 18 is designated as Vietnam Science and Technology Day to honor scientists, researchers, and innovation achievements."
+      },
+      "significance": {
+        "vi": "Khuyến khích nghiên cứu, ứng dụng khoa học công nghệ vào phát triển kinh tế - xã hội.",
+        "en": "Encourages research and practical application of science and technology for socio-economic development."
+      },
+      "activities": {
+        "vi": [
+          "Triển lãm thành tựu khoa học",
+          "Hội thảo chuyên đề công nghệ",
+          "Tôn vinh nhà khoa học tiêu biểu"
+        ],
+        "en": [
+          "Science achievement exhibitions",
+          "Technology-focused conferences",
+          "Recognition of outstanding scientists"
+        ]
+      }
+    },
+    {
+      "id": "truyen-thong-cong-an-nhan-dan",
+      "isSolar": true,
+      "solarDay": 19,
+      "solarMonth": 8,
+      "category": "commemorative",
+      "names": {
+        "vi": ["Ngày Truyền Thống Công An Nhân Dân"],
+        "en": ["People's Public Security Traditional Day"]
+      },
+      "origin": {
+        "vi": "Ngày 19/8 gắn với thắng lợi của Cách mạng Tháng Tám năm 1945 và sự hình thành lực lượng Công an nhân dân Việt Nam.",
+        "en": "August 19 is associated with the victory of the 1945 August Revolution and the formation of Vietnam's People's Public Security forces."
+      },
+      "significance": {
+        "vi": "Tôn vinh truyền thống vì nước quên thân, vì dân phục vụ của lực lượng công an nhân dân.",
+        "en": "Honors the tradition of dedication and public service of the People's Public Security force."
+      },
+      "activities": {
+        "vi": [
+          "Lễ kỷ niệm tại đơn vị",
+          "Hoạt động về nguồn, giáo dục truyền thống",
+          "Giao lưu với nhân dân"
+        ],
+        "en": [
+          "Unit-level commemorative ceremonies",
+          "Tradition education and historical visits",
+          "Community engagement activities"
+        ]
+      }
+    },
+    {
+      "id": "xoa-mu-chu-quoc-te",
+      "isSolar": true,
+      "solarDay": 8,
+      "solarMonth": 9,
+      "category": "international",
+      "names": {
+        "vi": ["Ngày Xóa Mù Chữ Quốc Tế"],
+        "en": ["International Literacy Day"]
+      },
+      "origin": {
+        "vi": "Ngày Xóa mù chữ Quốc tế được UNESCO phát động từ năm 1967 nhằm nhấn mạnh tầm quan trọng của giáo dục cơ bản và năng lực đọc viết.",
+        "en": "International Literacy Day has been promoted by UNESCO since 1967 to highlight the importance of basic education and literacy."
+      },
+      "significance": {
+        "vi": "Thúc đẩy cơ hội học tập suốt đời, giảm bất bình đẳng giáo dục và hỗ trợ nhóm yếu thế.",
+        "en": "Promotes lifelong learning opportunities, reduces educational inequality, and supports vulnerable groups."
+      },
+      "activities": {
+        "vi": [
+          "Chiến dịch đọc sách cộng đồng",
+          "Lớp học bổ túc văn hóa",
+          "Tặng sách cho vùng khó khăn"
+        ],
+        "en": [
+          "Community reading campaigns",
+          "Adult literacy classes",
+          "Book donation programs for disadvantaged areas"
+        ]
+      }
+    },
+    {
+      "id": "chuyen-doi-so-quoc-gia",
+      "isSolar": true,
+      "solarDay": 10,
+      "solarMonth": 10,
+      "category": "professional",
+      "names": {
+        "vi": ["Ngày Chuyển Đổi Số Quốc Gia"],
+        "en": ["National Digital Transformation Day"]
+      },
+      "origin": {
+        "vi": "Ngày 10/10 được chọn là Ngày Chuyển đổi số Quốc gia nhằm thúc đẩy nhận thức và hành động về chuyển đổi số trong cơ quan nhà nước, doanh nghiệp và người dân.",
+        "en": "October 10 is designated as National Digital Transformation Day to promote awareness and action on digital transformation across government, businesses, and citizens."
+      },
+      "significance": {
+        "vi": "Đẩy mạnh ứng dụng công nghệ số, nâng cao năng suất lao động và chất lượng dịch vụ công.",
+        "en": "Accelerates digital adoption, improves productivity, and enhances public service quality."
+      },
+      "activities": {
+        "vi": [
+          "Diễn đàn chuyển đổi số",
+          "Giới thiệu giải pháp công nghệ",
+          "Tập huấn kỹ năng số cho cộng đồng"
+        ],
+        "en": [
+          "Digital transformation forums",
+          "Technology solution showcases",
+          "Digital skills training for communities"
+        ]
+      }
     }
   ]
 }
