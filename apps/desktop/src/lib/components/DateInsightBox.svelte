@@ -230,8 +230,8 @@
   .insight-box {
     background: var(--surface-white);
     border: 1px solid var(--border-subtle);
-    border-radius: 24px;
-    padding: 24px;
+    border-radius: 14px;
+    padding: 14px;
     box-shadow: var(--shadow-soft);
   }
 
@@ -313,38 +313,38 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 20px;
-    padding-bottom: 16px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--border-subtle);
   }
 
   .header-left {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
   }
 
   .insight-header h2 {
     margin: 0;
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: var(--primary-red);
-    line-height: 1.3;
+    line-height: 1.25;
   }
 
   .subtitle {
-    font-size: 0.9rem;
+    font-size: 0.82rem;
     color: var(--text-secondary);
     font-style: italic;
   }
 
   .lang-toggle {
-    padding: 6px 12px;
+    padding: 4px 10px;
     background: rgba(0, 0, 0, 0.04);
     border: 1px solid var(--border-subtle);
-    border-radius: 8px;
+    border-radius: 6px;
     font-family: var(--font-sans);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
     color: var(--text-secondary);
     cursor: pointer;
@@ -359,20 +359,20 @@
   .insight-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    gap: 10px;
   }
 
   .insight-card {
     background: rgba(255, 255, 255, 0.7);
     border: 1px solid var(--border-subtle);
-    border-radius: 16px;
-    padding: 16px;
+    border-radius: 10px;
+    padding: 10px 12px;
     transition: all 0.2s;
   }
 
   .insight-card:hover {
     background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
   }
 
   /* Special card spanning for origin */
@@ -381,8 +381,8 @@
   }
 
   .card-title {
-    margin: 0 0 8px;
-    font-size: 0.8rem;
+    margin: 0 0 5px;
+    font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -390,39 +390,39 @@
   }
 
   .card-subtitle {
-    margin: 0 0 8px;
-    font-size: 1rem;
+    margin: 0 0 5px;
+    font-size: 0.92rem;
     font-weight: 600;
     color: var(--text-primary);
   }
 
   .card-text {
     margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.6;
+    font-size: 0.84rem;
+    line-height: 1.5;
     color: var(--text-primary);
   }
 
   .card-list {
     margin: 0;
-    padding-left: 20px;
+    padding-left: 16px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 3px;
   }
 
   .card-list li {
-    font-size: 0.88rem;
-    line-height: 1.5;
+    font-size: 0.82rem;
+    line-height: 1.45;
     color: var(--text-primary);
   }
 
   .weather-note {
-    margin-top: 12px;
-    padding: 10px 12px;
+    margin-top: 8px;
+    padding: 6px 10px;
     background: rgba(42, 110, 100, 0.06);
-    border-radius: 8px;
-    font-size: 0.85rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
     color: var(--text-secondary);
   }
 
@@ -432,11 +432,11 @@
   }
 
   .extra-note {
-    margin: 10px 0 0;
-    padding: 10px;
+    margin: 6px 0 0;
+    padding: 6px 8px;
     background: rgba(0, 0, 0, 0.02);
-    border-radius: 8px;
-    font-size: 0.85rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
     font-style: italic;
     color: var(--text-secondary);
   }
@@ -445,14 +445,14 @@
   .wellness-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 12px;
+    gap: 8px;
+    margin-top: 8px;
   }
 
   .guidance-col,
   .wellness-col {
-    padding: 10px;
-    border-radius: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
   }
 
   .guidance-col.good {
@@ -469,8 +469,8 @@
 
   .guidance-col h4,
   .wellness-col h4 {
-    margin: 0 0 8px;
-    font-size: 0.75rem;
+    margin: 0 0 4px;
+    font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -488,16 +488,16 @@
   .guidance-col ul,
   .wellness-col ul {
     margin: 0;
-    padding-left: 16px;
+    padding-left: 14px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
 
   .guidance-col li,
   .wellness-col li {
-    font-size: 0.82rem;
-    line-height: 1.4;
+    font-size: 0.78rem;
+    line-height: 1.35;
     color: var(--text-primary);
   }
 
@@ -505,52 +505,52 @@
   .proverbs-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
   }
 
   .proverb {
     margin: 0;
-    padding: 12px;
+    padding: 8px 10px;
     background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(255, 255, 255, 0.5));
     border-left: 3px solid var(--accent-gold);
-    border-radius: 0 8px 8px 0;
+    border-radius: 0 6px 6px 0;
   }
 
   .proverb-text {
-    margin: 0 0 6px;
-    font-size: 0.95rem;
+    margin: 0 0 4px;
+    font-size: 0.88rem;
     font-style: italic;
     font-weight: 500;
     color: var(--text-primary);
-    line-height: 1.5;
+    line-height: 1.4;
   }
 
   .proverb-meaning {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     color: var(--text-secondary);
-    line-height: 1.4;
+    line-height: 1.35;
   }
 
   /* Region tabs */
   .region-tabs {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
   }
 
   .tab-buttons {
     display: flex;
-    gap: 8px;
+    gap: 6px;
   }
 
   .tab-btn {
     flex: 1;
-    padding: 8px 12px;
+    padding: 5px 10px;
     background: rgba(0, 0, 0, 0.03);
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 6px;
     font-family: var(--font-sans);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-tertiary);
     cursor: pointer;
@@ -569,15 +569,15 @@
   }
 
   .tab-content {
-    padding: 12px;
+    padding: 8px 10px;
     background: rgba(0, 0, 0, 0.02);
-    border-radius: 8px;
+    border-radius: 6px;
   }
 
   .tab-content p {
     margin: 0;
-    font-size: 0.88rem;
-    line-height: 1.6;
+    font-size: 0.82rem;
+    line-height: 1.5;
     color: var(--text-primary);
   }
 
@@ -594,8 +594,8 @@
 
   @media (max-width: 768px) {
     .insight-box {
-      padding: 16px;
-      border-radius: 16px;
+      padding: 10px;
+      border-radius: 10px;
     }
 
     .insight-grid {
@@ -607,7 +607,7 @@
     }
 
     .insight-header h2 {
-      font-size: 1.1rem;
+      font-size: 1rem;
     }
 
     .guidance-grid,

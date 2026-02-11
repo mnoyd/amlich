@@ -601,11 +601,11 @@
   .app-container {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 24px 32px;
+    padding: 16px 24px;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    gap: 24px;
+    gap: 16px;
     user-select: none;
     -webkit-user-select: none;
   }
@@ -615,7 +615,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 20px;
+    padding: 10px 16px;
     background:
       radial-gradient(
         120% 200% at 0% 0%,
@@ -623,7 +623,7 @@
         rgba(212, 175, 55, 0) 52%
       ),
       linear-gradient(120deg, #fffefb 0%, #fef8f1 100%);
-    border-radius: 24px;
+    border-radius: 16px;
     box-shadow: 0 12px 28px rgba(64, 43, 14, 0.1);
     border: 1px solid rgba(212, 175, 55, 0.34);
     position: relative;
@@ -638,9 +638,9 @@
   }
 
   .brand-mark {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -798,8 +798,8 @@
   .main-layout {
     display: grid;
     grid-template-columns: 1fr 340px;
-    gap: 32px;
-    min-height: 0; /* Prevent overflow */
+    gap: 24px;
+    min-height: 0;
   }
 
   .main-layout.insight-mode {
@@ -817,7 +817,7 @@
   .weekday-header {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    margin-bottom: 12px;
+    margin-bottom: 6px;
     padding: 0 12px;
   }
 
@@ -844,12 +844,12 @@
     align-items: center;
     gap: 6px;
     padding: 0 12px;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     transition: all 0.25s ease;
   }
 
   .legend-bar.collapsed {
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .legend-toggle {
@@ -912,19 +912,19 @@
   .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
-    grid-auto-rows: minmax(110px, auto);
-    gap: 12px;
+    grid-auto-rows: minmax(78px, auto);
+    gap: 6px;
     height: auto;
-    min-height: 0; /* Important for grid nesting */
-    padding: 4px;
+    min-height: 0;
+    padding: 2px;
   }
 
   /* Day Card */
   .day-card {
     background: var(--surface-white);
     border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 16px;
-    padding: 10px 12px;
+    border-radius: 10px;
+    padding: 6px 8px;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
@@ -935,14 +935,14 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
     height: auto;
     width: 100%;
-    overflow: hidden; /* Clip content that overflows */
-    min-height: 0; /* Allow shrinking below content size */
+    overflow: hidden;
+    min-height: 0;
   }
 
   .day-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
     background: var(--surface-hover);
-    box-shadow: var(--shadow-hover);
+    box-shadow: 0 6px 16px rgba(44, 36, 27, 0.08);
     z-index: 2;
   }
 
@@ -978,7 +978,7 @@
     left: -1px;
     right: -1px;
     bottom: -1px;
-    border-radius: 16px;
+    border-radius: 10px;
     border: 2px solid var(--primary-red);
     pointer-events: none;
   }
@@ -988,11 +988,11 @@
     justify-content: space-between;
     align-items: baseline;
     width: 100%;
-    margin-bottom: 4px;
+    margin-bottom: 2px;
   }
 
   .solar-date {
-    font-size: 1.6rem;
+    font-size: 1.25rem;
     font-weight: 700;
     color: var(--text-primary);
     line-height: 1;
@@ -1055,13 +1055,13 @@
   .day-body {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 3px;
     flex: 1;
     justify-content: flex-end;
   }
 
   .moon-phase {
-    font-size: 0.7rem;
+    font-size: 0.62rem;
     color: var(--accent-jade);
     font-weight: 600;
     font-family: var(--font-sans);
@@ -1070,13 +1070,13 @@
   .holiday-pills {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: 2px;
   }
 
   .pill {
     font-family: var(--font-sans);
-    font-size: 0.65rem;
-    padding: 2px 6px;
+    font-size: 0.6rem;
+    padding: 1px 5px;
     border-radius: 4px;
     font-weight: 600;
     max-width: 100%;
@@ -1182,11 +1182,10 @@
   }
 
   /* Detail Panel */
-  /* Detail Panel */
   .detail-panel {
     background: var(--surface-white);
-    border-radius: 24px;
-    padding: 16px;
+    border-radius: 16px;
+    padding: 14px;
     box-shadow: var(--shadow-soft);
     border: 1px solid var(--border-subtle);
     display: flex;
@@ -1200,13 +1199,13 @@
   .detail-content {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
   }
 
   .focus-panel {
     background: var(--surface-white);
-    border-radius: 24px;
-    padding: 14px;
+    border-radius: 16px;
+    padding: 10px;
     box-shadow: var(--shadow-soft);
     border: 1px solid var(--border-subtle);
     display: flex;
@@ -1221,40 +1220,40 @@
   .focus-content {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
     min-width: 0;
   }
 
   .focus-header-card {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, #fff7ed 100%);
     border: 1px solid rgba(212, 175, 55, 0.26);
-    border-radius: 16px;
-    padding: 10px 12px;
+    border-radius: 10px;
+    padding: 8px 10px;
   }
 
   .focus-meta {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 10px;
+    gap: 6px;
   }
 
   .focus-meta-item {
     background: rgba(255, 255, 255, 0.86);
     border: 1px solid rgba(212, 175, 55, 0.22);
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 8px;
+    padding: 6px 8px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
 
   .focus-meta-item .label {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
   }
 
   .focus-meta-item .value {
-    font-size: 0.88rem;
-    line-height: 1.35;
+    font-size: 0.82rem;
+    line-height: 1.3;
   }
 
   .focus-insight {
@@ -1262,7 +1261,7 @@
   }
 
   .focus-insight :global(.insight-box) {
-    border-radius: 16px;
+    border-radius: 10px;
     border: 1px solid rgba(212, 175, 55, 0.22);
     box-shadow: none;
   }
@@ -1637,14 +1636,14 @@
 
   @media (max-width: 640px) {
     .app-container {
-      padding: 16px;
+      padding: 12px;
     }
 
     .app-header {
-      padding: 12px;
+      padding: 8px 12px;
       flex-direction: column;
-      gap: 12px;
-      border-radius: 24px;
+      gap: 10px;
+      border-radius: 12px;
     }
 
     .month-navigator {
@@ -1662,21 +1661,21 @@
     }
 
     .calendar-grid {
-      gap: 6px;
+      gap: 4px;
     }
 
     .day-card {
-      min-height: 70px;
-      padding: 6px;
+      min-height: 60px;
+      padding: 4px 6px;
     }
 
     .solar-date {
-      font-size: 1.2rem;
+      font-size: 1.1rem;
     }
 
     .pill {
-      font-size: 0.6rem;
-      padding: 1px 4px;
+      font-size: 0.55rem;
+      padding: 1px 3px;
     }
 
     .zodiac-clock {
