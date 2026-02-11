@@ -60,3 +60,18 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* Global focus-visible styles for keyboard navigation */
+button:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent-jade);
+  outline-offset: 2px;
+  border-radius: inherit;
+}
+
+/* Subtle focus ring for day-cards to not clash with selected state */
+button.day-card:focus-visible {
+  outline-offset: 1px;
+  outline-color: var(--accent-gold);
+}

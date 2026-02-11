@@ -179,6 +179,7 @@
 
   let hoveredZodiac = $state<{ name: string; time: string } | null>(null);
   let currentHandRotation = $state(0);
+  let currentTimeStr = $state("");
 
   // Cultural Detail Visibility
   let isInsightVisible = $state(false);
@@ -222,6 +223,10 @@
       // Map 24h to 360deg
       const totalMinutes = hours * 60 + minutes;
       currentHandRotation = (totalMinutes / 1440) * 360;
+      currentTimeStr = now.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
     };
 
     updateHand();
@@ -398,9 +403,18 @@
                   </div>
 
                   <div class="day-body">
-                    {#if day.lunar_day === 1 || day.lunar_day === 15}
-                      <div class="moon-phase">
-                        {day.lunar_day === 1 ? "Soc" : "Vong"}
+                    {#if day.lunar_day === 1 || day.lunar_day === 15 || day.lunar_day === 8 || day.lunar_day === 23}
+                      <div class="moon-phase" class:new-moon={day.lunar_day === 1} class:full-moon={day.lunar_day === 15} class:first-quarter={day.lunar_day === 8} class:last-quarter={day.lunar_day === 23}>
+                        <span class="moon-icon"></span>
+                        {#if day.lunar_day === 1}
+                          Sóc
+                        {:else if day.lunar_day === 15}
+                          Vọng
+                        {:else if day.lunar_day === 8}
+                          Thượng huyền
+                        {:else}
+                          Hạ huyền
+                        {/if}
                       </div>
                     {/if}
 
@@ -505,10 +519,7 @@
                     {:else}
                       <div class="center-label">Hiện tại</div>
                       <div class="center-time">
-                        {new Date().toLocaleTimeString("vi-VN", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
+                        {currentTimeStr}
                       </div>
                     {/if}
                   </div>
@@ -526,6 +537,8 @@
                         class="clock-segment {isGood ? 'good' : ''}"
                         onmouseenter={() => (hoveredZodiac = zodiac)}
                         onmouseleave={() => (hoveredZodiac = null)}
+                        onfocus={() => (hoveredZodiac = zodiac)}
+                        onblur={() => (hoveredZodiac = null)}
                       >
                         <div class="segment-shape"></div>
                         <span
@@ -800,6 +813,7 @@
     grid-template-columns: 1fr 340px;
     gap: 24px;
     min-height: 0;
+    transition: grid-template-columns 0.3s ease;
   }
 
   .main-layout.insight-mode {
@@ -1065,6 +1079,51 @@
     color: var(--accent-jade);
     font-weight: 600;
     font-family: var(--font-sans);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .moon-icon {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* New moon (Sóc) — dark circle */
+  .moon-phase.new-moon .moon-icon {
+    background: var(--text-primary);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Full moon (Vọng) — bright gold circle */
+  .moon-phase.full-moon .moon-icon {
+    background: var(--accent-gold);
+    box-shadow: 0 0 4px rgba(212, 175, 55, 0.5);
+  }
+
+  .moon-phase.full-moon {
+    color: #8a6d1c;
+  }
+
+  /* First quarter (Thượng Huyền) — half light right */
+  .moon-phase.first-quarter .moon-icon {
+    background: linear-gradient(90deg, var(--text-primary) 50%, var(--accent-gold) 50%);
+  }
+
+  .moon-phase.first-quarter {
+    color: var(--text-tertiary);
+  }
+
+  /* Last quarter (Hạ Huyền) — half light left */
+  .moon-phase.last-quarter .moon-icon {
+    background: linear-gradient(90deg, var(--accent-gold) 50%, var(--text-primary) 50%);
+  }
+
+  .moon-phase.last-quarter {
+    color: var(--text-tertiary);
   }
 
   .holiday-pills {
@@ -1619,6 +1678,11 @@
   /* Responsive Adjustments */
   @media (max-width: 1024px) {
     .main-layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto;
+    }
+
+    .main-layout.insight-mode {
       grid-template-columns: 1fr;
       grid-template-rows: auto auto;
     }
