@@ -120,9 +120,10 @@ export function getCategoryMeta(type: EventCategoryType) {
 /**
  * Get unique category dots for a day (deduplicated by type, max 3).
  * Returns the distinct category types present, sorted by priority.
+ * Accepts optional pre-computed categories to avoid redundant work.
  */
-export function getDayDots(day: DayForInsight): { type: EventCategoryType; colorHex: string }[] {
-  const categories = getDayEventCategories(day);
+export function getDayDots(day: DayForInsight, precomputed?: EventCategory[]): { type: EventCategoryType; colorHex: string }[] {
+  const categories = precomputed ?? getDayEventCategories(day);
   const seen = new Set<EventCategoryType>();
   const dots: { type: EventCategoryType; colorHex: string }[] = [];
 

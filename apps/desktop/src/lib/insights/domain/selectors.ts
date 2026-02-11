@@ -17,42 +17,39 @@ import type {
 } from "../types/domain";
 
 import {
-  festivals,
-  nationalHolidays,
-  tietKhiList,
-  canList,
-  chiList,
+  lunarFestivalIndex,
+  solarFestivalIndex,
+  nationalHolidayIndex,
+  tietKhiIndex,
+  canIndex,
+  chiIndex,
 } from "../shared-data";
+
+function dateKey(month: number, day: number): string {
+  return `${month}-${day}`;
+}
 
 /**
  * Find a festival that matches the given day
  */
 export function findFestival(day: DayForInsight): FestivalData | null {
-  return festivals.find((f) => {
-    if (f.isSolar) {
-      // Solar-based festival (like Thanh Minh)
-      return f.solarDay === day.day && f.solarMonth === day.month;
-    }
-    // Lunar-based festival
-    return f.lunarDay === day.lunar_day && f.lunarMonth === day.lunar_month;
-  }) || null;
+  return solarFestivalIndex.get(dateKey(day.month, day.day))
+    ?? lunarFestivalIndex.get(dateKey(day.lunar_month, day.lunar_day))
+    ?? null;
 }
 
 /**
  * Find a national holiday that matches the given day (always solar-based)
  */
 export function findNationalHoliday(day: DayForInsight): NationalHolidayData | null {
-  return nationalHolidays.find((h) =>
-    h.solarDay === day.day && h.solarMonth === day.month
-  ) || null;
+  return nationalHolidayIndex.get(dateKey(day.month, day.day)) ?? null;
 }
 
 /**
  * Find the current tiết khí data
  */
 export function findTietKhi(termName: string): TietKhiData | null {
-  const normalized = termName.trim();
-  return tietKhiList.find((t) => t.name.vi === normalized) || null;
+  return tietKhiIndex.get(termName.trim()) ?? null;
 }
 
 /**
@@ -70,14 +67,14 @@ export function parseCanChi(canchiStr: string): { can: string; chi: string } {
  * Find Can info by name
  */
 export function findCan(name: string): CanInfo | null {
-  return canList.find((c) => c.name === name) || null;
+  return canIndex.get(name) ?? null;
 }
 
 /**
  * Find Chi info by name
  */
 export function findChi(name: string): ChiInfo | null {
-  return chiList.find((c) => c.name === name) || null;
+  return chiIndex.get(name) ?? null;
 }
 
 /**

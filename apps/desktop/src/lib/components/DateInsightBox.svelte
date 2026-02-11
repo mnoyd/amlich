@@ -14,7 +14,17 @@
   // Language state - Vietnamese is primary
   let lang: Lang = $state("vi");
 
-  const insight = $derived<LocalAnyDateInsight | null>(day ? buildDateInsight(day, lang) : null);
+  const insightCache = new Map<string, LocalAnyDateInsight>();
+
+  const insight = $derived.by<LocalAnyDateInsight | null>(() => {
+    if (!day) return null;
+    const cacheKey = `${day.year}-${day.month}-${day.day}-${lang}`;
+    const cached = insightCache.get(cacheKey);
+    if (cached) return cached;
+    const result = buildDateInsight(day, lang);
+    insightCache.set(cacheKey, result);
+    return result;
+  });
   const sections = $derived<DateInsight[]>(
     insight == null ? [] : insight.mode === "multi" ? insight.sections : [insight]
   );

@@ -4,7 +4,7 @@
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
   import ZodiacClock from "$lib/components/ZodiacClock.svelte";
   import { getDayDots, getDayEventCategories, classifyHoliday } from "$lib/insights/date-insight-engine";
-  import type { DayCell, HolidayInfo, MonthData, EventCategoryType } from "$lib/insights/types";
+  import type { DayCell, MonthData, EventCategoryType } from "$lib/insights/types";
   import type { EventCategory } from "$lib/insights/types/view";
   import { checkForAppUpdates } from "$lib/updater";
 
@@ -46,9 +46,18 @@
     'lunar-cycle': { bg: '#FFFCF0', border: '#D4AF37' },
   };
 
-  const today = new Date();
-  let viewYear = $state(today.getFullYear());
-  let viewMonth = $state(today.getMonth() + 1);
+  const initialNow = new Date();
+  let today = $state(new Date());
+  let viewYear = $state(initialNow.getFullYear());
+  let viewMonth = $state(initialNow.getMonth() + 1);
+
+  $effect(() => {
+    const now = new Date();
+    const msUntilMidnight =
+      new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+    const timeout = setTimeout(() => { today = new Date(); }, msUntilMidnight + 500);
+    return () => clearTimeout(timeout);
+  });
   let monthData = $state<MonthData | null>(null);
   let selectedDay = $state<DayCell | null>(null);
   let preferredDayOfMonth: number | null = null;
@@ -174,20 +183,21 @@
 
   const monthTitle = $derived(`${monthNames[viewMonth - 1]} ${viewYear}`);
 
-  const dotsByDay = $derived.by(() => {
-    if (!monthData) return new Map<DayKey, { type: EventCategoryType; colorHex: string }[]>();
-    const map = new Map<DayKey, { type: EventCategoryType; colorHex: string }[]>();
-    for (const d of monthData.days) {
-      map.set(dayKey(d), getDayDots(d));
-    }
-    return map;
-  });
-
   const catsByDay = $derived.by(() => {
     if (!monthData) return new Map<DayKey, EventCategory[]>();
     const map = new Map<DayKey, EventCategory[]>();
     for (const d of monthData.days) {
       map.set(dayKey(d), getDayEventCategories(d));
+    }
+    return map;
+  });
+
+  const dotsByDay = $derived.by(() => {
+    if (!monthData) return new Map<DayKey, { type: EventCategoryType; colorHex: string }[]>();
+    const map = new Map<DayKey, { type: EventCategoryType; colorHex: string }[]>();
+    for (const d of monthData.days) {
+      const k = dayKey(d);
+      map.set(k, getDayDots(d, catsByDay.get(k)));
     }
     return map;
   });
@@ -201,7 +211,7 @@
 
   // Month picker popover
   let showMonthPicker = $state(false);
-  let pickerYear = $state(today.getFullYear());
+  let pickerYear = $state(initialNow.getFullYear());
 
   function toggleMonthPicker() {
     if (!showMonthPicker) {
@@ -240,6 +250,24 @@
   function handleCheckUpdate() {
     showSettingsMenu = false;
     checkForAppUpdates(true);
+  }
+
+  const daysBySolarDate = $derived.by(() => {
+    if (!monthData) return new Map<string, DayCell>();
+    const map = new Map<string, DayCell>();
+    for (const d of monthData.days) {
+      map.set(d.solar_date, d);
+    }
+    return map;
+  });
+
+  function handleGridClick(event: MouseEvent) {
+    const btn = (event.target as HTMLElement).closest<HTMLButtonElement>("button.day-card[data-solar-date]");
+    if (!btn) return;
+    const solarDate = btn.dataset.solarDate;
+    if (!solarDate) return;
+    const day = daysBySolarDate.get(solarDate);
+    if (day) selectDay(day);
   }
 
   function handleClickOutside(event: MouseEvent) {
@@ -426,7 +454,9 @@
       {:else if error}
         <div class="status-message error">{error}</div>
       {:else}
-        <div class="calendar-grid">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="calendar-grid" onclick={handleGridClick}>
           {#each dayRows as row}
             {#each row as day}
               {#if day}
@@ -437,6 +467,7 @@
                 <button
                   type="button"
                   class="day-card"
+                  data-solar-date={day.solar_date}
                   class:selected={selectedDay?.solar_date === day.solar_date}
                   class:today={day.day === today.getDate() &&
                     day.month === today.getMonth() + 1 &&
@@ -444,7 +475,6 @@
                   class:has-holiday={day.holidays.length > 0}
                   class:has-events={categories.length > 0}
                   style={topCat ? `--accent-color: ${topCat.colorHex}; --accent-tint: ${topCat.colorHex}0D;` : ''}
-                  onclick={() => selectDay(day)}
                 >
                   <div class="day-header">
                     <span class="solar-date">{day.day}</span>

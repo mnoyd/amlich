@@ -22,3 +22,42 @@ export const elements = canchiData.elements as Record<
   { name: { vi: string; en: string }; nature: { vi: string; en: string } }
 >;
 export const dayGuidanceMap = canchiData.dayGuidance as Record<string, DayGuidance>;
+
+function festivalKey(month: number, day: number): string {
+  return `${month}-${day}`;
+}
+
+const lunarFestivalIndex = new Map<string, FestivalData>();
+const solarFestivalIndex = new Map<string, FestivalData>();
+for (const f of festivals) {
+  if (f.isSolar && f.solarMonth != null && f.solarDay != null) {
+    solarFestivalIndex.set(festivalKey(f.solarMonth, f.solarDay), f);
+  } else {
+    lunarFestivalIndex.set(festivalKey(f.lunarMonth, f.lunarDay), f);
+  }
+}
+export { lunarFestivalIndex, solarFestivalIndex };
+
+const nationalHolidayIndex = new Map<string, NationalHolidayData>();
+for (const h of nationalHolidays) {
+  nationalHolidayIndex.set(festivalKey(h.solarMonth, h.solarDay), h);
+}
+export { nationalHolidayIndex };
+
+const tietKhiIndex = new Map<string, TietKhiData>();
+for (const t of tietKhiList) {
+  tietKhiIndex.set(t.name.vi, t);
+}
+export { tietKhiIndex };
+
+const canIndex = new Map<string, CanInfo>();
+for (const c of canList) {
+  canIndex.set(c.name, c);
+}
+export { canIndex };
+
+const chiIndex = new Map<string, ChiInfo>();
+for (const c of chiList) {
+  chiIndex.set(c.name, c);
+}
+export { chiIndex };
