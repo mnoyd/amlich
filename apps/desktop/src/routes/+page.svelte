@@ -2,8 +2,10 @@
   import { invoke } from "@tauri-apps/api/core";
   import { getVersion } from "@tauri-apps/api/app";
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
+  import ZodiacClock from "$lib/components/ZodiacClock.svelte";
   import { getDayDots, getDayEventCategories, classifyHoliday } from "$lib/insights/date-insight-engine";
-  import type { DayCell, HolidayInfo, MonthData } from "$lib/insights/types";
+  import type { DayCell, HolidayInfo, MonthData, EventCategoryType } from "$lib/insights/types";
+  import type { EventCategory } from "$lib/insights/types/view";
   import { checkForAppUpdates } from "$lib/updater";
 
   const weekLabels = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -33,6 +35,17 @@
     "lunar-cycle": "Sóc/Vọng",
   };
 
+  const CAT_COLORS: Record<string, { bg: string; border: string }> = {
+    'festival': { bg: '#FFF0F0', border: '#C62828' },
+    'public-holiday': { bg: '#FFF0F5', border: '#AD1457' },
+    'commemorative': { bg: '#F0F4FF', border: '#1565C0' },
+    'professional': { bg: '#F0FFF0', border: '#2E7D32' },
+    'social': { bg: '#FFF8F0', border: '#E65100' },
+    'international': { bg: '#F8F0FF', border: '#6A1B9A' },
+    'solar-term': { bg: '#F0FFFD', border: '#00796B' },
+    'lunar-cycle': { bg: '#FFFCF0', border: '#D4AF37' },
+  };
+
   const today = new Date();
   let viewYear = $state(today.getFullYear());
   let viewMonth = $state(today.getMonth() + 1);
@@ -42,15 +55,19 @@
   let isLoading = $state(false);
   let error = $state<string | null>(null);
 
+  let loadToken = 0;
+
   $effect(() => {
-    loadMonth(viewMonth, viewYear);
+    const token = ++loadToken;
+    loadMonth(viewMonth, viewYear, token);
   });
 
-  async function loadMonth(month: number, year: number) {
+  async function loadMonth(month: number, year: number, token: number) {
     isLoading = true;
     error = null;
     try {
       const data = await invoke<MonthData>("get_month_data", { month, year });
+      if (token !== loadToken) return;
       monthData = data;
       const todayMatch = data.days.find(
         (d) =>
@@ -63,24 +80,43 @@
       selectedDay = todayMatch ?? previousDayMatch ?? data.days[0] ?? null;
       preferredDayOfMonth = selectedDay?.day ?? null;
     } catch (err) {
+      if (token !== loadToken) return;
       error = err instanceof Error ? err.message : String(err);
       monthData = null;
       selectedDay = null;
     } finally {
+      if (token !== loadToken) return;
       isLoading = false;
     }
   }
 
+  let selectToken = 0;
+  const dayDetailCache = new Map<string, DayCell>();
+
   async function selectDay(day: DayCell) {
+    selectedDay = day;
+    preferredDayOfMonth = day.day;
+
+    const k = `${day.year}-${day.month}-${day.day}`;
+    const cached = dayDetailCache.get(k);
+    if (cached) {
+      selectedDay = cached;
+      return;
+    }
+
+    const token = ++selectToken;
     try {
       const detail = await invoke<DayCell>("get_day_detail", {
         day: day.day,
         month: day.month,
         year: day.year,
       });
+      if (token !== selectToken) return;
+      dayDetailCache.set(k, detail);
       selectedDay = detail;
       preferredDayOfMonth = detail.day;
     } catch (err) {
+      if (token !== selectToken) return;
       error = err instanceof Error ? err.message : String(err);
     }
   }
@@ -105,7 +141,10 @@
     }
   }
 
-  const dayRows = () => {
+  type DayKey = string;
+  const dayKey = (d: { year: number; month: number; day: number }) => `${d.year}-${d.month}-${d.day}`;
+
+  const dayRows = $derived.by(() => {
     if (!monthData) return [] as (DayCell | null)[][];
     const rows: (DayCell | null)[][] = [];
     let currentRow: (DayCell | null)[] = [];
@@ -131,28 +170,27 @@
     }
 
     return rows;
-  };
+  });
 
-  const monthTitle = () => `${monthNames[viewMonth - 1]} ${viewYear}`;
+  const monthTitle = $derived(`${monthNames[viewMonth - 1]} ${viewYear}`);
 
-  const ZODIAC_HOURS = [
-    { name: "Tý", time: "23:00-01:00" },
-    { name: "Sửu", time: "01:00-03:00" },
-    { name: "Dần", time: "03:00-05:00" },
-    { name: "Mão", time: "05:00-07:00" },
-    { name: "Thìn", time: "07:00-09:00" },
-    { name: "Tỵ", time: "09:00-11:00" },
-    { name: "Ngọ", time: "11:00-13:00" },
-    { name: "Mùi", time: "13:00-15:00" },
-    { name: "Thân", time: "15:00-17:00" },
-    { name: "Dậu", time: "17:00-19:00" },
-    { name: "Tuất", time: "19:00-21:00" },
-    { name: "Hợi", time: "21:00-23:00" },
-  ];
+  const dotsByDay = $derived.by(() => {
+    if (!monthData) return new Map<DayKey, { type: EventCategoryType; colorHex: string }[]>();
+    const map = new Map<DayKey, { type: EventCategoryType; colorHex: string }[]>();
+    for (const d of monthData.days) {
+      map.set(dayKey(d), getDayDots(d));
+    }
+    return map;
+  });
 
-  let hoveredZodiac = $state<{ name: string; time: string } | null>(null);
-  let currentHandRotation = $state(0);
-  let currentTimeStr = $state("");
+  const catsByDay = $derived.by(() => {
+    if (!monthData) return new Map<DayKey, EventCategory[]>();
+    const map = new Map<DayKey, EventCategory[]>();
+    for (const d of monthData.days) {
+      map.set(dayKey(d), getDayEventCategories(d));
+    }
+    return map;
+  });
 
   // Cultural Detail Visibility
   let isInsightVisible = $state(false);
@@ -205,6 +243,8 @@
   }
 
   function handleClickOutside(event: MouseEvent) {
+    if (!showSettingsMenu && !showMonthPicker) return;
+
     const target = event.target as HTMLElement;
     if (showSettingsMenu && !target.closest(".settings-wrapper")) {
       showSettingsMenu = false;
@@ -213,26 +253,6 @@
       showMonthPicker = false;
     }
   }
-
-  $effect(() => {
-    const updateHand = () => {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = now.getMinutes();
-      // 00:00 (Midnight) is aligned with Tý (Top/0deg)
-      // Map 24h to 360deg
-      const totalMinutes = hours * 60 + minutes;
-      currentHandRotation = (totalMinutes / 1440) * 360;
-      currentTimeStr = now.toLocaleTimeString("vi-VN", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    };
-
-    updateHand();
-    const interval = setInterval(updateHand, 60000); // Update every minute
-    return () => clearInterval(interval);
-  });
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -269,7 +289,7 @@
         <button class="month-pill" onclick={toggleMonthPicker} aria-expanded={showMonthPicker} aria-haspopup="dialog">
           <span class="month-caption">Lịch tháng</span>
           <span class="current-month">
-            {monthTitle()}
+            {monthTitle}
             <svg class="pill-chevron" class:open={showMonthPicker} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
           </span>
         </button>
@@ -407,11 +427,12 @@
         <div class="status-message error">{error}</div>
       {:else}
         <div class="calendar-grid">
-          {#each dayRows() as row}
+          {#each dayRows as row}
             {#each row as day}
               {#if day}
-                {@const categories = getDayEventCategories(day)}
-                {@const dots = getDayDots(day)}
+                {@const k = dayKey(day)}
+                {@const categories = catsByDay.get(k) ?? []}
+                {@const dots = dotsByDay.get(k) ?? []}
                 {@const topCat = categories.length > 0 ? categories[0] : null}
                 <button
                   type="button"
@@ -543,53 +564,7 @@
             </div>
 
             <div class="section-block">
-              <div class="zodiac-clock-container">
-                <div class="zodiac-clock">
-                  <div
-                    class="clock-hand"
-                    style="transform: rotate({currentHandRotation}deg);"
-                  ></div>
-
-                  <div class="clock-center">
-                    {#if hoveredZodiac}
-                      <div class="center-label">{hoveredZodiac.name}</div>
-                      <div class="center-time">{hoveredZodiac.time}</div>
-                    {:else}
-                      <div class="center-label">Hiện tại</div>
-                      <div class="center-time">
-                        {currentTimeStr}
-                      </div>
-                    {/if}
-                  </div>
-
-                  {#each ZODIAC_HOURS as zodiac, i}
-                    {@const isGood = selectedDay.good_hours.some((h) =>
-                      h.hour_chi.includes(zodiac.name),
-                    )}
-                    {@const rotation = i * 30}
-                    <div
-                      class="clock-segment-wrapper"
-                      style="transform: rotate({rotation}deg);"
-                    >
-                      <button
-                        class="clock-segment {isGood ? 'good' : ''}"
-                        onmouseenter={() => (hoveredZodiac = zodiac)}
-                        onmouseleave={() => (hoveredZodiac = null)}
-                        onfocus={() => (hoveredZodiac = zodiac)}
-                        onblur={() => (hoveredZodiac = null)}
-                      >
-                        <div class="segment-shape"></div>
-                        <span
-                          class="segment-text"
-                          style="transform: rotate({-rotation}deg)"
-                        >
-                          {zodiac.name}
-                        </span>
-                      </button>
-                    </div>
-                  {/each}
-                </div>
-              </div>
+              <ZodiacClock goodHours={selectedDay.good_hours} />
             </div>
 
             <div class="info-group-compact">
@@ -615,17 +590,7 @@
                 <div class="holiday-list">
                   {#each selectedDay.holidays as holiday}
                     {@const catType = classifyHoliday(holiday, selectedDay)}
-                    {@const catColors: Record<string, { bg: string; border: string }> = {
-                      'festival': { bg: '#FFF0F0', border: '#C62828' },
-                      'public-holiday': { bg: '#FFF0F5', border: '#AD1457' },
-                      'commemorative': { bg: '#F0F4FF', border: '#1565C0' },
-                      'professional': { bg: '#F0FFF0', border: '#2E7D32' },
-                      'social': { bg: '#FFF8F0', border: '#E65100' },
-                      'international': { bg: '#F8F0FF', border: '#6A1B9A' },
-                      'solar-term': { bg: '#F0FFFD', border: '#00796B' },
-                      'lunar-cycle': { bg: '#FFFCF0', border: '#D4AF37' },
-                    }}
-                    {@const colors = catColors[catType] || catColors['lunar-cycle']}
+                    {@const colors = CAT_COLORS[catType] || CAT_COLORS['lunar-cycle']}
                     <div class="holiday-item" style="background: {colors.bg}; border-left-color: {colors.border};">
                       <div class="h-name">{holiday.name}</div>
                       {#if holiday.description}
@@ -1710,181 +1675,6 @@
     line-height: 1.4;
   }
 
-  /* Zodiac Clock */
-  .zodiac-clock-container {
-    display: flex;
-    justify-content: center;
-    padding: 4px 0;
-    margin-bottom: 10px;
-  }
-
-  .zodiac-clock {
-    position: relative;
-    width: 220px;
-    height: 220px;
-    border-radius: 50%;
-    border: 1px solid rgba(212, 175, 55, 0.45);
-    background: radial-gradient(
-      circle,
-      #ffffff 0%,
-      #fff9f1 62%,
-      #f8ede1 100%
-    );
-    box-shadow:
-      inset 0 2px 18px rgba(255, 255, 255, 0.95),
-      inset 0 -12px 26px rgba(212, 175, 55, 0.16),
-      0 16px 30px rgba(0, 0, 0, 0.12);
-  }
-
-  .zodiac-clock::before {
-    content: "";
-    position: absolute;
-    inset: 10px;
-    border-radius: 50%;
-    border: 1px dashed rgba(160, 126, 52, 0.3);
-    pointer-events: none;
-  }
-
-  .clock-center {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    width: 86px;
-    height: 86px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    background: linear-gradient(160deg, #ffffff 0%, #f9f1e6 100%);
-    z-index: 10;
-    pointer-events: none;
-    box-shadow:
-      0 8px 16px rgba(0, 0, 0, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.9);
-    border: 1px solid rgba(212, 175, 55, 0.4);
-  }
-
-  .center-label {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--primary-red);
-    font-family: var(--font-serif);
-    line-height: 1;
-  }
-
-  .center-time {
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    font-family: var(--font-sans);
-    margin-top: 5px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* Clock Hand */
-  .clock-hand {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 3px;
-    height: 50%;
-    background: linear-gradient(
-      to top,
-      rgba(217, 48, 37, 0.92) 55%,
-      transparent 100%
-    );
-    transform-origin: bottom center;
-    z-index: 5;
-    pointer-events: none;
-  }
-
-  .clock-hand::after {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -3.5px;
-    width: 10px;
-    height: 10px;
-    background: var(--primary-red);
-    border-radius: 50%;
-    box-shadow:
-      0 0 8px rgba(217, 48, 37, 0.45),
-      0 0 0 2px rgba(255, 255, 255, 0.8);
-  }
-
-  /* Segments */
-  .clock-segment-wrapper {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-  }
-
-  .clock-segment {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 50px;
-    height: 50%;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    pointer-events: auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 10px;
-    transition: all 0.2s;
-  }
-
-  .segment-shape {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: rgba(83, 70, 50, 0.24);
-    margin-bottom: 6px;
-    transition: all 0.3s;
-  }
-
-  .segment-text {
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: #7c6849;
-    transition: all 0.3s;
-    margin-top: 2px;
-    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
-  }
-
-  /* Active/Good State */
-  .clock-segment.good .segment-shape {
-    background: var(--accent-jade);
-    box-shadow: 0 0 10px rgba(42, 110, 100, 0.42);
-    transform: scale(1.45);
-  }
-
-  .clock-segment.good .segment-text {
-    color: var(--accent-jade);
-    font-weight: 700;
-  }
-
-  /* Hover State */
-  .clock-segment:hover .segment-shape {
-    background: var(--primary-red);
-    transform: scale(1.25);
-  }
-
-  .clock-segment:hover .segment-text {
-    color: var(--primary-red);
-    font-weight: 700;
-  }
-
   .status-message {
     grid-column: span 7;
     display: flex;
@@ -1987,32 +1777,6 @@
       padding: 1px 3px;
     }
 
-    .zodiac-clock {
-      width: 188px;
-      height: 188px;
-    }
-
-    .clock-center {
-      width: 74px;
-      height: 74px;
-    }
-
-    .center-label {
-      font-size: 1.05rem;
-    }
-
-    .center-time {
-      font-size: 0.76rem;
-    }
-
-    .clock-segment {
-      width: 44px;
-      padding-top: 8px;
-    }
-
-    .segment-text {
-      font-size: 0.68rem;
-    }
   }
 
   /* Settings Menu */
