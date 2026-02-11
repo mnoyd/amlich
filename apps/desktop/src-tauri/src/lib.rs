@@ -17,6 +17,7 @@ struct HolidayInfo {
     is_solar: bool,
     lunar_day: Option<i32>,
     lunar_month: Option<i32>,
+    category: String,
     is_major: bool,
 }
 
@@ -94,14 +95,15 @@ fn to_day_cell(day_info: amlich_core::DayInfo, holidays: Vec<HolidayInfo>) -> Da
     }
 }
 
-fn holiday_to_info(holiday: &Holiday, is_major: bool) -> HolidayInfo {
+fn holiday_to_info(holiday: &Holiday) -> HolidayInfo {
     HolidayInfo {
         name: holiday.name.clone(),
         description: holiday.description.clone(),
         is_solar: holiday.is_solar,
         lunar_day: holiday.lunar_date.as_ref().map(|d| d.day),
         lunar_month: holiday.lunar_date.as_ref().map(|d| d.month),
-        is_major,
+        category: holiday.category.clone(),
+        is_major: holiday.is_major,
     }
 }
 
@@ -115,16 +117,12 @@ fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
     let mut first_weekday = 0;
     let mut holidays_by_day: HashMap<i32, Vec<HolidayInfo>> = HashMap::new();
     let holidays = get_vietnamese_holidays(year);
-    let major_keys = get_major_holiday_keys(year);
-
     for holiday in holidays {
-        let key = holiday_key(&holiday);
-        let is_major = major_keys.contains(&key);
         if holiday.solar_year == year && holiday.solar_month == month as i32 {
             holidays_by_day
                 .entry(holiday.solar_day)
                 .or_default()
-                .push(holiday_to_info(&holiday, is_major));
+                .push(holiday_to_info(&holiday));
         }
     }
 
@@ -159,14 +157,10 @@ fn get_day_detail(day: i32, month: i32, year: i32) -> Result<DayCell, String> {
         return Err("day must be 1-31".to_string());
     }
 
-    let major_keys = get_major_holiday_keys(year);
     let holidays = get_vietnamese_holidays(year)
         .into_iter()
         .filter(|h| h.solar_year == year && h.solar_month == month && h.solar_day == day)
-        .map(|h| {
-            let is_major = major_keys.contains(&holiday_key(&h));
-            holiday_to_info(&h, is_major)
-        })
+        .map(|h| holiday_to_info(&h))
         .collect::<Vec<_>>();
 
     Ok(to_day_cell(
@@ -194,20 +188,6 @@ fn get_install_context() -> InstallContext {
         is_system_install,
         can_self_update: !is_system_install,
     }
-}
-
-fn holiday_key(holiday: &Holiday) -> String {
-    format!(
-        "{}-{}-{}-{}",
-        holiday.solar_year, holiday.solar_month, holiday.solar_day, holiday.name
-    )
-}
-
-fn get_major_holiday_keys(year: i32) -> Vec<String> {
-    amlich_core::holidays::get_major_holidays(year)
-        .into_iter()
-        .map(|h| holiday_key(&h))
-        .collect()
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

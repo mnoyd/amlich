@@ -3,51 +3,8 @@
   import { getVersion } from "@tauri-apps/api/app";
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
   import { getDayDots, getDayEventCategories, classifyHoliday } from "$lib/insights/date-insight-engine";
+  import type { DayCell, HolidayInfo, MonthData } from "$lib/insights/types";
   import { checkForAppUpdates } from "$lib/updater";
-
-  type GoodHour = {
-    hour_chi: string;
-    time_range: string;
-    star: string;
-  };
-
-  type DayCell = {
-    day: number;
-    month: number;
-    year: number;
-    day_of_week_index: number;
-    day_of_week: string;
-    solar_date: string;
-    lunar_day: number;
-    lunar_month: number;
-    lunar_year: number;
-    lunar_leap: boolean;
-    lunar_date: string;
-    canchi_day: string;
-    canchi_month: string;
-    canchi_year: string;
-    tiet_khi: string;
-    tiet_khi_description: string;
-    tiet_khi_season: string;
-    good_hours: GoodHour[];
-    holidays: HolidayInfo[];
-  };
-
-  type HolidayInfo = {
-    name: string;
-    description: string;
-    is_solar: boolean;
-    lunar_day: number | null;
-    lunar_month: number | null;
-    is_major: boolean;
-  };
-
-  type MonthData = {
-    month: number;
-    year: number;
-    first_weekday: number;
-    days: DayCell[];
-  };
 
   const weekLabels = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
   const monthNames = [

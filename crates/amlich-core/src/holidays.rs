@@ -3,7 +3,9 @@
  *
  * Provides functions to get Vietnamese lunar holidays for a given year
  */
+use crate::julian::jd_to_date;
 use crate::lunar::{convert_lunar_to_solar, LunarDate};
+use crate::tietkhi::get_all_tiet_khi_for_year;
 use crate::types::VIETNAM_TIMEZONE;
 
 /// Information about a Vietnamese holiday
@@ -16,6 +18,8 @@ pub struct Holiday {
     pub solar_month: i32,
     pub solar_year: i32,
     pub is_solar: bool,
+    pub category: String,
+    pub is_major: bool,
 }
 
 // Helper function to create a lunar holiday
@@ -25,6 +29,8 @@ fn create_lunar_holiday(
     lunar_month: i32,
     lunar_year: i32,
     description: &str,
+    category: &str,
+    is_major: bool,
     time_zone: f64,
 ) -> Option<Holiday> {
     let solar = convert_lunar_to_solar(lunar_day, lunar_month, lunar_year, false, time_zone);
@@ -42,6 +48,8 @@ fn create_lunar_holiday(
             solar_month: solar.1,
             solar_year: solar.2,
             is_solar: false,
+            category: category.to_string(),
+            is_major,
         })
     } else {
         None
@@ -67,31 +75,71 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
             1,
             solar_year,
             "Vietnamese New Year - First day",
+            "festival",
+            true,
         ),
-        ("Mùng 2 Tết", 2, 1, solar_year, "Second day of Tết"),
-        ("Mùng 3 Tết", 3, 1, solar_year, "Third day of Tết"),
+        (
+            "Mùng 2 Tết",
+            2,
+            1,
+            solar_year,
+            "Second day of Tết",
+            "festival",
+            true,
+        ),
+        (
+            "Mùng 3 Tết",
+            3,
+            1,
+            solar_year,
+            "Third day of Tết",
+            "festival",
+            true,
+        ),
         (
             "Tết Nguyên Tiêu (Rằm tháng Giêng)",
             15,
             1,
             solar_year,
             "Lantern Festival",
+            "festival",
+            true,
         ),
-        ("Tết Hàn Thực", 3, 3, solar_year, "Cold Food Festival"),
+        (
+            "Tết Hàn Thực",
+            3,
+            3,
+            solar_year,
+            "Cold Food Festival",
+            "festival",
+            true,
+        ),
         (
             "Phật Đản (Rằm tháng Tư)",
             15,
             4,
             solar_year,
             "Buddha's Birthday",
+            "festival",
+            true,
         ),
-        ("Tết Đoan Ngọ", 5, 5, solar_year, "Dragon Boat Festival"),
+        (
+            "Tết Đoan Ngọ",
+            5,
+            5,
+            solar_year,
+            "Dragon Boat Festival",
+            "festival",
+            true,
+        ),
         (
             "Vu Lan (Rằm tháng Bảy)",
             15,
             7,
             solar_year,
             "Parents' Day / Wandering Souls",
+            "festival",
+            true,
         ),
         (
             "Tết Trung Thu (Rằm tháng Tám)",
@@ -99,14 +147,26 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
             8,
             solar_year,
             "Mid-Autumn Festival / Children's Festival",
+            "festival",
+            true,
         ),
-        ("Tết Trùng Cửu", 9, 9, solar_year, "Double Ninth Festival"),
+        (
+            "Tết Trùng Cửu",
+            9,
+            9,
+            solar_year,
+            "Double Ninth Festival",
+            "festival",
+            true,
+        ),
         (
             "Tết Hạ Nguyên (Rằm tháng Mười)",
             15,
             10,
             solar_year,
             "Lower Nguyên Festival",
+            "festival",
+            true,
         ),
         (
             "Ông Táo chầu trời",
@@ -114,6 +174,8 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
             12,
             solar_year - 1,
             "Kitchen Gods go to Heaven",
+            "festival",
+            true,
         ),
         (
             "Giao Thừa (Đêm giao thừa)",
@@ -121,70 +183,129 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
             12,
             solar_year - 1,
             "New Year's Eve",
+            "festival",
+            true,
         ),
     ];
 
-    for (name, day, month, year, desc) in major {
-        if let Some(h) = create_lunar_holiday(name, day, month, year, desc, time_zone) {
+    for (name, day, month, year, desc, category, is_major) in major {
+        if let Some(h) =
+            create_lunar_holiday(name, day, month, year, desc, category, is_major, time_zone)
+        {
             holidays.push(h);
         }
     }
 
-    // Thanh Minh (solar-based)
+    // Thanh Minh (solar-based, computed from solar term transition)
+    let thanh_minh_date = get_all_tiet_khi_for_year(solar_year, time_zone)
+        .into_iter()
+        .find(|t| t.name == "Thanh Minh")
+        .map(|t| jd_to_date(t.jd))
+        .unwrap_or((5, 4, solar_year));
+
     holidays.push(Holiday {
         name: "Tết Thanh Minh".to_string(),
         description: "Tomb Sweeping Day (Solar calendar)".to_string(),
         lunar_date: None,
-        solar_day: 5,
-        solar_month: 4,
-        solar_year,
+        solar_day: thanh_minh_date.0,
+        solar_month: thanh_minh_date.1,
+        solar_year: thanh_minh_date.2,
         is_solar: true,
+        category: "festival".to_string(),
+        is_major: true,
     });
 
     // National / Solar holidays
     let national_holidays = vec![
         // Public holidays (ngày lễ chính thức, nghỉ lễ)
-        ("Tết Dương Lịch", 1, 1, "New Year's Day"),
-        ("Ngày Giải Phóng Miền Nam", 30, 4, "Reunification Day"),
-        ("Ngày Quốc Tế Lao Động", 1, 5, "International Workers' Day"),
-        ("Ngày Quốc Khánh", 2, 9, "National Day / Independence Day"),
+        (
+            "Tết Dương Lịch",
+            1,
+            1,
+            "New Year's Day",
+            "public-holiday",
+            true,
+        ),
+        (
+            "Ngày Giải Phóng Miền Nam",
+            30,
+            4,
+            "Reunification Day",
+            "public-holiday",
+            true,
+        ),
+        (
+            "Ngày Quốc Tế Lao Động",
+            1,
+            5,
+            "International Workers' Day",
+            "public-holiday",
+            true,
+        ),
+        (
+            "Ngày Quốc Khánh",
+            2,
+            9,
+            "National Day / Independence Day",
+            "public-holiday",
+            true,
+        ),
         // Commemorative days (ngày kỷ niệm)
         (
             "Ngày Thành Lập Đảng",
             3,
             2,
             "Founding of the Communist Party of Vietnam",
+            "commemorative",
+            true,
         ),
         (
             "Ngày Chiến Thắng Điện Biên Phủ",
             7,
             5,
             "Điện Biên Phủ Victory Day",
+            "commemorative",
+            true,
         ),
         (
             "Ngày Sinh Chủ Tịch Hồ Chí Minh",
             19,
             5,
             "President Hồ Chí Minh's Birthday",
+            "commemorative",
+            true,
         ),
         (
             "Ngày Thương Binh - Liệt Sĩ",
             27,
             7,
             "War Invalids and Martyrs Day",
+            "commemorative",
+            true,
         ),
-        ("Ngày Cách Mạng Tháng Tám", 19, 8, "August Revolution Day"),
+        (
+            "Ngày Cách Mạng Tháng Tám",
+            19,
+            8,
+            "August Revolution Day",
+            "commemorative",
+            true,
+        ),
         (
             "Ngày Giải Phóng Thủ Đô",
             10,
             10,
             "Liberation Day of the Capital",
+            "commemorative",
+            true,
         ),
         (
             "Ngày Thành Lập Quân Đội",
             22,
             12,
             "Vietnam People's Army Founding Day",
+            "commemorative",
+            true,
         ),
         // Professional / tradition days (ngày truyền thống ngành)
         (
@@ -192,58 +313,109 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
             9,
             1,
             "Vietnamese Students' Day",
+            "professional",
+            true,
         ),
-        ("Ngày Thầy Thuốc Việt Nam", 27, 2, "Vietnamese Doctors' Day"),
+        (
+            "Ngày Thầy Thuốc Việt Nam",
+            27,
+            2,
+            "Vietnamese Doctors' Day",
+            "professional",
+            true,
+        ),
         (
             "Ngày Thành Lập Đoàn TNCS",
             26,
             3,
             "Founding of Hồ Chí Minh Communist Youth Union",
+            "professional",
+            true,
         ),
         (
             "Ngày Sách Việt Nam",
             21,
             4,
             "Vietnamese Book and Reading Culture Day",
+            "professional",
+            true,
         ),
         (
             "Ngày Kiến Trúc Sư Việt Nam",
             27,
             4,
             "Vietnamese Architects' Day",
+            "professional",
+            true,
         ),
-        ("Ngày Gia Đình Việt Nam", 28, 6, "Vietnamese Family Day"),
+        (
+            "Ngày Gia Đình Việt Nam",
+            28,
+            6,
+            "Vietnamese Family Day",
+            "social",
+            true,
+        ),
         (
             "Ngày Doanh Nhân Việt Nam",
             13,
             10,
             "Vietnamese Entrepreneurs' Day",
+            "professional",
+            true,
         ),
-        ("Ngày Phụ Nữ Việt Nam", 20, 10, "Vietnamese Women's Day"),
-        ("Ngày Nhà Giáo Việt Nam", 20, 11, "Vietnamese Teachers' Day"),
+        (
+            "Ngày Phụ Nữ Việt Nam",
+            20,
+            10,
+            "Vietnamese Women's Day",
+            "social",
+            true,
+        ),
+        (
+            "Ngày Nhà Giáo Việt Nam",
+            20,
+            11,
+            "Vietnamese Teachers' Day",
+            "professional",
+            true,
+        ),
         (
             "Ngày Di Sản Văn Hóa",
             23,
             11,
             "Vietnamese Cultural Heritage Day",
+            "commemorative",
+            true,
         ),
         // International days observed in Vietnam
-        ("Ngày Quốc Tế Phụ Nữ", 8, 3, "International Women's Day"),
+        (
+            "Ngày Quốc Tế Phụ Nữ",
+            8,
+            3,
+            "International Women's Day",
+            "international",
+            true,
+        ),
         (
             "Ngày Quốc Tế Thiếu Nhi",
             1,
             6,
             "International Children's Day",
+            "international",
+            true,
         ),
         (
             "Ngày Chiến Thắng Phát Xít",
             9,
             5,
             "Victory Day over Fascism",
+            "international",
+            true,
         ),
     ];
 
-    for (name, day, month, desc) in national_holidays {
+    for (name, day, month, desc, category, is_major) in national_holidays {
         holidays.push(Holiday {
             name: name.to_string(),
             description: desc.to_string(),
@@ -252,6 +424,8 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
             solar_month: month,
             solar_year,
             is_solar: true,
+            category: category.to_string(),
+            is_major,
         });
     }
 
@@ -263,6 +437,8 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
             month,
             solar_year,
             "First day of lunar month",
+            "lunar-cycle",
+            false,
             time_zone,
         ) {
             holidays.push(h);
@@ -274,6 +450,8 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
             month,
             solar_year,
             "Full moon day",
+            "lunar-cycle",
+            false,
             time_zone,
         ) {
             holidays.push(h);
@@ -298,18 +476,9 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
 /// # Returns
 /// Vector of major holidays only
 pub fn get_major_holidays(solar_year: i32) -> Vec<Holiday> {
-    let all_holidays = get_vietnamese_holidays(solar_year);
-    all_holidays
+    get_vietnamese_holidays(solar_year)
         .into_iter()
-        .filter(|h| {
-            // Keep all solar holidays (national/commemorative/professional days + Thanh Minh)
-            if h.is_solar {
-                return true;
-            }
-            // Filter out the monthly Mùng 1 and Rằm except the special ones
-            (!h.name.starts_with("Mùng 1 tháng") || h.name.contains("Tết"))
-                && (!h.name.starts_with("Rằm tháng") || h.description.contains("Festival"))
-        })
+        .filter(|h| h.is_major)
         .collect()
 }
 

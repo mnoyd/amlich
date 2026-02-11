@@ -7,6 +7,8 @@ import type {
   Lang,
   DayForInsight,
   DateInsight,
+  DateInsightMulti,
+  AnyDateInsight,
   FestivalInsight,
   NationalHolidayInsight,
   NormalDayInsight,
@@ -19,6 +21,7 @@ import type {
   DayGuidance,
   EventCategory,
   EventCategoryType,
+  HolidayInfo,
 } from "./types";
 
 import festivalsData from "./data/festivals.json";
@@ -423,22 +426,51 @@ function buildNormalDayInsight(day: DayForInsight, lang: Lang): NormalDayInsight
 /**
  * Main function to build date insight
  */
-export function buildDateInsight(day: DayForInsight, lang: Lang = "vi"): DateInsight {
-  // Check if this day has a major festival (traditional lunar/solar festivals take priority)
+export function buildDateInsight(day: DayForInsight, lang: Lang = "vi"): AnyDateInsight {
   const festival = findFestival(day);
-  
-  if (festival) {
-    return buildFestivalInsight(festival, day, lang);
-  }
-
-  // Check if this day has a national holiday
   const nationalHoliday = findNationalHoliday(day);
 
-  if (nationalHoliday) {
-    return buildNationalHolidayInsight(nationalHoliday, day, lang);
+  const sections: DateInsight[] = [];
+
+  if (festival) {
+    sections.push(buildFestivalInsight(festival, day, lang));
   }
-  
-  return buildNormalDayInsight(day, lang);
+
+  if (nationalHoliday) {
+    sections.push(buildNationalHolidayInsight(nationalHoliday, day, lang));
+  }
+
+  const normalInsight = buildNormalDayInsight(day, lang);
+
+  if (sections.length === 0) {
+    return normalInsight;
+  }
+
+  if (sections.length === 1) {
+    sections.push(normalInsight);
+  }
+
+  if (sections.length > 1) {
+    const title =
+      lang === "vi"
+        ? `Nhiều sự kiện trong ngày (${sections.length})`
+        : `Multiple events today (${sections.length})`;
+    const subtitle =
+      lang === "vi"
+        ? "Lễ/ngày kỷ niệm và bối cảnh tiết khí được hiển thị cùng nhau"
+        : "Festival/holiday context and solar-term context shown together";
+
+    const multi: DateInsightMulti = {
+      mode: "multi",
+      title,
+      subtitle,
+      sections,
+    };
+
+    return multi;
+  }
+
+  return sections[0];
 }
 
 /**
@@ -486,41 +518,31 @@ const CATEGORY_META: Record<EventCategoryType, {
  * Classify a single holiday by matching against known data sources.
  * Returns the EventCategoryType or null if unclassifiable.
  */
-export function classifyHoliday(holiday: { name: string; is_solar: boolean; is_major: boolean; lunar_day: number | null; lunar_month: number | null }, day: DayForInsight): EventCategoryType {
-  // 1. Check if it matches a traditional festival (lunar-based or Thanh Minh)
-  const festival = findFestival(day);
-  if (festival) {
-    // If the holiday name overlaps with the festival, it's a festival
-    const festivalNames = [...festival.names.vi, ...festival.names.en];
-    for (const fname of festivalNames) {
-      if (holiday.name.includes(fname) || fname.includes(holiday.name)) {
-        return "festival";
-      }
-    }
-    // If not solar and lunar dates match the festival, still a festival
-    if (!holiday.is_solar && holiday.lunar_day === festival.lunarDay && holiday.lunar_month === festival.lunarMonth) {
-      return "festival";
-    }
+export function classifyHoliday(holiday: HolidayInfo, day: DayForInsight): EventCategoryType {
+  // Primary path: category is provided by backend data
+  if (holiday.category) {
+    return holiday.category;
   }
 
-  // 2. Check if it matches a national holiday (solar-based)
+  // Fallback path for legacy payloads without category
+  const festival = findFestival(day);
+  if (festival && !holiday.is_solar && holiday.lunar_day === festival.lunarDay && holiday.lunar_month === festival.lunarMonth) {
+    return "festival";
+  }
+
   const natHoliday = findNationalHoliday(day);
   if (natHoliday && holiday.is_solar) {
     return natHoliday.category;
   }
 
-  // 3. Check for lunar cycle (Mùng 1 / Rằm)
   if (holiday.name.startsWith("Mùng 1 tháng") || holiday.name.startsWith("Rằm tháng")) {
     return "lunar-cycle";
   }
 
-  // 4. For remaining lunar holidays from the backend that aren't in festivals.json
-  //    (e.g. Phật Đản, Trùng Cửu, etc.), treat as festival
   if (!holiday.is_solar && holiday.is_major) {
     return "festival";
   }
 
-  // 5. Remaining solar holidays not in national-holidays.json — try to classify by name patterns
   if (holiday.is_solar) {
     if (holiday.is_major) return "public-holiday";
     return "commemorative";
@@ -552,20 +574,6 @@ export function getDayEventCategories(day: DayForInsight, lang: Lang = "vi"): Ev
       name: holiday.name,
     });
     seenTypes.add(catType);
-  }
-
-  // Check if this is a solar term transition day (tiet_khi is meaningful)
-  // We detect this by checking if the tiet_khi data exists in our dataset
-  // and the day is the actual start date of that term
-  // For simplicity, we check if the day has tiet_khi info and there's tiet_khi data
-  const tietKhi = findTietKhi(day.tiet_khi);
-  if (tietKhi && !seenTypes.has("solar-term")) {
-    // Only show solar term dot on the approximate start day
-    // The tiet_khi field is set for all days in that term range,
-    // so we check if this is lunar day 1 of a month or a specific known start
-    // Actually, tiet_khi changes happen roughly every 15 days
-    // For now, we'll skip auto-adding solar term dots to keep the grid clean
-    // Solar terms show up in the insight panel already
   }
 
   // Sort by priority (lower number = higher priority)

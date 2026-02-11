@@ -1,28 +1,52 @@
 <script lang="ts">
   import { buildDateInsight } from "$lib/insights/date-insight-engine";
-  import type { DayForInsight, Lang, InsightCardExtra } from "$lib/insights/types";
+  import type { DayForInsight, Lang, InsightCardExtra, DateInsight } from "$lib/insights/types";
+
+  type LocalAnyDateInsight = DateInsight | {
+    mode: "multi";
+    title: string;
+    subtitle: string;
+    sections: DateInsight[];
+  };
 
   let { day }: { day: DayForInsight | null } = $props();
 
   // Language state - Vietnamese is primary
   let lang: Lang = $state("vi");
 
-  const insight = $derived(day ? buildDateInsight(day, lang) : null);
+  const insight = $derived<LocalAnyDateInsight | null>(day ? buildDateInsight(day, lang) : null);
+  const sections = $derived<DateInsight[]>(
+    insight == null ? [] : insight.mode === "multi" ? insight.sections : [insight]
+  );
+  const primarySection = $derived<DateInsight | null>(sections.length > 0 ? sections[0] : null);
 
   // Derived helpers for template rendering — avoids Svelte template type narrowing issues
-  const isSpecialDay = $derived(insight != null && insight.mode !== "normal");
-  const isFestival = $derived(insight != null && insight.mode === ("festival" as string));
+  const isSpecialDay = $derived(primarySection != null && primarySection.mode !== "normal");
+  const isFestival = $derived(primarySection != null && primarySection.mode === ("festival" as string));
+  const isMulti = $derived(insight != null && insight.mode === "multi");
   const specialDayTitle = $derived(
-    insight != null && insight.mode !== "normal" ? insight.title : ""
+    insight != null
+      ? insight.mode === "multi"
+        ? insight.title
+        : insight.mode !== "normal"
+          ? insight.title
+          : ""
+      : ""
   );
   const specialDaySubtitle = $derived(
-    insight != null && insight.mode !== "normal" ? insight.subtitle : ""
+    insight != null
+      ? insight.mode === "multi"
+        ? insight.subtitle
+        : insight.mode !== "normal"
+          ? insight.subtitle
+          : ""
+      : ""
   );
 
   // National holiday category helpers
-  const isNationalHoliday = $derived(insight != null && insight.mode === ("national-holiday" as string));
+  const isNationalHoliday = $derived(primarySection != null && primarySection.mode === ("national-holiday" as string));
   const holidayCategory = $derived(
-    isNationalHoliday && insight != null ? (insight as any).category as string | null : null
+    isNationalHoliday && primarySection != null ? (primarySection as any).category as string | null : null
   );
 
   const categoryLabels: Record<string, { vi: string; en: string }> = {
@@ -59,9 +83,11 @@
   >
     <header class="insight-header">
       <div class="header-left">
-        {#if isFestival}
-          <span class="category-badge festival-badge">{lang === "vi" ? "Lễ truyền thống" : "Traditional Festival"}</span>
-        {/if}
+          {#if isMulti}
+            <span class="category-badge">{lang === "vi" ? "Nhiều sự kiện" : "Multiple Contexts"}</span>
+          {:else if isFestival}
+            <span class="category-badge festival-badge">{lang === "vi" ? "Lễ truyền thống" : "Traditional Festival"}</span>
+          {/if}
         {#if isNationalHoliday && categoryLabel}
           <span class="category-badge">{categoryLabel}</span>
         {/if}
@@ -74,12 +100,12 @@
         </h2>
         {#if isSpecialDay && specialDaySubtitle}
           <span class="subtitle">{specialDaySubtitle}</span>
-        {:else if insight.mode === "normal"}
-          <span class="subtitle">
-            {lang === "vi" ? "Tiết khí" : "Solar Term"}: {insight.termName} • {insight.canchiDay}
-          </span>
-        {/if}
-      </div>
+          {:else if primarySection != null && primarySection.mode === "normal"}
+            <span class="subtitle">
+              {lang === "vi" ? "Tiết khí" : "Solar Term"}: {primarySection.termName} • {primarySection.canchiDay}
+            </span>
+          {/if}
+        </div>
       <button
         class="lang-toggle"
         onclick={() => (lang = lang === "vi" ? "en" : "vi")}
@@ -90,137 +116,156 @@
     </header>
 
     <div class="insight-grid">
-      {#each insight.cards as card (card.id)}
-        {@const extra = getExtra(card.extra)}
-        <article class="insight-card {card.id}">
-          <h3 class="card-title">{card.title}</h3>
-          {#if card.subtitle}
-            <p class="card-subtitle">{card.subtitle}</p>
-          {/if}
+      {#each sections as section, sectionIdx (`${section.mode}-${sectionIdx}`)}
+        {#if isMulti}
+          <article class="section-intro">
+            <h3>
+              {#if section.mode === "festival" || section.mode === "national-holiday"}
+                {section.title}
+              {:else}
+                {lang === "vi" ? "Bối cảnh tiết khí & Can Chi" : "Solar Term & Can Chi Context"}
+              {/if}
+            </h3>
+            {#if section.mode === "festival" || section.mode === "national-holiday"}
+              <p>{section.subtitle}</p>
+            {:else}
+              <p>{section.termName} • {section.canchiDay}</p>
+            {/if}
+          </article>
+        {/if}
 
-          {#if card.type === "text"}
-            <p class="card-text">{card.content}</p>
-            {#if extra.weather}
-              <div class="weather-note">
-                <span class="weather-label">{lang === "vi" ? "Thời tiết" : "Weather"}:</span>
-                <span>{extra.weather}</span>
-              </div>
+        {#each section.cards as card (`${section.mode}-${card.id}`)}
+          {@const extra = getExtra(card.extra)}
+          <article class="insight-card {card.id}">
+            <h3 class="card-title">{card.title}</h3>
+            {#if card.subtitle}
+              <p class="card-subtitle">{card.subtitle}</p>
             {/if}
 
-          {:else if card.type === "list"}
-            {#if Array.isArray(card.content) && card.content.length > 0}
-              <ul class="card-list">
-                {#each card.content as item}
-                  <li>{item}</li>
-                {/each}
-              </ul>
-            {/if}
-            
-            {#if extra.canNature}
-              <p class="extra-note">{extra.canNature}</p>
-            {/if}
-
-            {#if extra.goodFor || extra.avoidFor}
-              <div class="guidance-grid">
-                {#if extra.goodFor}
-                  <div class="guidance-col good">
-                    <h4>{extra.goodFor.title}</h4>
-                    <ul>
-                      {#each extra.goodFor.items as item}
-                        <li>{item}</li>
-                      {/each}
-                    </ul>
-                  </div>
-                {/if}
-                {#if extra.avoidFor}
-                  <div class="guidance-col avoid">
-                    <h4>{extra.avoidFor.title}</h4>
-                    <ul>
-                      {#each extra.avoidFor.items as item}
-                        <li>{item}</li>
-                      {/each}
-                    </ul>
-                  </div>
-                {/if}
-              </div>
-            {/if}
-
-            {#if extra.agriculture || extra.health}
-              <div class="wellness-grid">
-                {#if extra.agriculture}
-                  <div class="wellness-col">
-                    <h4>{extra.agriculture.title}</h4>
-                    <ul>
-                      {#each extra.agriculture.items as item}
-                        <li>{item}</li>
-                      {/each}
-                    </ul>
-                  </div>
-                {/if}
-                {#if extra.health}
-                  <div class="wellness-col">
-                    <h4>{extra.health.title}</h4>
-                    <ul>
-                      {#each extra.health.items as item}
-                        <li>{item}</li>
-                      {/each}
-                    </ul>
-                  </div>
-                {/if}
-              </div>
-            {/if}
-
-          {:else if card.type === "proverb"}
-            {#if extra.proverbs}
-              <div class="proverbs-list">
-                {#each extra.proverbs as proverb}
-                  <blockquote class="proverb">
-                    <p class="proverb-text">"{proverb.text}"</p>
-                    <footer class="proverb-meaning">{proverb.meaning}</footer>
-                  </blockquote>
-                {/each}
-              </div>
-            {/if}
-
-          {:else if card.type === "region-tabs"}
-            {#if extra.north && extra.central && extra.south}
-              <div class="region-tabs">
-                <div class="tab-buttons">
-                  <button
-                    class="tab-btn"
-                    class:active={activeRegion === "north"}
-                    onclick={() => (activeRegion = "north")}
-                  >
-                    {extra.north.title}
-                  </button>
-                  <button
-                    class="tab-btn"
-                    class:active={activeRegion === "central"}
-                    onclick={() => (activeRegion = "central")}
-                  >
-                    {extra.central.title}
-                  </button>
-                  <button
-                    class="tab-btn"
-                    class:active={activeRegion === "south"}
-                    onclick={() => (activeRegion = "south")}
-                  >
-                    {extra.south.title}
-                  </button>
+            {#if card.type === "text"}
+              <p class="card-text">{card.content}</p>
+              {#if extra.weather}
+                <div class="weather-note">
+                  <span class="weather-label">{lang === "vi" ? "Thời tiết" : "Weather"}:</span>
+                  <span>{extra.weather}</span>
                 </div>
-                <div class="tab-content">
-                  {#if activeRegion === "north"}
-                    <p>{extra.north.content}</p>
-                  {:else if activeRegion === "central"}
-                    <p>{extra.central.content}</p>
-                  {:else}
-                    <p>{extra.south.content}</p>
+              {/if}
+
+            {:else if card.type === "list"}
+              {#if Array.isArray(card.content) && card.content.length > 0}
+                <ul class="card-list">
+                  {#each card.content as item}
+                    <li>{item}</li>
+                  {/each}
+                </ul>
+              {/if}
+              
+              {#if extra.canNature}
+                <p class="extra-note">{extra.canNature}</p>
+              {/if}
+
+              {#if extra.goodFor || extra.avoidFor}
+                <div class="guidance-grid">
+                  {#if extra.goodFor}
+                    <div class="guidance-col good">
+                      <h4>{extra.goodFor.title}</h4>
+                      <ul>
+                        {#each extra.goodFor.items as item}
+                          <li>{item}</li>
+                        {/each}
+                      </ul>
+                    </div>
+                  {/if}
+                  {#if extra.avoidFor}
+                    <div class="guidance-col avoid">
+                      <h4>{extra.avoidFor.title}</h4>
+                      <ul>
+                        {#each extra.avoidFor.items as item}
+                          <li>{item}</li>
+                        {/each}
+                      </ul>
+                    </div>
                   {/if}
                 </div>
-              </div>
+              {/if}
+
+              {#if extra.agriculture || extra.health}
+                <div class="wellness-grid">
+                  {#if extra.agriculture}
+                    <div class="wellness-col">
+                      <h4>{extra.agriculture.title}</h4>
+                      <ul>
+                        {#each extra.agriculture.items as item}
+                          <li>{item}</li>
+                        {/each}
+                      </ul>
+                    </div>
+                  {/if}
+                  {#if extra.health}
+                    <div class="wellness-col">
+                      <h4>{extra.health.title}</h4>
+                      <ul>
+                        {#each extra.health.items as item}
+                          <li>{item}</li>
+                        {/each}
+                      </ul>
+                    </div>
+                  {/if}
+                </div>
+              {/if}
+
+            {:else if card.type === "proverb"}
+              {#if extra.proverbs}
+                <div class="proverbs-list">
+                  {#each extra.proverbs as proverb}
+                    <blockquote class="proverb">
+                      <p class="proverb-text">"{proverb.text}"</p>
+                      <footer class="proverb-meaning">{proverb.meaning}</footer>
+                    </blockquote>
+                  {/each}
+                </div>
+              {/if}
+
+            {:else if card.type === "region-tabs"}
+              {#if extra.north && extra.central && extra.south}
+                <div class="region-tabs">
+                  <div class="tab-buttons">
+                    <button
+                      class="tab-btn"
+                      class:active={activeRegion === "north"}
+                      onclick={() => (activeRegion = "north")}
+                    >
+                      {extra.north.title}
+                    </button>
+                    <button
+                      class="tab-btn"
+                      class:active={activeRegion === "central"}
+                      onclick={() => (activeRegion = "central")}
+                    >
+                      {extra.central.title}
+                    </button>
+                    <button
+                      class="tab-btn"
+                      class:active={activeRegion === "south"}
+                      onclick={() => (activeRegion = "south")}
+                    >
+                      {extra.south.title}
+                    </button>
+                  </div>
+                  <div class="tab-content">
+                    {#if activeRegion === "north"}
+                      <p>{extra.north.content}</p>
+                    {:else if activeRegion === "central"}
+                      <p>{extra.central.content}</p>
+                    {:else}
+                      <p>{extra.south.content}</p>
+                    {/if}
+                  </div>
+                </div>
+              {/if}
             {/if}
-          {/if}
-        </article>
+          </article>
+        {/each}
       {/each}
     </div>
   </section>
@@ -368,6 +413,27 @@
     border-radius: 10px;
     padding: 10px 12px;
     transition: all 0.2s;
+  }
+
+  .section-intro {
+    grid-column: 1 / -1;
+    padding: 6px 8px;
+    border-left: 3px solid var(--accent-gold);
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 6px;
+  }
+
+  .section-intro h3 {
+    margin: 0;
+    font-size: 0.86rem;
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .section-intro p {
+    margin: 4px 0 0;
+    font-size: 0.76rem;
+    color: var(--text-secondary);
   }
 
   .insight-card:hover {

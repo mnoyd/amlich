@@ -5,6 +5,58 @@
 
 export type Lang = "vi" | "en";
 
+export type HolidayInfo = {
+  name: string;
+  description: string;
+  is_solar: boolean;
+  lunar_day: number | null;
+  lunar_month: number | null;
+  category:
+    | "festival"
+    | "public-holiday"
+    | "commemorative"
+    | "professional"
+    | "social"
+    | "international"
+    | "lunar-cycle";
+  is_major: boolean;
+};
+
+export type GoodHour = {
+  hour_chi: string;
+  time_range: string;
+  star: string;
+};
+
+export type DayCell = {
+  day: number;
+  month: number;
+  year: number;
+  day_of_week_index: number;
+  day_of_week: string;
+  solar_date: string;
+  lunar_day: number;
+  lunar_month: number;
+  lunar_year: number;
+  lunar_leap: boolean;
+  lunar_date: string;
+  canchi_day: string;
+  canchi_month: string;
+  canchi_year: string;
+  tiet_khi: string;
+  tiet_khi_description: string;
+  tiet_khi_season: string;
+  good_hours: GoodHour[];
+  holidays: HolidayInfo[];
+};
+
+export type MonthData = {
+  month: number;
+  year: number;
+  first_weekday: number;
+  days: DayCell[];
+};
+
 // Bilingual text helper
 export type BilingualText = {
   vi: string;
@@ -199,6 +251,15 @@ export type NormalDayInsight = {
 
 export type DateInsight = FestivalInsight | NationalHolidayInsight | NormalDayInsight;
 
+export type DateInsightMulti = {
+  mode: "multi";
+  title: string;
+  subtitle: string;
+  sections: (FestivalInsight | NationalHolidayInsight | NormalDayInsight)[];
+};
+
+export type AnyDateInsight = DateInsight | DateInsightMulti;
+
 // ============================================
 // Event Category Types (for visual indicators)
 // ============================================
@@ -227,26 +288,20 @@ export type EventCategory = {
 // Input Day Type (from calendar)
 // ============================================
 
-export type DayForInsight = {
-  day: number;
-  month: number;
-  year: number;
-  lunar_day: number;
-  lunar_month: number;
-  lunar_year: number;
-  lunar_leap: boolean;
-  canchi_day: string;
-  canchi_month: string;
-  canchi_year: string;
-  tiet_khi: string;
-  tiet_khi_description: string;
-  tiet_khi_season: string;
-  holidays: {
-    name: string;
-    description: string;
-    is_solar: boolean;
-    lunar_day: number | null;
-    lunar_month: number | null;
-    is_major: boolean;
-  }[];
-};
+export type DayForInsight = Pick<
+  DayCell,
+  | "day"
+  | "month"
+  | "year"
+  | "lunar_day"
+  | "lunar_month"
+  | "lunar_year"
+  | "lunar_leap"
+  | "canchi_day"
+  | "canchi_month"
+  | "canchi_year"
+  | "tiet_khi"
+  | "tiet_khi_description"
+  | "tiet_khi_season"
+  | "holidays"
+>;

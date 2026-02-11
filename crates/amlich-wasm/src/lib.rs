@@ -112,6 +112,8 @@ struct WasmHoliday {
     lunar_month: Option<i32>,
     lunar_year: Option<i32>,
     is_solar: bool,
+    category: String,
+    is_major: bool,
 }
 
 fn convert_canchi(cc: &amlich_core::CanChi) -> WasmCanChi {
@@ -298,6 +300,8 @@ pub fn get_holidays(solar_year: i32) -> JsValue {
             lunar_month: h.lunar_date.as_ref().map(|l| l.month),
             lunar_year: h.lunar_date.as_ref().map(|l| l.year),
             is_solar: h.is_solar,
+            category: h.category,
+            is_major: h.is_major,
         })
         .collect();
     serde_wasm_bindgen::to_value(&result).unwrap_or(JsValue::NULL)
@@ -319,6 +323,8 @@ pub fn get_major_holidays_js(solar_year: i32) -> JsValue {
             lunar_month: h.lunar_date.as_ref().map(|l| l.month),
             lunar_year: h.lunar_date.as_ref().map(|l| l.year),
             is_solar: h.is_solar,
+            category: h.category,
+            is_major: h.is_major,
         })
         .collect();
     serde_wasm_bindgen::to_value(&result).unwrap_or(JsValue::NULL)
