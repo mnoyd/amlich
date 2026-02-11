@@ -4,6 +4,9 @@
       "id": "tet-nguyen-dan",
       "lunarDay": 1,
       "lunarMonth": 1,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Tết Nguyên Đán", "Mùng Một Tết", "Tết Cả"],
         "en": ["Vietnamese New Year", "Lunar New Year", "Tết"]
@@ -104,9 +107,52 @@
       }
     },
     {
+      "id": "mung-2-tet",
+      "lunarDay": 2,
+      "lunarMonth": 1,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Mùng 2 Tết"],
+        "en": ["Second Day of Tết"]
+      },
+      "origin": {
+        "vi": "Mùng 2 Tết là ngày thứ hai của dịp Tết Nguyên Đán, theo truyền thống là ngày về bên ngoại (nhà mẹ đẻ).",
+        "en": "The second day of Tết is traditionally the day to visit the maternal family."
+      },
+      "activities": {
+        "vi": ["Về thăm bên ngoại", "Chúc Tết họ hàng", "Lì xì"],
+        "en": ["Visit maternal family", "Give New Year wishes to relatives", "Give lucky money"]
+      }
+    },
+    {
+      "id": "mung-3-tet",
+      "lunarDay": 3,
+      "lunarMonth": 1,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Mùng 3 Tết"],
+        "en": ["Third Day of Tết"]
+      },
+      "origin": {
+        "vi": "Mùng 3 Tết là ngày thứ ba của dịp Tết Nguyên Đán, theo truyền thống là ngày đi thăm thầy cô giáo.",
+        "en": "The third day of Tết is traditionally the day to visit teachers."
+      },
+      "activities": {
+        "vi": ["Thăm thầy cô giáo", "Chúc Tết bạn bè", "Du xuân"],
+        "en": ["Visit teachers", "Give New Year wishes to friends", "Spring outing"]
+      }
+    },
+    {
       "id": "tet-nguyen-tieu",
       "lunarDay": 15,
       "lunarMonth": 1,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Tết Nguyên Tiêu", "Rằm tháng Giêng", "Tết Thượng Nguyên"],
         "en": ["Lantern Festival", "First Full Moon Festival", "Upper Primordial Festival"]
@@ -194,6 +240,9 @@
       "id": "tet-han-thuc",
       "lunarDay": 3,
       "lunarMonth": 3,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Tết Hàn Thực", "Tết bánh trôi bánh chay"],
         "en": ["Cold Food Festival", "Rice Ball Festival"]
@@ -260,6 +309,9 @@
       "isSolar": true,
       "solarDay": 5,
       "solarMonth": 4,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Tết Thanh Minh", "Tiết Thanh Minh"],
         "en": ["Tomb Sweeping Day", "Pure Brightness Festival"]
@@ -337,6 +389,9 @@
       "id": "phat-dan",
       "lunarDay": 15,
       "lunarMonth": 4,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Lễ Phật Đản", "Rằm tháng Tư", "Vesak"],
         "en": ["Buddha's Birthday", "Vesak Day", "Buddha Day"]
@@ -412,6 +467,9 @@
       "id": "tet-doan-ngo",
       "lunarDay": 5,
       "lunarMonth": 5,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Tết Đoan Ngọ", "Tết giết sâu bọ", "Tết Đoan Dương"],
         "en": ["Dragon Boat Festival", "Double Fifth Festival", "Pesticide Day"]
@@ -491,6 +549,9 @@
       "id": "vu-lan",
       "lunarDay": 15,
       "lunarMonth": 7,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Lễ Vu Lan", "Rằm tháng Bảy", "Lễ Xá Tội Vong Nhân"],
         "en": ["Vu Lan Festival", "Ghost Festival", "Parents' Day"]
@@ -578,6 +639,9 @@
       "id": "tet-trung-thu",
       "lunarDay": 15,
       "lunarMonth": 8,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Tết Trung Thu", "Tết Thiếu Nhi", "Tết Đoàn Viên"],
         "en": ["Mid-Autumn Festival", "Children's Festival", "Moon Festival"]
@@ -653,6 +717,9 @@
       "id": "tet-trung-cuu",
       "lunarDay": 9,
       "lunarMonth": 9,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Tết Trùng Cửu", "Tết Trùng Dương"],
         "en": ["Double Ninth Festival", "Chongyang Festival"]
@@ -718,6 +785,9 @@
       "id": "tet-ha-nguyen",
       "lunarDay": 15,
       "lunarMonth": 10,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Tết Hạ Nguyên", "Rằm tháng Mười", "Tết cơm mới"],
         "en": ["Lower Primordial Festival", "Tenth Month Full Moon"]
@@ -781,6 +851,9 @@
       "id": "ong-tao",
       "lunarDay": 23,
       "lunarMonth": 12,
+      "yearOffset": -1,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Ông Táo chầu trời", "Tết ông Công ông Táo", "Tiễn Táo Quân"],
         "en": ["Kitchen Gods Day", "Farewell to Kitchen Gods"]
@@ -858,6 +931,9 @@
       "id": "giao-thua",
       "lunarDay": 30,
       "lunarMonth": 12,
+      "yearOffset": -1,
+      "category": "festival",
+      "isMajor": true,
       "names": {
         "vi": ["Giao Thừa", "Đêm 30 Tết", "Đêm Trừ Tịch"],
         "en": ["New Year's Eve", "Lunar New Year's Eve"]

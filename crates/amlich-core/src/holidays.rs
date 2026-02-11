@@ -1,12 +1,66 @@
 /**
  * Vietnamese Holidays Module
  *
- * Provides functions to get Vietnamese lunar holidays for a given year
+ * Provides functions to get Vietnamese lunar holidays for a given year.
+ * Holiday data is loaded from shared JSON files at compile time.
  */
 use crate::julian::{jd_from_date, jd_to_date};
 use crate::lunar::{convert_lunar_to_solar, LunarDate};
 use crate::tietkhi::get_all_tiet_khi_for_year;
 use crate::types::VIETNAM_TIMEZONE;
+use serde::Deserialize;
+
+/// Compile-time embedded holiday data from shared JSON files
+const SOLAR_HOLIDAYS_JSON: &str = include_str!("../../../data/holidays/solar-holidays.json");
+const LUNAR_FESTIVALS_JSON: &str = include_str!("../../../data/holidays/lunar-festivals.json");
+
+// -- Deserialization structs for solar holidays JSON --
+
+#[derive(Deserialize)]
+struct SolarHolidaysFile {
+    holidays: Vec<SolarHolidayData>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct SolarHolidayData {
+    solar_day: i32,
+    solar_month: i32,
+    category: String,
+    is_major: bool,
+    names: Names,
+}
+
+// -- Deserialization structs for lunar festivals JSON --
+
+#[derive(Deserialize)]
+struct LunarFestivalsFile {
+    festivals: Vec<LunarFestivalData>,
+}
+
+#[allow(dead_code)]
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct LunarFestivalData {
+    lunar_day: i32,
+    lunar_month: i32,
+    year_offset: i32,
+    category: String,
+    is_major: bool,
+    names: Names,
+    #[serde(default)]
+    is_solar: bool,
+    #[serde(default)]
+    solar_day: Option<i32>,
+    #[serde(default)]
+    solar_month: Option<i32>,
+}
+
+#[derive(Deserialize)]
+struct Names {
+    vi: Vec<String>,
+    en: Vec<String>,
+}
 
 /// Information about a Vietnamese holiday
 #[derive(Debug, Clone)]
@@ -76,131 +130,30 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
     let time_zone = VIETNAM_TIMEZONE;
     let mut holidays = Vec::new();
 
-    // Add major holidays
-    let major = vec![
-        (
-            "Tết Nguyên Đán (Mùng 1 Tết)",
-            1,
-            1,
-            solar_year,
-            "Vietnamese New Year - First day",
-            "festival",
-            true,
-        ),
-        (
-            "Mùng 2 Tết",
-            2,
-            1,
-            solar_year,
-            "Second day of Tết",
-            "festival",
-            true,
-        ),
-        (
-            "Mùng 3 Tết",
-            3,
-            1,
-            solar_year,
-            "Third day of Tết",
-            "festival",
-            true,
-        ),
-        (
-            "Tết Nguyên Tiêu (Rằm tháng Giêng)",
-            15,
-            1,
-            solar_year,
-            "Lantern Festival",
-            "festival",
-            true,
-        ),
-        (
-            "Tết Hàn Thực",
-            3,
-            3,
-            solar_year,
-            "Cold Food Festival",
-            "festival",
-            true,
-        ),
-        (
-            "Phật Đản (Rằm tháng Tư)",
-            15,
-            4,
-            solar_year,
-            "Buddha's Birthday",
-            "festival",
-            true,
-        ),
-        (
-            "Tết Đoan Ngọ",
-            5,
-            5,
-            solar_year,
-            "Dragon Boat Festival",
-            "festival",
-            true,
-        ),
-        (
-            "Vu Lan (Rằm tháng Bảy)",
-            15,
-            7,
-            solar_year,
-            "Parents' Day / Wandering Souls",
-            "festival",
-            true,
-        ),
-        (
-            "Tết Trung Thu (Rằm tháng Tám)",
-            15,
-            8,
-            solar_year,
-            "Mid-Autumn Festival / Children's Festival",
-            "festival",
-            true,
-        ),
-        (
-            "Tết Trùng Cửu",
-            9,
-            9,
-            solar_year,
-            "Double Ninth Festival",
-            "festival",
-            true,
-        ),
-        (
-            "Tết Hạ Nguyên (Rằm tháng Mười)",
-            15,
-            10,
-            solar_year,
-            "Lower Nguyên Festival",
-            "festival",
-            true,
-        ),
-        (
-            "Ông Táo chầu trời",
-            23,
-            12,
-            solar_year - 1,
-            "Kitchen Gods go to Heaven",
-            "festival",
-            true,
-        ),
-        (
-            "Giao Thừa (Đêm giao thừa)",
-            30,
-            12,
-            solar_year - 1,
-            "New Year's Eve",
-            "festival",
-            true,
-        ),
-    ];
+    // -- Lunar festivals from shared JSON data --
+    let lunar_data: LunarFestivalsFile =
+        serde_json::from_str(LUNAR_FESTIVALS_JSON).expect("Failed to parse lunar-festivals.json");
 
-    for (name, day, month, year, desc, category, is_major) in major {
-        if let Some(h) =
-            create_lunar_holiday(name, day, month, year, desc, category, is_major, time_zone)
-        {
+    for festival in &lunar_data.festivals {
+        // Skip solar-based entries (e.g. Thanh Minh) — handled separately via solar term computation
+        if festival.is_solar {
+            continue;
+        }
+
+        let name = &festival.names.vi[0];
+        let description = &festival.names.en[0];
+        let lunar_year = solar_year + festival.year_offset;
+
+        if let Some(h) = create_lunar_holiday(
+            name,
+            festival.lunar_day,
+            festival.lunar_month,
+            lunar_year,
+            description,
+            &festival.category,
+            festival.is_major,
+            time_zone,
+        ) {
             holidays.push(h);
         }
     }
@@ -224,396 +177,24 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
         is_major: true,
     });
 
-    // National / Solar holidays
-    let national_holidays = vec![
-        // Public holidays (ngày lễ chính thức, nghỉ lễ)
-        (
-            "Tết Dương Lịch",
-            1,
-            1,
-            "New Year's Day",
-            "public-holiday",
-            true,
-        ),
-        (
-            "Ngày Giải Phóng Miền Nam",
-            30,
-            4,
-            "Reunification Day",
-            "public-holiday",
-            true,
-        ),
-        (
-            "Ngày Quốc Tế Lao Động",
-            1,
-            5,
-            "International Workers' Day",
-            "public-holiday",
-            true,
-        ),
-        (
-            "Ngày Quốc Khánh",
-            2,
-            9,
-            "National Day / Independence Day",
-            "public-holiday",
-            true,
-        ),
-        // Commemorative days (ngày kỷ niệm)
-        (
-            "Ngày Thành Lập Đảng",
-            3,
-            2,
-            "Founding of the Communist Party of Vietnam",
-            "commemorative",
-            true,
-        ),
-        (
-            "Lễ Tình Nhân (Valentine)",
-            14,
-            2,
-            "Valentine's Day",
-            "social",
-            true,
-        ),
-        (
-            "Ngày Quyền Của Người Tiêu Dùng Việt Nam",
-            15,
-            3,
-            "Vietnam Consumer Rights Day",
-            "social",
-            true,
-        ),
-        (
-            "Ngày Chiến Thắng Điện Biên Phủ",
-            7,
-            5,
-            "Điện Biên Phủ Victory Day",
-            "commemorative",
-            true,
-        ),
-        (
-            "Ngày Quốc Tế Gia Đình",
-            15,
-            5,
-            "International Day of Families",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Sinh Chủ Tịch Hồ Chí Minh",
-            19,
-            5,
-            "President Hồ Chí Minh's Birthday",
-            "commemorative",
-            true,
-        ),
-        (
-            "Ngày Thương Binh - Liệt Sĩ",
-            27,
-            7,
-            "War Invalids and Martyrs Day",
-            "commemorative",
-            true,
-        ),
-        (
-            "Ngày Cách Mạng Tháng Tám",
-            19,
-            8,
-            "August Revolution Day",
-            "commemorative",
-            true,
-        ),
-        (
-            "Ngày Truyền Thống Công An Nhân Dân",
-            19,
-            8,
-            "People's Public Security Traditional Day",
-            "commemorative",
-            true,
-        ),
-        (
-            "Ngày Giải Phóng Thủ Đô",
-            10,
-            10,
-            "Liberation Day of the Capital",
-            "commemorative",
-            true,
-        ),
-        (
-            "Ngày Thành Lập Quân Đội",
-            22,
-            12,
-            "Vietnam People's Army Founding Day",
-            "commemorative",
-            true,
-        ),
-        // Professional / tradition days (ngày truyền thống ngành)
-        (
-            "Ngày Học Sinh - Sinh Viên",
-            9,
-            1,
-            "Vietnamese Students' Day",
-            "professional",
-            true,
-        ),
-        (
-            "Ngày Thầy Thuốc Việt Nam",
-            27,
-            2,
-            "Vietnamese Doctors' Day",
-            "professional",
-            true,
-        ),
-        (
-            "Ngày Thành Lập Đoàn TNCS",
-            26,
-            3,
-            "Founding of Hồ Chí Minh Communist Youth Union",
-            "professional",
-            true,
-        ),
-        (
-            "Ngày Khoa Học và Công Nghệ Việt Nam",
-            18,
-            5,
-            "Vietnam Science and Technology Day",
-            "professional",
-            true,
-        ),
-        (
-            "Ngày Quốc Tế Hạnh Phúc",
-            20,
-            3,
-            "International Day of Happiness",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Sách Việt Nam",
-            21,
-            4,
-            "Vietnamese Book and Reading Culture Day",
-            "professional",
-            true,
-        ),
-        ("Ngày Cá Tháng Tư", 1, 4, "April Fools' Day", "social", true),
-        (
-            "Ngày Kiến Trúc Sư Việt Nam",
-            27,
-            4,
-            "Vietnamese Architects' Day",
-            "professional",
-            true,
-        ),
-        ("Ngày Trái Đất", 22, 4, "Earth Day", "international", true),
-        (
-            "Ngày Gia Đình Việt Nam",
-            28,
-            6,
-            "Vietnamese Family Day",
-            "social",
-            true,
-        ),
-        (
-            "Ngày Dân Số Thế Giới",
-            11,
-            7,
-            "World Population Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Quốc Tế Thanh Niên",
-            12,
-            8,
-            "International Youth Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Doanh Nhân Việt Nam",
-            13,
-            10,
-            "Vietnamese Entrepreneurs' Day",
-            "professional",
-            true,
-        ),
-        (
-            "Ngày Chuyển Đổi Số Quốc Gia",
-            10,
-            10,
-            "National Digital Transformation Day",
-            "professional",
-            true,
-        ),
-        (
-            "Ngày Quốc Tế Người Cao Tuổi",
-            1,
-            10,
-            "International Day of Older Persons",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Quốc Tế Hòa Bình",
-            21,
-            9,
-            "International Day of Peace",
-            "international",
-            true,
-        ),
-        ("Halloween", 31, 10, "Halloween", "international", true),
-        (
-            "Ngày Phụ Nữ Việt Nam",
-            20,
-            10,
-            "Vietnamese Women's Day",
-            "social",
-            true,
-        ),
-        (
-            "Ngày Pháp Luật Việt Nam",
-            9,
-            11,
-            "Vietnam Law Day",
-            "commemorative",
-            true,
-        ),
-        (
-            "Ngày Nhà Giáo Việt Nam",
-            20,
-            11,
-            "Vietnamese Teachers' Day",
-            "professional",
-            true,
-        ),
-        (
-            "Ngày Quốc Tế Nam Giới",
-            19,
-            11,
-            "International Men's Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Thành Lập Hội Chữ Thập Đỏ Việt Nam",
-            23,
-            11,
-            "Vietnam Red Cross Society Founding Day",
-            "social",
-            true,
-        ),
-        (
-            "Ngày Di Sản Văn Hóa",
-            23,
-            11,
-            "Vietnamese Cultural Heritage Day",
-            "commemorative",
-            true,
-        ),
-        (
-            "Ngày Thế Giới Phòng Chống AIDS",
-            1,
-            12,
-            "World AIDS Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Quốc Tế Người Khuyết Tật",
-            3,
-            12,
-            "International Day of Persons with Disabilities",
-            "international",
-            true,
-        ),
-        (
-            "Lễ Giáng Sinh",
-            25,
-            12,
-            "Christmas Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Toàn Quốc Kháng Chiến",
-            19,
-            12,
-            "National Resistance Day",
-            "commemorative",
-            true,
-        ),
-        // International days observed in Vietnam
-        (
-            "Ngày Quốc Tế Phụ Nữ",
-            8,
-            3,
-            "International Women's Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Nước Thế Giới",
-            22,
-            3,
-            "World Water Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Sức Khỏe Thế Giới",
-            7,
-            4,
-            "World Health Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Quốc Tế Thiếu Nhi",
-            1,
-            6,
-            "International Children's Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Xóa Mù Chữ Quốc Tế",
-            8,
-            9,
-            "International Literacy Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Môi Trường Thế Giới",
-            5,
-            6,
-            "World Environment Day",
-            "international",
-            true,
-        ),
-        (
-            "Ngày Chiến Thắng Phát Xít",
-            9,
-            5,
-            "Victory Day over Fascism",
-            "international",
-            true,
-        ),
-    ];
+    // -- Solar holidays from shared JSON data --
+    let solar_data: SolarHolidaysFile =
+        serde_json::from_str(SOLAR_HOLIDAYS_JSON).expect("Failed to parse solar-holidays.json");
 
-    for (name, day, month, desc, category, is_major) in national_holidays {
+    for holiday_data in &solar_data.holidays {
+        let name = &holiday_data.names.vi[0];
+        let description = &holiday_data.names.en[0];
+
         holidays.push(Holiday {
-            name: name.to_string(),
-            description: desc.to_string(),
+            name: name.clone(),
+            description: description.clone(),
             lunar_date: None,
-            solar_day: day,
-            solar_month: month,
+            solar_day: holiday_data.solar_day,
+            solar_month: holiday_data.solar_month,
             solar_year,
             is_solar: true,
-            category: category.to_string(),
-            is_major,
+            category: holiday_data.category.clone(),
+            is_major: holiday_data.is_major,
         });
     }
 

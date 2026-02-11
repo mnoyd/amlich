@@ -24,10 +24,10 @@ import type {
   HolidayInfo,
 } from "./types";
 
-import festivalsData from "./data/festivals.json";
-import nationalHolidaysData from "./data/national-holidays.json";
-import tietKhiData from "./data/tiet-khi.json";
-import canchiData from "./data/canchi.json";
+import festivalsData from "../../../../../data/holidays/lunar-festivals.json";
+import nationalHolidaysData from "../../../../../data/holidays/solar-holidays.json";
+import tietKhiData from "../../../../../data/tiet-khi.json";
+import canchiData from "../../../../../data/canchi.json";
 
 // Type assertions for imported JSON
 const festivals = festivalsData.festivals as FestivalData[];

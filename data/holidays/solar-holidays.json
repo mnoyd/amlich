@@ -6,9 +6,16 @@
       "solarDay": 1,
       "solarMonth": 1,
       "category": "public-holiday",
+      "isMajor": true,
       "names": {
-        "vi": ["Tết Dương Lịch", "Ngày đầu năm mới"],
-        "en": ["New Year's Day", "Solar New Year"]
+        "vi": [
+          "Tết Dương Lịch",
+          "Ngày đầu năm mới"
+        ],
+        "en": [
+          "New Year's Day",
+          "Solar New Year"
+        ]
       },
       "origin": {
         "vi": "Tết Dương Lịch được công nhận là ngày lễ chính thức tại Việt Nam từ sau năm 1945. Trước đó, người Việt chủ yếu đón năm mới theo lịch âm (Tết Nguyên Đán). Khi Việt Nam hội nhập quốc tế, Tết Dương Lịch trở thành dịp để người dân nghỉ ngơi, chào đón năm mới theo lịch phương Tây, đồng thời giữ gìn truyền thống Tết Âm Lịch.",
@@ -39,9 +46,14 @@
       "solarDay": 9,
       "solarMonth": 1,
       "category": "professional",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Truyền Thống Học Sinh - Sinh Viên Việt Nam"],
-        "en": ["Vietnamese Students' Day"]
+        "vi": [
+          "Ngày Truyền Thống Học Sinh - Sinh Viên Việt Nam"
+        ],
+        "en": [
+          "Vietnamese Students' Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 9 tháng 1 năm 1950, Đoàn Thanh Niên Cứu Quốc và Đoàn Học Sinh Sài Gòn - Chợ Lớn tổ chức cuộc biểu tình lớn trước Dinh Norodom (nay là Dinh Độc Lập) đòi thực hiện các quyền dân sinh, dân chủ và bảo vệ nền độc lập. Học sinh Trần Văn Ơn bị bắn chết trong cuộc biểu tình, trở thành biểu tượng cho tinh thần đấu tranh của học sinh, sinh viên Việt Nam.",
@@ -70,9 +82,14 @@
       "solarDay": 3,
       "solarMonth": 2,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Thành Lập Đảng Cộng Sản Việt Nam"],
-        "en": ["Founding Anniversary of the Communist Party of Vietnam"]
+        "vi": [
+          "Ngày Thành Lập Đảng Cộng Sản Việt Nam"
+        ],
+        "en": [
+          "Founding Anniversary of the Communist Party of Vietnam"
+        ]
       },
       "origin": {
         "vi": "Ngày 3 tháng 2 năm 1930, Đảng Cộng Sản Việt Nam được thành lập tại Hương Cảng (Hong Kong) dưới sự chủ trì của Nguyễn Ái Quốc (Hồ Chí Minh). Sự kiện này đánh dấu bước ngoặt quan trọng trong lịch sử cách mạng Việt Nam, thống nhất ba tổ chức cộng sản thành một đảng duy nhất lãnh đạo phong trào cách mạng.",
@@ -103,9 +120,15 @@
       "solarDay": 27,
       "solarMonth": 2,
       "category": "professional",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Thầy Thuốc Việt Nam"],
-        "en": ["Vietnamese Doctors' Day", "Vietnamese Physicians' Day"]
+        "vi": [
+          "Ngày Thầy Thuốc Việt Nam"
+        ],
+        "en": [
+          "Vietnamese Doctors' Day",
+          "Vietnamese Physicians' Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 27 tháng 2 năm 1955, Chủ tịch Hồ Chí Minh viết thư gửi Hội nghị cán bộ y tế toàn quốc, căn dặn \"Lương y như từ mẫu\" (người thầy thuốc giỏi như mẹ hiền). Năm 1955, ngày này được chọn làm Ngày Thầy Thuốc Việt Nam để tôn vinh những người làm trong ngành y tế.",
@@ -134,9 +157,14 @@
       "solarDay": 8,
       "solarMonth": 3,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Phụ Nữ"],
-        "en": ["International Women's Day"]
+        "vi": [
+          "Ngày Quốc Tế Phụ Nữ"
+        ],
+        "en": [
+          "International Women's Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 8 tháng 3 được Liên Hợp Quốc công nhận là Ngày Quốc Tế Phụ Nữ từ năm 1977, nhưng có nguồn gốc từ phong trào đấu tranh của phụ nữ lao động ở Mỹ và châu Âu đầu thế kỷ 20. Tại Việt Nam, ngày này được kỷ niệm rộng rãi để tôn vinh phụ nữ trong gia đình và xã hội.",
@@ -167,9 +195,14 @@
       "solarDay": 26,
       "solarMonth": 3,
       "category": "professional",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Thành Lập Đoàn Thanh Niên Cộng Sản Hồ Chí Minh"],
-        "en": ["Founding Anniversary of Hồ Chí Minh Communist Youth Union"]
+        "vi": [
+          "Ngày Thành Lập Đoàn Thanh Niên Cộng Sản Hồ Chí Minh"
+        ],
+        "en": [
+          "Founding Anniversary of Hồ Chí Minh Communist Youth Union"
+        ]
       },
       "origin": {
         "vi": "Ngày 26 tháng 3 năm 1931, tại Hội nghị Ban Chấp hành Trung ương Đảng lần thứ 2, Đoàn Thanh Niên Cộng Sản Đông Dương (nay là Đoàn TNCS Hồ Chí Minh) được chính thức thành lập. Đoàn là tổ chức chính trị - xã hội của thanh niên Việt Nam, đóng vai trò nòng cốt trong các phong trào cách mạng và xây dựng đất nước.",
@@ -200,9 +233,14 @@
       "solarDay": 21,
       "solarMonth": 4,
       "category": "professional",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Sách và Văn Hóa Đọc Việt Nam"],
-        "en": ["Vietnamese Book and Reading Culture Day"]
+        "vi": [
+          "Ngày Sách và Văn Hóa Đọc Việt Nam"
+        ],
+        "en": [
+          "Vietnamese Book and Reading Culture Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 21 tháng 4 được Thủ tướng Chính phủ quyết định là Ngày Sách Việt Nam từ năm 2014 (Quyết định số 284/QĐ-TTg). Ngày này được chọn vì gần với Ngày Sách và Bản quyền Thế giới (23/4) của UNESCO, đồng thời kỷ niệm sự ra đời của ngành xuất bản Việt Nam.",
@@ -233,9 +271,14 @@
       "solarDay": 27,
       "solarMonth": 4,
       "category": "professional",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Kiến Trúc Sư Việt Nam"],
-        "en": ["Vietnamese Architects' Day"]
+        "vi": [
+          "Ngày Kiến Trúc Sư Việt Nam"
+        ],
+        "en": [
+          "Vietnamese Architects' Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 27 tháng 4 năm 1948, Hội Kiến trúc sư Việt Nam được thành lập tại chiến khu Việt Bắc trong thời kỳ kháng chiến chống Pháp. Đây là tổ chức nghề nghiệp đầu tiên của giới kiến trúc sư Việt Nam, đánh dấu sự hình thành chính thức của ngành kiến trúc Việt Nam hiện đại.",
@@ -252,9 +295,16 @@
       "solarDay": 30,
       "solarMonth": 4,
       "category": "public-holiday",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Giải Phóng Miền Nam", "Ngày Thống Nhất Đất Nước"],
-        "en": ["Reunification Day", "Liberation Day of South Vietnam"]
+        "vi": [
+          "Ngày Giải Phóng Miền Nam",
+          "Ngày Thống Nhất Đất Nước"
+        ],
+        "en": [
+          "Reunification Day",
+          "Liberation Day of South Vietnam"
+        ]
       },
       "origin": {
         "vi": "Ngày 30 tháng 4 năm 1975, xe tăng của Quân đội Nhân dân Việt Nam húc đổ cổng Dinh Độc Lập tại Sài Gòn, kết thúc cuộc chiến tranh kéo dài hơn 20 năm. Tổng thống Việt Nam Cộng Hòa Dương Văn Minh tuyên bố đầu hàng vô điều kiện. Sự kiện này đánh dấu sự thống nhất đất nước Việt Nam sau hơn một thế kỷ bị chia cắt và chiến tranh.",
@@ -285,9 +335,16 @@
       "solarDay": 1,
       "solarMonth": 5,
       "category": "public-holiday",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Lao Động"],
-        "en": ["International Workers' Day", "May Day", "Labour Day"]
+        "vi": [
+          "Ngày Quốc Tế Lao Động"
+        ],
+        "en": [
+          "International Workers' Day",
+          "May Day",
+          "Labour Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 1 tháng 5 được chọn để kỷ niệm cuộc đấu tranh của công nhân tại Chicago (Mỹ) năm 1886, đòi giảm giờ làm việc xuống 8 tiếng/ngày. Cuộc biểu tình bị đàn áp đẫm máu nhưng đã thúc đẩy phong trào lao động toàn cầu. Quốc tế Cộng sản lần thứ 2 (1889) chọn ngày 1/5 làm Ngày Quốc Tế Lao Động.",
@@ -318,9 +375,14 @@
       "solarDay": 7,
       "solarMonth": 5,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Chiến Thắng Điện Biên Phủ"],
-        "en": ["Điện Biên Phủ Victory Day"]
+        "vi": [
+          "Ngày Chiến Thắng Điện Biên Phủ"
+        ],
+        "en": [
+          "Điện Biên Phủ Victory Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 7 tháng 5 năm 1954, quân đội Việt Nam do Đại tướng Võ Nguyên Giáp chỉ huy đã đánh bại hoàn toàn cứ điểm Điện Biên Phủ của Pháp sau 56 ngày đêm chiến đấu ác liệt. Chiến thắng \"lừng lẫy năm châu, chấn động địa cầu\" này buộc Pháp ký Hiệp định Genève, chấm dứt chế độ thực dân ở Đông Dương.",
@@ -351,9 +413,15 @@
       "solarDay": 9,
       "solarMonth": 5,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Chiến Thắng Phát Xít"],
-        "en": ["Victory Day over Fascism", "Victory in Europe Day"]
+        "vi": [
+          "Ngày Chiến Thắng Phát Xít"
+        ],
+        "en": [
+          "Victory Day over Fascism",
+          "Victory in Europe Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 9 tháng 5 năm 1945, Đức Quốc Xã chính thức đầu hàng vô điều kiện, kết thúc Chiến tranh Thế giới thứ 2 tại châu Âu. Tại Việt Nam, ngày này được ghi nhận như một sự kiện lịch sử thế giới quan trọng, đánh dấu chiến thắng của phe Đồng Minh và các lực lượng tiến bộ trước chủ nghĩa phát xít.",
@@ -370,9 +438,14 @@
       "solarDay": 19,
       "solarMonth": 5,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Sinh Chủ Tịch Hồ Chí Minh"],
-        "en": ["President Hồ Chí Minh's Birthday"]
+        "vi": [
+          "Ngày Sinh Chủ Tịch Hồ Chí Minh"
+        ],
+        "en": [
+          "President Hồ Chí Minh's Birthday"
+        ]
       },
       "origin": {
         "vi": "Chủ tịch Hồ Chí Minh sinh ngày 19 tháng 5 năm 1890 tại làng Hoàng Trù (nay thuộc xã Kim Liên, huyện Nam Đàn, tỉnh Nghệ An). Người là lãnh tụ vĩ đại của dân tộc Việt Nam, người sáng lập Đảng Cộng Sản Việt Nam, khai sinh nước Việt Nam Dân Chủ Cộng Hòa. UNESCO công nhận Hồ Chí Minh là \"Anh hùng giải phóng dân tộc, Nhà văn hóa kiệt xuất\" năm 1990.",
@@ -403,9 +476,15 @@
       "solarDay": 1,
       "solarMonth": 6,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Thiếu Nhi", "Tết Thiếu Nhi"],
-        "en": ["International Children's Day"]
+        "vi": [
+          "Ngày Quốc Tế Thiếu Nhi",
+          "Tết Thiếu Nhi"
+        ],
+        "en": [
+          "International Children's Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 1 tháng 6 được Liên đoàn Phụ nữ Dân chủ Quốc tế chọn là Ngày Quốc Tế Bảo Vệ Thiếu Nhi từ năm 1950, để kỷ niệm vụ thảm sát trẻ em tại Lidice (Tiệp Khắc) năm 1942 bởi phát xít Đức. Tại Việt Nam, ngày này trở thành \"Tết Thiếu Nhi\" - dịp vui chơi đặc biệt dành cho trẻ em.",
@@ -435,10 +514,15 @@
       "isSolar": true,
       "solarDay": 28,
       "solarMonth": 6,
-      "category": "professional",
+      "category": "social",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Gia Đình Việt Nam"],
-        "en": ["Vietnamese Family Day"]
+        "vi": [
+          "Ngày Gia Đình Việt Nam"
+        ],
+        "en": [
+          "Vietnamese Family Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 28 tháng 6 được Thủ tướng Chính phủ quyết định là Ngày Gia Đình Việt Nam từ năm 2001 (Quyết định số 72/2001/QĐ-TTg). Ngày này ra đời nhằm tôn vinh giá trị gia đình - nền tảng của xã hội Việt Nam, đề cao trách nhiệm của mỗi người trong việc xây dựng gia đình hạnh phúc.",
@@ -469,9 +553,14 @@
       "solarDay": 27,
       "solarMonth": 7,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Thương Binh - Liệt Sĩ"],
-        "en": ["War Invalids and Martyrs Day"]
+        "vi": [
+          "Ngày Thương Binh - Liệt Sĩ"
+        ],
+        "en": [
+          "War Invalids and Martyrs Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 27 tháng 7 năm 1947, Chủ tịch Hồ Chí Minh ký sắc lệnh chọn ngày này là \"Ngày Thương binh toàn quốc\" (sau đổi thành Ngày Thương Binh - Liệt Sĩ). Đây là dịp để toàn dân tri ân những người đã hy sinh xương máu, cống hiến tuổi thanh xuân cho nền độc lập tự do của đất nước.",
@@ -502,9 +591,14 @@
       "solarDay": 19,
       "solarMonth": 8,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Cách Mạng Tháng Tám"],
-        "en": ["August Revolution Day"]
+        "vi": [
+          "Ngày Cách Mạng Tháng Tám"
+        ],
+        "en": [
+          "August Revolution Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 19 tháng 8 năm 1945, hàng vạn người dân Hà Nội và các tỉnh lân cận đã xuống đường biểu tình, chiếm phủ Khâm Sai, trại lính Bảo an và các cơ sở chính quyền. Tổng khởi nghĩa thành công trên cả nước, lật đổ chế độ thực dân - phong kiến, dẫn đến sự ra đời của nước Việt Nam Dân Chủ Cộng Hòa.",
@@ -535,9 +629,16 @@
       "solarDay": 2,
       "solarMonth": 9,
       "category": "public-holiday",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Khánh", "Ngày Tuyên Ngôn Độc Lập"],
-        "en": ["National Day", "Independence Day"]
+        "vi": [
+          "Ngày Quốc Khánh",
+          "Ngày Tuyên Ngôn Độc Lập"
+        ],
+        "en": [
+          "National Day",
+          "Independence Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 2 tháng 9 năm 1945, tại Quảng trường Ba Đình (Hà Nội), Chủ tịch Hồ Chí Minh đọc bản Tuyên Ngôn Độc Lập, khai sinh nước Việt Nam Dân Chủ Cộng Hòa. Bản tuyên ngôn mở đầu bằng: \"Tất cả mọi người đều sinh ra có quyền bình đẳng. Tạo hóa cho họ những quyền không ai có thể xâm phạm được; trong những quyền ấy, có quyền được sống, quyền tự do và quyền mưu cầu hạnh phúc.\"",
@@ -570,9 +671,14 @@
       "solarDay": 10,
       "solarMonth": 10,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Giải Phóng Thủ Đô"],
-        "en": ["Liberation Day of the Capital"]
+        "vi": [
+          "Ngày Giải Phóng Thủ Đô"
+        ],
+        "en": [
+          "Liberation Day of the Capital"
+        ]
       },
       "origin": {
         "vi": "Ngày 10 tháng 10 năm 1954, quân đội Việt Nam tiến vào tiếp quản Hà Nội sau khi quân Pháp rút lui theo Hiệp định Genève. Đây là sự kiện lịch sử trọng đại, đánh dấu Thủ đô Hà Nội hoàn toàn giải phóng sau 9 năm kháng chiến chống Pháp. Hàng vạn người dân Hà Nội đổ ra đường chào đón bộ đội trong niềm hân hoan.",
@@ -603,9 +709,14 @@
       "solarDay": 13,
       "solarMonth": 10,
       "category": "professional",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Doanh Nhân Việt Nam"],
-        "en": ["Vietnamese Entrepreneurs' Day"]
+        "vi": [
+          "Ngày Doanh Nhân Việt Nam"
+        ],
+        "en": [
+          "Vietnamese Entrepreneurs' Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 13 tháng 10 được chọn là Ngày Doanh Nhân Việt Nam từ năm 2004 (Quyết định số 990/QĐ-TTg của Thủ tướng). Ngày này được chọn vì vào ngày 13/10/1945, Chủ tịch Hồ Chí Minh đã gửi thư cho giới công thương Việt Nam, khẳng định vai trò quan trọng của doanh nhân trong công cuộc kiến thiết đất nước.",
@@ -635,10 +746,17 @@
       "isSolar": true,
       "solarDay": 20,
       "solarMonth": 10,
-      "category": "professional",
+      "category": "social",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Phụ Nữ Việt Nam", "Ngày Thành Lập Hội Liên Hiệp Phụ Nữ Việt Nam"],
-        "en": ["Vietnamese Women's Day", "Founding of Vietnam Women's Union"]
+        "vi": [
+          "Ngày Phụ Nữ Việt Nam",
+          "Ngày Thành Lập Hội Liên Hiệp Phụ Nữ Việt Nam"
+        ],
+        "en": [
+          "Vietnamese Women's Day",
+          "Founding of Vietnam Women's Union"
+        ]
       },
       "origin": {
         "vi": "Ngày 20 tháng 10 năm 1930, Hội Liên Hiệp Phụ Nữ Việt Nam được thành lập dưới sự chỉ đạo của Đảng Cộng Sản Việt Nam. Phụ nữ Việt Nam có truyền thống yêu nước từ thời Hai Bà Trưng (40 SCN) khởi nghĩa chống quân Hán, Bà Triệu (248 SCN) cưỡi voi ra trận. Trong kháng chiến, phụ nữ Việt Nam được phong danh hiệu \"Anh hùng, Bất khuất, Trung hậu, Đảm đang\".",
@@ -678,18 +796,30 @@
       },
       "taboos": [
         {
-          "action": { "vi": "Quên chúc mừng phụ nữ", "en": "Forgetting to congratulate women" },
-          "reason": { "vi": "Được coi là thiếu tôn trọng, nam giới thường bị phàn nàn nếu quên", "en": "Considered disrespectful, men are often complained about if they forget" }
+          "action": {
+            "vi": "Quên chúc mừng phụ nữ",
+            "en": "Forgetting to congratulate women"
+          },
+          "reason": {
+            "vi": "Được coi là thiếu tôn trọng, nam giới thường bị phàn nàn nếu quên",
+            "en": "Considered disrespectful, men are often complained about if they forget"
+          }
         }
       ],
       "proverbs": [
         {
           "text": "Giặc đến nhà đàn bà cũng đánh",
-          "meaning": { "vi": "Phụ nữ Việt Nam sẵn sàng chiến đấu bảo vệ đất nước khi cần", "en": "Vietnamese women are ready to fight to defend the country when needed" }
+          "meaning": {
+            "vi": "Phụ nữ Việt Nam sẵn sàng chiến đấu bảo vệ đất nước khi cần",
+            "en": "Vietnamese women are ready to fight to defend the country when needed"
+          }
         },
         {
           "text": "Nhất vợ nhì trời",
-          "meaning": { "vi": "Câu nói hài hước nâng cao vị thế người vợ trong gia đình", "en": "Humorous saying elevating the wife's status in the family" }
+          "meaning": {
+            "vi": "Câu nói hài hước nâng cao vị thế người vợ trong gia đình",
+            "en": "Humorous saying elevating the wife's status in the family"
+          }
         }
       ],
       "regions": {
@@ -713,9 +843,16 @@
       "solarDay": 20,
       "solarMonth": 11,
       "category": "professional",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Nhà Giáo Việt Nam", "Ngày Hiến Chương Nhà Giáo"],
-        "en": ["Vietnamese Teachers' Day", "Teachers' Charter Day"]
+        "vi": [
+          "Ngày Nhà Giáo Việt Nam",
+          "Ngày Hiến Chương Nhà Giáo"
+        ],
+        "en": [
+          "Vietnamese Teachers' Day",
+          "Teachers' Charter Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 20 tháng 11 năm 1958, Hội nghị quốc tế các nhà giáo họp tại Warszawa (Ba Lan) đã thông qua bản \"Hiến chương các nhà giáo\". Từ năm 1982, Hội đồng Bộ trưởng Việt Nam quyết định lấy ngày 20/11 hàng năm là Ngày Nhà Giáo Việt Nam. Đây là truyền thống \"Tôn sư trọng đạo\" ngàn đời của người Việt - thầy cô được xếp ngang hàng với cha mẹ trong đạo lý.",
@@ -757,32 +894,59 @@
       },
       "food": [
         {
-          "name": { "vi": "Mâm cỗ tri ân", "en": "Gratitude feast" },
-          "description": { "vi": "Cựu học sinh tổ chức bữa ăn mời thầy cô, thể hiện lòng biết ơn", "en": "Alumni organize meals for teachers, expressing gratitude" }
+          "name": {
+            "vi": "Mâm cỗ tri ân",
+            "en": "Gratitude feast"
+          },
+          "description": {
+            "vi": "Cựu học sinh tổ chức bữa ăn mời thầy cô, thể hiện lòng biết ơn",
+            "en": "Alumni organize meals for teachers, expressing gratitude"
+          }
         }
       ],
       "taboos": [
         {
-          "action": { "vi": "Quên ngày 20/11", "en": "Forgetting November 20" },
-          "reason": { "vi": "Bị coi là vô ơn, thiếu lễ phép đối với thầy cô", "en": "Considered ungrateful and disrespectful toward teachers" }
+          "action": {
+            "vi": "Quên ngày 20/11",
+            "en": "Forgetting November 20"
+          },
+          "reason": {
+            "vi": "Bị coi là vô ơn, thiếu lễ phép đối với thầy cô",
+            "en": "Considered ungrateful and disrespectful toward teachers"
+          }
         },
         {
-          "action": { "vi": "Tặng quà không phù hợp", "en": "Giving inappropriate gifts" },
-          "reason": { "vi": "Quà quá đắt tiền có thể bị xem là hối lộ, quà quá rẻ có thể thiếu tôn trọng", "en": "Too expensive gifts may be seen as bribery, too cheap may seem disrespectful" }
+          "action": {
+            "vi": "Tặng quà không phù hợp",
+            "en": "Giving inappropriate gifts"
+          },
+          "reason": {
+            "vi": "Quà quá đắt tiền có thể bị xem là hối lộ, quà quá rẻ có thể thiếu tôn trọng",
+            "en": "Too expensive gifts may be seen as bribery, too cheap may seem disrespectful"
+          }
         }
       ],
       "proverbs": [
         {
           "text": "Nhất tự vi sư, bán tự vi sư",
-          "meaning": { "vi": "Một chữ cũng là thầy, nửa chữ cũng là thầy - tôn trọng mọi người dạy mình", "en": "One word makes a teacher, half a word makes a teacher - respect all who teach you" }
+          "meaning": {
+            "vi": "Một chữ cũng là thầy, nửa chữ cũng là thầy - tôn trọng mọi người dạy mình",
+            "en": "One word makes a teacher, half a word makes a teacher - respect all who teach you"
+          }
         },
         {
           "text": "Không thầy đố mày làm nên",
-          "meaning": { "vi": "Không có thầy thì không thể thành đạt", "en": "Without a teacher, you cannot succeed" }
+          "meaning": {
+            "vi": "Không có thầy thì không thể thành đạt",
+            "en": "Without a teacher, you cannot succeed"
+          }
         },
         {
           "text": "Mồng một Tết cha, mồng hai Tết mẹ, mồng ba Tết thầy",
-          "meaning": { "vi": "Thầy giáo được xếp thứ ba sau cha mẹ trong đạo lý Việt Nam", "en": "Teachers rank third after parents in Vietnamese moral principles" }
+          "meaning": {
+            "vi": "Thầy giáo được xếp thứ ba sau cha mẹ trong đạo lý Việt Nam",
+            "en": "Teachers rank third after parents in Vietnamese moral principles"
+          }
         }
       ],
       "regions": {
@@ -805,10 +969,15 @@
       "isSolar": true,
       "solarDay": 23,
       "solarMonth": 11,
-      "category": "public-holiday",
+      "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Di Sản Văn Hóa Việt Nam"],
-        "en": ["Vietnamese Cultural Heritage Day"]
+        "vi": [
+          "Ngày Di Sản Văn Hóa Việt Nam"
+        ],
+        "en": [
+          "Vietnamese Cultural Heritage Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 24 tháng 11 năm 1945, Chủ tịch Hồ Chí Minh ký Sắc lệnh số 65/SL về bảo tồn cổ tích. Năm 2005, Thủ tướng Chính phủ quyết định lấy ngày 23/11 hàng năm là Ngày Di Sản Văn Hóa Việt Nam (Quyết định số 36/2005/QĐ-TTg). Ngày này nhằm phát huy ý thức giữ gìn di sản văn hóa dân tộc.",
@@ -839,9 +1008,16 @@
       "solarDay": 22,
       "solarMonth": 12,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Thành Lập Quân Đội Nhân Dân Việt Nam", "Ngày Quốc Phòng Toàn Dân"],
-        "en": ["Vietnam People's Army Founding Day", "All-People's National Defense Day"]
+        "vi": [
+          "Ngày Thành Lập Quân Đội Nhân Dân Việt Nam",
+          "Ngày Quốc Phòng Toàn Dân"
+        ],
+        "en": [
+          "Vietnam People's Army Founding Day",
+          "All-People's National Defense Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 22 tháng 12 năm 1944, tại khu rừng Trần Hưng Đạo (Cao Bằng), Đội Việt Nam Tuyên Truyền Giải Phóng Quân được thành lập theo chỉ thị của Chủ tịch Hồ Chí Minh, với 34 chiến sĩ đầu tiên do Đại tướng Võ Nguyên Giáp chỉ huy. Đây là tiền thân của Quân đội Nhân dân Việt Nam ngày nay.",
@@ -874,9 +1050,16 @@
       "solarDay": 14,
       "solarMonth": 2,
       "category": "social",
+      "isMajor": true,
       "names": {
-        "vi": ["Lễ Tình Nhân", "Valentine"],
-        "en": ["Valentine's Day", "Saint Valentine's Day"]
+        "vi": [
+          "Lễ Tình Nhân",
+          "Valentine"
+        ],
+        "en": [
+          "Valentine's Day",
+          "Saint Valentine's Day"
+        ]
       },
       "origin": {
         "vi": "Lễ Tình Nhân có nguồn gốc từ châu Âu, gắn với truyền thuyết Thánh Valentine. Tại Việt Nam, ngày 14/2 được đón nhận rộng rãi từ thập niên 1990 như dịp bày tỏ tình cảm và sự quan tâm giữa các cặp đôi.",
@@ -905,9 +1088,15 @@
       "solarDay": 1,
       "solarMonth": 4,
       "category": "social",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Cá Tháng Tư", "Ngày Nói Dối"],
-        "en": ["April Fools' Day"]
+        "vi": [
+          "Ngày Cá Tháng Tư",
+          "Ngày Nói Dối"
+        ],
+        "en": [
+          "April Fools' Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Cá Tháng Tư có nguồn gốc từ phương Tây và lan rộng toàn cầu. Tại Việt Nam, đây là ngày vui vẻ với những trò đùa nhẹ nhàng, tạo không khí thư giãn trong bạn bè và đồng nghiệp.",
@@ -936,9 +1125,14 @@
       "solarDay": 11,
       "solarMonth": 7,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Dân Số Thế Giới"],
-        "en": ["World Population Day"]
+        "vi": [
+          "Ngày Dân Số Thế Giới"
+        ],
+        "en": [
+          "World Population Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Dân Số Thế Giới được Chương trình Phát triển Liên Hợp Quốc (UNDP) khởi xướng từ năm 1989 nhằm nâng cao nhận thức về các vấn đề dân số toàn cầu.",
@@ -967,9 +1161,14 @@
       "solarDay": 1,
       "solarMonth": 10,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Người Cao Tuổi"],
-        "en": ["International Day of Older Persons"]
+        "vi": [
+          "Ngày Quốc Tế Người Cao Tuổi"
+        ],
+        "en": [
+          "International Day of Older Persons"
+        ]
       },
       "origin": {
         "vi": "Ngày Quốc tế Người cao tuổi được Đại hội đồng Liên Hợp Quốc chọn từ năm 1990 nhằm tôn vinh vai trò của người cao tuổi trong gia đình và xã hội.",
@@ -998,9 +1197,15 @@
       "solarDay": 31,
       "solarMonth": 10,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Halloween", "Lễ Hội Hóa Trang"],
-        "en": ["Halloween"]
+        "vi": [
+          "Halloween",
+          "Lễ Hội Hóa Trang"
+        ],
+        "en": [
+          "Halloween"
+        ]
       },
       "origin": {
         "vi": "Halloween bắt nguồn từ lễ Samhain của người Celt cổ và phát triển mạnh ở châu Âu - Bắc Mỹ trước khi phổ biến toàn cầu. Ở Việt Nam, ngày này chủ yếu được tổ chức trong trường học, khu vui chơi và cộng đồng trẻ.",
@@ -1029,9 +1234,14 @@
       "solarDay": 9,
       "solarMonth": 11,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Pháp Luật Việt Nam"],
-        "en": ["Vietnam Law Day"]
+        "vi": [
+          "Ngày Pháp Luật Việt Nam"
+        ],
+        "en": [
+          "Vietnam Law Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Pháp luật Việt Nam được quy định trong Luật Phổ biến, giáo dục pháp luật năm 2012 và tổ chức hằng năm vào ngày 9/11 để tôn vinh Hiến pháp, pháp luật.",
@@ -1060,9 +1270,14 @@
       "solarDay": 23,
       "solarMonth": 11,
       "category": "social",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Thành Lập Hội Chữ Thập Đỏ Việt Nam"],
-        "en": ["Vietnam Red Cross Society Founding Day"]
+        "vi": [
+          "Ngày Thành Lập Hội Chữ Thập Đỏ Việt Nam"
+        ],
+        "en": [
+          "Vietnam Red Cross Society Founding Day"
+        ]
       },
       "origin": {
         "vi": "Hội Chữ thập đỏ Việt Nam được thành lập ngày 23/11/1946. Tổ chức đóng vai trò nòng cốt trong hoạt động nhân đạo, cứu trợ thiên tai, chăm sóc sức khỏe cộng đồng.",
@@ -1091,9 +1306,14 @@
       "solarDay": 1,
       "solarMonth": 12,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Thế Giới Phòng Chống AIDS"],
-        "en": ["World AIDS Day"]
+        "vi": [
+          "Ngày Thế Giới Phòng Chống AIDS"
+        ],
+        "en": [
+          "World AIDS Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Thế giới Phòng chống AIDS được phát động từ năm 1988 bởi WHO và Liên Hợp Quốc nhằm nâng cao nhận thức về HIV/AIDS và thúc đẩy hành động toàn cầu.",
@@ -1122,9 +1342,14 @@
       "solarDay": 19,
       "solarMonth": 12,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Toàn Quốc Kháng Chiến"],
-        "en": ["National Resistance Day"]
+        "vi": [
+          "Ngày Toàn Quốc Kháng Chiến"
+        ],
+        "en": [
+          "National Resistance Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 19/12/1946, Chủ tịch Hồ Chí Minh ra Lời kêu gọi Toàn quốc kháng chiến, mở đầu cuộc kháng chiến chống thực dân Pháp trên phạm vi cả nước.",
@@ -1153,9 +1378,16 @@
       "solarDay": 25,
       "solarMonth": 12,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Lễ Giáng Sinh", "Noel"],
-        "en": ["Christmas Day", "Christmas"]
+        "vi": [
+          "Lễ Giáng Sinh",
+          "Noel"
+        ],
+        "en": [
+          "Christmas Day",
+          "Christmas"
+        ]
       },
       "origin": {
         "vi": "Lễ Giáng Sinh là ngày kỷ niệm Chúa Jesus ra đời trong Kitô giáo. Tại Việt Nam, Giáng Sinh được tổ chức rộng rãi tại nhà thờ, khu dân cư và trung tâm thương mại như một dịp lễ hội cuối năm.",
@@ -1184,9 +1416,14 @@
       "solarDay": 20,
       "solarMonth": 3,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Hạnh Phúc"],
-        "en": ["International Day of Happiness"]
+        "vi": [
+          "Ngày Quốc Tế Hạnh Phúc"
+        ],
+        "en": [
+          "International Day of Happiness"
+        ]
       },
       "origin": {
         "vi": "Ngày Quốc tế Hạnh phúc được Liên Hợp Quốc chọn từ năm 2012 nhằm nhấn mạnh rằng hạnh phúc và an sinh là mục tiêu phổ quát của nhân loại.",
@@ -1215,9 +1452,14 @@
       "solarDay": 22,
       "solarMonth": 4,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Trái Đất"],
-        "en": ["Earth Day"]
+        "vi": [
+          "Ngày Trái Đất"
+        ],
+        "en": [
+          "Earth Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Trái Đất ra đời từ năm 1970 tại Hoa Kỳ, sau đó trở thành phong trào toàn cầu về bảo vệ môi trường và ứng phó biến đổi khí hậu.",
@@ -1246,9 +1488,14 @@
       "solarDay": 15,
       "solarMonth": 5,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Gia Đình"],
-        "en": ["International Day of Families"]
+        "vi": [
+          "Ngày Quốc Tế Gia Đình"
+        ],
+        "en": [
+          "International Day of Families"
+        ]
       },
       "origin": {
         "vi": "Ngày Quốc tế Gia đình do Liên Hợp Quốc chọn từ năm 1993 để đề cao vai trò của gia đình trong phát triển xã hội.",
@@ -1277,9 +1524,14 @@
       "solarDay": 5,
       "solarMonth": 6,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Môi Trường Thế Giới"],
-        "en": ["World Environment Day"]
+        "vi": [
+          "Ngày Môi Trường Thế Giới"
+        ],
+        "en": [
+          "World Environment Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Môi trường Thế giới được Liên Hợp Quốc phát động từ năm 1972 sau Hội nghị Stockholm về môi trường con người.",
@@ -1308,9 +1560,14 @@
       "solarDay": 12,
       "solarMonth": 8,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Thanh Niên"],
-        "en": ["International Youth Day"]
+        "vi": [
+          "Ngày Quốc Tế Thanh Niên"
+        ],
+        "en": [
+          "International Youth Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Quốc tế Thanh niên được Liên Hợp Quốc công bố từ năm 1999 nhằm thúc đẩy sự tham gia của thanh niên vào các vấn đề phát triển.",
@@ -1339,9 +1596,14 @@
       "solarDay": 21,
       "solarMonth": 9,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Hòa Bình"],
-        "en": ["International Day of Peace"]
+        "vi": [
+          "Ngày Quốc Tế Hòa Bình"
+        ],
+        "en": [
+          "International Day of Peace"
+        ]
       },
       "origin": {
         "vi": "Ngày Quốc tế Hòa bình được Liên Hợp Quốc khởi xướng từ năm 1981 và ấn định vào ngày 21/9 để kêu gọi chấm dứt xung đột, thúc đẩy hòa bình.",
@@ -1370,9 +1632,14 @@
       "solarDay": 19,
       "solarMonth": 11,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Nam Giới"],
-        "en": ["International Men's Day"]
+        "vi": [
+          "Ngày Quốc Tế Nam Giới"
+        ],
+        "en": [
+          "International Men's Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Quốc tế Nam giới được kỷ niệm tại nhiều quốc gia từ cuối thế kỷ 20 nhằm ghi nhận đóng góp của nam giới trong gia đình và xã hội.",
@@ -1401,9 +1668,14 @@
       "solarDay": 3,
       "solarMonth": 12,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quốc Tế Người Khuyết Tật"],
-        "en": ["International Day of Persons with Disabilities"]
+        "vi": [
+          "Ngày Quốc Tế Người Khuyết Tật"
+        ],
+        "en": [
+          "International Day of Persons with Disabilities"
+        ]
       },
       "origin": {
         "vi": "Ngày Quốc tế Người khuyết tật được Liên Hợp Quốc công bố từ năm 1992 nhằm thúc đẩy quyền và sự hòa nhập của người khuyết tật.",
@@ -1432,9 +1704,14 @@
       "solarDay": 15,
       "solarMonth": 3,
       "category": "social",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Quyền Của Người Tiêu Dùng Việt Nam"],
-        "en": ["Vietnam Consumer Rights Day"]
+        "vi": [
+          "Ngày Quyền Của Người Tiêu Dùng Việt Nam"
+        ],
+        "en": [
+          "Vietnam Consumer Rights Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 15/3 được Việt Nam chọn là Ngày Quyền của Người tiêu dùng để hưởng ứng phong trào bảo vệ người tiêu dùng trên thế giới và tăng cường thực thi pháp luật liên quan.",
@@ -1463,9 +1740,14 @@
       "solarDay": 22,
       "solarMonth": 3,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Nước Thế Giới"],
-        "en": ["World Water Day"]
+        "vi": [
+          "Ngày Nước Thế Giới"
+        ],
+        "en": [
+          "World Water Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Nước Thế giới được Liên Hợp Quốc khởi xướng từ năm 1993 nhằm nhấn mạnh vai trò của tài nguyên nước ngọt đối với sự sống và phát triển.",
@@ -1494,9 +1776,14 @@
       "solarDay": 7,
       "solarMonth": 4,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Sức Khỏe Thế Giới"],
-        "en": ["World Health Day"]
+        "vi": [
+          "Ngày Sức Khỏe Thế Giới"
+        ],
+        "en": [
+          "World Health Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Sức khỏe Thế giới được Tổ chức Y tế Thế giới (WHO) tổ chức hằng năm vào ngày 7/4 để kỷ niệm ngày thành lập WHO năm 1948.",
@@ -1525,9 +1812,14 @@
       "solarDay": 18,
       "solarMonth": 5,
       "category": "professional",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Khoa Học và Công Nghệ Việt Nam"],
-        "en": ["Vietnam Science and Technology Day"]
+        "vi": [
+          "Ngày Khoa Học và Công Nghệ Việt Nam"
+        ],
+        "en": [
+          "Vietnam Science and Technology Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 18/5 được chọn là Ngày Khoa học và Công nghệ Việt Nam nhằm tôn vinh đội ngũ trí thức khoa học, nhà nghiên cứu và các thành tựu đổi mới sáng tạo.",
@@ -1556,9 +1848,14 @@
       "solarDay": 19,
       "solarMonth": 8,
       "category": "commemorative",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Truyền Thống Công An Nhân Dân"],
-        "en": ["People's Public Security Traditional Day"]
+        "vi": [
+          "Ngày Truyền Thống Công An Nhân Dân"
+        ],
+        "en": [
+          "People's Public Security Traditional Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 19/8 gắn với thắng lợi của Cách mạng Tháng Tám năm 1945 và sự hình thành lực lượng Công an nhân dân Việt Nam.",
@@ -1587,9 +1884,14 @@
       "solarDay": 8,
       "solarMonth": 9,
       "category": "international",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Xóa Mù Chữ Quốc Tế"],
-        "en": ["International Literacy Day"]
+        "vi": [
+          "Ngày Xóa Mù Chữ Quốc Tế"
+        ],
+        "en": [
+          "International Literacy Day"
+        ]
       },
       "origin": {
         "vi": "Ngày Xóa mù chữ Quốc tế được UNESCO phát động từ năm 1967 nhằm nhấn mạnh tầm quan trọng của giáo dục cơ bản và năng lực đọc viết.",
@@ -1618,9 +1920,14 @@
       "solarDay": 10,
       "solarMonth": 10,
       "category": "professional",
+      "isMajor": true,
       "names": {
-        "vi": ["Ngày Chuyển Đổi Số Quốc Gia"],
-        "en": ["National Digital Transformation Day"]
+        "vi": [
+          "Ngày Chuyển Đổi Số Quốc Gia"
+        ],
+        "en": [
+          "National Digital Transformation Day"
+        ]
       },
       "origin": {
         "vi": "Ngày 10/10 được chọn là Ngày Chuyển đổi số Quốc gia nhằm thúc đẩy nhận thức và hành động về chuyển đổi số trong cơ quan nhà nước, doanh nghiệp và người dân.",
