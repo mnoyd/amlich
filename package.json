@@ -5,6 +5,7 @@
   "description": "Vietnamese Lunar Calendar - Monorepo with Rust, WASM, and Tauri",
   "scripts": {
     "check:data": "node scripts/check-holiday-data.mjs",
+    "check:parity": "node scripts/check-holiday-parity.mjs",
     "test": "pnpm -r test",
     "test:core": "cd packages/core && pnpm test",
     "build": "pnpm build:rust && pnpm build:wasm",
