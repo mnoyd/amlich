@@ -6,7 +6,7 @@
   import type { DayCell, HolidayInfo, MonthData } from "$lib/insights/types";
   import { checkForAppUpdates } from "$lib/updater";
 
-  const weekLabels = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+  const weekLabels = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
   const monthNames = [
     "Tháng 1",
     "Tháng 2",
@@ -94,8 +94,9 @@
     if (!monthData) return [] as (DayCell | null)[][];
     const rows: (DayCell | null)[][] = [];
     let currentRow: (DayCell | null)[] = [];
+    const mondayFirstOffset = (monthData.first_weekday + 6) % 7;
 
-    for (let i = 0; i < monthData.first_weekday; i += 1) {
+    for (let i = 0; i < mondayFirstOffset; i += 1) {
       currentRow.push(null);
     }
 
@@ -284,9 +285,9 @@
   <main class="main-layout" class:insight-mode={isInsightVisible}>
     <!-- Left: Calendar Grid -->
     <section class="calendar-section">
-      <div class="weekday-header">
-        {#each weekLabels as label, i}
-          <div class="weekday-label" class:weekend={i === 0 || i === 6}>
+        <div class="weekday-header">
+          {#each weekLabels as label, i}
+          <div class="weekday-label" class:weekend={i === 5 || i === 6}>
             {label}
           </div>
         {/each}
