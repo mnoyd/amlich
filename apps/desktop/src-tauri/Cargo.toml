@@ -1,6 +1,6 @@
 [package]
 name = "am-lich"
-version = "0.1.4"
+version = "0.1.5"
 description = "Vietnamese Lunar Calendar Desktop App"
 authors = ["Vietnamese Calendar Project"]
 edition = "2021"
