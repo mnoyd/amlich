@@ -97,16 +97,19 @@ export type FestivalData = {
   id: string;
   lunarDay: number;
   lunarMonth: number;
+  yearOffset?: -1 | 0;
+  category?: "festival";
+  isMajor?: boolean;
   isSolar?: boolean; // For Thanh Minh which is solar-based
   solarDay?: number;
   solarMonth?: number;
   names: BilingualList;
   origin: BilingualText;
   activities: BilingualList;
-  food: FoodItem[];
-  taboos: TabooItem[];
-  proverbs: ProverbItem[];
-  regions: RegionalCustoms;
+  food?: FoodItem[];
+  taboos?: TabooItem[];
+  proverbs?: ProverbItem[];
+  regions?: RegionalCustoms;
 };
 
 // ============================================
@@ -119,6 +122,7 @@ export type NationalHolidayData = {
   solarDay: number;
   solarMonth: number;
   category: "public-holiday" | "commemorative" | "professional" | "social" | "international";
+  isMajor?: boolean;
   names: BilingualList;
   origin: BilingualText;
   significance?: BilingualText;

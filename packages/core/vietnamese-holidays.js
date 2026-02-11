@@ -1,6 +1,5 @@
 const amlich = require('./amlich-core.js');
-const solarHolidaysData = require('../../data/holidays/solar-holidays.json');
-const lunarFestivalsData = require('../../data/holidays/lunar-festivals.json');
+const { getLunarFestivalRows, getSolarHolidayRows } = require('./holiday-data.js');
 
 /**
  * Vietnamese Lunar Calendar Events
@@ -32,12 +31,9 @@ function getVietnameseHolidays(solarYear) {
     }
 
     // Lunar festivals from shared JSON data
-    lunarFestivalsData.festivals.forEach(festival => {
-        if (festival.isSolar) return; // Skip Thanh Minh (handled separately)
-        const lunarYear = solarYear + (festival.yearOffset || 0);
-        const name = festival.names.vi[0] || '';
-        const description = festival.names.en[0] || '';
-        addLunarHoliday(name, festival.lunarDay, festival.lunarMonth, lunarYear, description);
+    getLunarFestivalRows().forEach(festival => {
+        const lunarYear = solarYear + festival.yearOffset;
+        addLunarHoliday(festival.name, festival.lunarDay, festival.lunarMonth, lunarYear, festival.description);
     });
 
     // Thanh Minh - Usually around 5/4 solar (Qingming Festival)
@@ -53,12 +49,10 @@ function getVietnameseHolidays(solarYear) {
     });
 
     // National / social / international solar observances from shared JSON data
-    solarHolidaysData.holidays.forEach(holiday => {
-        const name = holiday.names.vi[0] || '';
-        const description = holiday.names.en[0] || '';
+    getSolarHolidayRows().forEach(holiday => {
         holidays.push({
-            name,
-            description,
+            name: holiday.name,
+            description: holiday.description,
             solarDate: { day: holiday.solarDay, month: holiday.solarMonth, year: solarYear },
             dateString: `${solarYear}-${String(holiday.solarMonth).padStart(2, '0')}-${String(holiday.solarDay).padStart(2, '0')}`,
             isSolar: true

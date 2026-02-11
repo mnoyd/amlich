@@ -9,6 +9,7 @@
 
 pub mod canchi;
 pub mod gio_hoang_dao;
+pub mod holiday_data;
 pub mod holidays;
 pub mod julian;
 pub mod lunar;

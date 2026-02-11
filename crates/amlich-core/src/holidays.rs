@@ -1,3 +1,4 @@
+use crate::holiday_data::{lunar_festivals, solar_holidays};
 /**
  * Vietnamese Holidays Module
  *
@@ -8,59 +9,6 @@ use crate::julian::{jd_from_date, jd_to_date};
 use crate::lunar::{convert_lunar_to_solar, LunarDate};
 use crate::tietkhi::get_all_tiet_khi_for_year;
 use crate::types::VIETNAM_TIMEZONE;
-use serde::Deserialize;
-
-/// Compile-time embedded holiday data from shared JSON files
-const SOLAR_HOLIDAYS_JSON: &str = include_str!("../../../data/holidays/solar-holidays.json");
-const LUNAR_FESTIVALS_JSON: &str = include_str!("../../../data/holidays/lunar-festivals.json");
-
-// -- Deserialization structs for solar holidays JSON --
-
-#[derive(Deserialize)]
-struct SolarHolidaysFile {
-    holidays: Vec<SolarHolidayData>,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct SolarHolidayData {
-    solar_day: i32,
-    solar_month: i32,
-    category: String,
-    is_major: bool,
-    names: Names,
-}
-
-// -- Deserialization structs for lunar festivals JSON --
-
-#[derive(Deserialize)]
-struct LunarFestivalsFile {
-    festivals: Vec<LunarFestivalData>,
-}
-
-#[allow(dead_code)]
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct LunarFestivalData {
-    lunar_day: i32,
-    lunar_month: i32,
-    year_offset: i32,
-    category: String,
-    is_major: bool,
-    names: Names,
-    #[serde(default)]
-    is_solar: bool,
-    #[serde(default)]
-    solar_day: Option<i32>,
-    #[serde(default)]
-    solar_month: Option<i32>,
-}
-
-#[derive(Deserialize)]
-struct Names {
-    vi: Vec<String>,
-    en: Vec<String>,
-}
 
 /// Information about a Vietnamese holiday
 #[derive(Debug, Clone)]
@@ -131,10 +79,7 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
     let mut holidays = Vec::new();
 
     // -- Lunar festivals from shared JSON data --
-    let lunar_data: LunarFestivalsFile =
-        serde_json::from_str(LUNAR_FESTIVALS_JSON).expect("Failed to parse lunar-festivals.json");
-
-    for festival in &lunar_data.festivals {
+    for festival in lunar_festivals() {
         // Skip solar-based entries (e.g. Thanh Minh) — handled separately via solar term computation
         if festival.is_solar {
             continue;
@@ -178,10 +123,7 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
     });
 
     // -- Solar holidays from shared JSON data --
-    let solar_data: SolarHolidaysFile =
-        serde_json::from_str(SOLAR_HOLIDAYS_JSON).expect("Failed to parse solar-holidays.json");
-
-    for holiday_data in &solar_data.holidays {
+    for holiday_data in solar_holidays() {
         let name = &holiday_data.names.vi[0];
         let description = &holiday_data.names.en[0];
 

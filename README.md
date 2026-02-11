@@ -223,6 +223,7 @@ amlich/
 ├── apps/
 │   └── desktop/          # Tauri + Svelte desktop app
 ├── scripts/              # Installation scripts
+├── data/                 # Shared static data + schemas
 └── patches/              # Waybar configuration patches
 ```
 
@@ -249,6 +250,9 @@ cd apps/desktop && pnpm tauri build
 ### Running Tests
 
 ```bash
+# Shared data validation
+pnpm check:data
+
 # Rust tests
 cargo test --workspace
 
