@@ -11,6 +11,7 @@
 
   // Derived helpers for template rendering — avoids Svelte template type narrowing issues
   const isSpecialDay = $derived(insight != null && insight.mode !== "normal");
+  const isFestival = $derived(insight != null && insight.mode === ("festival" as string));
   const specialDayTitle = $derived(
     insight != null && insight.mode !== "normal" ? insight.title : ""
   );
@@ -48,6 +49,7 @@
 {#if insight}
   <section
     class="insight-box"
+    class:is-festival={isFestival}
     class:national-holiday={isNationalHoliday}
     class:cat-public-holiday={holidayCategory === "public-holiday"}
     class:cat-commemorative={holidayCategory === "commemorative"}
@@ -57,6 +59,9 @@
   >
     <header class="insight-header">
       <div class="header-left">
+        {#if isFestival}
+          <span class="category-badge festival-badge">{lang === "vi" ? "Lễ truyền thống" : "Traditional Festival"}</span>
+        {/if}
         {#if isNationalHoliday && categoryLabel}
           <span class="category-badge">{categoryLabel}</span>
         {/if}
@@ -233,6 +238,23 @@
   /* National holiday category-specific styling */
   .insight-box.national-holiday {
     border-left: 4px solid var(--cat-color, var(--accent-jade));
+  }
+
+  /* Traditional festival styling */
+  .insight-box.is-festival {
+    border-left: 4px solid var(--cat-festival, #C62828);
+  }
+
+  .is-festival .insight-header h2 {
+    color: var(--cat-festival, #C62828);
+  }
+
+  .is-festival .card-title {
+    color: var(--cat-festival, #C62828);
+  }
+
+  .festival-badge {
+    background: var(--cat-festival, #C62828) !important;
   }
 
   .insight-box.cat-public-holiday {

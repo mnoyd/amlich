@@ -2,7 +2,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { getVersion } from "@tauri-apps/api/app";
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
-  import { hasFestivalData } from "$lib/insights/date-insight-engine";
+  import { getDayDots, getDayEventCategories, classifyHoliday } from "$lib/insights/date-insight-engine";
   import { checkForAppUpdates } from "$lib/updater";
 
   type GoodHour = {
@@ -110,10 +110,6 @@
     }
   }
 
-  function filterHolidays(holidays: HolidayInfo[]) {
-    return holidays;
-  }
-
   function prevMonth() {
     if (viewMonth === 1) {
       viewMonth = 12;
@@ -186,6 +182,8 @@
 
   // Cultural Detail Visibility
   let isInsightVisible = $state(false);
+  // Legend bar visibility
+  let isLegendVisible = $state(true);
 
   function toggleInsight() {
     isInsightVisible = !isInsightVisible;
@@ -334,6 +332,29 @@
         {/each}
       </div>
 
+      <div class="legend-bar" class:collapsed={!isLegendVisible}>
+        <button class="legend-toggle" onclick={() => isLegendVisible = !isLegendVisible} aria-label="Toggle legend">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            {#if isLegendVisible}
+              <path d="m18 15-6-6-6 6"/>
+            {:else}
+              <path d="m6 9 6 6 6-6"/>
+            {/if}
+          </svg>
+        </button>
+        {#if isLegendVisible}
+          <div class="legend-items">
+            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-festival);"></span>Lễ truyền thống</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-public-holiday);"></span>Nghỉ lễ</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-commemorative);"></span>Kỷ niệm</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-professional);"></span>Ngành nghề</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-social);"></span>Xã hội</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-international);"></span>Quốc tế</span>
+            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-lunar-cycle);"></span>Sóc/Vọng</span>
+          </div>
+        {/if}
+      </div>
+
       {#if isLoading}
         <div class="status-message loading">
           <div class="spinner"></div>
@@ -346,8 +367,9 @@
           {#each dayRows() as row}
             {#each row as day}
               {#if day}
-                {@const activeHolidays = filterHolidays(day.holidays)}
-                {@const hasInsight = hasFestivalData(day)}
+                {@const categories = getDayEventCategories(day)}
+                {@const dots = getDayDots(day)}
+                {@const topCat = categories.length > 0 ? categories[0] : null}
                 <button
                   type="button"
                   class="day-card"
@@ -355,14 +377,19 @@
                   class:today={day.day === today.getDate() &&
                     day.month === today.getMonth() + 1 &&
                     day.year === today.getFullYear()}
-                  class:has-holiday={activeHolidays.length > 0}
-                  class:has-insight={hasInsight}
+                  class:has-holiday={day.holidays.length > 0}
+                  class:has-events={categories.length > 0}
+                  style={topCat ? `--accent-color: ${topCat.colorHex}; --accent-tint: ${topCat.colorHex}0D;` : ''}
                   onclick={() => selectDay(day)}
                 >
                   <div class="day-header">
                     <span class="solar-date">{day.day}</span>
-                    {#if hasInsight}
-                      <span class="insight-dot" title="Có nội dung văn hóa"></span>
+                    {#if dots.length > 0}
+                      <span class="category-dots">
+                        {#each dots as dot}
+                          <span class="cat-dot" style="background: {dot.colorHex};" title={dot.type}></span>
+                        {/each}
+                      </span>
                     {/if}
                     <div class="lunar-stack">
                       <span class="lunar-date">{day.lunar_day}</span>
@@ -371,23 +398,24 @@
                   </div>
 
                   <div class="day-body">
-                    {#if day.day === 1 || day.day === 15}
+                    {#if day.lunar_day === 1 || day.lunar_day === 15}
                       <div class="moon-phase">
-                        {day.day === 1 ? "🌑 Sóc" : "🌕 Vọng"}
+                        {day.lunar_day === 1 ? "Soc" : "Vong"}
                       </div>
                     {/if}
 
                     <div class="holiday-pills">
-                      {#each activeHolidays.slice(0, 2) as holiday}
+                      {#each categories.slice(0, 2) as cat}
                         <div
-                          class="pill {holiday.is_major ? 'major' : 'minor'}"
+                          class="pill cat-pill"
+                          style="background: {cat.colorHex}; color: {cat.type === 'lunar-cycle' ? '#6B5D4D' : 'white'}; {cat.type === 'lunar-cycle' ? 'background: ' + cat.colorHex + '26;' : ''}"
                         >
-                          {holiday.name}
+                          {cat.name}
                         </div>
                       {/each}
-                      {#if activeHolidays.length > 2}
+                      {#if categories.length > 2}
                         <div class="pill more">
-                          +{activeHolidays.length - 2}
+                          +{categories.length - 2}
                         </div>
                       {/if}
                     </div>
@@ -530,12 +558,24 @@
               </div>
             </div>
 
-            {#if filterHolidays(selectedDay.holidays).length}
+            {#if selectedDay.holidays.length}
               <div class="section-block">
                 <h3 class="section-title">Sự Kiện & Lễ</h3>
                 <div class="holiday-list">
-                  {#each filterHolidays(selectedDay.holidays) as holiday}
-                    <div class="holiday-item {holiday.is_major ? 'major' : ''}">
+                  {#each selectedDay.holidays as holiday}
+                    {@const catType = classifyHoliday(holiday, selectedDay)}
+                    {@const catColors: Record<string, { bg: string; border: string }> = {
+                      'festival': { bg: '#FFF0F0', border: '#C62828' },
+                      'public-holiday': { bg: '#FFF0F5', border: '#AD1457' },
+                      'commemorative': { bg: '#F0F4FF', border: '#1565C0' },
+                      'professional': { bg: '#F0FFF0', border: '#2E7D32' },
+                      'social': { bg: '#FFF8F0', border: '#E65100' },
+                      'international': { bg: '#F8F0FF', border: '#6A1B9A' },
+                      'solar-term': { bg: '#F0FFFD', border: '#00796B' },
+                      'lunar-cycle': { bg: '#FFFCF0', border: '#D4AF37' },
+                    }}
+                    {@const colors = catColors[catType] || catColors['lunar-cycle']}
+                    <div class="holiday-item" style="background: {colors.bg}; border-left-color: {colors.border};">
                       <div class="h-name">{holiday.name}</div>
                       {#if holiday.description}
                         <div class="h-desc">{holiday.description}</div>
@@ -798,6 +838,77 @@
     opacity: 0.8;
   }
 
+  /* Legend Bar */
+  .legend-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    margin-bottom: 8px;
+    transition: all 0.25s ease;
+  }
+
+  .legend-bar.collapsed {
+    margin-bottom: 4px;
+  }
+
+  .legend-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--text-tertiary);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    padding: 0;
+  }
+
+  .legend-toggle:hover {
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--text-secondary);
+  }
+
+  .legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    animation: legendFade 0.2s ease;
+  }
+
+  @keyframes legendFade {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: var(--font-sans);
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  .legend-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .main-layout.insight-mode .legend-bar {
+    display: none;
+  }
+
   .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
@@ -843,6 +954,17 @@
     border: 2px solid var(--accent-jade);
     background: #fff;
     box-shadow: 0 4px 12px rgba(42, 110, 100, 0.15);
+  }
+
+  /* Event accent strip — colored left border for days with events */
+  .day-card.has-events {
+    border-left: 3px solid var(--accent-color, transparent);
+    background: var(--accent-tint, var(--surface-white));
+  }
+
+  .day-card.has-events.selected {
+    border: 2px solid var(--accent-jade);
+    border-left: 3px solid var(--accent-color, var(--accent-jade));
   }
 
   .day-card.today {
@@ -894,29 +1016,40 @@
     opacity: 0.8;
   }
 
-  /* Insight indicator dot — shows days with rich cultural content */
-  .insight-dot {
+  /* Category indicator dots — colored by event type */
+  .category-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 3px;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+  }
+
+  .cat-dot {
     display: inline-block;
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--accent-jade);
     flex-shrink: 0;
-    margin-left: 3px;
-    margin-bottom: 2px;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+    opacity: 0.8;
+    transition: opacity 0.2s, transform 0.2s;
   }
 
-  .day-card:hover .insight-dot {
+  .day-card:hover .cat-dot {
     opacity: 1;
+    transform: scale(1.15);
   }
 
-  .main-layout.insight-mode .insight-dot {
-    width: 4px;
-    height: 4px;
+  .main-layout.insight-mode .category-dots {
+    gap: 1px;
     margin-left: 2px;
     margin-bottom: 1px;
+  }
+
+  .main-layout.insight-mode .cat-dot {
+    width: 4px;
+    height: 4px;
   }
 
   .day-body {
@@ -952,14 +1085,10 @@
     text-overflow: ellipsis;
   }
 
-  .pill.major {
-    background: var(--primary-red);
-    color: white;
-  }
-
-  .pill.minor {
-    background: rgba(212, 175, 55, 0.15);
-    color: #8a6d1c;
+  .pill.cat-pill {
+    /* Colors set via inline style from category */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.2s;
   }
 
   .pill.more {
@@ -1000,6 +1129,10 @@
     box-shadow: none;
     border: 1px solid rgba(255, 255, 255, 0.6);
     transition: border-color 0.15s ease;
+  }
+
+  .main-layout.insight-mode .day-card.has-events {
+    border-left: 2px solid var(--accent-color, transparent);
   }
 
   .main-layout.insight-mode .day-header {
@@ -1264,16 +1397,10 @@
   }
 
   .holiday-item {
-    background: #fff8f0;
     border-left: 3px solid var(--accent-gold);
     padding: 8px 10px;
     border-radius: 4px;
     margin-bottom: 6px;
-  }
-
-  .holiday-item.major {
-    background: #fff0f0;
-    border-left-color: var(--primary-red);
   }
 
   .h-name {

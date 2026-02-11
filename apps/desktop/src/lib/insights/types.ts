@@ -200,6 +200,30 @@ export type NormalDayInsight = {
 export type DateInsight = FestivalInsight | NationalHolidayInsight | NormalDayInsight;
 
 // ============================================
+// Event Category Types (for visual indicators)
+// ============================================
+
+export type EventCategoryType =
+  | "festival"
+  | "public-holiday"
+  | "commemorative"
+  | "professional"
+  | "social"
+  | "international"
+  | "solar-term"
+  | "lunar-cycle";
+
+export type EventCategory = {
+  type: EventCategoryType;
+  color: string;       // CSS variable name, e.g. "var(--cat-festival)"
+  colorHex: string;    // Raw hex for inline styles
+  tint: string;        // CSS variable name for tint
+  label: { vi: string; en: string };
+  priority: number;    // Lower = higher priority (1 = highest)
+  name?: string;       // Event name for pill display
+};
+
+// ============================================
 // Input Day Type (from calendar)
 // ============================================
 

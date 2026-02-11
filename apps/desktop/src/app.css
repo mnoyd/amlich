@@ -23,6 +23,24 @@
   
   --shadow-soft: 0 8px 24px rgba(44, 36, 27, 0.06);
   --shadow-hover: 0 12px 32px rgba(44, 36, 27, 0.1);
+
+  /* Event Category Colors */
+  --cat-festival: #C62828;
+  --cat-festival-tint: rgba(198, 40, 40, 0.05);
+  --cat-public-holiday: #AD1457;
+  --cat-public-holiday-tint: rgba(173, 20, 87, 0.05);
+  --cat-commemorative: #1565C0;
+  --cat-commemorative-tint: rgba(21, 101, 192, 0.05);
+  --cat-professional: #2E7D32;
+  --cat-professional-tint: rgba(46, 125, 50, 0.05);
+  --cat-social: #E65100;
+  --cat-social-tint: rgba(230, 81, 0, 0.05);
+  --cat-international: #6A1B9A;
+  --cat-international-tint: rgba(106, 27, 154, 0.05);
+  --cat-solar-term: #00796B;
+  --cat-solar-term-tint: rgba(0, 121, 107, 0.05);
+  --cat-lunar-cycle: #D4AF37;
+  --cat-lunar-cycle-tint: rgba(212, 175, 55, 0.07);
   
   --font-serif: "Source Serif 4", serif;
   --font-sans: "Inter", sans-serif;
