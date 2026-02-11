@@ -58,6 +58,44 @@ Download the latest release for your platform:
 - **Linux (Debian/Ubuntu)**: `sudo dpkg -i AmLich_*_amd64.deb`
 - **Linux (Fedora/RHEL)**: `sudo rpm -i AmLich-*.x86_64.rpm`
 
+**Local Arch/Hyprland build + install (this repo):**
+
+```bash
+./scripts/install-desktop-local.sh
+```
+
+This builds the desktop app, installs binary to `~/.local/bin/amlich-app`, and creates `~/.local/share/applications/amlich.desktop` only if it does not already exist.
+
+#### Arch Linux + Hyprland (recommended)
+
+- Use the AppImage release if you want in-app auto updates.
+- Install to a user-writable path (for example `~/.local/bin`) so updater can replace the binary.
+- If installed via package manager (`pacman`/`yay`), update through package manager instead of in-app updater.
+
+```bash
+mkdir -p ~/.local/bin
+cp AmLich_*_amd64.AppImage ~/.local/bin/amlich-desktop
+chmod +x ~/.local/bin/amlich-desktop
+~/.local/bin/amlich-desktop
+```
+
+Optional desktop entry (`~/.local/share/applications/amlich.desktop`):
+
+```ini
+[Desktop Entry]
+Type=Application
+Name=AmLich
+Exec=/home/$USER/.local/bin/amlich-desktop
+Icon=amlich
+Categories=Utility;
+Terminal=false
+```
+
+#### Hyprland troubleshooting
+
+- Ensure runtime dependencies are installed: `webkit2gtk-4.1`, `libayatana-appindicator`, `xdg-desktop-portal`, `xdg-desktop-portal-hyprland`.
+- If update install fails, use the in-app "Open Releases" fallback and install latest AppImage manually.
+
 ### CLI (for Waybar)
 
 ```bash
