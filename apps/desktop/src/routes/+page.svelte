@@ -140,8 +140,6 @@
 
   // Cultural Detail Visibility
   let isInsightVisible = $state(false);
-  // Legend bar visibility
-  let isLegendVisible = $state(true);
 
   function toggleInsight() {
     isInsightVisible = !isInsightVisible;
@@ -294,28 +292,26 @@
         {/each}
       </div>
 
-      <div class="legend-bar" class:collapsed={!isLegendVisible}>
-        <button class="legend-toggle" onclick={() => isLegendVisible = !isLegendVisible} aria-label="Toggle legend">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            {#if isLegendVisible}
-              <path d="m18 15-6-6-6 6"/>
-            {:else}
-              <path d="m6 9 6 6 6-6"/>
-            {/if}
-          </svg>
-        </button>
-        {#if isLegendVisible}
-          <div class="legend-items">
-            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-festival);"></span>Lễ truyền thống</span>
-            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-public-holiday);"></span>Nghỉ lễ</span>
-            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-commemorative);"></span>Kỷ niệm</span>
-            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-professional);"></span>Ngành nghề</span>
-            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-social);"></span>Xã hội</span>
-            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-international);"></span>Quốc tế</span>
-            <span class="legend-item"><span class="legend-dot" style="background: var(--cat-lunar-cycle);"></span>Sóc/Vọng</span>
-          </div>
-        {/if}
-      </div>
+      <details class="legend-bar">
+        <summary class="legend-summary" aria-label="Mở chú giải màu sự kiện">
+          <span class="legend-dot" style="background: var(--cat-festival);"></span>
+          <span class="legend-dot" style="background: var(--cat-public-holiday);"></span>
+          <span class="legend-dot" style="background: var(--cat-commemorative);"></span>
+          <span class="legend-dot" style="background: var(--cat-professional);"></span>
+          <span class="legend-dot" style="background: var(--cat-social);"></span>
+          <span class="legend-dot" style="background: var(--cat-international);"></span>
+          <span class="legend-dot" style="background: var(--cat-lunar-cycle);"></span>
+        </summary>
+        <div class="legend-items">
+          <span class="legend-item"><span class="legend-dot" style="background: var(--cat-festival);"></span>Lễ truyền thống</span>
+          <span class="legend-item"><span class="legend-dot" style="background: var(--cat-public-holiday);"></span>Nghỉ lễ</span>
+          <span class="legend-item"><span class="legend-dot" style="background: var(--cat-commemorative);"></span>Kỷ niệm</span>
+          <span class="legend-item"><span class="legend-dot" style="background: var(--cat-professional);"></span>Ngành nghề</span>
+          <span class="legend-item"><span class="legend-dot" style="background: var(--cat-social);"></span>Xã hội</span>
+          <span class="legend-item"><span class="legend-dot" style="background: var(--cat-international);"></span>Quốc tế</span>
+          <span class="legend-item"><span class="legend-dot" style="background: var(--cat-lunar-cycle);"></span>Sóc/Vọng</span>
+        </div>
+      </details>
 
       {#if isLoading}
         <div class="status-message loading">
@@ -811,49 +807,39 @@
 
   /* Legend Bar */
   .legend-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    margin-bottom: 6px;
     padding: 0 12px;
-    margin-bottom: 4px;
-    transition: all 0.25s ease;
   }
 
-  .legend-bar.collapsed {
-    margin-bottom: 2px;
-  }
-
-  .legend-toggle {
+  .legend-summary {
     display: flex;
     align-items: center;
-    justify-content: center;
-    width: 20px;
-    height: 20px;
-    border-radius: 4px;
-    border: 1px solid var(--border-subtle);
-    background: rgba(255, 255, 255, 0.8);
-    color: var(--text-tertiary);
+    gap: 4px;
+    list-style: none;
     cursor: pointer;
-    flex-shrink: 0;
-    transition: all 0.2s;
-    padding: 0;
+    padding: 4px 0;
+    opacity: 0.55;
+    transition: opacity 0.15s;
   }
 
-  .legend-toggle:hover {
-    background: rgba(255, 255, 255, 0.95);
-    color: var(--text-secondary);
+  .legend-summary:hover {
+    opacity: 0.85;
+  }
+
+  .legend-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .legend-bar[open] .legend-summary {
+    opacity: 0.35;
   }
 
   .legend-items {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px 12px;
-    animation: legendFade 0.2s ease;
-  }
-
-  @keyframes legendFade {
-    from { opacity: 0; transform: translateY(-4px); }
-    to { opacity: 1; transform: translateY(0); }
+    gap: 4px 10px;
+    margin-top: 4px;
+    padding-bottom: 2px;
   }
 
   .legend-item {
@@ -870,10 +856,15 @@
 
   .legend-dot {
     display: inline-block;
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
     flex-shrink: 0;
+  }
+
+  .legend-items .legend-dot {
+    width: 7px;
+    height: 7px;
   }
 
   .main-layout.insight-mode .legend-bar {
@@ -1283,8 +1274,10 @@
   }
 
   .detail-header-card {
-    border-bottom: 1px solid var(--border-subtle);
-    padding-bottom: 12px;
+    background: rgba(0, 0, 0, 0.015);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px 12px;
   }
 
   .header-main-row {
@@ -1294,10 +1287,11 @@
   }
 
   .detail-solar-large {
-    font-size: 3.5rem;
-    font-weight: 700;
+    font-size: 3.2rem;
+    font-weight: 800;
     color: var(--primary-red);
     line-height: 1;
+    opacity: 0.88;
   }
 
   .detail-right-col {
@@ -1308,11 +1302,12 @@
   }
 
   .detail-weekday {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.95rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.03em;
     line-height: 1.2;
+    color: var(--text-primary);
   }
 
   .detail-full-date {
