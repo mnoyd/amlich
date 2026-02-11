@@ -105,12 +105,6 @@
     }
   }
 
-  function goToday() {
-    preferredDayOfMonth = today.getDate();
-    viewYear = today.getFullYear();
-    viewMonth = today.getMonth() + 1;
-  }
-
   const dayRows = () => {
     if (!monthData) return [] as (DayCell | null)[][];
     const rows: (DayCell | null)[][] = [];
@@ -167,6 +161,32 @@
     isInsightVisible = !isInsightVisible;
   }
 
+  // Month picker popover
+  let showMonthPicker = $state(false);
+  let pickerYear = $state(today.getFullYear());
+
+  function toggleMonthPicker() {
+    if (!showMonthPicker) {
+      pickerYear = viewYear;
+    }
+    showMonthPicker = !showMonthPicker;
+  }
+
+  function pickMonth(month: number) {
+    preferredDayOfMonth = selectedDay?.day ?? preferredDayOfMonth;
+    viewMonth = month;
+    viewYear = pickerYear;
+    showMonthPicker = false;
+  }
+
+  function pickerPrevYear() {
+    pickerYear -= 1;
+  }
+
+  function pickerNextYear() {
+    pickerYear += 1;
+  }
+
   // Settings menu
   let showSettingsMenu = $state(false);
   let appVersion = $state("");
@@ -188,6 +208,9 @@
     const target = event.target as HTMLElement;
     if (showSettingsMenu && !target.closest(".settings-wrapper")) {
       showSettingsMenu = false;
+    }
+    if (showMonthPicker && !target.closest(".month-pill-wrapper")) {
+      showMonthPicker = false;
     }
   }
 
@@ -242,9 +265,50 @@
           stroke-linejoin="round"><path d="m15 18-6-6 6-6" /></svg
         >
       </button>
-      <div class="month-pill">
-        <span class="month-caption">Lịch tháng</span>
-        <span class="current-month">{monthTitle()}</span>
+      <div class="month-pill-wrapper">
+        <button class="month-pill" onclick={toggleMonthPicker} aria-expanded={showMonthPicker} aria-haspopup="dialog">
+          <span class="month-caption">Lịch tháng</span>
+          <span class="current-month">
+            {monthTitle()}
+            <svg class="pill-chevron" class:open={showMonthPicker} xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
+        </button>
+
+        {#if showMonthPicker}
+          <div class="month-picker-popover" role="dialog" aria-label="Chọn tháng và năm">
+            <div class="picker-year-strip">
+              <button class="picker-year-arrow" onclick={pickerPrevYear} aria-label="Năm trước">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+              </button>
+              <span class="picker-year-label" class:is-current-year={pickerYear === today.getFullYear()}>{pickerYear}</span>
+              <button class="picker-year-arrow" onclick={pickerNextYear} aria-label="Năm sau">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+            </div>
+
+            <div class="picker-month-grid">
+              {#each monthNames as name, i}
+                {@const m = i + 1}
+                {@const isSelected = m === viewMonth && pickerYear === viewYear}
+                {@const isCurrent = m === today.getMonth() + 1 && pickerYear === today.getFullYear()}
+                <button
+                  class="picker-month-cell"
+                  class:selected={isSelected}
+                  class:current={isCurrent && !isSelected}
+                  onclick={() => pickMonth(m)}
+                >
+                  <span class="picker-month-num">{m}</span>
+                  <span class="picker-month-name">{name.replace("Tháng ", "Th")}</span>
+                </button>
+              {/each}
+            </div>
+
+            <button class="picker-today-btn" onclick={() => { pickMonth(today.getMonth() + 1); pickerYear = today.getFullYear(); viewYear = today.getFullYear(); preferredDayOfMonth = today.getDate(); }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+              Hôm nay
+            </button>
+          </div>
+        {/if}
       </div>
       <button
         class="icon-btn nav-arrow"
@@ -266,7 +330,6 @@
     </div>
 
     <div class="actions">
-      <button class="action-btn secondary" onclick={goToday}>Hôm nay</button>
       <button
         class="action-btn insight-toggle {isInsightVisible ? 'active' : ''}"
         onclick={toggleInsight}
@@ -657,6 +720,10 @@
     min-width: 0;
   }
 
+  .month-pill-wrapper {
+    position: relative;
+  }
+
   .month-pill {
     display: flex;
     flex-direction: column;
@@ -669,6 +736,20 @@
     background:
       linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, #fff8ef 100%);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .month-pill:hover {
+    border-color: rgba(212, 175, 55, 0.7);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 4px 16px rgba(212, 175, 55, 0.18);
+    transform: translateY(-1px);
+  }
+
+  .month-pill:active {
+    transform: translateY(0);
   }
 
   .month-caption {
@@ -689,6 +770,197 @@
     color: #8d251a;
     letter-spacing: -0.01em;
     line-height: 1.15;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pill-chevron {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+
+  .pill-chevron.open {
+    transform: rotate(180deg);
+    opacity: 0.8;
+  }
+
+  .month-pill:hover .pill-chevron {
+    opacity: 0.8;
+  }
+
+  /* ── Month Picker Popover ── */
+  .month-picker-popover {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    width: 320px;
+    background: linear-gradient(180deg, #fffcf5 0%, #fff8ef 100%);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    border-radius: 18px;
+    box-shadow:
+      0 20px 60px rgba(44, 36, 27, 0.15),
+      0 4px 16px rgba(212, 175, 55, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    padding: 16px;
+    z-index: 200;
+    animation: picker-enter 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes picker-enter {
+    from {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-8px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
+  }
+
+  .picker-year-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  }
+
+  .picker-year-arrow {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    background: rgba(255, 255, 255, 0.85);
+    color: #8f4e1f;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .picker-year-arrow:hover {
+    background: rgba(250, 240, 226, 0.95);
+    border-color: rgba(212, 175, 55, 0.5);
+    color: var(--primary-red);
+    transform: scale(1.1);
+  }
+
+  .picker-year-label {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    min-width: 80px;
+    text-align: center;
+    font-feature-settings: "tnum";
+    letter-spacing: -0.02em;
+    transition: color 0.2s;
+  }
+
+  .picker-year-label.is-current-year {
+    color: var(--accent-jade);
+  }
+
+  .picker-month-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  .picker-month-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 4px 8px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-family: var(--font-serif);
+    gap: 1px;
+  }
+
+  .picker-month-cell:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(212, 175, 55, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.15);
+  }
+
+  .picker-month-cell.selected {
+    background: linear-gradient(135deg, #8d251a 0%, #b33325 100%);
+    border-color: transparent;
+    box-shadow: 0 4px 16px rgba(141, 37, 26, 0.35);
+    transform: translateY(-1px);
+  }
+
+  .picker-month-cell.selected .picker-month-num {
+    color: #fff;
+  }
+
+  .picker-month-cell.selected .picker-month-name {
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  .picker-month-cell.current {
+    border-color: var(--accent-jade);
+    background: rgba(42, 110, 100, 0.06);
+  }
+
+  .picker-month-cell.current .picker-month-num {
+    color: var(--accent-jade);
+  }
+
+  .picker-month-num {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+    transition: color 0.18s;
+  }
+
+  .picker-month-name {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    letter-spacing: 0.02em;
+    transition: color 0.18s;
+    font-family: var(--font-sans);
+  }
+
+  .picker-today-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 9px;
+    border-radius: 10px;
+    border: 1px solid rgba(42, 110, 100, 0.2);
+    background: linear-gradient(140deg, rgba(42, 110, 100, 0.08) 0%, rgba(42, 110, 100, 0.14) 100%);
+    color: var(--accent-jade);
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .picker-today-btn:hover {
+    background: linear-gradient(140deg, rgba(42, 110, 100, 0.14) 0%, rgba(42, 110, 100, 0.22) 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(42, 110, 100, 0.15);
   }
 
   .icon-btn {
@@ -751,17 +1023,6 @@
     background: #fff;
     color: var(--text-primary);
     transform: translateY(-1px);
-  }
-
-  .action-btn.secondary {
-    background: linear-gradient(
-      140deg,
-      rgba(42, 110, 100, 0.14) 0%,
-      rgba(42, 110, 100, 0.23) 100%
-    );
-    color: #1f5f55;
-    border-color: rgba(42, 110, 100, 0.24);
-    box-shadow: 0 5px 12px rgba(42, 110, 100, 0.16);
   }
 
   .action-btn.insight-toggle.active {
@@ -1689,9 +1950,18 @@
       width: 100%;
     }
 
+    .month-pill-wrapper {
+      flex: 1;
+      min-width: 0;
+    }
+
     .month-pill {
       min-width: 0;
       flex: 1;
+    }
+
+    .month-picker-popover {
+      width: 280px;
     }
 
     .actions {
