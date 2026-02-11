@@ -51,6 +51,14 @@ struct MonthData {
     days: Vec<DayCell>,
 }
 
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct InstallContext {
+    executable_path: Option<String>,
+    is_system_install: bool,
+    can_self_update: bool,
+}
+
 fn to_day_cell(day_info: amlich_core::DayInfo, holidays: Vec<HolidayInfo>) -> DayCell {
     let good_hours = day_info
         .gio_hoang_dao
@@ -167,6 +175,27 @@ fn get_day_detail(day: i32, month: i32, year: i32) -> Result<DayCell, String> {
     ))
 }
 
+#[tauri::command]
+fn get_install_context() -> InstallContext {
+    let executable_path = std::env::current_exe()
+        .ok()
+        .map(|path| path.display().to_string());
+
+    #[cfg(target_os = "linux")]
+    let is_system_install = executable_path.as_ref().is_some_and(|path| {
+        path.starts_with("/usr/") || path.starts_with("/opt/") || path.starts_with("/nix/store/")
+    });
+
+    #[cfg(not(target_os = "linux"))]
+    let is_system_install = false;
+
+    InstallContext {
+        executable_path,
+        is_system_install,
+        can_self_update: !is_system_install,
+    }
+}
+
 fn holiday_key(holiday: &Holiday) -> String {
     format!(
         "{}-{}-{}-{}",
@@ -188,7 +217,11 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
-        .invoke_handler(tauri::generate_handler![get_month_data, get_day_detail])
+        .invoke_handler(tauri::generate_handler![
+            get_month_data,
+            get_day_detail,
+            get_install_context
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
