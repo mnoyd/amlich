@@ -22,11 +22,23 @@
     "Tháng 12",
   ];
 
+  const dotLabels: Record<string, string> = {
+    festival: "Lễ truyền thống",
+    "public-holiday": "Nghỉ lễ",
+    commemorative: "Kỷ niệm",
+    professional: "Ngành nghề",
+    social: "Xã hội",
+    international: "Quốc tế",
+    "solar-term": "Tiết khí",
+    "lunar-cycle": "Sóc/Vọng",
+  };
+
   const today = new Date();
   let viewYear = $state(today.getFullYear());
   let viewMonth = $state(today.getMonth() + 1);
   let monthData = $state<MonthData | null>(null);
   let selectedDay = $state<DayCell | null>(null);
+  let preferredDayOfMonth: number | null = null;
   let isLoading = $state(false);
   let error = $state<string | null>(null);
 
@@ -44,7 +56,12 @@
         (d) =>
           d.day === today.getDate() && d.month === month && d.year === year,
       );
-      selectedDay = todayMatch ?? data.days[0] ?? null;
+      const previousDayMatch =
+        preferredDayOfMonth == null
+          ? null
+          : data.days.find((d) => d.day === preferredDayOfMonth) ?? null;
+      selectedDay = todayMatch ?? previousDayMatch ?? data.days[0] ?? null;
+      preferredDayOfMonth = selectedDay?.day ?? null;
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
       monthData = null;
@@ -62,12 +79,14 @@
         year: day.year,
       });
       selectedDay = detail;
+      preferredDayOfMonth = detail.day;
     } catch (err) {
       error = err instanceof Error ? err.message : String(err);
     }
   }
 
   function prevMonth() {
+    preferredDayOfMonth = selectedDay?.day ?? preferredDayOfMonth;
     if (viewMonth === 1) {
       viewMonth = 12;
       viewYear -= 1;
@@ -77,6 +96,7 @@
   }
 
   function nextMonth() {
+    preferredDayOfMonth = selectedDay?.day ?? preferredDayOfMonth;
     if (viewMonth === 12) {
       viewMonth = 1;
       viewYear += 1;
@@ -86,6 +106,7 @@
   }
 
   function goToday() {
+    preferredDayOfMonth = today.getDate();
     viewYear = today.getFullYear();
     viewMonth = today.getMonth() + 1;
   }
@@ -346,7 +367,7 @@
                     {#if dots.length > 0}
                       <span class="category-dots">
                         {#each dots as dot}
-                          <span class="cat-dot" style="background: {dot.colorHex};" title={dot.type}></span>
+                          <span class="cat-dot" style="background: {dot.colorHex};" title={dotLabels[dot.type] ?? dot.type}></span>
                         {/each}
                       </span>
                     {/if}
@@ -804,6 +825,7 @@
   .weekday-label.weekend {
     color: var(--primary-red);
     opacity: 0.8;
+    border-bottom: 1px solid rgba(217, 48, 37, 0.16);
   }
 
   /* Legend Bar */
@@ -1789,6 +1811,15 @@
     color: var(--text-tertiary);
     border-top: 1px solid var(--border-subtle);
     margin-top: 4px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
 </style>
