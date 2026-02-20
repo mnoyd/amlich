@@ -1,10 +1,5 @@
 # Waybar Integration
 
-This folder contains Waybar-specific integration assets.
-
-The `amlich-core` crate stays focused on calendar calculations only.
-Waybar rendering and relevance filtering live in `amlich-cli`.
-
 ## Install CLI
 
 ```bash
@@ -22,15 +17,9 @@ Recommended command wiring:
 
 ## Styles
 
-Copy or merge rules from `waybar/styles/amlich.css` into your Waybar style file.
+Copy or merge rules from `waybar/styles/amlich.css` into your Waybar stylesheet.
 
 ## Restart Waybar
-
-```bash
-omarchy-restart-waybar
-```
-
-Fallback:
 
 ```bash
 pkill -x waybar && waybar &

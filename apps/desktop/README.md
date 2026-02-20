@@ -1,7 +1,33 @@
-# Tauri + SvelteKit + TypeScript
+# Desktop App (`apps/desktop`)
 
-This template should help get you started developing with Tauri, SvelteKit and TypeScript in Vite.
+This app is the desktop target for Amlich, built with Tauri (Rust backend) and Svelte.
 
-## Recommended IDE Setup
+## Prerequisites
 
-[VS Code](https://code.visualstudio.com/) + [Svelte](https://marketplace.visualstudio.com/items?itemName=svelte.svelte-vscode) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer).
+- `pnpm`
+- Rust toolchain (`rustup`, `cargo`)
+- System dependencies required by Tauri/WebKit for your OS
+
+## Commands
+
+From repository root:
+
+```bash
+pnpm install
+pnpm dev:app
+pnpm build:app
+```
+
+App-local equivalents:
+
+```bash
+cd apps/desktop
+pnpm tauri dev
+pnpm tauri build
+```
+
+## Updater Note
+
+Desktop updater integration logic lives in `apps/desktop/src/lib/updater.ts`.
+
+For general setup and workspace commands, see `README.md`; for issues, use the repository issue tracker.
