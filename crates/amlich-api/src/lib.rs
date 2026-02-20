@@ -47,9 +47,12 @@ pub fn get_day_insight(query: &DateQuery) -> Result<DayInsightDto, String> {
     let festival = lunar_festivals()
         .iter()
         .find(|item| {
-            !item.is_solar
-                && item.lunar_day == day_info.lunar.day
-                && item.lunar_month == day_info.lunar.month
+            if item.is_solar {
+                item.solar_day == Some(day_info.solar.day)
+                    && item.solar_month == Some(day_info.solar.month)
+            } else {
+                item.lunar_day == day_info.lunar.day && item.lunar_month == day_info.lunar.month
+            }
         })
         .map(FestivalInsightDto::from);
 

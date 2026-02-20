@@ -109,8 +109,12 @@ impl Widget for InsightWidget<'_> {
         }
 
         if let Some(guidance) = insight.day_guidance {
+            let (good_label, avoid_label) = match self.app.insight_lang {
+                InsightLang::Vi => ("✅ Nên làm", "⛔ Hạn chế"),
+                InsightLang::En => ("✅ Do", "⛔ Avoid"),
+            };
             lines.push(Line::from(Span::styled(
-                "✅ Nên làm",
+                good_label,
                 Style::default()
                     .fg(theme::GOOD_HOUR_FG)
                     .add_modifier(Modifier::BOLD),
@@ -127,7 +131,7 @@ impl Widget for InsightWidget<'_> {
             }
 
             lines.push(Line::from(Span::styled(
-                "⛔ Hạn chế",
+                avoid_label,
                 Style::default()
                     .fg(theme::WEEKEND_FG)
                     .add_modifier(Modifier::BOLD),

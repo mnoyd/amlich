@@ -45,6 +45,10 @@ struct LunarFestivalsFile {
 pub struct LunarFestivalData {
     pub lunar_day: i32,
     pub lunar_month: i32,
+    #[serde(default)]
+    pub solar_day: Option<i32>,
+    #[serde(default)]
+    pub solar_month: Option<i32>,
     pub year_offset: i32,
     pub category: String,
     pub is_major: bool,

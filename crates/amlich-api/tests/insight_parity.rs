@@ -65,6 +65,26 @@ fn teachers_day_has_holiday_insight_fields() {
 }
 
 #[test]
+fn thanh_minh_has_solar_festival_insight() {
+    let insight = get_day_insight(&DateQuery {
+        day: 5,
+        month: 4,
+        year: 2024,
+        timezone: None,
+    })
+    .expect("day insight should be available");
+
+    let festival = insight
+        .festival
+        .expect("Thanh Minh should match festival insight");
+    assert!(festival
+        .names
+        .vi
+        .iter()
+        .any(|n| n.contains("Thanh Minh")));
+}
+
+#[test]
 fn day_info_and_day_insight_remain_consistent() {
     let query = DateQuery {
         day: 29,
