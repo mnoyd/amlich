@@ -9,7 +9,7 @@
 
 mod waybar;
 
-use amlich_core::{get_day_info, DayInfo};
+use amlich_api::{get_day_info_for_date, DayInfoDto};
 use chrono::{Datelike, Local};
 use clap::{Parser, Subcommand};
 use serde::{Deserialize, Serialize};
@@ -222,7 +222,7 @@ fn parse_date(date_str: &str) -> Result<(i32, i32, i32), String> {
     Ok((day, month, year))
 }
 
-fn convert_to_json(info: &DayInfo) -> JsonOutput {
+fn convert_to_json(info: &DayInfoDto) -> JsonOutput {
     JsonOutput {
         solar: JsonSolar {
             day: info.solar.day,
@@ -278,14 +278,16 @@ fn main() {
     match cli.command {
         Some(Commands::Today) | None => {
             let now = Local::now();
-            let info = get_day_info(now.day() as i32, now.month() as i32, now.year());
+            let info = get_day_info_for_date(now.day() as i32, now.month() as i32, now.year())
+                .expect("today should always produce a valid date");
             let mode = read_mode();
             println!("{}", waybar::format_waybar_json(&info, &mode));
         }
 
         Some(Commands::Date { date }) => match parse_date(&date) {
             Ok((day, month, year)) => {
-                let info = get_day_info(day, month, year);
+                let info = get_day_info_for_date(day, month, year)
+                    .expect("validated date should produce day info");
                 let mode = read_mode();
                 println!("{}", waybar::format_waybar_json(&info, &mode));
             }
@@ -306,7 +308,8 @@ fn main() {
 
             // Output current state for Waybar
             let now = Local::now();
-            let info = get_day_info(now.day() as i32, now.month() as i32, now.year());
+            let info = get_day_info_for_date(now.day() as i32, now.month() as i32, now.year())
+                .expect("today should always produce a valid date");
             println!("{}", waybar::format_waybar_json(&info, &new_mode));
         }
 
@@ -324,7 +327,8 @@ fn main() {
                 (now.day() as i32, now.month() as i32, now.year())
             };
 
-            let info = get_day_info(day, month, year);
+            let info = get_day_info_for_date(day, month, year)
+                .expect("validated date should produce day info");
             let json = convert_to_json(&info);
             println!("{}", serde_json::to_string_pretty(&json).unwrap());
         }

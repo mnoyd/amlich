@@ -1,176 +1,166 @@
 /**
- * Vietnamese Lunar Calendar Expert Engine
- * 
- * Main entry point for almanac calculations.
- * Provides comprehensive information about any date including:
- * - Solar and Lunar dates
- * - Can Chi (Heavenly Stems & Earthly Branches) for day/month/year
- * - Traditional almanac data (to be added in future phases)
- * 
- * Usage:
- *   const { getDayInfo } = require('./engine');
- *   const info = getDayInfo(10, 2, 2024);  // Feb 10, 2024
- *   console.log(info.canChi.day.full);     // "Giáp Thìn"
+ * Rust-backed engine adapter.
+ *
+ * Preferred path:
+ * - call the Rust CLI (`amlich json <YYYY-MM-DD>`) and normalize payload shape.
+ *
+ * Fallback path:
+ * - use the previous JS implementation from `legacy-engine.js`.
  */
 
-const { jdFromDate, convertSolar2Lunar } = require('../amlich-core.js');
-const { getDayCanChi, getMonthCanChi, getYearCanChi } = require('./canchi.js');
-const { THU } = require('./types.js');
-const { getTietKhi } = require('./tietkhi.js');
-const { getGioHoangDao } = require('./gio-hoang-dao.js');
+const { spawnSync } = require('node:child_process');
+const legacy = require('./legacy-engine.js');
 
-/**
- * Get comprehensive information for a given solar date
- * 
- * @param {number} dd - Day (1-31)
- * @param {number} mm - Month (1-12)
- * @param {number} yyyy - Year
- * @param {Object} options - Optional settings
- * @param {number} options.timezone - Timezone offset (default: 7 for Vietnam)
- * @returns {Object} Complete day information
- */
+const warned = {
+  rustUnavailable: false,
+};
+
+function pad2(n) {
+  return String(n).padStart(2, '0');
+}
+
+function normalizeFromRust(payload) {
+  return {
+    solar: {
+      day: payload.solar.day,
+      month: payload.solar.month,
+      year: payload.solar.year,
+      dayOfWeek: null,
+      dayOfWeekName: payload.solar.day_of_week,
+      dateString: payload.solar.date_string,
+    },
+    lunar: {
+      day: payload.lunar.day,
+      month: payload.lunar.month,
+      year: payload.lunar.year,
+      isLeapMonth: payload.lunar.is_leap_month,
+      dateString: payload.lunar.date_string,
+    },
+    jd: null,
+    canChi: {
+      day: {
+        can: payload.canchi.day_can,
+        chi: payload.canchi.day_chi,
+        full: payload.canchi.day,
+        conGiap: '',
+        nguHanh: { can: '', chi: '' },
+      },
+      month: {
+        can: payload.canchi.month_can,
+        chi: payload.canchi.month_chi,
+        full: payload.canchi.month,
+        conGiap: '',
+        nguHanh: { can: '', chi: '' },
+      },
+      year: {
+        can: payload.canchi.year_can,
+        chi: payload.canchi.year_chi,
+        full: payload.canchi.year,
+        conGiap: '',
+        nguHanh: { can: '', chi: '' },
+      },
+      full: `${payload.canchi.day}, tháng ${payload.canchi.month}, năm ${payload.canchi.year}`,
+    },
+    tietKhi: {
+      name: payload.tiet_khi.name,
+      description: payload.tiet_khi.description,
+      season: payload.tiet_khi.season,
+      index: null,
+      longitude: null,
+      currentLongitude: null,
+    },
+    gioHoangDao: {
+      goodHours: payload.gio_hoang_dao.hours
+        .filter((h) => h.is_good)
+        .map((h) => ({
+          hourChi: h.name,
+          timeRange: h.time_range,
+          star: h.star,
+          hourIndex: h.hour,
+          isGood: true,
+        })),
+      goodHourCount: payload.gio_hoang_dao.good_hour_count,
+      allHours: payload.gio_hoang_dao.hours.map((h) => ({
+        hourChi: h.name,
+        timeRange: h.time_range,
+        star: h.star,
+        hourIndex: h.hour,
+        isGood: h.is_good,
+      })),
+      summary: `Giờ tốt: ${payload.gio_hoang_dao.good_hour_count}`,
+    },
+    _meta: {
+      version: 'rust-cli-adapter',
+      timezone: 7,
+      backend: 'rust-cli',
+      methods: {
+        dayCanChi: 'rust-core',
+        monthCanChi: 'rust-core',
+        yearCanChi: 'rust-core',
+        tietKhi: 'rust-core',
+        gioHoangDao: 'rust-core',
+      },
+      conventions: {
+        timezone: 'UTC+7 (Vietnam)',
+        dayBoundary: 'local midnight',
+      },
+    },
+  };
+}
+
+function getDayInfoFromRust(dd, mm, yyyy, options = {}) {
+  const cliPath = process.env.AMLICH_CLI_PATH || 'amlich';
+  const date = `${yyyy}-${pad2(mm)}-${pad2(dd)}`;
+
+  const result = spawnSync(cliPath, ['json', date], {
+    encoding: 'utf8',
+    env: {
+      ...process.env,
+      AMLICH_TIMEZONE: String(options.timezone || 7),
+    },
+  });
+
+  if (result.error || result.status !== 0) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(result.stdout);
+    return normalizeFromRust(parsed);
+  } catch {
+    return null;
+  }
+}
+
+function warnRustUnavailableOnce() {
+  if (warned.rustUnavailable) {
+    return;
+  }
+  warned.rustUnavailable = true;
+  console.warn('[amlich] Rust CLI backend unavailable, falling back to legacy JS engine.');
+}
+
 function getDayInfo(dd, mm, yyyy, options = {}) {
-    const timeZone = options.timezone || 7;
-    
-    // Calculate Julian Day Number
-    const jd = jdFromDate(dd, mm, yyyy);
-    
-    // Convert to lunar date
-    const lunar = convertSolar2Lunar(dd, mm, yyyy, timeZone);
-    const lunarDay = lunar[0];
-    const lunarMonth = lunar[1];
-    const lunarYear = lunar[2];
-    const isLeapMonth = lunar[3];
-    
-    // Calculate day of week (JD + 1 because JD 0 was Monday)
-    const dayOfWeekIndex = (jd + 1) % 7;
-    
-    // Calculate Can Chi for day, month, year
-    const dayCanChi = getDayCanChi(jd);
-    const monthCanChi = getMonthCanChi(lunarMonth, lunarYear, isLeapMonth);
-    const yearCanChi = getYearCanChi(lunarYear);
-    
-    // Calculate Solar Term (Tiết Khí)
-    const tietKhi = getTietKhi(jd, timeZone);
-    
-    // Calculate Auspicious Hours (Giờ Hoàng Đạo)
-    const gioHoangDao = getGioHoangDao(dayCanChi.chiIndex);
-    
-    return {
-        // Solar date information
-        solar: {
-            day: dd,
-            month: mm,
-            year: yyyy,
-            dayOfWeek: dayOfWeekIndex,
-            dayOfWeekName: THU[dayOfWeekIndex],
-            dateString: `${yyyy}-${String(mm).padStart(2, '0')}-${String(dd).padStart(2, '0')}`
-        },
-        
-        // Lunar date information
-        lunar: {
-            day: lunarDay,
-            month: lunarMonth,
-            year: lunarYear,
-            isLeapMonth: isLeapMonth === 1,
-            dateString: `${lunarDay}/${lunarMonth}/${lunarYear}${isLeapMonth === 1 ? ' (nhuận)' : ''}`
-        },
-        
-        // Julian Day Number (for reference)
-        jd,
-        
-        // Can Chi information
-        canChi: {
-            day: dayCanChi,
-            month: monthCanChi,
-            year: yearCanChi,
-            
-            // Full date in Can Chi format
-            full: `${dayCanChi.full}, tháng ${monthCanChi.full}, năm ${yearCanChi.full}`
-        },
-        
-        // Solar Term (Tiết Khí)
-        tietKhi: {
-            name: tietKhi.name,
-            description: tietKhi.description,
-            index: tietKhi.index,
-            longitude: tietKhi.longitude,
-            currentLongitude: tietKhi.currentLongitude,
-            season: tietKhi.season
-        },
-        
-        // Auspicious Hours (Giờ Hoàng Đạo)
-        gioHoangDao: {
-            goodHours: gioHoangDao.goodHours,
-            goodHourCount: gioHoangDao.goodHourCount,
-            summary: gioHoangDao.summary,
-            allHours: gioHoangDao.allHours
-        },
-        
-        // Metadata about calculation methods
-        _meta: {
-            version: '1.0.0',
-            timezone: timeZone,
-            methods: {
-                dayCanChi: 'jd-based: (jd+9)%10, (jd+1)%12',
-                monthCanChi: 'lunar-month-based with year-stem table',
-                yearCanChi: 'lunar-year-based: (year+6)%10, (year+8)%12',
-                tietKhi: 'sun-longitude-based: floor(degrees/15)',
-                gioHoangDao: '12-star-system: day-branch determines cycle start'
-            },
-            conventions: {
-                lunarMonth1Branch: 'Dần (index 2)',
-                timezone: 'UTC+7 (Vietnam)',
-                dayBoundary: 'local midnight'
-            }
-        }
-    };
+  const rustInfo = getDayInfoFromRust(dd, mm, yyyy, options);
+  if (rustInfo) {
+    return rustInfo;
+  }
+
+  warnRustUnavailableOnce();
+  return legacy.getDayInfo(dd, mm, yyyy, options);
 }
 
-/**
- * Get Can Chi information only (lighter than full getDayInfo)
- * 
- * @param {number} dd - Day
- * @param {number} mm - Month
- * @param {number} yyyy - Year
- * @param {Object} options - Optional settings
- * @returns {Object} Can Chi information
- */
 function getCanChi(dd, mm, yyyy, options = {}) {
-    const info = getDayInfo(dd, mm, yyyy, options);
-    return info.canChi;
+  const info = getDayInfo(dd, mm, yyyy, options);
+  return info.canChi;
 }
 
-/**
- * Format day info as a readable string
- * 
- * @param {Object} dayInfo - Result from getDayInfo()
- * @returns {string} Formatted string
- */
 function formatDayInfo(dayInfo) {
-    const lines = [];
-    
-    lines.push(`📅 Ngày ${dayInfo.solar.dateString} (${dayInfo.solar.dayOfWeekName})`);
-    lines.push(`🌙 Âm lịch: ${dayInfo.lunar.dateString}`);
-    lines.push(`📜 Can Chi:`);
-    lines.push(`   • Ngày: ${dayInfo.canChi.day.full} (${dayInfo.canChi.day.conGiap})`);
-    lines.push(`   • Tháng: ${dayInfo.canChi.month.full}`);
-    lines.push(`   • Năm: ${dayInfo.canChi.year.full} (${dayInfo.canChi.year.conGiap})`);
-    lines.push(`🌟 Ngũ hành:`);
-    lines.push(`   • Ngày: ${dayInfo.canChi.day.nguHanh.can} (Can) - ${dayInfo.canChi.day.nguHanh.chi} (Chi)`);
-    lines.push(`🌤️  Tiết khí: ${dayInfo.tietKhi.name} - ${dayInfo.tietKhi.season}`);
-    lines.push(`   • ${dayInfo.tietKhi.description}`);
-    lines.push(`   • Kinh độ mặt trời: ${dayInfo.tietKhi.currentLongitude}°`);
-    lines.push(`⏰ Giờ Hoàng Đạo (${dayInfo.gioHoangDao.goodHourCount} giờ tốt):`);
-    dayInfo.gioHoangDao.goodHours.forEach(h => {
-        lines.push(`   • ${h.hourChi} (${h.timeRange}) - ${h.star}`);
-    });
-    
-    return lines.join('\n');
+  return legacy.formatDayInfo(dayInfo);
 }
 
 module.exports = {
-    getDayInfo,
-    getCanChi,
-    formatDayInfo
+  getDayInfo,
+  getCanChi,
+  formatDayInfo,
 };

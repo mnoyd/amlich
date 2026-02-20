@@ -13,7 +13,7 @@ name = "amlich"
 path = "src/main.rs"
 
 [dependencies]
-amlich-core = { path = "../amlich-core" }
+amlich-api = { path = "../amlich-api" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }

@@ -167,59 +167,6 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
     }
 }
 
-/// Format day info as a readable string
-///
-/// # Arguments
-/// * `day_info` - DayInfo struct from get_day_info()
-///
-/// # Returns
-/// Formatted multi-line string
-pub fn format_day_info(day_info: &DayInfo) -> String {
-    let mut lines = Vec::new();
-
-    lines.push(format!(
-        "📅 Ngày {} ({})",
-        day_info.solar.date_string, day_info.solar.day_of_week_name
-    ));
-    lines.push(format!("🌙 Âm lịch: {}", day_info.lunar.date_string));
-    lines.push("📜 Can Chi:".to_string());
-    lines.push(format!(
-        "   • Ngày: {} ({})",
-        day_info.canchi.day.full, day_info.canchi.day.con_giap
-    ));
-    lines.push(format!("   • Tháng: {}", day_info.canchi.month.full));
-    lines.push(format!(
-        "   • Năm: {} ({})",
-        day_info.canchi.year.full, day_info.canchi.year.con_giap
-    ));
-    lines.push("🌟 Ngũ hành:".to_string());
-    lines.push(format!(
-        "   • Ngày: {} (Can) - {} (Chi)",
-        day_info.canchi.day.ngu_hanh.can, day_info.canchi.day.ngu_hanh.chi
-    ));
-    lines.push(format!(
-        "🌤️  Tiết khí: {} - {}",
-        day_info.tiet_khi.name, day_info.tiet_khi.season
-    ));
-    lines.push(format!("   • {}", day_info.tiet_khi.description));
-    lines.push(format!(
-        "   • Kinh độ mặt trời: {}°",
-        day_info.tiet_khi.current_longitude
-    ));
-    lines.push(format!(
-        "⏰ Giờ Hoàng Đạo ({} giờ tốt):",
-        day_info.gio_hoang_dao.good_hour_count
-    ));
-    for h in &day_info.gio_hoang_dao.good_hours {
-        lines.push(format!(
-            "   • {} ({}) - {}",
-            h.hour_chi, h.time_range, h.star
-        ));
-    }
-
-    lines.join("\n")
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -275,18 +222,6 @@ mod tests {
         // Should have 6 good hours
         assert_eq!(info.gio_hoang_dao.good_hour_count, 6);
         assert_eq!(info.gio_hoang_dao.good_hours.len(), 6);
-    }
-
-    #[test]
-    fn test_format_day_info() {
-        let info = get_day_info(10, 2, 2024);
-        let formatted = format_day_info(&info);
-
-        // Should contain key information
-        assert!(formatted.contains("2024-02-10"));
-        assert!(formatted.contains("1/1/2024"));
-        assert!(formatted.contains("Giáp Thìn"));
-        assert!(formatted.contains("Giờ Hoàng Đạo"));
     }
 
     #[test]

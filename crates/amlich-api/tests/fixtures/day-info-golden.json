@@ -1,0 +1,26 @@
+[
+  {
+    "query": { "day": 10, "month": 2, "year": 2024, "timezone": 7.0 },
+    "expected": {
+      "lunar": { "day": 1, "month": 1, "year": 2024 },
+      "canchi_day": "Giáp Thìn",
+      "canchi_year": "Giáp Thìn"
+    }
+  },
+  {
+    "query": { "day": 29, "month": 1, "year": 2025, "timezone": 7.0 },
+    "expected": {
+      "lunar": { "day": 1, "month": 1, "year": 2025 },
+      "canchi_day": "Mậu Tuất",
+      "canchi_year": "Ất Tỵ"
+    }
+  },
+  {
+    "query": { "day": 1, "month": 1, "year": 2024, "timezone": 7.0 },
+    "expected": {
+      "lunar": { "day": 20, "month": 11, "year": 2023 },
+      "canchi_day": "Giáp Tý",
+      "canchi_year": "Quý Mão"
+    }
+  }
+]
