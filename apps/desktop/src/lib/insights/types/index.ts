@@ -1,7 +1,5 @@
 /**
- * Barrel re-export for all insight types.
- * Maintains backwards compatibility — consumers can import from "./types"
- * or choose "./types/domain" / "./types/view" for explicit separation.
+ * Barrel re-export for insight-related types used by desktop UI.
  */
 
 export type {
@@ -13,34 +11,15 @@ export type {
   MonthData,
   BilingualText,
   BilingualList,
-  FoodItem,
-  TabooItem,
-  ProverbItem,
-  RegionalCustoms,
-  FestivalData,
-  NationalHolidayData,
-  TietKhiData,
-  ElementInfo,
-  CanInfo,
-  ChiInfo,
-  DayGuidance,
-  CanChiData,
-  EventCategoryType,
   DayForInsight,
 } from "./domain";
 
 export type {
-  // View types
-  GuidanceSection,
-  RegionSection,
-  ProverbDisplay,
-  InsightCardExtra,
-  InsightCard,
-  FestivalInsight,
-  NationalHolidayInsight,
-  NormalDayInsight,
-  DateInsight,
-  DateInsightMulti,
-  AnyDateInsight,
-  EventCategory,
-} from "./view";
+export type {
+  FestivalInsightDto,
+  HolidayInsightDto,
+  CanChiInsightDto,
+  DayGuidanceInsightDto,
+  TietKhiInsightDto,
+  DayInsightDto,
+} from "./insight-dto";

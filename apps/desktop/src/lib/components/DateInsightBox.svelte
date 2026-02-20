@@ -1,46 +1,12 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/core";
-  import type { DayForInsight } from "$lib/insights/types";
-
-  type Lang = "vi" | "en";
-
-  type LocalizedText = { vi: string; en: string };
-  type LocalizedList = { vi: string[]; en: string[] };
-
-  type FestivalInsight = {
-    names: LocalizedList;
-    origin?: LocalizedText | null;
-    activities?: LocalizedList | null;
-  };
-
-  type HolidayInsight = {
-    names: LocalizedList;
-    origin?: LocalizedText | null;
-    significance?: LocalizedText | null;
-    traditions?: LocalizedList | null;
-  };
-
-  type CanChiInsight = {
-    can: { name: string; meaning: LocalizedText };
-    chi: { name: string; animal: LocalizedText; meaning: LocalizedText };
-  };
-
-  type DayGuidance = { good_for: LocalizedList; avoid_for: LocalizedList };
-
-  type TietKhiInsight = {
-    name: LocalizedText;
-    weather: LocalizedText;
-    agriculture: LocalizedList;
-    health: LocalizedList;
-  };
-
-  type DayInsightDto = {
-    festival?: FestivalInsight | null;
-    holiday?: HolidayInsight | null;
-    canchi?: CanChiInsight | null;
-    day_guidance?: DayGuidance | null;
-    tiet_khi?: TietKhiInsight | null;
-  };
+  import type {
+    BilingualList,
+    BilingualText,
+    DayForInsight,
+    DayInsightDto,
+    Lang,
+  } from "$lib/insights/types";
 
   let { day }: { day: DayForInsight | null } = $props();
 
@@ -49,12 +15,12 @@
   let error = $state<string | null>(null);
   let insight = $state<DayInsightDto | null>(null);
 
-  function text(v?: LocalizedText | null): string {
+  function text(v?: BilingualText | null): string {
     if (!v) return "";
     return lang === "vi" ? v.vi : v.en;
   }
 
-  function list(v?: LocalizedList | null): string[] {
+  function list(v?: BilingualList | null): string[] {
     if (!v) return [];
     return lang === "vi" ? v.vi : v.en;
   }
