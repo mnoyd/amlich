@@ -1,0 +1,20 @@
+[package]
+name = "amlich-tui"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Vietnamese Lunar Calendar - Terminal User Interface"
+
+[[bin]]
+name = "amlich-tui"
+path = "src/main.rs"
+
+[dependencies]
+amlich-api = { path = "../amlich-api" }
+amlich-presenter = { path = "../amlich-presenter" }
+ratatui = "0.30"
+crossterm = "0.29"
+chrono = { workspace = true }
