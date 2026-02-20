@@ -77,11 +77,7 @@ fn thanh_minh_has_solar_festival_insight() {
     let festival = insight
         .festival
         .expect("Thanh Minh should match festival insight");
-    assert!(festival
-        .names
-        .vi
-        .iter()
-        .any(|n| n.contains("Thanh Minh")));
+    assert!(festival.names.vi.iter().any(|n| n.contains("Thanh Minh")));
 }
 
 #[test]
