@@ -41,7 +41,10 @@ impl Widget for DetailWidget<'_> {
         lines.push(Line::from(vec![
             Span::styled("📅 ", Style::default()),
             Span::styled(
-                format!("{} ({})", info.solar.date_string, info.solar.day_of_week_name),
+                format!(
+                    "{} ({})",
+                    info.solar.date_string, info.solar.day_of_week_name
+                ),
                 Style::default()
                     .fg(theme::VALUE_FG)
                     .add_modifier(Modifier::BOLD),
@@ -77,7 +80,10 @@ impl Widget for DetailWidget<'_> {
         ]));
         lines.push(Line::from(vec![
             Span::styled("   Tháng: ", Style::default().fg(theme::LABEL_FG)),
-            Span::styled(&info.canchi.month.full, Style::default().fg(theme::VALUE_FG)),
+            Span::styled(
+                &info.canchi.month.full,
+                Style::default().fg(theme::VALUE_FG),
+            ),
         ]));
         lines.push(Line::from(vec![
             Span::styled("   Năm:   ", Style::default().fg(theme::LABEL_FG)),

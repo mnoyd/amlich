@@ -10,6 +10,7 @@ use crate::app::App;
 use crate::theme;
 use crate::widgets::{
     calendar::CalendarWidget, detail::DetailWidget, holidays::HolidayOverlay, hours::HoursWidget,
+    insight::InsightWidget,
 };
 
 const MONTH_NAMES: [&str; 12] = [
@@ -73,10 +74,7 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
                 .fg(theme::VALUE_FG)
                 .add_modifier(Modifier::BOLD),
         ),
-        Span::styled(
-            &year_canchi,
-            Style::default().fg(theme::ACCENT_FG),
-        ),
+        Span::styled(&year_canchi, Style::default().fg(theme::ACCENT_FG)),
         Span::styled(" ►", Style::default().fg(theme::LABEL_FG)),
     ]))
     .block(
@@ -89,17 +87,26 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 }
 
 fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
-    // 3 columns: calendar (50%) | detail (25%) | hours (25%)
+    let body_sections = if app.show_insight {
+        Layout::vertical([Constraint::Percentage(66), Constraint::Percentage(34)]).split(area)
+    } else {
+        Layout::vertical([Constraint::Percentage(100)]).split(area)
+    };
+
     let columns = Layout::horizontal([
         Constraint::Percentage(50),
         Constraint::Percentage(25),
         Constraint::Percentage(25),
     ])
-    .split(area);
+    .split(body_sections[0]);
 
     frame.render_widget(CalendarWidget::new(app), columns[0]);
     frame.render_widget(DetailWidget::new(app), columns[1]);
     frame.render_widget(HoursWidget::new(app), columns[2]);
+
+    if app.show_insight {
+        frame.render_widget(InsightWidget::new(app), body_sections[1]);
+    }
 }
 
 fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
@@ -118,6 +125,12 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
         Span::raw("  "),
         Span::styled("H ", Style::default().fg(theme::ACCENT_FG)),
         Span::styled("ngày lễ", Style::default().fg(theme::LABEL_FG)),
+        Span::raw("  "),
+        Span::styled("i ", Style::default().fg(theme::ACCENT_FG)),
+        Span::styled("insight", Style::default().fg(theme::LABEL_FG)),
+        Span::raw("  "),
+        Span::styled("L ", Style::default().fg(theme::ACCENT_FG)),
+        Span::styled("VI/EN", Style::default().fg(theme::LABEL_FG)),
         Span::raw("  "),
         Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
         Span::styled("thoát", Style::default().fg(theme::LABEL_FG)),

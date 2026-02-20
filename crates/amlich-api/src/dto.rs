@@ -104,3 +104,128 @@ pub struct HolidayDto {
     pub category: String,
     pub is_major: bool,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalizedTextDto {
+    pub vi: String,
+    pub en: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalizedListDto {
+    pub vi: Vec<String>,
+    pub en: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FoodInsightDto {
+    pub name: LocalizedTextDto,
+    pub description: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TabooInsightDto {
+    pub action: LocalizedTextDto,
+    pub reason: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ProverbInsightDto {
+    pub text: String,
+    pub meaning: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RegionsInsightDto {
+    pub north: LocalizedTextDto,
+    pub central: LocalizedTextDto,
+    pub south: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FestivalInsightDto {
+    pub names: LocalizedListDto,
+    pub origin: Option<LocalizedTextDto>,
+    pub activities: Option<LocalizedListDto>,
+    pub food: Vec<FoodInsightDto>,
+    pub taboos: Vec<TabooInsightDto>,
+    pub proverbs: Vec<ProverbInsightDto>,
+    pub regions: Option<RegionsInsightDto>,
+    pub category: String,
+    pub is_major: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HolidayInsightDto {
+    pub names: LocalizedListDto,
+    pub origin: Option<LocalizedTextDto>,
+    pub significance: Option<LocalizedTextDto>,
+    pub activities: Option<LocalizedListDto>,
+    pub traditions: Option<LocalizedListDto>,
+    pub food: Vec<FoodInsightDto>,
+    pub taboos: Vec<TabooInsightDto>,
+    pub proverbs: Vec<ProverbInsightDto>,
+    pub regions: Option<RegionsInsightDto>,
+    pub category: String,
+    pub is_major: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ElementInsightDto {
+    pub key: String,
+    pub name: LocalizedTextDto,
+    pub nature: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CanInsightDto {
+    pub name: String,
+    pub element: String,
+    pub meaning: LocalizedTextDto,
+    pub nature: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChiInsightDto {
+    pub name: String,
+    pub animal: LocalizedTextDto,
+    pub element: String,
+    pub meaning: LocalizedTextDto,
+    pub hours: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CanChiInsightDto {
+    pub can: CanInsightDto,
+    pub chi: ChiInsightDto,
+    pub element: Option<ElementInsightDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayGuidanceDto {
+    pub good_for: LocalizedListDto,
+    pub avoid_for: LocalizedListDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TietKhiInsightDto {
+    pub id: String,
+    pub name: LocalizedTextDto,
+    pub longitude: i32,
+    pub meaning: LocalizedTextDto,
+    pub astronomy: LocalizedTextDto,
+    pub agriculture: LocalizedListDto,
+    pub health: LocalizedListDto,
+    pub weather: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayInsightDto {
+    pub solar: SolarDto,
+    pub lunar: LunarDto,
+    pub festival: Option<FestivalInsightDto>,
+    pub holiday: Option<HolidayInsightDto>,
+    pub canchi: Option<CanChiInsightDto>,
+    pub day_guidance: Option<DayGuidanceDto>,
+    pub tiet_khi: Option<TietKhiInsightDto>,
+}

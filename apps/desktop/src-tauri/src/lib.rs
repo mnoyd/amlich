@@ -1,7 +1,10 @@
 use serde::Serialize;
 use std::collections::HashMap;
 
-use amlich_api::{get_day_info_for_date, get_holidays, DayInfoDto, HolidayDto};
+use amlich_api::{
+    get_day_info_for_date, get_day_insight_for_date, get_holidays, DayInfoDto, DayInsightDto,
+    HolidayDto,
+};
 
 #[derive(Debug, Serialize, Clone)]
 struct GoodHour {
@@ -170,6 +173,17 @@ fn get_day_detail(day: i32, month: i32, year: i32) -> Result<DayCell, String> {
 }
 
 #[tauri::command]
+fn get_day_insight(day: i32, month: i32, year: i32) -> Result<DayInsightDto, String> {
+    if month < 1 || month > 12 {
+        return Err("month must be 1-12".to_string());
+    }
+    if day < 1 || day > 31 {
+        return Err("day must be 1-31".to_string());
+    }
+    get_day_insight_for_date(day, month, year)
+}
+
+#[tauri::command]
 fn get_install_context() -> InstallContext {
     let executable_path = std::env::current_exe()
         .ok()
@@ -200,6 +214,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             get_month_data,
             get_day_detail,
+            get_day_insight,
             get_install_context
         ])
         .run(tauri::generate_context!())
