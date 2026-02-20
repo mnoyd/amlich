@@ -51,7 +51,6 @@
     | "professional"
     | "social"
     | "international"
-    | "solar-term"
     | "lunar-cycle";
 
   type EventCategory = {
@@ -68,8 +67,7 @@
     professional: 4,
     social: 5,
     international: 6,
-    "solar-term": 7,
-    "lunar-cycle": 8,
+    "lunar-cycle": 7,
   };
 
   const PHASE_LABEL: Record<number, string> = {
@@ -94,15 +92,6 @@
         colorHex,
         priority: CATEGORY_PRIORITY[type],
         name: holiday.name,
-      });
-    }
-
-    if (day.tiet_khi?.trim()) {
-      categories.push({
-        type: "solar-term",
-        colorHex: "#00796B",
-        priority: CATEGORY_PRIORITY["solar-term"],
-        name: day.tiet_khi,
       });
     }
 
