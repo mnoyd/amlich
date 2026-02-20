@@ -1,693 +1,296 @@
 <script lang="ts">
-  import { buildDateInsight } from "$lib/insights/date-insight-engine";
-  import type { DayForInsight, Lang, InsightCardExtra, DateInsight } from "$lib/insights/types";
+  import { invoke } from "@tauri-apps/api/core";
+  import type { DayForInsight } from "$lib/insights/types";
 
-  type LocalAnyDateInsight = DateInsight | {
-    mode: "multi";
-    title: string;
-    subtitle: string;
-    sections: DateInsight[];
+  type Lang = "vi" | "en";
+
+  type LocalizedText = { vi: string; en: string };
+  type LocalizedList = { vi: string[]; en: string[] };
+
+  type FestivalInsight = {
+    names: LocalizedList;
+    origin?: LocalizedText | null;
+    activities?: LocalizedList | null;
+    category: string;
+    is_major: boolean;
+  };
+
+  type HolidayInsight = {
+    names: LocalizedList;
+    origin?: LocalizedText | null;
+    significance?: LocalizedText | null;
+    traditions?: LocalizedList | null;
+    category: string;
+    is_major: boolean;
+  };
+
+  type CanChiInsight = {
+    can: { name: string; element: string; meaning: LocalizedText; nature: LocalizedText };
+    chi: {
+      name: string;
+      animal: LocalizedText;
+      element: string;
+      meaning: LocalizedText;
+      hours: string;
+    };
+  };
+
+  type DayGuidance = {
+    good_for: LocalizedList;
+    avoid_for: LocalizedList;
+  };
+
+  type TietKhiInsight = {
+    name: LocalizedText;
+    meaning: LocalizedText;
+    weather: LocalizedText;
+    agriculture: LocalizedList;
+    health: LocalizedList;
+  };
+
+  type DayInsightDto = {
+    festival?: FestivalInsight | null;
+    holiday?: HolidayInsight | null;
+    canchi?: CanChiInsight | null;
+    day_guidance?: DayGuidance | null;
+    tiet_khi?: TietKhiInsight | null;
   };
 
   let { day }: { day: DayForInsight | null } = $props();
 
-  // Language state - Vietnamese is primary
   let lang: Lang = $state("vi");
+  let loading = $state(false);
+  let error = $state<string | null>(null);
+  let insight = $state<DayInsightDto | null>(null);
 
-  const insightCache = new Map<string, LocalAnyDateInsight>();
-
-  const insight = $derived.by<LocalAnyDateInsight | null>(() => {
-    if (!day) return null;
-    const cacheKey = `${day.year}-${day.month}-${day.day}-${lang}`;
-    const cached = insightCache.get(cacheKey);
-    if (cached) return cached;
-    const result = buildDateInsight(day, lang);
-    insightCache.set(cacheKey, result);
-    return result;
-  });
-  const sections = $derived<DateInsight[]>(
-    insight == null ? [] : insight.mode === "multi" ? insight.sections : [insight]
-  );
-  const primarySection = $derived<DateInsight | null>(sections.length > 0 ? sections[0] : null);
-
-  // Derived helpers for template rendering — avoids Svelte template type narrowing issues
-  const isSpecialDay = $derived(primarySection != null && primarySection.mode !== "normal");
-  const isFestival = $derived(primarySection != null && primarySection.mode === ("festival" as string));
-  const isMulti = $derived(insight != null && insight.mode === "multi");
-  const specialDayTitle = $derived(
-    insight != null
-      ? insight.mode === "multi"
-        ? insight.title
-        : insight.mode !== "normal"
-          ? insight.title
-          : ""
-      : ""
-  );
-  const specialDaySubtitle = $derived(
-    insight != null
-      ? insight.mode === "multi"
-        ? insight.subtitle
-        : insight.mode !== "normal"
-          ? insight.subtitle
-          : ""
-      : ""
-  );
-
-  // National holiday category helpers
-  const isNationalHoliday = $derived(primarySection != null && primarySection.mode === ("national-holiday" as string));
-  const holidayCategory = $derived(
-    isNationalHoliday && primarySection != null ? (primarySection as any).category as string | null : null
-  );
-
-  const categoryLabels: Record<string, { vi: string; en: string }> = {
-    "public-holiday": { vi: "Ngày lễ", en: "Public Holiday" },
-    "commemorative": { vi: "Ngày kỷ niệm", en: "Commemorative" },
-    "professional": { vi: "Ngày truyền thống", en: "Professional Day" },
-    "social": { vi: "Ngày xã hội", en: "Social Day" },
-    "international": { vi: "Quốc tế", en: "International" },
-  };
-
-  const categoryLabel = $derived(
-    holidayCategory ? categoryLabels[holidayCategory]?.[lang] ?? "" : ""
-  );
-
-  // Region tab state for regional customs card
-  let activeRegion = $state<"north" | "central" | "south">("north");
-
-  // Helper to safely access extra properties
-  function getExtra(extra: InsightCardExtra | undefined) {
-    return extra ?? {};
+  function text(v?: LocalizedText | null): string {
+    if (!v) return "";
+    return lang === "vi" ? v.vi : v.en;
   }
+
+  function list(v?: LocalizedList | null): string[] {
+    if (!v) return [];
+    return lang === "vi" ? v.vi : v.en;
+  }
+
+  $effect(() => {
+    if (!day) {
+      insight = null;
+      error = null;
+      return;
+    }
+
+    let canceled = false;
+    loading = true;
+    error = null;
+
+    invoke<DayInsightDto>("get_day_insight", {
+      day: day.day,
+      month: day.month,
+      year: day.year,
+    })
+      .then((data) => {
+        if (!canceled) insight = data;
+      })
+      .catch((e) => {
+        if (!canceled) {
+          error = e instanceof Error ? e.message : String(e);
+          insight = null;
+        }
+      })
+      .finally(() => {
+        if (!canceled) loading = false;
+      });
+
+    return () => {
+      canceled = true;
+    };
+  });
 </script>
 
-{#if insight}
-  <section
-    class="insight-box"
-    class:is-festival={isFestival}
-    class:national-holiday={isNationalHoliday}
-    class:cat-public-holiday={holidayCategory === "public-holiday"}
-    class:cat-commemorative={holidayCategory === "commemorative"}
-    class:cat-professional={holidayCategory === "professional"}
-    class:cat-social={holidayCategory === "social"}
-    class:cat-international={holidayCategory === "international"}
-  >
-    <header class="insight-header">
-      <div class="header-left">
-          {#if isMulti}
-            <span class="category-badge">{lang === "vi" ? "Nhiều sự kiện" : "Multiple Contexts"}</span>
-          {:else if isFestival}
-            <span class="category-badge festival-badge">{lang === "vi" ? "Lễ truyền thống" : "Traditional Festival"}</span>
-          {/if}
-        {#if isNationalHoliday && categoryLabel}
-          <span class="category-badge">{categoryLabel}</span>
+<section class="insight-box">
+  <header class="insight-header">
+    <h2>{lang === "vi" ? "Insight trong ngày" : "Daily Insight"}</h2>
+    <button class="lang-toggle" onclick={() => (lang = lang === "vi" ? "en" : "vi")}> 
+      {lang === "vi" ? "EN" : "VI"}
+    </button>
+  </header>
+
+  {#if !day}
+    <p class="muted">{lang === "vi" ? "Chọn một ngày để xem insight." : "Select a day to view insight."}</p>
+  {:else if loading}
+    <p class="muted">{lang === "vi" ? "Đang tải insight..." : "Loading insight..."}</p>
+  {:else if error}
+    <p class="error">{error}</p>
+  {:else if insight}
+    {#if insight.festival}
+      <article class="card">
+        <h3>{(lang === "vi" ? insight.festival.names.vi : insight.festival.names.en)[0]}</h3>
+        {#if insight.festival.origin}
+          <p>{text(insight.festival.origin)}</p>
         {/if}
-        <h2>
-          {#if isSpecialDay}
-            {specialDayTitle}
-          {:else}
-            {lang === "vi" ? "Tìm hiểu về ngày này" : "Learn About This Day"}
-          {/if}
-        </h2>
-        {#if isSpecialDay && specialDaySubtitle}
-          <span class="subtitle">{specialDaySubtitle}</span>
-          {:else if primarySection != null && primarySection.mode === "normal"}
-            <span class="subtitle">
-              {lang === "vi" ? "Tiết khí" : "Solar Term"}: {primarySection.termName} • {primarySection.canchiDay}
-            </span>
-          {/if}
+        {#if list(insight.festival.activities).length > 0}
+          <ul>
+            {#each list(insight.festival.activities).slice(0, 3) as item}
+              <li>{item}</li>
+            {/each}
+          </ul>
+        {/if}
+      </article>
+    {:else if insight.holiday}
+      <article class="card">
+        <h3>{(lang === "vi" ? insight.holiday.names.vi : insight.holiday.names.en)[0]}</h3>
+        {#if insight.holiday.significance}
+          <p>{text(insight.holiday.significance)}</p>
+        {:else if insight.holiday.origin}
+          <p>{text(insight.holiday.origin)}</p>
+        {/if}
+        {#if list(insight.holiday.traditions).length > 0}
+          <ul>
+            {#each list(insight.holiday.traditions).slice(0, 3) as item}
+              <li>{item}</li>
+            {/each}
+          </ul>
+        {/if}
+      </article>
+    {/if}
+
+    {#if insight.day_guidance}
+      <article class="card">
+        <h3>{lang === "vi" ? "Nên làm / Hạn chế" : "Do / Avoid"}</h3>
+        <div class="split">
+          <div>
+            <strong>{lang === "vi" ? "Nên" : "Do"}</strong>
+            <ul>
+              {#each list(insight.day_guidance.good_for).slice(0, 3) as item}
+                <li>{item}</li>
+              {/each}
+            </ul>
+          </div>
+          <div>
+            <strong>{lang === "vi" ? "Hạn chế" : "Avoid"}</strong>
+            <ul>
+              {#each list(insight.day_guidance.avoid_for).slice(0, 3) as item}
+                <li>{item}</li>
+              {/each}
+            </ul>
+          </div>
         </div>
-      <button
-        class="lang-toggle"
-        onclick={() => (lang = lang === "vi" ? "en" : "vi")}
-        aria-label="Toggle language"
-      >
-        {lang === "vi" ? "EN" : "VI"}
-      </button>
-    </header>
+      </article>
+    {/if}
 
-    <div class="insight-grid">
-      {#each sections as section, sectionIdx (`${section.mode}-${sectionIdx}`)}
-        {#if isMulti}
-          <article class="section-intro">
-            <h3>
-              {#if section.mode === "festival" || section.mode === "national-holiday"}
-                {section.title}
-              {:else}
-                {lang === "vi" ? "Bối cảnh tiết khí & Can Chi" : "Solar Term & Can Chi Context"}
-              {/if}
-            </h3>
-            {#if section.mode === "festival" || section.mode === "national-holiday"}
-              <p>{section.subtitle}</p>
-            {:else}
-              <p>{section.termName} • {section.canchiDay}</p>
-            {/if}
-          </article>
-        {/if}
+    {#if insight.tiet_khi}
+      <article class="card">
+        <h3>{text(insight.tiet_khi.name)}</h3>
+        <p>{text(insight.tiet_khi.weather)}</p>
+        <div class="split">
+          <div>
+            <strong>{lang === "vi" ? "Nông nghiệp" : "Agriculture"}</strong>
+            <ul>
+              {#each list(insight.tiet_khi.agriculture).slice(0, 2) as item}
+                <li>{item}</li>
+              {/each}
+            </ul>
+          </div>
+          <div>
+            <strong>{lang === "vi" ? "Sức khỏe" : "Health"}</strong>
+            <ul>
+              {#each list(insight.tiet_khi.health).slice(0, 2) as item}
+                <li>{item}</li>
+              {/each}
+            </ul>
+          </div>
+        </div>
+      </article>
+    {/if}
 
-        {#each section.cards as card (`${section.mode}-${card.id}`)}
-          {@const extra = getExtra(card.extra)}
-          <article class="insight-card {card.id}">
-            <h3 class="card-title">{card.title}</h3>
-            {#if card.subtitle}
-              <p class="card-subtitle">{card.subtitle}</p>
-            {/if}
-
-            {#if card.type === "text"}
-              <p class="card-text">{card.content}</p>
-              {#if extra.weather}
-                <div class="weather-note">
-                  <span class="weather-label">{lang === "vi" ? "Thời tiết" : "Weather"}:</span>
-                  <span>{extra.weather}</span>
-                </div>
-              {/if}
-
-            {:else if card.type === "list"}
-              {#if Array.isArray(card.content) && card.content.length > 0}
-                <ul class="card-list">
-                  {#each card.content as item}
-                    <li>{item}</li>
-                  {/each}
-                </ul>
-              {/if}
-              
-              {#if extra.canNature}
-                <p class="extra-note">{extra.canNature}</p>
-              {/if}
-
-              {#if extra.goodFor || extra.avoidFor}
-                <div class="guidance-grid">
-                  {#if extra.goodFor}
-                    <div class="guidance-col good">
-                      <h4>{extra.goodFor.title}</h4>
-                      <ul>
-                        {#each extra.goodFor.items as item}
-                          <li>{item}</li>
-                        {/each}
-                      </ul>
-                    </div>
-                  {/if}
-                  {#if extra.avoidFor}
-                    <div class="guidance-col avoid">
-                      <h4>{extra.avoidFor.title}</h4>
-                      <ul>
-                        {#each extra.avoidFor.items as item}
-                          <li>{item}</li>
-                        {/each}
-                      </ul>
-                    </div>
-                  {/if}
-                </div>
-              {/if}
-
-              {#if extra.agriculture || extra.health}
-                <div class="wellness-grid">
-                  {#if extra.agriculture}
-                    <div class="wellness-col">
-                      <h4>{extra.agriculture.title}</h4>
-                      <ul>
-                        {#each extra.agriculture.items as item}
-                          <li>{item}</li>
-                        {/each}
-                      </ul>
-                    </div>
-                  {/if}
-                  {#if extra.health}
-                    <div class="wellness-col">
-                      <h4>{extra.health.title}</h4>
-                      <ul>
-                        {#each extra.health.items as item}
-                          <li>{item}</li>
-                        {/each}
-                      </ul>
-                    </div>
-                  {/if}
-                </div>
-              {/if}
-
-            {:else if card.type === "proverb"}
-              {#if extra.proverbs}
-                <div class="proverbs-list">
-                  {#each extra.proverbs as proverb}
-                    <blockquote class="proverb">
-                      <p class="proverb-text">"{proverb.text}"</p>
-                      <footer class="proverb-meaning">{proverb.meaning}</footer>
-                    </blockquote>
-                  {/each}
-                </div>
-              {/if}
-
-            {:else if card.type === "region-tabs"}
-              {#if extra.north && extra.central && extra.south}
-                <div class="region-tabs">
-                  <div class="tab-buttons">
-                    <button
-                      class="tab-btn"
-                      class:active={activeRegion === "north"}
-                      onclick={() => (activeRegion = "north")}
-                    >
-                      {extra.north.title}
-                    </button>
-                    <button
-                      class="tab-btn"
-                      class:active={activeRegion === "central"}
-                      onclick={() => (activeRegion = "central")}
-                    >
-                      {extra.central.title}
-                    </button>
-                    <button
-                      class="tab-btn"
-                      class:active={activeRegion === "south"}
-                      onclick={() => (activeRegion = "south")}
-                    >
-                      {extra.south.title}
-                    </button>
-                  </div>
-                  <div class="tab-content">
-                    {#if activeRegion === "north"}
-                      <p>{extra.north.content}</p>
-                    {:else if activeRegion === "central"}
-                      <p>{extra.central.content}</p>
-                    {:else}
-                      <p>{extra.south.content}</p>
-                    {/if}
-                  </div>
-                </div>
-              {/if}
-            {/if}
-          </article>
-        {/each}
-      {/each}
-    </div>
-  </section>
-{/if}
+    {#if insight.canchi}
+      <article class="card">
+        <h3>{lang === "vi" ? "Can Chi ngày" : "Day's Can Chi"}</h3>
+        <p>
+          <strong>{insight.canchi.can.name}</strong> · {text(insight.canchi.can.meaning)}
+        </p>
+        <p>
+          <strong>{insight.canchi.chi.name}</strong> ({text(insight.canchi.chi.animal)}) · {text(insight.canchi.chi.meaning)}
+        </p>
+      </article>
+    {/if}
+  {/if}
+</section>
 
 <style>
   .insight-box {
-    background: var(--surface-white);
-    border: 1px solid var(--border-subtle);
+    background: linear-gradient(180deg, #10151a, #0d1217);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 14px;
     padding: 14px;
-    box-shadow: var(--shadow-soft);
-  }
-
-  /* National holiday category-specific styling */
-  .insight-box.national-holiday {
-    border-left: 4px solid var(--cat-color, var(--accent-jade));
-  }
-
-  /* Traditional festival styling */
-  .insight-box.is-festival {
-    border-left: 4px solid var(--cat-festival, #C62828);
-  }
-
-  .is-festival .insight-header h2 {
-    color: var(--cat-festival, #C62828);
-  }
-
-  .is-festival .card-title {
-    color: var(--cat-festival, #C62828);
-  }
-
-  .festival-badge {
-    background: var(--cat-festival, #C62828) !important;
-  }
-
-  .insight-box.cat-public-holiday {
-    --cat-color: #C62828;
-    --cat-bg: rgba(198, 40, 40, 0.06);
-    --cat-badge-bg: #C62828;
-  }
-
-  .insight-box.cat-commemorative {
-    --cat-color: #1565C0;
-    --cat-bg: rgba(21, 101, 192, 0.06);
-    --cat-badge-bg: #1565C0;
-  }
-
-  .insight-box.cat-professional {
-    --cat-color: #2E7D32;
-    --cat-bg: rgba(46, 125, 50, 0.06);
-    --cat-badge-bg: #2E7D32;
-  }
-
-  .insight-box.cat-social {
-    --cat-color: #E65100;
-    --cat-bg: rgba(230, 81, 0, 0.06);
-    --cat-badge-bg: #E65100;
-  }
-
-  .insight-box.cat-international {
-    --cat-color: #6A1B9A;
-    --cat-bg: rgba(106, 27, 154, 0.06);
-    --cat-badge-bg: #6A1B9A;
-  }
-
-  .national-holiday .insight-header h2 {
-    color: var(--cat-color, var(--primary-red));
-  }
-
-  .national-holiday .card-title {
-    color: var(--cat-color, var(--accent-jade));
-  }
-
-  .category-badge {
-    display: inline-block;
-    font-family: var(--font-sans);
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    padding: 3px 8px;
-    border-radius: 4px;
-    background: var(--cat-badge-bg, var(--accent-jade));
-    color: white;
-    width: fit-content;
+    color: #e9eef5;
+    display: grid;
+    gap: 10px;
+    min-height: 260px;
   }
 
   .insight-header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border-subtle);
   }
 
-  .header-left {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  .insight-header h2 {
+  h2 {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1rem;
     font-weight: 700;
-    color: var(--primary-red);
-    line-height: 1.25;
-  }
-
-  .subtitle {
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    font-style: italic;
   }
 
   .lang-toggle {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: transparent;
+    color: #d6dee8;
+    border-radius: 999px;
     padding: 4px 10px;
-    background: rgba(0, 0, 0, 0.04);
-    border: 1px solid var(--border-subtle);
-    border-radius: 6px;
-    font-family: var(--font-sans);
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--text-secondary);
     cursor: pointer;
-    transition: all 0.2s;
   }
 
-  .lang-toggle:hover {
-    background: rgba(0, 0, 0, 0.08);
-    color: var(--text-primary);
-  }
-
-  .insight-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-
-  .insight-card {
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid var(--border-subtle);
+  .card {
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
-    padding: 10px 12px;
-    transition: all 0.2s;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.02);
   }
 
-  .section-intro {
-    grid-column: 1 / -1;
-    padding: 6px 8px;
-    border-left: 3px solid var(--accent-gold);
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 6px;
+  h3 {
+    margin: 0 0 8px 0;
+    font-size: 0.95rem;
   }
 
-  .section-intro h3 {
-    margin: 0;
-    font-size: 0.86rem;
-    color: var(--text-primary);
-    font-weight: 700;
-  }
-
-  .section-intro p {
-    margin: 4px 0 0;
-    font-size: 0.76rem;
-    color: var(--text-secondary);
-  }
-
-  .insight-card:hover {
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
-  }
-
-  /* Special card spanning for origin */
-  .insight-card.origin {
-    grid-column: span 2;
-  }
-
-  .card-title {
-    margin: 0 0 5px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--accent-jade);
-  }
-
-  .card-subtitle {
-    margin: 0 0 5px;
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-
-  .card-text {
-    margin: 0;
-    font-size: 0.84rem;
-    line-height: 1.5;
-    color: var(--text-primary);
-  }
-
-  .card-list {
-    margin: 0;
-    padding-left: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-
-  .card-list li {
-    font-size: 0.82rem;
+  p {
+    margin: 0 0 8px 0;
     line-height: 1.45;
-    color: var(--text-primary);
+    color: #c7d3e0;
   }
 
-  .weather-note {
-    margin-top: 8px;
-    padding: 6px 10px;
-    background: rgba(42, 110, 100, 0.06);
-    border-radius: 6px;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+  ul {
+    margin: 0;
+    padding-left: 18px;
+    color: #b8c7d6;
   }
 
-  .weather-label {
-    font-weight: 600;
-    color: var(--accent-jade);
-  }
-
-  .extra-note {
-    margin: 6px 0 0;
-    padding: 6px 8px;
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-style: italic;
-    color: var(--text-secondary);
-  }
-
-  .guidance-grid,
-  .wellness-grid {
+  .split {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
-  .guidance-col,
-  .wellness-col {
-    padding: 6px 8px;
-    border-radius: 6px;
+  .muted {
+    color: #98a8b8;
   }
 
-  .guidance-col.good {
-    background: rgba(42, 110, 100, 0.06);
+  .error {
+    color: #ff9f9f;
   }
 
-  .guidance-col.avoid {
-    background: rgba(217, 48, 37, 0.06);
-  }
-
-  .wellness-col {
-    background: rgba(212, 175, 55, 0.08);
-  }
-
-  .guidance-col h4,
-  .wellness-col h4 {
-    margin: 0 0 4px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--text-tertiary);
-  }
-
-  .guidance-col.good h4 {
-    color: var(--accent-jade);
-  }
-
-  .guidance-col.avoid h4 {
-    color: var(--primary-red);
-  }
-
-  .guidance-col ul,
-  .wellness-col ul {
-    margin: 0;
-    padding-left: 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .guidance-col li,
-  .wellness-col li {
-    font-size: 0.78rem;
-    line-height: 1.35;
-    color: var(--text-primary);
-  }
-
-  /* Proverbs */
-  .proverbs-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .proverb {
-    margin: 0;
-    padding: 8px 10px;
-    background: linear-gradient(135deg, rgba(212, 175, 55, 0.08), rgba(255, 255, 255, 0.5));
-    border-left: 3px solid var(--accent-gold);
-    border-radius: 0 6px 6px 0;
-  }
-
-  .proverb-text {
-    margin: 0 0 4px;
-    font-size: 0.88rem;
-    font-style: italic;
-    font-weight: 500;
-    color: var(--text-primary);
-    line-height: 1.4;
-  }
-
-  .proverb-meaning {
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-    line-height: 1.35;
-  }
-
-  /* Region tabs */
-  .region-tabs {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .tab-buttons {
-    display: flex;
-    gap: 6px;
-  }
-
-  .tab-btn {
-    flex: 1;
-    padding: 5px 10px;
-    background: rgba(0, 0, 0, 0.03);
-    border: 1px solid transparent;
-    border-radius: 6px;
-    font-family: var(--font-sans);
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .tab-btn:hover {
-    background: rgba(0, 0, 0, 0.06);
-    color: var(--text-secondary);
-  }
-
-  .tab-btn.active {
-    background: var(--accent-jade);
-    color: white;
-    border-color: var(--accent-jade);
-  }
-
-  .tab-content {
-    padding: 8px 10px;
-    background: rgba(0, 0, 0, 0.02);
-    border-radius: 6px;
-  }
-
-  .tab-content p {
-    margin: 0;
-    font-size: 0.82rem;
-    line-height: 1.5;
-    color: var(--text-primary);
-  }
-
-  /* Responsive */
-  @media (max-width: 1200px) {
-    .insight-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .insight-card.origin {
-      grid-column: span 2;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .insight-box {
-      padding: 10px;
-      border-radius: 10px;
-    }
-
-    .insight-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .insight-card.origin {
-      grid-column: auto;
-    }
-
-    .insight-header h2 {
-      font-size: 1rem;
-    }
-
-    .guidance-grid,
-    .wellness-grid {
+  @media (max-width: 900px) {
+    .split {
       grid-template-columns: 1fr;
     }
   }

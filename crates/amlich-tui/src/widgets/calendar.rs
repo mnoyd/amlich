@@ -27,9 +27,10 @@ impl Widget for CalendarWidget<'_> {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_style(theme::border_style())
-            .title(Line::from(vec![
-                Span::styled(" 📅 Lịch ", theme::title_style()),
-            ]));
+            .title(Line::from(vec![Span::styled(
+                " 📅 Lịch ",
+                theme::title_style(),
+            )]));
 
         let inner = block.inner(area);
         block.render(area, buf);
@@ -130,9 +131,7 @@ impl Widget for CalendarWidget<'_> {
                             .fg(theme::SELECTED_FG)
                             .bg(theme::SELECTED_BG)
                     } else if is_today {
-                        Style::default()
-                            .fg(theme::TODAY_FG)
-                            .bg(theme::TODAY_BG)
+                        Style::default().fg(theme::TODAY_FG).bg(theme::TODAY_BG)
                     } else {
                         Style::default().fg(theme::LUNAR_FG)
                     };

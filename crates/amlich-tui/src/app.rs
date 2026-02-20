@@ -1,5 +1,11 @@
-use amlich_api::{DayInfoDto, HolidayDto};
+use amlich_api::{get_day_insight_for_date, DayInfoDto, DayInsightDto, HolidayDto};
 use chrono::{Datelike, Local, NaiveDate};
+
+#[derive(Clone, Copy)]
+pub enum InsightLang {
+    Vi,
+    En,
+}
 
 pub struct App {
     pub running: bool,
@@ -17,6 +23,10 @@ pub struct App {
     // Overlay
     pub show_holidays: bool,
     pub holiday_scroll: u16,
+
+    // Insight panel
+    pub show_insight: bool,
+    pub insight_lang: InsightLang,
 }
 
 impl App {
@@ -34,6 +44,8 @@ impl App {
             first_weekday: 0,
             show_holidays: false,
             holiday_scroll: 0,
+            show_insight: false,
+            insight_lang: InsightLang::Vi,
         };
         app.load_month();
         app
@@ -163,5 +175,25 @@ impl App {
     pub fn toggle_holidays(&mut self) {
         self.show_holidays = !self.show_holidays;
         self.holiday_scroll = 0;
+    }
+
+    pub fn toggle_insight(&mut self) {
+        self.show_insight = !self.show_insight;
+    }
+
+    pub fn toggle_insight_lang(&mut self) {
+        self.insight_lang = match self.insight_lang {
+            InsightLang::Vi => InsightLang::En,
+            InsightLang::En => InsightLang::Vi,
+        };
+    }
+
+    pub fn selected_insight(&self) -> Option<DayInsightDto> {
+        get_day_insight_for_date(
+            self.selected_day as i32,
+            self.view_month as i32,
+            self.view_year,
+        )
+        .ok()
     }
 }

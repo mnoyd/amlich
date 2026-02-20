@@ -26,8 +26,12 @@ fn handle_key(app: &mut App, key: KeyEvent) {
     if app.show_holidays {
         match key.code {
             KeyCode::Char('h') | KeyCode::Esc | KeyCode::Char('q') => app.toggle_holidays(),
-            KeyCode::Char('j') | KeyCode::Down => app.holiday_scroll = app.holiday_scroll.saturating_add(1),
-            KeyCode::Char('k') | KeyCode::Up => app.holiday_scroll = app.holiday_scroll.saturating_sub(1),
+            KeyCode::Char('j') | KeyCode::Down => {
+                app.holiday_scroll = app.holiday_scroll.saturating_add(1)
+            }
+            KeyCode::Char('k') | KeyCode::Up => {
+                app.holiday_scroll = app.holiday_scroll.saturating_sub(1)
+            }
             _ => {}
         }
         return;
@@ -56,6 +60,10 @@ fn handle_key(app: &mut App, key: KeyEvent) {
 
         // Toggle holiday list
         KeyCode::Char('H') => app.toggle_holidays(),
+
+        // Toggle insight panel and language
+        KeyCode::Char('i') => app.toggle_insight(),
+        KeyCode::Char('L') => app.toggle_insight_lang(),
 
         _ => {}
     }

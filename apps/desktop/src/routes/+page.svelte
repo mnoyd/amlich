@@ -3,9 +3,7 @@
   import { getVersion } from "@tauri-apps/api/app";
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
   import ZodiacClock from "$lib/components/ZodiacClock.svelte";
-  import { getDayDots, getDayEventCategories, classifyHoliday } from "$lib/insights/date-insight-engine";
-  import type { DayCell, MonthData, EventCategoryType } from "$lib/insights/types";
-  import type { EventCategory } from "$lib/insights/types/view";
+  import type { DayCell, MonthData } from "$lib/insights/types";
   import { checkForAppUpdates } from "$lib/updater";
 
   const weekLabels = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -45,6 +43,99 @@
     'solar-term': { bg: '#F0FFFD', border: '#00796B' },
     'lunar-cycle': { bg: '#FFFCF0', border: '#D4AF37' },
   };
+
+  type EventCategoryType =
+    | "festival"
+    | "public-holiday"
+    | "commemorative"
+    | "professional"
+    | "social"
+    | "international"
+    | "solar-term"
+    | "lunar-cycle";
+
+  type EventCategory = {
+    type: EventCategoryType;
+    colorHex: string;
+    priority: number;
+    name: string;
+  };
+
+  const CATEGORY_PRIORITY: Record<EventCategoryType, number> = {
+    festival: 1,
+    "public-holiday": 2,
+    commemorative: 3,
+    professional: 4,
+    social: 5,
+    international: 6,
+    "solar-term": 7,
+    "lunar-cycle": 8,
+  };
+
+  const PHASE_LABEL: Record<number, string> = {
+    1: "Sóc",
+    8: "Thượng huyền",
+    15: "Vọng",
+    23: "Hạ huyền",
+  };
+
+  function classifyHoliday(holiday: DayCell["holidays"][number], _day: DayCell): EventCategoryType {
+    return holiday.category;
+  }
+
+  function getDayEventCategories(day: DayCell): EventCategory[] {
+    const categories: EventCategory[] = [];
+
+    for (const holiday of day.holidays) {
+      const type = classifyHoliday(holiday, day);
+      const colorHex = CAT_COLORS[type]?.border ?? "#6B7280";
+      categories.push({
+        type,
+        colorHex,
+        priority: CATEGORY_PRIORITY[type],
+        name: holiday.name,
+      });
+    }
+
+    if (day.tiet_khi?.trim()) {
+      categories.push({
+        type: "solar-term",
+        colorHex: "#00796B",
+        priority: CATEGORY_PRIORITY["solar-term"],
+        name: day.tiet_khi,
+      });
+    }
+
+    const phase = PHASE_LABEL[day.lunar_day];
+    if (phase) {
+      categories.push({
+        type: "lunar-cycle",
+        colorHex: CAT_COLORS["lunar-cycle"].border,
+        priority: CATEGORY_PRIORITY["lunar-cycle"],
+        name: phase,
+      });
+    }
+
+    categories.sort((a, b) => a.priority - b.priority);
+    return categories;
+  }
+
+  function getDayDots(
+    _day: DayCell,
+    categories: EventCategory[] = [],
+  ): { type: EventCategoryType; colorHex: string }[] {
+    const seen = new Set<EventCategoryType>();
+    const dots: { type: EventCategoryType; colorHex: string }[] = [];
+
+    for (const cat of categories) {
+      if (seen.has(cat.type)) continue;
+      seen.add(cat.type);
+      dots.push({ type: cat.type, colorHex: cat.colorHex });
+      if (dots.length >= 4) break;
+    }
+
+    return dots;
+  }
 
   const initialNow = new Date();
   let today = $state(new Date());
