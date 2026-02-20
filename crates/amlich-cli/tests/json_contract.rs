@@ -22,7 +22,14 @@ fn json_contract_matches_day_info_dto_shape() {
     let value = run_json("2024-02-10");
     let obj = value.as_object().expect("top-level should be an object");
 
-    for key in ["solar", "lunar", "jd", "canchi", "tiet_khi", "gio_hoang_dao"] {
+    for key in [
+        "solar",
+        "lunar",
+        "jd",
+        "canchi",
+        "tiet_khi",
+        "gio_hoang_dao",
+    ] {
         assert!(obj.contains_key(key), "missing top-level key: {key}");
     }
 
@@ -34,7 +41,10 @@ fn json_contract_matches_day_info_dto_shape() {
     assert!(canchi.contains_key("day"));
     assert!(canchi.contains_key("month"));
     assert!(canchi.contains_key("year"));
-    assert!(canchi.get("day_can").is_none(), "legacy key day_can should not exist");
+    assert!(
+        canchi.get("day_can").is_none(),
+        "legacy key day_can should not exist"
+    );
     assert!(
         canchi.get("year_can").is_none(),
         "legacy key year_can should not exist"
