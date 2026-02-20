@@ -1,7 +1,7 @@
 use serde::Serialize;
 use std::collections::HashMap;
 
-use amlich_core::holidays::{get_vietnamese_holidays, Holiday};
+use amlich_api::{get_day_info_for_date, get_holidays, DayInfoDto, HolidayDto};
 
 #[derive(Debug, Serialize, Clone)]
 struct GoodHour {
@@ -60,7 +60,7 @@ struct InstallContext {
     can_self_update: bool,
 }
 
-fn to_day_cell(day_info: amlich_core::DayInfo, holidays: Vec<HolidayInfo>) -> DayCell {
+fn to_day_cell(day_info: DayInfoDto, holidays: Vec<HolidayInfo>) -> DayCell {
     let good_hours = day_info
         .gio_hoang_dao
         .good_hours
@@ -95,13 +95,13 @@ fn to_day_cell(day_info: amlich_core::DayInfo, holidays: Vec<HolidayInfo>) -> Da
     }
 }
 
-fn holiday_to_info(holiday: &Holiday) -> HolidayInfo {
+fn holiday_to_info(holiday: &HolidayDto) -> HolidayInfo {
     HolidayInfo {
         name: holiday.name.clone(),
         description: holiday.description.clone(),
         is_solar: holiday.is_solar,
-        lunar_day: holiday.lunar_date.as_ref().map(|d| d.day),
-        lunar_month: holiday.lunar_date.as_ref().map(|d| d.month),
+        lunar_day: holiday.lunar_day,
+        lunar_month: holiday.lunar_month,
         category: holiday.category.clone(),
         is_major: holiday.is_major,
     }
@@ -116,7 +116,7 @@ fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
     let mut days = Vec::new();
     let mut first_weekday = 0;
     let mut holidays_by_day: HashMap<i32, Vec<HolidayInfo>> = HashMap::new();
-    let holidays = get_vietnamese_holidays(year);
+    let holidays = get_holidays(year, false);
     for holiday in holidays {
         if holiday.solar_year == year && holiday.solar_month == month as i32 {
             holidays_by_day
@@ -133,7 +133,7 @@ fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
         }
 
         let holiday_list = holidays_by_day.remove(&(day as i32)).unwrap_or_default();
-        let info = amlich_core::get_day_info(day as i32, month as i32, year);
+        let info = get_day_info_for_date(day as i32, month as i32, year)?;
         if day == 1 {
             first_weekday = info.solar.day_of_week;
         }
@@ -157,14 +157,14 @@ fn get_day_detail(day: i32, month: i32, year: i32) -> Result<DayCell, String> {
         return Err("day must be 1-31".to_string());
     }
 
-    let holidays = get_vietnamese_holidays(year)
+    let holidays = get_holidays(year, false)
         .into_iter()
         .filter(|h| h.solar_year == year && h.solar_month == month && h.solar_day == day)
         .map(|h| holiday_to_info(&h))
         .collect::<Vec<_>>();
 
     Ok(to_day_cell(
-        amlich_core::get_day_info(day, month, year),
+        get_day_info_for_date(day, month, year)?,
         holidays,
     ))
 }

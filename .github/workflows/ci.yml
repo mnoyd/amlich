@@ -33,6 +33,9 @@ jobs:
       - name: Validate shared holiday data
         run: node scripts/check-holiday-data.mjs
 
+      - name: Check Rust/JS holiday parity
+        run: node scripts/check-holiday-parity.mjs
+
       - name: Clippy
         run: cargo clippy --workspace --exclude am-lich -- -D warnings
 

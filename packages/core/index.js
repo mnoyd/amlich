@@ -97,10 +97,14 @@ switch (command) {
         
         const dayInfo = getDayInfo(infoDay, infoMonth, infoYear);
         console.log(formatDayInfo(dayInfo));
-        console.log('\n💡 Calculation methods:');
-        console.log(`   • ${dayInfo._meta.methods.dayCanChi}`);
-        console.log(`   • ${dayInfo._meta.methods.monthCanChi}`);
-        console.log(`   • ${dayInfo._meta.methods.yearCanChi}`);
+        if (dayInfo._meta?.methods) {
+            console.log('\n💡 Calculation methods:');
+            console.log(`   • ${dayInfo._meta.methods.dayCanChi}`);
+            console.log(`   • ${dayInfo._meta.methods.monthCanChi}`);
+            console.log(`   • ${dayInfo._meta.methods.yearCanChi}`);
+        } else {
+            console.log('\n💡 Calculation methods: rust-core (DTO contract)');
+        }
         break;
 
     

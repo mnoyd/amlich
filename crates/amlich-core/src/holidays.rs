@@ -24,34 +24,41 @@ pub struct Holiday {
     pub is_major: bool,
 }
 
-// Helper function to create a lunar holiday
-fn create_lunar_holiday(
-    name: &str,
+struct LunarHolidayInput<'a> {
+    name: &'a str,
     lunar_day: i32,
     lunar_month: i32,
     lunar_year: i32,
-    description: &str,
-    category: &str,
+    description: &'a str,
+    category: &'a str,
     is_major: bool,
-    time_zone: f64,
-) -> Option<Holiday> {
-    let solar = convert_lunar_to_solar(lunar_day, lunar_month, lunar_year, false, time_zone);
+}
+
+// Helper function to create a lunar holiday
+fn create_lunar_holiday(input: LunarHolidayInput<'_>, time_zone: f64) -> Option<Holiday> {
+    let solar = convert_lunar_to_solar(
+        input.lunar_day,
+        input.lunar_month,
+        input.lunar_year,
+        false,
+        time_zone,
+    );
     if solar.0 > 0 {
         Some(Holiday {
-            name: name.to_string(),
-            description: description.to_string(),
+            name: input.name.to_string(),
+            description: input.description.to_string(),
             lunar_date: Some(LunarDate {
-                day: lunar_day,
-                month: lunar_month,
-                year: lunar_year,
+                day: input.lunar_day,
+                month: input.lunar_month,
+                year: input.lunar_year,
                 is_leap: false,
             }),
             solar_day: solar.0,
             solar_month: solar.1,
             solar_year: solar.2,
             is_solar: false,
-            category: category.to_string(),
-            is_major,
+            category: input.category.to_string(),
+            is_major: input.is_major,
         })
     } else {
         None
@@ -60,7 +67,7 @@ fn create_lunar_holiday(
 
 fn nth_weekday_of_month(year: i32, month: i32, weekday: usize, nth: i32) -> (i32, i32, i32) {
     let first_jd = jd_from_date(1, month, year);
-    let first_weekday = ((first_jd + 1) % 7) as i32;
+    let first_weekday = (first_jd + 1) % 7;
     let target_weekday = weekday as i32;
     let offset = (7 + target_weekday - first_weekday) % 7;
     let day = 1 + offset + 7 * (nth - 1);
@@ -90,13 +97,15 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
         let lunar_year = solar_year + festival.year_offset;
 
         if let Some(h) = create_lunar_holiday(
-            name,
-            festival.lunar_day,
-            festival.lunar_month,
-            lunar_year,
-            description,
-            &festival.category,
-            festival.is_major,
+            LunarHolidayInput {
+                name,
+                lunar_day: festival.lunar_day,
+                lunar_month: festival.lunar_month,
+                lunar_year,
+                description,
+                category: &festival.category,
+                is_major: festival.is_major,
+            },
             time_zone,
         ) {
             holidays.push(h);
@@ -168,27 +177,33 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
 
     // Add all Rằm (15th) and Mùng 1 (1st) of each lunar month
     for month in 1..=12 {
+        let mung_mot_name = format!("Mùng 1 tháng {}", month);
         if let Some(h) = create_lunar_holiday(
-            &format!("Mùng 1 tháng {}", month),
-            1,
-            month,
-            solar_year,
-            "First day of lunar month",
-            "lunar-cycle",
-            false,
+            LunarHolidayInput {
+                name: &mung_mot_name,
+                lunar_day: 1,
+                lunar_month: month,
+                lunar_year: solar_year,
+                description: "First day of lunar month",
+                category: "lunar-cycle",
+                is_major: false,
+            },
             time_zone,
         ) {
             holidays.push(h);
         }
 
+        let ram_name = format!("Rằm tháng {}", month);
         if let Some(h) = create_lunar_holiday(
-            &format!("Rằm tháng {}", month),
-            15,
-            month,
-            solar_year,
-            "Full moon day",
-            "lunar-cycle",
-            false,
+            LunarHolidayInput {
+                name: &ram_name,
+                lunar_day: 15,
+                lunar_month: month,
+                lunar_year: solar_year,
+                description: "Full moon day",
+                category: "lunar-cycle",
+                is_major: false,
+            },
             time_zone,
         ) {
             holidays.push(h);

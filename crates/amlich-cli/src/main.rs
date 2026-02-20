@@ -9,10 +9,10 @@
 
 mod waybar;
 
-use amlich_core::{get_day_info, DayInfo};
+use amlich_api::get_day_info_for_date;
 use chrono::{Datelike, Local};
 use clap::{Parser, Subcommand};
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use std::fmt;
 use std::fs;
 use std::path::PathBuf;
@@ -64,7 +64,7 @@ enum Commands {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 enum DisplayMode {
     Full,
     Lunar,
@@ -103,68 +103,6 @@ impl fmt::Display for DisplayMode {
         };
         write!(f, "{}", s)
     }
-}
-
-#[derive(Debug, Serialize)]
-struct JsonOutput {
-    solar: JsonSolar,
-    lunar: JsonLunar,
-    canchi: JsonCanChi,
-    tiet_khi: JsonTietKhi,
-    gio_hoang_dao: JsonGioHoangDao,
-}
-
-#[derive(Debug, Serialize)]
-struct JsonSolar {
-    day: i32,
-    month: i32,
-    year: i32,
-    day_of_week: String,
-    date_string: String,
-}
-
-#[derive(Debug, Serialize)]
-struct JsonLunar {
-    day: i32,
-    month: i32,
-    year: i32,
-    is_leap_month: bool,
-    date_string: String,
-}
-
-#[derive(Debug, Serialize)]
-struct JsonCanChi {
-    day: String,
-    month: String,
-    year: String,
-    day_can: String,
-    day_chi: String,
-    month_can: String,
-    month_chi: String,
-    year_can: String,
-    year_chi: String,
-}
-
-#[derive(Debug, Serialize)]
-struct JsonTietKhi {
-    name: String,
-    description: String,
-    season: String,
-}
-
-#[derive(Debug, Serialize)]
-struct JsonGioHoangDao {
-    good_hour_count: usize,
-    hours: Vec<JsonHourInfo>,
-}
-
-#[derive(Debug, Serialize)]
-struct JsonHourInfo {
-    hour: usize,
-    name: String,
-    time_range: String,
-    star: String,
-    is_good: bool,
 }
 
 fn get_state_dir() -> PathBuf {
@@ -222,70 +160,22 @@ fn parse_date(date_str: &str) -> Result<(i32, i32, i32), String> {
     Ok((day, month, year))
 }
 
-fn convert_to_json(info: &DayInfo) -> JsonOutput {
-    JsonOutput {
-        solar: JsonSolar {
-            day: info.solar.day,
-            month: info.solar.month,
-            year: info.solar.year,
-            day_of_week: info.solar.day_of_week_name.clone(),
-            date_string: info.solar.date_string.clone(),
-        },
-        lunar: JsonLunar {
-            day: info.lunar.day,
-            month: info.lunar.month,
-            year: info.lunar.year,
-            is_leap_month: info.lunar.is_leap_month,
-            date_string: info.lunar.date_string.clone(),
-        },
-        canchi: JsonCanChi {
-            day: info.canchi.day.full.clone(),
-            month: info.canchi.month.full.clone(),
-            year: info.canchi.year.full.clone(),
-            day_can: info.canchi.day.can.clone(),
-            day_chi: info.canchi.day.chi.clone(),
-            month_can: info.canchi.month.can.clone(),
-            month_chi: info.canchi.month.chi.clone(),
-            year_can: info.canchi.year.can.clone(),
-            year_chi: info.canchi.year.chi.clone(),
-        },
-        tiet_khi: JsonTietKhi {
-            name: info.tiet_khi.name.clone(),
-            description: info.tiet_khi.description.clone(),
-            season: info.tiet_khi.season.clone(),
-        },
-        gio_hoang_dao: JsonGioHoangDao {
-            good_hour_count: info.gio_hoang_dao.good_hour_count,
-            hours: info
-                .gio_hoang_dao
-                .all_hours
-                .iter()
-                .map(|h| JsonHourInfo {
-                    hour: h.hour_index,
-                    name: h.hour_chi.clone(),
-                    time_range: h.time_range.clone(),
-                    star: h.star.clone(),
-                    is_good: h.is_good,
-                })
-                .collect(),
-        },
-    }
-}
-
 fn main() {
     let cli = Cli::parse();
 
     match cli.command {
         Some(Commands::Today) | None => {
             let now = Local::now();
-            let info = get_day_info(now.day() as i32, now.month() as i32, now.year());
+            let info = get_day_info_for_date(now.day() as i32, now.month() as i32, now.year())
+                .expect("today should always produce a valid date");
             let mode = read_mode();
             println!("{}", waybar::format_waybar_json(&info, &mode));
         }
 
         Some(Commands::Date { date }) => match parse_date(&date) {
             Ok((day, month, year)) => {
-                let info = get_day_info(day, month, year);
+                let info = get_day_info_for_date(day, month, year)
+                    .expect("validated date should produce day info");
                 let mode = read_mode();
                 println!("{}", waybar::format_waybar_json(&info, &mode));
             }
@@ -306,7 +196,8 @@ fn main() {
 
             // Output current state for Waybar
             let now = Local::now();
-            let info = get_day_info(now.day() as i32, now.month() as i32, now.year());
+            let info = get_day_info_for_date(now.day() as i32, now.month() as i32, now.year())
+                .expect("today should always produce a valid date");
             println!("{}", waybar::format_waybar_json(&info, &new_mode));
         }
 
@@ -324,9 +215,9 @@ fn main() {
                 (now.day() as i32, now.month() as i32, now.year())
             };
 
-            let info = get_day_info(day, month, year);
-            let json = convert_to_json(&info);
-            println!("{}", serde_json::to_string_pretty(&json).unwrap());
+            let info = get_day_info_for_date(day, month, year)
+                .expect("validated date should produce day info");
+            println!("{}", serde_json::to_string_pretty(&info).unwrap());
         }
 
         Some(Commands::Mode) => {

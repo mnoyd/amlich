@@ -1,12 +1,11 @@
-use amlich_core::holidays::get_vietnamese_holidays;
-use amlich_core::DayInfo;
+use amlich_api::{get_holidays, DayInfoDto};
 use chrono::{Local, NaiveDate, Timelike};
 
 use crate::DisplayMode;
 
 const HOLIDAY_LOOKAHEAD_DAYS: i64 = 10;
 
-fn format_full(info: &DayInfo) -> String {
+fn format_full(info: &DayInfoDto) -> String {
     format!(
         "📅 {}/{}/{} 🌙 {}/{}/{} ({}) 📜 {}",
         info.solar.day,
@@ -20,7 +19,7 @@ fn format_full(info: &DayInfo) -> String {
     )
 }
 
-fn format_lunar(info: &DayInfo) -> String {
+fn format_lunar(info: &DayInfoDto) -> String {
     if info.lunar.is_leap_month {
         format!(
             "🌙 {}/{}/{} (Nhuận)",
@@ -34,11 +33,11 @@ fn format_lunar(info: &DayInfo) -> String {
     }
 }
 
-fn format_canchi(info: &DayInfo) -> String {
+fn format_canchi(info: &DayInfoDto) -> String {
     format!("📜 {}", info.canchi.day.full)
 }
 
-fn format_minimal(info: &DayInfo) -> String {
+fn format_minimal(info: &DayInfoDto) -> String {
     format!("{}/{}", info.lunar.day, info.lunar.month)
 }
 
@@ -51,7 +50,7 @@ fn current_hour_chi_index() -> usize {
     }
 }
 
-fn next_good_hours(info: &DayInfo, current_chi: usize, max_count: usize) -> Vec<String> {
+fn next_good_hours(info: &DayInfoDto, current_chi: usize, max_count: usize) -> Vec<String> {
     let mut ordered = Vec::new();
 
     for i in current_chi..12 {
@@ -70,15 +69,15 @@ fn next_good_hours(info: &DayInfo, current_chi: usize, max_count: usize) -> Vec<
     ordered.into_iter().take(max_count).collect()
 }
 
-fn format_holiday_line(info: &DayInfo) -> Option<String> {
+fn format_holiday_line(info: &DayInfoDto) -> Option<String> {
     let today = NaiveDate::from_ymd_opt(
         info.solar.year,
         info.solar.month as u32,
         info.solar.day as u32,
     )?;
 
-    let mut holidays = get_vietnamese_holidays(info.solar.year);
-    holidays.extend(get_vietnamese_holidays(info.solar.year + 1));
+    let mut holidays = get_holidays(info.solar.year, false);
+    holidays.extend(get_holidays(info.solar.year + 1, false));
 
     let today_holidays: Vec<_> = holidays
         .iter()
@@ -118,7 +117,7 @@ fn format_holiday_line(info: &DayInfo) -> Option<String> {
     None
 }
 
-fn format_tooltip(info: &DayInfo) -> String {
+fn format_tooltip(info: &DayInfoDto) -> String {
     let mut lines = Vec::new();
 
     lines.push(format!(
@@ -168,7 +167,7 @@ fn format_tooltip(info: &DayInfo) -> String {
     lines.join("\n")
 }
 
-pub fn format_waybar_json(info: &DayInfo, mode: &DisplayMode) -> String {
+pub fn format_waybar_json(info: &DayInfoDto, mode: &DisplayMode) -> String {
     let text = match mode {
         DisplayMode::Full => format_full(info),
         DisplayMode::Lunar => format_lunar(info),

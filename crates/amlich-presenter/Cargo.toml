@@ -1,0 +1,12 @@
+[package]
+name = "amlich-presenter"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Vietnamese Lunar Calendar - Presentation formatting layer"
+
+[dependencies]
+amlich-api = { path = "../amlich-api" }
