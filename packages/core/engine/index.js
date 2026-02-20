@@ -19,14 +19,39 @@ function pad2(n) {
   return String(n).padStart(2, '0');
 }
 
+function normalizeCanChi(value) {
+  return {
+    canIndex: value.can_index,
+    chiIndex: value.chi_index,
+    can: value.can,
+    chi: value.chi,
+    full: value.full,
+    conGiap: value.con_giap,
+    nguHanh: {
+      can: value.ngu_hanh.can,
+      chi: value.ngu_hanh.chi,
+    },
+  };
+}
+
+function normalizeHour(value) {
+  return {
+    hourIndex: value.hour_index,
+    hourChi: value.hour_chi,
+    timeRange: value.time_range,
+    star: value.star,
+    isGood: value.is_good,
+  };
+}
+
 function normalizeFromRust(payload) {
   return {
     solar: {
       day: payload.solar.day,
       month: payload.solar.month,
       year: payload.solar.year,
-      dayOfWeek: null,
-      dayOfWeekName: payload.solar.day_of_week,
+      dayOfWeek: payload.solar.day_of_week,
+      dayOfWeekName: payload.solar.day_of_week_name,
       dateString: payload.solar.date_string,
     },
     lunar: {
@@ -36,74 +61,27 @@ function normalizeFromRust(payload) {
       isLeapMonth: payload.lunar.is_leap_month,
       dateString: payload.lunar.date_string,
     },
-    jd: null,
+    jd: payload.jd,
     canChi: {
-      day: {
-        can: payload.canchi.day_can,
-        chi: payload.canchi.day_chi,
-        full: payload.canchi.day,
-        conGiap: '',
-        nguHanh: { can: '', chi: '' },
-      },
-      month: {
-        can: payload.canchi.month_can,
-        chi: payload.canchi.month_chi,
-        full: payload.canchi.month,
-        conGiap: '',
-        nguHanh: { can: '', chi: '' },
-      },
-      year: {
-        can: payload.canchi.year_can,
-        chi: payload.canchi.year_chi,
-        full: payload.canchi.year,
-        conGiap: '',
-        nguHanh: { can: '', chi: '' },
-      },
-      full: `${payload.canchi.day}, tháng ${payload.canchi.month}, năm ${payload.canchi.year}`,
+      day: normalizeCanChi(payload.canchi.day),
+      month: normalizeCanChi(payload.canchi.month),
+      year: normalizeCanChi(payload.canchi.year),
+      full: payload.canchi.full,
     },
     tietKhi: {
+      index: payload.tiet_khi.index,
       name: payload.tiet_khi.name,
       description: payload.tiet_khi.description,
+      longitude: payload.tiet_khi.longitude,
+      currentLongitude: payload.tiet_khi.current_longitude,
       season: payload.tiet_khi.season,
-      index: null,
-      longitude: null,
-      currentLongitude: null,
     },
     gioHoangDao: {
-      goodHours: payload.gio_hoang_dao.hours
-        .filter((h) => h.is_good)
-        .map((h) => ({
-          hourChi: h.name,
-          timeRange: h.time_range,
-          star: h.star,
-          hourIndex: h.hour,
-          isGood: true,
-        })),
+      dayChi: payload.gio_hoang_dao.day_chi,
       goodHourCount: payload.gio_hoang_dao.good_hour_count,
-      allHours: payload.gio_hoang_dao.hours.map((h) => ({
-        hourChi: h.name,
-        timeRange: h.time_range,
-        star: h.star,
-        hourIndex: h.hour,
-        isGood: h.is_good,
-      })),
-      summary: `Giờ tốt: ${payload.gio_hoang_dao.good_hour_count}`,
-    },
-    _meta: {
-      version: 'rust-cli-adapter',
-      timezone: 7,
-      backend: 'rust-cli',
-      methods: {
-        dayCanChi: 'rust-core',
-        monthCanChi: 'rust-core',
-        yearCanChi: 'rust-core',
-        tietKhi: 'rust-core',
-        gioHoangDao: 'rust-core',
-      },
-      conventions: {
-        timezone: 'UTC+7 (Vietnam)',
-        dayBoundary: 'local midnight',
-      },
+      goodHours: payload.gio_hoang_dao.good_hours.map(normalizeHour),
+      allHours: payload.gio_hoang_dao.all_hours.map(normalizeHour),
+      summary: payload.gio_hoang_dao.summary,
     },
   };
 }

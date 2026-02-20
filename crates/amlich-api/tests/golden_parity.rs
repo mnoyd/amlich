@@ -40,8 +40,6 @@ fn golden_day_info_parity() {
             month: fixture.query.month,
             year: fixture.query.year,
             timezone: Some(fixture.query.timezone),
-            locale: Some("vi-VN".to_string()),
-            verbosity: None,
         })
         .expect("query should be valid");
 

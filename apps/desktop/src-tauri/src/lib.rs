@@ -100,8 +100,8 @@ fn holiday_to_info(holiday: &HolidayDto) -> HolidayInfo {
         name: holiday.name.clone(),
         description: holiday.description.clone(),
         is_solar: holiday.is_solar,
-        lunar_day: holiday.lunar_date.as_ref().map(|d| d.day),
-        lunar_month: holiday.lunar_date.as_ref().map(|d| d.month),
+        lunar_day: holiday.lunar_day,
+        lunar_month: holiday.lunar_month,
         category: holiday.category.clone(),
         is_major: holiday.is_major,
     }

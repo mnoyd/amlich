@@ -14,9 +14,14 @@
 ## JS engine deprecation
 - Legacy JS algorithm remains at `packages/core/engine/legacy-engine.js` for compatibility fallback.
 - New entrypoint `packages/core/engine/index.js` prefers Rust CLI (`amlich json`) and falls back to legacy only when unavailable.
+- Rust-path output now maps from canonical `DayInfoDto` fields only; legacy-shape placeholders are no longer synthesized.
 - Consumers should migrate to Rust/WASM direct bindings where possible.
+
+## Canonical JSON contract
+- `amlich json YYYY-MM-DD` now emits canonical `DayInfoDto` shape directly.
+- Top-level keys are: `solar`, `lunar`, `jd`, `canchi`, `tiet_khi`, `gio_hoang_dao`.
+- No legacy projection keys (`day_can`, `year_can`, synthetic `_meta.methods`, etc.) are emitted in the Rust path.
 
 ## Next removals
 1. Remove legacy fallback after downstream consumers guarantee Rust CLI/WASM availability.
 2. Add Node-target WASM package for direct Rust-backed JS without CLI spawning.
-3. Remove duplicate metadata assumptions in JS (`_meta.methods`) once callers no longer depend on that shape.
