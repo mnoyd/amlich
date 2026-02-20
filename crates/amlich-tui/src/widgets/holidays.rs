@@ -22,8 +22,8 @@ impl<'a> HolidayOverlay<'a> {
 impl Widget for HolidayOverlay<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         // Center the overlay
-        let width = area.width.min(60).max(30);
-        let height = area.height.min(30).max(10);
+        let width = area.width.clamp(30, 60);
+        let height = area.height.clamp(10, 30);
         let x = area.x + (area.width.saturating_sub(width)) / 2;
         let y = area.y + (area.height.saturating_sub(height)) / 2;
         let overlay_area = Rect::new(x, y, width, height);
