@@ -4,7 +4,10 @@
   "description": "Vietnamese Lunar Calendar Expert Engine with Can Chi, Solar Terms, and Auspicious Hours",
   "main": "index.js",
   "scripts": {
-    "test": "node test.js && node engine/test.js"
+    "test": "node test.js && pnpm run test:engine",
+    "test:engine": "node engine/test.js",
+    "test:engine:rust-path": "node engine/test.js --mode rust",
+    "test:engine:fallback": "node engine/test.js --mode fallback"
   },
   "keywords": [
     "vietnamese",

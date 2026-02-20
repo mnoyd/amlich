@@ -111,6 +111,9 @@ function getDayInfoFromRust(dd, mm, yyyy, options = {}) {
 }
 
 function warnRustUnavailableOnce() {
+  if (process.env.AMLICH_SUPPRESS_FALLBACK_WARN === '1') {
+    return;
+  }
   if (warned.rustUnavailable) {
     return;
   }
