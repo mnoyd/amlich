@@ -48,7 +48,6 @@ impl Widget for HelpOverlay {
                     ("n / p", "tháng trước/sau"),
                     ("N / P", "năm trước/sau"),
                     ("t", "hôm nay"),
-                    ("[ / ]", "lịch sử trước/sau"),
                 ],
             ),
             (

@@ -122,14 +122,6 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     // Build status indicators
     let mut indicators = Vec::new();
 
-    // History indicators
-    if app.history_position > 0 {
-        indicators.push(Span::styled("←", Style::default().fg(theme::LUNAR_FG)));
-    }
-    if app.history_position + 1 < app.history.len() {
-        indicators.push(Span::styled("→", Style::default().fg(theme::LUNAR_FG)));
-    }
-
     // Bookmark indicator
     if !app.bookmarks.is_empty() {
         indicators.push(Span::styled(
@@ -151,7 +143,7 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     } else {
         vec![Span::raw("  "), Span::raw("["), Span::raw("")]
             .into_iter()
-            .chain(indicators.into_iter())
+            .chain(indicators)
             .chain(vec![Span::raw("]")])
             .collect()
     };

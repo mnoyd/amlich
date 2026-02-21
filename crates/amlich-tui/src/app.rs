@@ -24,7 +24,8 @@ impl HistoryEntry {
         }
     }
 
-    pub fn to_date(&self) -> Option<NaiveDate> {
+    #[allow(dead_code)]
+    pub fn to_date(self) -> Option<NaiveDate> {
         NaiveDate::from_ymd_opt(self.year, self.month, self.day)
     }
 }
@@ -50,11 +51,6 @@ pub struct App {
     pub show_insight: bool,
     pub insight_lang: InsightLang,
 
-    // Navigation history
-    pub history: Vec<HistoryEntry>,
-    pub history_position: usize,
-    pub history_navigation_in_progress: bool,
-
     // Bookmarks
     pub bookmarks: Vec<HistoryEntry>,
     pub show_bookmarks: bool,
@@ -77,7 +73,6 @@ pub struct App {
 impl App {
     pub fn new() -> Self {
         let today = Local::now().date_naive();
-        let initial_entry = HistoryEntry::from_date(today);
         let mut app = App {
             running: true,
             view_year: today.year(),
@@ -92,9 +87,6 @@ impl App {
             holiday_scroll: 0,
             show_insight: false,
             insight_lang: InsightLang::Vi,
-            history: vec![initial_entry],
-            history_position: 0,
-            history_navigation_in_progress: false,
             bookmarks: Vec::new(),
             show_bookmarks: false,
             bookmark_scroll: 0,
@@ -172,14 +164,12 @@ impl App {
     pub fn next_day(&mut self) {
         if self.selected_day < self.days_in_month {
             self.selected_day += 1;
-            self.push_to_history();
         }
     }
 
     pub fn prev_day(&mut self) {
         if self.selected_day > 1 {
             self.selected_day -= 1;
-            self.push_to_history();
         }
     }
 
@@ -187,14 +177,12 @@ impl App {
         let new = self.selected_day + 7;
         if new <= self.days_in_month {
             self.selected_day = new;
-            self.push_to_history();
         }
     }
 
     pub fn prev_week(&mut self) {
         if self.selected_day > 7 {
             self.selected_day -= 7;
-            self.push_to_history();
         }
     }
 
@@ -206,7 +194,6 @@ impl App {
             self.view_month += 1;
         }
         self.load_month();
-        self.push_to_history();
     }
 
     pub fn prev_month(&mut self) {
@@ -217,19 +204,16 @@ impl App {
             self.view_month -= 1;
         }
         self.load_month();
-        self.push_to_history();
     }
 
     pub fn next_year(&mut self) {
         self.view_year += 1;
         self.load_month();
-        self.push_to_history();
     }
 
     pub fn prev_year(&mut self) {
         self.view_year -= 1;
         self.load_month();
-        self.push_to_history();
     }
 
     pub fn go_today(&mut self) {
@@ -263,66 +247,6 @@ impl App {
         .ok()
     }
 
-    // History navigation
-    fn push_to_history(&mut self) {
-        let current = self.current_entry();
-
-        // Don't push if we're just going back to the previous entry
-        if self.history_position > 0 && self.history[self.history_position - 1] == current {
-            self.history_position -= 1;
-            return;
-        }
-
-        // Remove any forward history when navigating from a non-tip position
-        if self.history_position < self.history.len() - 1 {
-            self.history.truncate(self.history_position + 1);
-        }
-
-        // Only push if different from current tip
-        if self.history.last() != Some(&current) {
-            self.history.push(current);
-            self.history_position = self.history.len() - 1;
-
-            // Limit history size
-            if self.history.len() > 100 {
-                self.history.remove(0);
-                self.history_position = self.history_position.saturating_sub(1);
-            }
-        }
-    }
-
-    pub fn history_back(&mut self) -> bool {
-        if self.history_position > 0 {
-            self.history_navigation_in_progress = true;
-            self.history_position -= 1;
-            if let Some(entry) = self.history.get(self.history_position) {
-                self.apply_history_entry(*entry);
-                return true;
-            }
-        }
-        false
-    }
-
-    pub fn history_forward(&mut self) -> bool {
-        if self.history_position + 1 < self.history.len() {
-            self.history_navigation_in_progress = true;
-            self.history_position += 1;
-            if let Some(entry) = self.history.get(self.history_position) {
-                self.apply_history_entry(*entry);
-                return true;
-            }
-        }
-        false
-    }
-
-    pub fn can_go_back(&self) -> bool {
-        self.history_position > 0
-    }
-
-    pub fn can_go_forward(&self) -> bool {
-        self.history_position + 1 < self.history.len()
-    }
-
     // Bookmarks
     pub fn current_entry(&self) -> HistoryEntry {
         HistoryEntry {
@@ -332,18 +256,14 @@ impl App {
         }
     }
 
-    fn apply_history_entry(&mut self, entry: HistoryEntry) {
+    fn navigate_to_entry(&mut self, entry: HistoryEntry) {
         self.view_year = entry.year;
         self.view_month = entry.month;
         self.selected_day = entry.day;
         self.load_month();
     }
 
-    fn navigate_to_entry(&mut self, entry: HistoryEntry) {
-        self.apply_history_entry(entry);
-        self.push_to_history();
-    }
-
+    #[allow(dead_code)]
     pub fn is_bookmarked(&self) -> bool {
         let current = self.current_entry();
         self.bookmarks.contains(&current)
@@ -469,10 +389,10 @@ impl App {
         match (day, month, year) {
             (Ok(d), Ok(m), Ok(y)) => {
                 // Basic validation
-                if m < 1 || m > 12 {
+                if !(1..=12).contains(&m) {
                     return false;
                 }
-                if d < 1 || d > 31 {
+                if !(1..=31).contains(&d) {
                     return false;
                 }
                 // Check if the date actually exists
