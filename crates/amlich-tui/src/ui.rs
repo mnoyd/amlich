@@ -9,8 +9,9 @@ use ratatui::{
 use crate::app::App;
 use crate::theme;
 use crate::widgets::{
-    calendar::CalendarWidget, detail::DetailWidget, holidays::HolidayOverlay, hours::HoursWidget,
-    insight::InsightWidget,
+    bookmarks::BookmarksOverlay, calendar::CalendarWidget, date_jump::DateJumpPopup,
+    detail::DetailWidget, holidays::HolidayOverlay, hours::HoursWidget, insight::InsightWidget,
+    search::SearchPopup,
 };
 
 const MONTH_NAMES: [&str; 12] = [
@@ -86,6 +87,21 @@ pub fn draw(frame: &mut Frame, app: &App) {
     // Holiday overlay
     if app.show_holidays {
         frame.render_widget(HolidayOverlay::new(app), vertical[1]);
+    }
+
+    // Bookmarks overlay
+    if app.show_bookmarks {
+        frame.render_widget(BookmarksOverlay::new(app), vertical[1]);
+    }
+
+    // Date jump popup
+    if app.show_date_jump {
+        frame.render_widget(DateJumpPopup::new(app), vertical[1]);
+    }
+
+    // Search popup
+    if app.show_search {
+        frame.render_widget(SearchPopup::new(app), vertical[1]);
     }
 }
 
@@ -207,23 +223,17 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
             Span::styled(" ←↑↓→/hjkl ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("di chuyển", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("n/p ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("tháng", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
-            Span::styled("N/P ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("năm", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
             Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("hôm nay", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("H ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("ngày lễ", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("/ ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("tìm kiếm", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("i ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("insight", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("g ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("đến ngày", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("L ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("VI/EN", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("b ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("bookmark", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("thoát", Style::default().fg(theme::LABEL_FG)),

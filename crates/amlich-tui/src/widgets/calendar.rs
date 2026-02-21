@@ -6,7 +6,7 @@ use ratatui::{
     widgets::{Block, Borders, Widget},
 };
 
-use crate::app::App;
+use crate::app::{App, HistoryEntry};
 use crate::theme;
 
 const WEEK_LABELS: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -91,6 +91,12 @@ impl Widget for CalendarWidget<'_> {
                 let is_today = self.app.is_today(day);
                 let is_weekend = col >= 5;
                 let has_holiday = self.app.holiday_for_day(day).is_some();
+                let is_bookmarked = self.app.bookmarks.contains(&HistoryEntry {
+                    year: self.app.view_year,
+                    month: self.app.view_month,
+                    day,
+                });
+                let is_search_result = self.app.is_search_result(day);
 
                 // Solar date style
                 let solar_style = if is_selected {
@@ -103,6 +109,10 @@ impl Widget for CalendarWidget<'_> {
                         .fg(theme::TODAY_FG)
                         .bg(theme::TODAY_BG)
                         .add_modifier(Modifier::BOLD)
+                } else if is_search_result {
+                    Style::default()
+                        .fg(theme::ACCENT_FG)
+                        .add_modifier(Modifier::BOLD)
                 } else if has_holiday {
                     Style::default()
                         .fg(theme::HOLIDAY_FG)
@@ -114,7 +124,16 @@ impl Widget for CalendarWidget<'_> {
                 };
 
                 // Solar day number
-                let solar_text = centered_cell(&day.to_string(), cell_w);
+                let day_display = if is_selected {
+                    day.to_string()
+                } else if is_search_result {
+                    format!("➜{}", day)
+                } else if is_bookmarked {
+                    format!("◆{}", day)
+                } else {
+                    day.to_string()
+                };
+                let solar_text = centered_cell(&day_display, cell_w);
                 buf.set_string(cell_x, y, &solar_text, solar_style);
 
                 // Lunar day below
