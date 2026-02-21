@@ -112,7 +112,7 @@ fn holiday_to_info(holiday: &HolidayDto) -> HolidayInfo {
 
 #[tauri::command]
 fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
-    if month < 1 || month > 12 {
+    if !(1..=12).contains(&month) {
         return Err("month must be 1-12".to_string());
     }
 
@@ -135,8 +135,8 @@ fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
             break;
         }
 
-        let holiday_list = holidays_by_day.remove(&(day as i32)).unwrap_or_default();
-        let info = get_day_info_for_date(day as i32, month as i32, year)?;
+        let holiday_list = holidays_by_day.remove(&day).unwrap_or_default();
+        let info = get_day_info_for_date(day, month as i32, year)?;
         if day == 1 {
             first_weekday = info.solar.day_of_week;
         }
@@ -153,10 +153,10 @@ fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
 
 #[tauri::command]
 fn get_day_detail(day: i32, month: i32, year: i32) -> Result<DayCell, String> {
-    if month < 1 || month > 12 {
+    if !(1..=12).contains(&month) {
         return Err("month must be 1-12".to_string());
     }
-    if day < 1 || day > 31 {
+    if !(1..=31).contains(&day) {
         return Err("day must be 1-31".to_string());
     }
 
@@ -174,10 +174,10 @@ fn get_day_detail(day: i32, month: i32, year: i32) -> Result<DayCell, String> {
 
 #[tauri::command]
 fn get_day_insight(day: i32, month: i32, year: i32) -> Result<DayInsightDto, String> {
-    if month < 1 || month > 12 {
+    if !(1..=12).contains(&month) {
         return Err("month must be 1-12".to_string());
     }
-    if day < 1 || day > 31 {
+    if !(1..=31).contains(&day) {
         return Err("day must be 1-31".to_string());
     }
     get_day_insight_for_date(day, month, year)
