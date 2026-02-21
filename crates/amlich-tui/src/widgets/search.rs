@@ -117,9 +117,10 @@ impl Widget for SearchPopup<'_> {
             };
             let end = (start + max_visible).min(num_results);
 
-            for i in start..end {
+            for (offset, result) in results[start..end].iter().enumerate() {
+                let i = start + offset;
                 let is_selected = i == idx;
-                lines.push(Self::format_result(&results[i], is_selected));
+                lines.push(Self::format_result(result, is_selected));
             }
 
             // Show "more" indicator if results are scrolled

@@ -68,7 +68,7 @@ pub fn search_entries(view_year: i32, raw_query: &str) -> Vec<SearchResult> {
             let name_normalized = normalize(&holiday.name);
             let desc_normalized = normalize(&holiday.description);
 
-            let name_matches = name_normalized.contains(&query) || desc_normalized.contains(&query);
+            let name_matches = name_normalized.contains(query) || desc_normalized.contains(query);
 
             if name_matches {
                 if let Some(entry) =
