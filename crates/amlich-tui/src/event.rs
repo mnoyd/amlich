@@ -58,11 +58,11 @@ fn handle_search_mode(app: &mut App, key: KeyEvent) -> bool {
             app.toggle_search();
             true
         }
-        KeyCode::Tab => {
+        KeyCode::Tab | KeyCode::Down => {
             app.search_next_result();
             true
         }
-        KeyCode::BackTab => {
+        KeyCode::BackTab | KeyCode::Up => {
             app.search_prev_result();
             true
         }

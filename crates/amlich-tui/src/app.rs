@@ -2,7 +2,11 @@ use amlich_api::{get_day_insight_for_date, DayInfoDto, DayInsightDto, HolidayDto
 use chrono::{Datelike, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
-use crate::{bookmark_store, date_jump, history::HistoryEntry, search};
+use crate::{
+    bookmark_store, date_jump,
+    history::HistoryEntry,
+    search::{self, SearchResult},
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InsightLang {
@@ -83,7 +87,7 @@ pub struct App {
     // Search
     pub show_search: bool,
     pub search_query: String,
-    pub search_results: Vec<HistoryEntry>,
+    pub search_results: Vec<SearchResult>,
     pub search_index: usize,
 
     // Help overlay
@@ -422,8 +426,8 @@ impl App {
             self.search_index = 0; // Wrap around
         }
 
-        if let Some(entry) = self.search_results.get(self.search_index) {
-            self.navigate_to_entry(*entry)
+        if let Some(result) = self.search_results.get(self.search_index) {
+            self.navigate_to_entry(result.entry)
         } else {
             false
         }
@@ -440,17 +444,17 @@ impl App {
             self.search_index = self.search_results.len().saturating_sub(1); // Wrap around
         }
 
-        if let Some(entry) = self.search_results.get(self.search_index) {
-            self.navigate_to_entry(*entry)
+        if let Some(result) = self.search_results.get(self.search_index) {
+            self.navigate_to_entry(result.entry)
         } else {
             false
         }
     }
 
     pub fn is_search_result(&self, day: u32) -> bool {
-        self.search_results
-            .iter()
-            .any(|e| e.year == self.view_year && e.month == self.view_month && e.day == day)
+        self.search_results.iter().any(|r| {
+            r.entry.year == self.view_year && r.entry.month == self.view_month && r.entry.day == day
+        })
     }
 
     // Help
