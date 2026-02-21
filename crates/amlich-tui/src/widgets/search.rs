@@ -71,7 +71,9 @@ impl Widget for SearchPopup<'_> {
                 " 🔍 Search Holidays ",
                 theme::title_style(),
             )]))
-            .title_bottom(Line::from(" ↑↓ or Tab: Navigate  │  Esc: Close ").alignment(Alignment::Center));
+            .title_bottom(
+                Line::from(" ↑↓ or Tab: Navigate  │  Esc: Close ").alignment(Alignment::Center),
+            );
 
         let mut lines: Vec<Line> = Vec::new();
 

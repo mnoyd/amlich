@@ -2,7 +2,11 @@ use amlich_api::{get_day_insight_for_date, DayInfoDto, DayInsightDto, HolidayDto
 use chrono::{Datelike, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
-use crate::{bookmark_store, date_jump, history::HistoryEntry, search::{self, SearchResult}};
+use crate::{
+    bookmark_store, date_jump,
+    history::HistoryEntry,
+    search::{self, SearchResult},
+};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InsightLang {
@@ -448,9 +452,9 @@ impl App {
     }
 
     pub fn is_search_result(&self, day: u32) -> bool {
-        self.search_results
-            .iter()
-            .any(|r| r.entry.year == self.view_year && r.entry.month == self.view_month && r.entry.day == day)
+        self.search_results.iter().any(|r| {
+            r.entry.year == self.view_year && r.entry.month == self.view_month && r.entry.day == day
+        })
     }
 
     // Help

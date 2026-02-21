@@ -1,5 +1,5 @@
 use crate::history::HistoryEntry;
-use chrono::{NaiveDate, Local};
+use chrono::{Local, NaiveDate};
 use deunicode::deunicode;
 use std::collections::HashMap;
 
@@ -13,7 +13,11 @@ pub struct SearchResult {
 
 impl SearchResult {
     fn new(entry: HistoryEntry, holiday_name: String, lunar: String) -> Self {
-        Self { entry, holiday_name, lunar }
+        Self {
+            entry,
+            holiday_name,
+            lunar,
+        }
     }
 }
 
@@ -96,24 +100,36 @@ pub fn search_entries(view_year: i32, raw_query: &str) -> Vec<SearchResult> {
             for day in 20..=31 {
                 if let Some(entry) = HistoryEntry::new(year, 1, day) {
                     let lunar = amlich_core::lunar::convert_solar_to_lunar(
-                        day as i32, 1, year,
+                        day as i32,
+                        1,
+                        year,
                         amlich_core::VIETNAM_TIMEZONE,
                     );
                     let key = (entry.year, entry.month, entry.day);
                     results_map.entry(key).or_insert_with(|| {
-                        SearchResult::new(entry, tet_name.clone(), format_lunar(lunar.day, lunar.month))
+                        SearchResult::new(
+                            entry,
+                            tet_name.clone(),
+                            format_lunar(lunar.day, lunar.month),
+                        )
                     });
                 }
             }
             for day in 1..=19 {
                 if let Some(entry) = HistoryEntry::new(year, 2, day) {
                     let lunar = amlich_core::lunar::convert_solar_to_lunar(
-                        day as i32, 2, year,
+                        day as i32,
+                        2,
+                        year,
                         amlich_core::VIETNAM_TIMEZONE,
                     );
                     let key = (entry.year, entry.month, entry.day);
                     results_map.entry(key).or_insert_with(|| {
-                        SearchResult::new(entry, tet_name.clone(), format_lunar(lunar.day, lunar.month))
+                        SearchResult::new(
+                            entry,
+                            tet_name.clone(),
+                            format_lunar(lunar.day, lunar.month),
+                        )
                     });
                 }
             }
