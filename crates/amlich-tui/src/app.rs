@@ -52,6 +52,7 @@ pub struct App {
     // Insight panel
     pub show_insight: bool,
     pub insight_lang: InsightLang,
+    pub show_extra_cultural: bool,
 
     // Density mode
     pub density_mode: DensityMode,
@@ -74,6 +75,7 @@ impl App {
             holiday_scroll: 0,
             show_insight: false,
             insight_lang: InsightLang::Vi,
+            show_extra_cultural: false,
             density_mode: DensityMode::Normal,
         };
         app.load_month();
@@ -219,6 +221,10 @@ impl App {
 
     pub fn toggle_density_mode(&mut self) {
         self.density_mode = self.density_mode.next();
+    }
+
+    pub fn toggle_extra_cultural(&mut self) {
+        self.show_extra_cultural = !self.show_extra_cultural;
     }
 
     pub fn selected_insight(&self) -> Option<DayInsightDto> {
