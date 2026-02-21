@@ -1,7 +1,7 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use std::time::Duration;
 
-use crate::app::App;
+use crate::app::{App, InsightTab};
 
 pub fn handle_events(app: &mut App) -> std::io::Result<()> {
     if event::poll(Duration::from_millis(100))? {
@@ -19,6 +19,26 @@ fn handle_key(app: &mut App, key: KeyEvent) {
     // Ctrl+C always quits
     if key.modifiers.contains(KeyModifiers::CONTROL) && key.code == KeyCode::Char('c') {
         app.running = false;
+        return;
+    }
+
+    // Insight overlay mode
+    if app.show_insight {
+        match key.code {
+            KeyCode::Char('i') | KeyCode::Esc | KeyCode::Char('q') => app.toggle_insight(),
+            KeyCode::Char('j') | KeyCode::Down => {
+                app.insight_scroll = app.insight_scroll.saturating_add(1)
+            }
+            KeyCode::Char('k') | KeyCode::Up => {
+                app.insight_scroll = app.insight_scroll.saturating_sub(1)
+            }
+            KeyCode::Char('1') => app.set_insight_tab(InsightTab::Festival),
+            KeyCode::Char('2') => app.set_insight_tab(InsightTab::Guidance),
+            KeyCode::Char('3') => app.set_insight_tab(InsightTab::TietKhi),
+            KeyCode::Char('n') | KeyCode::Tab => app.next_insight_tab(),
+            KeyCode::Char('L') => app.toggle_insight_lang(),
+            _ => {}
+        }
         return;
     }
 
@@ -61,9 +81,8 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         // Toggle holiday list
         KeyCode::Char('H') => app.toggle_holidays(),
 
-        // Toggle insight panel and language
+        // Toggle insight panel
         KeyCode::Char('i') => app.toggle_insight(),
-        KeyCode::Char('L') => app.toggle_insight_lang(),
 
         _ => {}
     }

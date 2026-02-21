@@ -7,6 +7,44 @@ pub enum InsightLang {
     En,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq, Default)]
+pub enum InsightTab {
+    Festival,
+    #[default]
+    Guidance,
+    TietKhi,
+}
+
+#[allow(dead_code)]
+impl InsightTab {
+    pub fn next(self) -> Self {
+        match self {
+            InsightTab::Festival => InsightTab::Guidance,
+            InsightTab::Guidance => InsightTab::TietKhi,
+            InsightTab::TietKhi => InsightTab::Festival,
+        }
+    }
+
+    pub fn prev(self) -> Self {
+        match self {
+            InsightTab::Festival => InsightTab::TietKhi,
+            InsightTab::Guidance => InsightTab::Festival,
+            InsightTab::TietKhi => InsightTab::Guidance,
+        }
+    }
+
+    pub fn name(self, lang: InsightLang) -> &'static str {
+        match (self, lang) {
+            (InsightTab::Festival, InsightLang::Vi) => "Lễ hội",
+            (InsightTab::Festival, InsightLang::En) => "Festival",
+            (InsightTab::Guidance, InsightLang::Vi) => "Hướng dẫn",
+            (InsightTab::Guidance, InsightLang::En) => "Guidance",
+            (InsightTab::TietKhi, InsightLang::Vi) => "Tiết khí",
+            (InsightTab::TietKhi, InsightLang::En) => "Season",
+        }
+    }
+}
+
 pub struct App {
     pub running: bool,
     pub view_year: i32,
@@ -27,6 +65,8 @@ pub struct App {
     // Insight panel
     pub show_insight: bool,
     pub insight_lang: InsightLang,
+    pub insight_tab: InsightTab,
+    pub insight_scroll: u16,
 }
 
 impl App {
@@ -46,6 +86,8 @@ impl App {
             holiday_scroll: 0,
             show_insight: false,
             insight_lang: InsightLang::Vi,
+            insight_tab: InsightTab::default(),
+            insight_scroll: 0,
         };
         app.load_month();
         app
@@ -186,6 +228,24 @@ impl App {
             InsightLang::Vi => InsightLang::En,
             InsightLang::En => InsightLang::Vi,
         };
+    }
+
+    pub fn set_insight_tab(&mut self, tab: InsightTab) {
+        if self.insight_tab != tab {
+            self.insight_tab = tab;
+            self.insight_scroll = 0;
+        }
+    }
+
+    pub fn next_insight_tab(&mut self) {
+        self.insight_tab = self.insight_tab.next();
+        self.insight_scroll = 0;
+    }
+
+    #[allow(dead_code)]
+    pub fn prev_insight_tab(&mut self) {
+        self.insight_tab = self.insight_tab.prev();
+        self.insight_scroll = 0;
     }
 
     pub fn selected_insight(&self) -> Option<DayInsightDto> {
