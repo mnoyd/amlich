@@ -5,14 +5,14 @@ pub const HEADER_BG: Color = Color::Rgb(139, 0, 0); // deep red
 pub const HEADER_FG: Color = Color::White;
 
 // Calendar grid
-pub const SOLAR_FG: Color = Color::White;
-pub const LUNAR_FG: Color = Color::Rgb(180, 180, 180);
+pub const SOLAR_FG: Color = Color::Rgb(245, 245, 245);
+pub const LUNAR_FG: Color = Color::Rgb(135, 145, 165);
 pub const TODAY_BG: Color = Color::Rgb(139, 0, 0);
 pub const TODAY_FG: Color = Color::White;
-pub const SELECTED_BG: Color = Color::Rgb(42, 110, 100); // jade
+pub const SELECTED_BG: Color = Color::Rgb(35, 105, 95); // jade
 pub const SELECTED_FG: Color = Color::White;
-pub const WEEKEND_FG: Color = Color::Rgb(255, 120, 120);
-pub const HOLIDAY_FG: Color = Color::Rgb(255, 200, 50); // gold
+pub const WEEKEND_FG: Color = Color::Rgb(255, 150, 115);
+pub const HOLIDAY_FG: Color = Color::Rgb(255, 212, 95); // gold
 
 // Detail panel
 pub const LABEL_FG: Color = Color::Rgb(150, 150, 150);

@@ -75,7 +75,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
     let vertical = Layout::vertical([
         Constraint::Length(3),
         Constraint::Min(10),
-        Constraint::Length(1),
+        Constraint::Length(2),
     ])
     .split(size);
 
@@ -189,7 +189,7 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
     let mode = layout_mode(area.width);
 
-    let spans = match mode {
+    let shortcuts = match mode {
         LayoutMode::Small => vec![
             Span::styled("hjkl ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("nav", Style::default().fg(theme::LABEL_FG)),
@@ -230,6 +230,27 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
         ],
     };
 
-    let footer = Paragraph::new(Line::from(spans)).alignment(Alignment::Center);
+    let legend = match mode {
+        LayoutMode::Small => vec![
+            Span::styled("Màu: ", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("DL", Style::default().fg(theme::SOLAR_FG)),
+            Span::styled(" AL", Style::default().fg(theme::LUNAR_FG)),
+            Span::styled(" T7/CN", Style::default().fg(theme::WEEKEND_FG)),
+            Span::styled(" Lễ", Style::default().fg(theme::HOLIDAY_FG)),
+        ],
+        _ => vec![
+            Span::styled("Màu: ", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("Dương lịch", Style::default().fg(theme::SOLAR_FG)),
+            Span::raw(" / "),
+            Span::styled("Âm lịch", Style::default().fg(theme::LUNAR_FG)),
+            Span::raw(" / "),
+            Span::styled("T7-CN", Style::default().fg(theme::WEEKEND_FG)),
+            Span::raw(" / "),
+            Span::styled("Ngày lễ", Style::default().fg(theme::HOLIDAY_FG)),
+        ],
+    };
+
+    let footer = Paragraph::new(vec![Line::from(shortcuts), Line::from(legend)])
+        .alignment(Alignment::Center);
     frame.render_widget(footer, area);
 }

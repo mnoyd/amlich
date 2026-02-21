@@ -38,11 +38,9 @@ impl Widget for CalendarWidget<'_> {
             return;
         }
 
-        let col_base = inner.width / 7;
-        let col_extra = inner.width % 7;
-        if col_base == 0 {
+        let Some(col_widths) = column_widths(inner.width) else {
             return;
-        }
+        };
 
         // Render weekday header
         let header_y = inner.y;
@@ -57,7 +55,7 @@ impl Widget for CalendarWidget<'_> {
                     .fg(theme::LABEL_FG)
                     .add_modifier(Modifier::BOLD)
             };
-            let col_w = col_base + if (i as u16) < col_extra { 1 } else { 0 };
+            let col_w = col_widths[i];
             let centered = centered_cell(label, col_w);
             buf.set_string(x, header_y, &centered, style);
             x += col_w;
@@ -75,7 +73,7 @@ impl Widget for CalendarWidget<'_> {
 
             let mut cell_x = inner.x;
             for col in 0..7u16 {
-                let cell_w = col_base + if col < col_extra { 1 } else { 0 };
+                let cell_w = col_widths[col as usize];
 
                 // Skip empty cells before first day
                 if row == 0 && col < self.app.first_weekday as u16 {
@@ -145,6 +143,22 @@ impl Widget for CalendarWidget<'_> {
     }
 }
 
+fn column_widths(total_width: u16) -> Option<[u16; 7]> {
+    if total_width < 7 {
+        return None;
+    }
+
+    let base = total_width / 7;
+    let extra = total_width % 7;
+    let mut widths = [base; 7];
+
+    for i in 0..extra {
+        widths[i as usize] += 1;
+    }
+
+    Some(widths)
+}
+
 fn centered_cell(text: &str, width: u16) -> String {
     if width == 0 {
         return String::new();
@@ -163,4 +177,33 @@ fn centered_cell(text: &str, width: u16) -> String {
     let pad_right = pad_total - pad_left;
 
     format!("{}{}{}", " ".repeat(pad_left), trimmed, " ".repeat(pad_right))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{centered_cell, column_widths};
+
+    #[test]
+    fn column_widths_distributes_evenly() {
+        let widths = column_widths(64).expect("widths should exist");
+        assert_eq!(widths.iter().sum::<u16>(), 64);
+        assert_eq!(widths[0], 10);
+        assert_eq!(widths[1], 9);
+        assert_eq!(widths[6], 9);
+    }
+
+    #[test]
+    fn column_widths_rejects_too_narrow() {
+        assert!(column_widths(6).is_none());
+    }
+
+    #[test]
+    fn centered_cell_trims_long_text() {
+        assert_eq!(centered_cell("12345", 3), "123");
+    }
+
+    #[test]
+    fn centered_cell_pads_short_text() {
+        assert_eq!(centered_cell("2", 3), " 2 ");
+    }
 }
