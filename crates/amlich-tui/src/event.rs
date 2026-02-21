@@ -183,8 +183,12 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         KeyCode::Char('/') => app.toggle_search(),
 
         // History navigation
-        KeyCode::Char('[') => { app.history_back(); }
-        KeyCode::Char(']') => { app.history_forward(); }
+        KeyCode::Char('[') => {
+            app.history_back();
+        }
+        KeyCode::Char(']') => {
+            app.history_forward();
+        }
 
         _ => {}
     }

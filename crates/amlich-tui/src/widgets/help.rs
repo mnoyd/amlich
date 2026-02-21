@@ -41,40 +41,50 @@ impl Widget for HelpOverlay {
 
         // Section headers and shortcuts
         let sections = vec![
-            ("Navigation", vec![
-                ("←↓↑→ / hjkl", "di chuyển ngày"),
-                ("n / p", "tháng trước/sau"),
-                ("N / P", "năm trước/sau"),
-                ("t", "hôm nay"),
-                ("[ / ]", "lịch sử trước/sau"),
-            ]),
-            ("Jump & Search", vec![
-                ("g", "nhảy đến ngày (dd/mm/yyyy)"),
-                ("/", "tìm kiếm ngày lễ"),
-                ("Tab", "chuyển kết quả tìm"),
-                ("b / B", "bookmark / danh sách"),
-            ]),
-            ("Display", vec![
-                ("H", "danh sách ngày lễ"),
-                ("i", "bật/tắt insight"),
-                ("L", "đổi ngôn ngữ VI/EN"),
-            ]),
-            ("General", vec![
-                ("q / Esc", "thoát"),
-                ("Ctrl+C", "thoát tức thì"),
-                ("?", "trợ giúp"),
-            ]),
+            (
+                "Navigation",
+                vec![
+                    ("←↓↑→ / hjkl", "di chuyển ngày"),
+                    ("n / p", "tháng trước/sau"),
+                    ("N / P", "năm trước/sau"),
+                    ("t", "hôm nay"),
+                    ("[ / ]", "lịch sử trước/sau"),
+                ],
+            ),
+            (
+                "Jump & Search",
+                vec![
+                    ("g", "nhảy đến ngày (dd/mm/yyyy)"),
+                    ("/", "tìm kiếm ngày lễ"),
+                    ("Tab", "chuyển kết quả tìm"),
+                    ("b / B", "bookmark / danh sách"),
+                ],
+            ),
+            (
+                "Display",
+                vec![
+                    ("H", "danh sách ngày lễ"),
+                    ("i", "bật/tắt insight"),
+                    ("L", "đổi ngôn ngữ VI/EN"),
+                ],
+            ),
+            (
+                "General",
+                vec![
+                    ("q / Esc", "thoát"),
+                    ("Ctrl+C", "thoát tức thì"),
+                    ("?", "trợ giúp"),
+                ],
+            ),
         ];
 
         for (section_name, shortcuts) in sections {
-            lines.push(Line::from(vec![
-                Span::styled(
-                    section_name,
-                    Style::default()
-                        .fg(theme::TITLE_FG)
-                        .add_modifier(Modifier::BOLD),
-                ),
-            ]));
+            lines.push(Line::from(vec![Span::styled(
+                section_name,
+                Style::default()
+                    .fg(theme::TITLE_FG)
+                    .add_modifier(Modifier::BOLD),
+            )]));
             lines.push(Line::from(""));
 
             for (key, desc) in shortcuts {

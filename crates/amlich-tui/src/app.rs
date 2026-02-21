@@ -396,7 +396,11 @@ impl App {
         }
 
         // Get current input without slashes for processing
-        let digits: String = self.date_jump_input.chars().filter(|x| x.is_ascii_digit()).collect();
+        let digits: String = self
+            .date_jump_input
+            .chars()
+            .filter(|x| x.is_ascii_digit())
+            .collect();
 
         // Don't exceed 8 digits (ddmmyyyy)
         if digits.len() >= 8 {
@@ -416,7 +420,12 @@ impl App {
         } else if new_digits.len() <= 4 {
             format!("{}/{}", &new_digits[0..2], &new_digits[2..])
         } else {
-            format!("{}/{}/{}", &new_digits[0..2], &new_digits[2..4], &new_digits[4..])
+            format!(
+                "{}/{}/{}",
+                &new_digits[0..2],
+                &new_digits[2..4],
+                &new_digits[4..]
+            )
         };
     }
 
@@ -430,7 +439,11 @@ impl App {
         }
 
         // Re-format to maintain consistency
-        let digits: String = self.date_jump_input.chars().filter(|x| x.is_ascii_digit()).collect();
+        let digits: String = self
+            .date_jump_input
+            .chars()
+            .filter(|x| x.is_ascii_digit())
+            .collect();
         if digits.is_empty() {
             return;
         }
@@ -534,9 +547,20 @@ impl App {
 
         // Also search through day insights for special terms
         let search_terms = [
-            "tết", "tet", "người đời", "nguoi doi", "giỗ tổ", "gio to",
-            "trung thu", "trungthu", "quốc khánh", "quoc khanh", "quooc khanh",
-            "lễ tình nhân", "le tinh nhan", "valentine",
+            "tết",
+            "tet",
+            "người đời",
+            "nguoi doi",
+            "giỗ tổ",
+            "gio to",
+            "trung thu",
+            "trungthu",
+            "quốc khánh",
+            "quoc khanh",
+            "quooc khanh",
+            "lễ tình nhân",
+            "le tinh nhan",
+            "valentine",
         ];
 
         for term in search_terms {
@@ -549,10 +573,18 @@ impl App {
                         // This is a simplified approach - real Tết calculation is complex
                         // For now, just check late Jan/early Feb
                         for day in 20..=31 {
-                            self.search_results.push(HistoryEntry { year, month: 1, day });
+                            self.search_results.push(HistoryEntry {
+                                year,
+                                month: 1,
+                                day,
+                            });
                         }
                         for day in 1..=19 {
-                            self.search_results.push(HistoryEntry { year, month: 2, day });
+                            self.search_results.push(HistoryEntry {
+                                year,
+                                month: 2,
+                                day,
+                            });
                         }
                     }
                 }
@@ -560,7 +592,8 @@ impl App {
         }
 
         // Deduplicate and sort
-        self.search_results.sort_by_key(|e| (e.year, e.month, e.day));
+        self.search_results
+            .sort_by_key(|e| (e.year, e.month, e.day));
         self.search_results.dedup();
     }
 
@@ -603,9 +636,9 @@ impl App {
     }
 
     pub fn is_search_result(&self, day: u32) -> bool {
-        self.search_results.iter().any(|e| {
-            e.year == self.view_year && e.month == self.view_month && e.day == day
-        })
+        self.search_results
+            .iter()
+            .any(|e| e.year == self.view_year && e.month == self.view_month && e.day == day)
     }
 
     // Help

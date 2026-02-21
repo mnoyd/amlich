@@ -45,22 +45,21 @@ impl Widget for BookmarksOverlay<'_> {
         let mut lines = Vec::new();
 
         if self.app.bookmarks.is_empty() {
-            lines.push(Line::from(vec![
-                Span::styled(
-                    "Empty",
-                    Style::default().fg(theme::LABEL_FG),
-                ),
-            ]));
-            lines.push(Line::from(vec![
-                Span::styled(
-                    "Press 'b' on a date to bookmark it",
-                    Style::default().fg(theme::LUNAR_FG),
-                ),
-            ]));
+            lines.push(Line::from(vec![Span::styled(
+                "Empty",
+                Style::default().fg(theme::LABEL_FG),
+            )]));
+            lines.push(Line::from(vec![Span::styled(
+                "Press 'b' on a date to bookmark it",
+                Style::default().fg(theme::LUNAR_FG),
+            )]));
         } else {
             for (i, bookmark) in self.app.bookmarks.iter().enumerate() {
                 let is_current = *bookmark == current;
-                let date_str = format!("{:02}/{:02}/{}", bookmark.day, bookmark.month, bookmark.year);
+                let date_str = format!(
+                    "{:02}/{:02}/{}",
+                    bookmark.day, bookmark.month, bookmark.year
+                );
 
                 let num = if i < 9 {
                     format!("{} ", i + 1)

@@ -23,7 +23,11 @@ impl Widget for SearchPopup<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         // Center the popup
         let width = 50;
-        let height = if self.app.search_results.is_empty() { 6 } else { 12 };
+        let height = if self.app.search_results.is_empty() {
+            6
+        } else {
+            12
+        };
         let x = area.x + (area.width.saturating_sub(width)) / 2;
         let y = area.y + (area.height.saturating_sub(height)) / 2;
         let popup_area = Rect::new(x, y, width, height);
@@ -47,7 +51,12 @@ impl Widget for SearchPopup<'_> {
         let input_text = format!("{}_", self.app.search_query);
         lines.push(Line::from(vec![
             Span::styled("Search: ", Style::default().fg(theme::LABEL_FG)),
-            Span::styled(input_text, Style::default().fg(theme::VALUE_FG).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                input_text,
+                Style::default()
+                    .fg(theme::VALUE_FG)
+                    .add_modifier(Modifier::BOLD),
+            ),
         ]));
 
         lines.push(Line::from(""));
@@ -55,29 +64,27 @@ impl Widget for SearchPopup<'_> {
         // Results
         if self.app.search_results.is_empty() {
             if self.app.search_query.is_empty() {
-                lines.push(Line::from(vec![
-                    Span::styled("Type to search for holidays", Style::default().fg(theme::LUNAR_FG)),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "Type to search for holidays",
+                    Style::default().fg(theme::LUNAR_FG),
+                )]));
             } else {
-                lines.push(Line::from(vec![
-                    Span::styled("No results found", Style::default().fg(theme::LABEL_FG)),
-                ]));
+                lines.push(Line::from(vec![Span::styled(
+                    "No results found",
+                    Style::default().fg(theme::LABEL_FG),
+                )]));
             }
         } else {
             let count = self.app.search_results.len();
             let current = self.app.search_index + 1;
-            lines.push(Line::from(vec![
-                Span::styled(
-                    format!("Results: {}/{}", current, count),
-                    Style::default().fg(theme::ACCENT_FG),
-                ),
-            ]));
-            lines.push(Line::from(vec![
-                Span::styled(
-                    "Press Tab to cycle results",
-                    Style::default().fg(theme::LUNAR_FG),
-                ),
-            ]));
+            lines.push(Line::from(vec![Span::styled(
+                format!("Results: {}/{}", current, count),
+                Style::default().fg(theme::ACCENT_FG),
+            )]));
+            lines.push(Line::from(vec![Span::styled(
+                "Press Tab to cycle results",
+                Style::default().fg(theme::LUNAR_FG),
+            )]));
 
             lines.push(Line::from(""));
 
@@ -87,7 +94,9 @@ impl Widget for SearchPopup<'_> {
                     Span::styled("Current: ", Style::default().fg(theme::LABEL_FG)),
                     Span::styled(
                         format!("{:02}/{:02}/{}", entry.day, entry.month, entry.year),
-                        Style::default().fg(theme::VALUE_FG).add_modifier(Modifier::BOLD),
+                        Style::default()
+                            .fg(theme::VALUE_FG)
+                            .add_modifier(Modifier::BOLD),
                     ),
                 ]));
             }

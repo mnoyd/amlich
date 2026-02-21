@@ -61,13 +61,10 @@ impl Widget for DateJumpPopup<'_> {
                 .fg(theme::VALUE_FG)
                 .add_modifier(Modifier::BOLD)
         } else {
-            Style::default()
-                .fg(theme::VALUE_FG)
+            Style::default().fg(theme::VALUE_FG)
         };
 
-        let input_line = Line::from(vec![
-            Span::styled(&input_text, input_style),
-        ]);
+        let input_line = Line::from(vec![Span::styled(&input_text, input_style)]);
 
         // Validation indicator
         let valid_line = if self.app.date_jump_input.len() >= 8 {
@@ -86,9 +83,15 @@ impl Widget for DateJumpPopup<'_> {
             Line::from("")
         };
 
-        let p = Paragraph::new(vec![instructions, Line::from(""), input_line, Line::from(""), valid_line])
-            .block(block)
-            .alignment(Alignment::Center);
+        let p = Paragraph::new(vec![
+            instructions,
+            Line::from(""),
+            input_line,
+            Line::from(""),
+            valid_line,
+        ])
+        .block(block)
+        .alignment(Alignment::Center);
 
         p.render(popup_area, buf);
     }

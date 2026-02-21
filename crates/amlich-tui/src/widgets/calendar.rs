@@ -181,5 +181,10 @@ fn centered_cell(text: &str, width: u16) -> String {
     let pad_left = pad_total / 2;
     let pad_right = pad_total - pad_left;
 
-    format!("{}{}{}", " ".repeat(pad_left), trimmed, " ".repeat(pad_right))
+    format!(
+        "{}{}{}",
+        " ".repeat(pad_left),
+        trimmed,
+        " ".repeat(pad_right)
+    )
 }

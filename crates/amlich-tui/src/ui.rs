@@ -178,8 +178,7 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 
     header_spans.extend(indicator_spans);
 
-    let header = Paragraph::new(Line::from(header_spans))
-    .block(
+    let header = Paragraph::new(Line::from(header_spans)).block(
         Block::default()
             .borders(Borders::ALL)
             .border_style(theme::border_style()),
@@ -197,7 +196,11 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     let body_sections = if can_show_insight {
         Layout::vertical([
             Constraint::Min(MIN_CAL_BODY_H),
-            Constraint::Length(area.height.saturating_sub(MIN_CAL_BODY_H).min(area.height / 3)),
+            Constraint::Length(
+                area.height
+                    .saturating_sub(MIN_CAL_BODY_H)
+                    .min(area.height / 3),
+            ),
         ])
         .split(area)
     } else {
@@ -213,17 +216,14 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         }
         LayoutMode::Medium => {
             // Calendar + Detail (with compact hours embedded below detail)
-            let cols = Layout::horizontal([
-                Constraint::Percentage(60),
-                Constraint::Percentage(40),
-            ])
-            .split(main_area);
+            let cols = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+                .split(main_area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
 
             // Split right column: detail on top, compact hours below
-            let right = Layout::vertical([Constraint::Min(8), Constraint::Length(5)])
-                .split(cols[1]);
+            let right =
+                Layout::vertical([Constraint::Min(8), Constraint::Length(5)]).split(cols[1]);
 
             frame.render_widget(DetailWidget::new(app), right[0]);
             frame.render_widget(HoursWidget::new(app).compact(true), right[1]);
