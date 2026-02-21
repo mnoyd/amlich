@@ -5,5 +5,5 @@ pub mod detail;
 pub mod help;
 pub mod holidays;
 pub mod hours;
-pub mod insight;
+pub mod insight_overlay;
 pub mod search;

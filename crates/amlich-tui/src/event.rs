@@ -1,7 +1,7 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use std::time::Duration;
 
-use crate::app::App;
+use crate::app::{App, InsightTab};
 
 // Bookmarks overlay mode handling
 fn handle_bookmarks_mode(app: &mut App, key: KeyEvent) -> bool {
@@ -19,8 +19,9 @@ fn handle_bookmarks_mode(app: &mut App, key: KeyEvent) -> bool {
             true
         }
         KeyCode::Char(c @ '1'..='9') => {
-            let index = c.to_digit(10).unwrap() as usize - 1;
-            app.go_to_bookmark(index);
+            if let Some(index) = c.to_digit(10).map(|n| n as usize - 1) {
+                app.go_to_bookmark(index);
+            }
             true
         }
         _ => false,
@@ -96,6 +97,26 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         return;
     }
 
+    // Insight overlay mode
+    if app.show_insight {
+        match key.code {
+            KeyCode::Char('i') | KeyCode::Esc | KeyCode::Char('q') => app.toggle_insight(),
+            KeyCode::Char('j') | KeyCode::Down => {
+                app.insight_scroll = app.insight_scroll.saturating_add(1)
+            }
+            KeyCode::Char('k') | KeyCode::Up => {
+                app.insight_scroll = app.insight_scroll.saturating_sub(1)
+            }
+            KeyCode::Char('1') => app.set_insight_tab(InsightTab::Festival),
+            KeyCode::Char('2') => app.set_insight_tab(InsightTab::Guidance),
+            KeyCode::Char('3') => app.set_insight_tab(InsightTab::TietKhi),
+            KeyCode::Char('n') => app.next_insight_tab(),
+            KeyCode::Char('L') => app.toggle_insight_lang(),
+            _ => {}
+        }
+        return;
+    }
+
     // Help overlay (global - accessible from anywhere)
     if app.show_help {
         match key.code {
@@ -168,9 +189,8 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         // Toggle holiday list
         KeyCode::Char('H') => app.toggle_holidays(),
 
-        // Toggle insight panel and language
+        // Toggle insight panel
         KeyCode::Char('i') => app.toggle_insight(),
-        KeyCode::Char('L') => app.toggle_insight_lang(),
 
         // Bookmarks
         KeyCode::Char('b') => app.toggle_bookmark(),

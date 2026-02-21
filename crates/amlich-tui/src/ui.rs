@@ -11,7 +11,7 @@ use crate::theme;
 use crate::widgets::{
     bookmarks::BookmarksOverlay, calendar::CalendarWidget, date_jump::DateJumpPopup,
     detail::DetailWidget, help::HelpOverlay, holidays::HolidayOverlay, hours::HoursWidget,
-    insight::InsightWidget, search::SearchPopup,
+    insight_overlay::InsightOverlay, search::SearchPopup,
 };
 
 const MONTH_NAMES: [&str; 12] = [
@@ -36,9 +36,6 @@ const MIN_TERM_H: u16 = 15;
 // Layout breakpoints (body width)
 const BP_MEDIUM: u16 = 80;
 const BP_LARGE: u16 = 120;
-
-const MIN_CAL_BODY_H: u16 = 15;
-const MIN_INSIGHT_H: u16 = 6;
 
 #[derive(Clone, Copy)]
 enum LayoutMode {
@@ -89,6 +86,11 @@ pub fn draw(frame: &mut Frame, app: &App) {
         frame.render_widget(HolidayOverlay::new(app), vertical[1]);
     }
 
+    // Insight overlay
+    if app.show_insight {
+        frame.render_widget(InsightOverlay::new(app), vertical[1]);
+    }
+
     // Bookmarks overlay
     if app.show_bookmarks {
         frame.render_widget(BookmarksOverlay::new(app), vertical[1]);
@@ -111,7 +113,10 @@ pub fn draw(frame: &mut Frame, app: &App) {
 }
 
 fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
-    let month_name = MONTH_NAMES[(app.view_month - 1) as usize];
+    let month_name = MONTH_NAMES
+        .get(app.view_month.saturating_sub(1) as usize)
+        .copied()
+        .unwrap_or("Tháng ?");
 
     // Year Can Chi from lunar data
     let year_canchi = app
@@ -182,34 +187,15 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     let mode = layout_mode(area.width);
 
-    // Insight split: only show if enough vertical space
-    let can_show_insight = app.show_insight && area.height >= (MIN_CAL_BODY_H + MIN_INSIGHT_H);
-
-    let body_sections = if can_show_insight {
-        Layout::vertical([
-            Constraint::Min(MIN_CAL_BODY_H),
-            Constraint::Length(
-                area.height
-                    .saturating_sub(MIN_CAL_BODY_H)
-                    .min(area.height / 3),
-            ),
-        ])
-        .split(area)
-    } else {
-        Layout::vertical([Constraint::Percentage(100)]).split(area)
-    };
-
-    let main_area = body_sections[0];
-
     match mode {
         LayoutMode::Small => {
             // Calendar only — full width
-            frame.render_widget(CalendarWidget::new(app), main_area);
+            frame.render_widget(CalendarWidget::new(app), area);
         }
         LayoutMode::Medium => {
             // Calendar + Detail (with compact hours embedded below detail)
             let cols = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
-                .split(main_area);
+                .split(area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
 
@@ -227,16 +213,12 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
                 Constraint::Ratio(1, 4),
                 Constraint::Ratio(1, 4),
             ])
-            .split(main_area);
+            .split(area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
             frame.render_widget(DetailWidget::new(app), cols[1]);
             frame.render_widget(HoursWidget::new(app), cols[2]);
         }
-    }
-
-    if can_show_insight {
-        frame.render_widget(InsightWidget::new(app), body_sections[1]);
     }
 }
 
