@@ -317,7 +317,11 @@
 
   // Settings menu
   let showSettingsMenu = $state(false);
+  let showHelpOverlay = $state(false);
   let appVersion = $state("");
+
+  // Keyboard navigation
+  let focusedDayIndex = $state<number | null>(null);
 
   $effect(() => {
     getVersion().then((v) => (appVersion = v));
@@ -361,10 +365,165 @@
       showMonthPicker = false;
     }
   }
+
+  function goToday() {
+    const now = new Date();
+    preferredDayOfMonth = now.getDate();
+    viewMonth = now.getMonth() + 1;
+    viewYear = now.getFullYear();
+    showMonthPicker = false;
+    showSettingsMenu = false;
+  }
+
+  function handleKeyDown(event: KeyboardEvent) {
+    // Ignore if typing in input
+    if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+      return;
+    }
+
+    // Global shortcuts
+    if (event.key === "?") {
+      showHelpOverlay = !showHelpOverlay;
+      return;
+    }
+
+    if (event.key === "Escape") {
+      showHelpOverlay = false;
+      showSettingsMenu = false;
+      showMonthPicker = false;
+      if (isInsightVisible) {
+        isInsightVisible = false;
+      }
+      return;
+    }
+
+    // Don't handle other keys when modals are open
+    if (showHelpOverlay || showSettingsMenu || showMonthPicker) {
+      return;
+    }
+
+    // Insight toggle
+    if (event.key === "i" && selectedDay) {
+      toggleInsight();
+      return;
+    }
+
+    // Today
+    if (event.key === "t" && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      goToday();
+      return;
+    }
+
+    // Navigation
+    if (event.key === "ArrowLeft" || event.key === "h") {
+      event.preventDefault();
+      prevDay();
+      return;
+    }
+    if (event.key === "ArrowRight" || event.key === "l") {
+      event.preventDefault();
+      nextDay();
+      return;
+    }
+    if (event.key === "ArrowUp" || event.key === "k") {
+      event.preventDefault();
+      prevWeek();
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "j") {
+      event.preventDefault();
+      nextWeek();
+      return;
+    }
+    if (event.key === "n" && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      nextMonth();
+      return;
+    }
+    if (event.key === "p" && !event.ctrlKey && !event.metaKey) {
+      event.preventDefault();
+      prevMonth();
+      return;
+    }
+    if (event.key === "N") {
+      event.preventDefault();
+      viewYear += 1;
+      return;
+    }
+    if (event.key === "P") {
+      event.preventDefault();
+      viewYear -= 1;
+      return;
+    }
+    if (event.key === "q") {
+      event.preventDefault();
+      // For desktop app, maybe close window? (Tauri API)
+      return;
+    }
+  }
+
+  // Day navigation functions
+  function getCurrentDayIndex() {
+    if (!monthData || !selectedDay) return -1;
+    return monthData.days.findIndex(d => {
+      if (!selectedDay) return false;
+      return (
+        d.day === selectedDay.day &&
+        d.month === selectedDay.month &&
+        d.year === selectedDay.year
+      );
+    });
+  }
+
+  function selectDayByIndex(index: number) {
+    if (!monthData || index < 0 || index >= monthData.days.length) return;
+    selectDay(monthData.days[index]);
+  }
+
+  function prevDay() {
+    const idx = getCurrentDayIndex();
+    if (idx > 0) {
+      selectDayByIndex(idx - 1);
+    } else if (monthData && monthData.days.length > 0) {
+      selectDayByIndex(monthData.days.length - 1);
+    }
+  }
+
+  function nextDay() {
+    const idx = getCurrentDayIndex();
+    if (!monthData) return;
+    if (idx >= 0 && idx < monthData.days.length - 1) {
+      selectDayByIndex(idx + 1);
+    } else if (monthData.days.length > 0) {
+      selectDayByIndex(0);
+    }
+  }
+
+  function prevWeek() {
+    const idx = getCurrentDayIndex();
+    if (idx >= 7) {
+      selectDayByIndex(idx - 7);
+    } else {
+      selectDayByIndex(0);
+    }
+  }
+
+  function nextWeek() {
+    const idx = getCurrentDayIndex();
+    if (!monthData) return;
+    if (idx + 7 < monthData.days.length) {
+      selectDayByIndex(idx + 7);
+    } else {
+      selectDayByIndex(monthData.days.length - 1);
+    }
+  }
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
+<svelte:window onkeydown={handleKeyDown} />
+<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="app-container" onclick={handleClickOutside}>
   <!-- Top Navigation Bar -->
   <header class="app-header">
@@ -720,6 +879,76 @@
       {/if}
     </aside>
   </main>
+
+  <!-- Help Overlay -->
+  {#if showHelpOverlay}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="overlay-backdrop" onclick={() => showHelpOverlay = false}>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="help-overlay" onclick={(e) => e.stopPropagation()} role="dialog" aria-label="Keyboard shortcuts" tabindex="-1">
+        <button class="overlay-close" onclick={() => showHelpOverlay = false} aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 18 18"/></svg>
+        </button>
+
+        <h2 class="help-title">⌨️ Keyboard Shortcuts</h2>
+
+        <div class="help-sections">
+          <div class="help-section">
+            <h3 class="help-section-title">Navigation</h3>
+            <div class="help-items">
+              <div class="help-item">
+                <span class="help-keys">← → ↑ ↓</span>
+                <span class="help-desc">Move by day</span>
+              </div>
+              <div class="help-item">
+                <span class="help-keys">h j k l</span>
+                <span class="help-desc">Move by day (vim)</span>
+              </div>
+              <div class="help-item">
+                <span class="help-keys">n / p</span>
+                <span class="help-desc">Next / prev month</span>
+              </div>
+              <div class="help-item">
+                <span class="help-keys">N / P</span>
+                <span class="help-desc">Next / prev year</span>
+              </div>
+              <div class="help-item">
+                <span class="help-keys">t</span>
+                <span class="help-desc">Go to today</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3 class="help-section-title">Display</h3>
+            <div class="help-items">
+              <div class="help-item">
+                <span class="help-keys">i</span>
+                <span class="help-desc">Toggle cultural insight</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="help-section">
+            <h3 class="help-section-title">General</h3>
+            <div class="help-items">
+              <div class="help-item">
+                <span class="help-keys">?</span>
+                <span class="help-desc">Show this help</span>
+              </div>
+              <div class="help-item">
+                <span class="help-keys">Esc</span>
+                <span class="help-desc">Close overlays</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-footer">Press ? or Esc to close</div>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -1964,6 +2193,157 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+
+  /* Help Overlay */
+  .overlay-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fade-in 0.2s ease;
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .help-overlay {
+    background: linear-gradient(180deg, #fffcf5 0%, #fff8ef 100%);
+    border: 1px solid rgba(212, 175, 55, 0.4);
+    border-radius: 20px;
+    box-shadow:
+      0 25px 50px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: scale-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.92) translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .overlay-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .overlay-close:hover {
+    background: #fff;
+    color: var(--primary-red);
+    transform: scale(1.05);
+  }
+
+  .help-title {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 20px 24px 16px;
+    margin: 0;
+    color: var(--text-primary);
+    border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  }
+
+  .help-sections {
+    padding: 16px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .help-section {
+    margin-bottom: 20px;
+  }
+
+  .help-section:last-child {
+    margin-bottom: 0;
+  }
+
+  .help-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-gold);
+    margin: 0 0 8px 0;
+  }
+
+  .help-items {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .help-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+  }
+
+  .help-keys {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    min-width: 100px;
+  }
+
+  .help-keys::before {
+    content: "";
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--primary-red);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    padding: 2px 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  }
+
+  .help-desc {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+  }
+
+  .help-footer {
+    text-align: center;
+    padding: 12px;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    border-top: 1px solid rgba(212, 175, 55, 0.15);
+    background: rgba(212, 175, 55, 0.05);
   }
 
 </style>
