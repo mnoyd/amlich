@@ -9,8 +9,9 @@ use ratatui::{
 use crate::app::App;
 use crate::theme;
 use crate::widgets::{
-    calendar::CalendarWidget, detail::DetailWidget, holidays::HolidayOverlay, hours::HoursWidget,
-    insight::InsightWidget,
+    bookmarks::BookmarksOverlay, calendar::CalendarWidget, date_jump::DateJumpPopup,
+    detail::DetailWidget, help::HelpOverlay, holidays::HolidayOverlay, hours::HoursWidget,
+    insight::InsightWidget, search::SearchPopup,
 };
 
 const MONTH_NAMES: [&str; 12] = [
@@ -87,6 +88,26 @@ pub fn draw(frame: &mut Frame, app: &App) {
     if app.show_holidays {
         frame.render_widget(HolidayOverlay::new(app), vertical[1]);
     }
+
+    // Bookmarks overlay
+    if app.show_bookmarks {
+        frame.render_widget(BookmarksOverlay::new(app), vertical[1]);
+    }
+
+    // Date jump popup
+    if app.show_date_jump {
+        frame.render_widget(DateJumpPopup::new(app), vertical[1]);
+    }
+
+    // Search popup
+    if app.show_search {
+        frame.render_widget(SearchPopup::new(app), vertical[1]);
+    }
+
+    // Help overlay
+    if app.show_help {
+        frame.render_widget(HelpOverlay::new(), vertical[1]);
+    }
 }
 
 fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
@@ -98,7 +119,36 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         .map(|i| format!(" ({})", i.canchi.year.full))
         .unwrap_or_default();
 
-    let header = Paragraph::new(Line::from(vec![
+    // Build status indicators
+    let mut indicators = Vec::new();
+
+    // Bookmark indicator
+    if !app.bookmarks.is_empty() {
+        indicators.push(Span::styled(
+            format!("◆{}", app.bookmarks.len()),
+            Style::default().fg(theme::ACCENT_FG),
+        ));
+    }
+
+    // Search result indicator
+    if !app.search_results.is_empty() {
+        indicators.push(Span::styled(
+            format!("🔍{}", app.search_results.len()),
+            Style::default().fg(theme::HOLIDAY_FG),
+        ));
+    }
+
+    let indicator_spans = if indicators.is_empty() {
+        vec![]
+    } else {
+        vec![Span::raw("  "), Span::raw("["), Span::raw("")]
+            .into_iter()
+            .chain(indicators)
+            .chain(vec![Span::raw("]")])
+            .collect()
+    };
+
+    let mut header_spans = vec![
         Span::styled(
             " 🌙 Âm Lịch ",
             Style::default()
@@ -116,8 +166,11 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         ),
         Span::styled(&year_canchi, Style::default().fg(theme::ACCENT_FG)),
         Span::styled(" ►", Style::default().fg(theme::LABEL_FG)),
-    ]))
-    .block(
+    ];
+
+    header_spans.extend(indicator_spans);
+
+    let header = Paragraph::new(Line::from(header_spans)).block(
         Block::default()
             .borders(Borders::ALL)
             .border_style(theme::border_style()),
@@ -135,7 +188,11 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     let body_sections = if can_show_insight {
         Layout::vertical([
             Constraint::Min(MIN_CAL_BODY_H),
-            Constraint::Length(area.height.saturating_sub(MIN_CAL_BODY_H).min(area.height / 3)),
+            Constraint::Length(
+                area.height
+                    .saturating_sub(MIN_CAL_BODY_H)
+                    .min(area.height / 3),
+            ),
         ])
         .split(area)
     } else {
@@ -151,17 +208,14 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         }
         LayoutMode::Medium => {
             // Calendar + Detail (with compact hours embedded below detail)
-            let cols = Layout::horizontal([
-                Constraint::Percentage(60),
-                Constraint::Percentage(40),
-            ])
-            .split(main_area);
+            let cols = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+                .split(main_area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
 
             // Split right column: detail on top, compact hours below
-            let right = Layout::vertical([Constraint::Min(8), Constraint::Length(5)])
-                .split(cols[1]);
+            let right =
+                Layout::vertical([Constraint::Min(8), Constraint::Length(5)]).split(cols[1]);
 
             frame.render_widget(DetailWidget::new(app), right[0]);
             frame.render_widget(HoursWidget::new(app).compact(true), right[1]);
@@ -194,11 +248,11 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
             Span::styled("hjkl ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("nav", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("n/p ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("th", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
             Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("nay", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("help", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("exit", Style::default().fg(theme::LABEL_FG)),
@@ -207,23 +261,20 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
             Span::styled(" ←↑↓→/hjkl ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("di chuyển", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("n/p ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("tháng", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
-            Span::styled("N/P ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("năm", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
             Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("hôm nay", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("H ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("ngày lễ", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("/ ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("tìm", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("i ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("insight", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("g ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("đến ngày", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("L ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("VI/EN", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("b ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("bm", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("trợ giúp", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("thoát", Style::default().fg(theme::LABEL_FG)),

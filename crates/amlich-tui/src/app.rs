@@ -1,10 +1,33 @@
 use amlich_api::{get_day_insight_for_date, DayInfoDto, DayInsightDto, HolidayDto};
 use chrono::{Datelike, Local, NaiveDate};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InsightLang {
     Vi,
     En,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct HistoryEntry {
+    pub year: i32,
+    pub month: u32,
+    pub day: u32,
+}
+
+impl HistoryEntry {
+    pub fn from_date(date: NaiveDate) -> Self {
+        Self {
+            year: date.year(),
+            month: date.month(),
+            day: date.day(),
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn to_date(self) -> Option<NaiveDate> {
+        NaiveDate::from_ymd_opt(self.year, self.month, self.day)
+    }
 }
 
 pub struct App {
@@ -27,6 +50,24 @@ pub struct App {
     // Insight panel
     pub show_insight: bool,
     pub insight_lang: InsightLang,
+
+    // Bookmarks
+    pub bookmarks: Vec<HistoryEntry>,
+    pub show_bookmarks: bool,
+    pub bookmark_scroll: u16,
+
+    // Date jump input
+    pub show_date_jump: bool,
+    pub date_jump_input: String,
+
+    // Search
+    pub show_search: bool,
+    pub search_query: String,
+    pub search_results: Vec<HistoryEntry>,
+    pub search_index: usize,
+
+    // Help overlay
+    pub show_help: bool,
 }
 
 impl App {
@@ -46,8 +87,19 @@ impl App {
             holiday_scroll: 0,
             show_insight: false,
             insight_lang: InsightLang::Vi,
+            bookmarks: Vec::new(),
+            show_bookmarks: false,
+            bookmark_scroll: 0,
+            show_date_jump: false,
+            date_jump_input: String::new(),
+            show_search: false,
+            search_query: String::new(),
+            search_results: Vec::new(),
+            search_index: 0,
+            show_help: false,
         };
         app.load_month();
+        app.load_bookmarks();
         app
     }
 
@@ -166,10 +218,8 @@ impl App {
 
     pub fn go_today(&mut self) {
         self.today = Local::now().date_naive();
-        self.view_year = self.today.year();
-        self.view_month = self.today.month();
-        self.selected_day = self.today.day();
-        self.load_month();
+        let today_entry = HistoryEntry::from_date(self.today);
+        self.navigate_to_entry(today_entry);
     }
 
     pub fn toggle_holidays(&mut self) {
@@ -195,5 +245,350 @@ impl App {
             self.view_year,
         )
         .ok()
+    }
+
+    // Bookmarks
+    pub fn current_entry(&self) -> HistoryEntry {
+        HistoryEntry {
+            year: self.view_year,
+            month: self.view_month,
+            day: self.selected_day,
+        }
+    }
+
+    fn navigate_to_entry(&mut self, entry: HistoryEntry) {
+        self.view_year = entry.year;
+        self.view_month = entry.month;
+        self.selected_day = entry.day;
+        self.load_month();
+    }
+
+    #[allow(dead_code)]
+    pub fn is_bookmarked(&self) -> bool {
+        let current = self.current_entry();
+        self.bookmarks.contains(&current)
+    }
+
+    pub fn toggle_bookmark(&mut self) {
+        let current = self.current_entry();
+        if let Some(pos) = self.bookmarks.iter().position(|&b| b == current) {
+            self.bookmarks.remove(pos);
+        } else {
+            self.bookmarks.push(current);
+            self.bookmarks.sort_by_key(|b| (b.year, b.month, b.day));
+        }
+        self.save_bookmarks();
+    }
+
+    pub fn toggle_bookmarks(&mut self) {
+        self.show_bookmarks = !self.show_bookmarks;
+        self.bookmark_scroll = 0;
+    }
+
+    pub fn go_to_bookmark(&mut self, index: usize) -> bool {
+        if let Some(entry) = self.bookmarks.get(index) {
+            self.navigate_to_entry(*entry);
+            self.show_bookmarks = false;
+            true
+        } else {
+            false
+        }
+    }
+
+    // Date jump input
+    pub fn toggle_date_jump(&mut self) {
+        self.show_date_jump = !self.show_date_jump;
+        if self.show_date_jump {
+            // Pre-fill with current date in dd/mm/yyyy format
+            self.date_jump_input = format!(
+                "{:02}/{:02}/{}",
+                self.selected_day, self.view_month, self.view_year
+            );
+        } else {
+            self.date_jump_input.clear();
+        }
+    }
+
+    pub fn date_jump_char(&mut self, c: char) {
+        // Only allow digits
+        if !c.is_ascii_digit() {
+            return;
+        }
+
+        // Get current input without slashes for processing
+        let digits: String = self
+            .date_jump_input
+            .chars()
+            .filter(|x| x.is_ascii_digit())
+            .collect();
+
+        // Don't exceed 8 digits (ddmmyyyy)
+        if digits.len() >= 8 {
+            return;
+        }
+
+        // Add the digit
+        let mut new_digits = digits;
+        new_digits.push(c);
+
+        // Auto-format with slashes as user types
+        // After 2 digits -> dd/
+        // After 4 digits -> dd/mm/
+        // Rest is year
+        self.date_jump_input = if new_digits.len() <= 2 {
+            new_digits
+        } else if new_digits.len() <= 4 {
+            format!("{}/{}", &new_digits[0..2], &new_digits[2..])
+        } else {
+            format!(
+                "{}/{}/{}",
+                &new_digits[0..2],
+                &new_digits[2..4],
+                &new_digits[4..]
+            )
+        };
+    }
+
+    pub fn date_jump_backspace(&mut self) {
+        // Remove last character
+        self.date_jump_input.pop();
+
+        // If we removed a slash, remove the digit before it too for smoother UX
+        if self.date_jump_input.ends_with('/') {
+            self.date_jump_input.pop();
+        }
+
+        // Re-format to maintain consistency
+        let digits: String = self
+            .date_jump_input
+            .chars()
+            .filter(|x| x.is_ascii_digit())
+            .collect();
+        if digits.is_empty() {
+            return;
+        }
+        self.date_jump_input = if digits.len() <= 2 {
+            digits
+        } else if digits.len() <= 4 {
+            format!("{}/{}", &digits[0..2], &digits[2..])
+        } else {
+            format!("{}/{}/{}", &digits[0..2], &digits[2..4], &digits[4..])
+        };
+    }
+
+    pub fn date_jump_is_valid(&self) -> bool {
+        let parts: Vec<&str> = self.date_jump_input.split('/').collect();
+        if parts.len() != 3 {
+            return false;
+        }
+
+        let day = parts[0].parse::<u32>();
+        let month = parts[1].parse::<u32>();
+        let year = parts[2].parse::<i32>();
+
+        match (day, month, year) {
+            (Ok(d), Ok(m), Ok(y)) => {
+                // Basic validation
+                if !(1..=12).contains(&m) {
+                    return false;
+                }
+                if !(1..=31).contains(&d) {
+                    return false;
+                }
+                // Check if the date actually exists
+                NaiveDate::from_ymd_opt(y, m, d).is_some()
+            }
+            _ => false,
+        }
+    }
+
+    pub fn date_jump_submit(&mut self) -> bool {
+        if !self.date_jump_is_valid() {
+            return false;
+        }
+
+        let parts: Vec<&str> = self.date_jump_input.split('/').collect();
+        let day = parts[0].parse::<u32>().unwrap();
+        let month = parts[1].parse::<u32>().unwrap();
+        let year = parts[2].parse::<i32>().unwrap();
+
+        self.navigate_to_entry(HistoryEntry { year, month, day });
+        self.show_date_jump = false;
+        self.date_jump_input.clear();
+        true
+    }
+
+    // Search
+    pub fn toggle_search(&mut self) {
+        self.show_search = !self.show_search;
+        if self.show_search {
+            self.search_query.clear();
+            self.search_results.clear();
+            self.search_index = 0;
+        }
+    }
+
+    pub fn search_char(&mut self, c: char) {
+        self.search_query.push(c);
+        self.perform_search();
+    }
+
+    pub fn search_backspace(&mut self) {
+        self.search_query.pop();
+        self.perform_search();
+    }
+
+    fn perform_search(&mut self) {
+        self.search_results.clear();
+        self.search_index = 0;
+
+        if self.search_query.is_empty() {
+            return;
+        }
+
+        let query = self.search_query.to_lowercase();
+
+        // Search through holidays for the current year and adjacent years
+        for year in (self.view_year - 1)..=(self.view_year + 1) {
+            let holidays = amlich_api::get_holidays(year, false);
+            for holiday in holidays {
+                let name_matches = holiday.name.to_lowercase().contains(&query)
+                    || holiday.description.to_lowercase().contains(&query);
+
+                if name_matches {
+                    self.search_results.push(HistoryEntry {
+                        year,
+                        month: holiday.solar_month as u32,
+                        day: holiday.solar_day as u32,
+                    });
+                }
+            }
+        }
+
+        // Also search through day insights for special terms
+        let search_terms = [
+            "tết",
+            "tet",
+            "người đời",
+            "nguoi doi",
+            "giỗ tổ",
+            "gio to",
+            "trung thu",
+            "trungthu",
+            "quốc khánh",
+            "quoc khanh",
+            "quooc khanh",
+            "lễ tình nhân",
+            "le tinh nhan",
+            "valentine",
+        ];
+
+        for term in search_terms {
+            if query.contains(term) || term.contains(&query) {
+                // Add dates that might match (simplified approach)
+                // Tết Nguyên Đán
+                if query.contains("tết") || query.contains("tet") {
+                    // Add approximate Tết dates for common years
+                    for year in (self.view_year - 1)..=(self.view_year + 1) {
+                        // This is a simplified approach - real Tết calculation is complex
+                        // For now, just check late Jan/early Feb
+                        for day in 20..=31 {
+                            self.search_results.push(HistoryEntry {
+                                year,
+                                month: 1,
+                                day,
+                            });
+                        }
+                        for day in 1..=19 {
+                            self.search_results.push(HistoryEntry {
+                                year,
+                                month: 2,
+                                day,
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        // Deduplicate and sort
+        self.search_results
+            .sort_by_key(|e| (e.year, e.month, e.day));
+        self.search_results.dedup();
+    }
+
+    pub fn search_next_result(&mut self) -> bool {
+        if self.search_results.is_empty() {
+            return false;
+        }
+
+        if self.search_index + 1 < self.search_results.len() {
+            self.search_index += 1;
+        } else {
+            self.search_index = 0; // Wrap around
+        }
+
+        if let Some(entry) = self.search_results.get(self.search_index) {
+            self.navigate_to_entry(*entry);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn search_prev_result(&mut self) -> bool {
+        if self.search_results.is_empty() {
+            return false;
+        }
+
+        if self.search_index > 0 {
+            self.search_index -= 1;
+        } else {
+            self.search_index = self.search_results.len().saturating_sub(1); // Wrap around
+        }
+
+        if let Some(entry) = self.search_results.get(self.search_index) {
+            self.navigate_to_entry(*entry);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_search_result(&self, day: u32) -> bool {
+        self.search_results
+            .iter()
+            .any(|e| e.year == self.view_year && e.month == self.view_month && e.day == day)
+    }
+
+    // Help
+    pub fn toggle_help(&mut self) {
+        self.show_help = !self.show_help;
+    }
+
+    // Bookmark persistence
+    fn bookmarks_path() -> Option<std::path::PathBuf> {
+        dirs::config_dir().map(|dir| dir.join("amlich").join("bookmarks.json"))
+    }
+
+    pub fn load_bookmarks(&mut self) {
+        if let Some(path) = Self::bookmarks_path() {
+            if let Ok(content) = std::fs::read_to_string(&path) {
+                if let Ok(loaded) = serde_json::from_str::<Vec<HistoryEntry>>(&content) {
+                    self.bookmarks = loaded;
+                }
+            }
+        }
+    }
+
+    pub fn save_bookmarks(&self) {
+        if let Some(path) = Self::bookmarks_path() {
+            if let Some(parent) = path.parent() {
+                let _ = std::fs::create_dir_all(parent);
+            }
+            if let Ok(json) = serde_json::to_string_pretty(&self.bookmarks) {
+                let _ = std::fs::write(&path, json);
+            }
+        }
     }
 }
