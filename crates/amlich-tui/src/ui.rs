@@ -235,9 +235,15 @@ fn draw_summary(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         .holiday_for_day(app.selected_day)
         .map(|h| format!(" | Lễ {}", h.name))
         .unwrap_or_default();
+    let extra_state = if app.show_extra_cultural {
+        "Bật"
+    } else {
+        "Tắt"
+    };
     let summary = format!(
-        "M:{} | DL {} ({}) | AL {}{} | Can Chi {} | Tiết khí {} | Giờ tốt {}{}",
+        "M:{} | Extra:{} | DL {} ({}) | AL {}{} | Can Chi {} | Tiết khí {} | Giờ tốt {}{}",
         app.density_mode.label(),
+        extra_state,
         info.solar.date_string,
         info.solar.day_of_week_name,
         info.lunar.date_string,
@@ -337,6 +343,13 @@ fn draw_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         Span::styled("Chế độ: ", Style::default().fg(theme::LABEL_FG)),
         Span::styled(
             app.density_mode.label(),
+            Style::default()
+                .fg(theme::ACCENT_FG)
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::styled(" | Extra: ", Style::default().fg(theme::LABEL_FG)),
+        Span::styled(
+            if app.show_extra_cultural { "Bật" } else { "Tắt" },
             Style::default()
                 .fg(theme::ACCENT_FG)
                 .add_modifier(Modifier::BOLD),

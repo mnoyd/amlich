@@ -225,6 +225,10 @@ impl App {
 
     pub fn toggle_extra_cultural(&mut self) {
         self.show_extra_cultural = !self.show_extra_cultural;
+        // If extra content is enabled, ensure the insight panel is visible.
+        if self.show_extra_cultural && !self.show_insight {
+            self.show_insight = true;
+        }
     }
 
     pub fn selected_insight(&self) -> Option<DayInsightDto> {

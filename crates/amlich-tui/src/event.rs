@@ -65,7 +65,7 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         KeyCode::Char('i') => app.toggle_insight(),
         KeyCode::Char('L') => app.toggle_insight_lang(),
         KeyCode::Char('m') => app.toggle_density_mode(),
-        KeyCode::Char('x') => app.toggle_extra_cultural(),
+        KeyCode::Char('x') | KeyCode::Char('X') => app.toggle_extra_cultural(),
 
         _ => {}
     }

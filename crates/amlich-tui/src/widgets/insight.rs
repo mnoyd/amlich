@@ -214,6 +214,16 @@ impl Widget for InsightWidget<'_> {
                     lines.push(Line::from(format!("• {item}")));
                 }
                 lines.push(Line::from(""));
+            } else {
+                let msg = match self.app.insight_lang {
+                    InsightLang::Vi => "ℹ️ Extra đang bật nhưng ngày này không có hoạt động/kiêng kỵ.",
+                    InsightLang::En => "ℹ️ Extra is on, but this date has no activities/taboos.",
+                };
+                lines.push(Line::from(Span::styled(
+                    msg,
+                    Style::default().fg(theme::LABEL_FG),
+                )));
+                lines.push(Line::from(""));
             }
         }
 
