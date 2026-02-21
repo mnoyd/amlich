@@ -6,11 +6,7 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Vietnamese Lunar Calendar - Terminal User Interface"
-
-[[bin]]
-name = "amlich-tui"
-path = "src/main.rs"
+description = "Vietnamese Lunar Calendar - Terminal UI runtime library"
 
 [dependencies]
 amlich-api = { path = "../amlich-api" }

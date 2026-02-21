@@ -1,5 +1,6 @@
 use amlich_api::{get_holidays, DayInfoDto};
 use chrono::{Local, NaiveDate, Timelike};
+use serde_json::Value;
 
 use crate::DisplayMode;
 
@@ -167,7 +168,7 @@ fn format_tooltip(info: &DayInfoDto) -> String {
     lines.join("\n")
 }
 
-pub fn format_waybar_json(info: &DayInfoDto, mode: &DisplayMode) -> String {
+pub fn build_waybar_payload(info: &DayInfoDto, mode: &DisplayMode) -> Value {
     let text = match mode {
         DisplayMode::Full => format_full(info),
         DisplayMode::Lunar => format_lunar(info),
@@ -183,5 +184,8 @@ pub fn format_waybar_json(info: &DayInfoDto, mode: &DisplayMode) -> String {
         "tooltip": tooltip,
         "class": class
     })
-    .to_string()
+}
+
+pub fn format_waybar_json(info: &DayInfoDto, mode: &DisplayMode) -> String {
+    build_waybar_payload(info, mode).to_string()
 }

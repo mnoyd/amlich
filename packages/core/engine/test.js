@@ -82,7 +82,7 @@ const REFERENCE_DATES = [
 
 function hasRustCli() {
   const bin = process.env.AMLICH_CLI_PATH || 'amlich';
-  const probe = spawnSync(bin, ['json', '2024-02-10'], { encoding: 'utf8' });
+  const probe = spawnSync(bin, ['query', '2024-02-10', '--format', 'dayinfo-json'], { encoding: 'utf8' });
   return !probe.error && probe.status === 0;
 }
 

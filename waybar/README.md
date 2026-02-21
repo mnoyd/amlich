@@ -3,7 +3,7 @@
 ## Install CLI
 
 ```bash
-cargo install --path crates/amlich-cli
+cargo install --path crates/amlich
 ```
 
 ## Module Config
@@ -12,8 +12,8 @@ Copy the module snippet from `waybar/modules/amlich.jsonc` into your Waybar conf
 
 Recommended command wiring:
 
-- `exec`: `amlich today`
-- `on-click`: `amlich toggle`
+- `exec`: `amlich`
+- `on-click`: `amlich config mode toggle`
 
 ## Styles
 

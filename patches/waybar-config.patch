@@ -19,12 +19,12 @@
 -    "tooltip": false,
 -    "on-click-right": "omarchy-launch-floating-terminal-with-presentation omarchy-tz-select"
 +  "custom/amlich": {
-+    "exec": "amlich today",
++    "exec": "amlich",
 +    "format": "{}",
 +    "return-type": "json",
 +    "interval": 30,
 +    "signal": 9,
-+    "on-click": "amlich toggle",
++    "on-click": "amlich config mode toggle",
 +    "tooltip": true
    },
 +  "clock": {

@@ -13,9 +13,9 @@
 - WASM serializes `amlich-api` DTOs and uses `amlich-presenter` for formatting.
 - `packages/core/engine` prefers Rust-backed output through the CLI bridge and uses `legacy-engine.js` only as fallback.
 
-## JSON Contract (`amlich json`)
+## JSON Contract (`amlich query --format dayinfo-json`)
 
-`amlich json YYYY-MM-DD` emits canonical `DayInfoDto`-aligned output.
+`amlich query YYYY-MM-DD --format dayinfo-json` emits canonical `DayInfoDto`-aligned output.
 
 Top-level keys:
 

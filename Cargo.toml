@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "crates/amlich",
     "crates/amlich-core",
     "crates/amlich-api",
     "crates/amlich-presenter",

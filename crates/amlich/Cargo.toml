@@ -1,0 +1,21 @@
+[package]
+name = "amlich"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Unified AmLich binary with interactive TUI and headless query modes"
+
+[[bin]]
+name = "amlich"
+path = "src/main.rs"
+
+[dependencies]
+amlich-cli = { path = "../amlich-cli" }
+amlich-tui = { path = "../amlich-tui" }
+clap = { version = "4.5", features = ["derive"] }
+
+[dev-dependencies]
+serde_json = { workspace = true }

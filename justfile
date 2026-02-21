@@ -15,7 +15,7 @@ build:
 
 # Build only the CLI
 build-cli:
-    cargo build --release --package amlich-cli
+    cargo build --release --package amlich
 
 # Build WASM package
 build-wasm:
@@ -80,7 +80,7 @@ lint:
 
 # Install CLI to ~/.local/bin
 install-cli:
-    cargo install --path crates/amlich-cli --root ~/.local
+    cargo install --path crates/amlich --root ~/.local
 
 # Install CLI with waybar integration
 install-waybar:
@@ -122,4 +122,4 @@ info:
 
 # Run CLI with today's date
 today:
-    cargo run --release --package amlich-cli
+    cargo run --release --package amlich -- query

@@ -8,11 +8,12 @@ The shared domain model is centered on `amlich-api` DTOs and reused across runti
 ```text
 amlich/
 ├── crates/
+│   ├── amlich/           # Unified binary (TTY-aware TUI + headless CLI)
 │   ├── amlich-core/       # Calendar math and domain calculations
 │   ├── amlich-api/        # Stable DTO contract
 │   ├── amlich-presenter/  # Presentation/text formatting
-│   ├── amlich-cli/        # CLI + Waybar JSON output
-│   ├── amlich-tui/        # Terminal UI app
+│   ├── amlich-cli/        # Shared headless/query formatting library
+│   ├── amlich-tui/        # Shared TUI runtime library
 │   └── amlich-wasm/       # WASM bindings
 ├── apps/
 │   └── desktop/           # Tauri + Svelte desktop app
@@ -37,7 +38,7 @@ cargo test --workspace
 pnpm test
 
 # Build CLI binary
-cargo build --release --package amlich-cli
+cargo build --release --package amlich
 
 # Run desktop app (dev)
 pnpm dev:app
@@ -51,10 +52,11 @@ pnpm build:wasm
 CLI examples:
 
 ```bash
-amlich today
-amlich date 2026-02-20
-amlich json 2026-02-20
-amlich toggle
+amlich               # TTY => TUI, non-TTY => Waybar JSON
+amlich tui --date 2026-02-20
+amlich query 2026-02-20 --format dayinfo-json --pretty
+amlich query --format waybar --mode minimal
+amlich config mode toggle
 ```
 
 Waybar integration: see `waybar/README.md`.
@@ -62,6 +64,20 @@ Waybar integration: see `waybar/README.md`.
 Desktop app details: see `apps/desktop/README.md`.
 
 Shared data contract and validation: see `data/README.md`.
+
+## CLI Migration
+
+Old commands were replaced by explicit subcommands:
+
+```bash
+amlich-tui                      -> amlich tui
+amlich today                    -> amlich query
+amlich date 2026-02-20          -> amlich query 2026-02-20
+amlich json 2026-02-20          -> amlich query 2026-02-20 --format dayinfo-json --pretty
+amlich mode                     -> amlich config mode show
+amlich set-mode minimal         -> amlich config mode set minimal
+amlich toggle                   -> amlich config mode toggle
+```
 
 ## License
 

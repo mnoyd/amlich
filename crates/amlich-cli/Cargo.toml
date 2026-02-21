@@ -6,15 +6,10 @@ authors.workspace = true
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
-description = "Vietnamese Lunar Calendar - CLI for Waybar integration"
-
-[[bin]]
-name = "amlich"
-path = "src/main.rs"
+description = "Vietnamese Lunar Calendar - Shared headless query and formatting library"
 
 [dependencies]
 amlich-api = { path = "../amlich-api" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
-clap = { version = "4.5", features = ["derive"] }

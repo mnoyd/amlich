@@ -10,6 +10,7 @@ mod widgets;
 
 use std::io;
 
+use chrono::NaiveDate;
 use crossterm::{
     cursor::Show,
     execute,
@@ -28,8 +29,7 @@ impl Drop for TerminalCleanupGuard {
     }
 }
 
-fn main() -> io::Result<()> {
-    // Setup terminal
+pub fn run_tui(initial_date: Option<NaiveDate>) -> io::Result<()> {
     enable_raw_mode()?;
     let mut stdout = io::stdout();
     execute!(stdout, EnterAlternateScreen)?;
@@ -37,16 +37,18 @@ fn main() -> io::Result<()> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    // Run app
-    let result = run(&mut terminal);
+    let result = run(&mut terminal, initial_date);
 
     let _ = terminal.show_cursor();
 
     result
 }
 
-fn run(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>) -> io::Result<()> {
-    let mut app = App::new();
+fn run(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    initial_date: Option<NaiveDate>,
+) -> io::Result<()> {
+    let mut app = App::new_with_date(initial_date);
 
     while app.running {
         terminal.draw(|frame| ui::draw(frame, &app))?;

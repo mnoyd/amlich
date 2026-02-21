@@ -2,7 +2,7 @@
  * Rust-backed engine adapter.
  *
  * Preferred path:
- * - call the Rust CLI (`amlich json <YYYY-MM-DD>`) and normalize payload shape.
+ * - call the Rust CLI (`amlich query <YYYY-MM-DD> --format dayinfo-json`) and normalize payload shape.
  *
  * Fallback path:
  * - use the previous JS implementation from `legacy-engine.js`.
@@ -90,7 +90,7 @@ function getDayInfoFromRust(dd, mm, yyyy, options = {}) {
   const cliPath = process.env.AMLICH_CLI_PATH || 'amlich';
   const date = `${yyyy}-${pad2(mm)}-${pad2(dd)}`;
 
-  const result = spawnSync(cliPath, ['json', date], {
+  const result = spawnSync(cliPath, ['query', date, '--format', 'dayinfo-json'], {
     encoding: 'utf8',
     env: {
       ...process.env,

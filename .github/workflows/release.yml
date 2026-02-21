@@ -87,3 +87,50 @@ jobs:
           prerelease: false
           updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
+
+  publish-cli:
+    name: Build & Upload CLI - ${{ matrix.platform }}
+    needs: publish-tauri
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-latest
+            archive_suffix: linux-x86_64
+            binary_name: amlich
+          - platform: macos-latest
+            archive_suffix: macos
+            binary_name: amlich
+          - platform: windows-latest
+            archive_suffix: windows-x86_64
+            binary_name: amlich.exe
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build amlich CLI binary
+        run: cargo build --release --package amlich
+
+      - name: Package CLI artifact (Unix)
+        if: matrix.platform != 'windows-latest'
+        run: |
+          ARCHIVE_NAME="amlich-${{ github.ref_name }}-${{ matrix.archive_suffix }}.tar.gz"
+          tar -czf "${ARCHIVE_NAME}" -C target/release "${{ matrix.binary_name }}"
+          echo "ARCHIVE_NAME=${ARCHIVE_NAME}" >> "${GITHUB_ENV}"
+
+      - name: Package CLI artifact (Windows)
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $archiveName = "amlich-${{ github.ref_name }}-${{ matrix.archive_suffix }}.zip"
+          Compress-Archive -Path "target/release/${{ matrix.binary_name }}" -DestinationPath $archiveName
+          Add-Content -Path $env:GITHUB_ENV -Value "ARCHIVE_NAME=$archiveName"
+
+      - name: Upload CLI artifact to release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: ${{ env.ARCHIVE_NAME }}

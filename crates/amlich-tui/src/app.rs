@@ -95,13 +95,14 @@ pub struct App {
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new_with_date(initial_date: Option<NaiveDate>) -> Self {
         let today = Local::now().date_naive();
+        let selected = initial_date.unwrap_or(today);
         let mut app = App {
             running: true,
-            view_year: today.year(),
-            view_month: today.month(),
-            selected_day: today.day(),
+            view_year: selected.year(),
+            view_month: selected.month(),
+            selected_day: selected.day(),
             today,
             month_days: Vec::new(),
             month_holidays: Vec::new(),

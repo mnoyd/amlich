@@ -25,8 +25,8 @@ echo ""
 echo "⏳ Waiting for crates.io to index amlich-core..."
 sleep 30
 
-echo "→ Publishing amlich-cli..."
-cd crates/amlich-cli
+echo "→ Publishing amlich..."
+cd crates/amlich
 cargo publish
 cd "$ROOT_DIR"
 
