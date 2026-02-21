@@ -289,15 +289,15 @@ impl<'a> InsightOverlay<'a> {
         };
 
         Line::from(vec![
-            Span::styled("[1", festival_style.clone()),
+            Span::styled("[1", festival_style),
             Span::styled("] ", festival_style),
             Span::styled(festival_name, festival_style),
             Span::raw("  "),
-            Span::styled("[2", guidance_style.clone()),
+            Span::styled("[2", guidance_style),
             Span::styled("] ", guidance_style),
             Span::styled(guidance_name, guidance_style),
             Span::raw("  "),
-            Span::styled("[3", tiet_khi_style.clone()),
+            Span::styled("[3", tiet_khi_style),
             Span::styled("] ", tiet_khi_style),
             Span::styled(tiet_khi_name, tiet_khi_style),
         ])
