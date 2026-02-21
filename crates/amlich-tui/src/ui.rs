@@ -28,8 +28,48 @@ const MONTH_NAMES: [&str; 12] = [
     "Tháng 12",
 ];
 
+// Minimum terminal size
+const MIN_TERM_W: u16 = 40;
+const MIN_TERM_H: u16 = 15;
+
+// Layout breakpoints (body width)
+const BP_MEDIUM: u16 = 80;
+const BP_LARGE: u16 = 120;
+
+const MIN_CAL_BODY_H: u16 = 15;
+const MIN_INSIGHT_H: u16 = 6;
+
+#[derive(Clone, Copy)]
+enum LayoutMode {
+    Small,
+    Medium,
+    Large,
+}
+
+fn layout_mode(width: u16) -> LayoutMode {
+    if width < BP_MEDIUM {
+        LayoutMode::Small
+    } else if width < BP_LARGE {
+        LayoutMode::Medium
+    } else {
+        LayoutMode::Large
+    }
+}
+
 pub fn draw(frame: &mut Frame, app: &App) {
     let size = frame.area();
+
+    if size.width < MIN_TERM_W || size.height < MIN_TERM_H {
+        let msg = Paragraph::new("Terminal quá nhỏ.\nCần tối thiểu 40×15.")
+            .alignment(Alignment::Center)
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(theme::border_style()),
+            );
+        frame.render_widget(msg, size);
+        return;
+    }
 
     // Top-level: header (3) + body + footer (1)
     let vertical = Layout::vertical([
@@ -87,55 +127,109 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 }
 
 fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
-    let body_sections = if app.show_insight {
-        Layout::vertical([Constraint::Percentage(66), Constraint::Percentage(34)]).split(area)
+    let mode = layout_mode(area.width);
+
+    // Insight split: only show if enough vertical space
+    let can_show_insight = app.show_insight && area.height >= (MIN_CAL_BODY_H + MIN_INSIGHT_H);
+
+    let body_sections = if can_show_insight {
+        Layout::vertical([
+            Constraint::Min(MIN_CAL_BODY_H),
+            Constraint::Length(area.height.saturating_sub(MIN_CAL_BODY_H).min(area.height / 3)),
+        ])
+        .split(area)
     } else {
         Layout::vertical([Constraint::Percentage(100)]).split(area)
     };
 
-    let columns = Layout::horizontal([
-        Constraint::Percentage(50),
-        Constraint::Percentage(25),
-        Constraint::Percentage(25),
-    ])
-    .split(body_sections[0]);
+    let main_area = body_sections[0];
 
-    frame.render_widget(CalendarWidget::new(app), columns[0]);
-    frame.render_widget(DetailWidget::new(app), columns[1]);
-    frame.render_widget(HoursWidget::new(app), columns[2]);
+    match mode {
+        LayoutMode::Small => {
+            // Calendar only — full width
+            frame.render_widget(CalendarWidget::new(app), main_area);
+        }
+        LayoutMode::Medium => {
+            // Calendar + Detail (with compact hours embedded below detail)
+            let cols = Layout::horizontal([
+                Constraint::Percentage(60),
+                Constraint::Percentage(40),
+            ])
+            .split(main_area);
 
-    if app.show_insight {
+            frame.render_widget(CalendarWidget::new(app), cols[0]);
+
+            // Split right column: detail on top, compact hours below
+            let right = Layout::vertical([Constraint::Min(8), Constraint::Length(5)])
+                .split(cols[1]);
+
+            frame.render_widget(DetailWidget::new(app), right[0]);
+            frame.render_widget(HoursWidget::new(app).compact(true), right[1]);
+        }
+        LayoutMode::Large => {
+            // Full 3-column layout
+            let cols = Layout::horizontal([
+                Constraint::Ratio(1, 2),
+                Constraint::Ratio(1, 4),
+                Constraint::Ratio(1, 4),
+            ])
+            .split(main_area);
+
+            frame.render_widget(CalendarWidget::new(app), cols[0]);
+            frame.render_widget(DetailWidget::new(app), cols[1]);
+            frame.render_widget(HoursWidget::new(app), cols[2]);
+        }
+    }
+
+    if can_show_insight {
         frame.render_widget(InsightWidget::new(app), body_sections[1]);
     }
 }
 
 fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
-    let footer = Paragraph::new(Line::from(vec![
-        Span::styled(" ←↑↓→/hjkl ", Style::default().fg(theme::ACCENT_FG)),
-        Span::styled("di chuyển", Style::default().fg(theme::LABEL_FG)),
-        Span::raw("  "),
-        Span::styled("n/p ", Style::default().fg(theme::ACCENT_FG)),
-        Span::styled("tháng", Style::default().fg(theme::LABEL_FG)),
-        Span::raw("  "),
-        Span::styled("N/P ", Style::default().fg(theme::ACCENT_FG)),
-        Span::styled("năm", Style::default().fg(theme::LABEL_FG)),
-        Span::raw("  "),
-        Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
-        Span::styled("hôm nay", Style::default().fg(theme::LABEL_FG)),
-        Span::raw("  "),
-        Span::styled("H ", Style::default().fg(theme::ACCENT_FG)),
-        Span::styled("ngày lễ", Style::default().fg(theme::LABEL_FG)),
-        Span::raw("  "),
-        Span::styled("i ", Style::default().fg(theme::ACCENT_FG)),
-        Span::styled("insight", Style::default().fg(theme::LABEL_FG)),
-        Span::raw("  "),
-        Span::styled("L ", Style::default().fg(theme::ACCENT_FG)),
-        Span::styled("VI/EN", Style::default().fg(theme::LABEL_FG)),
-        Span::raw("  "),
-        Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
-        Span::styled("thoát", Style::default().fg(theme::LABEL_FG)),
-    ]))
-    .alignment(Alignment::Center);
+    let mode = layout_mode(area.width);
 
+    let spans = match mode {
+        LayoutMode::Small => vec![
+            Span::styled("hjkl ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("nav", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("n/p ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("th", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("nay", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("exit", Style::default().fg(theme::LABEL_FG)),
+        ],
+        _ => vec![
+            Span::styled(" ←↑↓→/hjkl ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("di chuyển", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("n/p ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("tháng", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("N/P ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("năm", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("hôm nay", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("H ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("ngày lễ", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("i ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("insight", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("L ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("VI/EN", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("thoát", Style::default().fg(theme::LABEL_FG)),
+        ],
+    };
+
+    let footer = Paragraph::new(Line::from(spans)).alignment(Alignment::Center);
     frame.render_widget(footer, area);
 }

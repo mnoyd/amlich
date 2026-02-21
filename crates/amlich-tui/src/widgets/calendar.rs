@@ -10,7 +10,6 @@ use crate::app::App;
 use crate::theme;
 
 const WEEK_LABELS: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-const COL_WIDTH: u16 = 9;
 
 pub struct CalendarWidget<'a> {
     app: &'a App,
@@ -35,13 +34,19 @@ impl Widget for CalendarWidget<'_> {
         let inner = block.inner(area);
         block.render(area, buf);
 
-        if inner.height < 3 || inner.width < 20 {
+        if inner.height < 3 || inner.width < 7 {
+            return;
+        }
+
+        let col_base = inner.width / 7;
+        let col_extra = inner.width % 7;
+        if col_base == 0 {
             return;
         }
 
         // Render weekday header
         let header_y = inner.y;
-        let mut x = inner.x + 1;
+        let mut x = inner.x;
         for (i, label) in WEEK_LABELS.iter().enumerate() {
             let style = if i >= 5 {
                 Style::default()
@@ -52,11 +57,8 @@ impl Widget for CalendarWidget<'_> {
                     .fg(theme::LABEL_FG)
                     .add_modifier(Modifier::BOLD)
             };
-            let col_w = COL_WIDTH.min(inner.width.saturating_sub(x - inner.x));
-            if col_w == 0 {
-                break;
-            }
-            let centered = format!("{:^width$}", label, width = col_w as usize);
+            let col_w = col_base + if (i as u16) < col_extra { 1 } else { 0 };
+            let centered = centered_cell(label, col_w);
             buf.set_string(x, header_y, &centered, style);
             x += col_w;
         }
@@ -71,14 +73,13 @@ impl Widget for CalendarWidget<'_> {
                 break;
             }
 
+            let mut cell_x = inner.x;
             for col in 0..7u16 {
-                let cell_x = inner.x + 1 + col * COL_WIDTH;
-                if cell_x + COL_WIDTH > inner.x + inner.width {
-                    break;
-                }
+                let cell_w = col_base + if col < col_extra { 1 } else { 0 };
 
                 // Skip empty cells before first day
                 if row == 0 && col < self.app.first_weekday as u16 {
+                    cell_x += cell_w;
                     continue;
                 }
 
@@ -113,7 +114,7 @@ impl Widget for CalendarWidget<'_> {
                 };
 
                 // Solar day number
-                let solar_text = format!("{:^width$}", day, width = COL_WIDTH as usize);
+                let solar_text = centered_cell(&day.to_string(), cell_w);
                 buf.set_string(cell_x, y, &solar_text, solar_style);
 
                 // Lunar day below
@@ -123,8 +124,7 @@ impl Widget for CalendarWidget<'_> {
                     } else {
                         format!("{}", info.lunar.day)
                     };
-                    let lunar_display =
-                        format!("{:^width$}", lunar_text, width = COL_WIDTH as usize);
+                    let lunar_display = centered_cell(&lunar_text, cell_w);
 
                     let lunar_style = if is_selected {
                         Style::default()
@@ -139,7 +139,28 @@ impl Widget for CalendarWidget<'_> {
                 }
 
                 day += 1;
+                cell_x += cell_w;
             }
         }
     }
+}
+
+fn centered_cell(text: &str, width: u16) -> String {
+    if width == 0 {
+        return String::new();
+    }
+
+    let width = width as usize;
+    let trimmed: String = text.chars().take(width).collect();
+    let len = trimmed.chars().count();
+
+    if len >= width {
+        return trimmed;
+    }
+
+    let pad_total = width - len;
+    let pad_left = pad_total / 2;
+    let pad_right = pad_total - pad_left;
+
+    format!("{}{}{}", " ".repeat(pad_left), trimmed, " ".repeat(pad_right))
 }
