@@ -10,8 +10,8 @@ use crate::app::App;
 use crate::theme;
 use crate::widgets::{
     bookmarks::BookmarksOverlay, calendar::CalendarWidget, date_jump::DateJumpPopup,
-    detail::DetailWidget, holidays::HolidayOverlay, hours::HoursWidget, insight::InsightWidget,
-    search::SearchPopup,
+    detail::DetailWidget, help::HelpOverlay, holidays::HolidayOverlay, hours::HoursWidget,
+    insight::InsightWidget, search::SearchPopup,
 };
 
 const MONTH_NAMES: [&str; 12] = [
@@ -103,6 +103,11 @@ pub fn draw(frame: &mut Frame, app: &App) {
     if app.show_search {
         frame.render_widget(SearchPopup::new(app), vertical[1]);
     }
+
+    // Help overlay
+    if app.show_help {
+        frame.render_widget(HelpOverlay::new(), vertical[1]);
+    }
 }
 
 fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
@@ -114,7 +119,44 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         .map(|i| format!(" ({})", i.canchi.year.full))
         .unwrap_or_default();
 
-    let header = Paragraph::new(Line::from(vec![
+    // Build status indicators
+    let mut indicators = Vec::new();
+
+    // History indicators
+    if app.history_position > 0 {
+        indicators.push(Span::styled("←", Style::default().fg(theme::LUNAR_FG)));
+    }
+    if app.history_position + 1 < app.history.len() {
+        indicators.push(Span::styled("→", Style::default().fg(theme::LUNAR_FG)));
+    }
+
+    // Bookmark indicator
+    if !app.bookmarks.is_empty() {
+        indicators.push(Span::styled(
+            format!("◆{}", app.bookmarks.len()),
+            Style::default().fg(theme::ACCENT_FG),
+        ));
+    }
+
+    // Search result indicator
+    if !app.search_results.is_empty() {
+        indicators.push(Span::styled(
+            format!("🔍{}", app.search_results.len()),
+            Style::default().fg(theme::HOLIDAY_FG),
+        ));
+    }
+
+    let indicator_spans = if indicators.is_empty() {
+        vec![]
+    } else {
+        vec![Span::raw("  "), Span::raw("["), Span::raw("")]
+            .into_iter()
+            .chain(indicators.into_iter())
+            .chain(vec![Span::raw("]")])
+            .collect()
+    };
+
+    let mut header_spans = vec![
         Span::styled(
             " 🌙 Âm Lịch ",
             Style::default()
@@ -132,7 +174,11 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         ),
         Span::styled(&year_canchi, Style::default().fg(theme::ACCENT_FG)),
         Span::styled(" ►", Style::default().fg(theme::LABEL_FG)),
-    ]))
+    ];
+
+    header_spans.extend(indicator_spans);
+
+    let header = Paragraph::new(Line::from(header_spans))
     .block(
         Block::default()
             .borders(Borders::ALL)
@@ -210,11 +256,11 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
             Span::styled("hjkl ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("nav", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
-            Span::styled("n/p ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("th", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
             Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("nay", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("help", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("exit", Style::default().fg(theme::LABEL_FG)),
@@ -227,13 +273,16 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
             Span::styled("hôm nay", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("/ ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("tìm kiếm", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("tìm", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("g ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("đến ngày", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("b ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("bookmark", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("bm", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("trợ giúp", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("thoát", Style::default().fg(theme::LABEL_FG)),

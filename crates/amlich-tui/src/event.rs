@@ -96,7 +96,22 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         return;
     }
 
-    // Date jump input mode (highest priority after Ctrl+C)
+    // Help overlay (global - accessible from anywhere)
+    if app.show_help {
+        match key.code {
+            KeyCode::Char('?') | KeyCode::Esc | KeyCode::Char('q') => app.toggle_help(),
+            _ => {}
+        }
+        return;
+    }
+
+    // Toggle help from anywhere
+    if key.code == KeyCode::Char('?') {
+        app.toggle_help();
+        return;
+    }
+
+    // Date jump input mode
     if app.show_date_jump {
         handle_date_jump_mode(app, key);
         return;

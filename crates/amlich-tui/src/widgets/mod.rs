@@ -2,6 +2,7 @@ pub mod bookmarks;
 pub mod calendar;
 pub mod date_jump;
 pub mod detail;
+pub mod help;
 pub mod holidays;
 pub mod hours;
 pub mod insight;
