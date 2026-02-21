@@ -390,37 +390,99 @@ impl App {
     }
 
     pub fn date_jump_char(&mut self, c: char) {
-        // Only allow digits and slashes
-        if c.is_ascii_digit() || c == '/' {
-            // Don't let input get too long (max dd/mm/yyyy = 10 chars)
-            if self.date_jump_input.len() < 10 {
-                self.date_jump_input.push(c);
-            }
+        // Only allow digits
+        if !c.is_ascii_digit() {
+            return;
         }
+
+        // Get current input without slashes for processing
+        let digits: String = self.date_jump_input.chars().filter(|x| x.is_ascii_digit()).collect();
+
+        // Don't exceed 8 digits (ddmmyyyy)
+        if digits.len() >= 8 {
+            return;
+        }
+
+        // Add the digit
+        let mut new_digits = digits;
+        new_digits.push(c);
+
+        // Auto-format with slashes as user types
+        // After 2 digits -> dd/
+        // After 4 digits -> dd/mm/
+        // Rest is year
+        self.date_jump_input = if new_digits.len() <= 2 {
+            new_digits
+        } else if new_digits.len() <= 4 {
+            format!("{}/{}", &new_digits[0..2], &new_digits[2..])
+        } else {
+            format!("{}/{}/{}", &new_digits[0..2], &new_digits[2..4], &new_digits[4..])
+        };
     }
 
     pub fn date_jump_backspace(&mut self) {
+        // Remove last character
         self.date_jump_input.pop();
+
+        // If we removed a slash, remove the digit before it too for smoother UX
+        if self.date_jump_input.ends_with('/') {
+            self.date_jump_input.pop();
+        }
+
+        // Re-format to maintain consistency
+        let digits: String = self.date_jump_input.chars().filter(|x| x.is_ascii_digit()).collect();
+        if digits.is_empty() {
+            return;
+        }
+        self.date_jump_input = if digits.len() <= 2 {
+            digits
+        } else if digits.len() <= 4 {
+            format!("{}/{}", &digits[0..2], &digits[2..])
+        } else {
+            format!("{}/{}/{}", &digits[0..2], &digits[2..4], &digits[4..])
+        };
+    }
+
+    pub fn date_jump_is_valid(&self) -> bool {
+        let parts: Vec<&str> = self.date_jump_input.split('/').collect();
+        if parts.len() != 3 {
+            return false;
+        }
+
+        let day = parts[0].parse::<u32>();
+        let month = parts[1].parse::<u32>();
+        let year = parts[2].parse::<i32>();
+
+        match (day, month, year) {
+            (Ok(d), Ok(m), Ok(y)) => {
+                // Basic validation
+                if m < 1 || m > 12 {
+                    return false;
+                }
+                if d < 1 || d > 31 {
+                    return false;
+                }
+                // Check if the date actually exists
+                NaiveDate::from_ymd_opt(y, m, d).is_some()
+            }
+            _ => false,
+        }
     }
 
     pub fn date_jump_submit(&mut self) -> bool {
-        // Parse dd/mm/yyyy format
-        let parts: Vec<&str> = self.date_jump_input.split('/').collect();
-        if parts.len() == 3 {
-            if let (Ok(day), Ok(month), Ok(year)) = (
-                parts[0].parse::<u32>(),
-                parts[1].parse::<u32>(),
-                parts[2].parse::<i32>(),
-            ) {
-                if NaiveDate::from_ymd_opt(year, month, day).is_some() {
-                    self.navigate_to_entry(HistoryEntry { year, month, day });
-                    self.show_date_jump = false;
-                    self.date_jump_input.clear();
-                    return true;
-                }
-            }
+        if !self.date_jump_is_valid() {
+            return false;
         }
-        false
+
+        let parts: Vec<&str> = self.date_jump_input.split('/').collect();
+        let day = parts[0].parse::<u32>().unwrap();
+        let month = parts[1].parse::<u32>().unwrap();
+        let year = parts[2].parse::<i32>().unwrap();
+
+        self.navigate_to_entry(HistoryEntry { year, month, day });
+        self.show_date_jump = false;
+        self.date_jump_input.clear();
+        true
     }
 
     // Search

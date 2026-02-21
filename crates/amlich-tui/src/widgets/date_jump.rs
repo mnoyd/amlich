@@ -22,8 +22,8 @@ impl<'a> DateJumpPopup<'a> {
 impl Widget for DateJumpPopup<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         // Center the popup
-        let width = 30;
-        let height = 8;
+        let width = 32;
+        let height = 9;
         let x = area.x + (area.width.saturating_sub(width)) / 2;
         let y = area.y + (area.height.saturating_sub(height)) / 2;
         let popup_area = Rect::new(x, y, width, height);
@@ -31,9 +31,16 @@ impl Widget for DateJumpPopup<'_> {
         // Clear background
         Clear.render(popup_area, buf);
 
+        let is_valid = self.app.date_jump_is_valid();
+        let border_style = if is_valid {
+            Style::default().fg(theme::ACCENT_FG)
+        } else {
+            Style::default().fg(theme::LABEL_FG)
+        };
+
         let block = Block::default()
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(theme::ACCENT_FG))
+            .border_style(border_style)
             .title(Line::from(vec![Span::styled(
                 " 📅 Jump to Date ",
                 theme::title_style(),
@@ -42,22 +49,44 @@ impl Widget for DateJumpPopup<'_> {
 
         // Instructions
         let instructions = Line::from(vec![
-            Span::styled("Format: ", Style::default().fg(theme::LABEL_FG)),
-            Span::styled("dd/mm/yyyy", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("Type: ", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("ddmmyyyy", Style::default().fg(theme::ACCENT_FG)),
+            Span::raw(" (auto-formats)"),
         ]);
 
         // Input field with cursor
         let input_text = format!("{}_", self.app.date_jump_input);
+        let input_style = if is_valid {
+            Style::default()
+                .fg(theme::VALUE_FG)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default()
+                .fg(theme::VALUE_FG)
+        };
+
         let input_line = Line::from(vec![
-            Span::styled(
-                &input_text,
-                Style::default()
-                    .fg(theme::VALUE_FG)
-                    .add_modifier(Modifier::BOLD),
-            ),
+            Span::styled(&input_text, input_style),
         ]);
 
-        let p = Paragraph::new(vec![instructions, Line::from(""), input_line])
+        // Validation indicator
+        let valid_line = if self.app.date_jump_input.len() >= 8 {
+            if is_valid {
+                Line::from(vec![
+                    Span::styled(" ✓ ", Style::default().fg(theme::ACCENT_FG)),
+                    Span::styled("Valid date", Style::default().fg(theme::ACCENT_FG)),
+                ])
+            } else {
+                Line::from(vec![
+                    Span::styled(" ✗ ", Style::default().fg(theme::HOLIDAY_FG)),
+                    Span::styled("Invalid date", Style::default().fg(theme::HOLIDAY_FG)),
+                ])
+            }
+        } else {
+            Line::from("")
+        };
+
+        let p = Paragraph::new(vec![instructions, Line::from(""), input_line, Line::from(""), valid_line])
             .block(block)
             .alignment(Alignment::Center);
 
