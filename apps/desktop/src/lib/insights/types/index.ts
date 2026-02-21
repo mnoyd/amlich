@@ -15,7 +15,6 @@ export type {
 } from "./domain";
 
 export type {
-export type {
   FestivalInsightDto,
   HolidayInsightDto,
   CanChiInsightDto,
