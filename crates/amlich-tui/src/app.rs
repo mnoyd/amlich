@@ -271,6 +271,7 @@ impl App {
 
     pub fn toggle_insight(&mut self) {
         self.show_insight = !self.show_insight;
+        self.insight_scroll = 0;
     }
 
     pub fn toggle_insight_lang(&mut self) {
