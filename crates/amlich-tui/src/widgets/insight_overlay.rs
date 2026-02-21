@@ -64,11 +64,8 @@ impl<'a> InsightOverlay<'a> {
             }
 
             if let Some(activities) = &festival.activities {
-                let activity_list = pick_items(
-                    self.app.insight_lang,
-                    &activities.vi,
-                    &activities.en,
-                );
+                let activity_list =
+                    pick_items(self.app.insight_lang, &activities.vi, &activities.en);
                 if !activity_list.is_empty() {
                     lines.push(Line::from(""));
                     let label = match self.app.insight_lang {
@@ -85,14 +82,11 @@ impl<'a> InsightOverlay<'a> {
                 }
             }
         } else if let Some(holiday) = &insight.holiday {
-            let holiday_name = pick_items(
-                self.app.insight_lang,
-                &holiday.names.vi,
-                &holiday.names.en,
-            )
-            .first()
-            .cloned()
-            .unwrap_or_else(|| "Holiday".to_string());
+            let holiday_name =
+                pick_items(self.app.insight_lang, &holiday.names.vi, &holiday.names.en)
+                    .first()
+                    .cloned()
+                    .unwrap_or_else(|| "Holiday".to_string());
 
             lines.push(Line::from(vec![
                 Span::styled("🏮 ", Style::default()),
@@ -349,13 +343,20 @@ impl Widget for InsightOverlay<'_> {
                 format!(" ✨ Insight ({title_lang}) ",),
                 theme::title_style(),
             )]))
-            .title_bottom(Line::from(vec![
-                Span::styled(close_help, Style::default().fg(theme::ACCENT_FG)),
-                Span::raw(" "),
-                Span::styled(scroll_help, Style::default().fg(theme::ACCENT_FG)),
-                Span::raw(" "),
-                Span::styled(tab_help, Style::default().fg(theme::ACCENT_FG)),
-            ].into_iter().collect::<Vec<_>>()).alignment(Alignment::Center));
+            .title_bottom(
+                Line::from(
+                    vec![
+                        Span::styled(close_help, Style::default().fg(theme::ACCENT_FG)),
+                        Span::raw(" "),
+                        Span::styled(scroll_help, Style::default().fg(theme::ACCENT_FG)),
+                        Span::raw(" "),
+                        Span::styled(tab_help, Style::default().fg(theme::ACCENT_FG)),
+                    ]
+                    .into_iter()
+                    .collect::<Vec<_>>(),
+                )
+                .alignment(Alignment::Center),
+            );
 
         // Render tab indicator
         let mut content = vec![Line::from(""), self.tab_indicator(), Line::from("")];

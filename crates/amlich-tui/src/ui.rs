@@ -191,11 +191,8 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         }
         LayoutMode::Medium => {
             // Calendar + Detail (with compact hours embedded below detail)
-            let cols = Layout::horizontal([
-                Constraint::Percentage(60),
-                Constraint::Percentage(40),
-            ])
-            .split(area);
+            let cols = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+                .split(area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
 
