@@ -6,7 +6,8 @@ use ratatui::{
     widgets::{Block, Borders, Widget},
 };
 
-use crate::app::{App, HistoryEntry};
+use crate::app::App;
+use crate::history::HistoryEntry;
 use crate::theme;
 
 const WEEK_LABELS: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];

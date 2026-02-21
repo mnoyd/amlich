@@ -19,8 +19,9 @@ fn handle_bookmarks_mode(app: &mut App, key: KeyEvent) -> bool {
             true
         }
         KeyCode::Char(c @ '1'..='9') => {
-            let index = c.to_digit(10).unwrap() as usize - 1;
-            app.go_to_bookmark(index);
+            if let Some(index) = c.to_digit(10).map(|n| n as usize - 1) {
+                app.go_to_bookmark(index);
+            }
             true
         }
         _ => false,

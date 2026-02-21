@@ -113,7 +113,10 @@ pub fn draw(frame: &mut Frame, app: &App) {
 }
 
 fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
-    let month_name = MONTH_NAMES[(app.view_month - 1) as usize];
+    let month_name = MONTH_NAMES
+        .get(app.view_month.saturating_sub(1) as usize)
+        .copied()
+        .unwrap_or("Tháng ?");
 
     // Year Can Chi from lunar data
     let year_canchi = app
