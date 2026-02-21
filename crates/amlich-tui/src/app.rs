@@ -7,6 +7,31 @@ pub enum InsightLang {
     En,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum DensityMode {
+    Compact,
+    Normal,
+    Detail,
+}
+
+impl DensityMode {
+    pub fn next(self) -> Self {
+        match self {
+            DensityMode::Compact => DensityMode::Normal,
+            DensityMode::Normal => DensityMode::Detail,
+            DensityMode::Detail => DensityMode::Compact,
+        }
+    }
+
+    pub fn label(self) -> &'static str {
+        match self {
+            DensityMode::Compact => "Compact",
+            DensityMode::Normal => "Normal",
+            DensityMode::Detail => "Detail",
+        }
+    }
+}
+
 pub struct App {
     pub running: bool,
     pub view_year: i32,
@@ -27,6 +52,9 @@ pub struct App {
     // Insight panel
     pub show_insight: bool,
     pub insight_lang: InsightLang,
+
+    // Density mode
+    pub density_mode: DensityMode,
 }
 
 impl App {
@@ -46,6 +74,7 @@ impl App {
             holiday_scroll: 0,
             show_insight: false,
             insight_lang: InsightLang::Vi,
+            density_mode: DensityMode::Normal,
         };
         app.load_month();
         app
@@ -186,6 +215,10 @@ impl App {
             InsightLang::Vi => InsightLang::En,
             InsightLang::En => InsightLang::Vi,
         };
+    }
+
+    pub fn toggle_density_mode(&mut self) {
+        self.density_mode = self.density_mode.next();
     }
 
     pub fn selected_insight(&self) -> Option<DayInsightDto> {

@@ -64,6 +64,7 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         // Toggle insight panel and language
         KeyCode::Char('i') => app.toggle_insight(),
         KeyCode::Char('L') => app.toggle_insight_lang(),
+        KeyCode::Char('m') => app.toggle_density_mode(),
 
         _ => {}
     }

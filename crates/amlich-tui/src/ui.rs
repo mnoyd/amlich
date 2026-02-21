@@ -6,7 +6,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::app::App;
+use crate::app::{App, DensityMode};
 use crate::theme;
 use crate::widgets::{
     calendar::CalendarWidget, detail::DetailWidget, holidays::HolidayOverlay, hours::HoursWidget,
@@ -71,21 +71,23 @@ pub fn draw(frame: &mut Frame, app: &App) {
         return;
     }
 
-    // Top-level: header (3) + body + footer (1)
+    // Top-level: header (3) + summary (1) + body + footer (3)
     let vertical = Layout::vertical([
         Constraint::Length(3),
-        Constraint::Min(10),
-        Constraint::Length(2),
+        Constraint::Length(1),
+        Constraint::Min(8),
+        Constraint::Length(3),
     ])
     .split(size);
 
     draw_header(frame, app, vertical[0]);
-    draw_body(frame, app, vertical[1]);
-    draw_footer(frame, vertical[2]);
+    draw_summary(frame, app, vertical[1]);
+    draw_body(frame, app, vertical[2]);
+    draw_footer(frame, app, vertical[3]);
 
     // Holiday overlay
     if app.show_holidays {
-        frame.render_widget(HolidayOverlay::new(app), vertical[1]);
+        frame.render_widget(HolidayOverlay::new(app), vertical[2]);
     }
 }
 
@@ -130,7 +132,9 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     let mode = layout_mode(area.width);
 
     // Insight split: only show if enough vertical space
-    let can_show_insight = app.show_insight && area.height >= (MIN_CAL_BODY_H + MIN_INSIGHT_H);
+    let can_show_insight = app.show_insight
+        && !matches!(app.density_mode, DensityMode::Compact)
+        && area.height >= (MIN_CAL_BODY_H + MIN_INSIGHT_H);
 
     let body_sections = if can_show_insight {
         Layout::vertical([
@@ -144,40 +148,70 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 
     let main_area = body_sections[0];
 
-    match mode {
-        LayoutMode::Small => {
-            // Calendar only — full width
-            frame.render_widget(CalendarWidget::new(app), main_area);
-        }
-        LayoutMode::Medium => {
-            // Calendar + Detail (with compact hours embedded below detail)
-            let cols = Layout::horizontal([
-                Constraint::Percentage(60),
-                Constraint::Percentage(40),
-            ])
-            .split(main_area);
+    if matches!(app.density_mode, DensityMode::Compact) {
+        frame.render_widget(CalendarWidget::new(app), main_area);
+    } else {
+        match mode {
+            LayoutMode::Small => {
+                if matches!(app.density_mode, DensityMode::Detail) && main_area.height >= 20 {
+                    let rows = Layout::vertical([Constraint::Min(12), Constraint::Length(8)])
+                        .split(main_area);
+                    let bottom = Layout::horizontal([
+                        Constraint::Percentage(65),
+                        Constraint::Percentage(35),
+                    ])
+                    .split(rows[1]);
 
-            frame.render_widget(CalendarWidget::new(app), cols[0]);
+                    frame.render_widget(CalendarWidget::new(app), rows[0]);
+                    frame.render_widget(DetailWidget::new(app), bottom[0]);
+                    frame.render_widget(HoursWidget::new(app).compact(true), bottom[1]);
+                } else {
+                    frame.render_widget(CalendarWidget::new(app), main_area);
+                }
+            }
+            LayoutMode::Medium => {
+                let cols = Layout::horizontal([
+                    Constraint::Percentage(60),
+                    Constraint::Percentage(40),
+                ])
+                .split(main_area);
 
-            // Split right column: detail on top, compact hours below
-            let right = Layout::vertical([Constraint::Min(8), Constraint::Length(5)])
-                .split(cols[1]);
+                frame.render_widget(CalendarWidget::new(app), cols[0]);
 
-            frame.render_widget(DetailWidget::new(app), right[0]);
-            frame.render_widget(HoursWidget::new(app).compact(true), right[1]);
-        }
-        LayoutMode::Large => {
-            // Full 3-column layout
-            let cols = Layout::horizontal([
-                Constraint::Ratio(1, 2),
-                Constraint::Ratio(1, 4),
-                Constraint::Ratio(1, 4),
-            ])
-            .split(main_area);
+                if matches!(app.density_mode, DensityMode::Detail) {
+                    let right = Layout::vertical([Constraint::Min(10), Constraint::Min(8)])
+                        .split(cols[1]);
+                    frame.render_widget(DetailWidget::new(app), right[0]);
+                    frame.render_widget(HoursWidget::new(app), right[1]);
+                } else {
+                    // Normal: compact hours under details
+                    let right = Layout::vertical([Constraint::Min(8), Constraint::Length(5)])
+                        .split(cols[1]);
+                    frame.render_widget(DetailWidget::new(app), right[0]);
+                    frame.render_widget(HoursWidget::new(app).compact(true), right[1]);
+                }
+            }
+            LayoutMode::Large => {
+                let cols = if matches!(app.density_mode, DensityMode::Detail) {
+                    Layout::horizontal([
+                        Constraint::Percentage(45),
+                        Constraint::Percentage(30),
+                        Constraint::Percentage(25),
+                    ])
+                    .split(main_area)
+                } else {
+                    Layout::horizontal([
+                        Constraint::Ratio(1, 2),
+                        Constraint::Ratio(1, 4),
+                        Constraint::Ratio(1, 4),
+                    ])
+                    .split(main_area)
+                };
 
-            frame.render_widget(CalendarWidget::new(app), cols[0]);
-            frame.render_widget(DetailWidget::new(app), cols[1]);
-            frame.render_widget(HoursWidget::new(app), cols[2]);
+                frame.render_widget(CalendarWidget::new(app), cols[0]);
+                frame.render_widget(DetailWidget::new(app), cols[1]);
+                frame.render_widget(HoursWidget::new(app), cols[2]);
+            }
         }
     }
 
@@ -186,7 +220,44 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     }
 }
 
-fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
+fn draw_summary(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
+    let Some(info) = app.selected_info() else {
+        frame.render_widget(
+            Paragraph::new("Không có dữ liệu ngày được chọn")
+                .alignment(Alignment::Left),
+            area,
+        );
+        return;
+    };
+
+    let leap = if info.lunar.is_leap_month { " nhuận" } else { "" };
+    let holiday = app
+        .holiday_for_day(app.selected_day)
+        .map(|h| format!(" | Lễ {}", h.name))
+        .unwrap_or_default();
+    let summary = format!(
+        "M:{} | DL {} ({}) | AL {}{} | Can Chi {} | Tiết khí {} | Giờ tốt {}{}",
+        app.density_mode.label(),
+        info.solar.date_string,
+        info.solar.day_of_week_name,
+        info.lunar.date_string,
+        leap,
+        info.canchi.day.full,
+        info.tiet_khi.name,
+        info.gio_hoang_dao.good_hour_count,
+        holiday
+    );
+    let text = truncate_to_width(&summary, area.width as usize);
+
+    frame.render_widget(
+        Paragraph::new(text)
+            .style(Style::default().fg(theme::ACCENT_FG))
+            .alignment(Alignment::Left),
+        area,
+    );
+}
+
+fn draw_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     let mode = layout_mode(area.width);
 
     let shortcuts = match mode {
@@ -199,6 +270,9 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
             Span::raw("  "),
             Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("nay", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("m ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("mode", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("exit", Style::default().fg(theme::LABEL_FG)),
@@ -215,6 +289,9 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
             Span::raw("  "),
             Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("hôm nay", Style::default().fg(theme::LABEL_FG)),
+            Span::raw("  "),
+            Span::styled("m ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("mật độ", Style::default().fg(theme::LABEL_FG)),
             Span::raw("  "),
             Span::styled("H ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("ngày lễ", Style::default().fg(theme::LABEL_FG)),
@@ -250,7 +327,35 @@ fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
         ],
     };
 
-    let footer = Paragraph::new(vec![Line::from(shortcuts), Line::from(legend)])
+    let mode_line = Line::from(vec![
+        Span::styled("Chế độ: ", Style::default().fg(theme::LABEL_FG)),
+        Span::styled(
+            app.density_mode.label(),
+            Style::default()
+                .fg(theme::ACCENT_FG)
+                .add_modifier(Modifier::BOLD),
+        ),
+    ]);
+
+    let footer = Paragraph::new(vec![mode_line, Line::from(shortcuts), Line::from(legend)])
         .alignment(Alignment::Center);
     frame.render_widget(footer, area);
+}
+
+fn truncate_to_width(text: &str, width: usize) -> String {
+    if width == 0 {
+        return String::new();
+    }
+
+    let len = text.chars().count();
+    if len <= width {
+        return text.to_string();
+    }
+
+    if width <= 3 {
+        return ".".repeat(width);
+    }
+
+    let prefix: String = text.chars().take(width - 3).collect();
+    format!("{prefix}...")
 }
