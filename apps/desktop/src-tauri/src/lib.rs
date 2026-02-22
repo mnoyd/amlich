@@ -61,6 +61,9 @@ struct InstallContext {
     executable_path: Option<String>,
     is_system_install: bool,
     can_self_update: bool,
+    platform: String,
+    arch: String,
+    app_version: String,
 }
 
 fn to_day_cell(day_info: DayInfoDto, holidays: Vec<HolidayInfo>) -> DayCell {
@@ -197,10 +200,23 @@ fn get_install_context() -> InstallContext {
     #[cfg(not(target_os = "linux"))]
     let is_system_install = false;
 
+    let platform = match std::env::consts::OS {
+        "macos" => "macos",
+        "linux" => "linux",
+        "windows" => "windows",
+        other => other,
+    }
+    .to_string();
+
+    let arch = std::env::consts::ARCH.to_string();
+
     InstallContext {
         executable_path,
         is_system_install,
         can_self_update: !is_system_install,
+        platform,
+        arch,
+        app_version: env!("CARGO_PKG_VERSION").to_string(),
     }
 }
 
