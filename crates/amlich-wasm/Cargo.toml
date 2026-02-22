@@ -14,7 +14,6 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 amlich-api = { path = "../amlich-api" }
 amlich-core = { path = "../amlich-core" }
-amlich-presenter = { path = "../amlich-presenter" }
 wasm-bindgen = "0.2"
 serde = { workspace = true }
 serde-wasm-bindgen = "0.6"

@@ -11,7 +11,6 @@ amlich/
 │   ├── amlich/           # Unified binary (TTY-aware TUI + headless CLI)
 │   ├── amlich-core/       # Calendar math and domain calculations
 │   ├── amlich-api/        # Stable DTO contract
-│   ├── amlich-presenter/  # Presentation/text formatting
 │   └── amlich-wasm/       # WASM bindings
 ├── apps/
 │   └── desktop/           # Tauri + Svelte desktop app

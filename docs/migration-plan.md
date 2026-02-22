@@ -4,13 +4,12 @@
 
 - `amlich-core`: calendar math and domain calculations.
 - `amlich-api`: stable DTO contract consumed by CLI, desktop, and WASM.
-- `amlich-presenter`: presentation-only formatting logic.
 
 ## Current Data Flow
 
 - CLI reads day and holiday data from `amlich-api`.
 - Desktop Tauri backend reads day and holiday data from `amlich-api`.
-- WASM serializes `amlich-api` DTOs and uses `amlich-presenter` for formatting.
+- WASM serializes `amlich-api` DTOs and performs formatting in `amlich-wasm`.
 - `packages/core/engine` prefers Rust-backed output through the CLI bridge and uses `legacy-engine.js` only as fallback.
 
 ## JSON Contract (`amlich query --format dayinfo-json`)
