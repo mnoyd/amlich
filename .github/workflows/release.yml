@@ -13,16 +13,24 @@ env:
 
 jobs:
   publish-tauri:
-    name: Build & Release - ${{ matrix.platform }}
+    name: Build & Release - ${{ matrix.label }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: ubuntu-22.04
+            label: linux
             args: '--bundles appimage,deb'
           - platform: macos-latest
-            args: '--target universal-apple-darwin'
+            label: macos-aarch64
+            rust_targets: 'aarch64-apple-darwin'
+            args: '--target aarch64-apple-darwin'
+          - platform: macos-latest
+            label: macos-x86_64
+            rust_targets: 'x86_64-apple-darwin'
+            args: '--target x86_64-apple-darwin'
           - platform: windows-latest
+            label: windows
             args: '--bundles nsis'
     runs-on: ${{ matrix.platform }}
     steps:
@@ -31,7 +39,7 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.rust_targets || '' }}
 
       - name: Install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
