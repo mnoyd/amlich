@@ -1,5 +1,3 @@
-pub mod waybar;
-
 use std::fmt;
 use std::fs;
 use std::path::PathBuf;
@@ -8,6 +6,8 @@ use std::str::FromStr;
 use amlich_api::{get_day_info_for_date, DayInfoDto};
 use chrono::{Datelike, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
+
+use crate::waybar;
 
 #[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
 pub enum DisplayMode {

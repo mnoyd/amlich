@@ -12,8 +12,6 @@ amlich/
 │   ├── amlich-core/       # Calendar math and domain calculations
 │   ├── amlich-api/        # Stable DTO contract
 │   ├── amlich-presenter/  # Presentation/text formatting
-│   ├── amlich-cli/        # Shared headless/query formatting library
-│   ├── amlich-tui/        # Shared TUI runtime library
 │   └── amlich-wasm/       # WASM bindings
 ├── apps/
 │   └── desktop/           # Tauri + Svelte desktop app

@@ -1,13 +1,3 @@
-mod app;
-mod bookmark_store;
-mod date_jump;
-mod event;
-mod history;
-mod search;
-mod theme;
-mod ui;
-mod widgets;
-
 use std::io;
 
 use chrono::NaiveDate;
@@ -18,7 +8,8 @@ use crossterm::{
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
 
-use app::App;
+use crate::app::App;
+use crate::{event, ui};
 
 struct TerminalCleanupGuard;
 

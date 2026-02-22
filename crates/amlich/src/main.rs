@@ -1,8 +1,25 @@
+mod app;
+mod bookmark_store;
+mod date_jump;
+mod event;
+mod headless;
+mod history;
+mod search;
+mod theme;
+mod tui_runtime;
+mod ui;
+mod waybar;
+mod widgets;
+
 use std::ffi::OsString;
 use std::io::{stdin, stdout, IsTerminal};
 
-use amlich_cli::{parse_date, query, read_mode, set_mode, toggle_mode, DisplayMode, QueryFormat};
 use clap::{Args, Parser, Subcommand, ValueEnum};
+
+use crate::headless::{
+    parse_date, query, read_mode, set_mode, toggle_mode, DisplayMode, QueryFormat,
+};
+use crate::tui_runtime::run_tui;
 
 #[derive(Parser)]
 #[command(
@@ -121,7 +138,7 @@ fn run(cli: Cli) -> Result<(), String> {
     match cli.command {
         Some(Command::Tui(args)) => {
             let date = args.date.as_deref().map(parse_date).transpose()?;
-            amlich_tui::run_tui(date).map_err(|e| format!("failed to run TUI: {e}"))?;
+            run_tui(date).map_err(|e| format!("failed to run TUI: {e}"))?;
         }
         Some(Command::Query(args)) => run_query(args)?,
         Some(Command::Config(args)) => run_config(args)?,
@@ -163,7 +180,7 @@ fn run_config(args: ConfigArgs) -> Result<(), String> {
 
 fn run_auto_mode() -> Result<(), String> {
     if stdin().is_terminal() && stdout().is_terminal() {
-        amlich_tui::run_tui(None).map_err(|e| format!("failed to run TUI: {e}"))?;
+        run_tui(None).map_err(|e| format!("failed to run TUI: {e}"))?;
         return Ok(());
     }
 

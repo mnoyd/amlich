@@ -2,7 +2,7 @@ use amlich_api::{get_holidays, DayInfoDto};
 use chrono::{Local, NaiveDate, Timelike};
 use serde_json::Value;
 
-use crate::DisplayMode;
+use crate::headless::DisplayMode;
 
 const HOLIDAY_LOOKAHEAD_DAYS: i64 = 10;
 
@@ -184,8 +184,4 @@ pub fn build_waybar_payload(info: &DayInfoDto, mode: &DisplayMode) -> Value {
         "tooltip": tooltip,
         "class": class
     })
-}
-
-pub fn format_waybar_json(info: &DayInfoDto, mode: &DisplayMode) -> String {
-    build_waybar_payload(info, mode).to_string()
 }
