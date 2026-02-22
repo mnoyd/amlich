@@ -34,8 +34,8 @@ cargo build --release --workspace
 cargo test --workspace
 pnpm test
 
-# Build CLI binary
-cargo build --release --package amlich
+# Build CLI binary (package `amlich-cli`, command `amlich`)
+cargo build --release --package amlich-cli
 
 # Run desktop app (dev)
 pnpm dev:app

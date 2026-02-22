@@ -15,7 +15,7 @@ build:
 
 # Build only the CLI
 build-cli:
-    cargo build --release --package amlich
+    cargo build --release --package amlich-cli
 
 # Build WASM package
 build-wasm:
@@ -126,4 +126,4 @@ info:
 
 # Run CLI with today's date
 today:
-    cargo run --release --package amlich -- query
+    cargo run --release --package amlich-cli -- query

@@ -11,7 +11,7 @@ echo "=== Installing Amlich CLI ==="
 
 # Build release
 echo "→ Building CLI..."
-cargo build --release --package amlich
+cargo build --release --package amlich-cli
 
 # Create install directory
 mkdir -p "$INSTALL_DIR"

@@ -11,7 +11,7 @@
     "build": "pnpm build:rust && pnpm build:wasm",
     "build:rust": "cargo build --release",
     "build:wasm": "cd crates/amlich-wasm && wasm-pack build --target web --out-dir ../../dist/wasm",
-    "build:cli": "cargo build --release --package amlich",
+    "build:cli": "cargo build --release --package amlich-cli",
     "dev:app": "cd apps/desktop && pnpm tauri dev",
     "build:app": "cd apps/desktop && pnpm tauri build",
     "clean": "cargo clean && rm -rf dist"

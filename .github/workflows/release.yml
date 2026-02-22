@@ -112,7 +112,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Build amlich CLI binary
-        run: cargo build --release --package amlich
+        run: cargo build --release --package amlich-cli
 
       - name: Package CLI artifact (Unix)
         if: matrix.platform != 'windows-latest'
