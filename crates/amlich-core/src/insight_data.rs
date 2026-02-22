@@ -2,8 +2,8 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-const CANCHI_JSON: &str = include_str!("../../../data/canchi.json");
-const TIET_KHI_JSON: &str = include_str!("../../../data/tiet-khi.json");
+const CANCHI_JSON: &str = include_str!("../data/canchi.json");
+const TIET_KHI_JSON: &str = include_str!("../data/tiet-khi.json");
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct BilingualText {

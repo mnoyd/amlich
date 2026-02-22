@@ -50,6 +50,10 @@ build-all: build build-wasm build-app
 test:
     cargo test --workspace --exclude am-lich
 
+# Verify amlich-core vendored data matches repo root data
+check-core-data-sync:
+    ./scripts/check-core-data-sync.sh
+
 # Run core library tests
 test-core:
     cargo test --package amlich-core

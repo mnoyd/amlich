@@ -1,8 +1,8 @@
 use serde::Deserialize;
 use std::sync::OnceLock;
 
-const SOLAR_HOLIDAYS_JSON: &str = include_str!("../../../data/holidays/solar-holidays.json");
-const LUNAR_FESTIVALS_JSON: &str = include_str!("../../../data/holidays/lunar-festivals.json");
+const SOLAR_HOLIDAYS_JSON: &str = include_str!("../data/holidays/solar-holidays.json");
+const LUNAR_FESTIVALS_JSON: &str = include_str!("../data/holidays/lunar-festivals.json");
 
 #[derive(Debug, Deserialize)]
 struct SolarHolidaysFile {

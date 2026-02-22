@@ -1,0 +1,1013 @@
+{
+  "festivals": [
+    {
+      "id": "tet-nguyen-dan",
+      "lunarDay": 1,
+      "lunarMonth": 1,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Tết Nguyên Đán", "Mùng Một Tết", "Tết Cả"],
+        "en": ["Vietnamese New Year", "Lunar New Year", "Tết"]
+      },
+      "origin": {
+        "vi": "Tết Nguyên Đán có nguồn gốc từ hàng nghìn năm trước, gắn liền với nền văn minh lúa nước và tín ngưỡng thờ cúng tổ tiên của người Việt. \"Nguyên\" nghĩa là khởi đầu, \"Đán\" nghĩa là buổi sáng sớm - tức ngày đầu tiên của năm mới. Đây là thời điểm chuyển giao giữa năm cũ và năm mới theo lịch âm, khi vạn vật bắt đầu chu kỳ sinh trưởng mới. Tết không chỉ là dịp nghỉ ngơi mà còn là thời khắc thiêng liêng để con cháu tưởng nhớ tổ tiên, sum họp gia đình và cầu mong một năm mới an khang thịnh vượng.",
+        "en": "Tết Nguyên Đán has origins dating back thousands of years, deeply connected to Vietnam's wet rice civilization and ancestor worship traditions. \"Nguyên\" means beginning, \"Đán\" means early morning - together meaning the first day of the new year. This marks the transition between the old and new lunar year, when all things begin a new cycle of growth. Tết is not merely a holiday but a sacred time for descendants to honor ancestors, reunite with family, and pray for prosperity in the coming year."
+      },
+      "activities": {
+        "vi": [
+          "Cúng ông bà tổ tiên với mâm ngũ quả và hương hoa",
+          "Đi chúc Tết họ hàng, bạn bè, láng giềng",
+          "Lì xì (mừng tuổi) cho trẻ em và người lớn tuổi",
+          "Xông đất - người đầu tiên đến nhà trong năm mới",
+          "Hái lộc đầu xuân tại đình chùa",
+          "Chơi bài, cờ tướng, đánh đu, đấu vật"
+        ],
+        "en": [
+          "Worship ancestors with five-fruit tray and incense",
+          "Visit relatives, friends and neighbors to give New Year wishes",
+          "Give lucky money (lì xì) to children and elders",
+          "First-footing (xông đất) - being the first visitor of the new year",
+          "Pick lucky branches at temples and pagodas",
+          "Play cards, chess, traditional games like swinging and wrestling"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Bánh chưng / Bánh tét", "en": "Square/Cylindrical sticky rice cake" },
+          "description": { "vi": "Biểu tượng của đất trời, làm từ gạo nếp, đậu xanh, thịt heo, gói lá dong/lá chuối", "en": "Symbol of earth and sky, made from sticky rice, mung beans, pork, wrapped in dong/banana leaves" }
+        },
+        {
+          "name": { "vi": "Thịt kho tàu", "en": "Caramelized braised pork with eggs" },
+          "description": { "vi": "Thịt heo kho với nước dừa, trứng vịt - món đậm đà ngày Tết miền Nam", "en": "Pork braised with coconut juice and duck eggs - rich Southern Tết dish" }
+        },
+        {
+          "name": { "vi": "Dưa hành", "en": "Pickled spring onions" },
+          "description": { "vi": "Món ăn kèm giúp tiêu hóa, giảm ngấy sau bữa ăn nhiều đạm", "en": "Side dish that aids digestion after protein-rich meals" }
+        },
+        {
+          "name": { "vi": "Mứt Tết", "en": "Tết candied fruits" },
+          "description": { "vi": "Các loại mứt dừa, mứt gừng, mứt sen, hạt dưa - đãi khách ngày Tết", "en": "Candied coconut, ginger, lotus seeds, watermelon seeds - for receiving guests" }
+        },
+        {
+          "name": { "vi": "Xôi gấc", "en": "Red sticky rice" },
+          "description": { "vi": "Xôi nếp màu đỏ cam từ quả gấc, tượng trưng may mắn", "en": "Sticky rice colored red-orange from gấc fruit, symbolizing luck" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Quét nhà trong ba ngày đầu năm", "en": "Sweeping the house in the first three days" },
+          "reason": { "vi": "Sợ quét đi tài lộc, vận may của năm mới", "en": "Fear of sweeping away fortune and luck for the new year" }
+        },
+        {
+          "action": { "vi": "Cãi nhau, nói lời không hay", "en": "Arguing or speaking ill words" },
+          "reason": { "vi": "Năm mới cần hòa khí, tránh xui xẻo cả năm", "en": "New year needs harmony, avoid bad luck for the whole year" }
+        },
+        {
+          "action": { "vi": "Cho vay tiền hoặc trả nợ", "en": "Lending or repaying debts" },
+          "reason": { "vi": "Tránh để tiền bạc ra đi ngay đầu năm", "en": "Avoid letting money flow out at year's start" }
+        },
+        {
+          "action": { "vi": "Mặc đồ trắng, đen", "en": "Wearing white or black clothes" },
+          "reason": { "vi": "Đây là màu tang, không phù hợp ngày vui", "en": "These are mourning colors, unsuitable for festive days" }
+        },
+        {
+          "action": { "vi": "Làm vỡ đồ vật", "en": "Breaking objects" },
+          "reason": { "vi": "Điềm không tốt, báo hiệu sự đổ vỡ trong năm", "en": "Bad omen, signaling breakage during the year" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Mồng một Tết cha, mồng hai Tết mẹ, mồng ba Tết thầy",
+          "meaning": { "vi": "Thứ tự viếng thăm: ngày đầu bên nội, ngày hai bên ngoại, ngày ba thăm thầy cô", "en": "Order of visits: first day paternal side, second day maternal side, third day teachers" }
+        },
+        {
+          "text": "Đói ngày giỗ cha, no ba ngày Tết",
+          "meaning": { "vi": "Dù nghèo khó, Tết vẫn phải đủ đầy sung túc", "en": "Even if poor, Tết must be abundant and plentiful" }
+        },
+        {
+          "text": "Thịt mỡ dưa hành câu đối đỏ, cây nêu tràng pháo bánh chưng xanh",
+          "meaning": { "vi": "Những thứ không thể thiếu ngày Tết truyền thống", "en": "Essential items of traditional Tết" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Miền Bắc ăn bánh chưng vuông, có cây đào, câu đối đỏ, và truyền thống hái lộc đêm giao thừa. Thời tiết lạnh nên các món ăn thường đậm đà, nhiều thịt mỡ.",
+          "en": "Northern Vietnam eats square bánh chưng, displays peach blossoms, red couplets, and picks lucky branches on New Year's Eve. Cold weather means richer, fattier dishes."
+        },
+        "central": {
+          "vi": "Miền Trung ăn bánh tét nhỏ, có thêm bánh in, bánh thuẫn. Tết ở Huế đặc biệt trang trọng với nhiều nghi lễ cung đình còn lưu giữ.",
+          "en": "Central Vietnam eats smaller bánh tét, with additional bánh in, bánh thuẫn. Tết in Huế is especially ceremonial, preserving royal court rituals."
+        },
+        "south": {
+          "vi": "Miền Nam ưa bánh tét dài, cây mai vàng, thịt kho tàu và canh khổ qua (mong khổ qua đi). Không khí Tết phóng khoáng, vui vẻ hơn.",
+          "en": "Southern Vietnam prefers long bánh tét, yellow apricot blossoms, braised pork, and bitter melon soup (hoping hardship passes). Tết atmosphere is more relaxed and cheerful."
+        }
+      }
+    },
+    {
+      "id": "mung-2-tet",
+      "lunarDay": 2,
+      "lunarMonth": 1,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Mùng 2 Tết"],
+        "en": ["Second Day of Tết"]
+      },
+      "origin": {
+        "vi": "Mùng 2 Tết là ngày thứ hai của dịp Tết Nguyên Đán, theo truyền thống là ngày về bên ngoại (nhà mẹ đẻ).",
+        "en": "The second day of Tết is traditionally the day to visit the maternal family."
+      },
+      "activities": {
+        "vi": ["Về thăm bên ngoại", "Chúc Tết họ hàng", "Lì xì"],
+        "en": ["Visit maternal family", "Give New Year wishes to relatives", "Give lucky money"]
+      }
+    },
+    {
+      "id": "mung-3-tet",
+      "lunarDay": 3,
+      "lunarMonth": 1,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Mùng 3 Tết"],
+        "en": ["Third Day of Tết"]
+      },
+      "origin": {
+        "vi": "Mùng 3 Tết là ngày thứ ba của dịp Tết Nguyên Đán, theo truyền thống là ngày đi thăm thầy cô giáo.",
+        "en": "The third day of Tết is traditionally the day to visit teachers."
+      },
+      "activities": {
+        "vi": ["Thăm thầy cô giáo", "Chúc Tết bạn bè", "Du xuân"],
+        "en": ["Visit teachers", "Give New Year wishes to friends", "Spring outing"]
+      }
+    },
+    {
+      "id": "tet-nguyen-tieu",
+      "lunarDay": 15,
+      "lunarMonth": 1,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Tết Nguyên Tiêu", "Rằm tháng Giêng", "Tết Thượng Nguyên"],
+        "en": ["Lantern Festival", "First Full Moon Festival", "Upper Primordial Festival"]
+      },
+      "origin": {
+        "vi": "Tết Nguyên Tiêu có nguồn gốc từ Trung Hoa cổ đại, du nhập vào Việt Nam và hòa quyện với tín ngưỡng bản địa. \"Nguyên Tiêu\" nghĩa là đêm rằm đầu tiên của năm mới. Theo Phật giáo, đây là ngày chư Phật giáng trần, nên người dân đi chùa cầu an rất đông. Theo quan niệm dân gian, Rằm tháng Giêng quan trọng ngang Tết Nguyên Đán: \"Cúng cả năm không bằng Rằm tháng Giêng\". Đây cũng là đêm trăng tròn đầu tiên, biểu tượng cho sự viên mãn và khởi đầu tốt lành.",
+        "en": "Tết Nguyên Tiêu originates from ancient China, later blending with Vietnamese indigenous beliefs. \"Nguyên Tiêu\" means the first full moon night of the new year. In Buddhism, this is when Buddhas descend to earth, so many visit temples to pray. In folk belief, the First Full Moon is as important as New Year itself: \"A year's worship doesn't equal the First Full Moon.\" This first full moon symbolizes completeness and auspicious beginnings."
+      },
+      "activities": {
+        "vi": [
+          "Đi chùa lễ Phật, cầu an đầu năm",
+          "Thả đèn hoa đăng trên sông",
+          "Cúng rằm với mâm cỗ chay hoặc mặn",
+          "Xin xăm, gieo quẻ đầu năm",
+          "Thưởng trăng, làm thơ (thi nhân xưa)",
+          "Ăn chè trôi nước, bánh trôi bánh chay"
+        ],
+        "en": [
+          "Visit temples and pagodas to pray for peace",
+          "Release floating lanterns on rivers",
+          "Worship with vegetarian or meat offerings",
+          "Draw fortune sticks and divination",
+          "Moon gazing and poetry (ancient scholars)",
+          "Eat sweet rice balls (chè trôi nước)"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Bánh trôi nước", "en": "Floating rice balls" },
+          "description": { "vi": "Viên bột nếp nhân đường phèn, nấu trong nước gừng - tròn như trăng rằm", "en": "Glutinous rice balls with rock sugar filling in ginger syrup - round like the full moon" }
+        },
+        {
+          "name": { "vi": "Xôi gấc", "en": "Red sticky rice" },
+          "description": { "vi": "Xôi đỏ may mắn, thường dùng cúng rằm", "en": "Lucky red rice, commonly used for full moon offerings" }
+        },
+        {
+          "name": { "vi": "Chè đậu xanh", "en": "Mung bean sweet soup" },
+          "description": { "vi": "Món chay thanh đạm, phù hợp ngày lễ Phật", "en": "Light vegetarian dish, suitable for Buddhist observance" }
+        },
+        {
+          "name": { "vi": "Mâm ngũ quả", "en": "Five-fruit tray" },
+          "description": { "vi": "Năm loại trái cây tượng trưng ngũ hành, dâng cúng tổ tiên", "en": "Five fruits symbolizing five elements, offered to ancestors" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Nói lời thô tục, cãi vã", "en": "Speaking vulgar words or arguing" },
+          "reason": { "vi": "Ngày thiêng liêng, cần giữ tâm thanh tịnh", "en": "Sacred day, need to keep a pure mind" }
+        },
+        {
+          "action": { "vi": "Sát sinh (theo quan niệm Phật giáo)", "en": "Killing animals (Buddhist view)" },
+          "reason": { "vi": "Rằm là ngày chay, nên tránh sát sinh để tích đức", "en": "Full moon is vegetarian day, avoid killing to accumulate merit" }
+        },
+        {
+          "action": { "vi": "Để bàn thờ bừa bộn", "en": "Leaving altar messy" },
+          "reason": { "vi": "Bàn thờ phải sạch sẽ, trang nghiêm để đón thần Phật", "en": "Altar must be clean and dignified to welcome deities" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Cúng cả năm không bằng Rằm tháng Giêng",
+          "meaning": { "vi": "Rằm tháng Giêng quan trọng hơn mọi ngày cúng khác trong năm", "en": "First Full Moon is more important than all other worship days combined" }
+        },
+        {
+          "text": "Lễ Phật quanh năm không bằng Rằm tháng Giêng",
+          "meaning": { "vi": "Nhấn mạnh tầm quan trọng đặc biệt của ngày này trong Phật giáo", "en": "Emphasizes the special importance of this day in Buddhism" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Miền Bắc đi lễ chùa Hương, chùa Bái Đính rất đông. Hội Lim (Bắc Ninh) với quan họ diễn ra vào dịp này. Thời tiết còn lạnh, người dân mặc áo ấm đi lễ.",
+          "en": "Northern Vietnam sees huge crowds at Hương Pagoda and Bái Đính. Lim Festival (Bắc Ninh) with quan họ folk singing occurs during this time. Cold weather means warm clothing for temple visits."
+        },
+        "central": {
+          "vi": "Huế có lễ hội đèn lồng đặc sắc, thả hoa đăng trên sông Hương. Phố cổ Hội An rực rỡ đèn lồng, thu hút du khách.",
+          "en": "Huế holds special lantern festivals with floating lanterns on the Perfume River. Hội An ancient town glows with lanterns, attracting tourists."
+        },
+        "south": {
+          "vi": "Miền Nam đi chùa cầu an, đặc biệt các chùa lớn ở TP.HCM. Người Hoa ở Chợ Lớn tổ chức lễ Nguyên Tiêu rất lớn với múa lân sư rồng.",
+          "en": "Southern Vietnam visits temples for peace, especially large pagodas in HCMC. Chinese community in Chợ Lớn holds grand Lantern Festival with lion and dragon dances."
+        }
+      }
+    },
+    {
+      "id": "tet-han-thuc",
+      "lunarDay": 3,
+      "lunarMonth": 3,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Tết Hàn Thực", "Tết bánh trôi bánh chay"],
+        "en": ["Cold Food Festival", "Rice Ball Festival"]
+      },
+      "origin": {
+        "vi": "Tết Hàn Thực có nguồn gốc từ Trung Quốc, gắn với câu chuyện về Giới Tử Thôi - người trung thần bị thiêu chết trong rừng. Vua Tấn Văn Công để tưởng nhớ đã ra lệnh cấm đốt lửa 3 ngày, người dân chỉ ăn đồ nguội (hàn thực). Khi du nhập Việt Nam, tết này gắn liền với tục làm bánh trôi bánh chay - những viên bánh tròn tượng trưng cho tổ tiên, thể hiện lòng hiếu thảo và sự đoàn viên gia đình.",
+        "en": "Cold Food Festival originates from China, linked to the story of Jie Zitui - a loyal minister who died in a forest fire. Duke Wen of Jin, to commemorate him, ordered no fire for 3 days, people eating only cold food. In Vietnam, this festival became associated with making bánh trôi bánh chay - round rice balls symbolizing ancestors, expressing filial piety and family unity."
+      },
+      "activities": {
+        "vi": [
+          "Làm bánh trôi, bánh chay cúng tổ tiên",
+          "Tảo mộ, dọn dẹp phần mộ gia tiên",
+          "Sum họp gia đình, ăn bánh cùng nhau",
+          "Đi chùa cầu bình an"
+        ],
+        "en": [
+          "Make bánh trôi, bánh chay to offer ancestors",
+          "Clean and tend ancestral graves",
+          "Family reunion, eating rice balls together",
+          "Visit temples for blessings"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Bánh trôi", "en": "Floating rice balls" },
+          "description": { "vi": "Viên bột nếp trắng nhân đường phèn, luộc nổi lên khi chín", "en": "White glutinous rice balls with rock sugar filling, float when cooked" }
+        },
+        {
+          "name": { "vi": "Bánh chay", "en": "Vegetarian rice balls" },
+          "description": { "vi": "Viên bột nếp nhân đậu xanh, ăn với nước đường", "en": "Glutinous rice balls with mung bean filling, served in sugar syrup" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Quên cúng tổ tiên", "en": "Forgetting to worship ancestors" },
+          "reason": { "vi": "Đây là dịp quan trọng để tưởng nhớ người đã khuất", "en": "This is an important occasion to remember the deceased" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Thân em vừa trắng lại vừa tròn, bảy nổi ba chìm với nước non",
+          "meaning": { "vi": "Thơ Hồ Xuân Hương mượn hình ảnh bánh trôi nói về thân phận người phụ nữ", "en": "Hồ Xuân Hương's poem uses rice balls as metaphor for women's fate" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Miền Bắc làm bánh trôi bánh chay truyền thống, cúng tổ tiên rất cẩn thận. Nhiều gia đình đi tảo mộ trong dịp này.",
+          "en": "Northern Vietnam makes traditional rice balls, carefully worshipping ancestors. Many families tend graves during this time."
+        },
+        "central": {
+          "vi": "Miền Trung có bánh ít, bánh in bên cạnh bánh trôi. Tết Hàn Thực kết hợp với tiết Thanh Minh.",
+          "en": "Central Vietnam has bánh ít, bánh in alongside rice balls. Cold Food Festival combines with Thanh Minh."
+        },
+        "south": {
+          "vi": "Miền Nam ít chú trọng Tết Hàn Thực, thường kết hợp với Tết Thanh Minh để đi tảo mộ.",
+          "en": "Southern Vietnam places less emphasis on Cold Food Festival, usually combining with Thanh Minh for grave visits."
+        }
+      }
+    },
+    {
+      "id": "tet-thanh-minh",
+      "lunarDay": 0,
+      "lunarMonth": 0,
+      "isSolar": true,
+      "solarDay": 5,
+      "solarMonth": 4,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Tết Thanh Minh", "Tiết Thanh Minh"],
+        "en": ["Tomb Sweeping Day", "Pure Brightness Festival"]
+      },
+      "origin": {
+        "vi": "Thanh Minh là một trong 24 tiết khí, rơi vào khoảng 4-5 tháng 4 dương lịch. Đây là thời điểm tiết trời trong sáng, ấm áp sau mùa đông. Từ xa xưa, người Việt đã có tục \"tảo mộ\" - dọn dẹp, sửa sang phần mộ tổ tiên vào dịp này. Đây không chỉ là bổn phận với người đã khuất mà còn là dịp để con cháu tề tựu, nhắc nhở nhau về nguồn cội và truyền thống gia đình.",
+        "en": "Thanh Minh is one of the 24 solar terms, falling around April 4-5. This is when weather becomes clear and warm after winter. Since ancient times, Vietnamese have the custom of \"tảo mộ\" - cleaning and tending ancestral graves during this period. This is not only a duty to the deceased but also an occasion for descendants to gather and remind each other of their roots and family traditions."
+      },
+      "activities": {
+        "vi": [
+          "Tảo mộ - dọn cỏ, sửa sang phần mộ",
+          "Đắp thêm đất, sơn lại mộ bia",
+          "Đặt hoa, thắp hương tại mộ",
+          "Cúng lễ tại nhà thờ họ",
+          "Sum họp đại gia đình"
+        ],
+        "en": [
+          "Tomb sweeping - clearing weeds, repairing graves",
+          "Adding soil, repainting headstones",
+          "Placing flowers and incense at graves",
+          "Worship at ancestral halls",
+          "Extended family reunions"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Mâm cúng đơn giản", "en": "Simple offering tray" },
+          "description": { "vi": "Hoa quả, bánh kẹo, rượu, hương - mang ra mộ cúng", "en": "Fruits, sweets, wine, incense - brought to graves for offering" }
+        },
+        {
+          "name": { "vi": "Xôi, gà", "en": "Sticky rice and chicken" },
+          "description": { "vi": "Món cúng phổ biến nếu làm lễ lớn", "en": "Common offering for major ceremonies" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Chụp ảnh selfie tại mộ", "en": "Taking selfies at graves" },
+          "reason": { "vi": "Thiếu tôn trọng người đã khuất", "en": "Disrespectful to the deceased" }
+        },
+        {
+          "action": { "vi": "Cười đùa ồn ào tại nghĩa trang", "en": "Laughing loudly at cemetery" },
+          "reason": { "vi": "Nơi yên nghỉ cần sự trang nghiêm", "en": "Resting place requires solemnity" }
+        },
+        {
+          "action": { "vi": "Dẫm lên mộ người khác", "en": "Stepping on others' graves" },
+          "reason": { "vi": "Bất kính với người đã khuất và gia đình họ", "en": "Disrespectful to deceased and their families" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Thanh minh trong tiết tháng ba, lễ là tảo mộ hội là đạp thanh",
+          "meaning": { "vi": "Câu thơ trong Truyện Kiều mô tả phong tục Thanh Minh", "en": "Verse from Tale of Kiều describing Thanh Minh customs" }
+        },
+        {
+          "text": "Sống cái nhà, già cái mồ",
+          "meaning": { "vi": "Sống lo nhà ở, lớn tuổi lo phần mộ", "en": "When alive care for home, when old care for grave" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Miền Bắc tảo mộ tập trung, cả dòng họ cùng đi. Thường kết hợp với giỗ họ, ăn uống tại nhà thờ họ.",
+          "en": "Northern Vietnam does collective tomb sweeping, whole clans going together. Often combined with clan anniversary feast at ancestral hall."
+        },
+        "central": {
+          "vi": "Miền Trung có nhiều lăng mộ hoàng gia ở Huế, việc tảo mộ mang tính nghi lễ cao.",
+          "en": "Central Vietnam has many royal tombs in Huế, tomb sweeping carries high ceremonial significance."
+        },
+        "south": {
+          "vi": "Miền Nam tảo mộ linh hoạt hơn, có thể làm trước hoặc sau tiết Thanh Minh. Nghĩa trang thường rộng, hiện đại.",
+          "en": "Southern Vietnam is more flexible with timing, can be before or after Thanh Minh. Cemeteries are usually spacious and modern."
+        }
+      }
+    },
+    {
+      "id": "phat-dan",
+      "lunarDay": 15,
+      "lunarMonth": 4,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Lễ Phật Đản", "Rằm tháng Tư", "Vesak"],
+        "en": ["Buddha's Birthday", "Vesak Day", "Buddha Day"]
+      },
+      "origin": {
+        "vi": "Lễ Phật Đản kỷ niệm ngày Đức Phật Thích Ca Mâu Ni đản sinh, theo truyền thống là vào ngày rằm tháng Tư âm lịch (năm 624 TCN tại vườn Lâm Tỳ Ni, Nepal). Đây là một trong ba ngày lễ lớn nhất của Phật giáo (cùng với ngày Phật thành đạo và nhập Niết Bàn). Tại Việt Nam, Phật giáo du nhập từ rất sớm và trở thành một phần quan trọng của đời sống tinh thần người Việt.",
+        "en": "Buddha's Birthday commemorates the birth of Siddhartha Gautama, traditionally on the 15th of the 4th lunar month (624 BCE in Lumbini Garden, Nepal). This is one of Buddhism's three greatest holidays (alongside Enlightenment and Nirvana days). In Vietnam, Buddhism arrived early and became an important part of Vietnamese spiritual life."
+      },
+      "activities": {
+        "vi": [
+          "Đi chùa lễ Phật, nghe giảng pháp",
+          "Làm lễ tắm Phật (dội nước thơm lên tượng Phật sơ sinh)",
+          "Phóng sinh chim, cá",
+          "Ăn chay, làm việc thiện",
+          "Cúng dường Tam Bảo",
+          "Tham gia diễu hành xe hoa (một số nơi)"
+        ],
+        "en": [
+          "Visit temples, attend dharma talks",
+          "Buddha bathing ceremony (pouring scented water on baby Buddha statue)",
+          "Release birds and fish",
+          "Eat vegetarian, do charity",
+          "Offer to Three Jewels",
+          "Join float parades (in some areas)"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Cơm chay", "en": "Vegetarian rice meal" },
+          "description": { "vi": "Các món từ đậu hũ, rau củ, nấm - không sát sinh", "en": "Dishes from tofu, vegetables, mushrooms - no killing" }
+        },
+        {
+          "name": { "vi": "Chè sen", "en": "Lotus seed sweet soup" },
+          "description": { "vi": "Hạt sen nấu đường, thanh mát và có ý nghĩa Phật giáo (hoa sen)", "en": "Lotus seeds in sugar syrup, refreshing with Buddhist meaning (lotus flower)" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Sát sinh", "en": "Killing animals" },
+          "reason": { "vi": "Ngày kỷ niệm Đức Phật, cần tu tập giới không sát sinh", "en": "Buddha's commemoration day, practice non-killing precept" }
+        },
+        {
+          "action": { "vi": "Ăn mặn", "en": "Eating meat" },
+          "reason": { "vi": "Nên ăn chay để thanh tịnh thân tâm", "en": "Should eat vegetarian to purify body and mind" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Phật tại tâm",
+          "meaning": { "vi": "Phật ở trong lòng mỗi người, tu tâm là tu Phật", "en": "Buddha is in everyone's heart, cultivating mind is cultivating Buddha" }
+        },
+        {
+          "text": "Tu nhân tích đức",
+          "meaning": { "vi": "Làm điều tốt để tích lũy phước đức", "en": "Do good to accumulate merit and virtue" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Các chùa lớn như Trấn Quốc, Quán Sứ tổ chức lễ lớn. Tăng ni và Phật tử tập trung đông đúc.",
+          "en": "Major temples like Trấn Quốc, Quán Sứ hold grand ceremonies. Monks, nuns and devotees gather in large numbers."
+        },
+        "central": {
+          "vi": "Huế là trung tâm Phật giáo lớn, lễ Phật Đản rất long trọng với diễu hành xe hoa.",
+          "en": "Huế is a major Buddhist center, Buddha's Birthday is very solemn with float parades."
+        },
+        "south": {
+          "vi": "Nhiều chùa lớn ở TP.HCM, Bình Dương tổ chức lễ tắm Phật và phát quà từ thiện.",
+          "en": "Many large temples in HCMC, Bình Dương organize Buddha bathing and charity distribution."
+        }
+      }
+    },
+    {
+      "id": "tet-doan-ngo",
+      "lunarDay": 5,
+      "lunarMonth": 5,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Tết Đoan Ngọ", "Tết giết sâu bọ", "Tết Đoan Dương"],
+        "en": ["Dragon Boat Festival", "Double Fifth Festival", "Pesticide Day"]
+      },
+      "origin": {
+        "vi": "Tết Đoan Ngọ diễn ra vào ngày 5 tháng 5 âm lịch - thời điểm mùa hè nóng nhất, sâu bọ sinh sôi nhiều. Người Việt tin rằng ăn thức ăn đặc biệt vào buổi sáng ngày này sẽ diệt được sâu bọ trong người. Tết này cũng gắn với truyền thuyết Khuất Nguyên (Trung Quốc) nhưng ở Việt Nam thiên về ý nghĩa sức khỏe và nông nghiệp. Đây còn là ngày \"nước độc\" theo quan niệm dân gian.",
+        "en": "Tết Đoan Ngọ occurs on the 5th of the 5th lunar month - the hottest summer period when insects thrive. Vietnamese believe eating special foods on this morning kills parasites in the body. This festival is also linked to the Qu Yuan legend (China) but in Vietnam focuses on health and agriculture. It's also called \"poisonous water day\" in folk belief."
+      },
+      "activities": {
+        "vi": [
+          "Ăn rượu nếp, trái cây chua buổi sáng sớm",
+          "Hái lá thuốc (ngải cứu, lá mùi, hương nhu)",
+          "Tắm nước lá thơm",
+          "Nhuộm móng tay móng chân bằng lá móng",
+          "Đốt vía, xông nhà trừ tà",
+          "Khảo cây (đập gốc cây ăn quả để cây sai trái)"
+        ],
+        "en": [
+          "Eat fermented rice and sour fruits early morning",
+          "Pick medicinal leaves (mugwort, herbs)",
+          "Bathe in aromatic leaf water",
+          "Dye nails with henna leaves",
+          "Burn incense, fumigate house to dispel evil",
+          "Hit fruit tree trunks for better yield"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Rượu nếp", "en": "Fermented sticky rice" },
+          "description": { "vi": "Cơm nếp lên men, ăn sáng sớm để \"giết sâu bọ\"", "en": "Fermented sticky rice, eaten early morning to \"kill parasites\"" }
+        },
+        {
+          "name": { "vi": "Bánh ú tro", "en": "Ash rice cake" },
+          "description": { "vi": "Bánh nếp gói lá, ngâm nước tro, ăn với mật", "en": "Sticky rice cake in leaves, soaked in ash water, eaten with molasses" }
+        },
+        {
+          "name": { "vi": "Trái cây chua", "en": "Sour fruits" },
+          "description": { "vi": "Mận, xoài xanh, khế - vị chua được cho là diệt sâu", "en": "Plums, green mango, starfruit - sour taste believed to kill worms" }
+        },
+        {
+          "name": { "vi": "Chè trôi nước", "en": "Rice ball sweet soup" },
+          "description": { "vi": "Ăn kèm với rượu nếp ở một số vùng", "en": "Eaten with fermented rice in some regions" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Tắm sông, ao hồ", "en": "Swimming in rivers, ponds" },
+          "reason": { "vi": "Ngày \"nước độc\", dễ bị tai nạn đuối nước", "en": "\"Poisonous water day\", easy to drown" }
+        },
+        {
+          "action": { "vi": "Để trẻ em chơi gần nước", "en": "Letting children play near water" },
+          "reason": { "vi": "Quan niệm ngày này có ma nước hay bắt người", "en": "Belief that water spirits catch people on this day" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Mồng năm tháng năm ăn rượu nếp, giết sâu bọ",
+          "meaning": { "vi": "Câu nói dân gian về tục ăn rượu nếp diệt sâu bọ", "en": "Folk saying about eating fermented rice to kill parasites" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Ăn rượu nếp cẩm, bánh gio. Có tục khảo cây ăn quả. Hái lá ngải cứu phơi khô làm thuốc.",
+          "en": "Eat purple fermented rice, ash cakes. Custom of hitting fruit trees. Pick mugwort to dry for medicine."
+        },
+        "central": {
+          "vi": "Ăn thịt vịt vì vịt mát, giải nhiệt mùa hè. Bánh tráng, chè đậu cũng phổ biến.",
+          "en": "Eat duck meat as it's cooling for summer heat. Rice paper, bean soup also popular."
+        },
+        "south": {
+          "vi": "Ăn chè trôi nước, bánh ú. Đặc sản vịt nấu chao. Không chú trọng tục \"giết sâu bọ\" như miền Bắc.",
+          "en": "Eat rice ball soup, ash cakes. Duck with fermented tofu specialty. Less emphasis on \"killing parasites\" than North."
+        }
+      }
+    },
+    {
+      "id": "vu-lan",
+      "lunarDay": 15,
+      "lunarMonth": 7,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Lễ Vu Lan", "Rằm tháng Bảy", "Lễ Xá Tội Vong Nhân"],
+        "en": ["Vu Lan Festival", "Ghost Festival", "Parents' Day"]
+      },
+      "origin": {
+        "vi": "Lễ Vu Lan bắt nguồn từ kinh Vu Lan Bồn, kể về Mục Kiền Liên cứu mẹ khỏi địa ngục. Ngày này mang hai ý nghĩa: báo hiếu cha mẹ (Vu Lan) và xá tội vong nhân (tháng 7 cô hồn). Theo quan niệm dân gian, tháng 7 âm lịch là tháng cửa ngục mở, các vong hồn được trở về dương gian. Đây là dịp con cái bày tỏ lòng biết ơn với cha mẹ và cầu siêu cho người đã khuất.",
+        "en": "Vu Lan originates from the Ullambana Sutra, telling of Mục Kiền Liên saving his mother from hell. This day has dual meaning: filial piety to parents (Vu Lan) and pardoning wandering souls (Ghost Month). In folk belief, the 7th lunar month is when hell gates open and spirits return to earth. This occasion is for children to express gratitude to parents and pray for the deceased."
+      },
+      "activities": {
+        "vi": [
+          "Đi chùa cầu siêu cho cha mẹ, tổ tiên",
+          "Cài bông hồng (đỏ nếu còn mẹ, trắng nếu mẹ mất)",
+          "Cúng cô hồn với cháo loãng, gạo muối",
+          "Thả đèn hoa đăng",
+          "Phóng sinh chim, cá",
+          "Làm từ thiện, phát quà cho người nghèo"
+        ],
+        "en": [
+          "Visit temples to pray for parents and ancestors",
+          "Pin rose (red if mother alive, white if passed)",
+          "Offer to wandering souls with rice porridge, salt",
+          "Release floating lanterns",
+          "Release birds and fish",
+          "Do charity, give gifts to the poor"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Cháo loãng", "en": "Thin rice porridge" },
+          "description": { "vi": "Cúng cô hồn vì họ không ăn được đồ đặc", "en": "Offered to wandering ghosts who cannot eat solid food" }
+        },
+        {
+          "name": { "vi": "Gạo muối", "en": "Rice and salt" },
+          "description": { "vi": "Rắc ngoài đường cho cô hồn", "en": "Scattered on roads for wandering spirits" }
+        },
+        {
+          "name": { "vi": "Mâm cỗ chay", "en": "Vegetarian feast" },
+          "description": { "vi": "Cúng Phật và tổ tiên", "en": "Offered to Buddha and ancestors" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Đi chơi đêm khuya", "en": "Going out late at night" },
+          "reason": { "vi": "Tháng cô hồn, dễ gặp \"điều không tốt\"", "en": "Ghost month, may encounter \"bad things\"" }
+        },
+        {
+          "action": { "vi": "Bơi lội, tắm sông", "en": "Swimming in rivers" },
+          "reason": { "vi": "Sợ bị ma nước kéo", "en": "Fear of water ghosts pulling down" }
+        },
+        {
+          "action": { "vi": "Khởi sự việc lớn (cưới hỏi, xây nhà)", "en": "Starting major events (wedding, building)" },
+          "reason": { "vi": "Tháng không may mắn theo quan niệm dân gian", "en": "Unlucky month according to folk belief" }
+        },
+        {
+          "action": { "vi": "Nhặt đồ rơi trên đường", "en": "Picking up dropped items on road" },
+          "reason": { "vi": "Có thể là đồ cúng cô hồn", "en": "May be offerings for ghosts" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Tháng Bảy ngày Rằm xá tội vong nhân",
+          "meaning": { "vi": "Ngày tha tội cho các linh hồn lang thang", "en": "Day of pardoning wandering souls" }
+        },
+        {
+          "text": "Ai còn mẹ xin đừng làm mẹ khóc",
+          "meaning": { "vi": "Câu hát Vu Lan nhắc nhở hiếu thảo với mẹ", "en": "Vu Lan song reminding filial piety to mother" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Các chùa tổ chức đại lễ cầu siêu lớn. Tục cúng cô hồn rất được chú trọng.",
+          "en": "Temples hold grand prayer ceremonies. Ghost offerings are emphasized."
+        },
+        "central": {
+          "vi": "Huế có truyền thống cài bông hồng đậm nét. Thả đèn hoa đăng trên sông Hương.",
+          "en": "Huế has strong rose-pinning tradition. Floating lanterns on Perfume River."
+        },
+        "south": {
+          "vi": "Phong trào cài bông hồng và làm từ thiện rất mạnh. Nhiều chương trình tri ân cha mẹ.",
+          "en": "Strong rose-pinning and charity movements. Many parent appreciation programs."
+        }
+      }
+    },
+    {
+      "id": "tet-trung-thu",
+      "lunarDay": 15,
+      "lunarMonth": 8,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Tết Trung Thu", "Tết Thiếu Nhi", "Tết Đoàn Viên"],
+        "en": ["Mid-Autumn Festival", "Children's Festival", "Moon Festival"]
+      },
+      "origin": {
+        "vi": "Tết Trung Thu có từ thời Đường (Trung Quốc) và du nhập Việt Nam, dần mang đậm bản sắc Việt. Ban đầu là lễ hội nông nghiệp cầu mùa màng, sau thành tết đoàn viên gia đình dưới trăng rằm. Ở Việt Nam, Trung Thu đặc biệt là tết của trẻ em với đèn lồng, múa lân và phá cỗ. Theo truyền thuyết, có chú Cuội ngồi gốc cây đa trên cung trăng và chị Hằng Nga xinh đẹp.",
+        "en": "Mid-Autumn Festival originated in Tang Dynasty China and came to Vietnam, gradually taking on Vietnamese character. Initially an agricultural harvest festival, it became a family reunion under the full moon. In Vietnam, it's especially a children's festival with lanterns, lion dances and moon-gazing feasts. Legend tells of Cuội sitting by a banyan tree on the moon and the beautiful goddess Hằng Nga."
+      },
+      "activities": {
+        "vi": [
+          "Rước đèn ông sao, đèn cá chép, đèn lồng",
+          "Múa lân (sư tử) trống chiêng",
+          "Phá cỗ trông trăng",
+          "Bày mâm cỗ Trung Thu với bánh, trái cây",
+          "Hát bài \"Rước đèn tháng Tám\"",
+          "Kể chuyện chú Cuội, chị Hằng"
+        ],
+        "en": [
+          "Parade with star lanterns, carp lanterns",
+          "Lion dance with drums and cymbals",
+          "Moon-gazing feast",
+          "Display Mid-Autumn tray with cakes and fruits",
+          "Sing \"August Lantern Parade\" song",
+          "Tell stories of Cuội and Hằng Nga"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Bánh trung thu", "en": "Mooncake" },
+          "description": { "vi": "Bánh nướng, bánh dẻo với nhân đậu xanh, thập cẩm, trứng muối", "en": "Baked or soft cake with mung bean, mixed nuts, salted egg filling" }
+        },
+        {
+          "name": { "vi": "Bưởi", "en": "Pomelo" },
+          "description": { "vi": "Trái cây không thể thiếu, vỏ làm đèn, múi để ăn", "en": "Essential fruit, peel makes lantern, segments to eat" }
+        },
+        {
+          "name": { "vi": "Hồng, na, ổi", "en": "Persimmon, custard apple, guava" },
+          "description": { "vi": "Các loại trái cây thu hoạch mùa thu", "en": "Autumn harvest fruits" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Để trẻ chơi lửa với đèn cầy", "en": "Letting children play with candle lanterns unsafely" },
+          "reason": { "vi": "Nguy hiểm, dễ gây hỏa hoạn", "en": "Dangerous, may cause fires" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Tết Trung Thu rước đèn đi chơi",
+          "meaning": { "vi": "Bài hát quen thuộc của trẻ em Việt Nam mỗi dịp Trung Thu", "en": "Familiar children's song every Mid-Autumn" }
+        },
+        {
+          "text": "Trông trăng phá cỗ, trông trăng lên cao",
+          "meaning": { "vi": "Tục ngắm trăng rằm sáng nhất trong năm", "en": "Custom of watching the brightest full moon of the year" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Phố Hàng Mã tràn ngập đồ chơi, đèn lồng. Trẻ em rước đèn ông sao truyền thống. Bánh nướng, bánh dẻo kiểu Bắc.",
+          "en": "Hàng Mã street overflows with toys and lanterns. Children parade with traditional star lanterns. Northern-style baked and soft mooncakes."
+        },
+        "central": {
+          "vi": "Huế có đèn lồng Hội An nổi tiếng. Múa lân truyền thống đặc sắc. Bánh in Huế là đặc sản.",
+          "en": "Huế has famous Hội An lanterns. Distinctive traditional lion dances. Huế-style printed cakes are specialty."
+        },
+        "south": {
+          "vi": "Múa lân sôi động, quy mô lớn hơn. Đường phố trang trí hoành tráng. Bánh trung thu nhân thập cẩm phổ biến.",
+          "en": "More vibrant, larger-scale lion dances. Streets decorated grandly. Mixed-filling mooncakes popular."
+        }
+      }
+    },
+    {
+      "id": "tet-trung-cuu",
+      "lunarDay": 9,
+      "lunarMonth": 9,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Tết Trùng Cửu", "Tết Trùng Dương"],
+        "en": ["Double Ninth Festival", "Chongyang Festival"]
+      },
+      "origin": {
+        "vi": "Tết Trùng Cửu diễn ra vào ngày 9 tháng 9 âm lịch - hai số 9 trùng nhau (cửu trùng). Số 9 là số dương cực đại trong Kinh Dịch, ngày này mang ý nghĩa may mắn và trường thọ. Theo tích xưa, người ta leo núi, uống rượu cúc hoa để tránh tai họa và cầu sức khỏe. Đây cũng là dịp tôn kính người cao tuổi.",
+        "en": "Double Ninth occurs on the 9th of the 9th lunar month - two nines coinciding. Number 9 is the maximum yang number in I Ching, making this day symbolize luck and longevity. According to legend, people climb mountains and drink chrysanthemum wine to avoid disaster and pray for health. This is also an occasion to honor the elderly."
+      },
+      "activities": {
+        "vi": [
+          "Leo núi, dã ngoại",
+          "Uống trà/rượu hoa cúc",
+          "Ăn bánh cao (bánh 9 tầng)",
+          "Thăm hỏi, tặng quà người cao tuổi",
+          "Thưởng hoa cúc"
+        ],
+        "en": [
+          "Mountain climbing, picnicking",
+          "Drink chrysanthemum tea/wine",
+          "Eat tall cakes (9-layer cakes)",
+          "Visit and gift the elderly",
+          "Appreciate chrysanthemum flowers"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Rượu hoa cúc", "en": "Chrysanthemum wine" },
+          "description": { "vi": "Rượu ngâm hoa cúc, có tác dụng thanh nhiệt, sáng mắt", "en": "Wine infused with chrysanthemum, clears heat, brightens eyes" }
+        },
+        {
+          "name": { "vi": "Bánh cao", "en": "High cake" },
+          "description": { "vi": "Bánh nhiều tầng, \"cao\" đồng âm với \"cao\" (cao quý, thăng tiến)", "en": "Multi-layered cake, \"high\" sounds like \"elevated\" (noble, promotion)" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Bỏ mặc người cao tuổi", "en": "Neglecting the elderly" },
+          "reason": { "vi": "Ngày tôn kính người già, cần quan tâm thăm hỏi", "en": "Day to honor elderly, should show care and respect" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Cửu cửu trường cửu",
+          "meaning": { "vi": "Hai số 9 tượng trưng cho sự trường thọ, bền vững", "en": "Double nine symbolizes longevity and permanence" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Ít được chú trọng hơn các tết khác, chủ yếu ở thành thị có người gốc Hoa.",
+          "en": "Less emphasized than other festivals, mainly in urban areas with Chinese descent."
+        },
+        "central": {
+          "vi": "Một số vùng có tục thăm hỏi người cao tuổi trong dịp này.",
+          "en": "Some areas have customs of visiting elderly during this time."
+        },
+        "south": {
+          "vi": "Cộng đồng người Hoa ở Chợ Lớn giữ gìn tết này khá đầy đủ.",
+          "en": "Chinese community in Chợ Lớn preserves this festival quite fully."
+        }
+      }
+    },
+    {
+      "id": "tet-ha-nguyen",
+      "lunarDay": 15,
+      "lunarMonth": 10,
+      "yearOffset": 0,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Tết Hạ Nguyên", "Rằm tháng Mười", "Tết cơm mới"],
+        "en": ["Lower Primordial Festival", "Tenth Month Full Moon"]
+      },
+      "origin": {
+        "vi": "Tết Hạ Nguyên là một trong ba tết Nguyên (Thượng Nguyên 15/1, Trung Nguyên 15/7, Hạ Nguyên 15/10). Theo Đạo giáo, đây là ngày vị thần Thủy Quan giáng trần để xá tội cho người sống. Ở Việt Nam, ngày này còn gắn với mùa gặt lúa mới, nên còn gọi là Tết Cơm Mới - dịp dâng cơm gạo mới lên tổ tiên để tạ ơn mùa màng.",
+        "en": "Lower Primordial is one of three Primordial festivals (Upper 15/1, Middle 15/7, Lower 15/10). In Taoism, this is when the Water Official descends to pardon the living. In Vietnam, this day aligns with new rice harvest, hence called New Rice Festival - offering new rice to ancestors in gratitude for the harvest."
+      },
+      "activities": {
+        "vi": [
+          "Cúng cơm gạo mới cho tổ tiên",
+          "Nấu xôi, chè từ gạo nếp mới",
+          "Đi chùa cầu bình an",
+          "Dâng lễ vật tạ ơn thần linh, trời đất"
+        ],
+        "en": [
+          "Offer new rice to ancestors",
+          "Cook sticky rice, sweet soup from new glutinous rice",
+          "Visit temples for blessings",
+          "Present offerings to thank spirits and heaven-earth"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Cơm gạo mới", "en": "New rice" },
+          "description": { "vi": "Gạo vừa thu hoạch, thơm và dẻo", "en": "Freshly harvested rice, fragrant and sticky" }
+        },
+        {
+          "name": { "vi": "Xôi nếp mới", "en": "New glutinous rice" },
+          "description": { "vi": "Xôi từ nếp mới gặt, cúng tổ tiên", "en": "Sticky rice from new harvest, offered to ancestors" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Quên cúng tổ tiên", "en": "Forgetting to worship ancestors" },
+          "reason": { "vi": "Ngày quan trọng để tạ ơn mùa màng", "en": "Important day to give thanks for harvest" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Mùng một lễ cha, mùng hai lễ mẹ, mùng ba lễ thầy",
+          "meaning": { "vi": "(Tương tự Tết) - nhắc nhở về đạo hiếu và tôn sư", "en": "(Similar to Tết) - reminder of filial piety and respecting teachers" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Các vùng trồng lúa tổ chức lễ cơm mới khá trang trọng. Một số nơi có hội làng.",
+          "en": "Rice-growing regions hold new rice ceremonies solemnly. Some places have village festivals."
+        },
+        "central": {
+          "vi": "Kết hợp với cúng rằm tháng Mười, dâng cơm mới lên bàn thờ.",
+          "en": "Combined with 10th month full moon worship, offering new rice on altars."
+        },
+        "south": {
+          "vi": "Ít được chú trọng riêng, thường kết hợp với cúng rằm hàng tháng.",
+          "en": "Less emphasized separately, usually combined with monthly full moon worship."
+        }
+      }
+    },
+    {
+      "id": "ong-tao",
+      "lunarDay": 23,
+      "lunarMonth": 12,
+      "yearOffset": -1,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Ông Táo chầu trời", "Tết ông Công ông Táo", "Tiễn Táo Quân"],
+        "en": ["Kitchen Gods Day", "Farewell to Kitchen Gods"]
+      },
+      "origin": {
+        "vi": "Theo tín ngưỡng Việt Nam, Táo Quân (gồm hai ông và một bà) là vị thần cai quản bếp núc, theo dõi việc thiện ác của gia đình. Vào ngày 23 tháng Chạp, Táo Quân cưỡi cá chép bay về trời để báo cáo với Ngọc Hoàng về việc làm của gia chủ trong năm. Đến đêm Giao thừa, Táo Quân trở lại. Đây là dịp gia đình dọn dẹp bếp núc, cúng tiễn Táo Quân với lễ vật trang trọng.",
+        "en": "In Vietnamese belief, the Kitchen Gods (two men and one woman) are deities overseeing the kitchen, monitoring the family's good and bad deeds. On the 23rd of the 12th month, they ride carp to heaven to report to the Jade Emperor about the household's conduct. They return on New Year's Eve. This is when families clean the kitchen and bid farewell to Kitchen Gods with solemn offerings."
+      },
+      "activities": {
+        "vi": [
+          "Cúng tiễn Táo Quân với mâm lễ",
+          "Thả cá chép (phương tiện cho Táo Quân về trời)",
+          "Dọn dẹp bếp núc, nhà cửa",
+          "Mua bộ mũ áo Táo Quân bằng giấy để đốt",
+          "Bắt đầu trang trí Tết"
+        ],
+        "en": [
+          "Bid farewell to Kitchen Gods with offerings",
+          "Release carp (vehicle for Kitchen Gods to heaven)",
+          "Clean kitchen and house",
+          "Buy paper Kitchen Gods attire to burn",
+          "Start decorating for Tết"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Cá chép sống", "en": "Live carp" },
+          "description": { "vi": "Thả xuống sông sau khi cúng, để Táo Quân cưỡi về trời", "en": "Released into river after offering, for Kitchen Gods to ride to heaven" }
+        },
+        {
+          "name": { "vi": "Mâm cỗ mặn", "en": "Meat offering tray" },
+          "description": { "vi": "Gà luộc, xôi, trái cây, rượu - lễ vật tiễn Táo Quân", "en": "Boiled chicken, sticky rice, fruits, wine - farewell offerings" }
+        },
+        {
+          "name": { "vi": "Kẹo mạch nha", "en": "Malt candy" },
+          "description": { "vi": "Kẹo dính để Táo Quân \"ngọt miệng\" khi báo cáo, nói toàn điều tốt", "en": "Sticky candy so Kitchen Gods speak sweetly, report only good things" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Nói xấu, cãi nhau trong bếp", "en": "Speaking ill or arguing in kitchen" },
+          "reason": { "vi": "Táo Quân nghe thấy và sẽ báo cáo", "en": "Kitchen Gods hear and will report" }
+        },
+        {
+          "action": { "vi": "Để bếp bẩn", "en": "Leaving kitchen dirty" },
+          "reason": { "vi": "Thiếu tôn trọng Táo Quân", "en": "Disrespectful to Kitchen Gods" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Cá chép vượt vũ môn hóa rồng",
+          "meaning": { "vi": "Cá chép là biểu tượng thăng tiến, thành công", "en": "Carp symbolizes advancement and success" }
+        },
+        {
+          "text": "Hai ba tháng Chạp, Táo Quân chầu trời",
+          "meaning": { "vi": "Câu nói nhắc ngày tiễn Táo Quân", "en": "Saying reminding of Kitchen Gods' departure day" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Cúng cá chép sống rồi thả ra sông, ao. Đốt mũ áo Táo Quân bằng giấy. Ngày này bắt đầu không khí Tết.",
+          "en": "Offer live carp then release to rivers. Burn paper Kitchen Gods attire. This day starts Tết atmosphere."
+        },
+        "central": {
+          "vi": "Cúng tương tự miền Bắc nhưng ít phóng sinh cá hơn.",
+          "en": "Similar offerings to North but less fish releasing."
+        },
+        "south": {
+          "vi": "Cúng cá chép giấy hoặc cá thật, nhưng việc thả cá ít phổ biến hơn. Cúng đơn giản hơn miền Bắc.",
+          "en": "Offer paper or real carp, but releasing is less common. Simpler offerings than North."
+        }
+      }
+    },
+    {
+      "id": "giao-thua",
+      "lunarDay": 30,
+      "lunarMonth": 12,
+      "yearOffset": -1,
+      "category": "festival",
+      "isMajor": true,
+      "names": {
+        "vi": ["Giao Thừa", "Đêm 30 Tết", "Đêm Trừ Tịch"],
+        "en": ["New Year's Eve", "Lunar New Year's Eve"]
+      },
+      "origin": {
+        "vi": "Giao Thừa là thời khắc thiêng liêng nhất trong năm, đánh dấu sự chuyển giao giữa năm cũ và năm mới. \"Giao\" là chuyển giao, \"Thừa\" là tiếp nhận. Theo quan niệm, đây là lúc trời đất giao hòa, các vị thần cũ bàn giao cho thần mới. Gia đình quây quần bên nhau, cúng gia tiên và đón chờ khoảnh khắc năm mới trong tiếng pháo hoa và lời chúc phúc.",
+        "en": "Giao Thừa is the most sacred moment of the year, marking the transition between old and new year. \"Giao\" means transfer, \"Thừa\" means receive. In belief, this is when heaven and earth harmonize, old gods hand over to new ones. Families gather together, worship ancestors and await the new year moment amid fireworks and blessings."
+      },
+      "activities": {
+        "vi": [
+          "Cúng Giao Thừa ngoài trời (cúng Thiên Địa)",
+          "Cúng Giao Thừa trong nhà (cúng gia tiên)",
+          "Đón giao thừa với gia đình",
+          "Xem bắn pháo hoa",
+          "Hái lộc, xông đất sau giao thừa",
+          "Chúc Tết nhau những lời hay"
+        ],
+        "en": [
+          "Outdoor offering (to Heaven and Earth)",
+          "Indoor offering (to ancestors)",
+          "Welcome New Year with family",
+          "Watch fireworks",
+          "Pick lucky branches, first-footing after midnight",
+          "Exchange New Year wishes"
+        ]
+      },
+      "food": [
+        {
+          "name": { "vi": "Mâm cỗ Giao Thừa", "en": "New Year's Eve feast" },
+          "description": { "vi": "Mâm cỗ đầy đủ nhất trong năm với bánh chưng, gà, xôi, giò", "en": "Most complete feast of the year with Tết cake, chicken, sticky rice, sausage" }
+        },
+        {
+          "name": { "vi": "Mâm ngũ quả", "en": "Five-fruit tray" },
+          "description": { "vi": "Năm loại trái cây tượng trưng ngũ hành, bày trên bàn thờ", "en": "Five fruits symbolizing five elements, displayed on altar" }
+        }
+      ],
+      "taboos": [
+        {
+          "action": { "vi": "Khóc lóc, buồn bã", "en": "Crying, being sad" },
+          "reason": { "vi": "Khoảnh khắc thiêng liêng cần vui vẻ, may mắn", "en": "Sacred moment should be joyful and lucky" }
+        },
+        {
+          "action": { "vi": "Nói lời không hay", "en": "Speaking ill words" },
+          "reason": { "vi": "Lời nói đầu năm ảnh hưởng cả năm", "en": "Words at year's start affect the whole year" }
+        },
+        {
+          "action": { "vi": "Để nhà tối, lửa tắt", "en": "Leaving house dark, fire out" },
+          "reason": { "vi": "Nhà cần sáng sủa, ấm áp đón năm mới", "en": "House should be bright and warm for new year" }
+        }
+      ],
+      "proverbs": [
+        {
+          "text": "Tối 30 tết, sáng mùng 1",
+          "meaning": { "vi": "Thời khắc chuyển giao năm cũ sang năm mới", "en": "Moment of transition from old to new year" }
+        },
+        {
+          "text": "Đêm 30 không ai ngủ, sáng mùng 1 không ai dậy",
+          "meaning": { "vi": "Đêm giao thừa thức đón năm mới, sáng nghỉ ngơi", "en": "Stay up on New Year's Eve, rest on New Year's morning" }
+        }
+      ],
+      "regions": {
+        "north": {
+          "vi": "Cúng giao thừa trang trọng ngoài sân. Sau giao thừa đi hái lộc chùa. Xem pháo hoa ở Hồ Hoàn Kiếm.",
+          "en": "Solemn outdoor offering in yard. Pick lucky branches at temples after midnight. Watch fireworks at Hoàn Kiếm Lake."
+        },
+        "central": {
+          "vi": "Huế có pháo hoa trên sông Hương. Cúng giao thừa kết hợp nghi lễ cung đình xưa.",
+          "en": "Huế has fireworks over Perfume River. Offerings combine with old royal court rituals."
+        },
+        "south": {
+          "vi": "Pháo hoa hoành tráng ở trung tâm TP.HCM. Không khí thoải mái, vui vẻ hơn. Đường phố đông đúc người đi chơi.",
+          "en": "Grand fireworks in HCMC center. More relaxed, cheerful atmosphere. Streets crowded with revelers."
+        }
+      }
+    }
+  ]
+}
