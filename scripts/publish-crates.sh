@@ -25,6 +25,15 @@ echo ""
 echo "⏳ Waiting for crates.io to index amlich-core..."
 sleep 30
 
+echo "→ Publishing amlich-api..."
+cd crates/amlich-api
+cargo publish
+cd "$ROOT_DIR"
+
+echo ""
+echo "⏳ Waiting for crates.io to index amlich-api..."
+sleep 30
+
 echo "→ Publishing amlich..."
 cd crates/amlich
 cargo publish
@@ -32,4 +41,4 @@ cd "$ROOT_DIR"
 
 echo ""
 echo "=== Publish Complete ==="
-echo "View at: https://crates.io/crates/amlich-core"
+echo "View at: https://crates.io/crates/amlich"
