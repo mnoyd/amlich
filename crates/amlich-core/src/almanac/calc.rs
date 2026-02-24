@@ -3,17 +3,13 @@ use crate::types::{CanChi, CHI, CON_GIAP};
 use super::data::baseline_data;
 use super::types::{
     DayConflict, DayElement, DayFortune, DayStar, DayStars, StarQuality, StarSystem,
-    TravelDirection,
 };
+use super::than_huong::get_than_huong;
 use super::truc::get_truc;
 use super::xung_hop::get_xung_hop;
 
 pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi, lunar_month: i32) -> DayFortune {
     let data = baseline_data();
-    let travel_rule = data
-        .travel_by_can
-        .get(&day_canchi.can)
-        .expect("travel rule by can should exist");
     let conflict_rule = data
         .conflict_by_chi
         .get(&day_canchi.chi)
@@ -53,12 +49,7 @@ pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi, lunar_month: i32) -> 
             ],
             sat_huong: conflict_rule.sat_huong.clone(),
         },
-        travel: TravelDirection {
-            xuat_hanh_huong: travel_rule.xuat_hanh_huong.clone(),
-            tai_than: travel_rule.tai_than.clone(),
-            hy_than: travel_rule.hy_than.clone(),
-            ky_than: travel_rule.ky_than.clone(),
-        },
+        travel: get_than_huong(&day_canchi.can),
         stars: DayStars {
             cat_tinh: conflict_rule.cat_tinh.clone(),
             sat_tinh: conflict_rule.sat_tinh.clone(),
