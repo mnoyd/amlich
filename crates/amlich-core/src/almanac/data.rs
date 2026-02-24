@@ -236,6 +236,26 @@ mod tests {
     use super::*;
 
     #[test]
+    fn rejects_invalid_method_tokens() {
+        assert!(!is_valid_method("BAD_METHOD"), "unknown token must be rejected");
+        assert!(!is_valid_method("NORTH"), "English direction must be rejected");
+        assert!(!is_valid_method(""), "empty string must be rejected");
+        assert!(is_valid_method("table-lookup"));
+        assert!(is_valid_method("bai-quyet"));
+        assert!(is_valid_method("jd-cycle"));
+    }
+
+    #[test]
+    fn rejects_invalid_direction_tokens() {
+        assert!(!is_valid_direction("NORTH"), "English direction must be rejected");
+        assert!(!is_valid_direction("North"), "mixed-case must be rejected");
+        assert!(!is_valid_direction(""), "empty string must be rejected");
+        assert!(is_valid_direction("Bắc"));
+        assert!(is_valid_direction("Đông Bắc"));
+        assert!(is_valid_direction("Tây Nam"));
+    }
+
+    #[test]
     fn source_metadata_fields_exist() {
         let data = baseline_data();
         assert!(
