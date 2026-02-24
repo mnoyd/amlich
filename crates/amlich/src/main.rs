@@ -1,7 +1,7 @@
 mod app;
 mod bookmark_store;
-mod date_jump;
 mod dashboard;
+mod date_jump;
 mod event;
 mod headless;
 mod history;

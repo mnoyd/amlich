@@ -280,4 +280,15 @@ mod tests {
 
         assert!(app.show_insight);
     }
+
+    #[test]
+    fn large_mode_tab_does_not_change_month_after_full_wiring() {
+        let mut app = test_app();
+        app.set_layout_mode(LayoutMode::Large);
+        let month = app.view_month;
+
+        handle_key(&mut app, KeyEvent::from(KeyCode::Tab));
+
+        assert_eq!(app.view_month, month);
+    }
 }

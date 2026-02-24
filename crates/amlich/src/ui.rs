@@ -169,8 +169,9 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         LayoutMode::Large => {
             // Full calendar (~35%) + spacious info panel (~65%)
             let (left, right) = large_split_percentages();
-            let cols = Layout::horizontal([Constraint::Percentage(left), Constraint::Percentage(right)])
-                .split(area);
+            let cols =
+                Layout::horizontal([Constraint::Percentage(left), Constraint::Percentage(right)])
+                    .split(area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
 

@@ -159,7 +159,10 @@ fn build_guidance_lines(insight: Option<&amlich_api::DayInsightDto>) -> Vec<Line
     lines
 }
 
-pub(crate) fn build_hours_lines(info: &amlich_api::DayInfoDto, max_items: usize) -> Vec<Line<'static>> {
+pub(crate) fn build_hours_lines(
+    info: &amlich_api::DayInfoDto,
+    max_items: usize,
+) -> Vec<Line<'static>> {
     let mut lines = Vec::new();
     let current_idx = current_hour_chi_index();
 
@@ -223,9 +226,11 @@ fn build_holiday_context_lines(
         ]));
     }
 
-    let Some(from) =
-        NaiveDate::from_ymd_opt(info.solar.year, info.solar.month as u32, info.solar.day as u32)
-    else {
+    let Some(from) = NaiveDate::from_ymd_opt(
+        info.solar.year,
+        info.solar.month as u32,
+        info.solar.day as u32,
+    ) else {
         if lines.is_empty() {
             lines.push(Line::from(Span::styled(
                 "Không có ngày lễ gần",
@@ -283,7 +288,11 @@ impl Widget for InfoPanel<'_> {
         let width = area.width;
 
         // Hero card
-        lines.push(Self::section_line("Tổng quan", width, self.is_card_focused(DashboardCard::Hero)));
+        lines.push(Self::section_line(
+            "Tổng quan",
+            width,
+            self.is_card_focused(DashboardCard::Hero),
+        ));
         lines.extend(build_hero_lines(info, insight));
         lines.push(Line::from(""));
 
@@ -323,9 +332,11 @@ impl Widget for InfoPanel<'_> {
             width,
             self.is_card_focused(DashboardCard::Preview),
         ));
-        if let Some(from) =
-            NaiveDate::from_ymd_opt(info.solar.year, info.solar.month as u32, info.solar.day as u32)
-        {
+        if let Some(from) = NaiveDate::from_ymd_opt(
+            info.solar.year,
+            info.solar.month as u32,
+            info.solar.day as u32,
+        ) {
             let rows = build_preview_rows(from, 3);
             lines.extend(build_preview_lines(&rows));
         } else {
@@ -335,7 +346,9 @@ impl Widget for InfoPanel<'_> {
             )));
         }
 
-        Paragraph::new(lines).wrap(Wrap { trim: false }).render(area, buf);
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: false })
+            .render(area, buf);
     }
 }
 
