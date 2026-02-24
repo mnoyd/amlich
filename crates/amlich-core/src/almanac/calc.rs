@@ -5,6 +5,7 @@ use super::types::{
     DayConflict, DayElement, DayFortune, DayStar, DayStars, StarQuality, StarSystem,
     TravelDirection,
 };
+use super::xung_hop::get_xung_hop;
 
 pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi) -> DayFortune {
     let data = baseline_data();
@@ -25,6 +26,11 @@ pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi) -> DayFortune {
         .iter()
         .position(|chi| *chi == conflict_rule.opposing_chi)
         .expect("opposing chi should exist");
+
+    let day_chi_idx = CHI
+        .iter()
+        .position(|chi| *chi == day_canchi.chi)
+        .expect("day chi should exist");
 
     let day_star_index = jd.rem_euclid(28) as usize;
     let day_star_rule = &data.nhi_thap_bat_tu[day_star_index];
@@ -63,6 +69,7 @@ pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi) -> DayFortune {
             }),
             star_system: Some(StarSystem::NhiThapBatTu),
         },
+        xung_hop: get_xung_hop(day_chi_idx),
     }
 }
 

@@ -61,6 +61,17 @@ pub struct DayStars {
     pub star_system: Option<StarSystem>,
 }
 
+/// Xung/hợp relationships for the day branch.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct XungHopResult {
+    /// Directly opposing branch (lục xung).
+    pub luc_xung: String,
+    /// Three-harmony triad (tam hợp).
+    pub tam_hop: Vec<String>,
+    /// Four-clash square (tứ hành xung).
+    pub tu_hanh_xung: Vec<String>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DayFortune {
     pub profile: String,
@@ -68,6 +79,7 @@ pub struct DayFortune {
     pub conflict: DayConflict,
     pub travel: TravelDirection,
     pub stars: DayStars,
+    pub xung_hop: XungHopResult,
 }
 
 #[cfg(test)]
@@ -119,6 +131,16 @@ mod tests {
                     quality: StarQuality::Cat,
                 }),
                 star_system: Some(StarSystem::NhiThapBatTu),
+            },
+            xung_hop: XungHopResult {
+                luc_xung: "Tuất".to_string(),
+                tam_hop: vec!["Dần".to_string(), "Ngọ".to_string(), "Tuất".to_string()],
+                tu_hanh_xung: vec![
+                    "Tý".to_string(),
+                    "Mão".to_string(),
+                    "Ngọ".to_string(),
+                    "Dậu".to_string(),
+                ],
             },
         };
 
