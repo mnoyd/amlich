@@ -99,6 +99,17 @@ impl<'a> InfoPanel<'a> {
                         .add_modifier(Modifier::BOLD),
                 ),
             ]));
+            lines.push(Line::from(vec![
+                Span::styled("Trực: ", Style::default().fg(theme::SECONDARY_FG)),
+                Span::styled(
+                    format!(
+                        "{} ({})",
+                        fortune.truc.name,
+                        Self::star_quality_label(&fortune.truc.quality)
+                    ),
+                    Style::default().fg(theme::PRIMARY_FG),
+                ),
+            ]));
         }
 
         lines.push(Line::from(""));
@@ -120,6 +131,20 @@ impl<'a> InfoPanel<'a> {
                 Span::styled(
                     fortune.conflict.tuoi_xung.join(", "),
                     Style::default().fg(theme::BAD_FG),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::styled("Lục xung: ", Style::default().fg(theme::SECONDARY_FG)),
+                Span::styled(
+                    fortune.xung_hop.luc_xung.clone(),
+                    Style::default().fg(theme::BAD_FG),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::styled("Tam hợp: ", Style::default().fg(theme::SECONDARY_FG)),
+                Span::styled(
+                    fortune.xung_hop.tam_hop.join(" · "),
+                    Style::default().fg(theme::GOOD_FG),
                 ),
             ]));
         }
@@ -297,8 +322,11 @@ mod tests {
             "Ngày:",
             "Tháng:",
             "Mệnh ngày:",
+            "Trực:",
             "Giờ tốt:",
             "Tuổi xung:",
+            "Lục xung:",
+            "Tam hợp:",
             "Xuất hành:",
             "Tài thần:",
             "Hỷ thần:",
