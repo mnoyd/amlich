@@ -37,8 +37,8 @@ impl Widget for BookmarksOverlay<'_> {
             .borders(Borders::ALL)
             .border_style(Style::default().fg(theme::ACCENT_FG))
             .title(Line::from(vec![Span::styled(
-                " 🔖 Bookmarks ",
-                theme::title_style(),
+                " Bookmarks ",
+                theme::section_style(),
             )]))
             .title_bottom(Line::from(" 1-9 jump │ Esc/B close ").alignment(Alignment::Center));
 
@@ -47,7 +47,7 @@ impl Widget for BookmarksOverlay<'_> {
         if self.app.bookmarks.is_empty() {
             lines.push(Line::from(vec![Span::styled(
                 "Empty",
-                Style::default().fg(theme::LABEL_FG),
+                Style::default().fg(theme::SECONDARY_FG),
             )]));
             lines.push(Line::from(vec![Span::styled(
                 "Press 'b' on a date to bookmark it",
@@ -77,17 +77,17 @@ impl Widget for BookmarksOverlay<'_> {
                                 .fg(theme::ACCENT_FG)
                                 .add_modifier(Modifier::BOLD)
                         } else {
-                            Style::default().fg(theme::LABEL_FG)
+                            Style::default().fg(theme::SECONDARY_FG)
                         },
                     ),
                     Span::styled(
                         date_str,
                         if is_current {
                             Style::default()
-                                .fg(theme::SELECTED_FG)
+                                .fg(theme::ACCENT_FG)
                                 .add_modifier(Modifier::BOLD)
                         } else {
-                            Style::default().fg(theme::VALUE_FG)
+                            Style::default().fg(theme::PRIMARY_FG)
                         },
                     ),
                 ]));

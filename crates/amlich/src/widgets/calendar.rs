@@ -27,10 +27,7 @@ impl Widget for CalendarWidget<'_> {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_style(theme::border_style())
-            .title(Line::from(vec![Span::styled(
-                " 📅 Lịch ",
-                theme::title_style(),
-            )]));
+            .title(Line::from(Span::styled(" Lịch ", theme::section_style())));
 
         let inner = block.inner(area);
         block.render(area, buf);
@@ -55,7 +52,7 @@ impl Widget for CalendarWidget<'_> {
                     .add_modifier(Modifier::BOLD)
             } else {
                 Style::default()
-                    .fg(theme::LABEL_FG)
+                    .fg(theme::SECONDARY_FG)
                     .add_modifier(Modifier::BOLD)
             };
             let col_w = col_base + if (i as u16) < col_extra { 1 } else { 0 };
@@ -99,17 +96,16 @@ impl Widget for CalendarWidget<'_> {
                 });
                 let is_search_result = self.app.is_search_result(day);
 
-                // Solar date style
-                let solar_style = if is_selected {
-                    Style::default()
-                        .fg(theme::SELECTED_FG)
-                        .bg(theme::SELECTED_BG)
-                        .add_modifier(Modifier::BOLD)
-                } else if is_today {
+                // Solar date style — today (inverted) > selected (underline) > rest
+                let solar_style = if is_today {
                     Style::default()
                         .fg(theme::TODAY_FG)
                         .bg(theme::TODAY_BG)
                         .add_modifier(Modifier::BOLD)
+                } else if is_selected {
+                    Style::default()
+                        .fg(theme::SOLAR_FG)
+                        .add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
                 } else if is_search_result {
                     Style::default()
                         .fg(theme::ACCENT_FG)
@@ -146,12 +142,12 @@ impl Widget for CalendarWidget<'_> {
                     };
                     let lunar_display = centered_cell(&lunar_text, cell_w);
 
-                    let lunar_style = if is_selected {
-                        Style::default()
-                            .fg(theme::SELECTED_FG)
-                            .bg(theme::SELECTED_BG)
-                    } else if is_today {
+                    let lunar_style = if is_today {
                         Style::default().fg(theme::TODAY_FG).bg(theme::TODAY_BG)
+                    } else if is_selected {
+                        Style::default()
+                            .fg(theme::LUNAR_FG)
+                            .add_modifier(Modifier::UNDERLINED)
                     } else {
                         Style::default().fg(theme::LUNAR_FG)
                     };

@@ -10,7 +10,7 @@ use crate::app::App;
 use crate::theme;
 use crate::widgets::{
     bookmarks::BookmarksOverlay, calendar::CalendarWidget, date_jump::DateJumpPopup,
-    detail::DetailWidget, help::HelpOverlay, holidays::HolidayOverlay, hours::HoursWidget,
+    help::HelpOverlay, holidays::HolidayOverlay, info_panel::InfoPanel,
     insight_overlay::InsightOverlay, search::SearchPopup,
 };
 
@@ -29,11 +29,9 @@ const MONTH_NAMES: [&str; 12] = [
     "Tháng 12",
 ];
 
-// Minimum terminal size
 const MIN_TERM_W: u16 = 40;
 const MIN_TERM_H: u16 = 15;
 
-// Layout breakpoints (body width)
 const BP_MEDIUM: u16 = 80;
 const BP_LARGE: u16 = 120;
 
@@ -69,44 +67,33 @@ pub fn draw(frame: &mut Frame, app: &App) {
         return;
     }
 
-    // Top-level: header (3) + body + footer (1)
     let vertical = Layout::vertical([
-        Constraint::Length(3),
-        Constraint::Min(10),
-        Constraint::Length(1),
+        Constraint::Length(1), // header — 1 line, no border
+        Constraint::Min(10),   // body
+        Constraint::Length(1), // footer
     ])
     .split(size);
 
     draw_header(frame, app, vertical[0]);
     draw_body(frame, app, vertical[1]);
-    draw_footer(frame, vertical[2]);
+    draw_footer(frame, app, vertical[2]);
 
-    // Holiday overlay
+    // Overlays (render on top of body area)
     if app.show_holidays {
         frame.render_widget(HolidayOverlay::new(app), vertical[1]);
     }
-
-    // Insight overlay
     if app.show_insight {
         frame.render_widget(InsightOverlay::new(app), vertical[1]);
     }
-
-    // Bookmarks overlay
     if app.show_bookmarks {
         frame.render_widget(BookmarksOverlay::new(app), vertical[1]);
     }
-
-    // Date jump popup
     if app.show_date_jump {
         frame.render_widget(DateJumpPopup::new(app), vertical[1]);
     }
-
-    // Search popup
     if app.show_search {
         frame.render_widget(SearchPopup::new(app), vertical[1]);
     }
-
-    // Help overlay
     if app.show_help {
         frame.render_widget(HelpOverlay::new(), vertical[1]);
     }
@@ -118,69 +105,42 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         .copied()
         .unwrap_or("Tháng ?");
 
-    // Year Can Chi from lunar data
-    let year_canchi = app
-        .selected_info()
-        .map(|i| format!(" ({})", i.canchi.year.full))
-        .unwrap_or_default();
-
-    // Build status indicators
-    let mut indicators = Vec::new();
+    let mut spans = vec![Span::styled(
+        " Âm Lịch",
+        Style::default()
+            .fg(theme::ACCENT_FG)
+            .add_modifier(Modifier::BOLD),
+    )];
 
     // Bookmark indicator
     if !app.bookmarks.is_empty() {
-        indicators.push(Span::styled(
-            format!("◆{}", app.bookmarks.len()),
-            Style::default().fg(theme::ACCENT_FG),
+        spans.push(Span::styled(
+            format!("  ◆{}", app.bookmarks.len()),
+            Style::default().fg(theme::SECONDARY_FG),
         ));
     }
 
     // Search result indicator
     if !app.search_results.is_empty() {
-        indicators.push(Span::styled(
-            format!("🔍{}", app.search_results.len()),
-            Style::default().fg(theme::HOLIDAY_FG),
+        spans.push(Span::styled(
+            format!("  /{}", app.search_results.len()),
+            Style::default().fg(theme::SECONDARY_FG),
         ));
     }
 
-    let indicator_spans = if indicators.is_empty() {
-        vec![]
-    } else {
-        vec![Span::raw("  "), Span::raw("["), Span::raw("")]
-            .into_iter()
-            .chain(indicators)
-            .chain(vec![Span::raw("]")])
-            .collect()
-    };
+    // Right-align: navigation
+    let nav_text = format!("◂ {} {} ▸ ", month_name, app.view_year);
+    let left_len: usize = spans.iter().map(|s| s.content.chars().count()).sum();
+    let right_len = nav_text.chars().count();
+    let padding = (area.width as usize).saturating_sub(left_len + right_len);
 
-    let mut header_spans = vec![
-        Span::styled(
-            " 🌙 Âm Lịch ",
-            Style::default()
-                .fg(theme::HEADER_FG)
-                .bg(theme::HEADER_BG)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::raw("  "),
-        Span::styled("◄ ", Style::default().fg(theme::LABEL_FG)),
-        Span::styled(
-            format!("{} {} ", month_name, app.view_year),
-            Style::default()
-                .fg(theme::VALUE_FG)
-                .add_modifier(Modifier::BOLD),
-        ),
-        Span::styled(&year_canchi, Style::default().fg(theme::ACCENT_FG)),
-        Span::styled(" ►", Style::default().fg(theme::LABEL_FG)),
-    ];
+    spans.push(Span::raw(" ".repeat(padding)));
+    spans.push(Span::styled(
+        nav_text,
+        Style::default().fg(theme::SECONDARY_FG),
+    ));
 
-    header_spans.extend(indicator_spans);
-
-    let header = Paragraph::new(Line::from(header_spans)).block(
-        Block::default()
-            .borders(Borders::ALL)
-            .border_style(theme::border_style()),
-    );
-
+    let header = Paragraph::new(Line::from(spans));
     frame.render_widget(header, area);
 }
 
@@ -189,77 +149,92 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 
     match mode {
         LayoutMode::Small => {
-            // Calendar only — full width
-            frame.render_widget(CalendarWidget::new(app), area);
+            if app.show_calendar {
+                // Full-width calendar overlay (toggled by 'c')
+                frame.render_widget(CalendarWidget::new(app), area);
+            } else {
+                // Info panel only — the hero view
+                let inner = padded_area(area, 1, 0);
+                frame.render_widget(InfoPanel::new(app), inner);
+            }
         }
         LayoutMode::Medium => {
-            // Calendar + Detail (with compact hours embedded below detail)
-            let cols = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+            // Mini calendar sidebar (~35%) + info panel (~65%)
+            let cols = Layout::horizontal([Constraint::Percentage(35), Constraint::Percentage(65)])
                 .split(area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
 
-            // Split right column: detail on top, compact hours below
-            let right =
-                Layout::vertical([Constraint::Min(8), Constraint::Length(5)]).split(cols[1]);
-
-            frame.render_widget(DetailWidget::new(app), right[0]);
-            frame.render_widget(HoursWidget::new(app).compact(true), right[1]);
+            let inner = padded_area(cols[1], 1, 0);
+            frame.render_widget(InfoPanel::new(app), inner);
         }
         LayoutMode::Large => {
-            // Full 3-column layout
-            let cols = Layout::horizontal([
-                Constraint::Ratio(1, 2),
-                Constraint::Ratio(1, 4),
-                Constraint::Ratio(1, 4),
-            ])
-            .split(area);
+            // Full calendar (~40%) + spacious info panel (~60%)
+            let cols = Layout::horizontal([Constraint::Percentage(40), Constraint::Percentage(60)])
+                .split(area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
-            frame.render_widget(DetailWidget::new(app), cols[1]);
-            frame.render_widget(HoursWidget::new(app), cols[2]);
+
+            let inner = padded_area(cols[1], 1, 0);
+            frame.render_widget(InfoPanel::new(app), inner);
         }
     }
 }
 
-fn draw_footer(frame: &mut Frame, area: ratatui::layout::Rect) {
+/// Add horizontal/vertical padding to an area
+fn padded_area(area: ratatui::layout::Rect, h_pad: u16, v_pad: u16) -> ratatui::layout::Rect {
+    ratatui::layout::Rect {
+        x: area.x + h_pad,
+        y: area.y + v_pad,
+        width: area.width.saturating_sub(h_pad * 2),
+        height: area.height.saturating_sub(v_pad * 2),
+    }
+}
+
+fn draw_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
     let mode = layout_mode(area.width);
 
     let spans = match mode {
         LayoutMode::Small => vec![
-            Span::styled("hjkl ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("nav", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("c ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled(
+                if app.show_calendar { "info" } else { "lịch" },
+                Style::default().fg(theme::SECONDARY_FG),
+            ),
             Span::raw("  "),
             Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("nay", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
-            Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("help", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
-            Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("exit", Style::default().fg(theme::LABEL_FG)),
-        ],
-        _ => vec![
-            Span::styled(" ←↑↓→/hjkl ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("di chuyển", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
-            Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("hôm nay", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
-            Span::styled("/ ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("tìm", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("nay", Style::default().fg(theme::SECONDARY_FG)),
             Span::raw("  "),
             Span::styled("g ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("đến ngày", Style::default().fg(theme::LABEL_FG)),
-            Span::raw("  "),
-            Span::styled("b ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("bm", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("nhảy", Style::default().fg(theme::SECONDARY_FG)),
             Span::raw("  "),
             Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("trợ giúp", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("help", Style::default().fg(theme::SECONDARY_FG)),
             Span::raw("  "),
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
-            Span::styled("thoát", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("thoát", Style::default().fg(theme::SECONDARY_FG)),
+        ],
+        _ => vec![
+            Span::styled(" hjkl ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("nav", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("hôm nay", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("/ ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("tìm", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("g ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("nhảy", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("b ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("bm", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("help", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("thoát", Style::default().fg(theme::SECONDARY_FG)),
         ],
     };
 

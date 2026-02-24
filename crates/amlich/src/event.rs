@@ -202,6 +202,9 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         // Search
         KeyCode::Char('/') => app.toggle_search(),
 
+        // Toggle calendar view (for small screens)
+        KeyCode::Char('c') => app.toggle_calendar(),
+
         _ => {}
     }
 }
