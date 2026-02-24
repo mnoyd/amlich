@@ -92,6 +92,9 @@ pub struct App {
 
     // Help overlay
     pub show_help: bool,
+
+    // Calendar toggle (small screens)
+    pub show_calendar: bool,
 }
 
 impl App {
@@ -124,6 +127,7 @@ impl App {
             search_results: Vec::new(),
             search_index: 0,
             show_help: false,
+            show_calendar: false,
         };
         app.load_month();
         app
@@ -461,5 +465,10 @@ impl App {
     // Help
     pub fn toggle_help(&mut self) {
         self.show_help = !self.show_help;
+    }
+
+    // Calendar toggle (small screens)
+    pub fn toggle_calendar(&mut self) {
+        self.show_calendar = !self.show_calendar;
     }
 }
