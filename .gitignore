@@ -43,6 +43,9 @@ apps/desktop/src-tauri/target/
 apps/desktop/src-tauri/Cargo.lock
 apps/desktop/.svelte-kit/
 
+# Worktrees
+.worktrees/
+
 # Build artifacts
 dist/
 build/
