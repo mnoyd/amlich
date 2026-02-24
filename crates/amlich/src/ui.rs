@@ -69,7 +69,7 @@ pub fn draw(frame: &mut Frame, app: &App) {
 
     let vertical = Layout::vertical([
         Constraint::Length(1), // header — 1 line, no border
-        Constraint::Min(10),  // body
+        Constraint::Min(10),   // body
         Constraint::Length(1), // footer
     ])
     .split(size);
@@ -160,11 +160,8 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         }
         LayoutMode::Medium => {
             // Mini calendar sidebar (~35%) + info panel (~65%)
-            let cols = Layout::horizontal([
-                Constraint::Percentage(35),
-                Constraint::Percentage(65),
-            ])
-            .split(area);
+            let cols = Layout::horizontal([Constraint::Percentage(35), Constraint::Percentage(65)])
+                .split(area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
 
@@ -173,11 +170,8 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
         }
         LayoutMode::Large => {
             // Full calendar (~40%) + spacious info panel (~60%)
-            let cols = Layout::horizontal([
-                Constraint::Percentage(40),
-                Constraint::Percentage(60),
-            ])
-            .split(area);
+            let cols = Layout::horizontal([Constraint::Percentage(40), Constraint::Percentage(60)])
+                .split(area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
 

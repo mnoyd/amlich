@@ -27,10 +27,7 @@ impl Widget for CalendarWidget<'_> {
         let block = Block::default()
             .borders(Borders::ALL)
             .border_style(theme::border_style())
-            .title(Line::from(Span::styled(
-                " Lịch ",
-                theme::section_style(),
-            )));
+            .title(Line::from(Span::styled(" Lịch ", theme::section_style())));
 
         let inner = block.inner(area);
         block.render(area, buf);

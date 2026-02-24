@@ -134,6 +134,5 @@ impl Widget for SearchPopup<'_> {
 
         let p = Paragraph::new(lines).block(block);
         p.render(popup_area, buf);
-
     }
 }
