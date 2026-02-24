@@ -74,6 +74,7 @@ pub struct App {
     pub insight_lang: InsightLang,
     pub insight_tab: InsightTab,
     pub insight_scroll: u16,
+    // Insight cache avoids recomputing expensive day insight every redraw tick.
     selected_insight_cache_key: Option<(i32, u32, u32)>,
     selected_insight_cache: Option<DayInsightDto>,
 
@@ -200,32 +201,33 @@ impl App {
     }
 
     // Navigation
+    fn set_selected_day(&mut self, day: u32) {
+        self.selected_day = day;
+        self.refresh_selected_insight_cache();
+    }
+
     pub fn next_day(&mut self) {
         if self.selected_day < self.days_in_month {
-            self.selected_day += 1;
-            self.refresh_selected_insight_cache();
+            self.set_selected_day(self.selected_day + 1);
         }
     }
 
     pub fn prev_day(&mut self) {
         if self.selected_day > 1 {
-            self.selected_day -= 1;
-            self.refresh_selected_insight_cache();
+            self.set_selected_day(self.selected_day - 1);
         }
     }
 
     pub fn next_week(&mut self) {
         let new = self.selected_day + 7;
         if new <= self.days_in_month {
-            self.selected_day = new;
-            self.refresh_selected_insight_cache();
+            self.set_selected_day(new);
         }
     }
 
     pub fn prev_week(&mut self) {
         if self.selected_day > 7 {
-            self.selected_day -= 7;
-            self.refresh_selected_insight_cache();
+            self.set_selected_day(self.selected_day - 7);
         }
     }
 
