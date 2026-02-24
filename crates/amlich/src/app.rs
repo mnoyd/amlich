@@ -574,6 +574,26 @@ impl App {
             _ => self.focused_card,
         };
     }
+
+    pub fn activate_focused_card(&mut self) {
+        if self.layout_mode != LayoutMode::Large {
+            return;
+        }
+
+        match self.focused_card {
+            DashboardCard::Hero | DashboardCard::Guidance | DashboardCard::Hours => {
+                self.set_insight_tab(InsightTab::Guidance);
+                self.show_insight = true;
+                self.insight_scroll = 0;
+            }
+            DashboardCard::Holiday => {
+                self.set_insight_tab(InsightTab::Festival);
+                self.show_insight = true;
+                self.insight_scroll = 0;
+            }
+            DashboardCard::Preview => {}
+        }
+    }
 }
 
 #[cfg(test)]
