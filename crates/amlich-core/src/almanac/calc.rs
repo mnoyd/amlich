@@ -4,7 +4,9 @@ use super::data::baseline_data;
 use super::types::{
     DayConflict, DayElement, DayFortune, DayStar, DayStars, StarQuality, StarSystem,
 };
+use super::star::resolve_rules;
 use super::than_huong::get_than_huong;
+use super::than_sat::get_day_star_rules;
 use super::truc::get_truc;
 use super::xung_hop::get_xung_hop;
 
@@ -32,6 +34,9 @@ pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi, lunar_month: i32) -> 
     let day_star_index = jd.rem_euclid(28) as usize;
     let day_star_rule = &data.nhi_thap_bat_tu[day_star_index];
 
+    let star_rules = get_day_star_rules(&day_canchi.chi);
+    let (cat_tinh, sat_tinh) = resolve_rules(&star_rules);
+
     DayFortune {
         profile: data.profile.clone(),
         day_element: DayElement {
@@ -51,8 +56,8 @@ pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi, lunar_month: i32) -> 
         },
         travel: get_than_huong(&day_canchi.can),
         stars: DayStars {
-            cat_tinh: conflict_rule.cat_tinh.clone(),
-            sat_tinh: conflict_rule.sat_tinh.clone(),
+            cat_tinh,
+            sat_tinh,
             day_star: Some(DayStar {
                 system: StarSystem::NhiThapBatTu,
                 index: day_star_index,

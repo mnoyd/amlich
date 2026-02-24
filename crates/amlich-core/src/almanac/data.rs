@@ -105,6 +105,7 @@ fn validate_raw_data(raw: &RawAlmanacData) {
     validate_can_map(&raw.travel_by_can);
     validate_chi_map(&raw.conflict_by_chi);
     validate_directions(raw);
+    validate_conflict_stars(&raw.conflict_by_chi);
     validate_na_am_pairs(&raw.na_am_pairs);
     validate_nhi_thap_bat_tu(&raw.nhi_thap_bat_tu);
 }
@@ -176,6 +177,19 @@ fn validate_directions(raw: &RawAlmanacData) {
             is_valid_direction(&rule.sat_huong),
             "invalid direction for sat_huong: {}",
             rule.sat_huong
+        );
+    }
+}
+
+fn validate_conflict_stars(map: &HashMap<String, ConflictRule>) {
+    for (chi, rule) in map {
+        assert!(
+            !rule.cat_tinh.is_empty(),
+            "conflict_by_chi[{chi}].cat_tinh must not be empty"
+        );
+        assert!(
+            !rule.sat_tinh.is_empty(),
+            "conflict_by_chi[{chi}].sat_tinh must not be empty"
         );
     }
 }
