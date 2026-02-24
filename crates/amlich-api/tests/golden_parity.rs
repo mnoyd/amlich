@@ -20,6 +20,8 @@ struct Expected {
     lunar: ExpectedLunar,
     canchi_day: String,
     canchi_year: String,
+    xung_hop_luc_xung: String,
+    truc_name: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -48,5 +50,12 @@ fn golden_day_info_parity() {
         assert_eq!(info.lunar.year, fixture.expected.lunar.year);
         assert_eq!(info.canchi.day.full, fixture.expected.canchi_day);
         assert_eq!(info.canchi.year.full, fixture.expected.canchi_year);
+
+        let fortune = info.day_fortune.expect("day_fortune must be present");
+        assert_eq!(
+            fortune.xung_hop.luc_xung,
+            fixture.expected.xung_hop_luc_xung
+        );
+        assert_eq!(fortune.truc.name, fixture.expected.truc_name);
     }
 }

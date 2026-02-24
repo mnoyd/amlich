@@ -195,6 +195,45 @@ fn config_mode_show_set_toggle_persists() {
 }
 
 #[test]
+fn day_fortune_json_contains_xung_hop_and_truc() {
+    let home = temp_home();
+    let output = run(&home, &["query", "2024-02-10"]);
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
+    let fortune = json
+        .get("day_fortune")
+        .and_then(Value::as_object)
+        .expect("day_fortune should be an object");
+
+    assert!(fortune.contains_key("xung_hop"), "day_fortune missing xung_hop");
+    assert!(fortune.contains_key("truc"), "day_fortune missing truc");
+
+    let xung_hop = fortune
+        .get("xung_hop")
+        .and_then(Value::as_object)
+        .expect("xung_hop should be an object");
+    assert!(xung_hop.contains_key("luc_xung"), "xung_hop missing luc_xung");
+    assert!(xung_hop.contains_key("tam_hop"), "xung_hop missing tam_hop");
+    assert!(
+        xung_hop.contains_key("tu_hanh_xung"),
+        "xung_hop missing tu_hanh_xung"
+    );
+
+    let truc = fortune
+        .get("truc")
+        .and_then(Value::as_object)
+        .expect("truc should be an object");
+    assert!(truc.contains_key("name"), "truc missing name");
+    assert!(truc.contains_key("index"), "truc missing index");
+    assert!(truc.contains_key("quality"), "truc missing quality");
+}
+
+#[test]
 fn invalid_date_returns_error() {
     let home = temp_home();
     let output = run(&home, &["query", "2026-13-99"]);

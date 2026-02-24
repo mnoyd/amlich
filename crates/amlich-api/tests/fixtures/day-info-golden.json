@@ -4,7 +4,9 @@
     "expected": {
       "lunar": { "day": 1, "month": 1, "year": 2024 },
       "canchi_day": "Giáp Thìn",
-      "canchi_year": "Giáp Thìn"
+      "canchi_year": "Giáp Thìn",
+      "xung_hop_luc_xung": "Tuất",
+      "truc_name": "Mãn"
     }
   },
   {
@@ -12,7 +14,9 @@
     "expected": {
       "lunar": { "day": 1, "month": 1, "year": 2025 },
       "canchi_day": "Mậu Tuất",
-      "canchi_year": "Ất Tỵ"
+      "canchi_year": "Ất Tỵ",
+      "xung_hop_luc_xung": "Thìn",
+      "truc_name": "Thành"
     }
   },
   {
@@ -20,7 +24,9 @@
     "expected": {
       "lunar": { "day": 20, "month": 11, "year": 2023 },
       "canchi_day": "Giáp Tý",
-      "canchi_year": "Quý Mão"
+      "canchi_year": "Quý Mão",
+      "xung_hop_luc_xung": "Ngọ",
+      "truc_name": "Kiến"
     }
   }
 ]
