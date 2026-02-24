@@ -61,6 +61,17 @@ pub struct DayStars {
     pub star_system: Option<StarSystem>,
 }
 
+/// Thập nhị trực duty-star for the day.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TrucInfo {
+    /// Index 0–11 (0=Kiến, 1=Trừ, …, 11=Bế).
+    pub index: usize,
+    /// Vietnamese name (e.g. "Kiến", "Trừ").
+    pub name: String,
+    /// Auspicious quality: "cat" | "hung" | "binh".
+    pub quality: String,
+}
+
 /// Xung/hợp relationships for the day branch.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct XungHopResult {
@@ -80,6 +91,7 @@ pub struct DayFortune {
     pub travel: TravelDirection,
     pub stars: DayStars,
     pub xung_hop: XungHopResult,
+    pub truc: TrucInfo,
 }
 
 #[cfg(test)]
@@ -141,6 +153,11 @@ mod tests {
                     "Ngọ".to_string(),
                     "Dậu".to_string(),
                 ],
+            },
+            truc: TrucInfo {
+                index: 2,
+                name: "Mãn".to_string(),
+                quality: "hung".to_string(),
             },
         };
 

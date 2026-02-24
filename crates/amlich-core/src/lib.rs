@@ -125,7 +125,7 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
 
     // Calculate Auspicious Hours (Giờ Hoàng Đạo)
     let gio_hoang_dao = get_gio_hoang_dao(day_canchi.chi_index);
-    let day_fortune = calculate_day_fortune(jd, &day_canchi);
+    let day_fortune = calculate_day_fortune(jd, &day_canchi, lunar_date.month);
 
     // Build solar info
     let solar = SolarInfo {

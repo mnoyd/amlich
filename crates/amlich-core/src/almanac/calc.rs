@@ -5,9 +5,10 @@ use super::types::{
     DayConflict, DayElement, DayFortune, DayStar, DayStars, StarQuality, StarSystem,
     TravelDirection,
 };
+use super::truc::get_truc;
 use super::xung_hop::get_xung_hop;
 
-pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi) -> DayFortune {
+pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi, lunar_month: i32) -> DayFortune {
     let data = baseline_data();
     let travel_rule = data
         .travel_by_can
@@ -70,6 +71,7 @@ pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi) -> DayFortune {
             star_system: Some(StarSystem::NhiThapBatTu),
         },
         xung_hop: get_xung_hop(day_chi_idx),
+        truc: get_truc(day_chi_idx, lunar_month),
     }
 }
 
@@ -89,7 +91,7 @@ mod tests {
     #[test]
     fn computes_fortune_for_tet_2024() {
         let info = get_day_info(10, 2, 2024);
-        let fortune = calculate_day_fortune(info.jd, &info.canchi.day);
+        let fortune = calculate_day_fortune(info.jd, &info.canchi.day, info.lunar.month);
 
         assert_eq!(fortune.profile, "baseline");
         assert_eq!(fortune.conflict.opposing_chi, "Tuất");
@@ -101,7 +103,7 @@ mod tests {
     #[test]
     fn computes_28_star_for_day() {
         let info = get_day_info(29, 1, 2025);
-        let fortune = calculate_day_fortune(info.jd, &info.canchi.day);
+        let fortune = calculate_day_fortune(info.jd, &info.canchi.day, info.lunar.month);
         let day_star = fortune.stars.day_star.expect("day star");
         assert!(day_star.index < 28);
     }
