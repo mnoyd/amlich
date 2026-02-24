@@ -35,21 +35,21 @@ impl Widget for DateJumpPopup<'_> {
         let border_style = if is_valid {
             Style::default().fg(theme::ACCENT_FG)
         } else {
-            Style::default().fg(theme::LABEL_FG)
+            Style::default().fg(theme::SECONDARY_FG)
         };
 
         let block = Block::default()
             .borders(Borders::ALL)
             .border_style(border_style)
             .title(Line::from(vec![Span::styled(
-                " 📅 Jump to Date ",
-                theme::title_style(),
+                " Jump to Date ",
+                theme::section_style(),
             )]))
             .title_bottom(Line::from(" Enter │ Esc ").alignment(Alignment::Center));
 
         // Instructions
         let instructions = Line::from(vec![
-            Span::styled("Type: ", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("Type: ", Style::default().fg(theme::SECONDARY_FG)),
             Span::styled("ddmmyyyy", Style::default().fg(theme::ACCENT_FG)),
             Span::raw(" (auto-formats)"),
         ]);
@@ -58,10 +58,10 @@ impl Widget for DateJumpPopup<'_> {
         let input_text = format!("{}_", self.app.date_jump_input);
         let input_style = if is_valid {
             Style::default()
-                .fg(theme::VALUE_FG)
+                .fg(theme::PRIMARY_FG)
                 .add_modifier(Modifier::BOLD)
         } else {
-            Style::default().fg(theme::VALUE_FG)
+            Style::default().fg(theme::PRIMARY_FG)
         };
 
         let input_line = Line::from(vec![Span::styled(&input_text, input_style)]);

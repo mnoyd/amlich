@@ -27,11 +27,11 @@ impl<'a> SearchPopup<'a> {
         if is_selected {
             // Highlighted/selected row
             Line::from(vec![
-                Span::styled("▸ ", Style::default().fg(theme::SELECTED_FG)),
+                Span::styled("▸ ", Style::default().fg(theme::ACCENT_FG)),
                 Span::styled(
                     format!("{} - {} ({})", date_str, result.holiday_name, result.lunar),
                     Style::default()
-                        .fg(theme::SELECTED_FG)
+                        .fg(theme::ACCENT_FG)
                         .add_modifier(Modifier::BOLD),
                 ),
             ])
@@ -68,8 +68,8 @@ impl Widget for SearchPopup<'_> {
             .borders(Borders::ALL)
             .border_style(Style::default().fg(theme::ACCENT_FG))
             .title(Line::from(vec![Span::styled(
-                " 🔍 Search Holidays ",
-                theme::title_style(),
+                " Search Holidays ",
+                theme::section_style(),
             )]))
             .title_bottom(
                 Line::from(" ↑↓ or Tab: Navigate  │  Esc: Close ").alignment(Alignment::Center),
@@ -80,11 +80,11 @@ impl Widget for SearchPopup<'_> {
         // Input field with cursor
         let input_text = format!("{}_", self.app.search_query);
         lines.push(Line::from(vec![
-            Span::styled("Search: ", Style::default().fg(theme::LABEL_FG)),
+            Span::styled("Search: ", Style::default().fg(theme::SECONDARY_FG)),
             Span::styled(
                 input_text,
                 Style::default()
-                    .fg(theme::VALUE_FG)
+                    .fg(theme::PRIMARY_FG)
                     .add_modifier(Modifier::BOLD),
             ),
         ]));
@@ -101,7 +101,7 @@ impl Widget for SearchPopup<'_> {
             } else {
                 lines.push(Line::from(vec![Span::styled(
                     "No results found",
-                    Style::default().fg(theme::LABEL_FG),
+                    Style::default().fg(theme::SECONDARY_FG),
                 )]));
             }
         } else {
@@ -127,7 +127,7 @@ impl Widget for SearchPopup<'_> {
             if end < num_results {
                 lines.push(Line::from(vec![Span::styled(
                     format!("  ... and {} more", num_results - end),
-                    Style::default().fg(theme::LABEL_FG),
+                    Style::default().fg(theme::SECONDARY_FG),
                 )]));
             }
         }
@@ -135,27 +135,5 @@ impl Widget for SearchPopup<'_> {
         let p = Paragraph::new(lines).block(block);
         p.render(popup_area, buf);
 
-        // Highlight the selected row background
-        if !self.app.search_results.is_empty() {
-            let idx = self.app.search_index;
-            let max_visible = num_results.min(8);
-            let start = if max_visible >= num_results {
-                0
-            } else {
-                idx.saturating_sub(3).min(num_results - max_visible)
-            };
-
-            if idx >= start && idx < start + max_visible {
-                let row_offset = idx - start;
-                let row_y = popup_area.y + 3 + row_offset as u16; // +3 for title, input, spacer
-
-                // Set background for selected row
-                for x in (popup_area.x + 1)..(popup_area.x + popup_area.width - 1) {
-                    let cell = &mut buf[(x, row_y)];
-                    cell.set_bg(theme::SELECTED_BG);
-                    cell.set_fg(theme::SELECTED_FG);
-                }
-            }
-        }
     }
 }

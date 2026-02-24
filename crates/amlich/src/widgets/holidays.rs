@@ -36,10 +36,10 @@ impl Widget for HolidayOverlay<'_> {
             .border_style(Style::default().fg(theme::HOLIDAY_FG))
             .title(Line::from(vec![Span::styled(
                 format!(
-                    " 🎉 Ngày Lễ - Tháng {}/{} ",
+                    " Ngày Lễ - Tháng {}/{} ",
                     self.app.view_month, self.app.view_year
                 ),
-                theme::title_style(),
+                theme::section_style(),
             )]))
             .title_bottom(Line::from(" H/Esc đóng  ↑↓ cuộn ").alignment(Alignment::Center));
 
@@ -58,7 +58,7 @@ impl Widget for HolidayOverlay<'_> {
                             .fg(theme::HOLIDAY_FG)
                             .add_modifier(Modifier::BOLD)
                     } else {
-                        Style::default().fg(theme::LABEL_FG)
+                        Style::default().fg(theme::SECONDARY_FG)
                     },
                 ),
                 Span::styled(
@@ -68,7 +68,7 @@ impl Widget for HolidayOverlay<'_> {
                 Span::styled(
                     &h.name,
                     Style::default()
-                        .fg(theme::VALUE_FG)
+                        .fg(theme::PRIMARY_FG)
                         .add_modifier(Modifier::BOLD),
                 ),
             ]));

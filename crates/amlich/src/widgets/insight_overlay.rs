@@ -74,7 +74,7 @@ impl<'a> InsightOverlay<'a> {
                     };
                     lines.push(Line::from(Span::styled(
                         label,
-                        Style::default().fg(theme::LABEL_FG),
+                        Style::default().fg(theme::SECONDARY_FG),
                     )));
                     for activity in activity_list.iter().take(5) {
                         lines.push(Line::from(format!("  • {activity}")));
@@ -112,7 +112,7 @@ impl<'a> InsightOverlay<'a> {
             };
             lines.push(Line::from(Span::styled(
                 no_data,
-                Style::default().fg(theme::LABEL_FG),
+                Style::default().fg(theme::SECONDARY_FG),
             )));
         }
 
@@ -164,7 +164,7 @@ impl<'a> InsightOverlay<'a> {
             };
             lines.push(Line::from(Span::styled(
                 no_data,
-                Style::default().fg(theme::LABEL_FG),
+                Style::default().fg(theme::SECONDARY_FG),
             )));
         }
 
@@ -193,7 +193,7 @@ impl<'a> InsightOverlay<'a> {
             };
             lines.push(Line::from(Span::styled(
                 weather_label,
-                Style::default().fg(theme::LABEL_FG),
+                Style::default().fg(theme::SECONDARY_FG),
             )));
             lines.push(Line::from(pick_text(
                 self.app.insight_lang,
@@ -232,7 +232,7 @@ impl<'a> InsightOverlay<'a> {
             };
             lines.push(Line::from(Span::styled(
                 no_data,
-                Style::default().fg(theme::LABEL_FG),
+                Style::default().fg(theme::SECONDARY_FG),
             )));
         }
 
@@ -264,19 +264,19 @@ impl<'a> InsightOverlay<'a> {
                 Style::default()
                     .fg(theme::HOLIDAY_FG)
                     .add_modifier(Modifier::BOLD),
-                Style::default().fg(theme::LABEL_FG),
-                Style::default().fg(theme::LABEL_FG),
+                Style::default().fg(theme::SECONDARY_FG),
+                Style::default().fg(theme::SECONDARY_FG),
             ),
             InsightTab::Guidance => (
-                Style::default().fg(theme::LABEL_FG),
+                Style::default().fg(theme::SECONDARY_FG),
                 Style::default()
                     .fg(theme::GOOD_HOUR_FG)
                     .add_modifier(Modifier::BOLD),
-                Style::default().fg(theme::LABEL_FG),
+                Style::default().fg(theme::SECONDARY_FG),
             ),
             InsightTab::TietKhi => (
-                Style::default().fg(theme::LABEL_FG),
-                Style::default().fg(theme::LABEL_FG),
+                Style::default().fg(theme::SECONDARY_FG),
+                Style::default().fg(theme::SECONDARY_FG),
                 Style::default()
                     .fg(theme::ACCENT_FG)
                     .add_modifier(Modifier::BOLD),
@@ -340,8 +340,8 @@ impl Widget for InsightOverlay<'_> {
             .borders(Borders::ALL)
             .border_style(theme::border_style())
             .title(Line::from(vec![Span::styled(
-                format!(" ✨ Insight ({title_lang}) ",),
-                theme::title_style(),
+                format!(" Insight ({title_lang}) "),
+                theme::section_style(),
             )]))
             .title_bottom(
                 Line::from(
