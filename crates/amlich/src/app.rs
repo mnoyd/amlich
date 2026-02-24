@@ -74,6 +74,8 @@ pub struct App {
     pub insight_lang: InsightLang,
     pub insight_tab: InsightTab,
     pub insight_scroll: u16,
+    selected_insight_cache_key: Option<(i32, u32, u32)>,
+    selected_insight_cache: Option<DayInsightDto>,
 
     // Bookmarks
     pub bookmarks: Vec<HistoryEntry>,
@@ -117,6 +119,8 @@ impl App {
             insight_lang: InsightLang::Vi,
             insight_tab: InsightTab::default(),
             insight_scroll: 0,
+            selected_insight_cache_key: None,
+            selected_insight_cache: None,
             bookmarks: bookmark_store::load_bookmarks(),
             show_bookmarks: false,
             bookmark_scroll: 0,
@@ -174,6 +178,8 @@ impl App {
             .into_iter()
             .filter(|h| h.solar_month == month)
             .collect();
+
+        self.refresh_selected_insight_cache();
     }
 
     pub fn selected_info(&self) -> Option<&DayInfoDto> {
@@ -197,12 +203,14 @@ impl App {
     pub fn next_day(&mut self) {
         if self.selected_day < self.days_in_month {
             self.selected_day += 1;
+            self.refresh_selected_insight_cache();
         }
     }
 
     pub fn prev_day(&mut self) {
         if self.selected_day > 1 {
             self.selected_day -= 1;
+            self.refresh_selected_insight_cache();
         }
     }
 
@@ -210,12 +218,14 @@ impl App {
         let new = self.selected_day + 7;
         if new <= self.days_in_month {
             self.selected_day = new;
+            self.refresh_selected_insight_cache();
         }
     }
 
     pub fn prev_week(&mut self) {
         if self.selected_day > 7 {
             self.selected_day -= 7;
+            self.refresh_selected_insight_cache();
         }
     }
 
@@ -290,13 +300,20 @@ impl App {
         self.insight_scroll = 0;
     }
 
-    pub fn selected_insight(&self) -> Option<DayInsightDto> {
-        get_day_insight_for_date(
-            self.selected_day as i32,
-            self.view_month as i32,
-            self.view_year,
-        )
-        .ok()
+    pub fn selected_insight(&self) -> Option<&DayInsightDto> {
+        self.selected_insight_cache.as_ref()
+    }
+
+    fn refresh_selected_insight_cache(&mut self) {
+        let key = (self.view_year, self.view_month, self.selected_day);
+        self.selected_insight_cache_key = Some(key);
+        self.selected_insight_cache =
+            get_day_insight_for_date(key.2 as i32, key.1 as i32, key.0).ok();
+    }
+
+    #[cfg(test)]
+    pub fn selected_insight_cache_key(&self) -> Option<(i32, u32, u32)> {
+        self.selected_insight_cache_key
     }
 
     // Bookmarks
@@ -470,5 +487,44 @@ impl App {
     // Calendar toggle (small screens)
     pub fn toggle_calendar(&mut self) {
         self.show_calendar = !self.show_calendar;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::App;
+    use chrono::NaiveDate;
+
+    #[test]
+    fn selected_insight_cache_key_is_set_on_init() {
+        let app = App::new_with_date(Some(
+            NaiveDate::from_ymd_opt(2024, 2, 10).expect("valid test date"),
+        ));
+
+        assert_eq!(app.selected_insight_cache_key(), Some((2024, 2, 10)));
+    }
+
+    #[test]
+    fn selected_insight_cache_key_updates_after_day_navigation() {
+        let mut app = App::new_with_date(Some(
+            NaiveDate::from_ymd_opt(2024, 2, 10).expect("valid test date"),
+        ));
+        assert_eq!(app.selected_insight_cache_key(), Some((2024, 2, 10)));
+
+        app.next_day();
+
+        assert_eq!(app.selected_insight_cache_key(), Some((2024, 2, 11)));
+    }
+
+    #[test]
+    fn selected_insight_cache_key_updates_after_month_change_with_clamp() {
+        let mut app = App::new_with_date(Some(
+            NaiveDate::from_ymd_opt(2024, 1, 31).expect("valid test date"),
+        ));
+        assert_eq!(app.selected_insight_cache_key(), Some((2024, 1, 31)));
+
+        app.next_month();
+
+        assert_eq!(app.selected_insight_cache_key(), Some((2024, 2, 29)));
     }
 }

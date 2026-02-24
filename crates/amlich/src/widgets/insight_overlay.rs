@@ -249,9 +249,9 @@ impl<'a> InsightOverlay<'a> {
         };
 
         match self.app.insight_tab {
-            InsightTab::Festival => self.render_festival_tab(&insight),
-            InsightTab::Guidance => self.render_guidance_tab(&insight),
-            InsightTab::TietKhi => self.render_tiet_khi_tab(&insight),
+            InsightTab::Festival => self.render_festival_tab(insight),
+            InsightTab::Guidance => self.render_guidance_tab(insight),
+            InsightTab::TietKhi => self.render_tiet_khi_tab(insight),
         }
     }
 
