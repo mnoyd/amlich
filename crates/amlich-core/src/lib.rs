@@ -7,6 +7,7 @@
 // - Giờ Hoàng Đạo (Auspicious Hours)
 // - Vietnamese holidays and festivals
 
+pub mod almanac;
 pub mod canchi;
 pub mod gio_hoang_dao;
 pub mod holiday_data;
@@ -21,6 +22,8 @@ pub mod types;
 // Re-export main types
 pub use types::*;
 
+use crate::almanac::calc::calculate_day_fortune;
+use crate::almanac::types::DayFortune;
 use canchi::{get_day_canchi, get_month_canchi, get_year_canchi};
 use gio_hoang_dao::{get_gio_hoang_dao, GioHoangDao};
 use julian::jd_from_date;
@@ -66,6 +69,7 @@ pub struct DayInfo {
     pub canchi: CanChiInfo,
     pub tiet_khi: SolarTerm,
     pub gio_hoang_dao: GioHoangDao,
+    pub day_fortune: DayFortune,
 }
 
 /// Get comprehensive information for a given solar date
@@ -121,6 +125,7 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
 
     // Calculate Auspicious Hours (Giờ Hoàng Đạo)
     let gio_hoang_dao = get_gio_hoang_dao(day_canchi.chi_index);
+    let day_fortune = calculate_day_fortune(jd, &day_canchi);
 
     // Build solar info
     let solar = SolarInfo {
@@ -165,6 +170,7 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
         canchi,
         tiet_khi,
         gio_hoang_dao,
+        day_fortune,
     }
 }
 

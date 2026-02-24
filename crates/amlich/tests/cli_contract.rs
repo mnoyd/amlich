@@ -59,6 +59,7 @@ fn query_default_returns_dayinfo_json() {
         "canchi",
         "tiet_khi",
         "gio_hoang_dao",
+        "day_fortune",
     ] {
         assert!(obj.contains_key(key), "missing key: {key}");
     }

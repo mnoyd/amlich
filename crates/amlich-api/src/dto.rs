@@ -81,6 +81,55 @@ pub struct GioHoangDaoDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayElementDto {
+    pub na_am: String,
+    pub element: String,
+    pub can_element: String,
+    pub chi_element: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayConflictDto {
+    pub opposing_chi: String,
+    pub opposing_con_giap: String,
+    pub tuoi_xung: Vec<String>,
+    pub sat_huong: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TravelDirectionDto {
+    pub xuat_hanh_huong: String,
+    pub tai_than: String,
+    pub hy_than: String,
+    pub ky_than: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayStarDto {
+    pub system: String,
+    pub index: usize,
+    pub name: String,
+    pub quality: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayStarsDto {
+    pub cat_tinh: Vec<String>,
+    pub sat_tinh: Vec<String>,
+    pub day_star: Option<DayStarDto>,
+    pub star_system: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayFortuneDto {
+    pub profile: String,
+    pub day_element: DayElementDto,
+    pub conflict: DayConflictDto,
+    pub travel: TravelDirectionDto,
+    pub stars: DayStarsDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DayInfoDto {
     pub solar: SolarDto,
     pub lunar: LunarDto,
@@ -88,6 +137,7 @@ pub struct DayInfoDto {
     pub canchi: CanChiInfoDto,
     pub tiet_khi: TietKhiDto,
     pub gio_hoang_dao: GioHoangDaoDto,
+    pub day_fortune: Option<DayFortuneDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,0 +1,101 @@
+use crate::types::{CanChi, CHI, CON_GIAP};
+
+use super::data::baseline_data;
+use super::types::{
+    DayConflict, DayElement, DayFortune, DayStar, DayStars, StarQuality, StarSystem,
+    TravelDirection,
+};
+
+pub fn calculate_day_fortune(jd: i32, day_canchi: &CanChi) -> DayFortune {
+    let data = baseline_data();
+    let travel_rule = data
+        .travel_by_can
+        .get(&day_canchi.can)
+        .expect("travel rule by can should exist");
+    let conflict_rule = data
+        .conflict_by_chi
+        .get(&day_canchi.chi)
+        .expect("conflict rule by chi should exist");
+    let na_am = data
+        .sexagenary_na_am
+        .get(&day_canchi.full)
+        .expect("na am entry should exist");
+
+    let opposing_idx = CHI
+        .iter()
+        .position(|chi| *chi == conflict_rule.opposing_chi)
+        .expect("opposing chi should exist");
+
+    let day_star_index = jd.rem_euclid(28) as usize;
+    let day_star_rule = &data.nhi_thap_bat_tu[day_star_index];
+
+    DayFortune {
+        profile: data.profile.clone(),
+        day_element: DayElement {
+            na_am: na_am.na_am.clone(),
+            element: na_am.element.clone(),
+            can_element: day_canchi.ngu_hanh.can.clone(),
+            chi_element: day_canchi.ngu_hanh.chi.clone(),
+        },
+        conflict: DayConflict {
+            opposing_chi: conflict_rule.opposing_chi.clone(),
+            opposing_con_giap: CON_GIAP[opposing_idx].to_string(),
+            tuoi_xung: vec![
+                format!("{} {}", day_canchi.can, conflict_rule.opposing_chi),
+                CON_GIAP[opposing_idx].to_string(),
+            ],
+            sat_huong: conflict_rule.sat_huong.clone(),
+        },
+        travel: TravelDirection {
+            xuat_hanh_huong: travel_rule.xuat_hanh_huong.clone(),
+            tai_than: travel_rule.tai_than.clone(),
+            hy_than: travel_rule.hy_than.clone(),
+            ky_than: travel_rule.ky_than.clone(),
+        },
+        stars: DayStars {
+            cat_tinh: conflict_rule.cat_tinh.clone(),
+            sat_tinh: conflict_rule.sat_tinh.clone(),
+            day_star: Some(DayStar {
+                system: StarSystem::NhiThapBatTu,
+                index: day_star_index,
+                name: day_star_rule.name.clone(),
+                quality: parse_star_quality(&day_star_rule.quality),
+            }),
+            star_system: Some(StarSystem::NhiThapBatTu),
+        },
+    }
+}
+
+fn parse_star_quality(input: &str) -> StarQuality {
+    match input {
+        "cat" => StarQuality::Cat,
+        "hung" => StarQuality::Hung,
+        _ => StarQuality::Binh,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::calculate_day_fortune;
+    use crate::get_day_info;
+
+    #[test]
+    fn computes_fortune_for_tet_2024() {
+        let info = get_day_info(10, 2, 2024);
+        let fortune = calculate_day_fortune(info.jd, &info.canchi.day);
+
+        assert_eq!(fortune.profile, "baseline");
+        assert_eq!(fortune.conflict.opposing_chi, "Tuất");
+        assert!(!fortune.travel.xuat_hanh_huong.is_empty());
+        assert!(!fortune.stars.cat_tinh.is_empty());
+        assert!(!fortune.stars.sat_tinh.is_empty());
+    }
+
+    #[test]
+    fn computes_28_star_for_day() {
+        let info = get_day_info(29, 1, 2025);
+        let fortune = calculate_day_fortune(info.jd, &info.canchi.day);
+        let day_star = fortune.stars.day_star.expect("day star");
+        assert!(day_star.index < 28);
+    }
+}
