@@ -4,6 +4,7 @@ use std::sync::OnceLock;
 use serde::Deserialize;
 
 use crate::types::{CAN, CHI};
+use super::types::SourceMeta;
 
 const BASELINE_JSON: &str = include_str!("../../data/almanac/baseline.json");
 const VALID_DIRECTIONS: [&str; 8] = [
@@ -50,6 +51,10 @@ pub struct DayStarRule {
 #[derive(Debug, Clone)]
 pub struct AlmanacData {
     pub profile: String,
+    pub travel_meta: SourceMeta,
+    pub conflict_meta: SourceMeta,
+    pub na_am_meta: SourceMeta,
+    pub star_meta: SourceMeta,
     pub travel_by_can: HashMap<String, TravelRule>,
     pub conflict_by_chi: HashMap<String, ConflictRule>,
     pub sexagenary_na_am: HashMap<String, NaAmEntry>,
@@ -59,6 +64,10 @@ pub struct AlmanacData {
 #[derive(Debug, Deserialize)]
 struct RawAlmanacData {
     profile: String,
+    travel_meta: SourceMeta,
+    conflict_meta: SourceMeta,
+    na_am_meta: SourceMeta,
+    star_meta: SourceMeta,
     travel_by_can: HashMap<String, TravelRule>,
     conflict_by_chi: HashMap<String, ConflictRule>,
     na_am_pairs: Vec<String>,
@@ -76,6 +85,10 @@ pub fn baseline_data() -> &'static AlmanacData {
 
         AlmanacData {
             profile: raw.profile,
+            travel_meta: raw.travel_meta,
+            conflict_meta: raw.conflict_meta,
+            na_am_meta: raw.na_am_meta,
+            star_meta: raw.star_meta,
             travel_by_can: raw.travel_by_can,
             conflict_by_chi: raw.conflict_by_chi,
             sexagenary_na_am: expand_sexagenary_na_am(&raw.na_am_pairs),
@@ -85,11 +98,33 @@ pub fn baseline_data() -> &'static AlmanacData {
 }
 
 fn validate_raw_data(raw: &RawAlmanacData) {
+    validate_source_meta(&raw.travel_meta, "travel_meta");
+    validate_source_meta(&raw.conflict_meta, "conflict_meta");
+    validate_source_meta(&raw.na_am_meta, "na_am_meta");
+    validate_source_meta(&raw.star_meta, "star_meta");
     validate_can_map(&raw.travel_by_can);
     validate_chi_map(&raw.conflict_by_chi);
     validate_directions(raw);
     validate_na_am_pairs(&raw.na_am_pairs);
     validate_nhi_thap_bat_tu(&raw.nhi_thap_bat_tu);
+}
+
+const VALID_METHODS: [&str; 3] = ["table-lookup", "bai-quyet", "jd-cycle"];
+
+pub fn is_valid_method(method: &str) -> bool {
+    VALID_METHODS.contains(&method)
+}
+
+fn validate_source_meta(meta: &SourceMeta, field: &str) {
+    assert!(
+        !meta.source_id.is_empty(),
+        "{field}.source_id must not be empty"
+    );
+    assert!(
+        is_valid_method(&meta.method),
+        "{field}.method '{}' is not a valid method token",
+        meta.method
+    );
 }
 
 fn validate_can_map(map: &HashMap<String, TravelRule>) {
@@ -199,6 +234,43 @@ fn expand_sexagenary_na_am(na_am_pairs: &[String]) -> HashMap<String, NaAmEntry>
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn source_metadata_fields_exist() {
+        let data = baseline_data();
+        assert!(
+            !data.travel_meta.source_id.is_empty(),
+            "travel_meta.source_id must not be empty"
+        );
+        assert!(
+            !data.travel_meta.method.is_empty(),
+            "travel_meta.method must not be empty"
+        );
+        assert!(
+            !data.conflict_meta.source_id.is_empty(),
+            "conflict_meta.source_id must not be empty"
+        );
+        assert!(
+            !data.conflict_meta.method.is_empty(),
+            "conflict_meta.method must not be empty"
+        );
+        assert!(
+            !data.na_am_meta.source_id.is_empty(),
+            "na_am_meta.source_id must not be empty"
+        );
+        assert!(
+            !data.na_am_meta.method.is_empty(),
+            "na_am_meta.method must not be empty"
+        );
+        assert!(
+            !data.star_meta.source_id.is_empty(),
+            "star_meta.source_id must not be empty"
+        );
+        assert!(
+            !data.star_meta.method.is_empty(),
+            "star_meta.method must not be empty"
+        );
+    }
 
     #[test]
     fn validates_expected_collection_sizes() {

@@ -1,5 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+/// Source attribution for a group of almanac rules.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SourceMeta {
+    /// Classical source identifier (e.g. "khcbppt", "tam-menh-thong-hoi").
+    pub source_id: String,
+    /// Derivation method (e.g. "table-lookup", "bai-quyet", "jd-cycle").
+    pub method: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StarSystem {
     NhiThapBatTu,
