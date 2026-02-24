@@ -1,5 +1,6 @@
 mod app;
 mod bookmark_store;
+mod dashboard;
 mod date_jump;
 mod event;
 mod headless;

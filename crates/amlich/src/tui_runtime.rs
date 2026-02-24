@@ -42,7 +42,7 @@ fn run(
     let mut app = App::new_with_date(initial_date);
 
     while app.running {
-        terminal.draw(|frame| ui::draw(frame, &app))?;
+        terminal.draw(|frame| ui::draw(frame, &mut app))?;
         event::handle_events(&mut app)?;
     }
 

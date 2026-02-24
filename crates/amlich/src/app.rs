@@ -52,6 +52,46 @@ impl InsightTab {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum LayoutMode {
+    Small,
+    #[default]
+    Medium,
+    Large,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum DashboardCard {
+    #[default]
+    Hero,
+    Guidance,
+    Hours,
+    Holiday,
+    Preview,
+}
+
+impl DashboardCard {
+    fn next(self) -> Self {
+        match self {
+            DashboardCard::Hero => DashboardCard::Guidance,
+            DashboardCard::Guidance => DashboardCard::Hours,
+            DashboardCard::Hours => DashboardCard::Holiday,
+            DashboardCard::Holiday => DashboardCard::Preview,
+            DashboardCard::Preview => DashboardCard::Hero,
+        }
+    }
+
+    fn prev(self) -> Self {
+        match self {
+            DashboardCard::Hero => DashboardCard::Preview,
+            DashboardCard::Guidance => DashboardCard::Hero,
+            DashboardCard::Hours => DashboardCard::Guidance,
+            DashboardCard::Holiday => DashboardCard::Hours,
+            DashboardCard::Preview => DashboardCard::Holiday,
+        }
+    }
+}
+
 pub struct App {
     pub running: bool,
     pub view_year: i32,
@@ -98,6 +138,10 @@ pub struct App {
 
     // Calendar toggle (small screens)
     pub show_calendar: bool,
+
+    // Responsive layout state and focused dashboard card
+    pub layout_mode: LayoutMode,
+    pub focused_card: DashboardCard,
 }
 
 impl App {
@@ -133,6 +177,8 @@ impl App {
             search_index: 0,
             show_help: false,
             show_calendar: false,
+            layout_mode: LayoutMode::default(),
+            focused_card: DashboardCard::default(),
         };
         app.load_month();
         app
@@ -490,12 +536,76 @@ impl App {
     pub fn toggle_calendar(&mut self) {
         self.show_calendar = !self.show_calendar;
     }
+
+    pub fn set_layout_mode(&mut self, mode: LayoutMode) {
+        self.layout_mode = mode;
+        if mode != LayoutMode::Large {
+            self.focused_card = DashboardCard::Hero;
+        }
+    }
+
+    pub fn focused_card(&self) -> DashboardCard {
+        self.focused_card
+    }
+
+    pub fn focus_next_card(&mut self) {
+        if self.layout_mode == LayoutMode::Large {
+            self.focused_card = self.focused_card.next();
+        }
+    }
+
+    pub fn focus_prev_card(&mut self) {
+        if self.layout_mode == LayoutMode::Large {
+            self.focused_card = self.focused_card.prev();
+        }
+    }
+
+    pub fn focus_card_index(&mut self, one_based: u8) {
+        if self.layout_mode != LayoutMode::Large {
+            return;
+        }
+
+        self.focused_card = match one_based {
+            1 => DashboardCard::Hero,
+            2 => DashboardCard::Guidance,
+            3 => DashboardCard::Hours,
+            4 => DashboardCard::Holiday,
+            5 => DashboardCard::Preview,
+            _ => self.focused_card,
+        };
+    }
+
+    pub fn activate_focused_card(&mut self) {
+        if self.layout_mode != LayoutMode::Large {
+            return;
+        }
+
+        match self.focused_card {
+            DashboardCard::Hero | DashboardCard::Guidance | DashboardCard::Hours => {
+                self.set_insight_tab(InsightTab::Guidance);
+                self.show_insight = true;
+                self.insight_scroll = 0;
+            }
+            DashboardCard::Holiday => {
+                self.set_insight_tab(InsightTab::Festival);
+                self.show_insight = true;
+                self.insight_scroll = 0;
+            }
+            DashboardCard::Preview => {}
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::App;
+    use super::{App, DashboardCard, LayoutMode};
     use chrono::NaiveDate;
+
+    fn test_app() -> App {
+        App::new_with_date(Some(
+            NaiveDate::from_ymd_opt(2024, 2, 10).expect("valid test date"),
+        ))
+    }
 
     #[test]
     fn selected_insight_cache_key_is_set_on_init() {
@@ -528,5 +638,29 @@ mod tests {
         app.next_month();
 
         assert_eq!(app.selected_insight_cache_key(), Some((2024, 2, 29)));
+    }
+
+    #[test]
+    fn dashboard_focus_cycles_forward_and_backward() {
+        let mut app = test_app();
+        app.set_layout_mode(LayoutMode::Large);
+
+        assert_eq!(app.focused_card(), DashboardCard::Hero);
+
+        app.focus_next_card();
+        assert_eq!(app.focused_card(), DashboardCard::Guidance);
+
+        app.focus_prev_card();
+        assert_eq!(app.focused_card(), DashboardCard::Hero);
+    }
+
+    #[test]
+    fn numeric_focus_ignored_outside_large_layout() {
+        let mut app = test_app();
+        app.set_layout_mode(LayoutMode::Medium);
+
+        app.focus_card_index(3);
+
+        assert_eq!(app.focused_card(), DashboardCard::Hero);
     }
 }

@@ -6,7 +6,7 @@ use ratatui::{
     Frame,
 };
 
-use crate::app::App;
+use crate::app::{App, LayoutMode};
 use crate::theme;
 use crate::widgets::{
     bookmarks::BookmarksOverlay, calendar::CalendarWidget, date_jump::DateJumpPopup,
@@ -35,13 +35,6 @@ const MIN_TERM_H: u16 = 15;
 const BP_MEDIUM: u16 = 80;
 const BP_LARGE: u16 = 120;
 
-#[derive(Clone, Copy)]
-enum LayoutMode {
-    Small,
-    Medium,
-    Large,
-}
-
 fn layout_mode(width: u16) -> LayoutMode {
     if width < BP_MEDIUM {
         LayoutMode::Small
@@ -52,8 +45,13 @@ fn layout_mode(width: u16) -> LayoutMode {
     }
 }
 
-pub fn draw(frame: &mut Frame, app: &App) {
+fn large_split_percentages() -> (u16, u16) {
+    (35, 65)
+}
+
+pub fn draw(frame: &mut Frame, app: &mut App) {
     let size = frame.area();
+    app.set_layout_mode(layout_mode(size.width));
 
     if size.width < MIN_TERM_W || size.height < MIN_TERM_H {
         let msg = Paragraph::new("Terminal quá nhỏ.\nCần tối thiểu 40×15.")
@@ -145,7 +143,7 @@ fn draw_header(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
 }
 
 fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
-    let mode = layout_mode(area.width);
+    let mode = app.layout_mode;
 
     match mode {
         LayoutMode::Small => {
@@ -169,9 +167,11 @@ fn draw_body(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
             frame.render_widget(InfoPanel::new(app), inner);
         }
         LayoutMode::Large => {
-            // Full calendar (~40%) + spacious info panel (~60%)
-            let cols = Layout::horizontal([Constraint::Percentage(40), Constraint::Percentage(60)])
-                .split(area);
+            // Full calendar (~35%) + spacious info panel (~65%)
+            let (left, right) = large_split_percentages();
+            let cols =
+                Layout::horizontal([Constraint::Percentage(left), Constraint::Percentage(right)])
+                    .split(area);
 
             frame.render_widget(CalendarWidget::new(app), cols[0]);
 
@@ -192,7 +192,7 @@ fn padded_area(area: ratatui::layout::Rect, h_pad: u16, v_pad: u16) -> ratatui::
 }
 
 fn draw_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
-    let mode = layout_mode(area.width);
+    let mode = app.layout_mode;
 
     let spans = match mode {
         LayoutMode::Small => vec![
@@ -214,7 +214,7 @@ fn draw_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("thoát", Style::default().fg(theme::SECONDARY_FG)),
         ],
-        _ => vec![
+        LayoutMode::Medium => vec![
             Span::styled(" hjkl ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("nav", Style::default().fg(theme::SECONDARY_FG)),
             Span::raw("  "),
@@ -236,8 +236,50 @@ fn draw_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("thoát", Style::default().fg(theme::SECONDARY_FG)),
         ],
+        LayoutMode::Large => vec![
+            Span::styled(" hjkl ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("nav", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("Tab ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("focus", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("Enter ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("mở", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("1-5 ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("thẻ", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("t ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("hôm nay", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("help", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("thoát", Style::default().fg(theme::SECONDARY_FG)),
+        ],
     };
 
     let footer = Paragraph::new(Line::from(spans)).alignment(Alignment::Center);
     frame.render_widget(footer, area);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{large_split_percentages, layout_mode};
+    use crate::app::LayoutMode;
+
+    #[test]
+    fn large_mode_split_is_35_65() {
+        let (left, right) = large_split_percentages();
+        assert_eq!((left, right), (35, 65));
+    }
+
+    #[test]
+    fn layout_mode_thresholds_match_spec() {
+        assert_eq!(layout_mode(79), LayoutMode::Small);
+        assert_eq!(layout_mode(80), LayoutMode::Medium);
+        assert_eq!(layout_mode(119), LayoutMode::Medium);
+        assert_eq!(layout_mode(120), LayoutMode::Large);
+    }
 }

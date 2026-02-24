@@ -1,7 +1,7 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use std::time::Duration;
 
-use crate::app::{App, InsightTab};
+use crate::app::{App, InsightTab, LayoutMode};
 
 // Bookmarks overlay mode handling
 fn handle_bookmarks_mode(app: &mut App, key: KeyEvent) -> bool {
@@ -165,6 +165,31 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         return;
     }
 
+    // Large-screen dashboard focus mode
+    if app.layout_mode == LayoutMode::Large {
+        match key.code {
+            KeyCode::Tab => {
+                app.focus_next_card();
+                return;
+            }
+            KeyCode::BackTab => {
+                app.focus_prev_card();
+                return;
+            }
+            KeyCode::Enter => {
+                app.activate_focused_card();
+                return;
+            }
+            KeyCode::Char(c @ '1'..='5') => {
+                if let Some(index) = c.to_digit(10) {
+                    app.focus_card_index(index as u8);
+                }
+                return;
+            }
+            _ => {}
+        }
+    }
+
     match key.code {
         // Quit
         KeyCode::Char('q') | KeyCode::Esc => app.running = false,
@@ -206,5 +231,64 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         KeyCode::Char('c') => app.toggle_calendar(),
 
         _ => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::handle_key;
+    use crate::app::{App, DashboardCard, LayoutMode};
+    use chrono::NaiveDate;
+    use crossterm::event::{KeyCode, KeyEvent};
+
+    fn test_app() -> App {
+        App::new_with_date(Some(
+            NaiveDate::from_ymd_opt(2024, 2, 10).expect("valid test date"),
+        ))
+    }
+
+    #[test]
+    fn tab_cycles_cards_in_large_mode_without_changing_month() {
+        let mut app = test_app();
+        app.set_layout_mode(LayoutMode::Large);
+        let month = app.view_month;
+
+        handle_key(&mut app, KeyEvent::from(KeyCode::Tab));
+
+        assert_eq!(app.view_month, month);
+        assert_eq!(app.focused_card(), DashboardCard::Guidance);
+    }
+
+    #[test]
+    fn tab_keeps_month_navigation_in_medium_mode() {
+        let mut app = test_app();
+        app.set_layout_mode(LayoutMode::Medium);
+        let month = app.view_month;
+
+        handle_key(&mut app, KeyEvent::from(KeyCode::Tab));
+
+        assert_ne!(app.view_month, month);
+    }
+
+    #[test]
+    fn enter_opens_insight_from_guidance_card() {
+        let mut app = test_app();
+        app.set_layout_mode(LayoutMode::Large);
+        app.focus_card_index(2);
+
+        handle_key(&mut app, KeyEvent::from(KeyCode::Enter));
+
+        assert!(app.show_insight);
+    }
+
+    #[test]
+    fn large_mode_tab_does_not_change_month_after_full_wiring() {
+        let mut app = test_app();
+        app.set_layout_mode(LayoutMode::Large);
+        let month = app.view_month;
+
+        handle_key(&mut app, KeyEvent::from(KeyCode::Tab));
+
+        assert_eq!(app.view_month, month);
     }
 }
