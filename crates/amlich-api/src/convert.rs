@@ -3,7 +3,8 @@ use crate::dto::{
     DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, ElementInsightDto,
     FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto,
     LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto, ProverbInsightDto, RegionsInsightDto,
-    SolarDto, TabooInsightDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto,
+    SolarDto, TabooInsightDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto,
+    XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -171,6 +172,26 @@ impl From<&amlich_core::almanac::types::DayStars> for DayStarsDto {
     }
 }
 
+impl From<&amlich_core::almanac::types::XungHopResult> for XungHopDto {
+    fn from(value: &amlich_core::almanac::types::XungHopResult) -> Self {
+        Self {
+            luc_xung: value.luc_xung.clone(),
+            tam_hop: value.tam_hop.clone(),
+            tu_hanh_xung: value.tu_hanh_xung.clone(),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::types::TrucInfo> for TrucDto {
+    fn from(value: &amlich_core::almanac::types::TrucInfo) -> Self {
+        Self {
+            index: value.index,
+            name: value.name.clone(),
+            quality: value.quality.clone(),
+        }
+    }
+}
+
 impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
     fn from(value: &amlich_core::almanac::types::DayFortune) -> Self {
         Self {
@@ -179,6 +200,8 @@ impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
             conflict: DayConflictDto::from(&value.conflict),
             travel: TravelDirectionDto::from(&value.travel),
             stars: DayStarsDto::from(&value.stars),
+            xung_hop: XungHopDto::from(&value.xung_hop),
+            truc: TrucDto::from(&value.truc),
         }
     }
 }

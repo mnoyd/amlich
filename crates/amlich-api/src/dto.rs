@@ -121,12 +121,28 @@ pub struct DayStarsDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XungHopDto {
+    pub luc_xung: String,
+    pub tam_hop: Vec<String>,
+    pub tu_hanh_xung: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrucDto {
+    pub index: usize,
+    pub name: String,
+    pub quality: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DayFortuneDto {
     pub profile: String,
     pub day_element: DayElementDto,
     pub conflict: DayConflictDto,
     pub travel: TravelDirectionDto,
     pub stars: DayStarsDto,
+    pub xung_hop: XungHopDto,
+    pub truc: TrucDto,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
