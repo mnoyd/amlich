@@ -144,6 +144,13 @@ pub struct DayStarsDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayDeityDto {
+    pub name: String,
+    pub classification: String,
+    pub evidence: Option<RuleEvidenceDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct XungHopDto {
     pub luc_xung: String,
     pub tam_hop: Vec<String>,
@@ -174,6 +181,7 @@ pub struct DayFortuneDto {
     pub conflict: DayConflictDto,
     pub travel: TravelDirectionDto,
     pub stars: DayStarsDto,
+    pub day_deity: Option<DayDeityDto>,
     pub taboos: Vec<DayTabooDto>,
     pub xung_hop: XungHopDto,
     pub truc: TrucDto,

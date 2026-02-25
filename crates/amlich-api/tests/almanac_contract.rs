@@ -18,6 +18,12 @@ fn day_info_exposes_day_fortune_contract() {
     assert!(!fortune.day_element.na_am.is_empty());
     assert!(!fortune.conflict.tuoi_xung.is_empty());
     assert!(!fortune.stars.cat_tinh.is_empty());
+    let deity = fortune.day_deity.as_ref().expect("day_deity should exist");
+    assert!(!deity.name.is_empty());
+    assert!(matches!(
+        deity.classification.as_str(),
+        "hoang_dao" | "hac_dao"
+    ));
     assert!(fortune.taboos.iter().all(|t| !t.rule_id.is_empty()));
 }
 
@@ -129,6 +135,15 @@ fn day_fortune_exposes_source_evidence_metadata() {
 
     let truc_evidence = fortune.truc.evidence.expect("truc evidence should exist");
     assert_eq!(truc_evidence.source_id, "formula");
+
+    let deity = fortune.day_deity.as_ref().expect("day_deity should exist");
+    let deity_evidence = deity
+        .evidence
+        .as_ref()
+        .expect("day_deity evidence should exist");
+    assert_eq!(deity_evidence.source_id, "khcbppt");
+    assert_eq!(deity_evidence.method, "table-lookup");
+    assert_eq!(deity_evidence.profile, "baseline");
 
     assert!(
         !fortune.stars.matched_rules.is_empty(),

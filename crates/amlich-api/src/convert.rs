@@ -1,6 +1,6 @@
 use crate::dto::{
-    CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto, DayConflictDto, DayElementDto,
-    DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, DayTabooDto,
+    CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto, DayConflictDto, DayDeityDto,
+    DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, DayTabooDto,
     ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto,
     HolidayInsightDto, HourInfoDto, LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto,
     ProverbInsightDto, RegionsInsightDto, RuleEvidenceDto, SolarDto, StarRuleEvidenceDto,
@@ -244,6 +244,22 @@ impl From<&amlich_core::almanac::types::DayTaboo> for DayTabooDto {
     }
 }
 
+impl From<&amlich_core::almanac::types::DayDeity> for DayDeityDto {
+    fn from(value: &amlich_core::almanac::types::DayDeity) -> Self {
+        let classification = match value.classification {
+            amlich_core::almanac::types::DayDeityClassification::HoangDao => "hoang_dao",
+            amlich_core::almanac::types::DayDeityClassification::HacDao => "hac_dao",
+        }
+        .to_string();
+
+        Self {
+            name: value.name.clone(),
+            classification,
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
+        }
+    }
+}
+
 impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
     fn from(value: &amlich_core::almanac::types::DayFortune) -> Self {
         Self {
@@ -252,6 +268,7 @@ impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
             conflict: DayConflictDto::from(&value.conflict),
             travel: TravelDirectionDto::from(&value.travel),
             stars: DayStarsDto::from(&value.stars),
+            day_deity: value.day_deity.as_ref().map(DayDeityDto::from),
             taboos: value.taboos.iter().map(DayTabooDto::from).collect(),
             xung_hop: XungHopDto::from(&value.xung_hop),
             truc: TrucDto::from(&value.truc),
