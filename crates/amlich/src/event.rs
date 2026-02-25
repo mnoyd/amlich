@@ -131,6 +131,9 @@ fn handle_key(app: &mut App, key: KeyEvent) {
             KeyCode::Char('2') => app.set_almanac_tab(AlmanacTab::Taboos),
             KeyCode::Char('3') => app.set_almanac_tab(AlmanacTab::Stars),
             KeyCode::Char('4') => app.set_almanac_tab(AlmanacTab::Evidence),
+            KeyCode::Char('r') if app.almanac_tab == AlmanacTab::Evidence => {
+                app.toggle_almanac_evidence_raw()
+            }
             KeyCode::Tab => app.next_almanac_tab(),
             KeyCode::BackTab => app.prev_almanac_tab(),
             _ => {}
@@ -276,5 +279,20 @@ mod tests {
 
         handle_key(&mut app, key(KeyCode::Esc));
         assert!(!app.show_almanac);
+    }
+
+    #[test]
+    fn evidence_tab_supports_raw_toggle() {
+        let mut app = App::new_with_date(None);
+        app.toggle_almanac();
+        handle_key(&mut app, key(KeyCode::Char('4')));
+        assert_eq!(app.almanac_tab, AlmanacTab::Evidence);
+        assert!(!app.almanac_evidence_raw);
+
+        handle_key(&mut app, key(KeyCode::Char('r')));
+        assert!(app.almanac_evidence_raw);
+
+        handle_key(&mut app, key(KeyCode::Char('r')));
+        assert!(!app.almanac_evidence_raw);
     }
 }
