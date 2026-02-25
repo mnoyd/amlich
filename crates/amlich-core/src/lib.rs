@@ -128,6 +128,7 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
     let day_fortune = calculate_day_fortune(
         jd,
         &day_canchi,
+        lunar_date.day,
         lunar_date.month,
         &year_canchi.can,
         &tiet_khi.name,

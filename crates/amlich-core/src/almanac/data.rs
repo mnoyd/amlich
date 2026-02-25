@@ -80,6 +80,36 @@ pub struct StarRuleMetaSet {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct DayDeityMeta {
+    pub source_id: String,
+    pub method: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DayDeityRuleRaw {
+    pub name: String,
+    pub classification: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct DayDeityRule {
+    pub name: String,
+    pub classification: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DayDeityRuleSetRaw {
+    pub cycle: Vec<DayDeityRuleRaw>,
+    pub month_group_start_by_chi: HashMap<String, usize>,
+}
+
+#[derive(Debug, Clone)]
+pub struct DayDeityRuleSet {
+    pub cycle: Vec<DayDeityRule>,
+    pub month_group_start_by_chi: HashMap<String, usize>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct TabooRuleMetaSet {
     pub tam_nuong: SourceMeta,
     pub nguyet_ky: SourceMeta,
@@ -150,6 +180,7 @@ pub struct AlmanacData {
     pub conflict_meta: SourceMeta,
     pub na_am_meta: SourceMeta,
     pub star_meta: SourceMeta,
+    pub day_deity_meta: SourceMeta,
     pub taboo_rule_meta: TabooRuleMetaSet,
     pub travel_by_can: HashMap<String, TravelRule>,
     pub conflict_by_chi: HashMap<String, ConflictRule>,
@@ -160,6 +191,7 @@ pub struct AlmanacData {
     pub star_rules_by_year_can: HashMap<String, StarRuleBucket>,
     pub star_rules_by_lunar_month: HashMap<u8, StarRuleBucket>,
     pub star_rules_by_tiet_khi: HashMap<String, StarRuleBucket>,
+    pub day_deity_rule_set: DayDeityRuleSet,
     pub taboo_rules: TabooRuleSets,
 }
 
@@ -210,6 +242,7 @@ struct RawAlmanacData {
     conflict_meta: SourceMeta,
     na_am_meta: SourceMeta,
     star_meta: SourceMeta,
+    day_deity_meta: SourceMeta,
     taboo_rule_meta: TabooRuleMetaSet,
     travel_by_can: HashMap<String, TravelRule>,
     conflict_by_chi: HashMap<String, ConflictRule>,
@@ -217,6 +250,7 @@ struct RawAlmanacData {
     nhi_thap_bat_tu: Vec<DayStarRule>,
     star_rule_meta: StarRuleMetaSet,
     star_rule_sets: StarRuleSetsRaw,
+    day_deity_rule_set: DayDeityRuleSetRaw,
     taboo_rule_sets: TabooRuleSetsRaw,
 }
 
@@ -261,6 +295,7 @@ pub fn baseline_data() -> &'static AlmanacData {
             conflict_meta: raw.conflict_meta,
             na_am_meta: raw.na_am_meta,
             star_meta: raw.star_meta,
+            day_deity_meta: raw.day_deity_meta,
             taboo_rule_meta: raw.taboo_rule_meta,
             travel_by_can: raw.travel_by_can,
             conflict_by_chi: raw.conflict_by_chi,
@@ -288,6 +323,7 @@ pub fn baseline_data() -> &'static AlmanacData {
                 .into_iter()
                 .map(|(k, v)| (k, normalize_star_rule_bucket(v)))
                 .collect(),
+            day_deity_rule_set: normalize_day_deity_rule_set(raw.day_deity_rule_set),
             taboo_rules: normalize_taboo_rule_sets(raw.taboo_rule_sets),
         }
     })
@@ -298,6 +334,7 @@ fn validate_raw_data(raw: &RawAlmanacData) {
     validate_source_meta(&raw.conflict_meta, "conflict_meta");
     validate_source_meta(&raw.na_am_meta, "na_am_meta");
     validate_source_meta(&raw.star_meta, "star_meta");
+    validate_source_meta(&raw.day_deity_meta, "day_deity_meta");
     validate_taboo_rule_meta(&raw.taboo_rule_meta);
     validate_can_map(&raw.travel_by_can);
     validate_chi_map(&raw.conflict_by_chi);
@@ -307,6 +344,7 @@ fn validate_raw_data(raw: &RawAlmanacData) {
     validate_nhi_thap_bat_tu(&raw.nhi_thap_bat_tu);
     validate_star_rule_meta(&raw.star_rule_meta);
     validate_star_rule_sets(&raw.star_rule_sets);
+    validate_day_deity_rule_set(&raw.day_deity_rule_set);
     validate_taboo_rule_sets(&raw.taboo_rule_sets);
 }
 
@@ -457,6 +495,20 @@ fn parse_lunar_month_rule_map(
         .collect()
 }
 
+fn normalize_day_deity_rule_set(raw: DayDeityRuleSetRaw) -> DayDeityRuleSet {
+    DayDeityRuleSet {
+        cycle: raw
+            .cycle
+            .into_iter()
+            .map(|entry| DayDeityRule {
+                name: entry.name,
+                classification: entry.classification,
+            })
+            .collect(),
+        month_group_start_by_chi: raw.month_group_start_by_chi,
+    }
+}
+
 fn normalize_taboo_rule_sets(raw: TabooRuleSetsRaw) -> TabooRuleSets {
     TabooRuleSets {
         tam_nuong: TabooDayRule {
@@ -502,6 +554,43 @@ fn validate_star_rule_sets(sets: &StarRuleSetsRaw) {
     validate_by_year_can_map(&sets.by_year_can);
     validate_by_lunar_month_map(&sets.by_lunar_month);
     validate_by_tiet_khi_map(&sets.by_tiet_khi);
+}
+
+fn validate_day_deity_rule_set(rule_set: &DayDeityRuleSetRaw) {
+    assert_eq!(
+        rule_set.cycle.len(),
+        12,
+        "day_deity_rule_set.cycle must contain exactly 12 entries"
+    );
+
+    for (idx, entry) in rule_set.cycle.iter().enumerate() {
+        assert!(
+            !entry.name.trim().is_empty(),
+            "day_deity_rule_set.cycle[{idx}].name must not be empty"
+        );
+        assert!(
+            matches!(entry.classification.as_str(), "hoang_dao" | "hac_dao"),
+            "day_deity_rule_set.cycle[{idx}].classification must be hoang_dao|hac_dao"
+        );
+    }
+
+    let expected: HashSet<&str> = CHI.iter().copied().collect();
+    let actual: HashSet<&str> = rule_set
+        .month_group_start_by_chi
+        .keys()
+        .map(String::as_str)
+        .collect();
+    assert_eq!(
+        actual, expected,
+        "day_deity_rule_set.month_group_start_by_chi must contain all 12 chi keys"
+    );
+
+    for (chi, start) in &rule_set.month_group_start_by_chi {
+        assert!(
+            *start < 12,
+            "day_deity_rule_set.month_group_start_by_chi[{chi}] must be in 0..12"
+        );
+    }
 }
 
 fn validate_taboo_rule_sets(sets: &TabooRuleSetsRaw) {
@@ -826,6 +915,28 @@ mod tests {
         assert!(data.star_rules_by_year_can.contains_key("Giáp"));
         assert!(data.star_rules_by_lunar_month.contains_key(&1));
         assert!(data.star_rules_by_tiet_khi.contains_key("Lập Xuân"));
+    }
+
+    #[test]
+    fn validates_day_deity_rule_schema_loads() {
+        let data = baseline_data();
+        assert_eq!(data.day_deity_meta.source_id, "khcbppt");
+        assert_eq!(data.day_deity_rule_set.cycle.len(), 12);
+        assert_eq!(data.day_deity_rule_set.cycle[0].name, "Thanh Long");
+        assert_eq!(
+            data.day_deity_rule_set
+                .month_group_start_by_chi
+                .get("Dần")
+                .copied(),
+            Some(0)
+        );
+        assert_eq!(
+            data.day_deity_rule_set
+                .month_group_start_by_chi
+                .get("Tý")
+                .copied(),
+            Some(8)
+        );
     }
 
     #[test]

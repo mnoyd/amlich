@@ -9,6 +9,7 @@ fn golden_tet_2024_truc_and_xung_hop() {
     let fortune = calculate_day_fortune(
         info.jd,
         &info.canchi.day,
+        info.lunar.day,
         info.lunar.month,
         &info.canchi.year.can,
         &info.tiet_khi.name,
@@ -38,6 +39,7 @@ fn golden_tet_2025_truc_and_xung_hop() {
     let fortune = calculate_day_fortune(
         info.jd,
         &info.canchi.day,
+        info.lunar.day,
         info.lunar.month,
         &info.canchi.year.can,
         &info.tiet_khi.name,
@@ -67,6 +69,7 @@ fn golden_new_year_2024_truc_and_xung_hop() {
     let fortune = calculate_day_fortune(
         info.jd,
         &info.canchi.day,
+        info.lunar.day,
         info.lunar.month,
         &info.canchi.year.can,
         &info.tiet_khi.name,
@@ -98,6 +101,7 @@ fn golden_truc_kien_when_day_chi_equals_month_chi() {
     let fortune = calculate_day_fortune(
         info.jd,
         &info.canchi.day,
+        info.lunar.day,
         info.lunar.month,
         &info.canchi.year.can,
         &info.tiet_khi.name,

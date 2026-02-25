@@ -4,11 +4,42 @@
   "conflict_meta": { "source_id": "khcbppt", "method": "table-lookup" },
   "na_am_meta": { "source_id": "tam-menh-thong-hoi", "method": "table-lookup" },
   "star_meta": { "source_id": "nhi-thap-bat-tu", "method": "jd-cycle" },
+  "day_deity_meta": { "source_id": "khcbppt", "method": "table-lookup" },
   "taboo_rule_meta": {
     "tam_nuong": { "source_id": "khcbppt", "method": "table-lookup" },
     "nguyet_ky": { "source_id": "khcbppt", "method": "table-lookup" },
     "sat_chu": { "source_id": "khcbppt", "method": "table-lookup" },
     "tho_tu": { "source_id": "khcbppt", "method": "table-lookup" }
+  },
+  "day_deity_rule_set": {
+    "cycle": [
+      { "name": "Thanh Long", "classification": "hoang_dao" },
+      { "name": "Minh Đường", "classification": "hoang_dao" },
+      { "name": "Thiên Hình", "classification": "hac_dao" },
+      { "name": "Chu Tước", "classification": "hac_dao" },
+      { "name": "Kim Quỹ", "classification": "hoang_dao" },
+      { "name": "Kim Đường", "classification": "hoang_dao" },
+      { "name": "Bạch Hổ", "classification": "hac_dao" },
+      { "name": "Ngọc Đường", "classification": "hoang_dao" },
+      { "name": "Thiên Lao", "classification": "hac_dao" },
+      { "name": "Huyền Vũ", "classification": "hac_dao" },
+      { "name": "Tư Mệnh", "classification": "hoang_dao" },
+      { "name": "Câu Trần", "classification": "hac_dao" }
+    ],
+    "month_group_start_by_chi": {
+      "Tý": 8,
+      "Sửu": 10,
+      "Dần": 0,
+      "Mão": 2,
+      "Thìn": 4,
+      "Tỵ": 6,
+      "Ngọ": 8,
+      "Mùi": 10,
+      "Thân": 0,
+      "Dậu": 2,
+      "Tuất": 4,
+      "Hợi": 6
+    }
   },
   "star_rule_meta": {
     "fixed_by_chi": { "source_id": "khcbppt", "method": "table-lookup" },

@@ -56,6 +56,28 @@ pub struct RuleEvidence {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DayDeityClassification {
+    HoangDao,
+    HacDao,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DayDeity {
+    pub name: String,
+    pub classification: DayDeityClassification,
+    pub evidence: Option<RuleEvidence>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DayTaboo {
+    pub rule_id: String,
+    pub name: String,
+    pub severity: String,
+    pub reason: String,
+    pub evidence: Option<RuleEvidence>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DayStar {
     pub system: StarSystem,
     pub index: usize,
@@ -114,6 +136,8 @@ pub struct DayFortune {
     pub conflict: DayConflict,
     pub travel: TravelDirection,
     pub stars: DayStars,
+    pub day_deity: Option<DayDeity>,
+    pub taboos: Vec<DayTaboo>,
     pub xung_hop: XungHopResult,
     pub truc: TrucInfo,
 }
@@ -174,6 +198,18 @@ mod tests {
                 evidence: None,
                 matched_rules: Vec::new(),
             },
+            day_deity: Some(DayDeity {
+                name: "Thanh Long".to_string(),
+                classification: DayDeityClassification::HoangDao,
+                evidence: None,
+            }),
+            taboos: vec![DayTaboo {
+                rule_id: "tam_nuong".to_string(),
+                name: "Tam Nương".to_string(),
+                severity: "hard".to_string(),
+                reason: "Ngày âm lịch 3 thuộc Tam Nương".to_string(),
+                evidence: None,
+            }],
             xung_hop: XungHopResult {
                 luc_xung: "Tuất".to_string(),
                 tam_hop: vec!["Dần".to_string(), "Ngọ".to_string(), "Tuất".to_string()],

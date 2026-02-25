@@ -1,5 +1,6 @@
 pub mod calc;
 pub mod data;
+pub mod day_deity;
 pub mod profile;
 pub mod star;
 pub mod taboo;
