@@ -4,6 +4,12 @@
   "conflict_meta": { "source_id": "khcbppt", "method": "table-lookup" },
   "na_am_meta": { "source_id": "tam-menh-thong-hoi", "method": "table-lookup" },
   "star_meta": { "source_id": "nhi-thap-bat-tu", "method": "jd-cycle" },
+  "taboo_rule_meta": {
+    "tam_nuong": { "source_id": "khcbppt", "method": "table-lookup" },
+    "nguyet_ky": { "source_id": "khcbppt", "method": "table-lookup" },
+    "sat_chu": { "source_id": "khcbppt", "method": "table-lookup" },
+    "tho_tu": { "source_id": "khcbppt", "method": "table-lookup" }
+  },
   "star_rule_meta": {
     "fixed_by_chi": { "source_id": "khcbppt", "method": "table-lookup" },
     "fixed_by_canchi": { "source_id": "khcbppt", "method": "table-lookup" },
@@ -38,6 +44,58 @@
         "cat_tinh": ["Thiên Quý", "Bạch Hổ"],
         "sat_tinh": [],
         "binh_tinh": []
+      }
+    }
+  },
+  "taboo_rule_sets": {
+    "tam_nuong": {
+      "rule_id": "tam_nuong",
+      "name": "Tam Nương",
+      "severity": "hard",
+      "lunar_days": [3, 7, 13, 18, 22, 27]
+    },
+    "nguyet_ky": {
+      "rule_id": "nguyet_ky",
+      "name": "Nguyệt Kỵ",
+      "severity": "hard",
+      "lunar_days": [5, 14, 23]
+    },
+    "sat_chu": {
+      "rule_id": "sat_chu",
+      "name": "Sát Chủ",
+      "severity": "hard",
+      "by_lunar_month": {
+        "1": "Tỵ",
+        "2": "Tý",
+        "3": "Mùi",
+        "4": "Mão",
+        "5": "Thân",
+        "6": "Tuất",
+        "7": "Hợi",
+        "8": "Sửu",
+        "9": "Ngọ",
+        "10": "Dần",
+        "11": "Dậu",
+        "12": "Thìn"
+      }
+    },
+    "tho_tu": {
+      "rule_id": "tho_tu",
+      "name": "Thọ Tử",
+      "severity": "soft",
+      "by_lunar_month": {
+        "1": "Thìn",
+        "2": "Tỵ",
+        "3": "Ngọ",
+        "4": "Mùi",
+        "5": "Thân",
+        "6": "Dậu",
+        "7": "Tuất",
+        "8": "Hợi",
+        "9": "Tý",
+        "10": "Sửu",
+        "11": "Dần",
+        "12": "Mùi"
       }
     }
   },
