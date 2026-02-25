@@ -4,6 +4,43 @@
   "conflict_meta": { "source_id": "khcbppt", "method": "table-lookup" },
   "na_am_meta": { "source_id": "tam-menh-thong-hoi", "method": "table-lookup" },
   "star_meta": { "source_id": "nhi-thap-bat-tu", "method": "jd-cycle" },
+  "star_rule_meta": {
+    "fixed_by_chi": { "source_id": "khcbppt", "method": "table-lookup" },
+    "fixed_by_canchi": { "source_id": "khcbppt", "method": "table-lookup" },
+    "by_year": { "source_id": "khcbppt", "method": "table-lookup" },
+    "by_month": { "source_id": "khcbppt", "method": "table-lookup" },
+    "by_tiet_khi": { "source_id": "khcbppt", "method": "table-lookup" }
+  },
+  "star_rule_sets": {
+    "fixed_by_canchi": {
+      "Giáp Thìn": {
+        "cat_tinh": [],
+        "sat_tinh": ["Phúc Sinh"],
+        "binh_tinh": []
+      }
+    },
+    "by_year_can": {
+      "Giáp": {
+        "cat_tinh": ["Bạch Hổ"],
+        "sat_tinh": [],
+        "binh_tinh": []
+      }
+    },
+    "by_lunar_month": {
+      "1": {
+        "cat_tinh": [],
+        "sat_tinh": ["Thiên Quý", "Bạch Hổ"],
+        "binh_tinh": ["Nguyệt Không"]
+      }
+    },
+    "by_tiet_khi": {
+      "Lập Xuân": {
+        "cat_tinh": ["Thiên Quý", "Bạch Hổ"],
+        "sat_tinh": [],
+        "binh_tinh": []
+      }
+    }
+  },
   "travel_by_can": {
     "Giáp": { "xuat_hanh_huong": "Đông Nam", "tai_than": "Đông Bắc", "hy_than": "Đông Bắc", "ky_than": null },
     "Ất": { "xuat_hanh_huong": "Đông", "tai_than": "Tây Nam", "hy_than": "Tây Bắc", "ky_than": null },

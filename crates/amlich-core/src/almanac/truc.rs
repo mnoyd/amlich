@@ -15,7 +15,6 @@
 /// `truc_index = (day_chi_index − month_chi_index + 12) % 12`
 ///
 /// **Source:** Khâm Định Hiệp Kỷ Biện Phương Thư (欽定協紀辨方書), method: formula.
-
 use super::types::TrucInfo;
 
 pub const TRUC_NAMES: [&str; 12] = [
@@ -60,6 +59,7 @@ pub fn get_truc(day_chi_index: usize, lunar_month: i32) -> TrucInfo {
         index: idx,
         name: TRUC_NAMES[idx].to_string(),
         quality: TRUC_QUALITY[idx].to_string(),
+        evidence: None,
     }
 }
 
@@ -155,9 +155,8 @@ mod tests {
 
     #[test]
     fn all_12_truc_names_reachable() {
-        let seen: std::collections::HashSet<String> = (0..12)
-            .map(|i| get_truc(i, 1).name)
-            .collect();
+        let seen: std::collections::HashSet<String> =
+            (0..12).map(|i| get_truc(i, 1).name).collect();
         assert_eq!(seen.len(), 12, "All 12 trực names must be reachable");
     }
 }

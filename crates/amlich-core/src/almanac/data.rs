@@ -3,8 +3,9 @@ use std::sync::OnceLock;
 
 use serde::Deserialize;
 
-use crate::types::{CAN, CHI};
 use super::types::SourceMeta;
+use crate::tietkhi::TIET_KHI;
+use crate::types::{CAN, CHI};
 
 const BASELINE_JSON: &str = include_str!("../../data/almanac/baseline.json");
 const VALID_DIRECTIONS: [&str; 8] = [
@@ -48,6 +49,38 @@ pub struct DayStarRule {
     pub quality: String,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct StarRuleBucketRaw {
+    pub cat_tinh: Vec<String>,
+    pub sat_tinh: Vec<String>,
+    #[serde(default)]
+    pub binh_tinh: Vec<String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct StarRuleBucket {
+    pub cat_tinh: Vec<String>,
+    pub sat_tinh: Vec<String>,
+    pub binh_tinh: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct StarRuleMetaSet {
+    pub fixed_by_chi: SourceMeta,
+    pub fixed_by_canchi: SourceMeta,
+    pub by_year: SourceMeta,
+    pub by_month: SourceMeta,
+    pub by_tiet_khi: SourceMeta,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct StarRuleSetsRaw {
+    pub fixed_by_canchi: HashMap<String, StarRuleBucketRaw>,
+    pub by_year_can: HashMap<String, StarRuleBucketRaw>,
+    pub by_lunar_month: HashMap<String, StarRuleBucketRaw>,
+    pub by_tiet_khi: HashMap<String, StarRuleBucketRaw>,
+}
+
 #[derive(Debug, Clone)]
 pub struct AlmanacData {
     pub profile: String,
@@ -59,9 +92,14 @@ pub struct AlmanacData {
     pub conflict_by_chi: HashMap<String, ConflictRule>,
     pub sexagenary_na_am: HashMap<String, NaAmEntry>,
     pub nhi_thap_bat_tu: Vec<DayStarRule>,
+    pub star_rule_meta: StarRuleMetaSet,
+    pub star_rules_fixed_by_canchi: HashMap<String, StarRuleBucket>,
+    pub star_rules_by_year_can: HashMap<String, StarRuleBucket>,
+    pub star_rules_by_lunar_month: HashMap<u8, StarRuleBucket>,
+    pub star_rules_by_tiet_khi: HashMap<String, StarRuleBucket>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 struct RawAlmanacData {
     profile: String,
     travel_meta: SourceMeta,
@@ -72,6 +110,8 @@ struct RawAlmanacData {
     conflict_by_chi: HashMap<String, ConflictRule>,
     na_am_pairs: Vec<String>,
     nhi_thap_bat_tu: Vec<DayStarRule>,
+    star_rule_meta: StarRuleMetaSet,
+    star_rule_sets: StarRuleSetsRaw,
 }
 
 static BASELINE_DATA: OnceLock<AlmanacData> = OnceLock::new();
@@ -93,6 +133,28 @@ pub fn baseline_data() -> &'static AlmanacData {
             conflict_by_chi: raw.conflict_by_chi,
             sexagenary_na_am: expand_sexagenary_na_am(&raw.na_am_pairs),
             nhi_thap_bat_tu: raw.nhi_thap_bat_tu,
+            star_rule_meta: raw.star_rule_meta,
+            star_rules_fixed_by_canchi: raw
+                .star_rule_sets
+                .fixed_by_canchi
+                .into_iter()
+                .map(|(k, v)| (k, normalize_star_rule_bucket(v)))
+                .collect(),
+            star_rules_by_year_can: raw
+                .star_rule_sets
+                .by_year_can
+                .into_iter()
+                .map(|(k, v)| (k, normalize_star_rule_bucket(v)))
+                .collect(),
+            star_rules_by_lunar_month: parse_lunar_month_rule_map(
+                raw.star_rule_sets.by_lunar_month,
+            ),
+            star_rules_by_tiet_khi: raw
+                .star_rule_sets
+                .by_tiet_khi
+                .into_iter()
+                .map(|(k, v)| (k, normalize_star_rule_bucket(v)))
+                .collect(),
         }
     })
 }
@@ -108,6 +170,8 @@ fn validate_raw_data(raw: &RawAlmanacData) {
     validate_conflict_stars(&raw.conflict_by_chi);
     validate_na_am_pairs(&raw.na_am_pairs);
     validate_nhi_thap_bat_tu(&raw.nhi_thap_bat_tu);
+    validate_star_rule_meta(&raw.star_rule_meta);
+    validate_star_rule_sets(&raw.star_rule_sets);
 }
 
 const VALID_METHODS: [&str; 3] = ["table-lookup", "bai-quyet", "jd-cycle"];
@@ -126,6 +190,14 @@ fn validate_source_meta(meta: &SourceMeta, field: &str) {
         "{field}.method '{}' is not a valid method token",
         meta.method
     );
+}
+
+fn validate_star_rule_meta(meta: &StarRuleMetaSet) {
+    validate_source_meta(&meta.fixed_by_chi, "star_rule_meta.fixed_by_chi");
+    validate_source_meta(&meta.fixed_by_canchi, "star_rule_meta.fixed_by_canchi");
+    validate_source_meta(&meta.by_year, "star_rule_meta.by_year");
+    validate_source_meta(&meta.by_month, "star_rule_meta.by_month");
+    validate_source_meta(&meta.by_tiet_khi, "star_rule_meta.by_tiet_khi");
 }
 
 fn validate_can_map(map: &HashMap<String, TravelRule>) {
@@ -221,6 +293,120 @@ fn validate_nhi_thap_bat_tu(values: &[DayStarRule]) {
     }
 }
 
+fn normalize_star_rule_bucket(raw: StarRuleBucketRaw) -> StarRuleBucket {
+    StarRuleBucket {
+        cat_tinh: raw.cat_tinh,
+        sat_tinh: raw.sat_tinh,
+        binh_tinh: raw.binh_tinh,
+    }
+}
+
+fn parse_lunar_month_rule_map(
+    raw: HashMap<String, StarRuleBucketRaw>,
+) -> HashMap<u8, StarRuleBucket> {
+    raw.into_iter()
+        .map(|(month, bucket)| {
+            let value = month
+                .parse::<u8>()
+                .expect("star_rule_sets.by_lunar_month key must be a numeric month string");
+            (value, normalize_star_rule_bucket(bucket))
+        })
+        .collect()
+}
+
+fn validate_star_rule_sets(sets: &StarRuleSetsRaw) {
+    validate_fixed_by_canchi_map(&sets.fixed_by_canchi);
+    validate_by_year_can_map(&sets.by_year_can);
+    validate_by_lunar_month_map(&sets.by_lunar_month);
+    validate_by_tiet_khi_map(&sets.by_tiet_khi);
+}
+
+fn validate_fixed_by_canchi_map(map: &HashMap<String, StarRuleBucketRaw>) {
+    for (key, bucket) in map {
+        assert!(
+            is_valid_sexagenary_key(key),
+            "star_rule_sets.fixed_by_canchi contains invalid canchi key: {key}"
+        );
+        validate_star_rule_bucket(bucket, &format!("star_rule_sets.fixed_by_canchi[{key}]"));
+    }
+}
+
+fn validate_by_year_can_map(map: &HashMap<String, StarRuleBucketRaw>) {
+    for (key, bucket) in map {
+        assert!(
+            CAN.contains(&key.as_str()),
+            "star_rule_sets.by_year_can contains invalid can key: {key}"
+        );
+        validate_star_rule_bucket(bucket, &format!("star_rule_sets.by_year_can[{key}]"));
+    }
+}
+
+fn validate_by_lunar_month_map(map: &HashMap<String, StarRuleBucketRaw>) {
+    for (key, bucket) in map {
+        let month = key
+            .parse::<u8>()
+            .expect("star_rule_sets.by_lunar_month key must be numeric");
+        assert!(
+            (1..=12).contains(&month),
+            "star_rule_sets.by_lunar_month key out of range 1..12: {key}"
+        );
+        validate_star_rule_bucket(bucket, &format!("star_rule_sets.by_lunar_month[{key}]"));
+    }
+}
+
+fn validate_by_tiet_khi_map(map: &HashMap<String, StarRuleBucketRaw>) {
+    for (key, bucket) in map {
+        assert!(
+            is_valid_tiet_khi_name(key),
+            "star_rule_sets.by_tiet_khi contains unknown tiet khi key: {key}"
+        );
+        validate_star_rule_bucket(bucket, &format!("star_rule_sets.by_tiet_khi[{key}]"));
+    }
+}
+
+fn validate_star_rule_bucket(bucket: &StarRuleBucketRaw, path: &str) {
+    validate_nonempty_star_names(&bucket.cat_tinh, &format!("{path}.cat_tinh"));
+    validate_nonempty_star_names(&bucket.sat_tinh, &format!("{path}.sat_tinh"));
+    validate_nonempty_star_names(&bucket.binh_tinh, &format!("{path}.binh_tinh"));
+
+    let mut seen = HashSet::new();
+    for star in &bucket.cat_tinh {
+        assert!(
+            seen.insert(star),
+            "{path}: duplicate star across categories: {star}"
+        );
+    }
+    for star in &bucket.sat_tinh {
+        assert!(
+            seen.insert(star),
+            "{path}: duplicate star across categories: {star}"
+        );
+    }
+    for star in &bucket.binh_tinh {
+        assert!(
+            seen.insert(star),
+            "{path}: duplicate star across categories: {star}"
+        );
+    }
+}
+
+fn validate_nonempty_star_names(stars: &[String], path: &str) {
+    for star in stars {
+        assert!(
+            !star.trim().is_empty(),
+            "{path} must not contain empty star names"
+        );
+    }
+}
+
+fn is_valid_tiet_khi_name(name: &str) -> bool {
+    TIET_KHI.iter().any(|term| term.name == name)
+}
+
+fn is_valid_sexagenary_key(key: &str) -> bool {
+    (0..60).any(|i| key == format!("{} {}", CAN[i % 10], CHI[i % 12]))
+}
+
 pub fn is_valid_direction(direction: &str) -> bool {
     VALID_DIRECTIONS.contains(&direction)
 }
@@ -251,8 +437,14 @@ mod tests {
 
     #[test]
     fn rejects_invalid_method_tokens() {
-        assert!(!is_valid_method("BAD_METHOD"), "unknown token must be rejected");
-        assert!(!is_valid_method("NORTH"), "English direction must be rejected");
+        assert!(
+            !is_valid_method("BAD_METHOD"),
+            "unknown token must be rejected"
+        );
+        assert!(
+            !is_valid_method("NORTH"),
+            "English direction must be rejected"
+        );
         assert!(!is_valid_method(""), "empty string must be rejected");
         assert!(is_valid_method("table-lookup"));
         assert!(is_valid_method("bai-quyet"));
@@ -261,7 +453,10 @@ mod tests {
 
     #[test]
     fn rejects_invalid_direction_tokens() {
-        assert!(!is_valid_direction("NORTH"), "English direction must be rejected");
+        assert!(
+            !is_valid_direction("NORTH"),
+            "English direction must be rejected"
+        );
         assert!(!is_valid_direction("North"), "mixed-case must be rejected");
         assert!(!is_valid_direction(""), "empty string must be rejected");
         assert!(is_valid_direction("Bắc"));
@@ -345,5 +540,36 @@ mod tests {
                 .map(|v| v.na_am.as_str()),
             Some("Lư Trung Hỏa")
         );
+    }
+
+    #[test]
+    fn validates_star_rule_schema_loads() {
+        let data = baseline_data();
+        assert!(data.star_rule_meta.fixed_by_chi.source_id == "khcbppt");
+        assert!(data.star_rules_fixed_by_canchi.contains_key("Giáp Thìn"));
+        assert!(data.star_rules_by_year_can.contains_key("Giáp"));
+        assert!(data.star_rules_by_lunar_month.contains_key(&1));
+        assert!(data.star_rules_by_tiet_khi.contains_key("Lập Xuân"));
+    }
+
+    #[test]
+    fn accepts_known_tiet_khi_names() {
+        assert!(is_valid_tiet_khi_name("Lập Xuân"));
+        assert!(is_valid_tiet_khi_name("Thanh Minh"));
+        assert!(is_valid_tiet_khi_name("Đông Chí"));
+    }
+
+    #[test]
+    fn rejects_unknown_tiet_khi_names() {
+        assert!(!is_valid_tiet_khi_name("Lap Xuan"));
+        assert!(!is_valid_tiet_khi_name("Unknown Term"));
+    }
+
+    #[test]
+    fn validates_sexagenary_key_tokens() {
+        assert!(is_valid_sexagenary_key("Giáp Tý"));
+        assert!(is_valid_sexagenary_key("Quý Hợi"));
+        assert!(!is_valid_sexagenary_key("Giáp Unknown"));
+        assert!(!is_valid_sexagenary_key("Unknown Tý"));
     }
 }

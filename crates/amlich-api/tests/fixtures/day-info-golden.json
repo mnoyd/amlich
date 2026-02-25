@@ -6,7 +6,10 @@
       "canchi_day": "Giáp Thìn",
       "canchi_year": "Giáp Thìn",
       "xung_hop_luc_xung": "Tuất",
-      "truc_name": "Mãn"
+      "truc_name": "Mãn",
+      "stars_contains_cat": ["Bạch Hổ", "Thiên Quý"],
+      "stars_contains_sat": ["Phúc Sinh"],
+      "stars_excludes": ["Nguyệt Không"]
     }
   },
   {

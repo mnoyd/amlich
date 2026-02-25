@@ -6,7 +6,13 @@ use amlich_core::get_day_info;
 #[test]
 fn golden_tet_2024_truc_and_xung_hop() {
     let info = get_day_info(10, 2, 2024);
-    let fortune = calculate_day_fortune(info.jd, &info.canchi.day, info.lunar.month);
+    let fortune = calculate_day_fortune(
+        info.jd,
+        &info.canchi.day,
+        info.lunar.month,
+        &info.canchi.year.can,
+        &info.tiet_khi.name,
+    );
 
     assert_eq!(info.canchi.day.chi, "Thìn");
     assert_eq!(info.lunar.day, 1);
@@ -29,7 +35,13 @@ fn golden_tet_2024_truc_and_xung_hop() {
 #[test]
 fn golden_tet_2025_truc_and_xung_hop() {
     let info = get_day_info(29, 1, 2025);
-    let fortune = calculate_day_fortune(info.jd, &info.canchi.day, info.lunar.month);
+    let fortune = calculate_day_fortune(
+        info.jd,
+        &info.canchi.day,
+        info.lunar.month,
+        &info.canchi.year.can,
+        &info.tiet_khi.name,
+    );
 
     assert_eq!(info.canchi.day.chi, "Tuất");
     assert_eq!(info.lunar.day, 1);
@@ -52,7 +64,13 @@ fn golden_tet_2025_truc_and_xung_hop() {
 #[test]
 fn golden_new_year_2024_truc_and_xung_hop() {
     let info = get_day_info(1, 1, 2024);
-    let fortune = calculate_day_fortune(info.jd, &info.canchi.day, info.lunar.month);
+    let fortune = calculate_day_fortune(
+        info.jd,
+        &info.canchi.day,
+        info.lunar.month,
+        &info.canchi.year.can,
+        &info.tiet_khi.name,
+    );
 
     assert_eq!(info.canchi.day.chi, "Tý");
     assert_eq!(info.lunar.month, 11);
@@ -77,10 +95,19 @@ fn golden_truc_kien_when_day_chi_equals_month_chi() {
     // From 2024-02-10 (Thìn=4): to Dần(2) we need (2+12-4)%12=10 days forward.
     // 2024-02-10 + 10 = 2024-02-20
     let info = get_day_info(20, 2, 2024);
-    let fortune = calculate_day_fortune(info.jd, &info.canchi.day, info.lunar.month);
+    let fortune = calculate_day_fortune(
+        info.jd,
+        &info.canchi.day,
+        info.lunar.month,
+        &info.canchi.year.can,
+        &info.tiet_khi.name,
+    );
 
     // day chi should be Dần, lunar month should be 1
-    assert_eq!(info.canchi.day.chi, "Dần", "expected day chi Dần for 2024-02-20");
+    assert_eq!(
+        info.canchi.day.chi, "Dần",
+        "expected day chi Dần for 2024-02-20"
+    );
     assert_eq!(info.lunar.month, 1, "expected lunar month 1");
     assert_eq!(fortune.truc.index, 0, "trực Kiến when day chi == month chi");
     assert_eq!(fortune.truc.name, "Kiến");

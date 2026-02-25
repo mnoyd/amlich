@@ -3,8 +3,8 @@ use crate::dto::{
     DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, ElementInsightDto,
     FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto,
     LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto, ProverbInsightDto, RegionsInsightDto,
-    SolarDto, TabooInsightDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto,
-    XungHopDto,
+    RuleEvidenceDto, SolarDto, StarRuleEvidenceDto, TabooInsightDto, TietKhiDto, TietKhiInsightDto,
+    TravelDirectionDto, TrucDto, XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -110,6 +110,17 @@ impl From<&amlich_core::almanac::types::DayElement> for DayElementDto {
             element: value.element.clone(),
             can_element: value.can_element.clone(),
             chi_element: value.chi_element.clone(),
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::types::RuleEvidence> for RuleEvidenceDto {
+    fn from(value: &amlich_core::almanac::types::RuleEvidence) -> Self {
+        Self {
+            source_id: value.source_id.clone(),
+            method: value.method.clone(),
+            profile: value.profile.clone(),
         }
     }
 }
@@ -121,6 +132,7 @@ impl From<&amlich_core::almanac::types::DayConflict> for DayConflictDto {
             opposing_con_giap: value.opposing_con_giap.clone(),
             tuoi_xung: value.tuoi_xung.clone(),
             sat_huong: value.sat_huong.clone(),
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
         }
     }
 }
@@ -132,6 +144,7 @@ impl From<&amlich_core::almanac::types::TravelDirection> for TravelDirectionDto 
             tai_than: value.tai_than.clone(),
             hy_than: value.hy_than.clone(),
             ky_than: value.ky_than.clone(),
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
         }
     }
 }
@@ -153,6 +166,26 @@ impl From<&amlich_core::almanac::types::DayStar> for DayStarDto {
             index: value.index,
             name: value.name.clone(),
             quality,
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::types::StarRuleEvidence> for StarRuleEvidenceDto {
+    fn from(value: &amlich_core::almanac::types::StarRuleEvidence) -> Self {
+        let quality = match value.quality {
+            amlich_core::almanac::types::StarQuality::Cat => "cat",
+            amlich_core::almanac::types::StarQuality::Hung => "hung",
+            amlich_core::almanac::types::StarQuality::Binh => "binh",
+        }
+        .to_string();
+        Self {
+            name: value.name.clone(),
+            quality,
+            category: value.category.clone(),
+            source_id: value.source_id.clone(),
+            method: value.method.clone(),
+            profile: value.profile.clone(),
         }
     }
 }
@@ -168,6 +201,12 @@ impl From<&amlich_core::almanac::types::DayStars> for DayStarsDto {
             sat_tinh: value.sat_tinh.clone(),
             day_star: value.day_star.as_ref().map(DayStarDto::from),
             star_system: star_system.map(str::to_string),
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
+            matched_rules: value
+                .matched_rules
+                .iter()
+                .map(StarRuleEvidenceDto::from)
+                .collect(),
         }
     }
 }
@@ -188,6 +227,7 @@ impl From<&amlich_core::almanac::types::TrucInfo> for TrucDto {
             index: value.index,
             name: value.name.clone(),
             quality: value.quality.clone(),
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
         }
     }
 }

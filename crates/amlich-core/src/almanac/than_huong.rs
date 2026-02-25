@@ -10,7 +10,6 @@
 /// Mapping source: Khâm Định Hiệp Kỷ Biện Phương Thư (欽定協紀辨方書),
 /// bài quyết (甲艮乙坤丙丁兑…).
 /// Source tag already applied via `AlmanacData::travel_meta` (Batch 1).
-
 use super::data::baseline_data;
 use super::types::TravelDirection;
 
@@ -29,6 +28,7 @@ pub fn get_than_huong(can: &str) -> TravelDirection {
         tai_than: rule.tai_than.clone(),
         hy_than: rule.hy_than.clone(),
         ky_than: rule.ky_than.clone(),
+        evidence: None,
     }
 }
 
@@ -102,12 +102,14 @@ mod tests {
     fn all_10_stems_covered() {
         // Every canonical stem must return valid directions without panic
         let stems = [
-            "Giáp", "Ất", "Bính", "Đinh", "Mậu",
-            "Kỷ", "Canh", "Tân", "Nhâm", "Quý",
+            "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý",
         ];
         for can in stems {
             let r = get_than_huong(can);
-            assert!(!r.xuat_hanh_huong.is_empty(), "{can}: xuat must not be empty");
+            assert!(
+                !r.xuat_hanh_huong.is_empty(),
+                "{can}: xuat must not be empty"
+            );
             assert!(!r.tai_than.is_empty(), "{can}: tai must not be empty");
             assert!(!r.hy_than.is_empty(), "{can}: hy must not be empty");
         }

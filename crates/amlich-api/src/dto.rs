@@ -86,6 +86,7 @@ pub struct DayElementDto {
     pub element: String,
     pub can_element: String,
     pub chi_element: String,
+    pub evidence: Option<RuleEvidenceDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -94,6 +95,7 @@ pub struct DayConflictDto {
     pub opposing_con_giap: String,
     pub tuoi_xung: Vec<String>,
     pub sat_huong: String,
+    pub evidence: Option<RuleEvidenceDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -102,6 +104,14 @@ pub struct TravelDirectionDto {
     pub tai_than: String,
     pub hy_than: String,
     pub ky_than: Option<String>,
+    pub evidence: Option<RuleEvidenceDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RuleEvidenceDto {
+    pub source_id: String,
+    pub method: String,
+    pub profile: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,6 +120,17 @@ pub struct DayStarDto {
     pub index: usize,
     pub name: String,
     pub quality: String,
+    pub evidence: Option<RuleEvidenceDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StarRuleEvidenceDto {
+    pub name: String,
+    pub quality: String,
+    pub category: String,
+    pub source_id: String,
+    pub method: String,
+    pub profile: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -118,6 +139,8 @@ pub struct DayStarsDto {
     pub sat_tinh: Vec<String>,
     pub day_star: Option<DayStarDto>,
     pub star_system: Option<String>,
+    pub evidence: Option<RuleEvidenceDto>,
+    pub matched_rules: Vec<StarRuleEvidenceDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -132,6 +155,7 @@ pub struct TrucDto {
     pub index: usize,
     pub name: String,
     pub quality: String,
+    pub evidence: Option<RuleEvidenceDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

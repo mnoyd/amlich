@@ -27,6 +27,7 @@ pub struct DayElement {
     pub element: String,
     pub can_element: String,
     pub chi_element: String,
+    pub evidence: Option<RuleEvidence>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -35,6 +36,7 @@ pub struct DayConflict {
     pub opposing_con_giap: String,
     pub tuoi_xung: Vec<String>,
     pub sat_huong: String,
+    pub evidence: Option<RuleEvidence>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -43,6 +45,14 @@ pub struct TravelDirection {
     pub tai_than: String,
     pub hy_than: String,
     pub ky_than: Option<String>,
+    pub evidence: Option<RuleEvidence>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RuleEvidence {
+    pub source_id: String,
+    pub method: String,
+    pub profile: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -51,6 +61,17 @@ pub struct DayStar {
     pub index: usize,
     pub name: String,
     pub quality: StarQuality,
+    pub evidence: Option<RuleEvidence>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct StarRuleEvidence {
+    pub name: String,
+    pub quality: StarQuality,
+    pub category: String,
+    pub source_id: String,
+    pub method: String,
+    pub profile: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -59,6 +80,8 @@ pub struct DayStars {
     pub sat_tinh: Vec<String>,
     pub day_star: Option<DayStar>,
     pub star_system: Option<StarSystem>,
+    pub evidence: Option<RuleEvidence>,
+    pub matched_rules: Vec<StarRuleEvidence>,
 }
 
 /// Thập nhị trực duty-star for the day.
@@ -70,6 +93,7 @@ pub struct TrucInfo {
     pub name: String,
     /// Auspicious quality: "cat" | "hung" | "binh".
     pub quality: String,
+    pub evidence: Option<RuleEvidence>,
 }
 
 /// Xung/hợp relationships for the day branch.
@@ -120,18 +144,21 @@ mod tests {
                 element: "Kim".to_string(),
                 can_element: "Mộc".to_string(),
                 chi_element: "Thổ".to_string(),
+                evidence: None,
             },
             conflict: DayConflict {
                 opposing_chi: "Tuất".to_string(),
                 opposing_con_giap: "Tuất (Chó)".to_string(),
                 tuoi_xung: vec!["Nhâm Tuất".to_string()],
                 sat_huong: "Nam".to_string(),
+                evidence: None,
             },
             travel: TravelDirection {
                 xuat_hanh_huong: "Đông Nam".to_string(),
                 tai_than: "Tây Nam".to_string(),
                 hy_than: "Đông Bắc".to_string(),
                 ky_than: None,
+                evidence: None,
             },
             stars: DayStars {
                 cat_tinh: vec!["Thiên Đức".to_string()],
@@ -141,8 +168,11 @@ mod tests {
                     index: 0,
                     name: "Giác".to_string(),
                     quality: StarQuality::Cat,
+                    evidence: None,
                 }),
                 star_system: Some(StarSystem::NhiThapBatTu),
+                evidence: None,
+                matched_rules: Vec::new(),
             },
             xung_hop: XungHopResult {
                 luc_xung: "Tuất".to_string(),
@@ -158,6 +188,7 @@ mod tests {
                 index: 2,
                 name: "Mãn".to_string(),
                 quality: "hung".to_string(),
+                evidence: None,
             },
         };
 
