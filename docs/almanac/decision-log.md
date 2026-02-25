@@ -61,6 +61,15 @@ Track major design and ruleset decisions so implementation remains consistent an
 - Impact: Add research beads before implementation beads for these families.
 - Follow-up: Phase 3-5 research beads.
 
+## DEC-0006
+
+- Status: accepted
+- Date: 2026-02-25
+- Decision: Freeze day-level hoang dao/hac dao v1 mapping to the 12-deity cycle with month-branch group start offsets (`Dần/Thân` start at `Thanh Long`, advancing by day branch order).
+- Why: Phase 2 resolver needs one canonical mapping to avoid drift across implementations.
+- Impact: Add canonical table doc (`docs/almanac/day-deity-v1-table.md`), implement ruleset-backed resolver in `I-2002`, and pin golden tests to this mapping.
+- Follow-up: `R-2001`, `I-2002`, `T-2005`, `D-2006`.
+
 ---
 
 ## Supersession Rules

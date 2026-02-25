@@ -21,7 +21,7 @@ Status labels:
 | Can Chi hour | NEED_SOURCE | Formula family is known but implementation variant/presentation details need explicit source choice | Select v1 rule and examples |
 | Tiet khi (active term by date) | READY | Current longitude-based day classification is enough for app baseline | Keep fast mode |
 | Tiet khi exact instants | NEED_VALIDATION | Concept is clear, but needs ephemeris/reference source and comparison data | Choose source + build validation corpus |
-| Day hoang dao/hac dao | NEED_SOURCE | Rule pattern is known, but must freeze exact day-deity mapping table and names for v1 | Select v1 table/ruleset |
+| Day hoang dao/hac dao | READY | v1 canonical table frozen in `docs/almanac/day-deity-v1-table.md` (`DEC-0006`) | Implement resolver + golden tests |
 | Gio hoang dao | READY | Already implemented and test-covered | Integrate under ruleset versioning |
 | 12 truc | READY | Formula is stable and implemented | Add evidence metadata and variant notes |
 | Nhi thap bat tu (JD cycle mode) | NEED_SOURCE | Cycle approach is acceptable, but anchor/ruleset must be explicit | Choose anchor and document |

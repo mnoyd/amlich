@@ -13,7 +13,7 @@ Track source material used for each rule family so implementation decisions are 
 | Can Chi year/month/day | selected | Existing core formulas | Existing fixtures | preserve behavior | `vn_baseline_v1` |
 | Can Chi hour | open | TBD | TBD | choose v1 formula convention | `vn_baseline_v1` |
 | Tiet khi (fast mode) | selected | Existing core implementation | Existing fixtures | preserve behavior | `vn_baseline_v1` |
-| Day hoang dao/hac dao | open | TBD canonical mapping | TBD comparison source | freeze table | `vn_baseline_v1` |
+| Day hoang dao/hac dao | selected | `docs/almanac/day-deity-v1-table.md` (v1 canonicalized practical VN mapping) | Project decision log (`DEC-0006`) | encode as ruleset family + add golden examples | `vn_baseline_v1` |
 | Gio hoang dao | selected | Existing implementation | Existing tests | integrate with ruleset metadata | `vn_baseline_v1` |
 | 12 truc | selected | Existing implementation | Existing tests | integrate evidence metadata | `vn_baseline_v1` |
 | Nhi thap bat tu (cycle) | open | Existing cycle approach | TBD anchor reference | choose anchor and doc | `vn_baseline_v1` |
