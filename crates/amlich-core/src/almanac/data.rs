@@ -5,7 +5,9 @@ use std::sync::OnceLock;
 
 use serde::Deserialize;
 
-use super::types::SourceMeta;
+use super::types::{
+    RuleSetDefaults, RuleSetDescriptor as RulesetDescriptorDoc, RuleSetSourceNote, SourceMeta,
+};
 use crate::tietkhi::TIET_KHI;
 use crate::types::{CAN, CHI};
 
@@ -14,6 +16,8 @@ pub const DEFAULT_RULESET_ID: &str = "vn_baseline_v1";
 const BASELINE_RULESET_ALIAS: &str = "baseline";
 const DEFAULT_RULESET_VERSION: &str = "v1";
 const DEFAULT_RULESET_REGION: &str = "vn";
+const DEFAULT_RULESET_SCHEMA_VERSION: &str = "ruleset-descriptor/v1";
+const DEFAULT_RULESET_TZ_OFFSET: f64 = 7.0;
 const VALID_DIRECTIONS: [&str; 8] = [
     "Bắc",
     "Đông Bắc",
@@ -203,6 +207,34 @@ pub struct RulesetDescriptor {
     pub profile: &'static str,
 }
 
+impl RulesetDescriptor {
+    pub fn to_document_descriptor(self) -> RulesetDescriptorDoc {
+        RulesetDescriptorDoc {
+            id: self.id.to_string(),
+            version: self.version.to_string(),
+            region: self.region.to_string(),
+            profile: self.profile.to_string(),
+            defaults: RuleSetDefaults {
+                tz_offset: DEFAULT_RULESET_TZ_OFFSET,
+                meridian: None,
+            },
+            source_notes: vec![
+                RuleSetSourceNote {
+                    family: "travel".to_string(),
+                    source_id: "khcbppt".to_string(),
+                    note: "Direction table and bai quyet mapping".to_string(),
+                },
+                RuleSetSourceNote {
+                    family: "taboo_rules".to_string(),
+                    source_id: "khcbppt".to_string(),
+                    note: "Tam Nuong/Nguyet Ky/Sat Chu/Tho Tu frozen for v1".to_string(),
+                },
+            ],
+            schema_version: DEFAULT_RULESET_SCHEMA_VERSION.to_string(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct RulesetRegistryEntry {
     pub descriptor: RulesetDescriptor,
@@ -280,6 +312,12 @@ pub fn get_ruleset(ruleset_id: &str) -> Result<&'static RulesetRegistryEntry, Ru
 
 pub fn get_ruleset_data(ruleset_id: &str) -> Result<&'static AlmanacData, RulesetLookupError> {
     get_ruleset(ruleset_id).map(RulesetRegistryEntry::data)
+}
+
+pub fn get_ruleset_descriptor_doc(
+    ruleset_id: &str,
+) -> Result<RulesetDescriptorDoc, RulesetLookupError> {
+    get_ruleset(ruleset_id).map(|entry| entry.descriptor.to_document_descriptor())
 }
 
 pub fn baseline_data() -> &'static AlmanacData {
@@ -972,6 +1010,29 @@ mod tests {
             baseline_data(),
             get_ruleset_data(DEFAULT_RULESET_ID).expect("ruleset data")
         ));
+    }
+
+    #[test]
+    fn builds_ruleset_descriptor_doc_with_required_fields() {
+        let descriptor = get_ruleset_descriptor_doc(DEFAULT_RULESET_ID).expect("descriptor doc");
+        assert_eq!(descriptor.id, "vn_baseline_v1");
+        assert_eq!(descriptor.version, "v1");
+        assert_eq!(descriptor.region, "vn");
+        assert_eq!(descriptor.defaults.tz_offset, 7.0);
+        assert_eq!(descriptor.defaults.meridian, None);
+        assert_eq!(descriptor.schema_version, "ruleset-descriptor/v1");
+        assert!(descriptor
+            .source_notes
+            .iter()
+            .any(|note| note.family == "taboo_rules" && note.source_id == "khcbppt"));
+    }
+
+    #[test]
+    fn descriptor_doc_loader_accepts_alias_path() {
+        let alias = get_ruleset_descriptor_doc("baseline").expect("alias descriptor");
+        let canonical =
+            get_ruleset_descriptor_doc(DEFAULT_RULESET_ID).expect("canonical descriptor");
+        assert_eq!(alias, canonical);
     }
 
     #[test]

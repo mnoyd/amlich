@@ -1,5 +1,31 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RuleSetDefaults {
+    pub tz_offset: f64,
+    #[serde(default)]
+    pub meridian: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RuleSetSourceNote {
+    pub family: String,
+    pub source_id: String,
+    pub note: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RuleSetDescriptor {
+    pub id: String,
+    pub version: String,
+    pub region: String,
+    pub profile: String,
+    pub defaults: RuleSetDefaults,
+    #[serde(default)]
+    pub source_notes: Vec<RuleSetSourceNote>,
+    pub schema_version: String,
+}
+
 /// Source attribution for a group of almanac rules.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SourceMeta {
@@ -145,6 +171,32 @@ pub struct DayFortune {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ruleset_descriptor_serializes() {
+        let descriptor = RuleSetDescriptor {
+            id: "vn_baseline_v1".to_string(),
+            version: "v1".to_string(),
+            region: "vn".to_string(),
+            profile: "baseline".to_string(),
+            defaults: RuleSetDefaults {
+                tz_offset: 7.0,
+                meridian: None,
+            },
+            source_notes: vec![RuleSetSourceNote {
+                family: "taboo_rules".to_string(),
+                source_id: "khcbppt".to_string(),
+                note: "Baseline v1 frozen mapping".to_string(),
+            }],
+            schema_version: "ruleset-descriptor/v1".to_string(),
+        };
+
+        let encoded = serde_json::to_string(&descriptor).expect("serialize");
+        let decoded: RuleSetDescriptor = serde_json::from_str(&encoded).expect("deserialize");
+        assert_eq!(decoded.id, "vn_baseline_v1");
+        assert_eq!(decoded.defaults.tz_offset, 7.0);
+        assert_eq!(decoded.source_notes.len(), 1);
+    }
 
     #[test]
     fn day_fortune_struct_exists() {
