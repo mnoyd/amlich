@@ -1,4 +1,6 @@
 use std::collections::{HashMap, HashSet};
+use std::error::Error;
+use std::fmt;
 use std::sync::OnceLock;
 
 use serde::Deserialize;
@@ -8,6 +10,10 @@ use crate::tietkhi::TIET_KHI;
 use crate::types::{CAN, CHI};
 
 const BASELINE_JSON: &str = include_str!("../../data/almanac/baseline.json");
+pub const DEFAULT_RULESET_ID: &str = "vn_baseline_v1";
+const BASELINE_RULESET_ALIAS: &str = "baseline";
+const DEFAULT_RULESET_VERSION: &str = "v1";
+const DEFAULT_RULESET_REGION: &str = "vn";
 const VALID_DIRECTIONS: [&str; 8] = [
     "Bắc",
     "Đông Bắc",
@@ -74,6 +80,62 @@ pub struct StarRuleMetaSet {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct TabooRuleMetaSet {
+    pub tam_nuong: SourceMeta,
+    pub nguyet_ky: SourceMeta,
+    pub sat_chu: SourceMeta,
+    pub tho_tu: SourceMeta,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct TabooDayRuleRaw {
+    pub rule_id: String,
+    pub name: String,
+    pub severity: String,
+    pub lunar_days: Vec<u8>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TabooDayRule {
+    pub rule_id: String,
+    pub name: String,
+    pub severity: String,
+    pub lunar_days: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct TabooMonthChiRuleRaw {
+    pub rule_id: String,
+    pub name: String,
+    pub severity: String,
+    pub by_lunar_month: HashMap<String, String>,
+}
+
+#[derive(Debug, Clone)]
+pub struct TabooMonthChiRule {
+    pub rule_id: String,
+    pub name: String,
+    pub severity: String,
+    pub by_lunar_month: HashMap<u8, String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct TabooRuleSetsRaw {
+    pub tam_nuong: TabooDayRuleRaw,
+    pub nguyet_ky: TabooDayRuleRaw,
+    pub sat_chu: TabooMonthChiRuleRaw,
+    pub tho_tu: TabooMonthChiRuleRaw,
+}
+
+#[derive(Debug, Clone)]
+pub struct TabooRuleSets {
+    pub tam_nuong: TabooDayRule,
+    pub nguyet_ky: TabooDayRule,
+    pub sat_chu: TabooMonthChiRule,
+    pub tho_tu: TabooMonthChiRule,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct StarRuleSetsRaw {
     pub fixed_by_canchi: HashMap<String, StarRuleBucketRaw>,
     pub by_year_can: HashMap<String, StarRuleBucketRaw>,
@@ -88,6 +150,7 @@ pub struct AlmanacData {
     pub conflict_meta: SourceMeta,
     pub na_am_meta: SourceMeta,
     pub star_meta: SourceMeta,
+    pub taboo_rule_meta: TabooRuleMetaSet,
     pub travel_by_can: HashMap<String, TravelRule>,
     pub conflict_by_chi: HashMap<String, ConflictRule>,
     pub sexagenary_na_am: HashMap<String, NaAmEntry>,
@@ -97,7 +160,48 @@ pub struct AlmanacData {
     pub star_rules_by_year_can: HashMap<String, StarRuleBucket>,
     pub star_rules_by_lunar_month: HashMap<u8, StarRuleBucket>,
     pub star_rules_by_tiet_khi: HashMap<String, StarRuleBucket>,
+    pub taboo_rules: TabooRuleSets,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RulesetDescriptor {
+    pub id: &'static str,
+    pub version: &'static str,
+    pub region: &'static str,
+    pub profile: &'static str,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct RulesetRegistryEntry {
+    pub descriptor: RulesetDescriptor,
+    pub aliases: &'static [&'static str],
+    loader: fn() -> &'static AlmanacData,
+}
+
+impl RulesetRegistryEntry {
+    pub fn data(&self) -> &'static AlmanacData {
+        (self.loader)()
+    }
+
+    fn matches_id(&self, ruleset_id: &str) -> bool {
+        self.descriptor.id == ruleset_id || self.aliases.contains(&ruleset_id)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RulesetLookupError {
+    UnknownRulesetId(String),
+}
+
+impl fmt::Display for RulesetLookupError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnknownRulesetId(id) => write!(f, "unknown almanac ruleset id: {id}"),
+        }
+    }
+}
+
+impl Error for RulesetLookupError {}
 
 #[derive(Debug, Clone, Deserialize)]
 struct RawAlmanacData {
@@ -106,15 +210,43 @@ struct RawAlmanacData {
     conflict_meta: SourceMeta,
     na_am_meta: SourceMeta,
     star_meta: SourceMeta,
+    taboo_rule_meta: TabooRuleMetaSet,
     travel_by_can: HashMap<String, TravelRule>,
     conflict_by_chi: HashMap<String, ConflictRule>,
     na_am_pairs: Vec<String>,
     nhi_thap_bat_tu: Vec<DayStarRule>,
     star_rule_meta: StarRuleMetaSet,
     star_rule_sets: StarRuleSetsRaw,
+    taboo_rule_sets: TabooRuleSetsRaw,
 }
 
 static BASELINE_DATA: OnceLock<AlmanacData> = OnceLock::new();
+
+static RULESET_REGISTRY: [RulesetRegistryEntry; 1] = [RulesetRegistryEntry {
+    descriptor: RulesetDescriptor {
+        id: DEFAULT_RULESET_ID,
+        version: DEFAULT_RULESET_VERSION,
+        region: DEFAULT_RULESET_REGION,
+        profile: BASELINE_RULESET_ALIAS,
+    },
+    aliases: &[BASELINE_RULESET_ALIAS],
+    loader: baseline_data,
+}];
+
+pub fn default_ruleset() -> &'static RulesetRegistryEntry {
+    &RULESET_REGISTRY[0]
+}
+
+pub fn get_ruleset(ruleset_id: &str) -> Result<&'static RulesetRegistryEntry, RulesetLookupError> {
+    RULESET_REGISTRY
+        .iter()
+        .find(|entry| entry.matches_id(ruleset_id))
+        .ok_or_else(|| RulesetLookupError::UnknownRulesetId(ruleset_id.to_string()))
+}
+
+pub fn get_ruleset_data(ruleset_id: &str) -> Result<&'static AlmanacData, RulesetLookupError> {
+    get_ruleset(ruleset_id).map(RulesetRegistryEntry::data)
+}
 
 pub fn baseline_data() -> &'static AlmanacData {
     BASELINE_DATA.get_or_init(|| {
@@ -129,6 +261,7 @@ pub fn baseline_data() -> &'static AlmanacData {
             conflict_meta: raw.conflict_meta,
             na_am_meta: raw.na_am_meta,
             star_meta: raw.star_meta,
+            taboo_rule_meta: raw.taboo_rule_meta,
             travel_by_can: raw.travel_by_can,
             conflict_by_chi: raw.conflict_by_chi,
             sexagenary_na_am: expand_sexagenary_na_am(&raw.na_am_pairs),
@@ -155,6 +288,7 @@ pub fn baseline_data() -> &'static AlmanacData {
                 .into_iter()
                 .map(|(k, v)| (k, normalize_star_rule_bucket(v)))
                 .collect(),
+            taboo_rules: normalize_taboo_rule_sets(raw.taboo_rule_sets),
         }
     })
 }
@@ -164,6 +298,7 @@ fn validate_raw_data(raw: &RawAlmanacData) {
     validate_source_meta(&raw.conflict_meta, "conflict_meta");
     validate_source_meta(&raw.na_am_meta, "na_am_meta");
     validate_source_meta(&raw.star_meta, "star_meta");
+    validate_taboo_rule_meta(&raw.taboo_rule_meta);
     validate_can_map(&raw.travel_by_can);
     validate_chi_map(&raw.conflict_by_chi);
     validate_directions(raw);
@@ -172,6 +307,7 @@ fn validate_raw_data(raw: &RawAlmanacData) {
     validate_nhi_thap_bat_tu(&raw.nhi_thap_bat_tu);
     validate_star_rule_meta(&raw.star_rule_meta);
     validate_star_rule_sets(&raw.star_rule_sets);
+    validate_taboo_rule_sets(&raw.taboo_rule_sets);
 }
 
 const VALID_METHODS: [&str; 3] = ["table-lookup", "bai-quyet", "jd-cycle"];
@@ -198,6 +334,13 @@ fn validate_star_rule_meta(meta: &StarRuleMetaSet) {
     validate_source_meta(&meta.by_year, "star_rule_meta.by_year");
     validate_source_meta(&meta.by_month, "star_rule_meta.by_month");
     validate_source_meta(&meta.by_tiet_khi, "star_rule_meta.by_tiet_khi");
+}
+
+fn validate_taboo_rule_meta(meta: &TabooRuleMetaSet) {
+    validate_source_meta(&meta.tam_nuong, "taboo_rule_meta.tam_nuong");
+    validate_source_meta(&meta.nguyet_ky, "taboo_rule_meta.nguyet_ky");
+    validate_source_meta(&meta.sat_chu, "taboo_rule_meta.sat_chu");
+    validate_source_meta(&meta.tho_tu, "taboo_rule_meta.tho_tu");
 }
 
 fn validate_can_map(map: &HashMap<String, TravelRule>) {
@@ -314,11 +457,140 @@ fn parse_lunar_month_rule_map(
         .collect()
 }
 
+fn normalize_taboo_rule_sets(raw: TabooRuleSetsRaw) -> TabooRuleSets {
+    TabooRuleSets {
+        tam_nuong: TabooDayRule {
+            rule_id: raw.tam_nuong.rule_id,
+            name: raw.tam_nuong.name,
+            severity: raw.tam_nuong.severity,
+            lunar_days: raw.tam_nuong.lunar_days,
+        },
+        nguyet_ky: TabooDayRule {
+            rule_id: raw.nguyet_ky.rule_id,
+            name: raw.nguyet_ky.name,
+            severity: raw.nguyet_ky.severity,
+            lunar_days: raw.nguyet_ky.lunar_days,
+        },
+        sat_chu: TabooMonthChiRule {
+            rule_id: raw.sat_chu.rule_id,
+            name: raw.sat_chu.name,
+            severity: raw.sat_chu.severity,
+            by_lunar_month: parse_taboo_month_chi_map(raw.sat_chu.by_lunar_month),
+        },
+        tho_tu: TabooMonthChiRule {
+            rule_id: raw.tho_tu.rule_id,
+            name: raw.tho_tu.name,
+            severity: raw.tho_tu.severity,
+            by_lunar_month: parse_taboo_month_chi_map(raw.tho_tu.by_lunar_month),
+        },
+    }
+}
+
+fn parse_taboo_month_chi_map(raw: HashMap<String, String>) -> HashMap<u8, String> {
+    raw.into_iter()
+        .map(|(month, chi)| {
+            let value = month
+                .parse::<u8>()
+                .expect("taboo by_lunar_month key must be a numeric month string");
+            (value, chi)
+        })
+        .collect()
+}
+
 fn validate_star_rule_sets(sets: &StarRuleSetsRaw) {
     validate_fixed_by_canchi_map(&sets.fixed_by_canchi);
     validate_by_year_can_map(&sets.by_year_can);
     validate_by_lunar_month_map(&sets.by_lunar_month);
     validate_by_tiet_khi_map(&sets.by_tiet_khi);
+}
+
+fn validate_taboo_rule_sets(sets: &TabooRuleSetsRaw) {
+    validate_taboo_day_rule(&sets.tam_nuong, "taboo_rule_sets.tam_nuong", "tam_nuong");
+    validate_taboo_day_rule(&sets.nguyet_ky, "taboo_rule_sets.nguyet_ky", "nguyet_ky");
+    validate_taboo_month_chi_rule(&sets.sat_chu, "taboo_rule_sets.sat_chu", "sat_chu");
+    validate_taboo_month_chi_rule(&sets.tho_tu, "taboo_rule_sets.tho_tu", "tho_tu");
+}
+
+fn validate_taboo_day_rule(rule: &TabooDayRuleRaw, path: &str, expected_rule_id: &str) {
+    validate_taboo_common_fields(
+        &rule.rule_id,
+        &rule.name,
+        &rule.severity,
+        path,
+        expected_rule_id,
+    );
+    assert!(
+        !rule.lunar_days.is_empty(),
+        "{path}.lunar_days must not be empty"
+    );
+
+    let mut seen = HashSet::new();
+    for day in &rule.lunar_days {
+        assert!(
+            (1..=30).contains(day),
+            "{path}.lunar_days contains out-of-range lunar day: {day}"
+        );
+        assert!(
+            seen.insert(*day),
+            "{path}.lunar_days contains duplicate lunar day: {day}"
+        );
+    }
+}
+
+fn validate_taboo_month_chi_rule(rule: &TabooMonthChiRuleRaw, path: &str, expected_rule_id: &str) {
+    validate_taboo_common_fields(
+        &rule.rule_id,
+        &rule.name,
+        &rule.severity,
+        path,
+        expected_rule_id,
+    );
+    assert_eq!(
+        rule.by_lunar_month.len(),
+        12,
+        "{path}.by_lunar_month must contain exactly 12 months"
+    );
+
+    let expected_months: HashSet<u8> = (1..=12).collect();
+    let mut actual_months = HashSet::new();
+
+    for (month, chi) in &rule.by_lunar_month {
+        let month_num = month
+            .parse::<u8>()
+            .expect("taboo by_lunar_month key must be a numeric month string");
+        assert!(
+            (1..=12).contains(&month_num),
+            "{path}.by_lunar_month key out of range 1..12: {month}"
+        );
+        actual_months.insert(month_num);
+        assert!(
+            CHI.contains(&chi.as_str()),
+            "{path}.by_lunar_month[{month}] contains invalid chi: {chi}"
+        );
+    }
+
+    assert_eq!(
+        actual_months, expected_months,
+        "{path}.by_lunar_month must define all lunar months 1..12"
+    );
+}
+
+fn validate_taboo_common_fields(
+    rule_id: &str,
+    name: &str,
+    severity: &str,
+    path: &str,
+    expected_rule_id: &str,
+) {
+    assert_eq!(
+        rule_id, expected_rule_id,
+        "{path}.rule_id must be '{expected_rule_id}'"
+    );
+    assert!(!name.trim().is_empty(), "{path}.name must not be empty");
+    assert!(
+        is_valid_taboo_severity(severity),
+        "{path}.severity must be one of 'hard' | 'soft' (got '{severity}')"
+    );
 }
 
 fn validate_fixed_by_canchi_map(map: &HashMap<String, StarRuleBucketRaw>) {
@@ -397,6 +669,10 @@ fn validate_nonempty_star_names(stars: &[String], path: &str) {
             "{path} must not contain empty star names"
         );
     }
+}
+
+fn is_valid_taboo_severity(value: &str) -> bool {
+    matches!(value, "hard" | "soft")
 }
 
 fn is_valid_tiet_khi_name(name: &str) -> bool {
@@ -550,6 +826,101 @@ mod tests {
         assert!(data.star_rules_by_year_can.contains_key("Giáp"));
         assert!(data.star_rules_by_lunar_month.contains_key(&1));
         assert!(data.star_rules_by_tiet_khi.contains_key("Lập Xuân"));
+    }
+
+    #[test]
+    fn resolves_default_ruleset_by_canonical_id() {
+        let entry = get_ruleset(DEFAULT_RULESET_ID).expect("canonical ruleset lookup");
+        assert_eq!(entry.descriptor.id, "vn_baseline_v1");
+        assert_eq!(entry.descriptor.version, "v1");
+        assert_eq!(entry.descriptor.region, "vn");
+        assert_eq!(entry.descriptor.profile, "baseline");
+    }
+
+    #[test]
+    fn resolves_baseline_alias_to_same_ruleset() {
+        let alias = get_ruleset("baseline").expect("alias lookup");
+        let canonical = get_ruleset(DEFAULT_RULESET_ID).expect("canonical lookup");
+        assert_eq!(alias.descriptor.id, canonical.descriptor.id);
+        assert!(std::ptr::eq(alias.data(), canonical.data()));
+    }
+
+    #[test]
+    fn rejects_unknown_ruleset_id() {
+        let err = get_ruleset("does-not-exist").expect_err("unknown ruleset must fail");
+        assert_eq!(
+            err.to_string(),
+            "unknown almanac ruleset id: does-not-exist"
+        );
+    }
+
+    #[test]
+    fn baseline_loader_shim_matches_default_registry_entry() {
+        assert!(std::ptr::eq(baseline_data(), default_ruleset().data()));
+        assert!(std::ptr::eq(
+            baseline_data(),
+            get_ruleset_data(DEFAULT_RULESET_ID).expect("ruleset data")
+        ));
+    }
+
+    #[test]
+    fn validates_taboo_rule_schema_loads() {
+        let data = baseline_data();
+        assert_eq!(data.taboo_rule_meta.tam_nuong.method, "table-lookup");
+        assert_eq!(data.taboo_rules.tam_nuong.rule_id, "tam_nuong");
+        assert_eq!(data.taboo_rules.nguyet_ky.lunar_days, vec![5, 14, 23]);
+        assert_eq!(
+            data.taboo_rules
+                .sat_chu
+                .by_lunar_month
+                .get(&1)
+                .map(String::as_str),
+            Some("Tỵ")
+        );
+        assert_eq!(
+            data.taboo_rules
+                .tho_tu
+                .by_lunar_month
+                .get(&12)
+                .map(String::as_str),
+            Some("Mùi")
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_taboo_day_rule_values() {
+        let bad = TabooDayRuleRaw {
+            rule_id: "tam_nuong".to_string(),
+            name: "Tam Nương".to_string(),
+            severity: "critical".to_string(),
+            lunar_days: vec![3, 31],
+        };
+
+        let result = std::panic::catch_unwind(|| {
+            validate_taboo_day_rule(&bad, "taboo_rule_sets.tam_nuong", "tam_nuong")
+        });
+        assert!(result.is_err(), "invalid taboo day rule must panic");
+    }
+
+    #[test]
+    fn rejects_invalid_taboo_month_chi_rule_values() {
+        let mut by_lunar_month = HashMap::new();
+        for month in 1..=11 {
+            by_lunar_month.insert(month.to_string(), "Tý".to_string());
+        }
+        by_lunar_month.insert("12".to_string(), "NotAChi".to_string());
+
+        let bad = TabooMonthChiRuleRaw {
+            rule_id: "sat_chu".to_string(),
+            name: "Sát Chủ".to_string(),
+            severity: "hard".to_string(),
+            by_lunar_month,
+        };
+
+        let result = std::panic::catch_unwind(|| {
+            validate_taboo_month_chi_rule(&bad, "taboo_rule_sets.sat_chu", "sat_chu")
+        });
+        assert!(result.is_err(), "invalid taboo month-chi rule must panic");
     }
 
     #[test]
