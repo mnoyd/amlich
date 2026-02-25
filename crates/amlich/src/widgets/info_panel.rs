@@ -172,7 +172,7 @@ impl<'a> InfoPanel<'a> {
                 ),
             ]));
             lines.push(Line::from(vec![
-                Span::styled("Kỷ thần: ", Style::default().fg(theme::SECONDARY_FG)),
+                Span::styled("Kỵ thần: ", Style::default().fg(theme::SECONDARY_FG)),
                 Span::styled(
                     fortune
                         .travel
@@ -330,7 +330,7 @@ mod tests {
             "Xuất hành:",
             "Tài thần:",
             "Hỷ thần:",
-            "Kỷ thần:",
+            "Kỵ thần:",
             "Cát tinh:",
             "Sát tinh:",
             "Sao:",
