@@ -114,6 +114,7 @@ Reference freeze points:
 
 - Day deity mapping: `docs/almanac/day-deity-v1-table.md`
 - Terminology/tokens: `docs/almanac/glossary.md`
+- Known differences policy: `docs/almanac/known-differences.md`
 
 ## Acceptance Criteria for v1 Scope Freeze
 

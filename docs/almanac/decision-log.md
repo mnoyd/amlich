@@ -61,6 +61,10 @@ Track major design and ruleset decisions so implementation remains consistent an
 - Impact: Add research beads before implementation beads for these families.
 - Follow-up: Phase 3-5 research beads.
 
+Policy reference:
+
+- `docs/almanac/known-differences.md`
+
 ## DEC-0006
 
 - Status: accepted
