@@ -1,5 +1,31 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RuleSetDefaults {
+    pub tz_offset: f64,
+    #[serde(default)]
+    pub meridian: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RuleSetSourceNote {
+    pub family: String,
+    pub source_id: String,
+    pub note: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RuleSetDescriptor {
+    pub id: String,
+    pub version: String,
+    pub region: String,
+    pub profile: String,
+    pub defaults: RuleSetDefaults,
+    #[serde(default)]
+    pub source_notes: Vec<RuleSetSourceNote>,
+    pub schema_version: String,
+}
+
 /// Source attribution for a group of almanac rules.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SourceMeta {
@@ -56,6 +82,28 @@ pub struct RuleEvidence {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub enum DayDeityClassification {
+    HoangDao,
+    HacDao,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DayDeity {
+    pub name: String,
+    pub classification: DayDeityClassification,
+    pub evidence: Option<RuleEvidence>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DayTaboo {
+    pub rule_id: String,
+    pub name: String,
+    pub severity: String,
+    pub reason: String,
+    pub evidence: Option<RuleEvidence>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DayStar {
     pub system: StarSystem,
     pub index: usize,
@@ -109,11 +157,15 @@ pub struct XungHopResult {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DayFortune {
+    pub ruleset_id: String,
+    pub ruleset_version: String,
     pub profile: String,
     pub day_element: DayElement,
     pub conflict: DayConflict,
     pub travel: TravelDirection,
     pub stars: DayStars,
+    pub day_deity: Option<DayDeity>,
+    pub taboos: Vec<DayTaboo>,
     pub xung_hop: XungHopResult,
     pub truc: TrucInfo,
 }
@@ -121,6 +173,32 @@ pub struct DayFortune {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ruleset_descriptor_serializes() {
+        let descriptor = RuleSetDescriptor {
+            id: "vn_baseline_v1".to_string(),
+            version: "v1".to_string(),
+            region: "vn".to_string(),
+            profile: "baseline".to_string(),
+            defaults: RuleSetDefaults {
+                tz_offset: 7.0,
+                meridian: None,
+            },
+            source_notes: vec![RuleSetSourceNote {
+                family: "taboo_rules".to_string(),
+                source_id: "khcbppt".to_string(),
+                note: "Baseline v1 frozen mapping".to_string(),
+            }],
+            schema_version: "ruleset-descriptor/v1".to_string(),
+        };
+
+        let encoded = serde_json::to_string(&descriptor).expect("serialize");
+        let decoded: RuleSetDescriptor = serde_json::from_str(&encoded).expect("deserialize");
+        assert_eq!(decoded.id, "vn_baseline_v1");
+        assert_eq!(decoded.defaults.tz_offset, 7.0);
+        assert_eq!(decoded.source_notes.len(), 1);
+    }
 
     #[test]
     fn day_fortune_struct_exists() {
@@ -138,6 +216,8 @@ mod tests {
     #[test]
     fn day_fortune_serializes() {
         let value = DayFortune {
+            ruleset_id: "vn_baseline_v1".to_string(),
+            ruleset_version: "v1".to_string(),
             profile: "baseline".to_string(),
             day_element: DayElement {
                 na_am: "Hải Trung Kim".to_string(),
@@ -174,6 +254,18 @@ mod tests {
                 evidence: None,
                 matched_rules: Vec::new(),
             },
+            day_deity: Some(DayDeity {
+                name: "Thanh Long".to_string(),
+                classification: DayDeityClassification::HoangDao,
+                evidence: None,
+            }),
+            taboos: vec![DayTaboo {
+                rule_id: "tam_nuong".to_string(),
+                name: "Tam Nương".to_string(),
+                severity: "hard".to_string(),
+                reason: "Ngày âm lịch 3 thuộc Tam Nương".to_string(),
+                evidence: None,
+            }],
             xung_hop: XungHopResult {
                 luc_xung: "Tuất".to_string(),
                 tam_hop: vec!["Dần".to_string(), "Ngọ".to_string(), "Tuất".to_string()],
@@ -195,6 +287,7 @@ mod tests {
         let encoded = serde_json::to_string(&value).expect("serialize");
         let decoded: DayFortune = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.profile, "baseline");
+        assert_eq!(decoded.ruleset_id, "vn_baseline_v1");
         assert_eq!(decoded.day_element.element, "Kim");
     }
 }

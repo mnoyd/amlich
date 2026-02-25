@@ -1,10 +1,10 @@
 use crate::dto::{
-    CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto, DayConflictDto, DayElementDto,
-    DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, ElementInsightDto,
-    FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto,
-    LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto, ProverbInsightDto, RegionsInsightDto,
-    RuleEvidenceDto, SolarDto, StarRuleEvidenceDto, TabooInsightDto, TietKhiDto, TietKhiInsightDto,
-    TravelDirectionDto, TrucDto, XungHopDto,
+    CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto, DayConflictDto, DayDeityDto,
+    DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, DayTabooDto,
+    ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto,
+    HolidayInsightDto, HourInfoDto, LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto,
+    ProverbInsightDto, RegionsInsightDto, RuleEvidenceDto, SolarDto, StarRuleEvidenceDto,
+    TabooInsightDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -232,14 +232,46 @@ impl From<&amlich_core::almanac::types::TrucInfo> for TrucDto {
     }
 }
 
+impl From<&amlich_core::almanac::types::DayTaboo> for DayTabooDto {
+    fn from(value: &amlich_core::almanac::types::DayTaboo) -> Self {
+        Self {
+            rule_id: value.rule_id.clone(),
+            name: value.name.clone(),
+            severity: value.severity.clone(),
+            reason: value.reason.clone(),
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::types::DayDeity> for DayDeityDto {
+    fn from(value: &amlich_core::almanac::types::DayDeity) -> Self {
+        let classification = match value.classification {
+            amlich_core::almanac::types::DayDeityClassification::HoangDao => "hoang_dao",
+            amlich_core::almanac::types::DayDeityClassification::HacDao => "hac_dao",
+        }
+        .to_string();
+
+        Self {
+            name: value.name.clone(),
+            classification,
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
+        }
+    }
+}
+
 impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
     fn from(value: &amlich_core::almanac::types::DayFortune) -> Self {
         Self {
+            ruleset_id: value.ruleset_id.clone(),
+            ruleset_version: value.ruleset_version.clone(),
             profile: value.profile.clone(),
             day_element: DayElementDto::from(&value.day_element),
             conflict: DayConflictDto::from(&value.conflict),
             travel: TravelDirectionDto::from(&value.travel),
             stars: DayStarsDto::from(&value.stars),
+            day_deity: value.day_deity.as_ref().map(DayDeityDto::from),
+            taboos: value.taboos.iter().map(DayTabooDto::from).collect(),
             xung_hop: XungHopDto::from(&value.xung_hop),
             truc: TrucDto::from(&value.truc),
         }
@@ -249,6 +281,8 @@ impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
 impl From<&amlich_core::DayInfo> for DayInfoDto {
     fn from(value: &amlich_core::DayInfo) -> Self {
         Self {
+            ruleset_id: value.ruleset_id.clone(),
+            ruleset_version: value.ruleset_version.clone(),
             solar: SolarDto::from(&value.solar),
             lunar: LunarDto::from(&value.lunar),
             jd: value.jd,

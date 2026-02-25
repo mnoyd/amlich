@@ -1,4 +1,5 @@
 use amlich_core::almanac::calc::calculate_day_fortune;
+use amlich_core::almanac::types::DayDeityClassification;
 use amlich_core::get_day_info;
 
 /// Tết 2024 (2024-02-10): Giáp Thìn, lunar 1/1/2024
@@ -9,6 +10,7 @@ fn golden_tet_2024_truc_and_xung_hop() {
     let fortune = calculate_day_fortune(
         info.jd,
         &info.canchi.day,
+        info.lunar.day,
         info.lunar.month,
         &info.canchi.year.can,
         &info.tiet_khi.name,
@@ -38,6 +40,7 @@ fn golden_tet_2025_truc_and_xung_hop() {
     let fortune = calculate_day_fortune(
         info.jd,
         &info.canchi.day,
+        info.lunar.day,
         info.lunar.month,
         &info.canchi.year.can,
         &info.tiet_khi.name,
@@ -67,6 +70,7 @@ fn golden_new_year_2024_truc_and_xung_hop() {
     let fortune = calculate_day_fortune(
         info.jd,
         &info.canchi.day,
+        info.lunar.day,
         info.lunar.month,
         &info.canchi.year.can,
         &info.tiet_khi.name,
@@ -98,6 +102,7 @@ fn golden_truc_kien_when_day_chi_equals_month_chi() {
     let fortune = calculate_day_fortune(
         info.jd,
         &info.canchi.day,
+        info.lunar.day,
         info.lunar.month,
         &info.canchi.year.can,
         &info.tiet_khi.name,
@@ -111,4 +116,86 @@ fn golden_truc_kien_when_day_chi_equals_month_chi() {
     assert_eq!(info.lunar.month, 1, "expected lunar month 1");
     assert_eq!(fortune.truc.index, 0, "trực Kiến when day chi == month chi");
     assert_eq!(fortune.truc.name, "Kiến");
+}
+
+#[test]
+fn golden_day_deity_mapping_ty_day_across_lunar_months() {
+    let cases = [
+        (1, "Thanh Long", DayDeityClassification::HoangDao),
+        (2, "Thiên Hình", DayDeityClassification::HacDao),
+        (3, "Kim Quỹ", DayDeityClassification::HoangDao),
+        (4, "Bạch Hổ", DayDeityClassification::HacDao),
+        (5, "Thiên Lao", DayDeityClassification::HacDao),
+        (6, "Tư Mệnh", DayDeityClassification::HoangDao),
+        (7, "Thanh Long", DayDeityClassification::HoangDao),
+        (8, "Thiên Hình", DayDeityClassification::HacDao),
+        (9, "Kim Quỹ", DayDeityClassification::HoangDao),
+        (10, "Bạch Hổ", DayDeityClassification::HacDao),
+        (11, "Thiên Lao", DayDeityClassification::HacDao),
+        (12, "Tư Mệnh", DayDeityClassification::HoangDao),
+    ];
+
+    for (month, expected_name, expected_classification) in cases {
+        let deity = amlich_core::almanac::day_deity::resolve_day_deity(month, "Tý");
+        assert_eq!(deity.name, expected_name, "lunar month {month}");
+        assert_eq!(
+            deity.classification, expected_classification,
+            "classification mismatch for lunar month {month}"
+        );
+    }
+}
+
+#[test]
+fn golden_day_deity_mapping_tuat_day_across_lunar_months() {
+    let cases = [
+        (1, "Tư Mệnh", DayDeityClassification::HoangDao),
+        (2, "Thanh Long", DayDeityClassification::HoangDao),
+        (3, "Thiên Hình", DayDeityClassification::HacDao),
+        (4, "Kim Quỹ", DayDeityClassification::HoangDao),
+        (5, "Bạch Hổ", DayDeityClassification::HacDao),
+        (6, "Thiên Lao", DayDeityClassification::HacDao),
+        (7, "Tư Mệnh", DayDeityClassification::HoangDao),
+        (8, "Thanh Long", DayDeityClassification::HoangDao),
+        (9, "Thiên Hình", DayDeityClassification::HacDao),
+        (10, "Kim Quỹ", DayDeityClassification::HoangDao),
+        (11, "Bạch Hổ", DayDeityClassification::HacDao),
+        (12, "Thiên Lao", DayDeityClassification::HacDao),
+    ];
+
+    for (month, expected_name, expected_classification) in cases {
+        let deity = amlich_core::almanac::day_deity::resolve_day_deity(month, "Tuất");
+        assert_eq!(deity.name, expected_name, "lunar month {month}");
+        assert_eq!(
+            deity.classification, expected_classification,
+            "classification mismatch for lunar month {month}"
+        );
+    }
+}
+
+#[test]
+fn golden_real_date_examples_include_day_deity() {
+    let examples = [
+        (10, 2, 2024, "Giáp Thìn"),
+        (29, 1, 2025, "Mậu Tuất"),
+        (1, 1, 2024, "Giáp Tý"),
+    ];
+
+    for (day, month, year, expected_day_canchi) in examples {
+        let info = get_day_info(day, month, year);
+        assert_eq!(info.canchi.day.full, expected_day_canchi);
+        let deity = info
+            .day_fortune
+            .day_deity
+            .as_ref()
+            .expect("day deity should exist");
+        assert!(!deity.name.is_empty());
+        assert!(matches!(
+            deity.classification,
+            DayDeityClassification::HoangDao | DayDeityClassification::HacDao
+        ));
+        let evidence = deity.evidence.as_ref().expect("day deity evidence");
+        assert_eq!(evidence.source_id, "khcbppt");
+        assert_eq!(evidence.method, "table-lookup");
+        assert_eq!(evidence.profile, "baseline");
+    }
 }

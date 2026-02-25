@@ -63,6 +63,8 @@ pub struct CanChiInfo {
 /// Complete information about a day
 #[derive(Debug, Clone)]
 pub struct DayInfo {
+    pub ruleset_id: String,
+    pub ruleset_version: String,
     pub solar: SolarInfo,
     pub lunar: LunarInfo,
     pub jd: i32,
@@ -128,6 +130,7 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
     let day_fortune = calculate_day_fortune(
         jd,
         &day_canchi,
+        lunar_date.day,
         lunar_date.month,
         &year_canchi.can,
         &tiet_khi.name,
@@ -170,6 +173,8 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
     };
 
     DayInfo {
+        ruleset_id: day_fortune.ruleset_id.clone(),
+        ruleset_version: day_fortune.ruleset_version.clone(),
         solar,
         lunar,
         jd,
@@ -203,6 +208,8 @@ mod tests {
         // Check Can Chi
         assert_eq!(info.canchi.day.full, "Giáp Thìn");
         assert_eq!(info.canchi.year.full, "Giáp Thìn");
+        assert_eq!(info.ruleset_id, "vn_baseline_v1");
+        assert_eq!(info.ruleset_version, "v1");
     }
 
     #[test]
