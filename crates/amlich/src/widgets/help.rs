@@ -74,6 +74,7 @@ impl Widget for HelpOverlay {
                 vec![
                     ("1..4", "đổi tab overlay"),
                     ("j/k", "cuộn nội dung"),
+                    ("r", "raw luận cứ (tab 4)"),
                     ("Esc/q", "đóng overlay"),
                 ],
             ),

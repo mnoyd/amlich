@@ -58,7 +58,7 @@ impl AlmanacTab {
             (AlmanacTab::Taboos, InsightLang::En) => "Taboos",
             (AlmanacTab::Stars, InsightLang::Vi) => "Sao",
             (AlmanacTab::Stars, InsightLang::En) => "Stars",
-            (AlmanacTab::Evidence, InsightLang::Vi) => "Luận cứ",
+            (AlmanacTab::Evidence, InsightLang::Vi) => "Nguồn",
             (AlmanacTab::Evidence, InsightLang::En) => "Evidence",
         }
     }
@@ -119,6 +119,7 @@ pub struct App {
     pub show_almanac: bool,
     pub almanac_tab: AlmanacTab,
     pub almanac_scroll: u16,
+    pub almanac_evidence_raw: bool,
     // Insight cache avoids recomputing expensive day insight every redraw tick.
     selected_insight_cache_key: Option<(i32, u32, u32)>,
     selected_insight_cache: Option<DayInsightDto>,
@@ -168,6 +169,7 @@ impl App {
             show_almanac: false,
             almanac_tab: AlmanacTab::default(),
             almanac_scroll: 0,
+            almanac_evidence_raw: false,
             selected_insight_cache_key: None,
             selected_insight_cache: None,
             bookmarks: bookmark_store::load_bookmarks(),
@@ -327,6 +329,11 @@ impl App {
 
     pub fn toggle_almanac(&mut self) {
         self.show_almanac = !self.show_almanac;
+        self.almanac_scroll = 0;
+    }
+
+    pub fn toggle_almanac_evidence_raw(&mut self) {
+        self.almanac_evidence_raw = !self.almanac_evidence_raw;
         self.almanac_scroll = 0;
     }
 
