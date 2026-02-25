@@ -58,7 +58,6 @@ Primary references:
      - `xuat_hanh_huong`
      - `tai_than`
      - `hy_than`
-     - `ky_than` (nullable)
 
 9. `conflict_by_chi` (`map<string, ConflictRule>`)
    - Keyed by 12 địa chi names.

@@ -72,7 +72,6 @@ Expected: FAIL due to missing module/types.
 **Step 3: Implement minimal domain structs and profile enum**
 
 Create typed structures with explicit optional fields for unresolved terms:
-- `ky_than: Option<String>` (until term is finalized)
 - `star_system: Option<StarSystem>`
 
 **Step 4: Run test to verify it passes**

@@ -1,7 +1,7 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use std::time::Duration;
 
-use crate::app::{App, InsightTab};
+use crate::app::{AlmanacTab, App, InsightTab};
 
 // Bookmarks overlay mode handling
 fn handle_bookmarks_mode(app: &mut App, key: KeyEvent) -> bool {
@@ -117,6 +117,27 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         return;
     }
 
+    // Almanac overlay mode
+    if app.show_almanac {
+        match key.code {
+            KeyCode::Char('a') | KeyCode::Esc | KeyCode::Char('q') => app.toggle_almanac(),
+            KeyCode::Char('j') | KeyCode::Down => {
+                app.almanac_scroll = app.almanac_scroll.saturating_add(1)
+            }
+            KeyCode::Char('k') | KeyCode::Up => {
+                app.almanac_scroll = app.almanac_scroll.saturating_sub(1)
+            }
+            KeyCode::Char('1') => app.set_almanac_tab(AlmanacTab::Overview),
+            KeyCode::Char('2') => app.set_almanac_tab(AlmanacTab::Taboos),
+            KeyCode::Char('3') => app.set_almanac_tab(AlmanacTab::Stars),
+            KeyCode::Char('4') => app.set_almanac_tab(AlmanacTab::Evidence),
+            KeyCode::Tab => app.next_almanac_tab(),
+            KeyCode::BackTab => app.prev_almanac_tab(),
+            _ => {}
+        }
+        return;
+    }
+
     // Help overlay (global - accessible from anywhere)
     if app.show_help {
         match key.code {
@@ -192,6 +213,9 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         // Toggle insight panel
         KeyCode::Char('i') => app.toggle_insight(),
 
+        // Toggle almanac panel
+        KeyCode::Char('a') => app.toggle_almanac(),
+
         // Bookmarks
         KeyCode::Char('b') => app.toggle_bookmark(),
         KeyCode::Char('B') => app.toggle_bookmarks(),
@@ -206,5 +230,51 @@ fn handle_key(app: &mut App, key: KeyEvent) {
         KeyCode::Char('c') => app.toggle_calendar(),
 
         _ => {}
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+
+    use crate::app::{AlmanacTab, App};
+
+    use super::handle_key;
+
+    fn key(code: KeyCode) -> KeyEvent {
+        KeyEvent::new(code, KeyModifiers::NONE)
+    }
+
+    #[test]
+    fn a_toggles_almanac_overlay() {
+        let mut app = App::new_with_date(None);
+        assert!(!app.show_almanac);
+
+        handle_key(&mut app, key(KeyCode::Char('a')));
+        assert!(app.show_almanac);
+
+        handle_key(&mut app, key(KeyCode::Char('a')));
+        assert!(!app.show_almanac);
+    }
+
+    #[test]
+    fn almanac_mode_tab_and_scroll_controls_work() {
+        let mut app = App::new_with_date(None);
+        app.toggle_almanac();
+
+        handle_key(&mut app, key(KeyCode::Char('2')));
+        assert_eq!(app.almanac_tab, AlmanacTab::Taboos);
+
+        handle_key(&mut app, key(KeyCode::Down));
+        assert_eq!(app.almanac_scroll, 1);
+
+        handle_key(&mut app, key(KeyCode::Tab));
+        assert_eq!(app.almanac_tab, AlmanacTab::Stars);
+
+        handle_key(&mut app, key(KeyCode::BackTab));
+        assert_eq!(app.almanac_tab, AlmanacTab::Taboos);
+
+        handle_key(&mut app, key(KeyCode::Esc));
+        assert!(!app.show_almanac);
     }
 }

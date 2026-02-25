@@ -143,7 +143,6 @@ impl From<&amlich_core::almanac::types::TravelDirection> for TravelDirectionDto 
             xuat_hanh_huong: value.xuat_hanh_huong.clone(),
             tai_than: value.tai_than.clone(),
             hy_than: value.hy_than.clone(),
-            ky_than: value.ky_than.clone(),
             evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
         }
     }

@@ -9,8 +9,8 @@ use ratatui::{
 use crate::app::App;
 use crate::theme;
 use crate::widgets::{
-    bookmarks::BookmarksOverlay, calendar::CalendarWidget, date_jump::DateJumpPopup,
-    help::HelpOverlay, holidays::HolidayOverlay, info_panel::InfoPanel,
+    almanac_overlay::AlmanacOverlay, bookmarks::BookmarksOverlay, calendar::CalendarWidget,
+    date_jump::DateJumpPopup, help::HelpOverlay, holidays::HolidayOverlay, info_panel::InfoPanel,
     insight_overlay::InsightOverlay, search::SearchPopup,
 };
 
@@ -84,6 +84,9 @@ pub fn draw(frame: &mut Frame, app: &App) {
     }
     if app.show_insight {
         frame.render_widget(InsightOverlay::new(app), vertical[1]);
+    }
+    if app.show_almanac {
+        frame.render_widget(AlmanacOverlay::new(app), vertical[1]);
     }
     if app.show_bookmarks {
         frame.render_widget(BookmarksOverlay::new(app), vertical[1]);
@@ -211,6 +214,9 @@ fn draw_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
             Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("help", Style::default().fg(theme::SECONDARY_FG)),
             Span::raw("  "),
+            Span::styled("a ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("alm", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("thoát", Style::default().fg(theme::SECONDARY_FG)),
         ],
@@ -232,6 +238,9 @@ fn draw_footer(frame: &mut Frame, app: &App, area: ratatui::layout::Rect) {
             Span::raw("  "),
             Span::styled("? ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("help", Style::default().fg(theme::SECONDARY_FG)),
+            Span::raw("  "),
+            Span::styled("a ", Style::default().fg(theme::ACCENT_FG)),
+            Span::styled("almanac", Style::default().fg(theme::SECONDARY_FG)),
             Span::raw("  "),
             Span::styled("q ", Style::default().fg(theme::ACCENT_FG)),
             Span::styled("thoát", Style::default().fg(theme::SECONDARY_FG)),

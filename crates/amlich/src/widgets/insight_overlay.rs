@@ -23,6 +23,12 @@ fn pick_items(lang: InsightLang, vi: &[String], en: &[String]) -> Vec<String> {
     }
 }
 
+fn push_bulleted(lines: &mut Vec<Line<'_>>, items: &[String], marker: &str, limit: usize) {
+    for item in items.iter().take(limit) {
+        lines.push(Line::from(format!("{marker} {item}")));
+    }
+}
+
 pub struct InsightOverlay<'a> {
     app: &'a App,
 }
@@ -81,6 +87,95 @@ impl<'a> InsightOverlay<'a> {
                     }
                 }
             }
+
+            let foods = festival
+                .food
+                .iter()
+                .map(|food| pick_text(self.app.insight_lang, &food.name.vi, &food.name.en))
+                .collect::<Vec<_>>();
+            if !foods.is_empty() {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Món ăn:",
+                        InsightLang::En => "Foods:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
+                push_bulleted(&mut lines, &foods, "•", 4);
+            }
+
+            if !festival.taboos.is_empty() {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Điều kiêng:",
+                        InsightLang::En => "Taboos:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
+                for taboo in festival.taboos.iter().take(4) {
+                    let action =
+                        pick_text(self.app.insight_lang, &taboo.action.vi, &taboo.action.en);
+                    let reason =
+                        pick_text(self.app.insight_lang, &taboo.reason.vi, &taboo.reason.en);
+                    lines.push(Line::from(format!("• {action}")));
+                    lines.push(Line::from(Span::styled(
+                        format!("  {reason}"),
+                        Style::default().fg(theme::SECONDARY_FG),
+                    )));
+                }
+            }
+
+            if !festival.proverbs.is_empty() {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Tục ngữ:",
+                        InsightLang::En => "Proverbs:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
+                for proverb in festival.proverbs.iter().take(2) {
+                    let meaning = pick_text(
+                        self.app.insight_lang,
+                        &proverb.meaning.vi,
+                        &proverb.meaning.en,
+                    );
+                    lines.push(Line::from(format!("• {}", proverb.text)));
+                    lines.push(Line::from(Span::styled(
+                        format!("  {meaning}"),
+                        Style::default().fg(theme::SECONDARY_FG),
+                    )));
+                }
+            }
+
+            if let Some(regions) = &festival.regions {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Theo vùng:",
+                        InsightLang::En => "By region:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
+                lines.push(Line::from(format!(
+                    "• Bắc: {}",
+                    pick_text(self.app.insight_lang, &regions.north.vi, &regions.north.en)
+                )));
+                lines.push(Line::from(format!(
+                    "• Trung: {}",
+                    pick_text(
+                        self.app.insight_lang,
+                        &regions.central.vi,
+                        &regions.central.en
+                    )
+                )));
+                lines.push(Line::from(format!(
+                    "• Nam: {}",
+                    pick_text(self.app.insight_lang, &regions.south.vi, &regions.south.en)
+                )));
+            }
         } else if let Some(holiday) = &insight.holiday {
             let holiday_name =
                 pick_items(self.app.insight_lang, &holiday.names.vi, &holiday.names.en)
@@ -103,6 +198,111 @@ impl<'a> InsightOverlay<'a> {
                     self.app.insight_lang,
                     &significance.vi,
                     &significance.en,
+                )));
+            }
+
+            if let Some(activities) = &holiday.activities {
+                let items = pick_items(self.app.insight_lang, &activities.vi, &activities.en);
+                if !items.is_empty() {
+                    lines.push(Line::from(""));
+                    lines.push(Line::from(Span::styled(
+                        match self.app.insight_lang {
+                            InsightLang::Vi => "Hoạt động:",
+                            InsightLang::En => "Activities:",
+                        },
+                        Style::default().fg(theme::SECONDARY_FG),
+                    )));
+                    push_bulleted(&mut lines, &items, "•", 4);
+                }
+            }
+
+            if let Some(traditions) = &holiday.traditions {
+                let items = pick_items(self.app.insight_lang, &traditions.vi, &traditions.en);
+                if !items.is_empty() {
+                    lines.push(Line::from(""));
+                    lines.push(Line::from(Span::styled(
+                        match self.app.insight_lang {
+                            InsightLang::Vi => "Tập tục:",
+                            InsightLang::En => "Traditions:",
+                        },
+                        Style::default().fg(theme::SECONDARY_FG),
+                    )));
+                    push_bulleted(&mut lines, &items, "•", 4);
+                }
+            }
+
+            if !holiday.food.is_empty() {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Món ăn:",
+                        InsightLang::En => "Foods:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
+                for food in holiday.food.iter().take(4) {
+                    lines.push(Line::from(format!(
+                        "• {}",
+                        pick_text(self.app.insight_lang, &food.name.vi, &food.name.en)
+                    )));
+                }
+            }
+
+            if !holiday.taboos.is_empty() {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Điều kiêng:",
+                        InsightLang::En => "Taboos:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
+                for taboo in holiday.taboos.iter().take(3) {
+                    lines.push(Line::from(format!(
+                        "• {}",
+                        pick_text(self.app.insight_lang, &taboo.action.vi, &taboo.action.en)
+                    )));
+                }
+            }
+
+            if !holiday.proverbs.is_empty() {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Tục ngữ:",
+                        InsightLang::En => "Proverbs:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
+                for proverb in holiday.proverbs.iter().take(2) {
+                    lines.push(Line::from(format!("• {}", proverb.text)));
+                }
+            }
+
+            if let Some(regions) = &holiday.regions {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Theo vùng:",
+                        InsightLang::En => "By region:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
+                lines.push(Line::from(format!(
+                    "• Bắc: {}",
+                    pick_text(self.app.insight_lang, &regions.north.vi, &regions.north.en)
+                )));
+                lines.push(Line::from(format!(
+                    "• Trung: {}",
+                    pick_text(
+                        self.app.insight_lang,
+                        &regions.central.vi,
+                        &regions.central.en
+                    )
+                )));
+                lines.push(Line::from(format!(
+                    "• Nam: {}",
+                    pick_text(self.app.insight_lang, &regions.south.vi, &regions.south.en)
                 )));
             }
         } else {
@@ -186,6 +386,34 @@ impl<'a> InsightOverlay<'a> {
             ]));
 
             lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                match self.app.insight_lang {
+                    InsightLang::Vi => "Ý nghĩa:",
+                    InsightLang::En => "Meaning:",
+                },
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+            lines.push(Line::from(pick_text(
+                self.app.insight_lang,
+                &tiet_khi.meaning.vi,
+                &tiet_khi.meaning.en,
+            )));
+
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                match self.app.insight_lang {
+                    InsightLang::Vi => "Thiên văn:",
+                    InsightLang::En => "Astronomy:",
+                },
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+            lines.push(Line::from(pick_text(
+                self.app.insight_lang,
+                &tiet_khi.astronomy.vi,
+                &tiet_khi.astronomy.en,
+            )));
+
+            lines.push(Line::from(""));
 
             let weather_label = match self.app.insight_lang {
                 InsightLang::Vi => "Thời tiết:",
@@ -215,12 +443,26 @@ impl<'a> InsightOverlay<'a> {
             );
 
             if !agri.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Nông nghiệp:",
+                        InsightLang::En => "Agriculture:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
                 for item in agri.iter().take(3) {
                     lines.push(Line::from(format!("🌾 {item}")));
                 }
             }
 
             if !health.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    match self.app.insight_lang {
+                        InsightLang::Vi => "Sức khỏe:",
+                        InsightLang::En => "Health:",
+                    },
+                    Style::default().fg(theme::SECONDARY_FG),
+                )));
                 for item in health.iter().take(3) {
                     lines.push(Line::from(format!("💚 {item}")));
                 }

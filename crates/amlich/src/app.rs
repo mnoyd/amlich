@@ -22,6 +22,48 @@ pub enum InsightTab {
     TietKhi,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum AlmanacTab {
+    #[default]
+    Overview,
+    Taboos,
+    Stars,
+    Evidence,
+}
+
+impl AlmanacTab {
+    pub fn next(self) -> Self {
+        match self {
+            AlmanacTab::Overview => AlmanacTab::Taboos,
+            AlmanacTab::Taboos => AlmanacTab::Stars,
+            AlmanacTab::Stars => AlmanacTab::Evidence,
+            AlmanacTab::Evidence => AlmanacTab::Overview,
+        }
+    }
+
+    pub fn prev(self) -> Self {
+        match self {
+            AlmanacTab::Overview => AlmanacTab::Evidence,
+            AlmanacTab::Taboos => AlmanacTab::Overview,
+            AlmanacTab::Stars => AlmanacTab::Taboos,
+            AlmanacTab::Evidence => AlmanacTab::Stars,
+        }
+    }
+
+    pub fn name(self, lang: InsightLang) -> &'static str {
+        match (self, lang) {
+            (AlmanacTab::Overview, InsightLang::Vi) => "Tổng quan",
+            (AlmanacTab::Overview, InsightLang::En) => "Overview",
+            (AlmanacTab::Taboos, InsightLang::Vi) => "Kỵ",
+            (AlmanacTab::Taboos, InsightLang::En) => "Taboos",
+            (AlmanacTab::Stars, InsightLang::Vi) => "Sao",
+            (AlmanacTab::Stars, InsightLang::En) => "Stars",
+            (AlmanacTab::Evidence, InsightLang::Vi) => "Luận cứ",
+            (AlmanacTab::Evidence, InsightLang::En) => "Evidence",
+        }
+    }
+}
+
 #[allow(dead_code)]
 impl InsightTab {
     pub fn next(self) -> Self {
@@ -74,6 +116,9 @@ pub struct App {
     pub insight_lang: InsightLang,
     pub insight_tab: InsightTab,
     pub insight_scroll: u16,
+    pub show_almanac: bool,
+    pub almanac_tab: AlmanacTab,
+    pub almanac_scroll: u16,
     // Insight cache avoids recomputing expensive day insight every redraw tick.
     selected_insight_cache_key: Option<(i32, u32, u32)>,
     selected_insight_cache: Option<DayInsightDto>,
@@ -120,6 +165,9 @@ impl App {
             insight_lang: InsightLang::Vi,
             insight_tab: InsightTab::default(),
             insight_scroll: 0,
+            show_almanac: false,
+            almanac_tab: AlmanacTab::default(),
+            almanac_scroll: 0,
             selected_insight_cache_key: None,
             selected_insight_cache: None,
             bookmarks: bookmark_store::load_bookmarks(),
@@ -277,6 +325,11 @@ impl App {
         self.insight_scroll = 0;
     }
 
+    pub fn toggle_almanac(&mut self) {
+        self.show_almanac = !self.show_almanac;
+        self.almanac_scroll = 0;
+    }
+
     pub fn toggle_insight_lang(&mut self) {
         self.insight_lang = match self.insight_lang {
             InsightLang::Vi => InsightLang::En,
@@ -300,6 +353,23 @@ impl App {
     pub fn prev_insight_tab(&mut self) {
         self.insight_tab = self.insight_tab.prev();
         self.insight_scroll = 0;
+    }
+
+    pub fn set_almanac_tab(&mut self, tab: AlmanacTab) {
+        if self.almanac_tab != tab {
+            self.almanac_tab = tab;
+            self.almanac_scroll = 0;
+        }
+    }
+
+    pub fn next_almanac_tab(&mut self) {
+        self.almanac_tab = self.almanac_tab.next();
+        self.almanac_scroll = 0;
+    }
+
+    pub fn prev_almanac_tab(&mut self) {
+        self.almanac_tab = self.almanac_tab.prev();
+        self.almanac_scroll = 0;
     }
 
     pub fn selected_insight(&self) -> Option<&DayInsightDto> {

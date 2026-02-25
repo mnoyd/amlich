@@ -1,3 +1,4 @@
+pub mod almanac_overlay;
 pub mod bookmarks;
 pub mod calendar;
 pub mod date_jump;

@@ -131,16 +131,16 @@
     }
   },
   "travel_by_can": {
-    "Giáp": { "xuat_hanh_huong": "Đông Nam", "tai_than": "Đông Bắc", "hy_than": "Đông Bắc", "ky_than": null },
-    "Ất": { "xuat_hanh_huong": "Đông", "tai_than": "Tây Nam", "hy_than": "Tây Bắc", "ky_than": null },
-    "Bính": { "xuat_hanh_huong": "Nam", "tai_than": "Tây", "hy_than": "Tây Nam", "ky_than": null },
-    "Đinh": { "xuat_hanh_huong": "Nam", "tai_than": "Tây", "hy_than": "Nam", "ky_than": null },
-    "Mậu": { "xuat_hanh_huong": "Đông Bắc", "tai_than": "Bắc", "hy_than": "Đông Nam", "ky_than": null },
-    "Kỷ": { "xuat_hanh_huong": "Tây Nam", "tai_than": "Bắc", "hy_than": "Đông Bắc", "ky_than": null },
-    "Canh": { "xuat_hanh_huong": "Tây Bắc", "tai_than": "Đông", "hy_than": "Tây Bắc", "ky_than": null },
-    "Tân": { "xuat_hanh_huong": "Tây", "tai_than": "Đông", "hy_than": "Tây Nam", "ky_than": null },
-    "Nhâm": { "xuat_hanh_huong": "Bắc", "tai_than": "Nam", "hy_than": "Nam", "ky_than": null },
-    "Quý": { "xuat_hanh_huong": "Tây", "tai_than": "Nam", "hy_than": "Đông Nam", "ky_than": null }
+    "Giáp": { "xuat_hanh_huong": "Đông Nam", "tai_than": "Đông Bắc", "hy_than": "Đông Bắc" },
+    "Ất": { "xuat_hanh_huong": "Đông", "tai_than": "Tây Nam", "hy_than": "Tây Bắc" },
+    "Bính": { "xuat_hanh_huong": "Nam", "tai_than": "Tây", "hy_than": "Tây Nam" },
+    "Đinh": { "xuat_hanh_huong": "Nam", "tai_than": "Tây", "hy_than": "Nam" },
+    "Mậu": { "xuat_hanh_huong": "Đông Bắc", "tai_than": "Bắc", "hy_than": "Đông Nam" },
+    "Kỷ": { "xuat_hanh_huong": "Tây Nam", "tai_than": "Bắc", "hy_than": "Đông Bắc" },
+    "Canh": { "xuat_hanh_huong": "Tây Bắc", "tai_than": "Đông", "hy_than": "Tây Bắc" },
+    "Tân": { "xuat_hanh_huong": "Tây", "tai_than": "Đông", "hy_than": "Tây Nam" },
+    "Nhâm": { "xuat_hanh_huong": "Bắc", "tai_than": "Nam", "hy_than": "Nam" },
+    "Quý": { "xuat_hanh_huong": "Tây", "tai_than": "Nam", "hy_than": "Đông Nam" }
   },
   "conflict_by_chi": {
     "Tý": { "opposing_chi": "Ngọ", "sat_huong": "Nam", "cat_tinh": ["Thiên Đức", "Nguyệt Đức"], "sat_tinh": ["Thiên Hình", "Chu Tước"] },

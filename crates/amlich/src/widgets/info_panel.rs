@@ -34,6 +34,24 @@ impl<'a> InfoPanel<'a> {
         }
     }
 
+    fn taboo_severity_score(input: &str) -> u8 {
+        match input {
+            "high" => 3,
+            "medium" => 2,
+            "low" => 1,
+            _ => 0,
+        }
+    }
+
+    fn taboo_severity_label(input: &str) -> &'static str {
+        match input {
+            "high" => "cao",
+            "medium" => "vừa",
+            "low" => "thấp",
+            _ => "không rõ",
+        }
+    }
+
     fn build_lines(&self, width: u16) -> Vec<Line<'_>> {
         let mut lines: Vec<Line<'_>> = Vec::new();
         let Some(info) = self.app.selected_info() else {
@@ -110,6 +128,64 @@ impl<'a> InfoPanel<'a> {
                     Style::default().fg(theme::PRIMARY_FG),
                 ),
             ]));
+
+            lines.push(Line::from(""));
+            lines.push(Self::section_line("Almanac nhanh", width));
+            lines.push(Line::from(vec![
+                Span::styled("Ruleset: ", Style::default().fg(theme::SECONDARY_FG)),
+                Span::styled(
+                    format!(
+                        "{}@{} ({})",
+                        fortune.ruleset_id, fortune.ruleset_version, fortune.profile
+                    ),
+                    Style::default().fg(theme::PRIMARY_FG),
+                ),
+            ]));
+            if let Some(day_deity) = &fortune.day_deity {
+                lines.push(Line::from(vec![
+                    Span::styled("Thần ngày: ", Style::default().fg(theme::SECONDARY_FG)),
+                    Span::styled(
+                        format!("{} ({})", day_deity.name, day_deity.classification),
+                        Style::default().fg(theme::PRIMARY_FG),
+                    ),
+                ]));
+            }
+            if let Some(day_star) = &fortune.stars.day_star {
+                lines.push(Line::from(vec![
+                    Span::styled("Sao chủ: ", Style::default().fg(theme::SECONDARY_FG)),
+                    Span::styled(
+                        format!(
+                            "{} - {}",
+                            day_star.name,
+                            Self::star_quality_label(&day_star.quality)
+                        ),
+                        Style::default().fg(theme::PRIMARY_FG),
+                    ),
+                ]));
+            }
+            if !fortune.taboos.is_empty() {
+                let max_severity = fortune
+                    .taboos
+                    .iter()
+                    .max_by_key(|taboo| Self::taboo_severity_score(&taboo.severity));
+                if let Some(taboo) = max_severity {
+                    lines.push(Line::from(vec![
+                        Span::styled("Mức kiêng: ", Style::default().fg(theme::SECONDARY_FG)),
+                        Span::styled(
+                            format!(
+                                "{} mục (cao nhất: {})",
+                                fortune.taboos.len(),
+                                Self::taboo_severity_label(&taboo.severity)
+                            ),
+                            Style::default().fg(theme::BAD_FG),
+                        ),
+                    ]));
+                }
+            }
+            lines.push(Line::from(Span::styled(
+                "[a] xem chi tiết almanac",
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
         }
 
         lines.push(Line::from(""));
@@ -169,17 +245,6 @@ impl<'a> InfoPanel<'a> {
                 Span::styled(
                     fortune.travel.hy_than.clone(),
                     Style::default().fg(theme::PRIMARY_FG),
-                ),
-            ]));
-            lines.push(Line::from(vec![
-                Span::styled("Kỵ thần: ", Style::default().fg(theme::SECONDARY_FG)),
-                Span::styled(
-                    fortune
-                        .travel
-                        .ky_than
-                        .clone()
-                        .unwrap_or_else(|| "Chưa có dữ liệu".to_string()),
-                    Style::default().fg(theme::SECONDARY_FG),
                 ),
             ]));
         } else {
@@ -330,11 +395,13 @@ mod tests {
             "Xuất hành:",
             "Tài thần:",
             "Hỷ thần:",
-            "Kỵ thần:",
             "Cát tinh:",
             "Sát tinh:",
             "Sao:",
             "Tiết khí",
+            "Almanac nhanh",
+            "Ruleset:",
+            "[a] xem chi tiết almanac",
         ] {
             assert!(text.contains(needle), "missing `{needle}` in rendered info");
         }
