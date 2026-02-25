@@ -1,0 +1,132 @@
+{
+  "profile": "baseline",
+  "travel_meta": { "source_id": "khcbppt", "method": "bai-quyet" },
+  "conflict_meta": { "source_id": "khcbppt", "method": "table-lookup" },
+  "na_am_meta": { "source_id": "tam-menh-thong-hoi", "method": "table-lookup" },
+  "star_meta": { "source_id": "nhi-thap-bat-tu", "method": "jd-cycle" },
+  "star_rule_meta": {
+    "fixed_by_chi": { "source_id": "khcbppt", "method": "table-lookup" },
+    "fixed_by_canchi": { "source_id": "khcbppt", "method": "table-lookup" },
+    "by_year": { "source_id": "khcbppt", "method": "table-lookup" },
+    "by_month": { "source_id": "khcbppt", "method": "table-lookup" },
+    "by_tiet_khi": { "source_id": "khcbppt", "method": "table-lookup" }
+  },
+  "star_rule_sets": {
+    "fixed_by_canchi": {
+      "Giáp Thìn": {
+        "cat_tinh": [],
+        "sat_tinh": ["Phúc Sinh"],
+        "binh_tinh": []
+      }
+    },
+    "by_year_can": {
+      "Giáp": {
+        "cat_tinh": ["Bạch Hổ"],
+        "sat_tinh": [],
+        "binh_tinh": []
+      }
+    },
+    "by_lunar_month": {
+      "1": {
+        "cat_tinh": [],
+        "sat_tinh": ["Thiên Quý", "Bạch Hổ"],
+        "binh_tinh": ["Nguyệt Không"]
+      }
+    },
+    "by_tiet_khi": {
+      "Lập Xuân": {
+        "cat_tinh": ["Thiên Quý", "Bạch Hổ"],
+        "sat_tinh": [],
+        "binh_tinh": []
+      }
+    }
+  },
+  "travel_by_can": {
+    "Giáp": { "xuat_hanh_huong": "Đông Nam", "tai_than": "Đông Bắc", "hy_than": "Đông Bắc", "ky_than": null },
+    "Ất": { "xuat_hanh_huong": "Đông", "tai_than": "Tây Nam", "hy_than": "Tây Bắc", "ky_than": null },
+    "Bính": { "xuat_hanh_huong": "Nam", "tai_than": "Tây", "hy_than": "Tây Nam", "ky_than": null },
+    "Đinh": { "xuat_hanh_huong": "Nam", "tai_than": "Tây", "hy_than": "Nam", "ky_than": null },
+    "Mậu": { "xuat_hanh_huong": "Đông Bắc", "tai_than": "Bắc", "hy_than": "Đông Nam", "ky_than": null },
+    "Kỷ": { "xuat_hanh_huong": "Tây Nam", "tai_than": "Bắc", "hy_than": "Đông Bắc", "ky_than": null },
+    "Canh": { "xuat_hanh_huong": "Tây Bắc", "tai_than": "Đông", "hy_than": "Tây Bắc", "ky_than": null },
+    "Tân": { "xuat_hanh_huong": "Tây", "tai_than": "Đông", "hy_than": "Tây Nam", "ky_than": null },
+    "Nhâm": { "xuat_hanh_huong": "Bắc", "tai_than": "Nam", "hy_than": "Nam", "ky_than": null },
+    "Quý": { "xuat_hanh_huong": "Tây", "tai_than": "Nam", "hy_than": "Đông Nam", "ky_than": null }
+  },
+  "conflict_by_chi": {
+    "Tý": { "opposing_chi": "Ngọ", "sat_huong": "Nam", "cat_tinh": ["Thiên Đức", "Nguyệt Đức"], "sat_tinh": ["Thiên Hình", "Chu Tước"] },
+    "Sửu": { "opposing_chi": "Mùi", "sat_huong": "Tây Nam", "cat_tinh": ["Thiên Quý", "Phúc Sinh"], "sat_tinh": ["Bạch Hổ", "Tiểu Hao"] },
+    "Dần": { "opposing_chi": "Thân", "sat_huong": "Tây Nam", "cat_tinh": ["Tam Hợp", "Thiên Hỷ"], "sat_tinh": ["Thiên Lao", "Đại Hao"] },
+    "Mão": { "opposing_chi": "Dậu", "sat_huong": "Tây", "cat_tinh": ["Thiên Đức", "Nguyệt Đức"], "sat_tinh": ["Thiên Hình", "Chu Tước"] },
+    "Thìn": { "opposing_chi": "Tuất", "sat_huong": "Tây Bắc", "cat_tinh": ["Thiên Quý", "Phúc Sinh"], "sat_tinh": ["Bạch Hổ", "Tiểu Hao"] },
+    "Tỵ": { "opposing_chi": "Hợi", "sat_huong": "Tây Bắc", "cat_tinh": ["Tam Hợp", "Thiên Hỷ"], "sat_tinh": ["Thiên Lao", "Đại Hao"] },
+    "Ngọ": { "opposing_chi": "Tý", "sat_huong": "Bắc", "cat_tinh": ["Thiên Đức", "Nguyệt Đức"], "sat_tinh": ["Thiên Hình", "Chu Tước"] },
+    "Mùi": { "opposing_chi": "Sửu", "sat_huong": "Đông Bắc", "cat_tinh": ["Thiên Quý", "Phúc Sinh"], "sat_tinh": ["Bạch Hổ", "Tiểu Hao"] },
+    "Thân": { "opposing_chi": "Dần", "sat_huong": "Đông Bắc", "cat_tinh": ["Tam Hợp", "Thiên Hỷ"], "sat_tinh": ["Thiên Lao", "Đại Hao"] },
+    "Dậu": { "opposing_chi": "Mão", "sat_huong": "Đông", "cat_tinh": ["Thiên Đức", "Nguyệt Đức"], "sat_tinh": ["Thiên Hình", "Chu Tước"] },
+    "Tuất": { "opposing_chi": "Thìn", "sat_huong": "Đông Nam", "cat_tinh": ["Thiên Quý", "Phúc Sinh"], "sat_tinh": ["Bạch Hổ", "Tiểu Hao"] },
+    "Hợi": { "opposing_chi": "Tỵ", "sat_huong": "Đông Nam", "cat_tinh": ["Tam Hợp", "Thiên Hỷ"], "sat_tinh": ["Thiên Lao", "Đại Hao"] }
+  },
+  "na_am_pairs": [
+    "Hải Trung Kim",
+    "Lư Trung Hỏa",
+    "Đại Lâm Mộc",
+    "Lộ Bàng Thổ",
+    "Kiếm Phong Kim",
+    "Sơn Đầu Hỏa",
+    "Giản Hạ Thủy",
+    "Thành Đầu Thổ",
+    "Bạch Lạp Kim",
+    "Dương Liễu Mộc",
+    "Tuyền Trung Thủy",
+    "Ốc Thượng Thổ",
+    "Tích Lịch Hỏa",
+    "Tùng Bách Mộc",
+    "Trường Lưu Thủy",
+    "Sa Trung Kim",
+    "Sơn Hạ Hỏa",
+    "Bình Địa Mộc",
+    "Bích Thượng Thổ",
+    "Kim Bạc Kim",
+    "Phúc Đăng Hỏa",
+    "Thiên Hà Thủy",
+    "Đại Dịch Thổ",
+    "Thoa Xuyến Kim",
+    "Tang Đố Mộc",
+    "Đại Khê Thủy",
+    "Sa Trung Thổ",
+    "Thiên Thượng Hỏa",
+    "Thạch Lựu Mộc",
+    "Đại Hải Thủy"
+  ],
+  "nhi_thap_bat_tu": [
+    { "name": "Giác", "quality": "cat" },
+    { "name": "Cang", "quality": "hung" },
+    { "name": "Đê", "quality": "binh" },
+    { "name": "Phòng", "quality": "cat" },
+    { "name": "Tâm", "quality": "hung" },
+    { "name": "Vĩ", "quality": "cat" },
+    { "name": "Cơ", "quality": "binh" },
+    { "name": "Đẩu", "quality": "cat" },
+    { "name": "Ngưu", "quality": "cat" },
+    { "name": "Nữ", "quality": "hung" },
+    { "name": "Hư", "quality": "hung" },
+    { "name": "Nguy", "quality": "cat" },
+    { "name": "Thất", "quality": "cat" },
+    { "name": "Bích", "quality": "cat" },
+    { "name": "Khuê", "quality": "hung" },
+    { "name": "Lâu", "quality": "cat" },
+    { "name": "Vị", "quality": "cat" },
+    { "name": "Mão", "quality": "binh" },
+    { "name": "Tất", "quality": "cat" },
+    { "name": "Chủy", "quality": "hung" },
+    { "name": "Sâm", "quality": "cat" },
+    { "name": "Tỉnh", "quality": "cat" },
+    { "name": "Quỷ", "quality": "hung" },
+    { "name": "Liễu", "quality": "hung" },
+    { "name": "Tinh", "quality": "cat" },
+    { "name": "Trương", "quality": "cat" },
+    { "name": "Dực", "quality": "cat" },
+    { "name": "Chẩn", "quality": "binh" }
+  ]
+}

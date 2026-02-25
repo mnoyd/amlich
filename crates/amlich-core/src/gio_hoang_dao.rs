@@ -93,18 +93,18 @@ pub const TWELVE_STARS: [Star; 12] = [
 // Start hour offset for each Day Branch (where Thanh Long appears)
 // Index: Day Branch index (0-11), Value: Hour Branch index where cycle starts
 const DAY_TO_START_HOUR: [usize; 12] = [
-    0,  // Tý day → Thanh Long at Tý hour
+    8,  // Tý day → Thanh Long at Thân hour
     10, // Sửu day → Thanh Long at Tuất hour
-    8,  // Dần day → Thanh Long at Thân hour
-    6,  // Mão day → Thanh Long at Ngọ hour
+    0,  // Dần day → Thanh Long at Tý hour
+    2,  // Mão day → Thanh Long at Dần hour
     4,  // Thìn day → Thanh Long at Thìn hour
-    2,  // Tỵ day → Thanh Long at Dần hour
-    0,  // Ngọ day → Thanh Long at Tý hour
+    6,  // Tỵ day → Thanh Long at Ngọ hour
+    8,  // Ngọ day → Thanh Long at Thân hour
     10, // Mùi day → Thanh Long at Tuất hour
-    8,  // Thân day → Thanh Long at Thân hour
-    6,  // Dậu day → Thanh Long at Ngọ hour
+    0,  // Thân day → Thanh Long at Tý hour
+    2,  // Dậu day → Thanh Long at Dần hour
     4,  // Tuất day → Thanh Long at Thìn hour
-    2,  // Hợi day → Thanh Long at Dần hour
+    6,  // Hợi day → Thanh Long at Ngọ hour
 ];
 
 /// Get hour time range from Chi index
@@ -275,12 +275,25 @@ mod tests {
 
     #[test]
     fn test_gio_hoang_dao_ty_day() {
-        // For Tý day, Thanh Long starts at Tý hour (index 0)
+        // For Tý day, Thanh Long starts at Thân hour (index 8)
         let result = get_gio_hoang_dao(0);
 
-        // Hour 0 (Tý) should have Thanh Long (good)
-        assert_eq!(result.all_hours[0].star, "Thanh Long");
-        assert!(result.all_hours[0].is_good);
+        // Hour 8 (Thân) should have Thanh Long (good)
+        assert_eq!(result.all_hours[8].star, "Thanh Long");
+        assert!(result.all_hours[8].is_good);
+
+        // Good hours: Tý, Sửu, Mão, Ngọ, Thân, Dậu
+        let good: Vec<&str> = result
+            .good_hours
+            .iter()
+            .map(|h| h.hour_chi.as_str())
+            .collect();
+        assert!(good.contains(&"Tý"));
+        assert!(good.contains(&"Sửu"));
+        assert!(good.contains(&"Mão"));
+        assert!(good.contains(&"Ngọ"));
+        assert!(good.contains(&"Thân"));
+        assert!(good.contains(&"Dậu"));
     }
 
     #[test]
@@ -297,16 +310,19 @@ mod tests {
 
     #[test]
     fn test_is_hour_auspicious() {
-        // Test Tý day, Tý hour
+        // Tý day, Tý hour (index 0): S=8 → star_index=(0+12-8)%12=4 → Kim Quỹ (good)
         let hour_info = is_hour_auspicious(0, 0);
-        assert_eq!(hour_info.star, "Thanh Long");
+        assert_eq!(hour_info.star, "Kim Quỹ");
         assert!(hour_info.is_good);
 
-        // Test Tý day, Dần hour (index 2)
-        // Should be Thiên Hình (bad, index 2 in star cycle)
+        // Tý day, Dần hour (index 2): star_index=(2+12-8)%12=6 → Bạch Hổ (bad)
         let hour_info2 = is_hour_auspicious(0, 2);
-        assert_eq!(hour_info2.star, "Thiên Hình");
+        assert_eq!(hour_info2.star, "Bạch Hổ");
         assert!(!hour_info2.is_good);
+
+        // Thìn day, Thân hour (index 8): S=4 → star_index=(8+12-4)%12=4 → Kim Quỹ (good)
+        let hour_info3 = is_hour_auspicious(4, 8);
+        assert!(hour_info3.is_good);
     }
 
     #[test]

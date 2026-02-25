@@ -59,6 +59,7 @@ fn query_default_returns_dayinfo_json() {
         "canchi",
         "tiet_khi",
         "gio_hoang_dao",
+        "day_fortune",
     ] {
         assert!(obj.contains_key(key), "missing key: {key}");
     }
@@ -191,6 +192,96 @@ fn config_mode_show_set_toggle_persists() {
         String::from_utf8_lossy(&show_after_toggle.stdout).trim(),
         "full"
     );
+}
+
+#[test]
+fn day_fortune_json_contains_xung_hop_and_truc() {
+    let home = temp_home();
+    let output = run(&home, &["query", "2024-02-10"]);
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
+    let fortune = json
+        .get("day_fortune")
+        .and_then(Value::as_object)
+        .expect("day_fortune should be an object");
+
+    assert!(
+        fortune.contains_key("xung_hop"),
+        "day_fortune missing xung_hop"
+    );
+    assert!(fortune.contains_key("truc"), "day_fortune missing truc");
+
+    let xung_hop = fortune
+        .get("xung_hop")
+        .and_then(Value::as_object)
+        .expect("xung_hop should be an object");
+    assert!(
+        xung_hop.contains_key("luc_xung"),
+        "xung_hop missing luc_xung"
+    );
+    assert!(xung_hop.contains_key("tam_hop"), "xung_hop missing tam_hop");
+    assert!(
+        xung_hop.contains_key("tu_hanh_xung"),
+        "xung_hop missing tu_hanh_xung"
+    );
+
+    let truc = fortune
+        .get("truc")
+        .and_then(Value::as_object)
+        .expect("truc should be an object");
+    assert!(truc.contains_key("name"), "truc missing name");
+    assert!(truc.contains_key("index"), "truc missing index");
+    assert!(truc.contains_key("quality"), "truc missing quality");
+}
+
+#[test]
+fn day_fortune_json_applies_seeded_star_precedence() {
+    let home = temp_home();
+    let output = run(&home, &["query", "2024-02-10"]);
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
+    let fortune = json
+        .get("day_fortune")
+        .and_then(Value::as_object)
+        .expect("day_fortune should be an object");
+    let stars = fortune
+        .get("stars")
+        .and_then(Value::as_object)
+        .expect("stars should be an object");
+
+    let cat_tinh = stars
+        .get("cat_tinh")
+        .and_then(Value::as_array)
+        .expect("cat_tinh should be an array");
+    let sat_tinh = stars
+        .get("sat_tinh")
+        .and_then(Value::as_array)
+        .expect("sat_tinh should be an array");
+
+    let has_cat = |name: &str| cat_tinh.iter().any(|v| v.as_str() == Some(name));
+    let has_sat = |name: &str| sat_tinh.iter().any(|v| v.as_str() == Some(name));
+
+    assert!(has_cat("Bạch Hổ"));
+    assert!(!has_sat("Bạch Hổ"));
+
+    assert!(has_cat("Thiên Quý"));
+    assert!(!has_sat("Thiên Quý"));
+
+    assert!(has_sat("Phúc Sinh"));
+    assert!(!has_cat("Phúc Sinh"));
+
+    assert!(!has_cat("Nguyệt Không"));
+    assert!(!has_sat("Nguyệt Không"));
 }
 
 #[test]

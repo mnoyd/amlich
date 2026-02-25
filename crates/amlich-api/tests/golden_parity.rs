@@ -20,6 +20,11 @@ struct Expected {
     lunar: ExpectedLunar,
     canchi_day: String,
     canchi_year: String,
+    xung_hop_luc_xung: String,
+    truc_name: String,
+    stars_contains_cat: Option<Vec<String>>,
+    stars_contains_sat: Option<Vec<String>>,
+    stars_excludes: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -48,5 +53,43 @@ fn golden_day_info_parity() {
         assert_eq!(info.lunar.year, fixture.expected.lunar.year);
         assert_eq!(info.canchi.day.full, fixture.expected.canchi_day);
         assert_eq!(info.canchi.year.full, fixture.expected.canchi_year);
+
+        let fortune = info.day_fortune.expect("day_fortune must be present");
+        assert_eq!(
+            fortune.xung_hop.luc_xung,
+            fixture.expected.xung_hop_luc_xung
+        );
+        assert_eq!(fortune.truc.name, fixture.expected.truc_name);
+
+        if let Some(expected) = &fixture.expected.stars_contains_cat {
+            for name in expected {
+                assert!(
+                    fortune.stars.cat_tinh.contains(name),
+                    "expected cat_tinh to contain '{name}'"
+                );
+            }
+        }
+
+        if let Some(expected) = &fixture.expected.stars_contains_sat {
+            for name in expected {
+                assert!(
+                    fortune.stars.sat_tinh.contains(name),
+                    "expected sat_tinh to contain '{name}'"
+                );
+            }
+        }
+
+        if let Some(excluded) = &fixture.expected.stars_excludes {
+            for name in excluded {
+                assert!(
+                    !fortune.stars.cat_tinh.contains(name),
+                    "expected cat_tinh to exclude '{name}'"
+                );
+                assert!(
+                    !fortune.stars.sat_tinh.contains(name),
+                    "expected sat_tinh to exclude '{name}'"
+                );
+            }
+        }
     }
 }
