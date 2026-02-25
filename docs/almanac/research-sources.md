@@ -17,8 +17,8 @@ Track source material used for each rule family so implementation decisions are 
 | Gio hoang dao | selected | Existing implementation | Existing tests | integrate with ruleset metadata | `vn_baseline_v1` |
 | 12 truc | selected | Existing implementation | Existing tests | integrate evidence metadata | `vn_baseline_v1` |
 | Nhi thap bat tu (cycle) | open | Existing cycle approach | TBD anchor reference | choose anchor and doc | `vn_baseline_v1` |
-| Tam Nuong / Nguyet Ky | open | Practical VN convention | TBD source note | encode as taboo rules | `vn_baseline_v1` |
-| Sat Chu / Tho Tu | open | TBD | TBD | freeze one table variant | `vn_baseline_v1` |
+| Tam Nuong / Nguyet Ky | selected | `docs/almanac/taboo-v1-table-freeze.md` (fixed lunar-day sets) | `docs/almanac/taboo-rules.md` | keep deterministic family ids/severity defaults | `vn_baseline_v1` |
+| Sat Chu / Tho Tu | selected | `docs/almanac/taboo-v1-table-freeze.md` (v1 month->chi freeze) | Decision log (`DEC-0008`) | add variant as new ruleset version, not replacement | `vn_baseline_v1` |
 | Tam Tai | open | TBD | TBD | freeze mapping table | `vn_baseline_v1` |
 | Kim Lau | open | TBD | TBD | freeze formula + age policy | `vn_baseline_v1` |
 | Hoang Oc | open | TBD | TBD | freeze table variant | `vn_baseline_v1` |

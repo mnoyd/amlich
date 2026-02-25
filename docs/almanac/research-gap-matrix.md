@@ -30,7 +30,7 @@ Status labels:
 | Nap am (60 pair lookup) | READY | Table-driven and already partially present | Expand docs and tests |
 | Tuoi xung / luc xung / tam hop / tu hanh xung | READY | Base branch relation graph is stable and already implemented in part | Extend to person-aware outputs |
 | Tam Nuong / Nguyet Ky | READY | Widely used simple lunar-day rules | Implement as taboo ruleset entries |
-| Sat Chu / Tho Tu | NEED_SOURCE | Many variants in circulation | Freeze one canonical table for v1 |
+| Sat Chu / Tho Tu | READY | v1 month->chi tables frozen in `docs/almanac/taboo-v1-table-freeze.md` with caveat policy | Keep as baseline mapping and add versioned variants later |
 | Tam Tai | NEED_SOURCE | Common rule exists but table must be explicitly versioned | Choose v1 mapping source and examples |
 | Kim Lau | NEED_SOURCE | Common modern rule exists but conventions differ | Document age convention and v1 formula |
 | Hoang Oc | NEED_SOURCE | Multiple teaching variants exist | Freeze one v1 mapping table |

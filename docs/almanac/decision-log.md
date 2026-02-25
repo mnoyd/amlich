@@ -79,6 +79,15 @@ Track major design and ruleset decisions so implementation remains consistent an
 - Impact: `taboos[]` docs and tests can assert stable reason strings; future scoring engines should use `severity` as input while keeping event policy separate.
 - Follow-up: `D-3006`, `T-3005`, Phase 6 scoring beads.
 
+## DEC-0008
+
+- Status: accepted
+- Date: 2026-02-25
+- Decision: Freeze `vn_baseline_v1` taboo-family definitions as fixed lunar-day sets for `tam_nuong`/`nguyet_ky` and the current month->chi tables for `sat_chu`/`tho_tu`, with default severities `hard`, `hard`, `hard`, `soft` respectively.
+- Why: Phase 3 implementation and docs need a stable v1 baseline despite known variant differences (especially for `sat_chu`/`tho_tu`).
+- Impact: Ruleset data, resolver tests, and `taboo-rules.md` can rely on one canonical v1 mapping; alternate tables must be introduced as new ruleset versions/variants.
+- Follow-up: `R-3001`, `I-3002`, `I-3003`, `T-3005`.
+
 ---
 
 ## Supersession Rules
