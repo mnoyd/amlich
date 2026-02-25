@@ -49,3 +49,7 @@ apps/desktop/.svelte-kit/
 # Build artifacts
 dist/
 build/
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db
