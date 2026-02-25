@@ -157,6 +157,8 @@ pub struct XungHopResult {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DayFortune {
+    pub ruleset_id: String,
+    pub ruleset_version: String,
     pub profile: String,
     pub day_element: DayElement,
     pub conflict: DayConflict,
@@ -214,6 +216,8 @@ mod tests {
     #[test]
     fn day_fortune_serializes() {
         let value = DayFortune {
+            ruleset_id: "vn_baseline_v1".to_string(),
+            ruleset_version: "v1".to_string(),
             profile: "baseline".to_string(),
             day_element: DayElement {
                 na_am: "Hải Trung Kim".to_string(),
@@ -283,6 +287,7 @@ mod tests {
         let encoded = serde_json::to_string(&value).expect("serialize");
         let decoded: DayFortune = serde_json::from_str(&encoded).expect("deserialize");
         assert_eq!(decoded.profile, "baseline");
+        assert_eq!(decoded.ruleset_id, "vn_baseline_v1");
         assert_eq!(decoded.day_element.element, "Kim");
     }
 }

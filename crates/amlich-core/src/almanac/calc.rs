@@ -1,6 +1,6 @@
 use crate::types::{CanChi, CHI, CON_GIAP};
 
-use super::data::baseline_data;
+use super::data::default_ruleset;
 use super::day_deity::resolve_day_deity;
 use super::star::resolve_rules;
 use super::star::{StarCategory, StarRule};
@@ -22,7 +22,8 @@ pub fn calculate_day_fortune(
     year_can: &str,
     tiet_khi_name: &str,
 ) -> DayFortune {
-    let data = baseline_data();
+    let ruleset = default_ruleset();
+    let data = ruleset.data();
     let conflict_rule = data
         .conflict_by_chi
         .get(&day_canchi.chi)
@@ -62,6 +63,8 @@ pub fn calculate_day_fortune(
     day_deity.evidence = Some(rule_evidence(&data.day_deity_meta, &profile));
 
     DayFortune {
+        ruleset_id: ruleset.descriptor.id.to_string(),
+        ruleset_version: ruleset.descriptor.version.to_string(),
         profile: profile.clone(),
         day_element: DayElement {
             na_am: na_am.na_am.clone(),
@@ -249,6 +252,8 @@ mod tests {
         );
 
         assert_eq!(fortune.profile, "baseline");
+        assert_eq!(fortune.ruleset_id, "vn_baseline_v1");
+        assert_eq!(fortune.ruleset_version, "v1");
         assert_eq!(fortune.conflict.opposing_chi, "Tuất");
         assert!(!fortune.travel.xuat_hanh_huong.is_empty());
         assert!(!fortune.stars.cat_tinh.is_empty());

@@ -176,6 +176,8 @@ pub struct DayTabooDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DayFortuneDto {
+    pub ruleset_id: String,
+    pub ruleset_version: String,
     pub profile: String,
     pub day_element: DayElementDto,
     pub conflict: DayConflictDto,
@@ -189,6 +191,8 @@ pub struct DayFortuneDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DayInfoDto {
+    pub ruleset_id: String,
+    pub ruleset_version: String,
     pub solar: SolarDto,
     pub lunar: LunarDto,
     pub jd: i32,

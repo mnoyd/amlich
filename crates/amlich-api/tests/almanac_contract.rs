@@ -14,6 +14,8 @@ fn tet_2024_fortune() -> amlich_api::DayFortuneDto {
 #[test]
 fn day_info_exposes_day_fortune_contract() {
     let fortune = tet_2024_fortune();
+    assert_eq!(fortune.ruleset_id, "vn_baseline_v1");
+    assert_eq!(fortune.ruleset_version, "v1");
     assert_eq!(fortune.profile, "baseline");
     assert!(!fortune.day_element.na_am.is_empty());
     assert!(!fortune.conflict.tuoi_xung.is_empty());
@@ -189,4 +191,21 @@ fn day_fortune_exposes_structured_taboos() {
         .taboos
         .iter()
         .all(|t| !t.name.is_empty() && !t.reason.is_empty()));
+}
+
+#[test]
+fn day_info_exposes_ruleset_metadata() {
+    let info = get_day_info(&DateQuery {
+        day: 10,
+        month: 2,
+        year: 2024,
+        timezone: Some(7.0),
+    })
+    .expect("day info should be available");
+
+    assert_eq!(info.ruleset_id, "vn_baseline_v1");
+    assert_eq!(info.ruleset_version, "v1");
+    let fortune = info.day_fortune.expect("day_fortune should exist");
+    assert_eq!(fortune.ruleset_id, info.ruleset_id);
+    assert_eq!(fortune.ruleset_version, info.ruleset_version);
 }

@@ -263,6 +263,8 @@ impl From<&amlich_core::almanac::types::DayDeity> for DayDeityDto {
 impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
     fn from(value: &amlich_core::almanac::types::DayFortune) -> Self {
         Self {
+            ruleset_id: value.ruleset_id.clone(),
+            ruleset_version: value.ruleset_version.clone(),
             profile: value.profile.clone(),
             day_element: DayElementDto::from(&value.day_element),
             conflict: DayConflictDto::from(&value.conflict),
@@ -279,6 +281,8 @@ impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
 impl From<&amlich_core::DayInfo> for DayInfoDto {
     fn from(value: &amlich_core::DayInfo) -> Self {
         Self {
+            ruleset_id: value.ruleset_id.clone(),
+            ruleset_version: value.ruleset_version.clone(),
             solar: SolarDto::from(&value.solar),
             lunar: LunarDto::from(&value.lunar),
             jd: value.jd,
