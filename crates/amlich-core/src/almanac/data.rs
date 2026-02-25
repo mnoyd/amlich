@@ -18,6 +18,7 @@ const DEFAULT_RULESET_VERSION: &str = "v1";
 const DEFAULT_RULESET_REGION: &str = "vn";
 const DEFAULT_RULESET_SCHEMA_VERSION: &str = "ruleset-descriptor/v1";
 const DEFAULT_RULESET_TZ_OFFSET: f64 = 7.0;
+const VALID_REGIONS: [&str; 1] = ["vn"];
 const VALID_DIRECTIONS: [&str; 8] = [
     "Bắc",
     "Đông Bắc",
@@ -317,7 +318,69 @@ pub fn get_ruleset_data(ruleset_id: &str) -> Result<&'static AlmanacData, Rulese
 pub fn get_ruleset_descriptor_doc(
     ruleset_id: &str,
 ) -> Result<RulesetDescriptorDoc, RulesetLookupError> {
-    get_ruleset(ruleset_id).map(|entry| entry.descriptor.to_document_descriptor())
+    let descriptor =
+        get_ruleset(ruleset_id).map(|entry| entry.descriptor.to_document_descriptor())?;
+    validate_ruleset_descriptor_doc(&descriptor);
+    Ok(descriptor)
+}
+
+fn validate_ruleset_descriptor_doc(descriptor: &RulesetDescriptorDoc) {
+    assert!(
+        !descriptor.id.trim().is_empty(),
+        "ruleset descriptor id must not be empty"
+    );
+    assert!(
+        !descriptor.version.trim().is_empty(),
+        "ruleset descriptor version must not be empty"
+    );
+    assert!(
+        VALID_REGIONS.contains(&descriptor.region.as_str()),
+        "ruleset descriptor region '{}' is not supported",
+        descriptor.region
+    );
+    assert!(
+        !descriptor.profile.trim().is_empty(),
+        "ruleset descriptor profile must not be empty"
+    );
+    assert!(
+        matches!(descriptor.defaults.tz_offset, -12.0..=14.0),
+        "ruleset descriptor defaults.tz_offset must be in -12..14"
+    );
+    if let Some(meridian) = &descriptor.defaults.meridian {
+        assert!(
+            !meridian.trim().is_empty(),
+            "ruleset descriptor defaults.meridian must not be empty when provided"
+        );
+    }
+    assert_eq!(
+        descriptor.schema_version, DEFAULT_RULESET_SCHEMA_VERSION,
+        "ruleset descriptor schema_version must be '{}'",
+        DEFAULT_RULESET_SCHEMA_VERSION
+    );
+    validate_ruleset_source_notes(&descriptor.source_notes);
+}
+
+fn validate_ruleset_source_notes(notes: &[RuleSetSourceNote]) {
+    let mut seen = HashSet::new();
+    for note in notes {
+        assert!(
+            !note.family.trim().is_empty(),
+            "ruleset descriptor source note family must not be empty"
+        );
+        assert!(
+            !note.source_id.trim().is_empty(),
+            "ruleset descriptor source note source_id must not be empty"
+        );
+        assert!(
+            !note.note.trim().is_empty(),
+            "ruleset descriptor source note note must not be empty"
+        );
+        assert!(
+            seen.insert(note.family.as_str()),
+            "ruleset descriptor source notes contain duplicate family: {}",
+            note.family
+        );
+    }
 }
 
 pub fn baseline_data() -> &'static AlmanacData {
@@ -1033,6 +1096,32 @@ mod tests {
         let canonical =
             get_ruleset_descriptor_doc(DEFAULT_RULESET_ID).expect("canonical descriptor");
         assert_eq!(alias, canonical);
+    }
+
+    #[test]
+    fn rejects_invalid_ruleset_descriptor_doc_region() {
+        let mut descriptor = default_ruleset().descriptor.to_document_descriptor();
+        descriptor.region = "cn".to_string();
+
+        let result = std::panic::catch_unwind(|| validate_ruleset_descriptor_doc(&descriptor));
+        assert!(result.is_err(), "invalid region must fail validation");
+    }
+
+    #[test]
+    fn rejects_invalid_ruleset_descriptor_doc_tokens() {
+        let mut descriptor = default_ruleset().descriptor.to_document_descriptor();
+        descriptor.defaults.tz_offset = 20.0;
+        descriptor.source_notes.push(RuleSetSourceNote {
+            family: "taboo_rules".to_string(),
+            source_id: "".to_string(),
+            note: "dup family and empty source".to_string(),
+        });
+
+        let result = std::panic::catch_unwind(|| validate_ruleset_descriptor_doc(&descriptor));
+        assert!(
+            result.is_err(),
+            "invalid descriptor tokens must fail validation"
+        );
     }
 
     #[test]
