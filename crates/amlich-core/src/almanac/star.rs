@@ -12,7 +12,6 @@
 /// 3. `FixedByCanChi` — full sexagenary pair keyed
 /// 4. `FixedByChi`  — day's earthly-branch keyed (base rules)
 /// 5. `JdCycle`     — Julian Day modular cycle (nhị thập bát tú)
-
 use std::collections::HashMap;
 
 /// Determines which source a star rule comes from.

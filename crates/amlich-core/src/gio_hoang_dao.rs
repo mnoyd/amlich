@@ -283,7 +283,11 @@ mod tests {
         assert!(result.all_hours[8].is_good);
 
         // Good hours: Tý, Sửu, Mão, Ngọ, Thân, Dậu
-        let good: Vec<&str> = result.good_hours.iter().map(|h| h.hour_chi.as_str()).collect();
+        let good: Vec<&str> = result
+            .good_hours
+            .iter()
+            .map(|h| h.hour_chi.as_str())
+            .collect();
         assert!(good.contains(&"Tý"));
         assert!(good.contains(&"Sửu"));
         assert!(good.contains(&"Mão"));

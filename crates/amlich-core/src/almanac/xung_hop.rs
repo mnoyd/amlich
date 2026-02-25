@@ -1,3 +1,4 @@
+use super::types::XungHopResult;
 /// Xung/Hợp Domain — Earthly Branch Conflict and Harmony Relations
 ///
 /// Implements the three classical branch-relationship groups used in daily
@@ -6,9 +7,7 @@
 /// - **Lục xung (六冲):** Each branch clashes with the one 6 positions away.
 /// - **Tam hợp (三合):** Three branches form a harmony triad (4 groups).
 /// - **Tứ hành xung (四行冲):** Four branches in a mutual-clash square (3 groups).
-
 use crate::types::CHI;
-use super::types::XungHopResult;
 
 /// Return the lục-xung (direct-conflict) branch for `chi_index`.
 ///
@@ -29,11 +28,7 @@ pub fn luc_xung(chi_index: usize) -> &'static str {
 pub fn tam_hop(chi_index: usize) -> [&'static str; 3] {
     let group = chi_index % 4;
     // Collect 3 members: chi_index, chi_index+4, chi_index+8 (mod 12), sorted
-    let mut members = [
-        group,
-        (group + 4) % 12,
-        (group + 8) % 12,
-    ];
+    let mut members = [group, (group + 4) % 12, (group + 8) % 12];
     members.sort_unstable();
     [CHI[members[0]], CHI[members[1]], CHI[members[2]]]
 }
@@ -46,12 +41,7 @@ pub fn tam_hop(chi_index: usize) -> [&'static str; 3] {
 /// - Dần(2)· Tỵ(5) · Thân(8) · Hợi(11) — `chi % 3 == 2`
 pub fn tu_hanh_xung(chi_index: usize) -> [&'static str; 4] {
     let group = chi_index % 3;
-    let mut members = [
-        group,
-        (group + 3) % 12,
-        (group + 6) % 12,
-        (group + 9) % 12,
-    ];
+    let mut members = [group, (group + 3) % 12, (group + 6) % 12, (group + 9) % 12];
     members.sort_unstable();
     [
         CHI[members[0]],
@@ -135,7 +125,11 @@ mod tests {
                 seen.insert(c);
             }
         }
-        assert_eq!(seen.len(), 12, "All 12 branches must appear in tam_hop groups");
+        assert_eq!(
+            seen.len(),
+            12,
+            "All 12 branches must appear in tam_hop groups"
+        );
     }
 
     // --- tứ hành xung ---
