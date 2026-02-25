@@ -70,6 +70,15 @@ Track major design and ruleset decisions so implementation remains consistent an
 - Impact: Add canonical table doc (`docs/almanac/day-deity-v1-table.md`), implement ruleset-backed resolver in `I-2002`, and pin golden tests to this mapping.
 - Follow-up: `R-2001`, `I-2002`, `T-2005`, `D-2006`.
 
+## DEC-0007
+
+- Status: accepted
+- Date: 2026-02-25
+- Decision: Standardize v1 taboo output explanations as deterministic family-specific templates and treat `hard`/`soft` as policy hints (not final recommendation labels).
+- Why: Client apps need consistent copy and stable semantics for testing, display, and future evaluation scoring.
+- Impact: `taboos[]` docs and tests can assert stable reason strings; future scoring engines should use `severity` as input while keeping event policy separate.
+- Follow-up: `D-3006`, `T-3005`, Phase 6 scoring beads.
+
 ---
 
 ## Supersession Rules
