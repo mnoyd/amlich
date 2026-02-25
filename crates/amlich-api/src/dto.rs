@@ -103,7 +103,6 @@ pub struct TravelDirectionDto {
     pub xuat_hanh_huong: String,
     pub tai_than: String,
     pub hy_than: String,
-    pub ky_than: Option<String>,
     pub evidence: Option<RuleEvidenceDto>,
 }
 

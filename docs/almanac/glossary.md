@@ -39,7 +39,6 @@ Conventions in this file:
 | Xuất hành hướng | `xuat_hanh_huong` | Recommended departure direction for the day stem | Travel-direction family |
 | Tài thần | `tai_than` | Wealth deity direction | Travel-direction family |
 | Hỷ thần | `hy_than` | Joy deity direction | Travel-direction family |
-| Kỵ thần | `ky_than` | Avoid direction/deity marker (optional) | Optional field in output |
 | Cát tinh | `cat_tinh` | Auspicious stars active in current context | Star family list |
 | Sát tinh | `sat_tinh` | Inauspicious stars active in current context | Star family list |
 | Bình tinh | `binh_tinh` | Neutral stars (recorded in rule tables) | Excluded from final cat/sat output lists |
@@ -106,7 +105,6 @@ Use this table to normalize input language from docs/research into canonical tok
 | tuoi xung, tuổi kỵ ngày | `tuoi_xung` |
 | tai than, tài thần phương vị | `tai_than` |
 | hy than, hỷ thần | `hy_than` |
-| ky than, kỵ thần | `ky_than` |
 | cat tinh, sao tốt | `cat_tinh` |
 | sat tinh, sao xấu | `sat_tinh` |
 | binh tinh, sao trung tính | `binh_tinh` |

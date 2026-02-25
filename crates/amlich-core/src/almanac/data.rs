@@ -35,7 +35,6 @@ pub struct TravelRule {
     pub xuat_hanh_huong: String,
     pub tai_than: String,
     pub hy_than: String,
-    pub ky_than: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -517,13 +516,6 @@ fn validate_directions(raw: &RawAlmanacData) {
             "invalid direction for hy_than: {}",
             rule.hy_than
         );
-        if let Some(ky_than) = &rule.ky_than {
-            assert!(
-                is_valid_direction(ky_than),
-                "invalid direction for ky_than: {}",
-                ky_than
-            );
-        }
     }
 
     for rule in raw.conflict_by_chi.values() {

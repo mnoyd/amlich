@@ -70,7 +70,6 @@ pub struct TravelDirection {
     pub xuat_hanh_huong: String,
     pub tai_than: String,
     pub hy_than: String,
-    pub ky_than: Option<String>,
     pub evidence: Option<RuleEvidence>,
 }
 
@@ -237,7 +236,6 @@ mod tests {
                 xuat_hanh_huong: "Đông Nam".to_string(),
                 tai_than: "Tây Nam".to_string(),
                 hy_than: "Đông Bắc".to_string(),
-                ky_than: None,
                 evidence: None,
             },
             stars: DayStars {

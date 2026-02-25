@@ -27,7 +27,6 @@ pub fn get_than_huong(can: &str) -> TravelDirection {
         xuat_hanh_huong: rule.xuat_hanh_huong.clone(),
         tai_than: rule.tai_than.clone(),
         hy_than: rule.hy_than.clone(),
-        ky_than: rule.ky_than.clone(),
         evidence: None,
     }
 }
