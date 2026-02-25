@@ -196,5 +196,6 @@ fn golden_real_date_examples_include_day_deity() {
         let evidence = deity.evidence.as_ref().expect("day deity evidence");
         assert_eq!(evidence.source_id, "khcbppt");
         assert_eq!(evidence.method, "table-lookup");
+        assert_eq!(evidence.profile, "baseline");
     }
 }
