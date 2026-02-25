@@ -1,10 +1,10 @@
 use crate::dto::{
     CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto, DayConflictDto, DayElementDto,
-    DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, ElementInsightDto,
-    FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto,
-    LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto, ProverbInsightDto, RegionsInsightDto,
-    RuleEvidenceDto, SolarDto, StarRuleEvidenceDto, TabooInsightDto, TietKhiDto, TietKhiInsightDto,
-    TravelDirectionDto, TrucDto, XungHopDto,
+    DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, DayTabooDto,
+    ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto,
+    HolidayInsightDto, HourInfoDto, LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto,
+    ProverbInsightDto, RegionsInsightDto, RuleEvidenceDto, SolarDto, StarRuleEvidenceDto,
+    TabooInsightDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -232,6 +232,18 @@ impl From<&amlich_core::almanac::types::TrucInfo> for TrucDto {
     }
 }
 
+impl From<&amlich_core::almanac::types::DayTaboo> for DayTabooDto {
+    fn from(value: &amlich_core::almanac::types::DayTaboo) -> Self {
+        Self {
+            rule_id: value.rule_id.clone(),
+            name: value.name.clone(),
+            severity: value.severity.clone(),
+            reason: value.reason.clone(),
+            evidence: value.evidence.as_ref().map(RuleEvidenceDto::from),
+        }
+    }
+}
+
 impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
     fn from(value: &amlich_core::almanac::types::DayFortune) -> Self {
         Self {
@@ -240,6 +252,7 @@ impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
             conflict: DayConflictDto::from(&value.conflict),
             travel: TravelDirectionDto::from(&value.travel),
             stars: DayStarsDto::from(&value.stars),
+            taboos: value.taboos.iter().map(DayTabooDto::from).collect(),
             xung_hop: XungHopDto::from(&value.xung_hop),
             truc: TrucDto::from(&value.truc),
         }

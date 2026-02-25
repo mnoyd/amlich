@@ -18,6 +18,7 @@ fn day_info_exposes_day_fortune_contract() {
     assert!(!fortune.day_element.na_am.is_empty());
     assert!(!fortune.conflict.tuoi_xung.is_empty());
     assert!(!fortune.stars.cat_tinh.is_empty());
+    assert!(fortune.taboos.iter().all(|t| !t.rule_id.is_empty()));
 }
 
 // --- xung_hop contract ---
@@ -138,4 +139,39 @@ fn day_fortune_exposes_source_evidence_metadata() {
         .matched_rules
         .iter()
         .any(|r| r.category == "by_tiet_khi" && r.name == "Bạch Hổ"));
+
+    if let Some(taboo) = fortune.taboos.first() {
+        let taboo_evidence = taboo
+            .evidence
+            .as_ref()
+            .expect("taboo evidence should exist");
+        assert_eq!(taboo_evidence.method, "table-lookup");
+        assert_eq!(taboo_evidence.profile, "baseline");
+        assert!(!taboo.reason.is_empty());
+    }
+}
+
+#[test]
+fn day_fortune_exposes_structured_taboos() {
+    let info = get_day_info(&DateQuery {
+        day: 14,
+        month: 2,
+        year: 2024,
+        timezone: Some(7.0),
+    })
+    .expect("day info should be available");
+
+    let fortune = info.day_fortune.expect("day_fortune should exist");
+    assert!(
+        !fortune.taboos.is_empty(),
+        "expected taboo hits on selected day"
+    );
+    assert!(fortune
+        .taboos
+        .iter()
+        .any(|t| t.rule_id == "nguyet_ky" && t.severity == "hard"));
+    assert!(fortune
+        .taboos
+        .iter()
+        .all(|t| !t.name.is_empty() && !t.reason.is_empty()));
 }
