@@ -175,17 +175,12 @@ impl<'a> AlmanacOverlay<'a> {
                 Style::default().fg(theme::PRIMARY_FG),
             ),
         ]));
-        lines.push(Line::from(vec![
-            Span::styled("Ky than: ", Style::default().fg(theme::SECONDARY_FG)),
-            Span::styled(
-                fortune
-                    .travel
-                    .ky_than
-                    .clone()
-                    .unwrap_or_else(|| "N/A".to_string()),
-                Style::default().fg(theme::SECONDARY_FG),
-            ),
-        ]));
+        if let Some(ky_than) = &fortune.travel.ky_than {
+            lines.push(Line::from(vec![
+                Span::styled("Ky than: ", Style::default().fg(theme::SECONDARY_FG)),
+                Span::styled(ky_than.clone(), Style::default().fg(theme::SECONDARY_FG)),
+            ]));
+        }
 
         lines
     }

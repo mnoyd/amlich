@@ -247,17 +247,6 @@ impl<'a> InfoPanel<'a> {
                     Style::default().fg(theme::PRIMARY_FG),
                 ),
             ]));
-            lines.push(Line::from(vec![
-                Span::styled("Kỵ thần: ", Style::default().fg(theme::SECONDARY_FG)),
-                Span::styled(
-                    fortune
-                        .travel
-                        .ky_than
-                        .clone()
-                        .unwrap_or_else(|| "Chưa có dữ liệu".to_string()),
-                    Style::default().fg(theme::SECONDARY_FG),
-                ),
-            ]));
         } else {
             lines.push(Line::from(Span::styled(
                 "Không có thông tin",
@@ -406,7 +395,6 @@ mod tests {
             "Xuất hành:",
             "Tài thần:",
             "Hỷ thần:",
-            "Kỵ thần:",
             "Cát tinh:",
             "Sát tinh:",
             "Sao:",
