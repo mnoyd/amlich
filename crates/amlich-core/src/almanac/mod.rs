@@ -2,6 +2,7 @@ pub mod calc;
 pub mod data;
 pub mod profile;
 pub mod star;
+pub mod taboo;
 pub mod than_huong;
 pub mod than_sat;
 pub mod truc;
