@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 1 of 4 (Source Establishment)
-Plan: 1 of 2 in current phase (01-01 in progress — paused at checkpoint)
-Status: Executing — paused at Task 2 checkpoint:human-verify (blocking)
-Last activity: 2026-02-28 — Task 1 complete: EDITION.md created (commit 0b9dd46)
+Plan: 2 of 2 in current phase (01-01 COMPLETE; 01-02 next)
+Status: Ready — Plan 01-01 complete, Plan 01-02 (reference table extraction) not yet started
+Last activity: 2026-02-28 — Plan 01-01 complete: EDITION.md + na_am.md created (commits 0b9dd46, 9bbcdf8)
 
-Progress: [█░░░░░░░░░] 5%
+Progress: [██░░░░░░░░] 15%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: ~45 min
+- Total execution time: ~0.75 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-source-establishment | 1 | ~45 min | ~45 min |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 01-01 (~45 min)
+- Trend: Single data point
 
 *Updated after each plan completion*
 
@@ -42,10 +42,11 @@ Progress: [█░░░░░░░░░] 5%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [Pre-phase]: KHCBPPT as sole reference — pending edition identification (Phase 1 blocker)
-- [Pre-phase]: Nạp âm scope is undecided — source_id is "tam-menh-thong-hoi" not "khcbppt"; must resolve in Phase 1 before golden dataset schema can be finalized
-- [01-01 Task 1]: Primary edition = ctext.org 四庫全書 digitization (Qianlong 1741); Secondary = 1998 NXB Mui Ca Mau Vietnamese translation (Mai Coc Thanh, Vu Hoang, Lan Binh)
-- [01-01 Task 1]: Citation format defined: "KHCBPPT, Quyen [N], [Section name]" at chapter+section granularity
+- [Pre-phase]: KHCBPPT as sole reference — RESOLVED: ctext.org 四庫全書 primary edition identified
+- [01-01]: SRC-02 RESOLVED — KHCBPPT covers 納音 in Bon Nguyen section; source_id stays "tam-menh-thong-hoi" (canonical table identical across both sources; Vietnamese almanac convention)
+- [01-01]: Primary edition = ctext.org 四庫全書 digitization (Qianlong 1741); Secondary = 1998 NXB Mui Ca Mau Vietnamese translation (Mai Coc Thanh, Vu Hoang, Lan Binh)
+- [01-01]: Citation format defined: "KHCBPPT, Quyen [N], [Section name]" at chapter+section granularity
+- [01-01]: All 30 nap am pairs verified correct against canonical 六十甲子納音表; commit 0f29f3f corrections (Kim Bac Kim, Dai Dich Tho) confirmed by Chinese character evidence
 
 ### Pending Todos
 
@@ -60,5 +61,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Plan 01-01 Task 2 checkpoint:human-verify — awaiting EDITION.md approval before proceeding to na_am.md
-Resume file: .planning/phases/01-source-establishment/01-01-PLAN.md (Task 3: Create na_am.md)
+Stopped at: Plan 01-01 COMPLETE — all tasks executed, SUMMARY.md created, STATE.md updated
+Resume file: .planning/phases/01-source-establishment/01-02-PLAN.md (Plan 02: Reference table extraction — Wave 2)

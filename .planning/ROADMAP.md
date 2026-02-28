@@ -28,7 +28,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. The nạp âm scope question is resolved: either nạp âm is confirmed in scope (source is KHCBPPT) or formally deferred, and the golden dataset schema reflects this decision
   3. KHCBPPT's treatment of intercalary months for taboo and trực rules is documented from the text, not inferred from the implementation
 **Plans**: 2 plans
-- [~] 01-01-PLAN.md — Pin KHCBPPT edition and resolve nap am scope (SRC-01, SRC-02) [in progress — paused at Task 2 checkpoint]
+- [x] 01-01-PLAN.md — Pin KHCBPPT edition and resolve nap am scope (SRC-01, SRC-02) [COMPLETE 2026-02-28]
 - [ ] 01-02-PLAN.md — Extract subsystem reference tables and document intercalary month handling (SRC-03)
 
 ### Phase 2: Golden Dataset and Loader
@@ -69,7 +69,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Source Establishment | 0/2 | Executing (01-01 in progress) | - |
+| 1. Source Establishment | 1/2 | Executing (01-02 next) | - |
 | 2. Golden Dataset and Loader | 0/TBD | Not started | - |
 | 3. Validator Harness and Divergence Inventory | 0/TBD | Not started | - |
 | 4. Correction and Zero-Divergence Verification | 0/TBD | Not started | - |
