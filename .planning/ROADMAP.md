@@ -29,7 +29,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. KHCBPPT's treatment of intercalary months for taboo and trực rules is documented from the text, not inferred from the implementation
 **Plans**: 2 plans
 - [x] 01-01-PLAN.md — Pin KHCBPPT edition and resolve nap am scope (SRC-01, SRC-02) [COMPLETE 2026-02-28]
-- [ ] 01-02-PLAN.md — Extract subsystem reference tables and document intercalary month handling (SRC-03)
+- [ ] 01-02-PLAN.md — Extract subsystem reference tables and document intercalary month handling (SRC-03) [Tasks 1-2 complete; Task 3 checkpoint:human-verify IN PROGRESS 2026-02-28]
 
 ### Phase 2: Golden Dataset and Loader
 **Goal**: A machine-readable, KHCBPPT-cited golden dataset with ~200 representative dates exists and compiles cleanly into typed Rust structs
@@ -69,7 +69,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Source Establishment | 1/2 | Executing (01-02 next) | - |
+| 1. Source Establishment | 1/2 (01-02 at Task 3 checkpoint) | Executing | - |
 | 2. Golden Dataset and Loader | 0/TBD | Not started | - |
 | 3. Validator Harness and Divergence Inventory | 0/TBD | Not started | - |
 | 4. Correction and Zero-Divergence Verification | 0/TBD | Not started | - |
