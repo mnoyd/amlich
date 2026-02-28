@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 1 of 4 (Source Establishment)
-Plan: 0 of TBD in current phase
-Status: Context gathered, ready to plan
-Last activity: 2026-02-28 — Phase 1 context gathered (CONTEXT.md written)
+Plan: 1 of 2 in current phase (01-01 in progress — paused at checkpoint)
+Status: Executing — paused at Task 2 checkpoint:human-verify (blocking)
+Last activity: 2026-02-28 — Task 1 complete: EDITION.md created (commit 0b9dd46)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█░░░░░░░░░] 5%
 
 ## Performance Metrics
 
@@ -44,6 +44,8 @@ Recent decisions affecting current work:
 
 - [Pre-phase]: KHCBPPT as sole reference — pending edition identification (Phase 1 blocker)
 - [Pre-phase]: Nạp âm scope is undecided — source_id is "tam-menh-thong-hoi" not "khcbppt"; must resolve in Phase 1 before golden dataset schema can be finalized
+- [01-01 Task 1]: Primary edition = ctext.org 四庫全書 digitization (Qianlong 1741); Secondary = 1998 NXB Mui Ca Mau Vietnamese translation (Mai Coc Thanh, Vu Hoang, Lan Binh)
+- [01-01 Task 1]: Citation format defined: "KHCBPPT, Quyen [N], [Section name]" at chapter+section granularity
 
 ### Pending Todos
 
@@ -58,5 +60,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Phase 1 context gathered; ready for /gsd:plan-phase 1
-Resume file: .planning/phases/01-source-establishment/01-CONTEXT.md
+Stopped at: Plan 01-01 Task 2 checkpoint:human-verify — awaiting EDITION.md approval before proceeding to na_am.md
+Resume file: .planning/phases/01-source-establishment/01-01-PLAN.md (Task 3: Create na_am.md)
