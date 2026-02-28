@@ -105,22 +105,22 @@ Deferred to future audit cycle.
 | TAB-02 | Phase 3 | Pending |
 | TAB-03 | Phase 3 | Pending |
 | TAB-04 | Phase 3 | Pending |
-| TAB-05 | Phase 3 | Pending |
+| TAB-05 | Phase 4 | Pending |
 | DEI-01 | Phase 3 | Pending |
 | DEI-02 | Phase 3 | Pending |
-| DEI-03 | Phase 3 | Pending |
+| DEI-03 | Phase 4 | Pending |
 | TRC-01 | Phase 3 | Pending |
-| TRC-02 | Phase 3 | Pending |
+| TRC-02 | Phase 4 | Pending |
 | STR-01 | Phase 3 | Pending |
 | STR-02 | Phase 3 | Pending |
 | STR-03 | Phase 3 | Pending |
-| STR-04 | Phase 3 | Pending |
+| STR-04 | Phase 4 | Pending |
 | THH-01 | Phase 3 | Pending |
-| THH-02 | Phase 3 | Pending |
+| THH-02 | Phase 4 | Pending |
 | XH-01 | Phase 3 | Pending |
-| XH-02 | Phase 3 | Pending |
+| XH-02 | Phase 4 | Pending |
 | NAM-01 | Phase 3 | Pending |
-| NAM-02 | Phase 3 | Pending |
+| NAM-02 | Phase 4 | Pending |
 
 **Coverage:**
 - v1 requirements: 27 total
@@ -129,4 +129,4 @@ Deferred to future audit cycle.
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after initial definition*
+*Last updated: 2026-02-28 after roadmap creation*
