@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020–2030 date range
-**Current focus:** Phase 2 COMPLETE — Golden Dataset and Loader
+**Current focus:** Phase 3 IN PROGRESS — Validator Harness and Divergence Inventory
 
 ## Current Position
 
-Phase: 2 of 4 (Golden Dataset and Loader) — COMPLETE
-Plan: 2 of 2 in current phase — 02-01 COMPLETE; 02-02 COMPLETE
-Status: Phase 2 complete — golden dataset + loader wired, all 182 tests pass
-Last activity: 2026-03-01 — Plan 02-02 complete (loader with include_str!, OnceLock, validation, 8 tests)
+Phase: 3 of 4 (Validator Harness and Divergence Inventory) — IN PROGRESS
+Plan: 2 of 3 in current phase — 03-01 COMPLETE; 03-02 COMPLETE; 03-03 pending
+Status: Phase 3 plan 02 complete — deity, truc, and xung hop validators all passing with 0 divergences
+Last activity: 2026-03-01 — Plan 03-02 complete (deity with enum-to-str, truc 3-field, xung hop sorted Vec)
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (01-01 COMPLETE, 01-02 COMPLETE, 02-01 COMPLETE, 02-02 COMPLETE)
-- Average duration: ~16 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min, 02-02: ~2 min)
-- Total execution time: ~1 hour 6 min
+- Total plans completed: 6 (01-01, 01-02, 02-01, 02-02, 03-01, 03-02 all COMPLETE)
+- Average duration: ~11 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min, 02-02: ~2 min, 03-01: ~2 min, 03-02: ~2 min)
+- Total execution time: ~1 hour 10 min
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [███████░░░] 70%
 |-------|-------|-------|----------|
 | 01-source-establishment | 2 complete | ~60 min | ~30 min |
 | 02-golden-dataset-and-loader | 2 complete | ~6 min | ~3 min |
+| 03-validator-harness-and-divergence-inventory | 2 of 3 complete | ~4 min | ~2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (~45 min), 01-02 (~14 min tasks + checkpoint), 02-01 (~4 min), 02-02 (~2 min)
-- Trend: Accelerating — automated tasks with well-defined specs execute fastest
+- Last 5 plans: 01-02 (~14 min), 02-01 (~4 min), 02-02 (~2 min), 03-01 (~2 min), 03-02 (~2 min)
+- Trend: Stable fast — well-specified validator tasks execute in ~2 min each
 
 *Updated after each plan completion*
 
@@ -59,6 +60,8 @@ Recent decisions affecting current work:
 - [02-01]: Generator as #[ignore] test for reproducible regeneration: cargo test --test generate_golden -- --ignored
 - [02-02]: Combined TDD execution: loader + validation + tests written together (Rust requires co-compilation)
 - [02-02]: Validation follows data.rs pattern: panic on invariant violation during OnceLock::get_or_init()
+- [03-02]: Deity Option<None> handled as mismatch string ("expected X, got NONE") not panic — consistent with collect-then-assert needing all 233 entries to process
+- [03-02]: Sorted Vec used for tam_hop/tu_hanh_xung comparison (not HashSet) — preserves duplicate detection while being order-independent
 
 ### Pending Todos
 
@@ -73,5 +76,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 02-02-PLAN.md — Phase 2 complete (golden loader wired)
-Resume file: Phase 3 — Validators (when planned)
+Stopped at: Completed 03-02-PLAN.md — deity, truc, and xung hop validators passing with 0 divergences
+Resume file: Phase 3 Plan 03 — stars, than_huong, na_am validators

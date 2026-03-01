@@ -30,13 +30,13 @@ Requirements for initial audit. Each maps to roadmap phases.
 
 ### Day Deity
 
-- [ ] **DEI-01**: 12-deity cycle order and classification (hoàng đạo/hắc đạo) cross-referenced
-- [ ] **DEI-02**: 12 month-start offsets (`month_group_start_by_chi`) cross-referenced
+- [x] **DEI-01**: 12-deity cycle order and classification (hoàng đạo/hắc đạo) cross-referenced
+- [x] **DEI-02**: 12 month-start offsets (`month_group_start_by_chi`) cross-referenced
 - [ ] **DEI-03**: All divergences fixed in baseline.json
 
 ### Trực Quality
 
-- [ ] **TRC-01**: All 12 trực quality assignments (cat/hung/binh) cross-referenced against KHCBPPT
+- [x] **TRC-01**: All 12 trực quality assignments (cat/hung/binh) cross-referenced against KHCBPPT
 - [ ] **TRC-02**: All divergences fixed in `TRUC_QUALITY` const in `truc.rs`
 
 ### Star Rules
@@ -53,7 +53,7 @@ Requirements for initial audit. Each maps to roadmap phases.
 
 ### Xung Hợp
 
-- [ ] **XH-01**: Lục Xung, Tam Hợp, Tứ Hành Xung formula basis verified in KHCBPPT text
+- [x] **XH-01**: Lục Xung, Tam Hợp, Tứ Hành Xung formula basis verified in KHCBPPT text
 - [ ] **XH-02**: All divergences fixed in `xung_hop.rs`
 
 ### Nạp Âm
@@ -106,10 +106,10 @@ Deferred to future audit cycle.
 | TAB-03 | Phase 3 | Pending |
 | TAB-04 | Phase 3 | Pending |
 | TAB-05 | Phase 4 | Pending |
-| DEI-01 | Phase 3 | Pending |
-| DEI-02 | Phase 3 | Pending |
+| DEI-01 | Phase 3 | Complete (03-02) |
+| DEI-02 | Phase 3 | Complete (03-02) |
 | DEI-03 | Phase 4 | Pending |
-| TRC-01 | Phase 3 | Pending |
+| TRC-01 | Phase 3 | Complete (03-02) |
 | TRC-02 | Phase 4 | Pending |
 | STR-01 | Phase 3 | Pending |
 | STR-02 | Phase 3 | Pending |
@@ -117,7 +117,7 @@ Deferred to future audit cycle.
 | STR-04 | Phase 4 | Pending |
 | THH-01 | Phase 3 | Pending |
 | THH-02 | Phase 4 | Pending |
-| XH-01 | Phase 3 | Pending |
+| XH-01 | Phase 3 | Complete (03-02) |
 | XH-02 | Phase 4 | Pending |
 | NAM-01 | Phase 3 | Pending |
 | NAM-02 | Phase 4 | Pending |
