@@ -9,29 +9,30 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 1 of 4 (Source Establishment) — COMPLETE
-Plan: 2 of 2 in current phase — BOTH COMPLETE (01-01 COMPLETE; 01-02 COMPLETE)
-Status: Phase 1 complete — ready to begin Phase 2 (Golden Dataset and Loader)
-Last activity: 2026-03-01 — Plan 01-02 Task 3 checkpoint approved; all 8 Phase 1 reference files verified
+Phase: 2 of 4 (Golden Dataset and Loader) — IN PROGRESS
+Plan: 1 of 2 in current phase — 02-01 COMPLETE; 02-02 pending
+Status: Plan 02-01 complete — GoldenEntry structs defined, 233-entry khcbppt-golden.json generated
+Last activity: 2026-03-01 — Plan 02-01 complete (structs + golden dataset + coverage tests)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2 (01-01 COMPLETE, 01-02 COMPLETE)
-- Average duration: ~30 min (01-01: ~45 min, 01-02: ~14 min tasks)
-- Total execution time: ~1 hour
+- Total plans completed: 3 (01-01 COMPLETE, 01-02 COMPLETE, 02-01 COMPLETE)
+- Average duration: ~21 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min)
+- Total execution time: ~1 hour 4 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-source-establishment | 2 complete | ~60 min | ~30 min |
+| 02-golden-dataset-and-loader | 1 complete | ~4 min | ~4 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (~45 min), 01-02 (~14 min tasks + checkpoint)
-- Trend: Two data points
+- Last 5 plans: 01-01 (~45 min), 01-02 (~14 min tasks + checkpoint), 02-01 (~4 min)
+- Trend: Accelerating — automated tasks execute faster than manual research
 
 *Updated after each plan completion*
 
@@ -53,6 +54,9 @@ Recent decisions affecting current work:
 - [01-02]: All 6 commit 0f29f3f Thanh Huong corrections confirmed against KHCBPPT Lap Thanh tables
 - [01-02]: star_meta.source_id should change from "nhi-thap-bat-tu" to "khcbppt" in Phase 4
 - [01-02]: Star rule sparsity: fixed_by_chi complete; 4 other categories have only 1 seed entry each — Phase 3 must detect absence, not just value mismatch
+- [02-01]: 233-entry golden dataset generated with coverage-driven algorithm; all subsystem values from get_day_info() (Phase 1 confirmed correctness)
+- [02-01]: Star entries marked MEDIUM confidence for JD epoch; all other subsystems HIGH confidence
+- [02-01]: Generator as #[ignore] test for reproducible regeneration: cargo test --test generate_golden -- --ignored
 
 ### Pending Todos
 
@@ -67,5 +71,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Phase 1 complete — Plan 01-02 all tasks done; 8 reference files verified by user
-Resume file: Begin Phase 2 — Golden Dataset and Loader (see ROADMAP.md Phase 2 details)
+Stopped at: Completed 02-01-PLAN.md — GoldenEntry structs + 233-entry golden dataset
+Resume file: Continue Phase 2 — Plan 02-02 (wire golden loader with include_str!, validation, test coverage)

@@ -15,9 +15,9 @@ Requirements for initial audit. Each maps to roadmap phases.
 
 ### Golden Dataset
 
-- [ ] **DATA-01**: Golden reference dataset created with ~200 representative dates covering 2020–2030
-- [ ] **DATA-02**: Dataset covers all 12 chi, 10 can, 12 lunar months, 28 JD-cycle positions
-- [ ] **DATA-03**: Every golden entry includes KHCBPPT citation (`khcbppt_ref` field)
+- [x] **DATA-01**: Golden reference dataset created with ~200 representative dates covering 2020–2030
+- [x] **DATA-02**: Dataset covers all 12 chi, 10 can, 12 lunar months, 28 JD-cycle positions
+- [x] **DATA-03**: Every golden entry includes KHCBPPT citation (`khcbppt_ref` field)
 - [ ] **DATA-04**: Golden loader (`golden_loader.rs`) deserializes dataset into typed Rust structs
 
 ### Taboo Rules
@@ -97,9 +97,9 @@ Deferred to future audit cycle.
 | SRC-01 | Phase 1 | Complete |
 | SRC-02 | Phase 1 | Complete |
 | SRC-03 | Phase 1 | Complete |
-| DATA-01 | Phase 2 | Pending |
-| DATA-02 | Phase 2 | Pending |
-| DATA-03 | Phase 2 | Pending |
+| DATA-01 | Phase 2 | Complete |
+| DATA-02 | Phase 2 | Complete |
+| DATA-03 | Phase 2 | Complete |
 | DATA-04 | Phase 2 | Pending |
 | TAB-01 | Phase 3 | Pending |
 | TAB-02 | Phase 3 | Pending |
