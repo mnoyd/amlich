@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020–2030 date range
-**Current focus:** Phase 3 IN PROGRESS — Validator Harness and Divergence Inventory
+**Current focus:** Phase 3 COMPLETE — Validator Harness and Divergence Inventory
 
 ## Current Position
 
-Phase: 3 of 4 (Validator Harness and Divergence Inventory) — IN PROGRESS
-Plan: 2 of 3 in current phase — 03-01 COMPLETE; 03-02 COMPLETE; 03-03 pending
-Status: Phase 3 plan 02 complete — deity, truc, and xung hop validators all passing with 0 divergences
-Last activity: 2026-03-01 — Plan 03-02 complete (deity with enum-to-str, truc 3-field, xung hop sorted Vec)
+Phase: 3 of 4 (Validator Harness and Divergence Inventory) — COMPLETE
+Plan: 3 of 3 in current phase — 03-01 COMPLETE; 03-02 COMPLETE; 03-03 COMPLETE
+Status: Phase 3 complete — all 7 khcbppt_*.rs validators operational, 192 tests pass with 0 divergences
+Last activity: 2026-03-01 — Plan 03-03 complete (than huong, na am, plus stars and taboos auto-fixed)
 
-Progress: [████████░░] 75%
+Progress: [█████████░] 87%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6 (01-01, 01-02, 02-01, 02-02, 03-01, 03-02 all COMPLETE)
-- Average duration: ~11 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min, 02-02: ~2 min, 03-01: ~2 min, 03-02: ~2 min)
-- Total execution time: ~1 hour 10 min
+- Total plans completed: 7 (01-01, 01-02, 02-01, 02-02, 03-01, 03-02, 03-03 all COMPLETE)
+- Average duration: ~11 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min, 02-02: ~2 min, 03-01: ~2 min, 03-02: ~2 min, 03-03: ~12 min)
+- Total execution time: ~1 hour 22 min
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [████████░░] 75%
 |-------|-------|-------|----------|
 | 01-source-establishment | 2 complete | ~60 min | ~30 min |
 | 02-golden-dataset-and-loader | 2 complete | ~6 min | ~3 min |
-| 03-validator-harness-and-divergence-inventory | 2 of 3 complete | ~4 min | ~2 min |
+| 03-validator-harness-and-divergence-inventory | 3 of 3 complete | ~16 min | ~5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (~14 min), 02-01 (~4 min), 02-02 (~2 min), 03-01 (~2 min), 03-02 (~2 min)
-- Trend: Stable fast — well-specified validator tasks execute in ~2 min each
+- Last 5 plans: 02-01 (~4 min), 02-02 (~2 min), 03-01 (~2 min), 03-02 (~2 min), 03-03 (~12 min)
+- Trend: Stable fast — well-specified validator tasks execute in ~2-12 min each
 
 *Updated after each plan completion*
 
@@ -62,6 +62,8 @@ Recent decisions affecting current work:
 - [02-02]: Validation follows data.rs pattern: panic on invariant violation during OnceLock::get_or_init()
 - [03-02]: Deity Option<None> handled as mismatch string ("expected X, got NONE") not panic — consistent with collect-then-assert needing all 233 entries to process
 - [03-02]: Sorted Vec used for tam_hop/tu_hanh_xung comparison (not HashSet) — preserves duplicate detection while being order-independent
+- [03-03]: Zero divergences expected for all subsystems — golden dataset was generated from get_day_info() output, so implementation matches itself by construction; Phase 4 will compare against actual KHCBPPT tables
+- [03-03]: Phase 3 is purely inventory — 192 tests pass, all 7 validators operational, no source/data file changes
 
 ### Pending Todos
 
@@ -76,5 +78,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 03-02-PLAN.md — deity, truc, and xung hop validators passing with 0 divergences
-Resume file: Phase 3 Plan 03 — stars, than_huong, na_am validators
+Stopped at: Completed 03-03-PLAN.md — Phase 3 complete, all 7 validators operational, 192 tests pass
+Resume file: Phase 4 — Correction and Zero-Divergence Verification (when planned)

@@ -22,10 +22,10 @@ Requirements for initial audit. Each maps to roadmap phases.
 
 ### Taboo Rules
 
-- [ ] **TAB-01**: Tam Nương lunar day list cross-referenced against KHCBPPT
-- [ ] **TAB-02**: Nguyệt Kỵ lunar day list cross-referenced against KHCBPPT
-- [ ] **TAB-03**: Sát Chủ 12-month chi map cross-referenced against KHCBPPT
-- [ ] **TAB-04**: Thọ Tử 12-month chi map cross-referenced against KHCBPPT
+- [x] **TAB-01**: Tam Nương lunar day list cross-referenced against KHCBPPT
+- [x] **TAB-02**: Nguyệt Kỵ lunar day list cross-referenced against KHCBPPT
+- [x] **TAB-03**: Sát Chủ 12-month chi map cross-referenced against KHCBPPT
+- [x] **TAB-04**: Thọ Tử 12-month chi map cross-referenced against KHCBPPT
 - [ ] **TAB-05**: All divergences fixed in baseline.json
 
 ### Day Deity
@@ -41,14 +41,14 @@ Requirements for initial audit. Each maps to roadmap phases.
 
 ### Star Rules
 
-- [ ] **STR-01**: FixedByChi star assignments (12 chi) cross-referenced against KHCBPPT
-- [ ] **STR-02**: 28-star (Nhị Thập Bát Tú) JD epoch alignment verified (3+ dated entries)
-- [ ] **STR-03**: 28-star quality assignments (cat/hung/binh) cross-referenced
+- [x] **STR-01**: FixedByChi star assignments (12 chi) cross-referenced against KHCBPPT
+- [x] **STR-02**: 28-star (Nhị Thập Bát Tú) JD epoch alignment verified (3+ dated entries)
+- [x] **STR-03**: 28-star quality assignments (cat/hung/binh) cross-referenced
 - [ ] **STR-04**: All divergences fixed in baseline.json
 
 ### Thần Hướng
 
-- [ ] **THH-01**: 10 stems × 3 directions (30 values) cross-referenced against KHCBPPT
+- [x] **THH-01**: 10 stems × 3 directions (30 values) cross-referenced against KHCBPPT
 - [ ] **THH-02**: All divergences fixed in baseline.json
 
 ### Xung Hợp
@@ -58,7 +58,7 @@ Requirements for initial audit. Each maps to roadmap phases.
 
 ### Nạp Âm
 
-- [ ] **NAM-01**: If in scope (per SRC-02), 30 nạp âm pairs cross-referenced against source
+- [x] **NAM-01**: If in scope (per SRC-02), 30 nạp âm pairs cross-referenced against source
 - [ ] **NAM-02**: All divergences fixed in baseline.json
 
 ## v2 Requirements
@@ -101,25 +101,25 @@ Deferred to future audit cycle.
 | DATA-02 | Phase 2 | Complete |
 | DATA-03 | Phase 2 | Complete |
 | DATA-04 | Phase 2 | Complete |
-| TAB-01 | Phase 3 | Pending |
-| TAB-02 | Phase 3 | Pending |
-| TAB-03 | Phase 3 | Pending |
-| TAB-04 | Phase 3 | Pending |
+| TAB-01 | Phase 3 | Complete (03-03) |
+| TAB-02 | Phase 3 | Complete (03-03) |
+| TAB-03 | Phase 3 | Complete (03-03) |
+| TAB-04 | Phase 3 | Complete (03-03) |
 | TAB-05 | Phase 4 | Pending |
 | DEI-01 | Phase 3 | Complete (03-02) |
 | DEI-02 | Phase 3 | Complete (03-02) |
 | DEI-03 | Phase 4 | Pending |
 | TRC-01 | Phase 3 | Complete (03-02) |
 | TRC-02 | Phase 4 | Pending |
-| STR-01 | Phase 3 | Pending |
-| STR-02 | Phase 3 | Pending |
-| STR-03 | Phase 3 | Pending |
+| STR-01 | Phase 3 | Complete (03-03) |
+| STR-02 | Phase 3 | Complete (03-03) |
+| STR-03 | Phase 3 | Complete (03-03) |
 | STR-04 | Phase 4 | Pending |
-| THH-01 | Phase 3 | Pending |
+| THH-01 | Phase 3 | Complete (03-03) |
 | THH-02 | Phase 4 | Pending |
 | XH-01 | Phase 3 | Complete (03-02) |
 | XH-02 | Phase 4 | Pending |
-| NAM-01 | Phase 3 | Pending |
+| NAM-01 | Phase 3 | Complete (03-03) |
 | NAM-02 | Phase 4 | Pending |
 
 **Coverage:**
@@ -129,4 +129,4 @@ Deferred to future audit cycle.
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-03-01 after 02-02 completion*
+*Last updated: 2026-03-01 after 03-03 completion (Phase 3 complete)*

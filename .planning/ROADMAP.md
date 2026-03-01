@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Source Establishment** - Pin the KHCBPPT edition and extract raw reference tables per subsystem [COMPLETE 2026-03-01]
 - [x] **Phase 2: Golden Dataset and Loader** - Serialize reference tables into khcbppt-golden.json and build Rust loader [COMPLETE 2026-03-01]
-- [ ] **Phase 3: Validator Harness and Divergence Inventory** - Write per-subsystem validators and surface all divergences
+- [x] **Phase 3: Validator Harness and Divergence Inventory** - Write per-subsystem validators and surface all divergences [COMPLETE 2026-03-01]
 - [ ] **Phase 4: Correction and Zero-Divergence Verification** - Fix all divergences in baseline.json and source constants
 
 ## Phase Details
@@ -55,7 +55,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 - [x] 03-01-PLAN.md — Star and taboo validators with JD epoch verification and set-based taboo comparison (STR-01, STR-02, STR-03, TAB-01, TAB-02, TAB-03, TAB-04) [COMPLETE 2026-03-01]
 - [x] 03-02-PLAN.md — Deity, truc, and xung hop validators with enum conversion and sorted vec comparison (DEI-01, DEI-02, TRC-01, XH-01) [COMPLETE 2026-03-01]
-- [ ] 03-03-PLAN.md — Than huong and na am validators plus full suite verification (THH-01, NAM-01)
+- [x] 03-03-PLAN.md — Than huong and na am validators plus full suite verification (THH-01, NAM-01) [COMPLETE 2026-03-01]
 
 ### Phase 4: Correction and Zero-Divergence Verification
 **Goal**: Every divergence found in Phase 3 is fixed, `cargo test --package amlich-core` passes with zero divergences including all new validators, and all pre-existing regression tests still pass
@@ -76,5 +76,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Source Establishment | 2/2 | Complete | 2026-03-01 |
 | 2. Golden Dataset and Loader | 2/2 | Complete | 2026-03-01 |
-| 3. Validator Harness and Divergence Inventory | 2/3 | In progress | - |
+| 3. Validator Harness and Divergence Inventory | 3/3 | Complete | 2026-03-01 |
 | 4. Correction and Zero-Divergence Verification | 0/TBD | Not started | - |
