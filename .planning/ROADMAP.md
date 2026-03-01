@@ -52,7 +52,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. Running `cargo test --package amlich-core` produces a readable divergence report — every mismatch between golden dataset and implementation output is visible, not just the first failure
   3. The 28-star JD epoch offset is verified against 3+ real KHCBPPT dated entries before any other star validation proceeds
   4. No corrections are applied to baseline.json or source constants during this phase — inventory completeness is the goal
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 03-01-PLAN.md — Star and taboo validators with JD epoch verification and set-based taboo comparison (STR-01, STR-02, STR-03, TAB-01, TAB-02, TAB-03, TAB-04)
+- [ ] 03-02-PLAN.md — Deity, truc, and xung hop validators with enum conversion and sorted vec comparison (DEI-01, DEI-02, TRC-01, XH-01)
+- [ ] 03-03-PLAN.md — Than huong and na am validators plus full suite verification (THH-01, NAM-01)
 
 ### Phase 4: Correction and Zero-Divergence Verification
 **Goal**: Every divergence found in Phase 3 is fixed, `cargo test --package amlich-core` passes with zero divergences including all new validators, and all pre-existing regression tests still pass
@@ -73,5 +76,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Source Establishment | 2/2 | Complete | 2026-03-01 |
 | 2. Golden Dataset and Loader | 2/2 | Complete | 2026-03-01 |
-| 3. Validator Harness and Divergence Inventory | 0/TBD | Not started | - |
+| 3. Validator Harness and Divergence Inventory | 0/3 | In progress | - |
 | 4. Correction and Zero-Divergence Verification | 0/TBD | Not started | - |
