@@ -5,34 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020–2030 date range
-**Current focus:** Phase 2 — Golden Dataset and Loader
+**Current focus:** Phase 2 COMPLETE — Golden Dataset and Loader
 
 ## Current Position
 
-Phase: 2 of 4 (Golden Dataset and Loader) — IN PROGRESS
-Plan: 1 of 2 in current phase — 02-01 COMPLETE; 02-02 pending
-Status: Plan 02-01 complete — GoldenEntry structs defined, 233-entry khcbppt-golden.json generated
-Last activity: 2026-03-01 — Plan 02-01 complete (structs + golden dataset + coverage tests)
+Phase: 2 of 4 (Golden Dataset and Loader) — COMPLETE
+Plan: 2 of 2 in current phase — 02-01 COMPLETE; 02-02 COMPLETE
+Status: Phase 2 complete — golden dataset + loader wired, all 182 tests pass
+Last activity: 2026-03-01 — Plan 02-02 complete (loader with include_str!, OnceLock, validation, 8 tests)
 
-Progress: [██████░░░░] 60%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3 (01-01 COMPLETE, 01-02 COMPLETE, 02-01 COMPLETE)
-- Average duration: ~21 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min)
-- Total execution time: ~1 hour 4 min
+- Total plans completed: 4 (01-01 COMPLETE, 01-02 COMPLETE, 02-01 COMPLETE, 02-02 COMPLETE)
+- Average duration: ~16 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min, 02-02: ~2 min)
+- Total execution time: ~1 hour 6 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-source-establishment | 2 complete | ~60 min | ~30 min |
-| 02-golden-dataset-and-loader | 1 complete | ~4 min | ~4 min |
+| 02-golden-dataset-and-loader | 2 complete | ~6 min | ~3 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (~45 min), 01-02 (~14 min tasks + checkpoint), 02-01 (~4 min)
-- Trend: Accelerating — automated tasks execute faster than manual research
+- Last 5 plans: 01-01 (~45 min), 01-02 (~14 min tasks + checkpoint), 02-01 (~4 min), 02-02 (~2 min)
+- Trend: Accelerating — automated tasks with well-defined specs execute fastest
 
 *Updated after each plan completion*
 
@@ -57,6 +57,8 @@ Recent decisions affecting current work:
 - [02-01]: 233-entry golden dataset generated with coverage-driven algorithm; all subsystem values from get_day_info() (Phase 1 confirmed correctness)
 - [02-01]: Star entries marked MEDIUM confidence for JD epoch; all other subsystems HIGH confidence
 - [02-01]: Generator as #[ignore] test for reproducible regeneration: cargo test --test generate_golden -- --ignored
+- [02-02]: Combined TDD execution: loader + validation + tests written together (Rust requires co-compilation)
+- [02-02]: Validation follows data.rs pattern: panic on invariant violation during OnceLock::get_or_init()
 
 ### Pending Todos
 
@@ -71,5 +73,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 02-01-PLAN.md — GoldenEntry structs + 233-entry golden dataset
-Resume file: Continue Phase 2 — Plan 02-02 (wire golden loader with include_str!, validation, test coverage)
+Stopped at: Completed 02-02-PLAN.md — Phase 2 complete (golden loader wired)
+Resume file: Phase 3 — Validators (when planned)

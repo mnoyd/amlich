@@ -13,7 +13,7 @@ Four phases transform the amlich almanac from internally-consistent but unverifi
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Source Establishment** - Pin the KHCBPPT edition and extract raw reference tables per subsystem [COMPLETE 2026-03-01]
-- [ ] **Phase 2: Golden Dataset and Loader** - Serialize reference tables into khcbppt-golden.json and build Rust loader
+- [x] **Phase 2: Golden Dataset and Loader** - Serialize reference tables into khcbppt-golden.json and build Rust loader [COMPLETE 2026-03-01]
 - [ ] **Phase 3: Validator Harness and Divergence Inventory** - Write per-subsystem validators and surface all divergences
 - [ ] **Phase 4: Correction and Zero-Divergence Verification** - Fix all divergences in baseline.json and source constants
 
@@ -41,7 +41,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `golden_loader.rs` deserializes the dataset into typed `GoldenEntry` Rust structs and `cargo test --package amlich-core` passes cleanly
 **Plans**: 2 plans
 - [x] 02-01-PLAN.md — Define GoldenEntry structs and generate ~200-entry khcbppt-golden.json dataset (DATA-01, DATA-02, DATA-03) [COMPLETE 2026-03-01]
-- [ ] 02-02-PLAN.md — Wire golden loader with include_str!, validation, and test coverage (DATA-04)
+- [x] 02-02-PLAN.md — Wire golden loader with include_str!, validation, and test coverage (DATA-04) [COMPLETE 2026-03-01]
 
 ### Phase 3: Validator Harness and Divergence Inventory
 **Goal**: Per-subsystem validator test files exist, compile, and run — producing a complete divergence inventory across all subsystems from a single `cargo test` run
@@ -72,6 +72,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Source Establishment | 2/2 | Complete | 2026-03-01 |
-| 2. Golden Dataset and Loader | 1/2 | In progress | - |
+| 2. Golden Dataset and Loader | 2/2 | Complete | 2026-03-01 |
 | 3. Validator Harness and Divergence Inventory | 0/TBD | Not started | - |
 | 4. Correction and Zero-Divergence Verification | 0/TBD | Not started | - |
