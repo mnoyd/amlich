@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020–2030 date range
-**Current focus:** Phase 1 — Source Establishment
+**Current focus:** Phase 2 — Golden Dataset and Loader
 
 ## Current Position
 
