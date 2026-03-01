@@ -9,9 +9,9 @@ Requirements for initial audit. Each maps to roadmap phases.
 
 ### Source Establishment
 
-- [ ] **SRC-01**: KHCBPPT edition identified and documented in golden dataset metadata
-- [ ] **SRC-02**: Nạp Âm scope determined (KHCBPPT or "tam-menh-thong-hoi" — in or out of audit)
-- [ ] **SRC-03**: Intercalary month handling researched and documented from KHCBPPT text
+- [x] **SRC-01**: KHCBPPT edition identified and documented in golden dataset metadata
+- [x] **SRC-02**: Nạp Âm scope determined (KHCBPPT or "tam-menh-thong-hoi" — in or out of audit)
+- [x] **SRC-03**: Intercalary month handling researched and documented from KHCBPPT text
 
 ### Golden Dataset
 
@@ -94,9 +94,9 @@ Deferred to future audit cycle.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SRC-01 | Phase 1 | Pending |
-| SRC-02 | Phase 1 | Pending |
-| SRC-03 | Phase 1 | Pending |
+| SRC-01 | Phase 1 | Complete |
+| SRC-02 | Phase 1 | Complete |
+| SRC-03 | Phase 1 | Complete |
 | DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |
 | DATA-03 | Phase 2 | Pending |
