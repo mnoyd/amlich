@@ -63,6 +63,8 @@ Recent decisions affecting current work:
 - [03-02]: Deity Option<None> handled as mismatch string ("expected X, got NONE") not panic — consistent with collect-then-assert needing all 233 entries to process
 - [03-02]: Sorted Vec used for tam_hop/tu_hanh_xung comparison (not HashSet) — preserves duplicate detection while being order-independent
 - [03-03]: Zero divergences expected for all subsystems — golden dataset was generated from get_day_info() output, so implementation matches itself by construction; Phase 4 will compare against actual KHCBPPT tables
+- [03-01]: JD epoch verification uses first 5 golden entries as anchors (self-consistent since golden was generated from get_day_info()); star rule sparsity 233/233 confirms contextual buckets empty
+- [03-01]: Taboo comparison is set-based (HashSet) not Vec-based — avoids false failures due to ordering differences between golden and impl
 - [03-03]: Phase 3 is purely inventory — 192 tests pass, all 7 validators operational, no source/data file changes
 
 ### Pending Todos
@@ -78,5 +80,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 03-03-PLAN.md — Phase 3 complete, all 7 validators operational, 192 tests pass
+Stopped at: Completed 03-01-PLAN.md — Created 03-01-SUMMARY.md (stars and taboo validators); Phase 3 complete
 Resume file: Phase 4 — Correction and Zero-Divergence Verification (when planned)
