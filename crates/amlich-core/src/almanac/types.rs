@@ -84,11 +84,11 @@ pub struct TravelDirection {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TangCan {
     /// Main (chính) hidden stem - 100% strength
-    pub main: &'static str,
+    pub main: String,
     /// Central (trung) hidden stem - variable strength
-    pub central: &'static str,
+    pub central: String,
     /// Residual (dư) hidden stem - variable strength
-    pub residual: &'static str,
+    pub residual: String,
     /// Strength values for [main, central, residual]
     pub strength: [u8; 3],
 }
@@ -186,6 +186,7 @@ pub struct DayFortune {
     pub taboos: Vec<DayTaboo>,
     pub xung_hop: XungHopResult,
     pub truc: TrucInfo,
+    pub tang_can: Option<TangCan>,
 }
 
 #[cfg(test)]
@@ -231,9 +232,9 @@ mod tests {
     #[test]
     fn tang_can_has_4_fields() {
         let tc = TangCan {
-            main: "甲",
-            central: "乙",
-            residual: "丙",
+            main: "甲".to_string(),
+            central: "乙".to_string(),
+            residual: "丙".to_string(),
             strength: [60, 25, 15],
         };
         assert_eq!(tc.main, "甲");
@@ -245,9 +246,9 @@ mod tests {
     #[test]
     fn tang_can_serializes() {
         let tc = TangCan {
-            main: "甲",
-            central: "乙",
-            residual: "丙",
+            main: "甲".to_string(),
+            central: "乙".to_string(),
+            residual: "丙".to_string(),
             strength: [60, 25, 15],
         };
         let json = serde_json::to_string(&tc).expect("serialize");
@@ -336,6 +337,12 @@ mod tests {
                 quality: "hung".to_string(),
                 evidence: None,
             },
+            tang_can: Some(TangCan {
+                main: "甲".to_string(),
+                central: "乙".to_string(),
+                residual: "丙".to_string(),
+                strength: [60, 25, 15],
+            }),
         };
 
         let encoded = serde_json::to_string(&value).expect("serialize");

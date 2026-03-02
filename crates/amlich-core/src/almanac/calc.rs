@@ -5,6 +5,7 @@ use super::day_deity::resolve_day_deity;
 use super::star::resolve_rules;
 use super::star::{StarCategory, StarRule};
 use super::taboo::{resolve_day_taboos, TabooHit};
+use super::tang_can::get_tang_can;
 use super::than_huong::get_than_huong;
 use super::than_sat::get_day_star_rules;
 use super::truc::get_truc;
@@ -117,6 +118,7 @@ pub fn calculate_day_fortune(
             });
             truc
         },
+        tang_can: Some(get_tang_can(&day_canchi.chi)),
     }
 }
 

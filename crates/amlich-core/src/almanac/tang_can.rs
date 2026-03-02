@@ -65,9 +65,9 @@ pub fn get_tang_can(chi_name: &str) -> TangCan {
     let strengths = CANGAN_STRENGTH[chi_idx];
 
     TangCan {
-        main: stems[0],
-        central: stems[1],
-        residual: stems[2],
+        main: stems[0].to_string(),
+        central: stems[1].to_string(),
+        residual: stems[2].to_string(),
         strength: strengths,
     }
 }
