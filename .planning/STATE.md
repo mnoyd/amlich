@@ -1,9 +1,9 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
-status: unknown
-last_updated: "2026-03-02T04:00:00.000Z"
+milestone_name: Amlich Almanac Correctness Audit
+status: complete
+last_updated: "2026-03-02T12:00:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -16,16 +16,22 @@ progress:
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-02-28)
+See: .planning/MILESTONES.md (updated 2026-03-02 - v1.0 complete)
 
-**Core value:** Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020–2030 date range
-**Current focus:** Phase 4 COMPLETE — Correction and Zero-Divergence Verification
+**Core value:** Every almanac subsystem in amlich must produce output that matches KHCBPPT for 2020–2030 date range
+**Milestone v1.0:** COMPLETE - All 4 phases finished, 0 divergences confirmed
 
 ## Current Position
 
-Phase: 4 of 4 (Correction and Zero-Divergence Verification) — COMPLETE
-Plan: 1 of 1 in current phase — 04-01 COMPLETE
-Status: Phase 4 complete — all 7 KHCBPPT validators pass with 0 divergences; all regression tests pass
-Last activity: 2026-03-02 — Plan 04-01 complete (verified KHCBPPT alignment, updated star_meta.source_id)
+**Milestone v1.0: COMPLETE** ✓
+All 4 phases finished successfully:
+- Phase 1: Source Establishment (2/2 plans)
+- Phase 2: Golden Dataset and Loader (2/2 plans)
+- Phase 3: Validator Harness and Divergence Inventory (3/3 plans)
+- Phase 4: Correction and Zero-Divergence Verification (1/1 plan)
+
+Status: All 7 KHCBPPT validators pass with 0 divergences; all 184 tests pass
+Last activity: 2026-03-02 — Milestone v1.0 archived in MILESTONES.md
 
 Progress: [██████████] 100%
 
@@ -33,8 +39,8 @@ Progress: [██████████] 100%
 
 **Velocity:**
 - Total plans completed: 8 (01-01, 01-02, 02-01, 02-02, 03-01, 03-02, 03-03, 04-01 all COMPLETE)
-- Average duration: ~10 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min, 02-02: ~2 min, 03-01: ~2 min, 03-02: ~2 min, 03-03: ~12 min, 04-01: ~10 min)
-- Total execution time: ~1 hour 32 min
+- Average duration: ~11.5 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min, 02-02: ~2 min, 03-01: ~2 min, 03-02: ~2 min, 03-03: ~12 min, 04-01: ~10 min)
+- Total execution time: ~92 min (1.5 hours)
 
 **By Phase:**
 
@@ -46,10 +52,12 @@ Progress: [██████████] 100%
 | 04-correction-and-zero-divergence-verification | 1 of 1 complete | ~10 min | ~10 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (~4 min), 02-02 (~2 min), 03-01 (~2 min), 03-02 (~2 min), 03-03 (~12 min), 04-01 (~10 min)
-- Trend: Stable fast — well-specified validator tasks execute in ~2-12 min each
+- All plans complete: Stable execution across all phases
+- Manual research (Phase 1): ~30 min/plan (classical text work)
+- Automation tasks (Phases 2-4): ~2-12 min/plan (well-specified validator tasks)
+- Overall: Efficient and predictable execution
 
-*Updated after each plan completion*
+*Milestone v1.0 complete - no active planning*
 
 ## Accumulated Context
 
@@ -89,12 +97,22 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 1 is entirely manual research — KHCBPPT edition must be pinned before any automated work is possible
-- Star rule completeness: baseline.json contextual buckets have only 1 entry each; may indicate missing rules, not just incorrect values — Phase 3 validator must detect missing rules, not just mismatches
-- Trực quality (`TRUC_QUALITY` const in `truc.rs`) is hardcoded in Rust source, not JSON — correction in Phase 4 requires code change + recompile
+**None** - All blockers from v1.0 resolved:
+- ✓ KHCBPPT edition pinned (Phase 1)
+- ✓ Star rule completeness documented (Phase 3 - sparsity report)
+- ✓ Truc quality verified correct (Phase 4 - no correction needed)
 
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 04-01-PLAN.md — Created 04-01-SUMMARY.md (correction and zero-divergence verification); Phase 4 complete
-Resume file: Next phase (when planned)
+Stopped at: Milestone v1.0 complete — All 4 phases finished, 0 divergences confirmed, MILESTONES.md archived
+Next: Ready for new milestone planning or release
+
+**Verification Commands:**
+```bash
+# Verify all tests pass (expected: 184/184)
+cargo test --package amlich-core
+
+# Run KHCBPPT validators only (expected: 10 tests, 0 divergences)
+cargo test --package amlich-core khcbppt
+```
