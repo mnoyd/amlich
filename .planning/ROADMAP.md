@@ -80,10 +80,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. All new subsystems are integrated into `DayFortune` struct and populated in `calculate_day_fortune()`
   5. JSON serialization includes all new fields (`liu_he`, `xiang_hai`, `xiang_xing`, `tang_can`)
   6. All unit tests pass and v1.0 regression tests continue to pass
-**Plans**: 2-3 plans (TBD)
-- [ ] v1.1-01-PLAN.md — Enhanced Xung Hợp relationships (Lục hợp, Tương hại, Tương hình)
-- [ ] v1.1-02-PLAN.md — Tàng Can (Hidden Stems) implementation
-- [ ] v1.1-03-PLAN.md — Tiết Khí helper functions and integration
+**Plans**: 3 plans in Wave 1 (parallel execution)
+- [ ] v1.1-01-PLAN.md (Wave 1) — Enhanced Xung Hợp relationships (Lục hợp, Tương hại, Tương hình)
+- [ ] v1.1-02-PLAN.md (Wave 1) — Tàng Can (Hidden Stems) implementation
+- [ ] v1.1-03-PLAN.md (Wave 1) — Tiết Khí helper functions and public API
 
 ## Progress
 
