@@ -178,8 +178,122 @@ impl KuaResult {
 /// assert_eq!(result.kua, 4);  // Kua 4
 /// ```
 pub fn compute_kua(birth_year: i32, gender: Gender) -> KuaResult {
-    // Implementation will be in GREEN phase
-    unimplemented!("compute_kua not yet implemented")
+    let convention = ConventionMetadata::project_default();
+
+    // Sum the digits of the birth year to a single digit
+    let year_str = birth_year.to_string();
+    let mut digit_sum: u8 = year_str
+        .chars()
+        .map(|c| c.to_digit(10).unwrap() as u8)
+        .sum();
+    while digit_sum > 9 {
+        let sum_str = digit_sum.to_string();
+        digit_sum = sum_str.chars().map(|c| c.to_digit(10).unwrap() as u8).sum();
+    }
+
+    // Calculate Kua based on century and gender
+    let kua_unresolved = if birth_year >= 2000 {
+        // 2000+ years
+        match gender {
+            Gender::Male => {
+                // Subtract from 9
+                let result = 9 - digit_sum;
+                if result == 0 {
+                    9
+                } else {
+                    result
+                }
+            }
+            Gender::Female => {
+                // Add 5
+                let result = digit_sum + 5;
+                if result > 9 {
+                    result - 9
+                } else {
+                    result
+                }
+            }
+        }
+    } else {
+        // 1900-1999 years
+        match gender {
+            Gender::Male => {
+                // Subtract from 10
+                let result = 10 - digit_sum;
+                if result == 10 {
+                    1
+                } else {
+                    result
+                }
+            }
+            Gender::Female => {
+                // Add 5
+                let result = digit_sum + 5;
+                if result > 9 {
+                    result - 9
+                } else {
+                    result
+                }
+            }
+        }
+    };
+
+    // Apply Kua 5 resolution
+    let kua = if kua_unresolved == 5 {
+        match gender {
+            Gender::Male => 8,
+            Gender::Female => 2,
+        }
+    } else {
+        kua_unresolved
+    };
+
+    // Determine East/West group
+    let group = match kua {
+        1 | 3 | 4 | 9 => KuaGroup::East,
+        2 | 6 | 7 | 8 => KuaGroup::West,
+        _ => panic!("Invalid Kua number: {}", kua),
+    };
+
+    // Determine favorable and unfavorable directions based on group
+    let (favorable_directions, unfavorable_directions) = match group {
+        KuaGroup::East => (
+            [
+                Direction::North,
+                Direction::South,
+                Direction::East,
+                Direction::Southeast,
+            ],
+            [
+                Direction::Northwest,
+                Direction::Southwest,
+                Direction::West,
+                Direction::Northeast,
+            ],
+        ),
+        KuaGroup::West => (
+            [
+                Direction::Northwest,
+                Direction::Southwest,
+                Direction::West,
+                Direction::Northeast,
+            ],
+            [
+                Direction::North,
+                Direction::South,
+                Direction::East,
+                Direction::Southeast,
+            ],
+        ),
+    };
+
+    KuaResult::new(
+        kua,
+        group,
+        favorable_directions,
+        unfavorable_directions,
+        convention,
+    )
 }
 
 #[cfg(test)]
