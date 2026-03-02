@@ -28,6 +28,13 @@ pub struct RuleSetDescriptor {
 
 /// Source attribution for a group of almanac rules.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RuleEvidence {
+    pub source_id: String,
+    pub method: String,
+    pub profile: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SourceMeta {
     /// Classical source identifier (e.g. "khcbppt", "tam-menh-thong-hoi").
     pub source_id: String,
@@ -73,11 +80,17 @@ pub struct TravelDirection {
     pub evidence: Option<RuleEvidence>,
 }
 
+/// Tàng Can (Hidden Stems) - hidden Heavenly Stems embedded in each Địa Chi
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RuleEvidence {
-    pub source_id: String,
-    pub method: String,
-    pub profile: String,
+pub struct TangCan {
+    /// Main (chính) hidden stem - 100% strength
+    pub main: &'static str,
+    /// Central (trung) hidden stem - variable strength
+    pub central: &'static str,
+    /// Residual (dư) hidden stem - variable strength
+    pub residual: &'static str,
+    /// Strength values for [main, central, residual]
+    pub strength: [u8; 3],
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -208,6 +221,40 @@ mod tests {
     #[test]
     fn day_fortune_struct_exists() {
         let _ = std::mem::size_of::<DayFortune>();
+    }
+
+    #[test]
+    fn tang_can_struct_exists() {
+        let _ = std::mem::size_of::<TangCan>();
+    }
+
+    #[test]
+    fn tang_can_has_4_fields() {
+        let tc = TangCan {
+            main: "甲",
+            central: "乙",
+            residual: "丙",
+            strength: [60, 25, 15],
+        };
+        assert_eq!(tc.main, "甲");
+        assert_eq!(tc.central, "乙");
+        assert_eq!(tc.residual, "丙");
+        assert_eq!(tc.strength, [60, 25, 15]);
+    }
+
+    #[test]
+    fn tang_can_serializes() {
+        let tc = TangCan {
+            main: "甲",
+            central: "乙",
+            residual: "丙",
+            strength: [60, 25, 15],
+        };
+        let json = serde_json::to_string(&tc).expect("serialize");
+        assert!(json.contains("\"甲\""));
+        assert!(json.contains("\"乙\""));
+        assert!(json.contains("\"丙\""));
+        assert!(json.contains("[60,25,15]"));
     }
 
     #[test]
