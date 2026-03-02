@@ -10,8 +10,8 @@ use super::than_huong::get_than_huong;
 use super::than_sat::get_day_star_rules;
 use super::truc::get_truc;
 use super::types::{
-    DayConflict, DayElement, DayFortune, DayStar, DayStars, DayTaboo, RuleEvidence, StarQuality,
-    StarRuleEvidence, StarSystem,
+    DayConflict, DayElement, DayFortune, DayStar, DayStars, DayTaboo, DayTenGods, HeavenlyStem,
+    RuleEvidence, StarQuality, StarRuleEvidence, StarSystem,
 };
 use super::xung_hop::get_xung_hop;
 
@@ -329,5 +329,63 @@ mod tests {
         let evidence = deity.evidence.expect("day deity evidence");
         assert_eq!(evidence.method, "table-lookup");
         assert_eq!(evidence.profile, "baseline");
+    }
+
+    #[test]
+    fn ten_gods_populates_deterministically_when_day_stem_available() {
+        // Test 1: Ten Gods populates deterministically when day stem available
+        let info = get_day_info(10, 2, 2024);
+        let fortune = calculate_day_fortune(
+            info.jd,
+            &info.canchi.day,
+            info.lunar.day,
+            info.lunar.month,
+            &info.canchi.year.can,
+            &info.tiet_khi.name,
+        );
+
+        let ten_gods = fortune.ten_gods.expect("ten_gods should be populated");
+        // Verify to_self exists (day stem to day stem)
+        assert!(ten_gods.to_self.is_some(), "to_self should be populated");
+        // Verify to_year_stem exists (day stem to year stem)
+        assert!(
+            ten_gods.to_year_stem.is_some(),
+            "to_year_stem should be populated"
+        );
+
+        // Verify deterministic: same inputs = same outputs
+        let info2 = get_day_info(10, 2, 2024);
+        let fortune2 = calculate_day_fortune(
+            info2.jd,
+            &info2.canchi.day,
+            info2.lunar.day,
+            info2.lunar.month,
+            &info2.canchi.year.can,
+            &info2.tiet_khi.name,
+        );
+
+        let ten_gods2 = fortune2.ten_gods.expect("ten_gods2 should be populated");
+        assert_eq!(ten_gods.to_self, ten_gods2.to_self);
+        assert_eq!(ten_gods.to_year_stem, ten_gods2.to_year_stem);
+    }
+
+    #[test]
+    fn kua_remains_none_for_date_only_requests() {
+        // Test 3: Date-only requests leave Kua field as None
+        let info = get_day_info(10, 2, 2024);
+        let fortune = calculate_day_fortune(
+            info.jd,
+            &info.canchi.day,
+            info.lunar.day,
+            info.lunar.month,
+            &info.canchi.year.can,
+            &info.tiet_khi.name,
+        );
+
+        // Kua should be None for date-only requests (no birth context provided)
+        assert!(
+            fortune.tu_menh.is_none(),
+            "Kua should be None when no birth context provided"
+        );
     }
 }
