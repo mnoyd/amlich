@@ -16,10 +16,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Golden Dataset and Loader** - Serialize reference tables into khcbppt-golden.json and build Rust loader [COMPLETE 2026-03-01]
 - [x] **Phase 3: Validator Harness and Divergence Inventory** - Write per-subsystem validators and surface all divergences [COMPLETE 2026-03-01]
 - [x] **Phase 4: Correction and Zero-Divergence Verification** - Fix all divergences in baseline.json and source constants [COMPLETE 2026-03-02]
-- [ ] **Phase v1.1: Foundation Extensions** - Add enhanced Xung Hợp, Tàng Can, and Tiết Khí helper functions [PLANNING 2026-03-02]
-- [ ] **Phase v1.1.1: Verification and Traceability Closure** - Add missing verification artifacts and reconcile milestone metadata after v1.1 execution [PLANNING 2026-03-02]
-- [ ] **Phase v1.1.2: Tiết Khí Regression Fix and Acceptance Gate** - Fix failing tietkhi tests and re-open v1.1 test-backed acceptance gate [PLANNING 2026-03-02]
-- [x] **Phase v1.2: Ten Gods and Kua Foundation** - Add Thập Thần, Tứ Mệnh, and integration surfaces after v1.1 [QUEUED 2026-03-02] (completed 2026-03-02)
+- [ ] **Phase v1.1: Foundation Extensions** - Add enhanced Xung Hợp, Tàng Can, and Tiết Khí helper functions [BLOCKED/PENDING ACCEPTANCE 2026-03-02]
+- [ ] **Phase v1.1.1: Verification and Traceability Closure** - Add missing verification artifacts and reconcile milestone metadata after v1.1 execution [IN PROGRESS 2026-03-02]
+- [ ] **Phase v1.1.2: Tiết Khí Regression Fix and Acceptance Gate** - Fix failing tietkhi tests and re-open v1.1 test-backed acceptance gate [REQUIRED ACCEPTANCE GATE 2026-03-02]
+- [ ] **Phase v1.2: Ten Gods and Kua Foundation** - Add Thập Thần, Tứ Mệnh, and integration surfaces after v1.1 [AT-RISK: DEPENDENCY-BLOCKED BY v1.1.2 2026-03-02]
 
 ## Phase Details
 
@@ -76,6 +76,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Goal**: Complete Xung Hợp relationship system, implement Tàng Can (Hidden Stems), and add Tiết Khí helper functions to provide foundational infrastructure for advanced features
 **Depends on**: v1.0 (all phases complete)
 **Requirements**: XH-01 through XH-08, TC-01 through TC-09, TK-01 through TK-06
+**Verification Authority**: `.planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md`
+**Current Status**: Blocked/pending acceptance — implementation artifacts exist but TK-01..TK-06 remain blocked until v1.1.2 restores a green full-package gate
 **Success Criteria** (what must be TRUE):
   1. All 6 Xung Hợp relationship types (Lục xung, Tam hợp, Tứ hành xung, Lục hợp, Tương hại, Tương hình) are implemented and tested
   2. Tàng Can subsystem is implemented with correct data for all 12 branches with strength values
@@ -84,15 +86,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. JSON serialization includes all new fields (`liu_he`, `xiang_hai`, `xiang_xing`, `tang_can`)
   6. All unit tests pass and v1.0 regression tests continue to pass
 **Plans**: 3 plans in Wave 1 (parallel execution)
-- [ ] v1.1-01-PLAN.md (Wave 1) — Enhanced Xung Hợp relationships (Lục hợp, Tương hại, Tương hình)
-- [ ] v1.1-02-PLAN.md (Wave 1) — Tàng Can (Hidden Stems) implementation
-- [ ] v1.1-03-PLAN.md (Wave 1) — Tiết Khí helper functions and public API
+- [x] v1.1-01-PLAN.md (Wave 1) — Enhanced Xung Hợp relationships (Lục hợp, Tương hại, Tương hình) [IMPLEMENTED 2026-03-02, ACCEPTANCE TRACKED IN v1.1-VERIFICATION.md]
+- [x] v1.1-02-PLAN.md (Wave 1) — Tàng Can (Hidden Stems) implementation [IMPLEMENTED 2026-03-02, ACCEPTANCE TRACKED IN v1.1-VERIFICATION.md]
+- [x] v1.1-03-PLAN.md (Wave 1) — Tiết Khí helper functions and public API [IMPLEMENTED 2026-03-02, TK ACCEPTANCE BLOCKED]
 
 ### Phase v1.1.1: Verification and Traceability Closure
 **Goal**: Restore milestone verifiability by adding missing phase verification artifacts and machine-readable traceability links for v1.1 requirements
 **Depends on**: Phase v1.1 implementation outputs (`v1.1-01..03-SUMMARY.md`)
 **Requirements**: XH-01..XH-08, TC-01..TC-09, TK-01..TK-06
 **Gap Closure:** Closes audit gaps for missing `VERIFICATION.md`, missing `requirements-completed` frontmatter, and roadmap/state completion mismatch
+**Verification Authority**: `.planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md`
 **Success Criteria** (what must be TRUE):
   1. Canonical `v1.1-VERIFICATION.md` exists with per-requirement implementation evidence and fresh test evidence for XH/TC/TK scopes
   2. `v1.1-01..03-SUMMARY.md` files include machine-readable `requirements-completed` frontmatter linked to the canonical verification artifact
@@ -108,10 +111,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Depends on**: Phase v1.1.1 (verification scaffolding in place)
 **Requirements**: TK-01..TK-06
 **Gap Closure:** Closes audit gaps for failing `cargo test --package amlich-core` tietkhi cases and v1.2 dependency gating
+**Current Status**: Required next gate — v1.1 remains blocked/pending until this phase is green
 
 ### Phase v1.2: Ten Gods and Kua Foundation
 **Goal**: Add advanced foundational calculations (Thập Thần and Tứ Mệnh) and integrate them into day-level/public outputs without breaking validated behavior
 **Depends on**: v1.1 (Foundation Extensions complete)
+**Dependency Risk Note**: At-risk/dependency-blocked while v1.1 TK acceptance gate is red (`v1.1-VERIFICATION.md` status: partial)
 **Requirements**: TT-01 through TT-05, TM-01 through TM-05, INT-01 through INT-06
 **Success Criteria** (what must be TRUE):
   1. Ten Gods engine computes deterministic day-stem-to-target-stem relationships and passes complete matrix tests
@@ -135,7 +140,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Golden Dataset and Loader | 2/2 | Complete | 2026-03-01 |
 | 3. Validator Harness and Divergence Inventory | 3/3 | Complete | 2026-03-01 |
 | 4. Correction and Zero-Divergence Verification | 1/1 | Complete | 2026-03-02 |
-| v1.1: Foundation Extensions | 0/3 | Planning | 2026-03-02 |
+| v1.1: Foundation Extensions | 3/3 | Blocked/Pending Acceptance (TK gate red) | 2026-03-02 |
 | v1.1.1: Verification and Traceability Closure | 2/3 | In Progress | 2026-03-02 |
-| v1.1.2: Tiết Khí Regression Fix and Acceptance Gate | 0/0 | Planning | - |
-| v1.2: Ten Gods and Kua Foundation | 0/3 | Queued | 2026-03-02 |
+| v1.1.2: Tiết Khí Regression Fix and Acceptance Gate | 0/1 | Required Gate (Pending) | - |
+| v1.2: Ten Gods and Kua Foundation | 0/3 | At Risk / Dependency-Blocked by v1.1.2 | 2026-03-02 |
