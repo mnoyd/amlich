@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Amlich Almanac Correctness Audit
-status: complete
-last_updated: "2026-03-02T12:00:00.000Z"
+milestone: v1.1
+milestone_name: Foundation Extensions
+status: unknown
+last_updated: "2026-03-02T06:05:16.908Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # Project State
@@ -58,6 +58,7 @@ Progress: [██████████] 100%
 - Overall: Efficient and predictable execution
 
 *Milestone v1.0 complete - no active planning*
+| Phase v1.2 P01 | 7 min | 4 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,9 @@ Recent decisions affecting current work:
 - [03-01]: JD epoch verification uses first 5 golden entries as anchors (self-consistent since golden was generated from get_day_info()); star rule sparsity 233/233 confirms contextual buckets empty
 - [03-01]: Taboo comparison is set-based (HashSet) not Vec-based — avoids false failures due to ordering differences between golden and impl
 - [03-03]: Phase 3 is purely inventory — 192 tests pass, all 7 validators operational, no source/data file changes
+- [Phase v1.2]: Reuse a shared HeavenlyStem enum with TryFrom<&str> for explicit invalid-input handling
+- [Phase v1.2]: Encode Ten Gods output as ThapThanResult with relation, polarity, and evidence metadata
+- [Phase v1.2]: Lock mapping correctness with explicit 10x10 expected-label matrix tests
 
 ### Pending Todos
 
@@ -106,7 +110,16 @@ None yet.
 
 Last session: 2026-03-02
 Stopped at: Milestone v1.0 complete — All 4 phases finished, 0 divergences confirmed, MILESTONES.md archived
-Next: Ready for new milestone planning or release
+Next: Execute v1.1 Foundation Extensions; v1.2 Ten Gods and Kua Foundation queued
+
+## Milestone Queue
+
+- **Current execution target:** v1.1 Foundation Extensions (already planned in ROADMAP.md)
+- **Next milestone queued:** v1.2 Ten Gods and Kua Foundation
+  - Scope confirmed: Thập Thần engine, Tứ Mệnh calculations, DayFortune/API/test integration
+  - Explicit defer: Đại Vận to v1.3
+  - Requirements file: `.planning/REQUIREMENTS-v1.2.md`
+  - Roadmap entry: `Phase v1.2` in `.planning/ROADMAP.md`
 
 **Verification Commands:**
 ```bash

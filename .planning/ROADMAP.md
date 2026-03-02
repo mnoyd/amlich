@@ -17,6 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Validator Harness and Divergence Inventory** - Write per-subsystem validators and surface all divergences [COMPLETE 2026-03-01]
 - [x] **Phase 4: Correction and Zero-Divergence Verification** - Fix all divergences in baseline.json and source constants [COMPLETE 2026-03-02]
 - [ ] **Phase v1.1: Foundation Extensions** - Add enhanced Xung Hợp, Tàng Can, and Tiết Khí helper functions [PLANNING 2026-03-02]
+- [x] **Phase v1.2: Ten Gods and Kua Foundation** - Add Thập Thần, Tứ Mệnh, and integration surfaces after v1.1 [QUEUED 2026-03-02] (completed 2026-03-02)
 
 ## Phase Details
 
@@ -85,6 +86,21 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] v1.1-02-PLAN.md (Wave 1) — Tàng Can (Hidden Stems) implementation
 - [ ] v1.1-03-PLAN.md (Wave 1) — Tiết Khí helper functions and public API
 
+### Phase v1.2: Ten Gods and Kua Foundation
+**Goal**: Add advanced foundational calculations (Thập Thần and Tứ Mệnh) and integrate them into day-level/public outputs without breaking validated behavior
+**Depends on**: v1.1 (Foundation Extensions complete)
+**Requirements**: TT-01 through TT-05, TM-01 through TM-05, INT-01 through INT-06
+**Success Criteria** (what must be TRUE):
+  1. Ten Gods engine computes deterministic day-stem-to-target-stem relationships and passes complete matrix tests
+  2. Tứ Mệnh/Kua calculations produce typed outputs with documented conventions and representative-year coverage
+  3. DayFortune/public API/JSON surfaces include new fields in backward-compatible form
+  4. Full regression suite passes, including all KHCBPPT correctness validators from v1.0
+  5. Đại Vận remains explicitly deferred and unimplemented in this phase
+**Plans**: 3 plans in Wave 1 (parallel where safe)
+- [ ] v1.2-01-PLAN.md (Wave 1) — Thập Thần engine and matrix validation (TT-01..TT-05)
+- [ ] v1.2-02-PLAN.md (Wave 1) — Tứ Mệnh/Kua calculation module and fixtures (TM-01..TM-05)
+- [ ] v1.2-03-PLAN.md (Wave 1) — DayFortune/API integration, serialization, and regressions (INT-01..INT-06)
+
 ## Progress
 
 **Execution Order:**
@@ -97,3 +113,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 3. Validator Harness and Divergence Inventory | 3/3 | Complete | 2026-03-01 |
 | 4. Correction and Zero-Divergence Verification | 1/1 | Complete | 2026-03-02 |
 | v1.1: Foundation Extensions | 0/3 | Planning | 2026-03-02 |
+| v1.2: Ten Gods and Kua Foundation | 0/3 | Queued | 2026-03-02 |
