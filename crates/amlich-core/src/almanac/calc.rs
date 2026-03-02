@@ -119,6 +119,8 @@ pub fn calculate_day_fortune(
             truc
         },
         tang_can: Some(get_tang_can(&day_canchi.chi)),
+        ten_gods: None,
+        tu_menh: None,
     }
 }
 
