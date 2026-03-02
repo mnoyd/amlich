@@ -60,4 +60,63 @@ mod tests {
             );
         }
     }
+
+    mod mapping {
+        use super::*;
+
+        #[test]
+        fn same_element_same_polarity_maps_to_ty_kien() {
+            let result = get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Giap);
+            assert_eq!(result.label, ThapThanLabel::TyKien);
+            assert_eq!(result.relation, FiveElementRelation::Same);
+            assert!(result.same_polarity);
+        }
+
+        #[test]
+        fn same_element_opposite_polarity_maps_to_kiep_tai() {
+            let result = get_thap_than(HeavenlyStem::Giap, HeavenlyStem::At);
+            assert_eq!(result.label, ThapThanLabel::KiepTai);
+            assert_eq!(result.relation, FiveElementRelation::Same);
+            assert!(!result.same_polarity);
+        }
+
+        #[test]
+        fn five_element_relationships_map_correctly_by_polarity() {
+            assert_eq!(
+                get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Binh).label,
+                ThapThanLabel::ThucThan
+            );
+            assert_eq!(
+                get_thap_than(HeavenlyStem::At, HeavenlyStem::Binh).label,
+                ThapThanLabel::ThuongQuan
+            );
+
+            assert_eq!(
+                get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Mau).label,
+                ThapThanLabel::ThienTai
+            );
+            assert_eq!(
+                get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Ky).label,
+                ThapThanLabel::ChinhTai
+            );
+
+            assert_eq!(
+                get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Canh).label,
+                ThapThanLabel::ThatSat
+            );
+            assert_eq!(
+                get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Tan).label,
+                ThapThanLabel::ChinhQuan
+            );
+
+            assert_eq!(
+                get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Nham).label,
+                ThapThanLabel::ThienAn
+            );
+            assert_eq!(
+                get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Quy).label,
+                ThapThanLabel::ChinhAn
+            );
+        }
+    }
 }
