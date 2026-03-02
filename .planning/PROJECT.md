@@ -17,6 +17,15 @@ Canonical status and acceptance evidence are archived in milestone artifacts:
 
 Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020-2030 date range, with test-backed and traceable evidence.
 
+## Current Milestone: v1.2 Ten Gods and Kua Foundation
+
+**Goal:** Add deterministic Ten Gods and Tu Menh foundations, then integrate them into day-level outputs without regressing KHCBPPT correctness guarantees.
+
+**Target features:**
+- Deterministic Thap Than mapping engine with full matrix validation.
+- Typed Tu Menh/Kua calculations with representative fixture coverage.
+- DayFortune/API/serialization integration for new outputs with backward compatibility.
+
 ## Next Milestone Goals
 
 Current target is `v1.2` (Ten Gods and Kua Foundation):
@@ -43,4 +52,4 @@ Current target is `v1.2` (Ten Gods and Kua Foundation):
 </details>
 
 ---
-*Last updated: 2026-03-02 after v1.1 milestone completion*
+*Last updated: 2026-03-02 after v1.2 milestone initialization*
