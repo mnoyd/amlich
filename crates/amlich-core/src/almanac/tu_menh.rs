@@ -535,3 +535,341 @@ mod compute_tests {
         )
     }
 }
+
+// Task 3 tests - RED phase
+#[cfg(test)]
+mod direction_tests {
+    use super::*;
+
+    #[test]
+    fn east_group_has_correct_favorable_directions() {
+        // East group favorable: North, South, East, Southeast
+        let east_kua_years = [(1978, Gender::Male), (2024, Gender::Female)];
+
+        for (year, gender) in east_kua_years {
+            let result = compute_kua(year, gender);
+            assert_eq!(result.group, KuaGroup::East);
+
+            let expected_favorable = [
+                Direction::North,
+                Direction::South,
+                Direction::East,
+                Direction::Southeast,
+            ];
+
+            for (i, expected) in expected_favorable.iter().enumerate() {
+                assert_eq!(
+                    &result.favorable_directions[i], expected,
+                    "East group direction {} should be {:?}",
+                    i, expected
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn east_group_has_correct_unfavorable_directions() {
+        // East group unfavorable: Northwest, Southwest, West, Northeast
+        let east_kua_years = [(1978, Gender::Male), (2024, Gender::Female)];
+
+        for (year, gender) in east_kua_years {
+            let result = compute_kua(year, gender);
+            assert_eq!(result.group, KuaGroup::East);
+
+            let expected_unfavorable = [
+                Direction::Northwest,
+                Direction::Southwest,
+                Direction::West,
+                Direction::Northeast,
+            ];
+
+            for (i, expected) in expected_unfavorable.iter().enumerate() {
+                assert_eq!(
+                    &result.unfavorable_directions[i], expected,
+                    "East group unfavorable direction {} should be {:?}",
+                    i, expected
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn west_group_has_correct_favorable_directions() {
+        // West group favorable: Northwest, Southwest, West, Northeast
+        let west_kua_years = [(1990, Gender::Female), (1985, Gender::Male)];
+
+        for (year, gender) in west_kua_years {
+            let result = compute_kua(year, gender);
+            assert_eq!(result.group, KuaGroup::West);
+
+            let expected_favorable = [
+                Direction::Northwest,
+                Direction::Southwest,
+                Direction::West,
+                Direction::Northeast,
+            ];
+
+            for (i, expected) in expected_favorable.iter().enumerate() {
+                assert_eq!(
+                    &result.favorable_directions[i], expected,
+                    "West group direction {} should be {:?}",
+                    i, expected
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn west_group_has_correct_unfavorable_directions() {
+        // West group unfavorable: North, South, East, Southeast
+        let west_kua_years = [(1990, Gender::Female), (1985, Gender::Male)];
+
+        for (year, gender) in west_kua_years {
+            let result = compute_kua(year, gender);
+            assert_eq!(result.group, KuaGroup::West);
+
+            let expected_unfavorable = [
+                Direction::North,
+                Direction::South,
+                Direction::East,
+                Direction::Southeast,
+            ];
+
+            for (i, expected) in expected_unfavorable.iter().enumerate() {
+                assert_eq!(
+                    &result.unfavorable_directions[i], expected,
+                    "West group unfavorable direction {} should be {:?}",
+                    i, expected
+                );
+            }
+        }
+    }
+}
+
+// Task 3 fixture tests - RED phase
+#[cfg(test)]
+mod fixture_tests {
+    use super::*;
+
+    /// Fixture test data for Kua calculations
+    /// Covers representative years from 1900-2099 with edge cases
+    #[derive(Debug, Clone)]
+    struct KuaFixture {
+        year: i32,
+        gender: Gender,
+        expected_kua: u8,
+        expected_group: KuaGroup,
+    }
+
+    #[test]
+    fn representative_years_1900_2099() {
+        let fixtures = vec![
+            // Year boundary cases
+            KuaFixture {
+                year: 1899,
+                gender: Gender::Male,
+                expected_kua: 1,
+                expected_group: KuaGroup::East,
+            },
+            KuaFixture {
+                year: 1899,
+                gender: Gender::Female,
+                expected_kua: 2,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 1900,
+                gender: Gender::Male,
+                expected_kua: 9,
+                expected_group: KuaGroup::East,
+            },
+            KuaFixture {
+                year: 1900,
+                gender: Gender::Female,
+                expected_kua: 6,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 2099,
+                gender: Gender::Male,
+                expected_kua: 7,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 2099,
+                gender: Gender::Female,
+                expected_kua: 7,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 2100,
+                gender: Gender::Male,
+                expected_kua: 6,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 2100,
+                gender: Gender::Female,
+                expected_kua: 8,
+                expected_group: KuaGroup::West,
+            },
+            // Kua 5 years (before resolution)
+            KuaFixture {
+                year: 1994,
+                gender: Gender::Male,
+                expected_kua: 8,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 1994,
+                gender: Gender::Female,
+                expected_kua: 1,
+                expected_group: KuaGroup::East,
+            },
+            KuaFixture {
+                year: 2002,
+                gender: Gender::Male,
+                expected_kua: 8,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 2002,
+                gender: Gender::Female,
+                expected_kua: 9,
+                expected_group: KuaGroup::East,
+            },
+            // Full Kua range coverage
+            // Kua 1 (East)
+            KuaFixture {
+                year: 1994,
+                gender: Gender::Female,
+                expected_kua: 1,
+                expected_group: KuaGroup::East,
+            },
+            // Kua 2 (West)
+            KuaFixture {
+                year: 1899,
+                gender: Gender::Female,
+                expected_kua: 2,
+                expected_group: KuaGroup::West,
+            },
+            // Kua 3 (East)
+            KuaFixture {
+                year: 1978,
+                gender: Gender::Male,
+                expected_kua: 3,
+                expected_group: KuaGroup::East,
+            },
+            // Kua 4 (East)
+            KuaFixture {
+                year: 1995,
+                gender: Gender::Male,
+                expected_kua: 4,
+                expected_group: KuaGroup::East,
+            },
+            // Kua 6 (West)
+            KuaFixture {
+                year: 1993,
+                gender: Gender::Male,
+                expected_kua: 6,
+                expected_group: KuaGroup::West,
+            },
+            // Kua 7 (West)
+            KuaFixture {
+                year: 2099,
+                gender: Gender::Male,
+                expected_kua: 7,
+                expected_group: KuaGroup::West,
+            },
+            // Kua 8 (West)
+            KuaFixture {
+                year: 1985,
+                gender: Gender::Male,
+                expected_kua: 8,
+                expected_group: KuaGroup::West,
+            },
+            // Kua 9 (East)
+            KuaFixture {
+                year: 1900,
+                gender: Gender::Male,
+                expected_kua: 9,
+                expected_group: KuaGroup::East,
+            },
+            // Additional representative cases
+            KuaFixture {
+                year: 1950,
+                gender: Gender::Male,
+                expected_kua: 4,
+                expected_group: KuaGroup::East,
+            },
+            KuaFixture {
+                year: 1950,
+                gender: Gender::Female,
+                expected_kua: 2,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 1975,
+                gender: Gender::Male,
+                expected_kua: 6,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 1975,
+                gender: Gender::Female,
+                expected_kua: 9,
+                expected_group: KuaGroup::East,
+            },
+            KuaFixture {
+                year: 2000,
+                gender: Gender::Male,
+                expected_kua: 7,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 2000,
+                gender: Gender::Female,
+                expected_kua: 7,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 2020,
+                gender: Gender::Male,
+                expected_kua: 8,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 2020,
+                gender: Gender::Female,
+                expected_kua: 9,
+                expected_group: KuaGroup::East,
+            },
+            KuaFixture {
+                year: 2050,
+                gender: Gender::Male,
+                expected_kua: 2,
+                expected_group: KuaGroup::West,
+            },
+            KuaFixture {
+                year: 2050,
+                gender: Gender::Female,
+                expected_kua: 3,
+                expected_group: KuaGroup::East,
+            },
+        ];
+
+        for fixture in fixtures {
+            let result = compute_kua(fixture.year, fixture.gender);
+            assert_eq!(
+                result.kua, fixture.expected_kua,
+                "Year {} {:?}: expected Kua {}, got {}",
+                fixture.year, fixture.gender, fixture.expected_kua, result.kua
+            );
+            assert_eq!(
+                result.group, fixture.expected_group,
+                "Year {} {:?}: expected group {:?}, got {:?}",
+                fixture.year, fixture.gender, fixture.expected_group, result.group
+            );
+        }
+    }
+}
