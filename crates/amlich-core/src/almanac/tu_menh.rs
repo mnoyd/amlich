@@ -175,7 +175,8 @@ impl KuaResult {
 /// use amlich_core::almanac::tu_menh::{compute_kua, Gender};
 ///
 /// let result = compute_kua(1990, Gender::Male);
-/// assert_eq!(result.kua, 4);  // Kua 4
+/// assert_eq!(result.kua, 9);  // Kua 9, East group
+/// assert_eq!(result.group, amlich_core::almanac::tu_menh::KuaGroup::East);
 /// ```
 pub fn compute_kua(birth_year: i32, gender: Gender) -> KuaResult {
     let convention = ConventionMetadata::project_default();
