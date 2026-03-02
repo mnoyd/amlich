@@ -105,22 +105,13 @@ Deferred to future audit cycle.
 | TAB-02 | Phase 3 | Complete (03-03) |
 | TAB-03 | Phase 3 | Complete (03-03) |
 | TAB-04 | Phase 3 | Complete (03-03) |
-| TAB-05 | Phase 4 | Pending |
-| DEI-01 | Phase 3 | Complete (03-02) |
-| DEI-02 | Phase 3 | Complete (03-02) |
-| DEI-03 | Phase 4 | Pending |
-| TRC-01 | Phase 3 | Complete (03-02) |
-| TRC-02 | Phase 4 | Pending |
-| STR-01 | Phase 3 | Complete (03-03) |
-| STR-02 | Phase 3 | Complete (03-03) |
-| STR-03 | Phase 3 | Complete (03-03) |
-| STR-04 | Phase 4 | Pending |
-| THH-01 | Phase 3 | Complete (03-03) |
-| THH-02 | Phase 4 | Pending |
-| XH-01 | Phase 3 | Complete (03-02) |
-| XH-02 | Phase 4 | Pending |
-| NAM-01 | Phase 3 | Complete (03-03) |
-| NAM-02 | Phase 4 | Pending |
+| TAB-05 | Phase 4 | Complete (04-01) |
+| DEI-03 | Phase 4 | Complete (04-01) |
+| TRC-02 | Phase 4 | Complete (04-01) |
+| STR-04 | Phase 4 | Complete (04-01) |
+| THH-02 | Phase 4 | Complete (04-01) |
+| XH-02 | Phase 4 | Complete (04-01) |
+| NAM-02 | Phase 4 | Complete (04-01) |
 
 **Coverage:**
 - v1 requirements: 27 total
@@ -129,4 +120,4 @@ Deferred to future audit cycle.
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-03-01 after 03-03 completion (Phase 3 complete)*
+*Last updated: 2026-03-02 after 04-01 completion (Phase 4 complete)*

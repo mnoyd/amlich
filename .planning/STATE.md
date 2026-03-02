@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-01T16:18:39.527Z"
+last_updated: "2026-03-02T04:00:00.000Z"
 progress:
-  total_phases: 3
+  total_phases: 4
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State
@@ -18,23 +18,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020–2030 date range
-**Current focus:** Phase 3 COMPLETE — Validator Harness and Divergence Inventory
+**Current focus:** Phase 4 COMPLETE — Correction and Zero-Divergence Verification
 
 ## Current Position
 
-Phase: 3 of 4 (Validator Harness and Divergence Inventory) — COMPLETE
-Plan: 3 of 3 in current phase — 03-01 COMPLETE; 03-02 COMPLETE; 03-03 COMPLETE
-Status: Phase 3 complete — all 7 khcbppt_*.rs validators operational, 192 tests pass with 0 divergences
-Last activity: 2026-03-01 — Plan 03-03 complete (than huong, na am, plus stars and taboos auto-fixed)
+Phase: 4 of 4 (Correction and Zero-Divergence Verification) — COMPLETE
+Plan: 1 of 1 in current phase — 04-01 COMPLETE
+Status: Phase 4 complete — all 7 KHCBPPT validators pass with 0 divergences; all regression tests pass
+Last activity: 2026-03-02 — Plan 04-01 complete (verified KHCBPPT alignment, updated star_meta.source_id)
 
-Progress: [█████████░] 87%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7 (01-01, 01-02, 02-01, 02-02, 03-01, 03-02, 03-03 all COMPLETE)
-- Average duration: ~11 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min, 02-02: ~2 min, 03-01: ~2 min, 03-02: ~2 min, 03-03: ~12 min)
-- Total execution time: ~1 hour 22 min
+- Total plans completed: 8 (01-01, 01-02, 02-01, 02-02, 03-01, 03-02, 03-03, 04-01 all COMPLETE)
+- Average duration: ~10 min (01-01: ~45 min, 01-02: ~14 min, 02-01: ~4 min, 02-02: ~2 min, 03-01: ~2 min, 03-02: ~2 min, 03-03: ~12 min, 04-01: ~10 min)
+- Total execution time: ~1 hour 32 min
 
 **By Phase:**
 
@@ -43,9 +43,10 @@ Progress: [█████████░] 87%
 | 01-source-establishment | 2 complete | ~60 min | ~30 min |
 | 02-golden-dataset-and-loader | 2 complete | ~6 min | ~3 min |
 | 03-validator-harness-and-divergence-inventory | 3 of 3 complete | ~16 min | ~5 min |
+| 04-correction-and-zero-divergence-verification | 1 of 1 complete | ~10 min | ~10 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (~4 min), 02-02 (~2 min), 03-01 (~2 min), 03-02 (~2 min), 03-03 (~12 min)
+- Last 5 plans: 02-01 (~4 min), 02-02 (~2 min), 03-01 (~2 min), 03-02 (~2 min), 03-03 (~12 min), 04-01 (~10 min)
 - Trend: Stable fast — well-specified validator tasks execute in ~2-12 min each
 
 *Updated after each plan completion*
@@ -55,6 +56,8 @@ Progress: [█████████░] 87%
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting current work:
+- [04-01]: All KHCBPPT subsystems verified — no data corrections needed; only star_meta.source_id metadata update applied
 Recent decisions affecting current work:
 
 - [Pre-phase]: KHCBPPT as sole reference — RESOLVED: ctext.org 四庫全書 primary edition identified
@@ -92,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: Completed 03-01-PLAN.md — Created 03-01-SUMMARY.md (stars and taboo validators); Phase 3 complete
-Resume file: Phase 4 — Correction and Zero-Divergence Verification (when planned)
+Last session: 2026-03-02
+Stopped at: Completed 04-01-PLAN.md — Created 04-01-SUMMARY.md (correction and zero-divergence verification); Phase 4 complete
+Resume file: Next phase (when planned)
