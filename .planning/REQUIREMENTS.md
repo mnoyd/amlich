@@ -53,24 +53,24 @@ Deferred to later milestones.
 
 ## Traceability
 
-| Requirement | Phase | Status |
-|-------------|-------|--------|
-| TT-01 | Phase v1.2 | Pending |
-| TT-02 | Phase v1.2 | Pending |
-| TT-03 | Phase v1.2 | Pending |
-| TT-04 | Phase v1.2 | Pending |
-| TT-05 | Phase v1.2 | Pending |
-| TM-01 | Phase v1.2.1 | Pending |
-| TM-02 | Phase v1.2.1 | Pending |
-| TM-03 | Phase v1.2.1 | Pending |
-| TM-04 | Phase v1.2.1 | Pending |
-| TM-05 | Phase v1.2.1 | Pending |
-| INT-01 | Phase v1.2.2 | Pending |
-| INT-02 | Phase v1.2.2 | Pending |
-| INT-03 | Phase v1.2.2 | Pending |
-| INT-04 | Phase v1.2.2 | Pending |
-| INT-05 | Phase v1.2.2 | Pending |
-| INT-06 | Phase v1.2.2 | Pending |
+| Requirement | Plan | Status |
+|-------------|------|--------|
+| TT-01 | v1.2-01 | Complete |
+| TT-02 | v1.2-01 | Complete |
+| TT-03 | v1.2-01 | Complete |
+| TT-04 | v1.2-01 | Complete |
+| TT-05 | v1.2-01 | Complete |
+| TM-01 | v1.2-02 | Planned |
+| TM-02 | v1.2-02 | Planned |
+| TM-03 | v1.2-02 | Planned |
+| TM-04 | v1.2-02 | Planned |
+| TM-05 | v1.2-02 | Planned |
+| INT-01 | v1.2-03 | Planned |
+| INT-02 | v1.2-03 | Planned |
+| INT-03 | v1.2-03 | Planned |
+| INT-04 | v1.2-03 | Planned |
+| INT-05 | v1.2-03 | Planned |
+| INT-06 | v1.2-03 | Planned |
 
 **Coverage:**
 - v1 requirements: 16 total

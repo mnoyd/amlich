@@ -9,31 +9,31 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 
 ## Current Position
 
-Phase: v1.2 of 3 (Ten Gods Deterministic Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-02 — v1.2 roadmap created with full requirement traceability
+Phase: v1.2-ten-gods-and-kua-foundation (Ten Gods and Kua Foundation)
+Plan: 0 of 3 in current phase
+Status: Plans created, ready to execute
+Last activity: 2026-03-02 — v1.2 phase plans completed (v1.2-01 already executed, v1.2-02 and v1.2-03 created)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (for milestone v1.2)
-- Average duration: -
-- Total execution time: -
+- Total plans completed: 1 (for milestone v1.2)
+- Average duration: 7 min
+- Total execution time: 7 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| v1.2 | 0/TBD | - | - |
+| v1.2 | 1/3 | 7 min | 7 min |
 | v1.2.1 | 0/TBD | - | - |
 | v1.2.2 | 0/TBD | - | - |
 
 **Recent Trend:**
-- Last 5 plans: -
-- Trend: Stable (execution not started)
+- Last 5 plans: v1.2-01 (7 min)
+- Trend: Normal (good velocity for foundation work)
 
 ## Accumulated Context
 
@@ -48,15 +48,20 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- Execute v1.2-02 (Tu Menh/Kua calculator and fixture coverage)
+- Execute v1.2-03 (DayFortune/API integration with backward compatibility)
+- Verify full regression gate passes after v1.2-03 completion
 
 ### Blockers/Concerns
 
-- Kua convention ambiguity remains a planning risk until explicitly frozen in implementation plans.
-- Person-context input requirements for Kua exposure must stay explicit to avoid partial-field confusion.
+None active.
+
+**Previously addressed:**
+- Kua convention ambiguity: Planned to be frozen in v1.2-02 with explicit documentation and fixture coverage.
+- Person-context input requirements: Planned to be handled via optional Kua field (populates only when birth context provided) in v1.2-03.
 
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed v1.2 roadmap + requirements traceability mapping.
-Resume file: None
+Stopped at: Phase v1.2 planning complete (3 plans created: v1.2-01 complete, v1.2-02 and v1.2-03 ready to execute).
+Resume file: Ready to execute v1.2-02 (Tu Menh/Kua calculator)

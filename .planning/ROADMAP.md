@@ -32,7 +32,10 @@ Milestone v1.2 delivers deterministic Ten Gods and Tu Menh/Kua foundations, then
   3. User can inspect rule-evidence metadata attached to Ten Gods results for auditability.
   4. User can trust correctness because all 10x10 stem combinations are validated and pass.
   5. User can consume Ten Gods JSON fields with stable, backward-compatible names.
-**Plans**: TBD
+**Plans**: 3
+- [x] v1.2-01-PLAN.md — Ten Gods foundation engine and matrix tests (Complete)
+- [ ] v1.2-02-PLAN.md — Tu Menh/Kua calculator and fixture coverage
+- [ ] v1.2-03-PLAN.md — DayFortune/API integration with backward compatibility
 
 ### Phase v1.2.1: Tu Menh/Kua Deterministic Foundation
 **Goal**: Users can compute and interpret Tu Menh/Kua deterministically under one explicit project convention.
@@ -61,6 +64,6 @@ Milestone v1.2 delivers deterministic Ten Gods and Tu Menh/Kua foundations, then
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| v1.2 Ten Gods Deterministic Foundation | 0/TBD | Not started | - |
+| v1.2 Ten Gods Deterministic Foundation | 1/3 | In progress | 2026-03-02 |
 | v1.2.1 Tu Menh/Kua Deterministic Foundation | 0/TBD | Not started | - |
 | v1.2.2 Additive Integration and Compatibility Gate | 0/TBD | Not started | - |
