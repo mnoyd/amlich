@@ -1,19 +1,79 @@
 use crate::almanac::types::{
-    FiveElementRelation, HeavenlyStem, RuleEvidence, ThapThanLabel, ThapThanResult,
+    FiveElement, FiveElementRelation, HeavenlyStem, RuleEvidence, ThapThanLabel, ThapThanResult,
 };
 
 pub fn get_thap_than(day_can: HeavenlyStem, target_can: HeavenlyStem) -> ThapThanResult {
-    let _ = (day_can, target_can);
+    let relation = relation_between(day_can, target_can);
+    let same_polarity = day_can.polarity() == target_can.polarity();
+    let label = map_label(relation, same_polarity);
 
     ThapThanResult {
-        label: ThapThanLabel::TyKien,
-        relation: FiveElementRelation::Same,
-        same_polarity: true,
+        label,
+        relation,
+        same_polarity,
         evidence: RuleEvidence {
             source_id: "khcbppt".to_string(),
-            method: "table-lookup".to_string(),
+            method: "five-element-polarity-matrix".to_string(),
             profile: "baseline".to_string(),
         },
+    }
+}
+
+fn relation_between(day_can: HeavenlyStem, target_can: HeavenlyStem) -> FiveElementRelation {
+    let day_element = day_can.element();
+    let target_element = target_can.element();
+
+    if day_element == target_element {
+        return FiveElementRelation::Same;
+    }
+
+    if generates(day_element) == target_element {
+        return FiveElementRelation::DayGeneratesTarget;
+    }
+
+    if generates(target_element) == day_element {
+        return FiveElementRelation::TargetGeneratesDay;
+    }
+
+    if controls(day_element) == target_element {
+        return FiveElementRelation::DayControlsTarget;
+    }
+
+    FiveElementRelation::TargetControlsDay
+}
+
+fn generates(element: FiveElement) -> FiveElement {
+    match element {
+        FiveElement::Moc => FiveElement::Hoa,
+        FiveElement::Hoa => FiveElement::Tho,
+        FiveElement::Tho => FiveElement::Kim,
+        FiveElement::Kim => FiveElement::Thuy,
+        FiveElement::Thuy => FiveElement::Moc,
+    }
+}
+
+fn controls(element: FiveElement) -> FiveElement {
+    match element {
+        FiveElement::Moc => FiveElement::Tho,
+        FiveElement::Hoa => FiveElement::Kim,
+        FiveElement::Tho => FiveElement::Thuy,
+        FiveElement::Kim => FiveElement::Moc,
+        FiveElement::Thuy => FiveElement::Hoa,
+    }
+}
+
+fn map_label(relation: FiveElementRelation, same_polarity: bool) -> ThapThanLabel {
+    match (relation, same_polarity) {
+        (FiveElementRelation::Same, true) => ThapThanLabel::TyKien,
+        (FiveElementRelation::Same, false) => ThapThanLabel::KiepTai,
+        (FiveElementRelation::DayGeneratesTarget, true) => ThapThanLabel::ThucThan,
+        (FiveElementRelation::DayGeneratesTarget, false) => ThapThanLabel::ThuongQuan,
+        (FiveElementRelation::DayControlsTarget, true) => ThapThanLabel::ThienTai,
+        (FiveElementRelation::DayControlsTarget, false) => ThapThanLabel::ChinhTai,
+        (FiveElementRelation::TargetControlsDay, true) => ThapThanLabel::ThatSat,
+        (FiveElementRelation::TargetControlsDay, false) => ThapThanLabel::ChinhQuan,
+        (FiveElementRelation::TargetGeneratesDay, true) => ThapThanLabel::ThienAn,
+        (FiveElementRelation::TargetGeneratesDay, false) => ThapThanLabel::ChinhAn,
     }
 }
 
