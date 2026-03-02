@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 KHCBPPT Alignment Complete** - archived in `.planning/MILESTONES.md`
 - ✅ **v1.1 Foundation Extensions** - shipped 2026-03-02 (9/9 plans)
-- 🚧 **v1.2 Ten Gods and Kua Foundation** - in planning
+- ✅ **v1.2 Ten Gods and Kua Foundation** - shipped 2026-03-02 (3/3 plans)
 
 ## Overview
 
@@ -34,8 +34,8 @@ Milestone v1.2 delivers deterministic Ten Gods and Tu Menh/Kua foundations, then
   5. User can consume Ten Gods JSON fields with stable, backward-compatible names.
 **Plans**: 3
 - [x] v1.2-01-PLAN.md — Ten Gods foundation engine and matrix tests (Complete)
-- [ ] v1.2-02-PLAN.md — Tu Menh/Kua calculator and fixture coverage
-- [ ] v1.2-03-PLAN.md — DayFortune/API integration with backward compatibility
+- [x] v1.2-02-PLAN.md — Tu Menh/Kua calculator and fixture coverage (Complete)
+- [x] v1.2-03-PLAN.md — DayFortune/API integration with backward compatibility (Complete)
 
 ### Phase v1.2.1: Tu Menh/Kua Deterministic Foundation
 **Goal**: Users can compute and interpret Tu Menh/Kua deterministically under one explicit project convention.
@@ -64,6 +64,6 @@ Milestone v1.2 delivers deterministic Ten Gods and Tu Menh/Kua foundations, then
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| v1.2 Ten Gods Deterministic Foundation | 1/3 | In progress | 2026-03-02 |
+| v1.2 Ten Gods Deterministic Foundation | 3/3 | Complete | 2026-03-02 |
 | v1.2.1 Tu Menh/Kua Deterministic Foundation | 0/TBD | Not started | - |
 | v1.2.2 Additive Integration and Compatibility Gate | 0/TBD | Not started | - |

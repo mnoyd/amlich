@@ -64,12 +64,12 @@
 | TM-03 | v1.2-P2 | Complete (v1.2-02) |
 | TM-04 | v1.2-P2 | Complete (v1.2-02) |
 | TM-05 | v1.2-P2 | Complete (v1.2-02) |
-| INT-01 | v1.2-P3 | Pending |
-| INT-02 | v1.2-P3 | Pending |
-| INT-03 | v1.2-P3 | Pending |
-| INT-04 | v1.2-P3 | Pending |
-| INT-05 | v1.2-P3 | Pending |
-| INT-06 | v1.2-P3 | Pending |
+| INT-01 | v1.2-P3 | Complete (v1.2-03) |
+| INT-02 | v1.2-P3 | Complete (v1.2-03) |
+| INT-03 | v1.2-P3 | Complete (v1.2-03) |
+| INT-04 | v1.2-P3 | Complete (v1.2-03) |
+| INT-05 | v1.2-P3 | Complete (v1.2-03) |
+| INT-06 | v1.2-P3 | Complete (v1.2-03) |
 
 **Coverage:**
 - v1.2 requirements: 16 total
