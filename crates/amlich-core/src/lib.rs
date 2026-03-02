@@ -20,6 +20,8 @@ pub mod tietkhi;
 pub mod types;
 
 // Re-export main types
+pub use crate::almanac::thap_than::get_thap_than;
+pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
 pub use types::*;
 
 use crate::almanac::calc::calculate_day_fortune;
