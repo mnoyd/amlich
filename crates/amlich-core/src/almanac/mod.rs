@@ -8,6 +8,7 @@ pub mod taboo;
 pub mod tang_can;
 pub mod than_huong;
 pub mod than_sat;
+pub mod thap_than;
 pub mod truc;
 pub mod types;
 pub mod xung_hop;

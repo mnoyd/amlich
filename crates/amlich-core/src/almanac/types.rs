@@ -1,5 +1,122 @@
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FiveElement {
+    Moc,
+    Hoa,
+    Tho,
+    Kim,
+    Thuy,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Polarity {
+    Duong,
+    Am,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HeavenlyStem {
+    Giap,
+    At,
+    Binh,
+    Dinh,
+    Mau,
+    Ky,
+    Canh,
+    Tan,
+    Nham,
+    Quy,
+}
+
+impl HeavenlyStem {
+    pub const ALL: [HeavenlyStem; 10] = [
+        HeavenlyStem::Giap,
+        HeavenlyStem::At,
+        HeavenlyStem::Binh,
+        HeavenlyStem::Dinh,
+        HeavenlyStem::Mau,
+        HeavenlyStem::Ky,
+        HeavenlyStem::Canh,
+        HeavenlyStem::Tan,
+        HeavenlyStem::Nham,
+        HeavenlyStem::Quy,
+    ];
+
+    pub fn element(self) -> FiveElement {
+        match self {
+            HeavenlyStem::Giap | HeavenlyStem::At => FiveElement::Moc,
+            HeavenlyStem::Binh | HeavenlyStem::Dinh => FiveElement::Hoa,
+            HeavenlyStem::Mau | HeavenlyStem::Ky => FiveElement::Tho,
+            HeavenlyStem::Canh | HeavenlyStem::Tan => FiveElement::Kim,
+            HeavenlyStem::Nham | HeavenlyStem::Quy => FiveElement::Thuy,
+        }
+    }
+
+    pub fn polarity(self) -> Polarity {
+        match self {
+            HeavenlyStem::Giap
+            | HeavenlyStem::Binh
+            | HeavenlyStem::Mau
+            | HeavenlyStem::Canh
+            | HeavenlyStem::Nham => Polarity::Duong,
+            HeavenlyStem::At
+            | HeavenlyStem::Dinh
+            | HeavenlyStem::Ky
+            | HeavenlyStem::Tan
+            | HeavenlyStem::Quy => Polarity::Am,
+        }
+    }
+}
+
+impl TryFrom<&str> for HeavenlyStem {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        match value.trim().to_lowercase().as_str() {
+            "giáp" | "giap" => Ok(HeavenlyStem::Giap),
+            "ất" | "at" => Ok(HeavenlyStem::At),
+            "bính" | "binh" => Ok(HeavenlyStem::Binh),
+            "đinh" | "dinh" => Ok(HeavenlyStem::Dinh),
+            "mậu" | "mau" => Ok(HeavenlyStem::Mau),
+            "kỷ" | "ky" => Ok(HeavenlyStem::Ky),
+            "canh" => Ok(HeavenlyStem::Canh),
+            "tân" | "tan" => Ok(HeavenlyStem::Tan),
+            "nhâm" | "nham" => Ok(HeavenlyStem::Nham),
+            "quý" | "quy" => Ok(HeavenlyStem::Quy),
+            other => Err(format!("invalid heavenly stem: {other}")),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum FiveElementRelation {
+    Same,
+    DayGeneratesTarget,
+    TargetGeneratesDay,
+    DayControlsTarget,
+    TargetControlsDay,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ThapThanLabel {
+    TyKien,
+    KiepTai,
+    ThucThan,
+    ThuongQuan,
+    ChinhTai,
+    ThienTai,
+    ChinhQuan,
+    ThatSat,
+    ChinhAn,
+    ThienAn,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RuleSetDefaults {
     pub tz_offset: f64,
@@ -32,6 +149,14 @@ pub struct RuleEvidence {
     pub source_id: String,
     pub method: String,
     pub profile: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ThapThanResult {
+    pub label: ThapThanLabel,
+    pub relation: FiveElementRelation,
+    pub same_polarity: bool,
+    pub evidence: RuleEvidence,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
