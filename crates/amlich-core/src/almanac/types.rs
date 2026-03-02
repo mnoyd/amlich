@@ -312,6 +312,20 @@ pub struct DayFortune {
     pub xung_hop: XungHopResult,
     pub truc: TrucInfo,
     pub tang_can: Option<TangCan>,
+    /// Ten Gods relations for predefined targets (populated when day stem available)
+    pub ten_gods: Option<DayTenGods>,
+    /// Kua (Tu Mến) result (populated only when birth year and gender provided)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tu_menh: Option<super::tu_menh::KuaResult>,
+}
+
+/// Day-level Ten Gods results for predefined targets
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DayTenGods {
+    /// Ten Gods relation from day stem to year stem
+    pub to_year_stem: Option<ThapThanResult>,
+    /// Ten Gods relation from day stem to self (day stem to day stem)
+    pub to_self: Option<ThapThanResult>,
 }
 
 #[cfg(test)]
@@ -342,6 +356,135 @@ mod tests {
         assert_eq!(decoded.id, "vn_baseline_v1");
         assert_eq!(decoded.defaults.tz_offset, 7.0);
         assert_eq!(decoded.source_notes.len(), 1);
+    }
+
+    #[test]
+    fn day_ten_gods_struct_exists() {
+        // Test 1: DayTenGods structure exists
+        let _ = std::mem::size_of::<DayTenGods>();
+    }
+
+    #[test]
+    fn day_fortune_has_optional_ten_gods_field() {
+        // Test 1: DayFortune includes optional ten_gods field
+        let fortune = DayFortune {
+            ruleset_id: "test".to_string(),
+            ruleset_version: "v1".to_string(),
+            profile: "baseline".to_string(),
+            day_element: DayElement {
+                na_am: "Hải Trung Kim".to_string(),
+                element: "Kim".to_string(),
+                can_element: "Mộc".to_string(),
+                chi_element: "Thổ".to_string(),
+                evidence: None,
+            },
+            conflict: DayConflict {
+                opposing_chi: "Tuất".to_string(),
+                opposing_con_giap: "Tuất (Chó)".to_string(),
+                tuoi_xung: vec![],
+                sat_huong: "Nam".to_string(),
+                evidence: None,
+            },
+            travel: TravelDirection {
+                xuat_hanh_huong: "Đông Nam".to_string(),
+                tai_than: "Tây Nam".to_string(),
+                hy_than: "Đông Bắc".to_string(),
+                evidence: None,
+            },
+            stars: DayStars {
+                cat_tinh: vec![],
+                sat_tinh: vec![],
+                day_star: None,
+                star_system: None,
+                evidence: None,
+                matched_rules: vec![],
+            },
+            day_deity: None,
+            taboos: vec![],
+            xung_hop: XungHopResult {
+                luc_xung: "Tuất".to_string(),
+                tam_hop: vec![],
+                tu_hanh_xung: vec![],
+                liu_he: None,
+                xiang_hai: None,
+                xiang_xing: None,
+            },
+            truc: TrucInfo {
+                index: 0,
+                name: "Kiến".to_string(),
+                quality: "cat".to_string(),
+                evidence: None,
+            },
+            tang_can: None,
+            ten_gods: None,
+            tu_menh: None,
+        };
+
+        // Verify ten_gods field exists and is optional (defaults to None)
+        // This test will fail initially because we haven't added the field yet
+        let _ = fortune.ten_gods;
+    }
+
+    #[test]
+    fn day_fortune_serializes_with_snake_case_fields() {
+        // Test 3: Serialization produces stable JSON field names (snake_case)
+        let fortune = DayFortune {
+            ruleset_id: "test".to_string(),
+            ruleset_version: "v1".to_string(),
+            profile: "baseline".to_string(),
+            day_element: DayElement {
+                na_am: "Hải Trung Kim".to_string(),
+                element: "Kim".to_string(),
+                can_element: "Mộc".to_string(),
+                chi_element: "Thổ".to_string(),
+                evidence: None,
+            },
+            conflict: DayConflict {
+                opposing_chi: "Tuất".to_string(),
+                opposing_con_giap: "Tuất (Chó)".to_string(),
+                tuoi_xung: vec![],
+                sat_huong: "Nam".to_string(),
+                evidence: None,
+            },
+            travel: TravelDirection {
+                xuat_hanh_huong: "Đông Nam".to_string(),
+                tai_than: "Tây Nam".to_string(),
+                hy_than: "Đông Bắc".to_string(),
+                evidence: None,
+            },
+            stars: DayStars {
+                cat_tinh: vec![],
+                sat_tinh: vec![],
+                day_star: None,
+                star_system: None,
+                evidence: None,
+                matched_rules: vec![],
+            },
+            day_deity: None,
+            taboos: vec![],
+            xung_hop: XungHopResult {
+                luc_xung: "Tuất".to_string(),
+                tam_hop: vec![],
+                tu_hanh_xung: vec![],
+                liu_he: None,
+                xiang_hai: None,
+                xiang_xing: None,
+            },
+            truc: TrucInfo {
+                index: 0,
+                name: "Kiến".to_string(),
+                quality: "cat".to_string(),
+                evidence: None,
+            },
+            tang_can: None,
+            ten_gods: None,
+            tu_menh: None,
+        };
+
+        let json = serde_json::to_string(&fortune).expect("serialize");
+        // Verify new fields serialize with snake_case names
+        // This test will fail initially because we haven't added the fields yet
+        assert!(json.contains("\"ten_gods\"") || json.contains("\"tu_menh\""));
     }
 
     #[test]
@@ -468,6 +611,8 @@ mod tests {
                 residual: "丙".to_string(),
                 strength: [60, 25, 15],
             }),
+            ten_gods: None,
+            tu_menh: None,
         };
 
         let encoded = serde_json::to_string(&value).expect("serialize");

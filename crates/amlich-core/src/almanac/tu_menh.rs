@@ -128,7 +128,7 @@ impl ConventionMetadata {
 ///
 /// Contains the computed Kua number, East/West group, favorable/unfavorable
 /// directions, and convention metadata.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KuaResult {
     /// Kua number (1-9, excluding 5)
     pub kua: u8,
