@@ -394,3 +394,144 @@ mod tests {
         let _ = compute_kua(1990, Gender::Male);
     }
 }
+
+// Task 2 tests - RED phase
+#[cfg(test)]
+mod compute_tests {
+    use super::*;
+
+    #[test]
+    fn standard_years_compute_correctly() {
+        // Test representative years from both centuries
+        // Values calculated using documented formula:
+        // - Sum year digits to single digit
+        // - 1900-1999 male: subtract from 10
+        // - 1900-1999 female: add 5
+        // - 2000+ male: subtract from 9
+        // - 2000+ female: add 5
+        // - Kua 5 resolution: male->8, female->2
+
+        let tests = vec![
+            // 1900s
+            (1990, Gender::Male, 9),   // 1+9+9+0=19->1, 10-1=9
+            (1990, Gender::Female, 6), // 1+5=6
+            (1985, Gender::Male, 8),   // 1+9+8+5=23->5, 10-5=5->8 (Kua 5 resolution)
+            (1985, Gender::Female, 1), // 5+5=10->1
+            (1978, Gender::Male, 3),   // 1+9+7+8=25->7, 10-7=3
+            (1978, Gender::Female, 3), // 7+5=12->3
+            // 2000s
+            (2002, Gender::Male, 8), // 2+0+0+2=4, 9-4=5->8 (Kua 5 resolution)
+            (2002, Gender::Female, 9), // 4+5=9
+            (2010, Gender::Male, 6), // 2+0+1+0=3, 9-3=6
+            (2010, Gender::Female, 8), // 3+5=8
+            (2024, Gender::Male, 1), // 2+0+2+4=8, 9-8=1
+            (2024, Gender::Female, 4), // 8+5=13->4
+        ];
+
+        for (year, gender, expected_kua) in tests {
+            let result = compute_kua(year, gender);
+            assert_eq!(
+                result.kua, expected_kua,
+                "Year {} {:?} should have Kua {}, got {}",
+                year, gender, expected_kua, result.kua
+            );
+        }
+    }
+
+    #[test]
+    fn kua_5_resolves_correctly_by_gender() {
+        // Test years that result in Kua 5 before resolution
+        // 2002: 2+0+0+2 = 4
+        // Male: 9-4 = 5 -> should become 8
+        // Female: 4+5 = 9
+        let male_result = compute_kua(2002, Gender::Male);
+        assert_eq!(male_result.kua, 8, "Male Kua 5 should resolve to 8");
+
+        let female_result = compute_kua(2002, Gender::Female);
+        assert_ne!(female_result.kua, 5, "Female should not have Kua 5");
+        assert_eq!(female_result.kua, 9, "Female 2002 should have Kua 9");
+
+        // 2011: 2+0+1+1 = 4 -> same as 2002
+        let male_2011 = compute_kua(2011, Gender::Male);
+        assert_eq!(male_2011.kua, 8, "Male Kua 5 should resolve to 8");
+
+        let female_2011 = compute_kua(2011, Gender::Female);
+        assert_ne!(female_2011.kua, 5, "Female should not have Kua 5");
+        assert_eq!(female_2011.kua, 9, "Female 2011 should have Kua 9");
+    }
+
+    #[test]
+    fn east_west_group_derives_correctly() {
+        // East group: Kua 1, 3, 4, 9
+        let east_kuas = [1, 3, 4, 9];
+        for kua in east_kuas {
+            let result = create_test_result(kua);
+            assert_eq!(
+                result.group,
+                KuaGroup::East,
+                "Kua {} should be East group",
+                kua
+            );
+        }
+
+        // West group: Kua 2, 6, 7, 8
+        let west_kuas = [2, 6, 7, 8];
+        for kua in west_kuas {
+            let result = create_test_result(kua);
+            assert_eq!(
+                result.group,
+                KuaGroup::West,
+                "Kua {} should be West group",
+                kua
+            );
+        }
+    }
+
+    /// Helper to create a KuaResult with a specific Kua number for testing group assignment
+    fn create_test_result(kua: u8) -> KuaResult {
+        let group = match kua {
+            1 | 3 | 4 | 9 => KuaGroup::East,
+            2 | 6 | 7 | 8 => KuaGroup::West,
+            _ => panic!("Invalid test Kua: {}", kua),
+        };
+
+        let (favorable, unfavorable) = match group {
+            KuaGroup::East => (
+                [
+                    Direction::North,
+                    Direction::South,
+                    Direction::East,
+                    Direction::Southeast,
+                ],
+                [
+                    Direction::Northwest,
+                    Direction::Southwest,
+                    Direction::West,
+                    Direction::Northeast,
+                ],
+            ),
+            KuaGroup::West => (
+                [
+                    Direction::Northwest,
+                    Direction::Southwest,
+                    Direction::West,
+                    Direction::Northeast,
+                ],
+                [
+                    Direction::North,
+                    Direction::South,
+                    Direction::East,
+                    Direction::Southeast,
+                ],
+            ),
+        };
+
+        KuaResult::new(
+            kua,
+            group,
+            favorable,
+            unfavorable,
+            ConventionMetadata::project_default(),
+        )
+    }
+}
