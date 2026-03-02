@@ -120,6 +120,19 @@ Machine-readable accounting rows for all v1.1 IDs. Canonical requirement definit
 | v1.1 | TK-05 | v1.1::TK-05 | .planning/REQUIREMENTS-v1.1.md#category-3-tiết-khí-helper-functions | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
 | v1.1 | TK-06 | v1.1::TK-06 | .planning/REQUIREMENTS-v1.1.md#category-3-tiết-khí-helper-functions | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
 
+### Identifier Collision Disambiguation (Legacy v1 vs v1.1)
+
+XH-01 and XH-02 appear in both legacy v1 audit scope and v1.1 foundation-extension scope with different meanings. Use requirement-set + scoped ID for unambiguous interpretation.
+
+| Requirement Set | Raw ID | Scoped ID | Semantic Domain | Canonical Definition Artifact | Canonical Evidence Artifact |
+|-----------------|--------|-----------|-----------------|-------------------------------|-----------------------------|
+| v1 (legacy) | XH-01 | v1::XH-01 | Audit verification of existing xung_hop formula basis | .planning/REQUIREMENTS.md (v1 Requirements → Xung Hợp) | .planning/phases/04-correction-and-zero-divergence-verification/04-VERIFICATION.md |
+| v1 (legacy) | XH-02 | v1::XH-02 | Audit closure of existing xung_hop divergences | .planning/REQUIREMENTS.md (v1 Requirements → Xung Hợp) | .planning/phases/04-correction-and-zero-divergence-verification/04-VERIFICATION.md |
+| v1.1 (foundation-extension) | XH-01 | v1.1::XH-01 | Feature requirement to implement Lục Hợp pairs + element mapping | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md |
+| v1.1 (foundation-extension) | XH-02 | v1.1::XH-02 | Feature requirement to implement Tương Hại pairs | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md |
+
+Interpretation rule: unscoped XH-01/XH-02 is collision-prone; audits and tooling MUST resolve by `Requirement Set` + `Scoped ID`.
+
 ## Traceability
 
 | Requirement | Phase | Status |
