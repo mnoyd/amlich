@@ -90,6 +90,33 @@ pub fn get_liu_he(chi_index: usize) -> &'static str {
     CHI[chi_index] // No partner (should not happen with full coverage)
 }
 
+// --- Tương hại ---
+
+/// Tương hại pairs - 6 harm pairs covering all 12 branches
+pub const XIANGHAI: [(usize, usize); 6] = [
+    (0, 7),  // 子未
+    (1, 6),  // 丑午
+    (2, 9),  // 寅酉
+    (3, 8),  // 卯申
+    (4, 11), // 辰亥
+    (5, 10), // 巳戌
+];
+
+/// Return the Tương hại harm partner for `chi_index`.
+///
+/// Returns the branch's harm partner if one exists, otherwise returns the branch itself.
+pub fn get_xiang_hai(chi_index: usize) -> &'static str {
+    for (a, b) in XIANGHAI.iter() {
+        if *a == chi_index {
+            return CHI[*b];
+        }
+        if *b == chi_index {
+            return CHI[*a];
+        }
+    }
+    CHI[chi_index]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -253,6 +280,56 @@ mod tests {
             get_liu_he(3),
             "Tuất", // 卯 -> 戌
             "Mão (3) should harmonize with Tuất (10)"
+        );
+    }
+
+    // --- Tương hại ---
+
+    #[test]
+    fn test_xiang_hai_complete_coverage() {
+        // All 12 branches should find a harm partner
+        for i in 0..12 {
+            let partner = get_xiang_hai(i);
+            assert_ne!(
+                partner, CHI[i],
+                "Branch {} should have a different harm partner",
+                CHI[i]
+            );
+        }
+    }
+
+    #[test]
+    fn test_xiang_hai_symmetric() {
+        // Every pair should be bidirectional
+        for i in 0..12 {
+            let partner = get_xiang_hai(i);
+            let partner_idx = CHI.iter().position(|c| *c == partner).unwrap();
+            let reverse = get_xiang_hai(partner_idx);
+            assert_eq!(
+                reverse, CHI[i],
+                "Tương hại should be symmetric: {} <-> {}",
+                CHI[i], partner
+            );
+        }
+    }
+
+    #[test]
+    fn test_xiang_hai_returns_correct_partner() {
+        // Specific branches return expected results
+        assert_eq!(
+            get_xiang_hai(0),
+            "Mùi", // 子 -> 未
+            "Tý (0) should harm with Mùi (7)"
+        );
+        assert_eq!(
+            get_xiang_hai(2),
+            "Dậu", // 寅 -> 酉
+            "Dần (2) should harm with Dậu (9)"
+        );
+        assert_eq!(
+            get_xiang_hai(3),
+            "Thân", // 卯 -> 申
+            "Mão (3) should harm with Thân (8)"
         );
     }
 
