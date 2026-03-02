@@ -99,8 +99,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `REQUIREMENTS-v1.1.md` traceability statuses align with verification truth, with TK requirements marked blocked/partial until v1.1.2 fixes the gate
   4. `ROADMAP.md` and `STATE.md` status metadata are reconciled to verification-led truth (v1.1 blocked/pending, not complete)
 **Plans**: 3 plans in 2 waves
-- [ ] v1.1.1-01-PLAN.md (Wave 1) — Canonical XH/TC verification matrix and summary frontmatter linkage
-- [ ] v1.1.1-02-PLAN.md (Wave 2) — TK acceptance evidence closure and audit handoff to v1.1.2
+- [x] v1.1.1-01-PLAN.md (Wave 1) — Canonical XH/TC verification matrix and summary frontmatter linkage [COMPLETE 2026-03-02]
+- [x] v1.1.1-02-PLAN.md (Wave 2) — TK acceptance evidence closure and audit handoff to v1.1.2 [COMPLETE 2026-03-02]
 - [ ] v1.1.1-03-PLAN.md (Wave 2) — ROADMAP/STATE status reconciliation from verification truth
 
 ### Phase v1.1.2: Tiết Khí Regression Fix and Acceptance Gate
@@ -136,6 +136,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 3. Validator Harness and Divergence Inventory | 3/3 | Complete | 2026-03-01 |
 | 4. Correction and Zero-Divergence Verification | 1/1 | Complete | 2026-03-02 |
 | v1.1: Foundation Extensions | 0/3 | Planning | 2026-03-02 |
-| v1.1.1: Verification and Traceability Closure | 0/3 | Planning | - |
+| v1.1.1: Verification and Traceability Closure | 2/3 | In Progress | 2026-03-02 |
 | v1.1.2: Tiết Khí Regression Fix and Acceptance Gate | 0/0 | Planning | - |
 | v1.2: Ten Gods and Kua Foundation | 0/3 | Queued | 2026-03-02 |
