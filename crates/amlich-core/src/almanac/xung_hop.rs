@@ -53,6 +53,8 @@ pub fn tu_hanh_xung(chi_index: usize) -> [&'static str; 4] {
 
 /// Compute the full xung/hợp result for a day branch.
 pub fn get_xung_hop(chi_index: usize) -> XungHopResult {
+    let xiang_xing_group = get_xiang_xing(chi_index);
+
     XungHopResult {
         luc_xung: luc_xung(chi_index).to_string(),
         tam_hop: tam_hop(chi_index).iter().map(|s| s.to_string()).collect(),
@@ -60,6 +62,13 @@ pub fn get_xung_hop(chi_index: usize) -> XungHopResult {
             .iter()
             .map(|s| s.to_string())
             .collect(),
+        liu_he: Some(get_liu_he(chi_index).to_string()),
+        xiang_hai: Some(get_xiang_hai(chi_index).to_string()),
+        xiang_xing: if xiang_xing_group.is_empty() {
+            None
+        } else {
+            Some(xiang_xing_group)
+        },
     }
 }
 

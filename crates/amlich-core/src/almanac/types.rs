@@ -152,6 +152,12 @@ pub struct XungHopResult {
     pub tam_hop: Vec<String>,
     /// Four-clash square (tứ hành xung).
     pub tu_hanh_xung: Vec<String>,
+    /// Lục hợp harmony partner (six harmonies).
+    pub liu_he: Option<String>,
+    /// Tương hại harm partner (mutual harms).
+    pub xiang_hai: Option<String>,
+    /// Tương hình punishment group members (mutual punishments).
+    pub xiang_xing: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -273,6 +279,9 @@ mod tests {
                     "Ngọ".to_string(),
                     "Dậu".to_string(),
                 ],
+                liu_he: Some("Mùi".to_string()),
+                xiang_hai: Some("Tý".to_string()),
+                xiang_xing: Some(vec!["Dần".to_string(), "Mão".to_string(), "Tỵ".to_string()]),
             },
             truc: TrucInfo {
                 index: 2,
