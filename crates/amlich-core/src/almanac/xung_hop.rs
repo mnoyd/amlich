@@ -117,6 +117,30 @@ pub fn get_xiang_hai(chi_index: usize) -> &'static str {
     CHI[chi_index]
 }
 
+// --- Tương hình ---
+
+/// Tương hình punishment groups - 4 groups with 3-4 members each
+/// Note: Group [6, 6, 6] represents Ngọ Ngọ (self-punishment)
+pub const XIANGXING: [[usize; 3]; 4] = [
+    [2, 3, 5],  // 寅卯巳 (Vô恩之刑 - ungrateful punishment)
+    [0, 1, 4],  // 子辰丑 (恃势之刑 - relying on power punishment)
+    [8, 9, 11], // 申酉亥 (无礼之刑 - disrespectful punishment)
+    [6, 6, 6],  // 午午 (自刑 - self-punishment)
+];
+
+/// Return the Tương hình punishment group members for `chi_index`.
+///
+/// Returns a vector of branch names that form the punishment group with `chi_index`.
+/// For self-punishment (Ngọ), returns [Ngọ, Ngọ, Ngọ] to indicate special handling.
+pub fn get_xiang_xing(chi_index: usize) -> Vec<String> {
+    for group in XIANGXING.iter() {
+        if group.contains(&chi_index) {
+            return group.iter().map(|&idx| CHI[idx].to_string()).collect();
+        }
+    }
+    vec![]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -331,6 +355,80 @@ mod tests {
             "Thân", // 卯 -> 申
             "Mão (3) should harm with Thân (8)"
         );
+    }
+
+    // --- Tương hình ---
+
+    #[test]
+    fn test_xiang_xing_groups_complete() {
+        // All branches in punishment groups should appear
+        // Note: Not all 12 branches have Tương hình - only those in the 4 groups
+        let mut seen = std::collections::HashSet::new();
+        for i in 0..12 {
+            let group = get_xiang_xing(i);
+            for branch in &group {
+                seen.insert(branch.clone());
+            }
+        }
+
+        // Verify the 4 groups are correct: 寅卯巳, 子辰丑, 申酉亥, 午午
+        assert!(seen.contains(&"Dần".to_string()));
+        assert!(seen.contains(&"Mão".to_string()));
+        assert!(seen.contains(&"Tỵ".to_string()));
+        assert!(seen.contains(&"Tý".to_string()));
+        assert!(seen.contains(&"Thìn".to_string()));
+        assert!(seen.contains(&"Sửu".to_string()));
+        assert!(seen.contains(&"Thân".to_string()));
+        assert!(seen.contains(&"Dậu".to_string()));
+        assert!(seen.contains(&"Hợi".to_string()));
+        assert!(seen.contains(&"Ngọ".to_string()));
+
+        // Mùi and Tuất should NOT have Tương hình (not in any group)
+        let mui_group = get_xiang_xing(7); // Mùi
+        assert_eq!(
+            mui_group,
+            Vec::<String>::new(),
+            "Mùi should not have Tương hình"
+        );
+
+        let tuat_group = get_xiang_xing(10); // Tuất
+        assert_eq!(
+            tuat_group,
+            Vec::<String>::new(),
+            "Tuất should not have Tương hình"
+        );
+    }
+
+    #[test]
+    fn test_xiang_xing_self_punishment() {
+        // Ngọ Ngọ self-punishment: should return [Ngọ, Ngọ, Ngọ] not just [Ngọ]
+        let ngo_group = get_xiang_xing(6); // Ngọ is index 6
+        assert_eq!(
+            ngo_group.len(),
+            3,
+            "Ngọ self-punishment should return 3 entries"
+        );
+        assert!(
+            ngo_group.iter().all(|s| s == "Ngọ"),
+            "All members should be Ngọ for self-punishment"
+        );
+    }
+
+    #[test]
+    fn test_xiang_xing_returns_correct_groups() {
+        // 寅卯巳 returns [Dần, Mão, Tỵ]
+        let dan_group = get_xiang_xing(2); // Dần is index 2
+        assert_eq!(dan_group.len(), 3);
+        assert!(dan_group.contains(&"Dần".to_string()));
+        assert!(dan_group.contains(&"Mão".to_string()));
+        assert!(dan_group.contains(&"Tỵ".to_string()));
+
+        // 子辰丑 returns [Tý, Thìn, Sửu]
+        let ty_group = get_xiang_xing(0); // Tý is index 0
+        assert_eq!(ty_group.len(), 3);
+        assert!(ty_group.contains(&"Tý".to_string()));
+        assert!(ty_group.contains(&"Thìn".to_string()));
+        assert!(ty_group.contains(&"Sửu".to_string()));
     }
 
     // --- get_xung_hop integration ---
