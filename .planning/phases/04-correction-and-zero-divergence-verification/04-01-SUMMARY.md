@@ -137,5 +137,24 @@ Zero-divergence verification complete:
 **Ready for Phase 5:** Next phase should implement new features or extended validation as documented in ROADMAP.md.
 
 ---
+
+## Self-Check: PASSED
+
+✓ All key files created/modified:
+  - crates/amlich-core/data/almanac/baseline.json
+  - .planning/phases/04-correction-and-zero-divergence-verification/04-correction-ledger.md
+  - .planning/phases/04-correction-and-zero-divergence-verification/04-correction-notes.md
+  - .planning/phases/04-correction-and-zero-divergence-verification/04-01-SUMMARY.md
+  - .planning/STATE.md
+  - .planning/ROADMAP.md
+  - .planning/REQUIREMENTS.md
+
+✓ All commits verified:
+  - 09d4e3f: Task 1 - establish canonical mismatch inventory and correction ledger
+  - 9195b3e: Task 2 - apply coordinated correction batch
+  - 8081d14: Task 3 - enforce zero-divergence and regression acceptance gate
+  - 516bc21: Plan metadata - update state, roadmap, and requirements
+
+---
 *Phase: 04-correction-and-zero-divergence-verification*
 *Completed: 2026-03-02*
