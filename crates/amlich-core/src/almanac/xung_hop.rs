@@ -63,6 +63,33 @@ pub fn get_xung_hop(chi_index: usize) -> XungHopResult {
     }
 }
 
+// --- Lục hợp ---
+
+/// Lục hợp pairs - 6 harmony pairs covering all 12 branches
+pub const LIUHE: [(usize, usize); 6] = [
+    (0, 1),  // 子丑
+    (2, 11), // 寅亥
+    (3, 10), // 卯戌
+    (4, 9),  // 辰酉
+    (5, 8),  // 巳申
+    (6, 7),  // 午未
+];
+
+/// Return the Lục hợp harmony partner for `chi_index`.
+///
+/// Returns the branch's harmony partner if one exists, otherwise returns the branch itself.
+pub fn get_liu_he(chi_index: usize) -> &'static str {
+    for (a, b) in LIUHE.iter() {
+        if *a == chi_index {
+            return CHI[*b];
+        }
+        if *b == chi_index {
+            return CHI[*a];
+        }
+    }
+    CHI[chi_index] // No partner (should not happen with full coverage)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -176,6 +203,56 @@ mod tests {
             seen.len(),
             12,
             "All 12 branches must appear in tu_hanh_xung groups"
+        );
+    }
+
+    // --- Lục hợp ---
+
+    #[test]
+    fn test_liu_he_complete_coverage() {
+        // All 12 branches should find a partner
+        for i in 0..12 {
+            let partner = get_liu_he(i);
+            assert_ne!(
+                partner, CHI[i],
+                "Branch {} should have a different harmony partner",
+                CHI[i]
+            );
+        }
+    }
+
+    #[test]
+    fn test_liu_he_symmetric() {
+        // Every pair should be bidirectional
+        for i in 0..12 {
+            let partner = get_liu_he(i);
+            let partner_idx = CHI.iter().position(|c| *c == partner).unwrap();
+            let reverse = get_liu_he(partner_idx);
+            assert_eq!(
+                reverse, CHI[i],
+                "Lục hợp should be symmetric: {} <-> {}",
+                CHI[i], partner
+            );
+        }
+    }
+
+    #[test]
+    fn test_liu_he_returns_correct_partner() {
+        // Specific branches return expected results
+        assert_eq!(
+            get_liu_he(0),
+            "Sửu", // 子 -> 丑
+            "Tý (0) should harmonize with Sửu (1)"
+        );
+        assert_eq!(
+            get_liu_he(2),
+            "Hợi", // 寅 -> 亥
+            "Dần (2) should harmonize with Hợi (11)"
+        );
+        assert_eq!(
+            get_liu_he(3),
+            "Tuất", // 卯 -> 戌
+            "Mão (3) should harmonize with Tuất (10)"
         );
     }
 
