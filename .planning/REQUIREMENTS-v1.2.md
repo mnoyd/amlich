@@ -59,11 +59,11 @@
 | TT-03 | v1.2-P1 | Complete (v1.2-01) |
 | TT-04 | v1.2-P1 | Complete (v1.2-01) |
 | TT-05 | v1.2-P1 | Complete (v1.2-01) |
-| TM-01 | v1.2-P2 | Pending |
-| TM-02 | v1.2-P2 | Pending |
-| TM-03 | v1.2-P2 | Pending |
-| TM-04 | v1.2-P2 | Pending |
-| TM-05 | v1.2-P2 | Pending |
+| TM-01 | v1.2-P2 | Complete (v1.2-02) |
+| TM-02 | v1.2-P2 | Complete (v1.2-02) |
+| TM-03 | v1.2-P2 | Complete (v1.2-02) |
+| TM-04 | v1.2-P2 | Complete (v1.2-02) |
+| TM-05 | v1.2-P2 | Complete (v1.2-02) |
 | INT-01 | v1.2-P3 | Pending |
 | INT-02 | v1.2-P3 | Pending |
 | INT-03 | v1.2-P3 | Pending |
@@ -78,4 +78,4 @@
 
 ---
 *Requirements defined: 2026-03-02*
-*Last updated: 2026-03-02 after v1.2-01 completion*
+*Last updated: 2026-03-02 after v1.2-02 completion*
