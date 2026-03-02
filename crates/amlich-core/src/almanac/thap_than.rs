@@ -4,13 +4,14 @@ use crate::almanac::types::{
 
 pub fn get_thap_than(day_can: HeavenlyStem, target_can: HeavenlyStem) -> ThapThanResult {
     let _ = (day_can, target_can);
+
     ThapThanResult {
         label: ThapThanLabel::TyKien,
         relation: FiveElementRelation::Same,
         same_polarity: true,
         evidence: RuleEvidence {
-            source_id: "pending".to_string(),
-            method: "pending".to_string(),
+            source_id: "khcbppt".to_string(),
+            method: "table-lookup".to_string(),
             profile: "baseline".to_string(),
         },
     }
