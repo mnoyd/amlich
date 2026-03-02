@@ -237,12 +237,12 @@ Milestone v1.1 is complete when ALL of the following are TRUE:
 | TC-07 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
 | TC-08 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
 | TC-09 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
-| TK-01 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Blocked (implemented; acceptance red per `.planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md`, fresh `cargo test --package amlich-core` evidence) |
-| TK-02 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Blocked (nearest-before assertion failing in fresh gate evidence; deferred to v1.1.2) |
-| TK-03 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Blocked (nearest-after assertion failing in fresh gate evidence; deferred to v1.1.2) |
-| TK-04 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Blocked (signed-difference behavior failing in fresh gate evidence; deferred to v1.1.2) |
-| TK-05 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Blocked (edge-case assertions failing in fresh gate evidence; deferred to v1.1.2) |
-| TK-06 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Partial/Blocked (tests exist but not green in full acceptance gate; fix phase v1.1.2) |
+| TK-01 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Complete (canonical verification now passed; helper computes nearest boundary from real term scans) |
+| TK-02 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Complete (`test_before_returns_negative` passes in fresh tietkhi/full-package evidence) |
+| TK-03 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Complete (`test_after_returns_positive` passes in fresh tietkhi/full-package evidence) |
+| TK-04 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Complete (`test_equidistant_prefers_after` passes; signed-difference behavior is stable) |
+| TK-05 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Complete (exact/near-boundary assertions now pass; no impossible outlier deltas) |
+| TK-06 | v1.1.1 (status reconciliation), v1.1.2 (gate fix) | Complete (tietkhi tests and full acceptance gate are green) |
 
 **Coverage:**
 - v1.1 requirements: 23 total

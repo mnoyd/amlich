@@ -1,5 +1,24 @@
 # Milestones: Amlich Almanac Correctness Audit
 
+## v1.1 Foundation Extensions (Shipped: 2026-03-02)
+
+**Delivered:** Foundation almanac extensions shipped with accepted verification and green full-package gate.
+
+**Phases completed:** 3 phases, 9 plans, 17 tasks
+
+**Key accomplishments:**
+- Implemented full extended Xung Hop coverage (Luc hop, Tuong hai, Tuong hinh) and integrated it into `DayFortune` outputs.
+- Added Tang Can hidden-stem subsystem with complete 12-branch data and serialization coverage.
+- Closed milestone traceability by adding canonical verification matrices and machine-readable requirements linkage.
+- Fixed Tiet Khi nearest-term regression using real term-boundary scanning and restored `cargo test --package amlich-core` to green.
+- Reconciled verification, requirements, roadmap, state, and audit artifacts to a single accepted milestone truth.
+
+**Git range:** `ad26ad8` -> `cad4706`
+
+**What's next:** Execute v1.2 (Ten Gods and Kua Foundation).
+
+---
+
 ## Overview
 
 The Amlich Almanac Correctness Audit project systematically verifies and corrects the amlich almanac ruleset against Khâm Định Hiệp Kỷ Biện Phương Thư (KHCBPPT), the authoritative classical text for Vietnamese calendar divination.

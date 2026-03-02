@@ -256,8 +256,8 @@ pub fn get_all_tiet_khi_for_year(year: i32, time_zone: f64) -> Vec<SolarTermWith
 
 /// Returns:
 /// - 0: Input JD is exactly on a Tiết Khí
-/// - Negative: Nearest Tiết Khí is before input JD
-/// - Positive: Nearest Tiết Khí is after input JD
+/// - Negative: Input JD is before the nearest Tiết Khí boundary
+/// - Positive: Input JD is after the nearest Tiết Khí boundary
 ///
 /// # Arguments
 /// * `jd` - Julian Day Number
@@ -265,64 +265,28 @@ pub fn get_all_tiet_khi_for_year(year: i32, time_zone: f64) -> Vec<SolarTermWith
 /// # Returns
 /// Signed days difference (negative/zero/positive)
 pub fn get_days_to_nearest_tiet_khi(jd: i32) -> i32 {
-    use crate::julian::jd_from_date;
+    let (_, _, year) = crate::julian::jd_to_date(jd);
 
-    // Get the current term for the input JD
-    let current_term = get_tiet_khi(jd, 7.0);
-    let current_term_idx = current_term.index;
-
-    // Find nearest Tiết Khí before input (search through previous terms)
-    let mut nearest_before: Option<i32> = None;
-    for year_offset in -1..=2 {
-        let year_base = (jd / 365) + year_offset;
-        for term_idx in (0..current_term_idx).rev() {
-            let approx_day = (term_idx as f64 * 15.2) as i32;
-            let term_jd = jd_from_date(1, (approx_day % 365) + 1, year_base);
-            if term_jd < jd {
-                match nearest_before {
-                    None => nearest_before = Some(term_jd),
-                    Some(ref nearest) if (jd - nearest) < (jd - term_jd) => {
-                        nearest_before = Some(term_jd);
-                    }
-                    _ => {}
-                }
-            }
+    let mut candidate_jds = Vec::new();
+    for candidate_year in (year - 1)..=(year + 1) {
+        for term in get_all_tiet_khi_for_year(candidate_year, 7.0) {
+            candidate_jds.push(term.jd);
         }
     }
+    candidate_jds.sort_unstable();
+    candidate_jds.dedup();
 
-    // Find nearest Tiết Khí after input (search through next terms)
-    let mut nearest_after: Option<i32> = None;
-    for year_offset in -1..=2 {
-        let year_base = (jd / 365) + year_offset;
-        for term_idx in (current_term_idx + 1)..24 {
-            let approx_day = (term_idx as f64 * 15.2) as i32;
-            let term_jd = jd_from_date(1, (approx_day % 365) + 1, year_base);
-            if term_jd > jd {
-                match nearest_after {
-                    None => nearest_after = Some(term_jd),
-                    Some(ref nearest) if (term_jd - jd) < (nearest - jd) => {
-                        nearest_after = Some(term_jd);
-                    }
-                    _ => {}
-                }
-            }
-        }
+    if candidate_jds.binary_search(&jd).is_ok() {
+        return 0;
     }
 
-    // Calculate signed difference
-    match (nearest_before, nearest_after) {
-        (Some(before), None) => before - jd,
-        (None, Some(after)) => after - jd,
-        (Some(before), Some(after)) => {
-            let before_diff = (before - jd).abs();
-            let after_diff = (after - jd).abs();
-            if before_diff <= after_diff {
-                before - jd
-            } else {
-                after - jd
-            }
-        }
-        (None, None) => 0,
+    let nearest_term_jd = candidate_jds
+        .into_iter()
+        .min_by_key(|&candidate_jd| (candidate_jd - jd).abs());
+
+    match nearest_term_jd {
+        Some(term_jd) => jd - term_jd,
+        None => 0,
     }
 }
 

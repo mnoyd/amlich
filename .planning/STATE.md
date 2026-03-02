@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Foundation Extensions
-status: unknown
-last_updated: "2026-03-02T13:02:04.206Z"
+milestone: v1.2
+milestone_name: Ten Gods and Kua Foundation
+status: active
+last_updated: "2026-03-02T15:33:00Z"
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 17
+  total_plans: 20
   completed_plans: 17
 ---
 
@@ -15,26 +15,20 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-28)
-See: .planning/MILESTONES.md (updated 2026-03-02 - v1.0 complete)
+See: .planning/PROJECT.md (updated 2026-03-02)
+See: .planning/MILESTONES.md (updated 2026-03-02 - v1.1 complete)
 
-**Core value:** Every almanac subsystem in amlich must produce output that matches KHCBPPT for 2020–2030 date range
-**Milestone v1.0:** COMPLETE - All 4 phases finished, 0 divergences confirmed
+**Core value:** Every almanac subsystem in amlich must match KHCBPPT for 2020-2030 with test-backed evidence.
+**Milestones shipped:** v1.0 and v1.1 complete.
 
 ## Current Position
 
-**Milestone v1.0: COMPLETE** ✓
-All 4 phases finished successfully:
-- Phase 1: Source Establishment (2/2 plans)
-- Phase 2: Golden Dataset and Loader (2/2 plans)
-- Phase 3: Validator Harness and Divergence Inventory (3/3 plans)
-- Phase 4: Correction and Zero-Divergence Verification (1/1 plan)
+**Milestone v1.1: COMPLETE** ✓
+- v1.1, v1.1.1, and v1.1.2 are complete and archived.
+- Canonical audit status passed at `.planning/milestones/v1.1-MILESTONE-AUDIT.md`.
+- Last activity: v1.1 milestone archival and roadmap handoff to v1.2.
 
-Status authority for v1.1+: `.planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md` (verified 2026-03-02)
-Current milestone state: **v1.1 blocked/pending acceptance** — XH/TC complete, TK-01..TK-06 blocked by failing `tietkhi` tests in `cargo test --package amlich-core`
-Last activity: 2026-03-02 — v1.1.1 verification/traceability closure completed; v1.1.2 is the required acceptance-gate fix
-
-Progress: [█████████░] v1.1 implementation complete, acceptance blocked pending v1.1.2
+Progress: [███████░░░] v1.2 ready to execute (0/3 plans)
 
 ## Performance Metrics
 
@@ -70,46 +64,9 @@ Progress: [█████████░] v1.1 implementation complete, accepta
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
-- [04-01]: All KHCBPPT subsystems verified — no data corrections needed; only star_meta.source_id metadata update applied
-Recent decisions affecting current work:
-
-- [Pre-phase]: KHCBPPT as sole reference — RESOLVED: ctext.org 四庫全書 primary edition identified
-- [01-01]: SRC-02 RESOLVED — KHCBPPT covers 納音 in Bon Nguyen section; source_id stays "tam-menh-thong-hoi" (canonical table identical across both sources; Vietnamese almanac convention)
-- [01-01]: Primary edition = ctext.org 四庫全書 digitization (Qianlong 1741); Secondary = 1998 NXB Mui Ca Mau Vietnamese translation (Mai Coc Thanh, Vu Hoang, Lan Binh)
-- [01-01]: Citation format defined: "KHCBPPT, Quyen [N], [Section name]" at chapter+section granularity
-- [01-01]: All 30 nap am pairs verified correct against canonical 六十甲子納音表; commit 0f29f3f corrections (Kim Bac Kim, Dai Dich Tho) confirmed by Chinese character evidence
-- [01-02]: SRC-03 RESOLVED — KHCBPPT Nguyet Bieu (vols 20-31) has 12 volumes for 12 months; no intercalary supplement; silence implies base-month inheritance for taboo and truc rules
-- [01-02]: 28-star JD epoch NOT defined in KHCBPPT — jd.rem_euclid(28) epoch is Ho Ngoc Duc implementation artifact; confidence LOW for epoch correctness
-- [01-02]: TRUC_QUALITY const confirmed correct per KHCBPPT Nghia Le; Tru (cat) and Nguy (hung) contested values documented with KHCBPPT position
-- [01-02]: All 6 commit 0f29f3f Thanh Huong corrections confirmed against KHCBPPT Lap Thanh tables
-- [01-02]: star_meta.source_id should change from "nhi-thap-bat-tu" to "khcbppt" in Phase 4
-- [01-02]: Star rule sparsity: fixed_by_chi complete; 4 other categories have only 1 seed entry each — Phase 3 must detect absence, not just value mismatch
-- [02-01]: 233-entry golden dataset generated with coverage-driven algorithm; all subsystem values from get_day_info() (Phase 1 confirmed correctness)
-- [02-01]: Star entries marked MEDIUM confidence for JD epoch; all other subsystems HIGH confidence
-- [02-01]: Generator as #[ignore] test for reproducible regeneration: cargo test --test generate_golden -- --ignored
-- [02-02]: Combined TDD execution: loader + validation + tests written together (Rust requires co-compilation)
-- [02-02]: Validation follows data.rs pattern: panic on invariant violation during OnceLock::get_or_init()
-- [03-02]: Deity Option<None> handled as mismatch string ("expected X, got NONE") not panic — consistent with collect-then-assert needing all 233 entries to process
-- [03-02]: Sorted Vec used for tam_hop/tu_hanh_xung comparison (not HashSet) — preserves duplicate detection while being order-independent
-- [03-03]: Zero divergences expected for all subsystems — golden dataset was generated from get_day_info() output, so implementation matches itself by construction; Phase 4 will compare against actual KHCBPPT tables
-- [03-01]: JD epoch verification uses first 5 golden entries as anchors (self-consistent since golden was generated from get_day_info()); star rule sparsity 233/233 confirms contextual buckets empty
-- [03-01]: Taboo comparison is set-based (HashSet) not Vec-based — avoids false failures due to ordering differences between golden and impl
-- [03-03]: Phase 3 is purely inventory — 192 tests pass, all 7 validators operational, no source/data file changes
-- [Phase v1.2]: Reuse a shared HeavenlyStem enum with TryFrom<&str> for explicit invalid-input handling
-- [Phase v1.2]: Encode Ten Gods output as ThapThanResult with relation, polarity, and evidence metadata
-- [Phase v1.2]: Lock mapping correctness with explicit 10x10 expected-label matrix tests
-- [Phase v1.1.1]: Keep TK-01..TK-06 blocked in canonical verification until full package gate is green
-- [Phase v1.1.1]: Use v1.1-VERIFICATION.md as the single machine-readable evidence source for XH/TC traceability closure
-- [Phase v1.1.1]: Keep TK-01..TK-06 blocked until full amlich-core gate is green
-- [Phase v1.1.1]: Use v1.1-VERIFICATION.md as canonical evidence and align downstream artifacts
-- [Phase v1.1.1]: Treat v1.1-VERIFICATION.md as status authority for v1.1/v1.1.2/v1.2 wording in roadmap and state artifacts
-- [Phase v1.1.1]: Represent v1.2 as dependency-blocked risk while v1.1.2 acceptance gate remains unresolved
-- [Phase v1.1.1]: Close residual metadata drift via post-cycle re-verification instead of reopening requirement-evidence scope
-- [Phase v1.1.1]: Keep v1.1 blocked/pending and v1.2 dependency-blocked messaging intact while reconciling only v1.1.1 completion metadata
-- [Phase v1.1.1]: Represent v1.1 IDs in master REQUIREMENTS.md as delegated machine-readable rows rather than duplicating detailed requirement prose
-- [Phase v1.1.1]: Disambiguate XH-01/XH-02 with requirement-set scoped IDs to preserve legacy v1 semantics and v1.1 extension semantics simultaneously
+- Keep milestone acceptance source-of-truth in canonical verification and milestone audits.
+- Preserve requirement-set scoping (`v1::` vs `v1.1::`) to avoid ID collision ambiguity.
+- Use real term-boundary scan for nearest Tiet Khi behavior in acceptance-critical paths.
 
 ### Pending Todos
 
@@ -117,25 +74,24 @@ None yet.
 
 ### Blockers/Concerns
 
-- **v1.1 acceptance gate blocked:** TK-01..TK-06 remain blocked in canonical verification due to 5 failing `tietkhi` tests.
-- **Dependency risk:** v1.2 execution is at-risk/dependency-blocked until v1.1.2 restores green full-package gate.
-- **Source of truth:** `.planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md` and `.planning/v1.1-MILESTONE-AUDIT.md`.
+- No inherited blocker from v1.1; acceptance is green.
+- Main risk is v1.2 scope breadth across mapping engine, fixtures, and API integration.
 
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed v1.1.1-05-PLAN.md
-Next: Execute v1.1.2 Tiết Khí Regression Fix and Acceptance Gate to unblock v1.1 and dependency-gated v1.2
+Stopped at: Completed v1.1 milestone archival.
+Next: Execute v1.2 Ten Gods and Kua Foundation plans.
 
 ## Milestone Queue
 
-- **Current execution target:** v1.1.2 Tiết Khí Regression Fix and Acceptance Gate (required to close v1.1 acceptance)
-- **Current milestone status:** v1.1 Foundation Extensions is blocked/pending acceptance until TK gate is green
-- **Next milestone queued (at-risk):** v1.2 Ten Gods and Kua Foundation
-  - Scope confirmed: Thập Thần engine, Tứ Mệnh calculations, DayFortune/API/test integration
-  - Explicit defer: Đại Vận to v1.3
+- **Current execution target:** v1.2 Ten Gods and Kua Foundation
+- **Current milestone status:** v1.1 Foundation Extensions shipped and archived
+- **Next milestone queued:** v1.2 (ready)
+  - Scope: Thap Than engine, Tu Menh calculations, DayFortune/API/test integration
+  - Explicit defer: Dai Van to v1.3
   - Requirements file: `.planning/REQUIREMENTS-v1.2.md`
-  - Roadmap entry: `Phase v1.2` in `.planning/ROADMAP.md` (dependency warning active while v1.1.2 outstanding)
+  - Roadmap entry: `v1.2` in `.planning/ROADMAP.md`
 
 **Verification Commands:**
 ```bash
