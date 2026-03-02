@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Source Establishment** - Pin the KHCBPPT edition and extract raw reference tables per subsystem [COMPLETE 2026-03-01]
 - [x] **Phase 2: Golden Dataset and Loader** - Serialize reference tables into khcbppt-golden.json and build Rust loader [COMPLETE 2026-03-01]
 - [x] **Phase 3: Validator Harness and Divergence Inventory** - Write per-subsystem validators and surface all divergences [COMPLETE 2026-03-01]
-- [ ] **Phase 4: Correction and Zero-Divergence Verification** - Fix all divergences in baseline.json and source constants
+- [x] **Phase 4: Correction and Zero-Divergence Verification** - Fix all divergences in baseline.json and source constants [COMPLETE 2026-03-02]
 
 ## Phase Details
 
@@ -66,7 +66,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. All pre-existing golden tests and regression tests (`almanac_golden.rs`, `ruleset_determinism.rs`, `taboo_boundary.rs`) continue to pass after corrections
   3. Every correction to baseline.json or source constants is traceable to a specific KHCBPPT citation in the golden dataset
 **Plans**: 1 plan
-- [ ] 04-01-PLAN.md — Execute one coordinated correction batch with citation ledger to reach strict zero divergence (TAB-05, DEI-03, TRC-02, STR-04, THH-02, XH-02, NAM-02)
+- [x] 04-01-PLAN.md — Execute one coordinated correction batch with citation ledger to reach strict zero divergence (TAB-05, DEI-03, TRC-02, STR-04, THH-02, XH-02, NAM-02) [COMPLETE 2026-03-02]
 
 ## Progress
 
@@ -78,4 +78,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Source Establishment | 2/2 | Complete | 2026-03-01 |
 | 2. Golden Dataset and Loader | 2/2 | Complete | 2026-03-01 |
 | 3. Validator Harness and Divergence Inventory | 3/3 | Complete | 2026-03-01 |
-| 4. Correction and Zero-Divergence Verification | 0/TBD | Not started | - |
+| 4. Correction and Zero-Divergence Verification | 1/1 | Complete | 2026-03-02 |
