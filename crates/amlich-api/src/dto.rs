@@ -223,7 +223,6 @@ pub struct ConventionMetadataDto {
     pub year_basis: String,
     pub kua_five_resolution: String,
     pub gender_encoding: String,
-    pub grouping_rule: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

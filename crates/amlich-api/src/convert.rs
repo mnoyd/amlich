@@ -1,10 +1,11 @@
 use crate::dto::{
-    CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto, DayConflictDto, DayDeityDto,
-    DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, DayTabooDto,
-    ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto,
-    HolidayInsightDto, HourInfoDto, LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto,
-    ProverbInsightDto, RegionsInsightDto, RuleEvidenceDto, SolarDto, StarRuleEvidenceDto,
-    TabooInsightDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
+    CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto, ConventionMetadataDto, DayConflictDto,
+    DayDeityDto, DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto,
+    DayTabooDto, DayTenGodsDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto,
+    GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto,
+    LocalizedTextDto, LunarDto, NguHanhDto, ProverbInsightDto, RegionsInsightDto, RuleEvidenceDto,
+    SolarDto, StarRuleEvidenceDto, TabooInsightDto, ThapThanResultDto, TietKhiDto,
+    TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -259,6 +260,90 @@ impl From<&amlich_core::almanac::types::DayDeity> for DayDeityDto {
     }
 }
 
+impl From<&amlich_core::almanac::types::DayTenGods> for DayTenGodsDto {
+    fn from(value: &amlich_core::almanac::types::DayTenGods) -> Self {
+        Self {
+            to_year_stem: value.to_year_stem.as_ref().map(ThapThanResultDto::from),
+            to_self: value.to_self.as_ref().map(ThapThanResultDto::from),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::types::ThapThanResult> for ThapThanResultDto {
+    fn from(value: &amlich_core::almanac::types::ThapThanResult) -> Self {
+        let relation = match value.relation {
+            amlich_core::almanac::types::FiveElementRelation::Same => "same".to_string(),
+            amlich_core::almanac::types::FiveElementRelation::DayGeneratesTarget => {
+                "day_generates_target".to_string()
+            }
+            amlich_core::almanac::types::FiveElementRelation::TargetGeneratesDay => {
+                "target_generates_day".to_string()
+            }
+            amlich_core::almanac::types::FiveElementRelation::DayControlsTarget => {
+                "day_controls_target".to_string()
+            }
+            amlich_core::almanac::types::FiveElementRelation::TargetControlsDay => {
+                "target_controls_day".to_string()
+            }
+        };
+
+        let label = match value.label {
+            amlich_core::almanac::types::ThapThanLabel::TyKien => "ty_kien".to_string(),
+            amlich_core::almanac::types::ThapThanLabel::KiepTai => "kiep_tai".to_string(),
+            amlich_core::almanac::types::ThapThanLabel::ThucThan => "thuc_than".to_string(),
+            amlich_core::almanac::types::ThapThanLabel::ThuongQuan => "thuong_quan".to_string(),
+            amlich_core::almanac::types::ThapThanLabel::ChinhTai => "chinh_tai".to_string(),
+            amlich_core::almanac::types::ThapThanLabel::ThienTai => "thien_tai".to_string(),
+            amlich_core::almanac::types::ThapThanLabel::ChinhQuan => "chinh_quan".to_string(),
+            amlich_core::almanac::types::ThapThanLabel::ThatSat => "that_sat".to_string(),
+            amlich_core::almanac::types::ThapThanLabel::ChinhAn => "chinh_an".to_string(),
+            amlich_core::almanac::types::ThapThanLabel::ThienAn => "thien_an".to_string(),
+        };
+
+        Self {
+            label,
+            relation,
+            same_polarity: value.same_polarity,
+            evidence: RuleEvidenceDto::from(&value.evidence),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::tu_menh::KuaResult> for KuaResultDto {
+    fn from(value: &amlich_core::almanac::tu_menh::KuaResult) -> Self {
+        let group = match value.group {
+            amlich_core::almanac::tu_menh::KuaGroup::East => "east".to_string(),
+            amlich_core::almanac::tu_menh::KuaGroup::West => "west".to_string(),
+        };
+
+        let favorable_directions = value
+            .favorable_directions
+            .iter()
+            .map(|d| d.to_string())
+            .collect();
+
+        let unfavorable_directions = value
+            .unfavorable_directions
+            .iter()
+            .map(|d| d.to_string())
+            .collect();
+
+        let convention = ConventionMetadataDto {
+            year_basis: value.convention.year_basis.clone(),
+            kua_five_resolution: value.convention.kua5_resolution.clone(),
+            gender_encoding: value.convention.gender_encoding.clone(),
+        };
+
+        Self {
+            kua: value.kua,
+            group,
+            favorable_directions,
+            unfavorable_directions,
+            convention,
+        }
+    }
+}
+
 impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
     fn from(value: &amlich_core::almanac::types::DayFortune) -> Self {
         Self {
@@ -273,6 +358,8 @@ impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
             taboos: value.taboos.iter().map(DayTabooDto::from).collect(),
             xung_hop: XungHopDto::from(&value.xung_hop),
             truc: TrucDto::from(&value.truc),
+            ten_gods: value.ten_gods.as_ref().map(DayTenGodsDto::from),
+            tu_menh: value.tu_menh.as_ref().map(KuaResultDto::from),
         }
     }
 }
