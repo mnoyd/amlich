@@ -104,7 +104,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans in 2 waves
 - [x] v1.1.1-01-PLAN.md (Wave 1) — Canonical XH/TC verification matrix and summary frontmatter linkage [COMPLETE 2026-03-02]
 - [x] v1.1.1-02-PLAN.md (Wave 2) — TK acceptance evidence closure and audit handoff to v1.1.2 [COMPLETE 2026-03-02]
-- [ ] v1.1.1-03-PLAN.md (Wave 2) — ROADMAP/STATE status reconciliation from verification truth
+- [x] v1.1.1-03-PLAN.md (Wave 2) — ROADMAP/STATE status reconciliation from verification truth [COMPLETE 2026-03-02]
+
+Execution note: The active execution set for this cycle is `v1.1.1-01` through `v1.1.1-03`. Any `v1.1.1-04` artifact is post-cycle re-verification/reconciliation and must run only after `v1.1.1-03` is complete.
 
 ### Phase v1.1.2: Tiết Khí Regression Fix and Acceptance Gate
 **Goal**: Restore green test gate for v1.1 by fixing failing `tietkhi` assertions and recording acceptance evidence
