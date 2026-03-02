@@ -119,8 +119,34 @@ pub fn calculate_day_fortune(
             truc
         },
         tang_can: Some(get_tang_can(&day_canchi.chi)),
-        ten_gods: None,
-        tu_menh: None,
+        ten_gods: {
+            // Ten Gods computation: populate deterministically when day stem available
+            // Preconditions: day stem (can) and year stem (year_can) are available
+            let day_stem = HeavenlyStem::try_from(day_canchi.can.as_str());
+            let year_stem = HeavenlyStem::try_from(year_can);
+
+            match (day_stem, year_stem) {
+                (Ok(ds), Ok(ys)) => {
+                    // Compute Ten Gods for predefined targets
+                    // to_self: day stem to day stem (self-reference)
+                    // to_year_stem: day stem to year stem
+                    use crate::almanac::thap_than::get_thap_than;
+
+                    Some(DayTenGods {
+                        to_self: Some(get_thap_than(ds, ds)),
+                        to_year_stem: Some(get_thap_than(ds, ys)),
+                    })
+                }
+                _ => {
+                    // If parsing fails, leave ten_gods as None
+                    // This maintains backward compatibility for invalid inputs
+                    None
+                }
+            }
+        },
+        tu_menh: None, // Kua computation requires birth context (year, gender) which is not available
+                       // in this function signature. This is by design - Kua populates only when
+                       // birth context is provided (future enhancement may add new function variant)
     }
 }
 
