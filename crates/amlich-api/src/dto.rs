@@ -165,6 +165,22 @@ pub struct TrucDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayTenGodsDto {
+    /// Ten Gods relation from day stem to year stem
+    pub to_year_stem: Option<ThapThanResultDto>,
+    /// Ten Gods relation from day stem to self (day stem to day stem)
+    pub to_self: Option<ThapThanResultDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThapThanResultDto {
+    pub label: String,
+    pub relation: String,
+    pub same_polarity: bool,
+    pub evidence: RuleEvidenceDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DayTabooDto {
     pub rule_id: String,
     pub name: String,
@@ -186,6 +202,28 @@ pub struct DayFortuneDto {
     pub taboos: Vec<DayTabooDto>,
     pub xung_hop: XungHopDto,
     pub truc: TrucDto,
+    /// Ten Gods relations for predefined targets (populated when day stem available)
+    pub ten_gods: Option<DayTenGodsDto>,
+    /// Kua (Tu Mến) result (populated only when birth year and gender provided)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tu_menh: Option<KuaResultDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KuaResultDto {
+    pub kua: u8,
+    pub group: String,
+    pub favorable_directions: Vec<String>,
+    pub unfavorable_directions: Vec<String>,
+    pub convention: ConventionMetadataDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConventionMetadataDto {
+    pub year_basis: String,
+    pub kua_five_resolution: String,
+    pub gender_encoding: String,
+    pub grouping_rule: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -339,4 +377,80 @@ pub struct DayInsightDto {
     pub canchi: Option<CanChiInsightDto>,
     pub day_guidance: Option<DayGuidanceDto>,
     pub tiet_khi: Option<TietKhiInsightDto>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn day_fortune_dto_has_optional_ten_gods_and_tu_menh_fields() {
+        // Test 1: DTO has matching optional ten_gods and tu_menh fields
+        let dto = DayFortuneDto {
+            ruleset_id: "test".to_string(),
+            ruleset_version: "v1".to_string(),
+            profile: "baseline".to_string(),
+            day_element: DayElementDto {
+                na_am: "test".to_string(),
+                element: "Kim".to_string(),
+                can_element: "Mộc".to_string(),
+                chi_element: "Thổ".to_string(),
+                evidence: None,
+            },
+            conflict: DayConflictDto {
+                opposing_chi: "Tuất".to_string(),
+                opposing_con_giap: "Tuất (Chó)".to_string(),
+                tuoi_xung: vec![],
+                sat_huong: "Nam".to_string(),
+                evidence: None,
+            },
+            travel: TravelDirectionDto {
+                xuat_hanh_huong: "Đông Nam".to_string(),
+                tai_than: "Tây Nam".to_string(),
+                hy_than: "Đông Bắc".to_string(),
+                evidence: None,
+            },
+            stars: DayStarsDto {
+                cat_tinh: vec![],
+                sat_tinh: vec![],
+                day_star: None,
+                star_system: None,
+                evidence: None,
+                matched_rules: vec![],
+            },
+            day_deity: None,
+            taboos: vec![],
+            xung_hop: XungHopDto {
+                luc_xung: "Tuất".to_string(),
+                tam_hop: vec![],
+                tu_hanh_xung: vec![],
+            },
+            truc: TrucDto {
+                index: 0,
+                name: "Kiến".to_string(),
+                quality: "cat".to_string(),
+                evidence: None,
+            },
+            ten_gods: None,
+            tu_menh: None,
+        };
+
+        // Verify fields exist and are optional
+        let _ = dto.ten_gods;
+        let _ = dto.tu_menh;
+    }
+
+    #[test]
+    fn day_ten_gods_dto_serializes_with_snake_case() {
+        // Test 3: JSON serialization matches expected stable field names (snake_case)
+        let ten_gods = DayTenGodsDto {
+            to_year_stem: None,
+            to_self: None,
+        };
+
+        let json = serde_json::to_string(&ten_gods).expect("serialize");
+        // Verify snake_case field names
+        assert!(json.contains("\"to_year_stem\""));
+        assert!(json.contains("\"to_self\""));
+    }
 }
