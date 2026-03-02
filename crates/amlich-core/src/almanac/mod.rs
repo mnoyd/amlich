@@ -10,5 +10,6 @@ pub mod than_huong;
 pub mod than_sat;
 pub mod thap_than;
 pub mod truc;
+pub mod tu_menh;
 pub mod types;
 pub mod xung_hop;
