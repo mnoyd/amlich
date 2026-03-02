@@ -178,5 +178,169 @@ mod tests {
                 ThapThanLabel::ChinhAn
             );
         }
+
+        #[test]
+        fn full_10x10_matrix_matches_expected_labels() {
+            let expected = [
+                [
+                    ThapThanLabel::TyKien,
+                    ThapThanLabel::KiepTai,
+                    ThapThanLabel::ThucThan,
+                    ThapThanLabel::ThuongQuan,
+                    ThapThanLabel::ThienTai,
+                    ThapThanLabel::ChinhTai,
+                    ThapThanLabel::ThatSat,
+                    ThapThanLabel::ChinhQuan,
+                    ThapThanLabel::ThienAn,
+                    ThapThanLabel::ChinhAn,
+                ],
+                [
+                    ThapThanLabel::KiepTai,
+                    ThapThanLabel::TyKien,
+                    ThapThanLabel::ThuongQuan,
+                    ThapThanLabel::ThucThan,
+                    ThapThanLabel::ChinhTai,
+                    ThapThanLabel::ThienTai,
+                    ThapThanLabel::ChinhQuan,
+                    ThapThanLabel::ThatSat,
+                    ThapThanLabel::ChinhAn,
+                    ThapThanLabel::ThienAn,
+                ],
+                [
+                    ThapThanLabel::ThienAn,
+                    ThapThanLabel::ChinhAn,
+                    ThapThanLabel::TyKien,
+                    ThapThanLabel::KiepTai,
+                    ThapThanLabel::ThucThan,
+                    ThapThanLabel::ThuongQuan,
+                    ThapThanLabel::ThienTai,
+                    ThapThanLabel::ChinhTai,
+                    ThapThanLabel::ThatSat,
+                    ThapThanLabel::ChinhQuan,
+                ],
+                [
+                    ThapThanLabel::ChinhAn,
+                    ThapThanLabel::ThienAn,
+                    ThapThanLabel::KiepTai,
+                    ThapThanLabel::TyKien,
+                    ThapThanLabel::ThuongQuan,
+                    ThapThanLabel::ThucThan,
+                    ThapThanLabel::ChinhTai,
+                    ThapThanLabel::ThienTai,
+                    ThapThanLabel::ChinhQuan,
+                    ThapThanLabel::ThatSat,
+                ],
+                [
+                    ThapThanLabel::ThatSat,
+                    ThapThanLabel::ChinhQuan,
+                    ThapThanLabel::ThienAn,
+                    ThapThanLabel::ChinhAn,
+                    ThapThanLabel::TyKien,
+                    ThapThanLabel::KiepTai,
+                    ThapThanLabel::ThucThan,
+                    ThapThanLabel::ThuongQuan,
+                    ThapThanLabel::ThienTai,
+                    ThapThanLabel::ChinhTai,
+                ],
+                [
+                    ThapThanLabel::ChinhQuan,
+                    ThapThanLabel::ThatSat,
+                    ThapThanLabel::ChinhAn,
+                    ThapThanLabel::ThienAn,
+                    ThapThanLabel::KiepTai,
+                    ThapThanLabel::TyKien,
+                    ThapThanLabel::ThuongQuan,
+                    ThapThanLabel::ThucThan,
+                    ThapThanLabel::ChinhTai,
+                    ThapThanLabel::ThienTai,
+                ],
+                [
+                    ThapThanLabel::ThienTai,
+                    ThapThanLabel::ChinhTai,
+                    ThapThanLabel::ThatSat,
+                    ThapThanLabel::ChinhQuan,
+                    ThapThanLabel::ThienAn,
+                    ThapThanLabel::ChinhAn,
+                    ThapThanLabel::TyKien,
+                    ThapThanLabel::KiepTai,
+                    ThapThanLabel::ThucThan,
+                    ThapThanLabel::ThuongQuan,
+                ],
+                [
+                    ThapThanLabel::ChinhTai,
+                    ThapThanLabel::ThienTai,
+                    ThapThanLabel::ChinhQuan,
+                    ThapThanLabel::ThatSat,
+                    ThapThanLabel::ChinhAn,
+                    ThapThanLabel::ThienAn,
+                    ThapThanLabel::KiepTai,
+                    ThapThanLabel::TyKien,
+                    ThapThanLabel::ThuongQuan,
+                    ThapThanLabel::ThucThan,
+                ],
+                [
+                    ThapThanLabel::ThucThan,
+                    ThapThanLabel::ThuongQuan,
+                    ThapThanLabel::ThienTai,
+                    ThapThanLabel::ChinhTai,
+                    ThapThanLabel::ThatSat,
+                    ThapThanLabel::ChinhQuan,
+                    ThapThanLabel::ThienAn,
+                    ThapThanLabel::ChinhAn,
+                    ThapThanLabel::TyKien,
+                    ThapThanLabel::KiepTai,
+                ],
+                [
+                    ThapThanLabel::ThuongQuan,
+                    ThapThanLabel::ThucThan,
+                    ThapThanLabel::ChinhTai,
+                    ThapThanLabel::ThienTai,
+                    ThapThanLabel::ChinhQuan,
+                    ThapThanLabel::ThatSat,
+                    ThapThanLabel::ChinhAn,
+                    ThapThanLabel::ThienAn,
+                    ThapThanLabel::KiepTai,
+                    ThapThanLabel::TyKien,
+                ],
+            ];
+
+            for (day_idx, day_can) in HeavenlyStem::ALL.into_iter().enumerate() {
+                for (target_idx, target_can) in HeavenlyStem::ALL.into_iter().enumerate() {
+                    let result = get_thap_than(day_can, target_can);
+                    assert_eq!(result.label, expected[day_idx][target_idx]);
+                }
+            }
+        }
+
+        #[test]
+        fn matrix_results_are_deterministic_across_repeated_calls() {
+            for day_can in HeavenlyStem::ALL {
+                for target_can in HeavenlyStem::ALL {
+                    let first = get_thap_than(day_can, target_can);
+                    let second = get_thap_than(day_can, target_can);
+                    assert_eq!(first, second);
+                }
+            }
+        }
+
+        #[test]
+        fn evidence_metadata_is_consistent_for_all_outputs() {
+            for day_can in HeavenlyStem::ALL {
+                for target_can in HeavenlyStem::ALL {
+                    let result = get_thap_than(day_can, target_can);
+                    assert_eq!(result.evidence.source_id, "khcbppt");
+                    assert_eq!(result.evidence.method, "five-element-polarity-matrix");
+                    assert_eq!(result.evidence.profile, "baseline");
+                }
+            }
+        }
+
+        #[test]
+        fn json_label_representation_is_stable_snake_case() {
+            let result = get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Canh);
+            let json = serde_json::to_string(&result).expect("serialize");
+            assert!(json.contains("\"label\":\"that_sat\""));
+            assert!(json.contains("\"relation\":\"target_controls_day\""));
+        }
     }
 }
