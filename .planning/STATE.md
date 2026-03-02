@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Foundation Extensions
 status: in_progress
-last_updated: "2026-03-02T08:36:06.379Z"
+last_updated: "2026-03-02T08:50:30.112Z"
 progress:
   total_phases: 8
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -62,6 +62,7 @@ Progress: [█████████░] v1.1 implementation complete, accepta
 | Phase v1.2 P01 | 7 min | 4 tasks | 4 files |
 | Phase v1.1.1 P01 | 4 min | 3 tasks | 4 files |
 | Phase v1.1.1 P02 | 4 min | 3 tasks | 4 files |
+| Phase v1.1.1 P03 | 1 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,8 @@ Recent decisions affecting current work:
 - [Phase v1.1.1]: Use v1.1-VERIFICATION.md as the single machine-readable evidence source for XH/TC traceability closure
 - [Phase v1.1.1]: Keep TK-01..TK-06 blocked until full amlich-core gate is green
 - [Phase v1.1.1]: Use v1.1-VERIFICATION.md as canonical evidence and align downstream artifacts
+- [Phase v1.1.1]: Treat v1.1-VERIFICATION.md as status authority for v1.1/v1.1.2/v1.2 wording in roadmap and state artifacts
+- [Phase v1.1.1]: Represent v1.2 as dependency-blocked risk while v1.1.2 acceptance gate remains unresolved
 
 ### Pending Todos
 

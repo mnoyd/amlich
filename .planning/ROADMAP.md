@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Validator Harness and Divergence Inventory** - Write per-subsystem validators and surface all divergences [COMPLETE 2026-03-01]
 - [x] **Phase 4: Correction and Zero-Divergence Verification** - Fix all divergences in baseline.json and source constants [COMPLETE 2026-03-02]
 - [ ] **Phase v1.1: Foundation Extensions** - Add enhanced Xung Hợp, Tàng Can, and Tiết Khí helper functions [BLOCKED/PENDING ACCEPTANCE 2026-03-02]
-- [ ] **Phase v1.1.1: Verification and Traceability Closure** - Add missing verification artifacts and reconcile milestone metadata after v1.1 execution [IN PROGRESS 2026-03-02]
+- [x] **Phase v1.1.1: Verification and Traceability Closure** - Add missing verification artifacts and reconcile milestone metadata after v1.1 execution [COMPLETE 2026-03-02]
 - [ ] **Phase v1.1.2: Tiết Khí Regression Fix and Acceptance Gate** - Fix failing tietkhi tests and re-open v1.1 test-backed acceptance gate [REQUIRED ACCEPTANCE GATE 2026-03-02]
 - [ ] **Phase v1.2: Ten Gods and Kua Foundation** - Add Thập Thần, Tứ Mệnh, and integration surfaces after v1.1 [AT-RISK: DEPENDENCY-BLOCKED BY v1.1.2 2026-03-02]
 
@@ -141,6 +141,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 3. Validator Harness and Divergence Inventory | 3/3 | Complete | 2026-03-01 |
 | 4. Correction and Zero-Divergence Verification | 1/1 | Complete | 2026-03-02 |
 | v1.1: Foundation Extensions | 3/3 | Blocked/Pending Acceptance (TK gate red) | 2026-03-02 |
-| v1.1.1: Verification and Traceability Closure | 2/3 | In Progress | 2026-03-02 |
+| v1.1.1: Verification and Traceability Closure | 3/3 | Complete | 2026-03-02 |
 | v1.1.2: Tiết Khí Regression Fix and Acceptance Gate | 0/1 | Required Gate (Pending) | - |
 | v1.2: Ten Gods and Kua Foundation | 0/3 | At Risk / Dependency-Blocked by v1.1.2 | 2026-03-02 |
