@@ -65,7 +65,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. `cargo test --package amlich-core` passes with zero failures including all `khcbppt_*.rs` validators
   2. All pre-existing golden tests and regression tests (`almanac_golden.rs`, `ruleset_determinism.rs`, `taboo_boundary.rs`) continue to pass after corrections
   3. Every correction to baseline.json or source constants is traceable to a specific KHCBPPT citation in the golden dataset
-**Plans**: TBD
+**Plans**: 1 plan
+- [ ] 04-01-PLAN.md — Execute one coordinated correction batch with citation ledger to reach strict zero divergence (TAB-05, DEI-03, TRC-02, STR-04, THH-02, XH-02, NAM-02)
 
 ## Progress
 
