@@ -21,6 +21,7 @@ pub mod types;
 
 // Re-export main types
 pub use crate::almanac::thap_than::get_thap_than;
+pub use crate::almanac::tu_menh::{compute_kua, Gender, KuaGroup, KuaResult};
 pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
 pub use types::*;
 
