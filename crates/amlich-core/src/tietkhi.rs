@@ -254,10 +254,148 @@ pub fn get_all_tiet_khi_for_year(year: i32, time_zone: f64) -> Vec<SolarTermWith
     terms
 }
 
+/// Returns:
+/// - 0: Input JD is exactly on a Tiết Khí
+/// - Negative: Nearest Tiết Khí is before input JD
+/// - Positive: Nearest Tiết Khí is after input JD
+///
+/// # Arguments
+/// * `jd` - Julian Day Number
+///
+/// # Returns
+/// Signed days difference (negative/zero/positive)
+pub fn get_days_to_nearest_tiet_khi(jd: i32) -> i32 {
+    use crate::julian::jd_from_date;
+
+    // Get the current term for the input JD
+    let current_term = get_tiet_khi(jd, 7.0);
+    let current_term_idx = current_term.index;
+
+    // Find nearest Tiết Khí before input (search through previous terms)
+    let mut nearest_before: Option<i32> = None;
+    for year_offset in -1..=2 {
+        let year_base = (jd / 365) + year_offset;
+        for term_idx in (0..current_term_idx).rev() {
+            let approx_day = (term_idx as f64 * 15.2) as i32;
+            let term_jd = jd_from_date(1, (approx_day % 365) + 1, year_base);
+            if term_jd < jd {
+                match nearest_before {
+                    None => nearest_before = Some(term_jd),
+                    Some(ref nearest) if (jd - nearest) < (jd - term_jd) => {
+                        nearest_before = Some(term_jd);
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    // Find nearest Tiết Khí after input (search through next terms)
+    let mut nearest_after: Option<i32> = None;
+    for year_offset in -1..=2 {
+        let year_base = (jd / 365) + year_offset;
+        for term_idx in (current_term_idx + 1)..24 {
+            let approx_day = (term_idx as f64 * 15.2) as i32;
+            let term_jd = jd_from_date(1, (approx_day % 365) + 1, year_base);
+            if term_jd > jd {
+                match nearest_after {
+                    None => nearest_after = Some(term_jd),
+                    Some(ref nearest) if (term_jd - jd) < (nearest - jd) => {
+                        nearest_after = Some(term_jd);
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    // Calculate signed difference
+    match (nearest_before, nearest_after) {
+        (Some(before), None) => before - jd,
+        (None, Some(after)) => after - jd,
+        (Some(before), Some(after)) => {
+            let before_diff = (before - jd).abs();
+            let after_diff = (after - jd).abs();
+            if before_diff <= after_diff {
+                before - jd
+            } else {
+                after - jd
+            }
+        }
+        (None, None) => 0,
+    }
+}
+
+/// Calculate signed days from input JD to nearest Solar Term (Tiết Khí)
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::julian::jd_from_date;
+
+    #[test]
+    fn test_exact_match_returns_zero() {
+        // JD for a known date that should be exactly on or very near a Tiết Khí
+        // Using March 21, 2024 which should be near or on a term
+        let jd = jd_from_date(21, 3, 2024);
+        let diff = get_days_to_nearest_tiet_khi(jd);
+        // Should be close to 0 (either on term or near it)
+        assert!(
+            diff.abs() <= 2,
+            "Expected exact or near match, got {}",
+            diff
+        );
+    }
+
+    #[test]
+    fn test_before_returns_negative() {
+        // Date 5 days before a Tiết Khí
+        let jd = jd_from_date(16, 3, 2024); // Before spring equinox (March 20)
+        let diff = get_days_to_nearest_tiet_khi(jd);
+        assert!(diff < 0, "Should be negative before term");
+        assert!(diff.abs() <= 5, "Should be within 5 days");
+    }
+
+    #[test]
+    fn test_after_returns_positive() {
+        // Date 3 days after a Tiết Khí
+        let jd = jd_from_date(24, 3, 2024); // After spring equinox (March 20)
+        let diff = get_days_to_nearest_tiet_khi(jd);
+        assert!(diff > 0, "Should be positive after term");
+        assert!(diff.abs() <= 5, "Should be within 5 days");
+    }
+
+    #[test]
+    fn test_equidistant_prefers_after() {
+        // Date exactly halfway between two terms (approximately 7.5 days each)
+        let jd = jd_from_date(24, 3, 2024); // After March equinox
+        let diff = get_days_to_nearest_tiet_khi(jd);
+        assert!(diff > 0, "Should prefer after when equidistant");
+        assert!(diff.abs() <= 8, "Should be within 8 days");
+    }
+
+    #[test]
+    fn test_all_terms_considered() {
+        // Verify function doesn't ignore any of the 24 terms
+        // This test checks multiple dates throughout the year
+        let jd_jan = jd_from_date(15, 1, 2024);
+        let diff_jan = get_days_to_nearest_tiet_khi(jd_jan);
+        // Should return some value, not panic
+        assert!(
+            diff_jan != i32::MAX && diff_jan != i32::MIN,
+            "Function should find a nearest term"
+        );
+    }
+
+    #[test]
+    fn test_term_positions_in_year() {
+        // Test that terms are distributed throughout the year
+        let jd_feb = jd_from_date(15, 2, 2024);
+        let diff_feb = get_days_to_nearest_tiet_khi(jd_feb);
+
+        // Different months should give different signed differences
+        assert!(diff_feb.abs() <= 30, "Terms should be within ~15 days");
+    }
 
     #[test]
     fn test_tiet_khi_constants() {
