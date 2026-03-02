@@ -1,88 +1,123 @@
 # Feature Research
 
-**Domain:** Vietnamese almanac correctness validation against KHCBPPT
-**Researched:** 2026-02-28
-**Confidence:** HIGH (codebase analysis), MEDIUM (KHCBPPT content inference)
+**Domain:** Ten Gods (Thập Thần) + Tử Mệnh/Kua capabilities for Vietnamese almanac engine
+**Researched:** 2026-03-02
+**Confidence:** MEDIUM (high for Ten Gods engine patterns; medium/low for Kua convention standardization)
 
-## Table Stakes (Audit Is Incomplete Without These)
+## Feature Landscape
 
-| Feature | Complexity | Notes |
-|---------|------------|-------|
-| Star rules (cat_tinh/sat_tinh) cross-reference | HIGH | 5 category buckets (FixedByChi ×12, FixedByCanChi ×60, ByYear ×10, ByMonth ×12, ByTietKhi ×24); contextual buckets appear sparse — only 1 entry each |
-| Taboo rules cross-reference (4 rules) | MEDIUM | Tam Nương days `[3,7,13,18,22,27]`, Nguyệt Kỵ `[5,14,23]`, Sát Chủ/Thọ Tử 12-month chi maps |
-| Day deity cycle cross-reference | MEDIUM | 12 deity names × hoàng/hắc classification + 12 month-start offsets = 36 values |
-| Trực quality assignments cross-reference | LOW | Formula is proven by structural tests; quality array `[cat,cat,hung,binh,cat,binh,hung,hung,cat,hung,cat,hung]` needs KHCBPPT confirmation |
-| Xung hợp relationships verification | LOW | Algebraically derived (`+6%12`, `%4`, `%3`); needs textual confirmation |
-| Thần hướng directions cross-reference | MEDIUM | 10 stems × 3 directions = 30 values; prior errors existed (commit 0f29f3f) |
-| Nạp Âm scope determination | MEDIUM | `na_am_meta.source_id` is "tam-menh-thong-hoi" NOT "khcbppt" — determine if in scope |
-| Golden reference dataset for 2020–2030 | HIGH | ~200 representative dates covering all pattern combinations |
+### Table Stakes (Users Expect These)
 
-## Differentiators (Deeper Validation)
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Deterministic Ten Gods API from day stem to target stem | Any production BaZi-style engine exposes stable Thập Thần labels from can-to-can relation | LOW | Already aligns with existing `get_thap_than(day_can, target_can)` pattern and 10x10 matrix tests. Keep output purely deterministic and typed. **Confidence: HIGH** |
+| Complete Ten Gods label set and stable serialization | Integrators expect canonical 10 labels and machine-readable output | LOW | Table-stakes shape: label + relation + polarity + evidence. Keep enum serialization stable (snake_case) for API compatibility. **Confidence: HIGH** |
+| Kua number computation with explicit gender handling | Kua/Tử Mệnh features are unusable without gender-aware formula path | MEDIUM | Provide strict input contract (`birth_year`, `gender`, `convention`). Ambiguity is in convention choice, not compute complexity. **Confidence: MEDIUM** |
+| East/West group classification + 8-direction output | Production feng-shui calculators typically provide group and 4 favorable/4 unfavorable directions, not just raw number | MEDIUM | Include direction sets in typed structure to avoid downstream recomputation drift. **Confidence: MEDIUM** |
+| Edge-case policy for year boundary | Production tools differ at year change; engines must be explicit to avoid silent disagreement | HIGH | Must define whether Kua uses Gregorian year vs lunar-year/Lập Xuân boundary. Reuse existing `tiet_khi` helper for boundary-aware mode. **Confidence: MEDIUM** |
+| Backward-compatible DayFortune/API integration | Milestone goal is additive integration without regression | MEDIUM | New fields must be optional/default-safe; existing callers should parse unchanged payloads. **Confidence: HIGH** |
 
-| Feature | Complexity | Notes |
-|---------|------------|-------|
-| Star rule completeness audit (all 60 CanChi, all tiết khí) | HIGH | Determine whether sparse contextual buckets are correct or incomplete |
-| 28-star JD epoch verification | MEDIUM | `jd.rem_euclid(28)` offset correctness; only test checks `index < 28`, not actual star name |
-| Sát Hướng directional verification | MEDIUM | `conflict_by_chi` encodes `sat_huong` per chi |
-| Precedence algorithm textual verification | MEDIUM | 6-tier precedence order needs KHCBPPT text confirmation |
+### Differentiators (Competitive Advantage)
 
-## Anti-Features (Do NOT Validate)
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Convention-tagged Kua output (`convention`, `boundary_rule`) | Turns a historically ambiguous feature into auditable, reproducible engine behavior | MEDIUM | Return metadata alongside result so disagreements are traceable, not hidden. |
+| Evidence-first outputs for both Ten Gods and Kua | Matches amlich’s KHCBPPT correctness posture and reduces future rework | LOW | Follow existing `RuleEvidence` shape; include source/method/profile for all new outputs. |
+| Cross-check fixtures spanning 1900–2099 with boundary-heavy cases | Prevents false confidence from happy-path tests | HIGH | Include years near century transitions and dates near lunar/Lập Xuân boundaries. |
+| Two-mode Kua support (single selected default + optional alternate mode) | Practical interoperability with external tools while preserving one canonical project default | HIGH | Only if needed by requirements; keep one default for DayFortune/API to avoid fragmentation. |
 
-| Feature | Reason |
-|---------|--------|
-| Lunar/solar conversion | Scoped out; separate concern, already well-tested |
-| Giờ Hoàng Đạo (auspicious hours) | Separate calculation chain; not in DayFortune struct |
-| New almanac subsystems | Focus on existing rules; document gaps but don't implement |
-| TUI/CLI/WASM changes | Display layer; picks up corrected data automatically |
-| Performance optimization | Correctness first |
+### Anti-Features (Commonly Requested, Often Problematic)
 
-## Critical Implementation Notes
-
-- **Trực quality is hardcoded** in `truc.rs` as a Rust const array, NOT in `baseline.json`. Correction requires code change + recompile.
-- **Current tests verify internal consistency only** — golden tests were written by the implementer against their own output, not KHCBPPT reference values.
-- **Star rule contextual buckets are extremely sparse** — 1 entry each in CanChi, year, month, tiết-khí. Either KHCBPPT prescribes sparse rules or data is massively incomplete.
-
-## Subsystem-to-Code Mapping
-
-| Subsystem | Implementation | Data Location |
-|-----------|---------------|---------------|
-| Star rules (FixedByChi) | `than_sat.rs`, `star.rs` | `baseline.json: conflict_by_chi[*].cat_tinh/sat_tinh` |
-| Star rules (contextual) | `than_sat.rs` | `baseline.json: star_rule_sets.*` |
-| Taboo rules | `taboo.rs` | `baseline.json: taboo_rule_sets.*` |
-| Day deity | `day_deity.rs` | `baseline.json: day_deity_rule_set.*` |
-| Trực quality | `truc.rs` (TRUC_QUALITY const) | **Hardcoded in source, NOT baseline.json** |
-| Xung hợp | `xung_hop.rs` | All logic in code |
-| Thần hướng | `than_huong.rs` | `baseline.json: travel_by_can.*` |
-| Nạp Âm | `calc.rs`, `data.rs` | `baseline.json: na_am_pairs` |
-| 28 Stars | `calc.rs` | `baseline.json: nhi_thap_bat_tu` |
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Human-language fate interpretation paragraphs | Users ask for “full reading” once Ten Gods/Kua exist | Non-deterministic, unverifiable, and outside v1.2 correctness scope | Return structured factors only; interpretation belongs to later separate milestone |
+| Composite “fortune score” combining Ten Gods + Kua | Seems user-friendly for UI ranking | Pseudo-precision and heavy source ambiguity; likely causes trust regressions | Keep atomic outputs; let clients build scoring with explicit disclaimers |
+| Silent auto-correction for missing/invalid gender or boundary context | Convenience | Hides assumptions and creates inconsistent results between clients | Fail fast with typed validation errors and required context |
+| Expanding into Đại Vận in v1.2 | Natural next request | Explicitly deferred; introduces major scope and dependency expansion | Keep strict v1.2 boundary; plan Đại Vận in v1.3 |
 
 ## Feature Dependencies
 
 ```
-[KHCBPPT text extraction per subsystem]
-    └──> [Golden Reference Dataset]
-         └──> [Automated comparison harness]
-              └──> [Divergence identification]
-                   └──> [baseline.json / code corrections]
+[Existing HeavenlyStem + FiveElement + polarity model]
+    └──requires──> [Deterministic Ten Gods mapping]
+                        └──requires──> [Stable enum/JSON contract]
+                                             └──requires──> [DayFortune/API additive fields]
 
-[Nạp Âm scope determination] ──blocker──> [Golden dataset schema]
-[Trực + Day deity] ──coupled──> (both use month-chi relationship)
-[Thần hướng] ──independent──> [Star rules] (can validate in parallel)
+[Birth year + gender inputs]
+    └──requires──> [Kua number formula]
+                        └──requires──> [Boundary convention decision]
+                                             └──requires──> [Direction-set mapping + group]
+                                                  └──requires──> [Integration/API exposure]
+
+[Existing tiet_khi helper]
+    └──enhances──> [Boundary-aware Kua mode]
+
+[Existing KHCBPPT validator/evidence patterns]
+    └──enhances──> [Ten Gods/Kua traceability + regression confidence]
 ```
 
-## Priority Matrix
+### Dependency Notes
 
-| Feature | Audit Value | Cost | Priority |
-|---------|------------|------|----------|
-| Taboo rules (4 rules, ~20 values) | HIGH | LOW | P1 |
-| Day deity cycle (36 values) | HIGH | LOW | P1 |
-| Thần hướng (30 values) | HIGH | LOW | P1 |
-| Trực quality (12 values) | HIGH | LOW | P1 |
-| Nạp Âm scope determination | HIGH (blocker) | LOW | P1 |
-| Golden reference dataset | HIGH | MEDIUM | P1 |
-| Star rules completeness | HIGH | HIGH | P1 |
-| Xung hợp formula verification | MEDIUM | LOW | P2 |
-| 28-star JD epoch verification | MEDIUM | LOW | P2 |
+- **Ten Gods integration requires stable type contracts first:** integration before schema lock creates avoidable breaking changes.
+- **Kua depends on convention decision before fixtures:** test fixtures are invalid until boundary/convention is frozen.
+- **`tiet_khi` helper should be reused, not reimplemented:** avoids duplicate boundary logic and drift.
+- **DayFortune integration should be last in this milestone chain:** keeps compute-core validation separate from API-shape churn.
+
+## MVP Definition (for this milestone)
+
+### Launch With (v1.2)
+
+- [x] Deterministic Ten Gods core API + full 10x10 validation (TT-01..TT-05)
+- [ ] Kua typed compute result (number, group, directions) with fixed documented convention (TM-01..TM-03, TM-05)
+- [ ] Representative fixtures and regression-safe integration into DayFortune/API/serialization (TM-04, INT-01..INT-06)
+
+### Add After Validation (v1.2.x)
+
+- [ ] Optional alternate Kua convention mode (only if real interoperability need appears)
+- [ ] Expanded fixture corpus for cross-engine compatibility audits
+
+### Future Consideration (v1.3+)
+
+- [ ] Đại Vận and cycle projections using Ten Gods/Kua context
+- [ ] Interpretation/reporting layer (kept strictly separate from deterministic core)
+
+## Feature Prioritization Matrix
+
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Ten Gods deterministic compute + stable schema | HIGH | LOW | P1 |
+| Kua compute + explicit convention policy | HIGH | MEDIUM | P1 |
+| Kua direction/group mapping | HIGH | MEDIUM | P1 |
+| DayFortune/API backward-compatible integration | HIGH | MEDIUM | P1 |
+| Boundary-heavy fixture suite (1900–2099 representative) | HIGH | HIGH | P1 |
+| Alternate convention mode | MEDIUM | HIGH | P2 |
+| Interpretive output/report text | LOW (for correctness milestone) | HIGH | P3 |
+
+## Recommended Milestone Boundaries
+
+1. **Boundary A — Core deterministic engines (compute only):**
+   - Include: Ten Gods (done), Kua formula + convention lock
+   - Exclude: API wiring, presentation concerns
+2. **Boundary B — Typed contracts and fixtures:**
+   - Include: output structs/enums, evidence metadata, representative fixtures
+   - Gate: all deterministic tests green before integration
+3. **Boundary C — Additive integration:**
+   - Include: DayFortune/API/serialization optional fields, backward-compat tests
+   - Exclude: new interpretive/business logic
+
+This boundarying minimizes regression risk and maps directly to existing v1.2 phase split (P1 Ten Gods, P2 Kua, P3 integration).
+
+## Sources
+
+- Internal milestone scope and requirements: `.planning/PROJECT.md`, `.planning/REQUIREMENTS-v1.2.md` (**HIGH**)
+- Existing Ten Gods implementation and test contract: `crates/amlich-core/src/almanac/thap_than.rs` (**HIGH**)
+- Existing DayFortune/public type constraints: `crates/amlich-core/src/almanac/types.rs` (**HIGH**)
+- Ecosystem reference (production-style open-source engine exposing 十神 in EightChar APIs):
+  - https://raw.githubusercontent.com/6tail/lunar-python/master/README_EN.md (**MEDIUM**)
+  - https://raw.githubusercontent.com/6tail/lunar-python/master/lunar_python/EightChar.py (**MEDIUM**)
+- Kua formula/direction ecosystem behavior (non-official practitioner source; use with caution):
+  - https://www.fengshuied.com/kua-number (**LOW**)
 
 ---
-*Feature research: 2026-02-28*
+*Feature research for: Ten Gods and Tu Menh/Kua milestone (v1.2)*
+*Researched: 2026-03-02*

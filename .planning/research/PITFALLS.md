@@ -1,103 +1,223 @@
 # Pitfalls Research
 
-**Domain:** Vietnamese almanac correctness validation against KHCBPPT
-**Researched:** 2026-02-28
-**Confidence:** HIGH (codebase analysis), MEDIUM (classical text interpretation)
+**Domain:** Ten Gods + Tu Menh/Kua integration into KHCBPPT-verified deterministic almanac engine
+**Researched:** 2026-03-02
+**Confidence:** HIGH (integration/codebase pitfalls), MEDIUM (Kua convention/source ambiguity)
 
 ## Critical Pitfalls
 
-### Pitfall 1: Confusing Internal Consistency Tests with Source Fidelity
+### Pitfall 1: Correct Ten Gods core logic, wrong integration target in DayFortune
 
-**Problem:** Existing tests verify the implementation is internally consistent — not that it matches KHCBPPT. Evidence metadata saying `source_id: "khcbppt"` creates the appearance of traceability without actual cross-referencing.
+**What goes wrong:**
+`get_thap_than(day_can, target_can)` is correct in isolation (already matrix-tested), but integration computes Ten Gods against the wrong target stem (e.g., year/month/day branch-derived stem confusion), so output is deterministic but semantically wrong.
 
-**Warning signs:** Golden test expected values that match current output but have no KHCBPPT citation.
+**Why it happens:**
+v1.2-01 delivered a standalone engine. v1.2-03 introduces orchestration decisions not yet encoded in type contracts (which stem(s) are authoritative for day-level output).
 
-**Prevention:** Build the golden dataset from KHCBPPT text first, then compare — never the reverse. Every golden entry must have a `khcbppt_ref` citation.
+**How to avoid (concrete checks):**
+- Introduce explicit field names in core/API types (`ten_gods_vs_year_stem`, `ten_gods_vs_month_stem`, etc.) instead of one ambiguous `ten_gods` blob.
+- Add integration fixtures asserting exact input pair used for each Ten Gods field.
+- Add one test that fails if day stem is accidentally compared to itself (common false-positive path yielding TyKien/KiepTai-heavy output).
 
-**Phase:** Golden dataset creation.
+**Warning signs:**
+- Ten Gods distribution is implausibly concentrated in `ty_kien`/`kiep_tai` across unrelated dates.
+- API payload contains Ten Gods values but no clear provenance of compared stem.
 
-### Pitfall 2: The JD Epoch Offset Trap for Nhị Thập Bát Tú
+**Phase to address:**
+**v1.2-03 (INT-01, INT-03, INT-05)**
 
-**Problem:** `jd.rem_euclid(28)` in `calc.rs:46` is only correct if JD mod 28 = 0 corresponds to star index 0 (Giác). The only existing test checks `index < 28`, not the actual star name for any real date. If the offset is wrong by 1, every 28-star entry is shifted.
+---
 
-**Warning signs:** Star names that are consistently off by 1 position across all dates.
+### Pitfall 2: Convention drift for Kua algorithm (year boundary + Kua 5 handling)
 
-**Prevention:** Verify with 3+ real dated entries from KHCBPPT before proceeding with other star validation.
+**What goes wrong:**
+Kua results differ by source because convention choices are not frozen (solar year vs lunar year cutover, handling remainder=0, male/female handling of Kua 5).
 
-**Phase:** Star rule cross-referencing (first priority within stars).
+**Why it happens:**
+Requirements call for “established Vietnamese/Asian conventions,” but multiple conventions exist and current project docs include formula examples that are not yet codified as milestone-level source-of-truth.
 
-### Pitfall 3: Day Deity Month Anchor Ambiguity
+**How to avoid (concrete checks):**
+- Add a `KuaConvention` metadata block in result/evidence (`year_basis`, `gender_encoding`, `kua5_resolution`, `source_id`).
+- Freeze one convention in TM-05 docs before implementation completion.
+- Add edge fixtures specifically for: year ending 00, remainder 0, and dates near lunar new year boundary.
+- Reject silent fallback for unsupported gender input; return typed error.
 
-**Problem:** `month_group_start_by_chi` anchors the 12-deity cycle to lunar month branches. Tests only verify tháng 1 / day Tý → Thanh Long. If the anchor map is wrong for other months, all deity assignments for those months are wrong.
+**Warning signs:**
+- Same birth year returns different Kua between unit tests and API fixtures.
+- Kua 5 appears directly in output (instead of resolved rule) or panic-based handling appears.
 
-**Warning signs:** Day deity correct for month 1 but wrong for other months.
+**Phase to address:**
+**v1.2-02 (TM-01, TM-02, TM-05)**
 
-**Prevention:** Verify at least one date per month group (12 months) against KHCBPPT.
+---
 
-**Phase:** Day deity cross-referencing.
+### Pitfall 3: Birth-level Kua forced into day-level pipeline without required inputs
 
-### Pitfall 4: Trực Quality Assignments Unverified
+**What goes wrong:**
+`calculate_day_fortune()` currently has only day/date context; Kua needs birth year + gender. If forced into day-level path, developers may inject placeholders, derive from query date incorrectly, or make fields always-null without contract clarity.
 
-**Problem:** The trực formula `(day_chi - month_chi + 12) % 12` is correct (proven by structural invariant tests). But the `TRUC_QUALITY` array mapping indices to cat/hung/binh is unverified against KHCBPPT. Popular Vietnamese almanacs disagree on whether Trừ is cat or binh, whether Nguy is hung or binh.
+**Why it happens:**
+INT requirements ask Kua exposure in API while existing `DateQuery` and `DayInfo` are date-centric, not person-centric.
 
-**Warning signs:** Quality values that disagree with KHCBPPT's thập nhị trực chapter.
+**How to avoid (concrete checks):**
+- Keep Kua calculation as separate typed API (e.g., `get_kua_info(birth_year, gender, optional_birth_date_context)`) and reference from day response only when explicit person input exists.
+- If embedding in `DayFortune`, make field `Option` plus a `not_computed_reason` contract.
+- Add contract tests for both paths: without person input (field absent/None) and with person input (field present + validated).
 
-**Prevention:** Look up the thập nhị trực chapter specifically; verify all 12 quality assignments.
+**Warning signs:**
+- Kua appears in day responses for anonymous date-only requests.
+- Integration code uses query year as birth year.
 
-**Phase:** Trực cross-referencing.
+**Phase to address:**
+**v1.2-03 (INT-02, INT-03, INT-05)**
 
-### Pitfall 5: Star Rule Data Is Sparse — By Design or By Omission?
+---
 
-**Problem:** `star_rule_sets` in baseline.json has only 1 entry per contextual category (1 CanChi pair, 1 year, 1 month, 1 tiết khí). This was likely seeded for precedence testing, not as a production dataset. Cross-referencing could miss that hundreds of entries are missing entirely.
+### Pitfall 4: Schema mismatch between core and API DTO layers
 
-**Warning signs:** Golden dataset comparison only catches quality errors, not missing stars.
+**What goes wrong:**
+Core `DayFortune` adds fields, but `amlich-api` DTO/convert layer is not updated consistently (`dto.rs` + `convert.rs`), causing silent field drops, breaking clients, or inconsistent JSON shape.
 
-**Prevention:** Establish completeness contract (expected entry counts per category from KHCBPPT) before any correction work. Count entries, don't just check values.
+**Why it happens:**
+Current architecture duplicates type surfaces (core structs + API DTO structs + conversion impls). Every new field requires 3 synchronized edits plus tests.
 
-**Phase:** Reference data compilation.
+**How to avoid (concrete checks):**
+- Add a compile-failing test or lint-like assertion pattern around DTO conversion completeness (snapshot JSON contract test minimum).
+- Extend `almanac_contract.rs` with explicit assertions for new Ten Gods and Kua fields.
+- Keep new fields additive and optional first; no renames/removals in v1.2.
 
-### Pitfall 6: Misidentifying Which KHCBPPT Edition to Trust
+**Warning signs:**
+- Field exists in `amlich-core` serialized JSON but missing from API response.
+- PR updates `types.rs` without matching `dto.rs` + `convert.rs` changes.
 
-**Problem:** Multiple editions/reprints of KHCBPPT exist. Vietnamese almanacs that cite "KHCBPPT" may actually derive from 20th-century adaptations or modern compilations, not the Qing dynasty original.
+**Phase to address:**
+**v1.2-03 (INT-01, INT-02, INT-04, INT-05)**
 
-**Warning signs:** Conflicting values between different "KHCBPPT" sources.
+---
 
-**Prevention:** Document the specific edition/source explicitly in the golden dataset metadata before compiling any data.
+### Pitfall 5: Evidence metadata inconsistency breaks auditability standard
 
-**Phase:** Source establishment (project kickoff).
+**What goes wrong:**
+New Ten Gods/Kua outputs return values without consistent `RuleEvidence` conventions (source/method/profile), weakening the project’s core “traceable correctness” contract.
 
-### Pitfall 7: Intercalary Month Handling Undefined
+**Why it happens:**
+Ten Gods engine currently uses hardcoded evidence (`khcbppt`, `five-element-polarity-matrix`), while Kua may be algorithmic and from non-KHCBPPT sources; without explicit policy, metadata becomes ad-hoc.
 
-**Problem:** Taboo rules are keyed 1–12 with no intercalary month variant. `month_chi_index()` has no intercalary handling. KHCBPPT's treatment of leap months may differ from simply repeating the base month's rules.
+**How to avoid (concrete checks):**
+- Define v1.2 evidence policy document: when to use `khcbppt` vs algorithmic source IDs.
+- Add tests requiring non-empty and expected evidence fields for every new output path.
+- Prohibit placeholder evidence (`source_id: "unknown"`, empty method).
 
-**Warning signs:** Intercalary month dates producing identical output to the base month without verification.
+**Warning signs:**
+- Mixed or contradictory source IDs for same feature across tests.
+- Evidence exists in core type but is dropped in DTO.
 
-**Prevention:** Verify KHCBPPT's intercalary month rules explicitly. Add an intercalary month date to the golden dataset (e.g., intercalary April 2020).
+**Phase to address:**
+**v1.2-02 (TM-05) and v1.2-03 (INT-04, INT-05)**
 
-**Phase:** Taboo and trực cross-referencing.
+---
 
-### Pitfall 8: Schema Rigidity Causes Cascading Panics
+### Pitfall 6: Test coverage illusion (unit-green, integration-red after merge)
 
-**Problem:** Multiple `.expect()` calls on HashMap lookups in `calc.rs` will panic at runtime if any baseline.json structural change removes or renames a key. No compile-time safety for data schema.
+**What goes wrong:**
+Feature modules pass local unit tests, but cross-crate behavior regresses (core/API contract, golden parity, existing KHCBPPT validators).
 
-**Warning signs:** `cargo test` passes before JSON edit, panics after.
+**Why it happens:**
+This codebase uses layered tests; adding fields can pass module tests while failing API and golden parity paths.
 
-**Prevention:** Run `cargo test` after every JSON edit without exception. Consider adding a schema validation test that runs before all other tests.
+**How to avoid (concrete checks):**
+- Mandatory gate for v1.2 plans: run
+  - `cargo test --package amlich-core`
+  - `cargo test --package amlich-api`
+  - KHCBPPT-focused suites
+- Add representative 1900–2099 Kua fixtures and verify serialization round-trip.
+- Add regression test that existing JSON consumers still parse when new optional fields are absent.
 
-**Phase:** Standing protocol for all correction phases.
+**Warning signs:**
+- Only new module tests updated in PR.
+- Existing parity/contract tests are ignored or quarantined.
 
-## Phase-Specific Warnings
+**Phase to address:**
+**v1.2-02 (TM-04) and v1.2-03 (INT-05, INT-06)**
+
+---
+
+## Technical Debt Patterns
+
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Put Kua inside `DayFortune` without person-input contract | Faster integration | Semantically wrong API and future breaking change | Never |
+| Encode gender as loose `String` | Quick parsing | Inconsistent values across layers | Never (use enum + parser) |
+| Omit convention metadata for Kua | Smaller payload | Cannot explain divergences later | Never |
+| Add one generic `ten_gods` field with unclear target | Less schema work | Ambiguous semantics and client misuse | Never |
+
+## Integration Gotchas
+
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Core → API DTO | Add core fields only | Update `types.rs` + `dto.rs` + `convert.rs` + contract tests in one change |
+| Day query → Kua calc | Reuse query year as birth year | Require explicit birth inputs for Kua endpoint/field |
+| Evidence propagation | Keep evidence in core only | Assert evidence appears in API JSON for new fields |
+
+## Performance Traps
+
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Recomputing Ten Gods repeatedly in serialization path | Unnecessary allocations/CPU in API layer | Compute once in core and pass typed result through | High-volume API/date-range batch queries |
+| Kua fixtures generated ad hoc per test | Slow/flaky tests | Use fixed fixture set with deterministic expected outputs | CI parallel test load |
+
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Accepting arbitrary gender string and defaulting silently | Data integrity errors in personal astrology output | Strict enum parsing + explicit error |
+| Panic on invalid Kua edge case | Service instability if exposed through API | Return typed error/result, no panic paths |
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Showing Kua in date-only response without user profile | Users trust incorrect personalized result | Separate “day data” from “person profile” outputs |
+| Exposing Ten Gods labels without compared-target context | Misinterpretation by downstream consumers | Include `against` metadata (year/month/day stem target) |
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **Ten Gods integration:** Labels present but target-stem provenance missing — verify explicit field naming/tests.
+- [ ] **Kua algorithm:** Formula implemented but convention metadata absent — verify TM-05 documentation and evidence fields.
+- [ ] **API schema:** Core types updated but DTO conversion incomplete — verify `almanac_contract` assertions for new fields.
+- [ ] **Regression safety:** New tests pass but KHCBPPT suites not re-run — verify INT-06 full regression gate.
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Wrong Ten Gods integration target | MEDIUM | Freeze schema, add provenance fields, regenerate fixtures, backfill contract tests |
+| Kua convention mismatch after release | HIGH | Version convention metadata, add compatibility mode, publish migration notes |
+| Core/API schema drift | MEDIUM | Patch DTO/convert parity, add snapshot tests to prevent recurrence |
+
+## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Tests ≠ KHCBPPT validation | Golden dataset creation | Entries have citation fields |
-| JD offset for 28-star cycle | Star cross-referencing | 3+ real dated entries verified first |
-| Day deity anchor | Day deity cross-referencing | All 12 months have verified date-deity pair |
-| Trực quality table | Trực cross-referencing | TRUC_QUALITY has direct KHCBPPT citation |
-| Sparse star data | Reference data compilation | Completeness audit precedes correction |
-| Wrong KHCBPPT edition | Source establishment | Edition documented in dataset metadata |
-| Intercalary month undefined | Taboo + trực cross-referencing | Intercalary month date in golden dataset |
-| Schema panics on edit | All correction phases | `cargo test` after every JSON edit |
+| Wrong Ten Gods target in integration | v1.2-03 | Contract tests assert exact day/target stem pairing for each output field |
+| Kua convention drift | v1.2-02 | Edge fixture suite (1900–2099 + boundary cases) passes with documented convention metadata |
+| Birth-level Kua miswired into day-level flow | v1.2-03 | Date-only requests return no Kua; person-context requests return validated Kua |
+| Core/API schema mismatch | v1.2-03 | JSON contract tests include new fields and remain backward-compatible |
+| Evidence metadata inconsistency | v1.2-02 + v1.2-03 | Tests enforce non-empty, policy-aligned evidence in both core and API |
+| Coverage illusion / regression leakage | v1.2-02 + v1.2-03 | Full `amlich-core` + `amlich-api` suites green, including KHCBPPT validators |
+
+## Sources
+
+- `.planning/PROJECT.md` (v1.2 goals and constraints)
+- `.planning/STATE.md` (integration risk note and current milestone context)
+- `.planning/REQUIREMENTS-v1.2.md` (TT/TM/INT requirement boundaries)
+- `crates/amlich-core/src/almanac/thap_than.rs` (existing deterministic Ten Gods engine + tests)
+- `crates/amlich-core/src/almanac/types.rs` (DayFortune shape and evidence patterns)
+- `crates/amlich-core/src/almanac/calc.rs` (current orchestration integration point)
+- `crates/amlich-api/src/dto.rs` and `crates/amlich-api/src/convert.rs` (DTO duplication risk)
+- `crates/amlich-api/tests/almanac_contract.rs` and `crates/amlich-api/tests/golden_parity.rs` (contract/regression gates)
+- `.planning/phases/v1.2-ten-gods-and-kua-foundation/v1.2-RESEARCH.md` (phase assumptions and risks)
+- `vietnamese_lunar_engine_tables.md` and `.planning/ENGINE_EXPANSION_ANALYSIS.md` (LOWER-authority formula references; used to identify convention ambiguity)
 
 ---
-*Pitfalls research: 2026-02-28*
+*Pitfalls research: Ten Gods + Tu Menh/Kua integration (v1.2)*
