@@ -19,7 +19,7 @@ Total mismatches verified: 0 (all data values already match KHCBPPT)
 
 | Date | Status | Requirement | Subsystem | Affected Entry/Date | KHCBPPT Citation | File Changed | Before | After | Rationale |
 |-------|--------|-------------|------------|---------------------|------------------|---------|-------|----------|
-| 2026-03-02 | resolved | STR-04 | star_meta | All star entries | KHCBPPT, Quyển 12-13, Công Quy (公規) — Nhị Thập Bát Tú (二十八宿) | khcbppt-golden.json | "nhi-thap-bat-tu" | "khcbppt" | Per Phase 1 STATE.md decision: "star_meta.source_id should change from 'nhi-thap-bat-tu' to 'khcbppt' in Phase 4" |
+| 2026-03-02 | resolved | STR-04 | star_meta | All star entries | KHCBPPT, Quyển 12-13, Công Quy (公規) — Nhị Thập Bát Tú (二十八宿) | baseline.json | "nhi-thap-bat-tu" | "khcbppt" | Per Phase 1 STATE.md decision: "star_meta.source_id should change from 'nhi-thap-bat-tu' to 'khcbppt' in Phase 4" |
 
 **Verification:**
 - All 28 star mansion names and quality classifications in baseline.json match KHCBPPT (per stars.md Section 1)
