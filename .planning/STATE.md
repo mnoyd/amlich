@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Foundation Extensions
-status: unknown
+status: in_progress
 last_updated: "2026-03-02T08:36:06.379Z"
 progress:
   total_phases: 8
@@ -30,10 +30,11 @@ All 4 phases finished successfully:
 - Phase 3: Validator Harness and Divergence Inventory (3/3 plans)
 - Phase 4: Correction and Zero-Divergence Verification (1/1 plan)
 
-Status: All 7 KHCBPPT validators pass with 0 divergences; all 184 tests pass
-Last activity: 2026-03-02 — Milestone v1.0 archived in MILESTONES.md
+Status authority for v1.1+: `.planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md` (verified 2026-03-02)
+Current milestone state: **v1.1 blocked/pending acceptance** — XH/TC complete, TK-01..TK-06 blocked by failing `tietkhi` tests in `cargo test --package amlich-core`
+Last activity: 2026-03-02 — v1.1.1 verification/traceability closure in progress; v1.1.2 is the required acceptance-gate fix
 
-Progress: [██████████] 100%
+Progress: [█████████░] v1.1 implementation complete, acceptance blocked pending v1.1.2
 
 ## Performance Metrics
 
@@ -107,25 +108,25 @@ None yet.
 
 ### Blockers/Concerns
 
-**None** - All blockers from v1.0 resolved:
-- ✓ KHCBPPT edition pinned (Phase 1)
-- ✓ Star rule completeness documented (Phase 3 - sparsity report)
-- ✓ Truc quality verified correct (Phase 4 - no correction needed)
+- **v1.1 acceptance gate blocked:** TK-01..TK-06 remain blocked in canonical verification due to 5 failing `tietkhi` tests.
+- **Dependency risk:** v1.2 execution is at-risk/dependency-blocked until v1.1.2 restores green full-package gate.
+- **Source of truth:** `.planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md` and `.planning/v1.1-MILESTONE-AUDIT.md`.
 
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Milestone v1.0 complete — All 4 phases finished, 0 divergences confirmed, MILESTONES.md archived
-Next: Execute v1.1 Foundation Extensions; v1.2 Ten Gods and Kua Foundation queued
+Stopped at: Executing v1.1.1-03 status reconciliation against canonical verification truth
+Next: Execute v1.1.2 Tiết Khí Regression Fix and Acceptance Gate to unblock v1.1 and dependency-gated v1.2
 
 ## Milestone Queue
 
-- **Current execution target:** v1.1 Foundation Extensions (already planned in ROADMAP.md)
-- **Next milestone queued:** v1.2 Ten Gods and Kua Foundation
+- **Current execution target:** v1.1.2 Tiết Khí Regression Fix and Acceptance Gate (required to close v1.1 acceptance)
+- **Current milestone status:** v1.1 Foundation Extensions is blocked/pending acceptance until TK gate is green
+- **Next milestone queued (at-risk):** v1.2 Ten Gods and Kua Foundation
   - Scope confirmed: Thập Thần engine, Tứ Mệnh calculations, DayFortune/API/test integration
   - Explicit defer: Đại Vận to v1.3
   - Requirements file: `.planning/REQUIREMENTS-v1.2.md`
-  - Roadmap entry: `Phase v1.2` in `.planning/ROADMAP.md`
+  - Roadmap entry: `Phase v1.2` in `.planning/ROADMAP.md` (dependency warning active while v1.1.2 outstanding)
 
 **Verification Commands:**
 ```bash
