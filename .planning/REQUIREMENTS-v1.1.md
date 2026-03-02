@@ -216,6 +216,41 @@ Milestone v1.1 is complete when ALL of the following are TRUE:
 
 ---
 
+## Traceability
+
+| Requirement | Gap-Closure Phase | Status |
+|-------------|-------------------|--------|
+| XH-01 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| XH-02 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| XH-03 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| XH-04 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| XH-05 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| XH-06 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| XH-07 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| XH-08 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TC-01 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TC-02 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TC-03 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TC-04 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TC-05 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TC-06 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TC-07 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TC-08 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TC-09 | v1.1.1 | Complete (evidence: .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md) |
+| TK-01 | v1.1.2 | Pending |
+| TK-02 | v1.1.2 | Pending |
+| TK-03 | v1.1.2 | Pending |
+| TK-04 | v1.1.2 | Pending |
+| TK-05 | v1.1.2 | Pending |
+| TK-06 | v1.1.2 | Pending |
+
+**Coverage:**
+- v1.1 requirements: 23 total
+- Mapped to gap-closure phases: 23
+- Unmapped: 0
+
+---
+
 ## Open Questions
 
 1. **KHCBPPT verification needed?** Should we research KHCBPPT vols 1-2 for Tàng Can and enhanced Xung Hợp, or trust the specification document as authoritative?
