@@ -90,6 +90,36 @@ Deferred to future audit cycle.
 | Performance optimization | Correctness first |
 | Dates outside 2020–2030 | Practical daily use priority; cyclical rules provide coverage |
 
+## v1.1 Delegated Requirement Accounting (Master Registry)
+
+Machine-readable accounting rows for all v1.1 IDs. Canonical requirement definitions remain in `.planning/REQUIREMENTS-v1.1.md`; canonical verification evidence remains in `.planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md`.
+
+| Requirement Set | Requirement ID | Scoped ID | Delegated Definition | Evidence Authority | Accounting Status |
+|-----------------|----------------|-----------|----------------------|--------------------|-------------------|
+| v1.1 | XH-01 | v1.1::XH-01 | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | XH-02 | v1.1::XH-02 | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | XH-03 | v1.1::XH-03 | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | XH-04 | v1.1::XH-04 | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | XH-05 | v1.1::XH-05 | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | XH-06 | v1.1::XH-06 | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | XH-07 | v1.1::XH-07 | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | XH-08 | v1.1::XH-08 | .planning/REQUIREMENTS-v1.1.md#category-1-enhanced-xung-hợp-relationships | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TC-01 | v1.1::TC-01 | .planning/REQUIREMENTS-v1.1.md#category-2-tàng-can-hidden-stems | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TC-02 | v1.1::TC-02 | .planning/REQUIREMENTS-v1.1.md#category-2-tàng-can-hidden-stems | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TC-03 | v1.1::TC-03 | .planning/REQUIREMENTS-v1.1.md#category-2-tàng-can-hidden-stems | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TC-04 | v1.1::TC-04 | .planning/REQUIREMENTS-v1.1.md#category-2-tàng-can-hidden-stems | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TC-05 | v1.1::TC-05 | .planning/REQUIREMENTS-v1.1.md#category-2-tàng-can-hidden-stems | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TC-06 | v1.1::TC-06 | .planning/REQUIREMENTS-v1.1.md#category-2-tàng-can-hidden-stems | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TC-07 | v1.1::TC-07 | .planning/REQUIREMENTS-v1.1.md#category-2-tàng-can-hidden-stems | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TC-08 | v1.1::TC-08 | .planning/REQUIREMENTS-v1.1.md#category-2-tàng-can-hidden-stems | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TC-09 | v1.1::TC-09 | .planning/REQUIREMENTS-v1.1.md#category-2-tàng-can-hidden-stems | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TK-01 | v1.1::TK-01 | .planning/REQUIREMENTS-v1.1.md#category-3-tiết-khí-helper-functions | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TK-02 | v1.1::TK-02 | .planning/REQUIREMENTS-v1.1.md#category-3-tiết-khí-helper-functions | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TK-03 | v1.1::TK-03 | .planning/REQUIREMENTS-v1.1.md#category-3-tiết-khí-helper-functions | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TK-04 | v1.1::TK-04 | .planning/REQUIREMENTS-v1.1.md#category-3-tiết-khí-helper-functions | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TK-05 | v1.1::TK-05 | .planning/REQUIREMENTS-v1.1.md#category-3-tiết-khí-helper-functions | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+| v1.1 | TK-06 | v1.1::TK-06 | .planning/REQUIREMENTS-v1.1.md#category-3-tiết-khí-helper-functions | .planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md | Accounted |
+
 ## Traceability
 
 | Requirement | Phase | Status |
