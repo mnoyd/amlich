@@ -5,6 +5,7 @@ pub mod golden_loader;
 pub mod profile;
 pub mod star;
 pub mod taboo;
+pub mod tang_can;
 pub mod than_huong;
 pub mod than_sat;
 pub mod truc;

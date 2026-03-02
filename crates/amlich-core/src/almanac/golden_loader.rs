@@ -258,16 +258,14 @@ mod tests {
     #[test]
     fn golden_dataset_covers_all_chi() {
         let dataset = load_golden_dataset();
-        let chi_set: HashSet<&str> =
-            dataset.entries.iter().map(|e| e.day_chi.as_str()).collect();
+        let chi_set: HashSet<&str> = dataset.entries.iter().map(|e| e.day_chi.as_str()).collect();
         assert_eq!(chi_set.len(), 12, "must cover all 12 chi: {:?}", chi_set);
     }
 
     #[test]
     fn golden_dataset_covers_all_can() {
         let dataset = load_golden_dataset();
-        let can_set: HashSet<&str> =
-            dataset.entries.iter().map(|e| e.day_can.as_str()).collect();
+        let can_set: HashSet<&str> = dataset.entries.iter().map(|e| e.day_can.as_str()).collect();
         assert_eq!(can_set.len(), 10, "must cover all 10 can: {:?}", can_set);
     }
 
