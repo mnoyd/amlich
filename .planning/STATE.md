@@ -32,7 +32,7 @@ All 4 phases finished successfully:
 
 Status authority for v1.1+: `.planning/phases/v1.1-foundation-extensions/v1.1-VERIFICATION.md` (verified 2026-03-02)
 Current milestone state: **v1.1 blocked/pending acceptance** — XH/TC complete, TK-01..TK-06 blocked by failing `tietkhi` tests in `cargo test --package amlich-core`
-Last activity: 2026-03-02 — v1.1.1 verification/traceability closure in progress; v1.1.2 is the required acceptance-gate fix
+Last activity: 2026-03-02 — v1.1.1 verification/traceability closure completed; v1.1.2 is the required acceptance-gate fix
 
 Progress: [█████████░] v1.1 implementation complete, acceptance blocked pending v1.1.2
 
