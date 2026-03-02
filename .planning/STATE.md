@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Foundation Extensions
 status: in_progress
-last_updated: "2026-03-02T09:46:07.068Z"
+last_updated: "2026-03-02T12:54:09.351Z"
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 17
+  completed_plans: 17
 ---
 
 # Project State
@@ -64,6 +64,7 @@ Progress: [█████████░] v1.1 implementation complete, accepta
 | Phase v1.1.1 P02 | 4 min | 3 tasks | 4 files |
 | Phase v1.1.1 P03 | 1 min | 2 tasks | 2 files |
 | Phase v1.1.1 P04 | 2 min | 3 tasks | 3 files |
+| Phase v1.1.1 P05 | 2 min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,8 @@ Recent decisions affecting current work:
 - [Phase v1.1.1]: Represent v1.2 as dependency-blocked risk while v1.1.2 acceptance gate remains unresolved
 - [Phase v1.1.1]: Close residual metadata drift via post-cycle re-verification instead of reopening requirement-evidence scope
 - [Phase v1.1.1]: Keep v1.1 blocked/pending and v1.2 dependency-blocked messaging intact while reconciling only v1.1.1 completion metadata
+- [Phase v1.1.1]: Represent v1.1 IDs in master REQUIREMENTS.md as delegated machine-readable rows rather than duplicating detailed requirement prose
+- [Phase v1.1.1]: Disambiguate XH-01/XH-02 with requirement-set scoped IDs to preserve legacy v1 semantics and v1.1 extension semantics simultaneously
 
 ### Pending Todos
 
@@ -121,7 +124,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed v1.1.1-04-PLAN.md
+Stopped at: Completed v1.1.1-05-PLAN.md
 Next: Execute v1.1.2 Tiết Khí Regression Fix and Acceptance Gate to unblock v1.1 and dependency-gated v1.2
 
 ## Milestone Queue
