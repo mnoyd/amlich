@@ -55,27 +55,27 @@ Deferred to later milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TT-01 | Phase TBD | Pending |
-| TT-02 | Phase TBD | Pending |
-| TT-03 | Phase TBD | Pending |
-| TT-04 | Phase TBD | Pending |
-| TT-05 | Phase TBD | Pending |
-| TM-01 | Phase TBD | Pending |
-| TM-02 | Phase TBD | Pending |
-| TM-03 | Phase TBD | Pending |
-| TM-04 | Phase TBD | Pending |
-| TM-05 | Phase TBD | Pending |
-| INT-01 | Phase TBD | Pending |
-| INT-02 | Phase TBD | Pending |
-| INT-03 | Phase TBD | Pending |
-| INT-04 | Phase TBD | Pending |
-| INT-05 | Phase TBD | Pending |
-| INT-06 | Phase TBD | Pending |
+| TT-01 | Phase v1.2 | Pending |
+| TT-02 | Phase v1.2 | Pending |
+| TT-03 | Phase v1.2 | Pending |
+| TT-04 | Phase v1.2 | Pending |
+| TT-05 | Phase v1.2 | Pending |
+| TM-01 | Phase v1.2.1 | Pending |
+| TM-02 | Phase v1.2.1 | Pending |
+| TM-03 | Phase v1.2.1 | Pending |
+| TM-04 | Phase v1.2.1 | Pending |
+| TM-05 | Phase v1.2.1 | Pending |
+| INT-01 | Phase v1.2.2 | Pending |
+| INT-02 | Phase v1.2.2 | Pending |
+| INT-03 | Phase v1.2.2 | Pending |
+| INT-04 | Phase v1.2.2 | Pending |
+| INT-05 | Phase v1.2.2 | Pending |
+| INT-06 | Phase v1.2.2 | Pending |
 
 **Coverage:**
 - v1 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-02*
