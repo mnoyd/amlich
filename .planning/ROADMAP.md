@@ -17,6 +17,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Validator Harness and Divergence Inventory** - Write per-subsystem validators and surface all divergences [COMPLETE 2026-03-01]
 - [x] **Phase 4: Correction and Zero-Divergence Verification** - Fix all divergences in baseline.json and source constants [COMPLETE 2026-03-02]
 - [ ] **Phase v1.1: Foundation Extensions** - Add enhanced Xung Hợp, Tàng Can, and Tiết Khí helper functions [PLANNING 2026-03-02]
+- [ ] **Phase v1.1.1: Verification and Traceability Closure** - Add missing verification artifacts and reconcile milestone metadata after v1.1 execution [PLANNING 2026-03-02]
+- [ ] **Phase v1.1.2: Tiết Khí Regression Fix and Acceptance Gate** - Fix failing tietkhi tests and re-open v1.1 test-backed acceptance gate [PLANNING 2026-03-02]
 - [x] **Phase v1.2: Ten Gods and Kua Foundation** - Add Thập Thần, Tứ Mệnh, and integration surfaces after v1.1 [QUEUED 2026-03-02] (completed 2026-03-02)
 
 ## Phase Details
@@ -86,6 +88,27 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] v1.1-02-PLAN.md (Wave 1) — Tàng Can (Hidden Stems) implementation
 - [ ] v1.1-03-PLAN.md (Wave 1) — Tiết Khí helper functions and public API
 
+### Phase v1.1.1: Verification and Traceability Closure
+**Goal**: Restore milestone verifiability by adding missing phase verification artifacts and machine-readable traceability links for v1.1 requirements
+**Depends on**: Phase v1.1 implementation outputs (`v1.1-01..03-SUMMARY.md`)
+**Requirements**: XH-01..XH-08, TC-01..TC-09, TK-01..TK-06
+**Gap Closure:** Closes audit gaps for missing `VERIFICATION.md`, missing `requirements-completed` frontmatter, and roadmap/state completion mismatch
+**Success Criteria** (what must be TRUE):
+  1. Canonical `v1.1-VERIFICATION.md` exists with per-requirement implementation evidence and fresh test evidence for XH/TC/TK scopes
+  2. `v1.1-01..03-SUMMARY.md` files include machine-readable `requirements-completed` frontmatter linked to the canonical verification artifact
+  3. `REQUIREMENTS-v1.1.md` traceability statuses align with verification truth, with TK requirements marked blocked/partial until v1.1.2 fixes the gate
+  4. `ROADMAP.md` and `STATE.md` status metadata are reconciled to verification-led truth (v1.1 blocked/pending, not complete)
+**Plans**: 3 plans in 2 waves
+- [ ] v1.1.1-01-PLAN.md (Wave 1) — Canonical XH/TC verification matrix and summary frontmatter linkage
+- [ ] v1.1.1-02-PLAN.md (Wave 2) — TK acceptance evidence closure and audit handoff to v1.1.2
+- [ ] v1.1.1-03-PLAN.md (Wave 2) — ROADMAP/STATE status reconciliation from verification truth
+
+### Phase v1.1.2: Tiết Khí Regression Fix and Acceptance Gate
+**Goal**: Restore green test gate for v1.1 by fixing failing `tietkhi` assertions and recording acceptance evidence
+**Depends on**: Phase v1.1.1 (verification scaffolding in place)
+**Requirements**: TK-01..TK-06
+**Gap Closure:** Closes audit gaps for failing `cargo test --package amlich-core` tietkhi cases and v1.2 dependency gating
+
 ### Phase v1.2: Ten Gods and Kua Foundation
 **Goal**: Add advanced foundational calculations (Thập Thần and Tứ Mệnh) and integrate them into day-level/public outputs without breaking validated behavior
 **Depends on**: v1.1 (Foundation Extensions complete)
@@ -113,4 +136,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 3. Validator Harness and Divergence Inventory | 3/3 | Complete | 2026-03-01 |
 | 4. Correction and Zero-Divergence Verification | 1/1 | Complete | 2026-03-02 |
 | v1.1: Foundation Extensions | 0/3 | Planning | 2026-03-02 |
+| v1.1.1: Verification and Traceability Closure | 0/3 | Planning | - |
+| v1.1.2: Tiết Khí Regression Fix and Acceptance Gate | 0/0 | Planning | - |
 | v1.2: Ten Gods and Kua Foundation | 0/3 | Queued | 2026-03-02 |

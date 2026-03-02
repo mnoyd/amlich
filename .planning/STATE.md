@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Foundation Extensions
 status: unknown
-last_updated: "2026-03-02T06:05:16.908Z"
+last_updated: "2026-03-02T07:51:43.682Z"
 progress:
-  total_phases: 6
+  total_phases: 8
   completed_phases: 6
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 15
+  completed_plans: 13
 ---
 
 # Project State
@@ -59,6 +59,7 @@ Progress: [██████████] 100%
 
 *Milestone v1.0 complete - no active planning*
 | Phase v1.2 P01 | 7 min | 4 tasks | 4 files |
+| Phase v1.1.1 P01 | 4 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,8 @@ Recent decisions affecting current work:
 - [Phase v1.2]: Reuse a shared HeavenlyStem enum with TryFrom<&str> for explicit invalid-input handling
 - [Phase v1.2]: Encode Ten Gods output as ThapThanResult with relation, polarity, and evidence metadata
 - [Phase v1.2]: Lock mapping correctness with explicit 10x10 expected-label matrix tests
+- [Phase v1.1.1]: Keep TK-01..TK-06 blocked in canonical verification until full package gate is green
+- [Phase v1.1.1]: Use v1.1-VERIFICATION.md as the single machine-readable evidence source for XH/TC traceability closure
 
 ### Pending Todos
 
