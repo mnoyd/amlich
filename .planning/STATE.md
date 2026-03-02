@@ -1,18 +1,31 @@
+---
+gsd_state_version: 1.0
+milestone: v1.2
+milestone_name: Ten Gods and Kua Foundation
+status: shipped
+last_updated: "2026-03-03T00:24:00.000Z"
+progress:
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+---
+
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-02)
+See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching KHCBPPT for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** Phase v1.2 (Ten Gods Deterministic Foundation)
+**Current focus:** Between milestones — planning next milestone
 
 ## Current Position
 
-Phase: v1.2-ten-gods-and-kua-foundation (Ten Gods and Kua Foundation)
-Plan: 3 of 3 in current phase
-Status: v1.2-03 complete
-Last activity: 2026-03-02T16:59:30Z — v1.2-03 DayFortune/API integration completed
+Milestone: v1.2 Ten Gods and Kua Foundation (SHIPPED 2026-03-02)
+Plans: 3/3 complete
+Status: Milestone complete
+Last activity: 2026-03-03T00:00:00Z — v1.2 milestone completed
 
 Progress: [██████████] 100%
 
@@ -23,13 +36,11 @@ Progress: [██████████] 100%
 - Average duration: 9.7 min
 - Total execution time: 29 min
 
-**By Phase:**
+**By Milestone:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
+| Milestone | Plans | Total | Avg/Plan |
+|-----------|-------|-------|----------|
 | v1.2 | 3/3 | 29 min | 9.7 min |
-| v1.2.1 | 0/TBD | - | - |
-| v1.2.2 | 0/TBD | - | - |
 
 **Recent Trend:**
 - Last 5 plans: v1.2-03 (11 min), v1.2-02 (10 min), v1.2-01 (7 min)
@@ -40,19 +51,22 @@ Progress: [██████████] 100%
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
+Key decisions from v1.2:
 
-- v1.2 roadmap uses milestone-style phase labels: v1.2 → v1.2.1 → v1.2.2.
-- Kua convention and boundary behavior must be explicit and fixture-backed before integration.
-- Integration is additive-only to preserve backward compatibility and KHCBPPT confidence.
-- **Kua calculator frozen convention**: Solar year basis, Kua5 resolution (male→8, female→2), East/West grouping by Kua parity.
-- **Ten Gods computation**: Computed deterministically from day stem to predefined targets (year stem, self) using get_thap_than
-- **Kua field behavior**: Remains None for date-only requests, only populates when birth context provided (future enhancement may add new function variant)
+- Ten Gods mapping uses five-element relation + yin/yang polarity split.
+- Evidence metadata uses khcbppt source_id and five-element-polarity-matrix method.
+- Kua calculator uses solar year basis (Gregorian calendar) as Vietnamese feng-shui convention.
+- Kua 5 resolution: male→8, female→2 (frozen project policy).
+- East/West group assignment: odd Kua (1,3,4,9) = East, even Kua (2,6,7,8) = West.
+- Ten Gods computed deterministically from day stem to predefined targets (year stem, self) using get_thap_than.
+- Kua field remains None for date-only requests (birth context required for population).
+- All new fields are Option<T> to preserve backward compatibility.
+- JSON field names use snake_case for stable serialization.
 
 ### Pending Todos
 
-- Verify full regression gate passes after v1.2-03 completion
-- Consider v1.3 planning (Dai Van integration)
+- Plan next milestone (e.g., v1.3 Dai Van integration)
+- Consider running `/gsd-new-milestone` to start next milestone
 
 ### Blockers/Concerns
 
@@ -61,9 +75,10 @@ None active.
 **Previously addressed:**
 - Kua convention ambiguity: Frozen in v1.2-02 with explicit documentation and fixture coverage.
 - Person-context input requirements: Handled via optional Kua field (populates only when birth context provided) in v1.2-03.
+- Backward compatibility concerns: Addressed by additive-only changes and Option<T> fields.
 
 ## Session Continuity
 
-Last session: 2026-03-02
-Stopped at: Completed v1.2-03 (DayFortune/API integration with backward compatibility)
-Resume file: None - plan phase v1.2 complete, ready for v1.3 or transition to next milestone
+Last session: 2026-03-03
+Stopped at: Completed v1.2 milestone archiving
+Resume file: None - milestone v1.2 complete, ready for next milestone planning

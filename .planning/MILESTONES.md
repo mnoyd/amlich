@@ -1,5 +1,24 @@
 # Milestones: Amlich Almanac Correctness Audit
 
+## v1.2 Ten Gods and Kua Foundation (Shipped: 2026-03-02)
+
+**Delivered:** Deterministic Ten Gods and Kua calculators with typed API, evidence-rich output, and DayFortune/API integration with full backward compatibility.
+
+**Phases completed:** 1 phase, 3 plans, 12 tasks
+
+**Key accomplishments:**
+- Implemented deterministic Ten Gods computation with typed stems, 10x10 matrix verification, and evidence metadata.
+- Built Kua calculator with solar year basis, typed API, East/West grouping, and comprehensive fixture coverage (1899-2100).
+- Extended DayFortune with optional Ten Gods and Kua fields, implemented conditional computation, and added API DTO/convert layers.
+- Maintained full backward compatibility with all new fields as Option<T> and stable snake_case JSON serialization.
+- All 16 requirements satisfied (TT-01 through TT-05, TM-01 through TM-05, INT-01 through INT-06).
+
+**Git range:** `4386922` -> `d99867a`
+
+**What's next:** Execute v1.3 (Dai Van integration) or plan next milestone.
+
+---
+
 ## v1.1 Foundation Extensions (Shipped: 2026-03-02)
 
 **Delivered:** Foundation almanac extensions shipped with accepted verification and green full-package gate.
