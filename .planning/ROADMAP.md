@@ -16,6 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Golden Dataset and Loader** - Serialize reference tables into khcbppt-golden.json and build Rust loader [COMPLETE 2026-03-01]
 - [x] **Phase 3: Validator Harness and Divergence Inventory** - Write per-subsystem validators and surface all divergences [COMPLETE 2026-03-01]
 - [x] **Phase 4: Correction and Zero-Divergence Verification** - Fix all divergences in baseline.json and source constants [COMPLETE 2026-03-02]
+- [ ] **Phase v1.1: Foundation Extensions** - Add enhanced Xung Hợp, Tàng Can, and Tiết Khí helper functions [PLANNING 2026-03-02]
 
 ## Phase Details
 
@@ -68,6 +69,22 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 1 plan
 - [x] 04-01-PLAN.md — Execute one coordinated correction batch with citation ledger to reach strict zero divergence (TAB-05, DEI-03, TRC-02, STR-04, THH-02, XH-02, NAM-02) [COMPLETE 2026-03-02]
 
+### Phase v1.1: Foundation Extensions
+**Goal**: Complete Xung Hợp relationship system, implement Tàng Can (Hidden Stems), and add Tiết Khí helper functions to provide foundational infrastructure for advanced features
+**Depends on**: v1.0 (all phases complete)
+**Requirements**: XH-01 through XH-08, TC-01 through TC-09, TK-01 through TK-06
+**Success Criteria** (what must be TRUE):
+  1. All 6 Xung Hợp relationship types (Lục xung, Tam hợp, Tứ hành xung, Lục hợp, Tương hại, Tương hình) are implemented and tested
+  2. Tàng Can subsystem is implemented with correct data for all 12 branches with strength values
+  3. Tiết Khí helper function exists and returns signed days to nearest Solar Term
+  4. All new subsystems are integrated into `DayFortune` struct and populated in `calculate_day_fortune()`
+  5. JSON serialization includes all new fields (`liu_he`, `xiang_hai`, `xiang_xing`, `tang_can`)
+  6. All unit tests pass and v1.0 regression tests continue to pass
+**Plans**: 2-3 plans (TBD)
+- [ ] v1.1-01-PLAN.md — Enhanced Xung Hợp relationships (Lục hợp, Tương hại, Tương hình)
+- [ ] v1.1-02-PLAN.md — Tàng Can (Hidden Stems) implementation
+- [ ] v1.1-03-PLAN.md — Tiết Khí helper functions and integration
+
 ## Progress
 
 **Execution Order:**
@@ -79,3 +96,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 2. Golden Dataset and Loader | 2/2 | Complete | 2026-03-01 |
 | 3. Validator Harness and Divergence Inventory | 3/3 | Complete | 2026-03-01 |
 | 4. Correction and Zero-Divergence Verification | 1/1 | Complete | 2026-03-02 |
+| v1.1: Foundation Extensions | 0/3 | Planning | 2026-03-02 |
