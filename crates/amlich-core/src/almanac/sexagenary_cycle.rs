@@ -26,8 +26,19 @@ use crate::types::{CanChi, CAN, CHI};
 /// assert_eq!(cc.chi, "Tý");
 /// ```
 pub fn cycle_index_to_canchi(index: u8) -> Option<CanChi> {
-    // RED: Minimal implementation - will be replaced in GREEN phase
-    todo!("RED phase: cycle_index_to_canchi not yet implemented")
+    // Validate 1-based bounds
+    if !(1..=60).contains(&index) {
+        return None;
+    }
+
+    // Convert to 0-based for internal arithmetic
+    let zero_based = (index - 1) as usize;
+
+    // Compute stem and branch indices
+    let can_idx = zero_based % 10;
+    let chi_idx = zero_based % 12;
+
+    Some(CanChi::new(can_idx, chi_idx))
 }
 
 /// Convert stem-branch pair to 1-based cycle index (1-60)
@@ -50,8 +61,22 @@ pub fn cycle_index_to_canchi(index: u8) -> Option<CanChi> {
 /// assert_eq!(idx, 1);
 /// ```
 pub fn canchi_to_cycle_index(can_index: usize, chi_index: usize) -> Option<u8> {
-    // RED: Minimal implementation - will be replaced in GREEN phase
-    todo!("RED phase: canchi_to_cycle_index not yet implemented")
+    // Validate indices are in bounds
+    if can_index >= 10 || chi_index >= 12 {
+        return None;
+    }
+
+    // Validate canonical combination: same polarity (odd/even)
+    if can_index % 2 != chi_index % 2 {
+        return None;
+    }
+
+    // Compute 60-cycle position (0-based)
+    // Formula: (can_index * 6) + (chi_index / 2) modulo 60
+    let zero_based = ((can_index * 6) + (chi_index / 2)) % 60;
+
+    // Convert to 1-based
+    Some((zero_based + 1) as u8)
 }
 
 /// Progress cycle index forward or backward with modular rollover
@@ -75,8 +100,19 @@ pub fn canchi_to_cycle_index(can_index: usize, chi_index: usize) -> Option<u8> {
 /// assert_eq!(idx, 60); // Wraps backward
 /// ```
 pub fn progress_cycle_index(index: u8, delta: i32) -> Option<u8> {
-    // RED: Minimal implementation - will be replaced in GREEN phase
-    todo!("RED phase: progress_cycle_index not yet implemented")
+    // Validate 1-based bounds
+    if !(1..=60).contains(&index) {
+        return None;
+    }
+
+    // Convert to signed 0-based for arithmetic
+    let zero_based = (index - 1) as i32;
+
+    // Use rem_euclid for correct signed modular arithmetic
+    let progressed = (zero_based + delta).rem_euclid(60) as u8;
+
+    // Convert back to 1-based
+    Some(progressed + 1)
 }
 
 #[cfg(test)]

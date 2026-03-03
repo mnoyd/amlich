@@ -8,8 +8,7 @@
 //! - PAR-01: Dedicated parity validators for full 60-cycle tables
 
 use amlich_core::almanac::data::baseline_data;
-use amlich_core::almanac::sexagenary_cycle::{canchi_to_cycle_index, cycle_index_to_canchi};
-use amlich_core::types::CanChi;
+use amlich_core::almanac::sexagenary_cycle::cycle_index_to_canchi;
 
 /// SC-05: Validate full 60-cycle parity against baseline na_am_pairs
 ///
@@ -24,71 +23,58 @@ fn validate_full_60_cycle_parity() {
     let data = baseline_data();
     let mut mismatches: Vec<String> = Vec::new();
 
-    // Iterate over 30 na_am_pairs, each expands to 2 cycle positions
-    for (pair_index, na_am) in data.sexagenary_na_am.values().take(30).enumerate() {
-        for offset in 0..2 {
-            // Calculate 1-based cycle index (1-60)
-            let cycle_index = (pair_index * 2 + offset) as u8 + 1;
-
-            // Get CanChi from the generated cycle
-            let canchi = match cycle_index_to_canchi(cycle_index) {
-                Some(cc) => cc,
-                None => {
-                    mismatches.push(format!(
-                        "[cycle {}] cycle_index_to_canchi returned None",
-                        cycle_index
-                    ));
-                    continue;
-                }
-            };
-
-            // Build expected key for lookup
-            let expected_key = format!("{} {}", canchi.can, canchi.chi);
-
-            // Look up baseline entry
-            let entry = match data.sexagenary_na_am.get(&expected_key) {
-                Some(e) => e,
-                None => {
-                    mismatches.push(format!(
-                        "[cycle {}] key '{}' not found in baseline sexagenary_na_am",
-                        cycle_index, expected_key
-                    ));
-                    continue;
-                }
-            };
-
-            // Verify stem matches
-            if entry.can != canchi.can {
+    // Iterate over all 60 cycle positions (1-60)
+    for cycle_index in 1..=60 {
+        // Get CanChi from the generated cycle
+        let canchi = match cycle_index_to_canchi(cycle_index) {
+            Some(cc) => cc,
+            None => {
                 mismatches.push(format!(
-                    "[cycle {}] can: expected '{}', got '{}'",
-                    cycle_index, entry.can, canchi.can
+                    "[cycle {}] cycle_index_to_canchi returned None",
+                    cycle_index
                 ));
+                continue;
             }
+        };
 
-            // Verify branch matches
-            if entry.chi != canchi.chi {
-                mismatches.push(format!(
-                    "[cycle {}] chi: expected '{}', got '{}'",
-                    cycle_index, entry.chi, canchi.chi
-                ));
-            }
+        // Build expected key for lookup
+        let expected_key = format!("{} {}", canchi.can, canchi.chi);
 
-            // Verify na_am matches
-            if entry.na_am != na_am.na_am {
+        // Look up baseline entry
+        let entry = match data.sexagenary_na_am.get(&expected_key) {
+            Some(e) => e,
+            None => {
                 mismatches.push(format!(
-                    "[cycle {}] na_am: expected '{}', got '{}'",
-                    cycle_index, entry.na_am, na_am.na_am
+                    "[cycle {}] key '{}' not found in baseline sexagenary_na_am",
+                    cycle_index, expected_key
                 ));
+                continue;
             }
+        };
 
-            // Verify element is correctly extracted from na_am
-            let expected_element = na_am.na_am.split_whitespace().last().unwrap_or("");
-            if entry.element != expected_element {
-                mismatches.push(format!(
-                    "[cycle {}] element: expected '{}', got '{}'",
-                    cycle_index, expected_element, entry.element
-                ));
-            }
+        // Verify stem matches
+        if entry.can != canchi.can {
+            mismatches.push(format!(
+                "[cycle {}] can: expected '{}', got '{}'",
+                cycle_index, entry.can, canchi.can
+            ));
+        }
+
+        // Verify branch matches
+        if entry.chi != canchi.chi {
+            mismatches.push(format!(
+                "[cycle {}] chi: expected '{}', got '{}'",
+                cycle_index, entry.chi, canchi.chi
+            ));
+        }
+
+        // Verify element is correctly extracted from na_am
+        let expected_element = entry.na_am.split_whitespace().last().unwrap_or("");
+        if entry.element != expected_element {
+            mismatches.push(format!(
+                "[cycle {}] element: expected '{}', got '{}'",
+                cycle_index, expected_element, entry.element
+            ));
         }
     }
 
@@ -117,7 +103,8 @@ fn validate_na_am_pair_consecutive_coverage() {
     let data = baseline_data();
     let mut mismatches: Vec<String> = Vec::new();
 
-    for (pair_index, _na_am) in data.sexagenary_na_am.values().take(30).enumerate() {
+    // Iterate over all 60 positions, checking pairs
+    for pair_index in 0..30 {
         let index1 = (pair_index * 2) as u8 + 1; // First position (e.g., Giáp Tý)
         let index2 = (pair_index * 2 + 1) as u8 + 1; // Second position (e.g., Ất Sửu)
 
