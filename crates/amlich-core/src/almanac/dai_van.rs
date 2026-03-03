@@ -319,6 +319,73 @@ mod tests {
         }
     }
 
+    mod helper_contracts {
+        use super::*;
+
+        fn fixture_result() -> DaiVanResult {
+            DaiVanResult {
+                chieu_thu: ChieuThu::Thuan,
+                chieu_thu_label: ChieuThu::Thuan.display_label().to_string(),
+                start_age_years: 2.0,
+                start_age_display: "2.00 years".to_string(),
+                pillars: vec![
+                    DaiVanPillar {
+                        index: 0,
+                        can_chi: DaiVanCanChi::from(&CanChi::new(0, 0)),
+                        start_age: 2.0,
+                        end_age: 12.0,
+                    },
+                    DaiVanPillar {
+                        index: 1,
+                        can_chi: DaiVanCanChi::from(&CanChi::new(1, 1)),
+                        start_age: 12.0,
+                        end_age: 22.0,
+                    },
+                    DaiVanPillar {
+                        index: 2,
+                        can_chi: DaiVanCanChi::from(&CanChi::new(2, 2)),
+                        start_age: 22.0,
+                        end_age: 32.0,
+                    },
+                ],
+                convention: DaiVanConvention::project_default(),
+                evidence: DaiVanEvidence::project_default(),
+            }
+        }
+
+        #[test]
+        fn get_pillar_at_age_uses_half_open_boundaries() {
+            let result = fixture_result();
+
+            let at_first_start = get_pillar_at_age(&result, 2.0).expect("pillar at first start");
+            let at_first_end = get_pillar_at_age(&result, 12.0).expect("pillar at transition age");
+
+            assert_eq!(at_first_start.index, 0);
+            assert_eq!(at_first_end.index, 1);
+        }
+
+        #[test]
+        fn get_pillar_at_age_returns_none_outside_supported_age_range() {
+            let result = fixture_result();
+
+            assert!(get_pillar_at_age(&result, 1.999_999).is_none());
+            assert!(get_pillar_at_age(&result, 32.0).is_none());
+            assert!(get_pillar_at_age(&result, 100.0).is_none());
+        }
+
+        #[test]
+        fn get_current_pillar_mirrors_get_pillar_at_age_for_same_inputs() {
+            let result = fixture_result();
+            let sample_ages = [1.5, 2.0, 7.5, 12.0, 31.999_99, 32.0];
+
+            for age in sample_ages {
+                let from_current = get_current_pillar(&result, age).map(|pillar| pillar.index);
+                let from_lookup = get_pillar_at_age(&result, age).map(|pillar| pillar.index);
+                assert_eq!(from_current, from_lookup, "mismatch at age {age}");
+            }
+        }
+    }
+
     mod helpers_and_edge_cases {
         use super::*;
 
