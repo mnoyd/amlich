@@ -23,27 +23,27 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 Milestone: v1.4 Lunar Engine Table Parity
-Phase: Phase 8 - Sexagenary Cycle Parity and Validators
-Plans: 3/6 complete
-Status: Phase 08-01 complete (sexagenary cycle utilities); ready for 08-02
-Last activity: 2026-03-03T17:17:34Z — Completed Phase 8 Plan 1 sexagenary cycle utilities with TDD
+Phase: Phase 9 - Na Am API Surfaces and Contracts
+Plans: 1/2 complete
+Status: Phase 09-01 complete (Na Am lookup APIs); ready for 09-02
+Last activity: 2026-03-03T17:39:29Z — Completed Phase 9 Plan 1 core Na Am lookup APIs with TDD
 
-Progress: [████░░░░░░] 50%
+Progress: [████████░░] 83%
 
 ### Milestone Status: v1.4 In Progress
 
 **Goal:** Deliver hour pillar parity, full 60-cycle parity, and Na Am API surfaces with validator evidence
 
-**Completed Requirements:** HP-01..05, PAR-02, SC-01..04
+**Completed Requirements:** HP-01..05, PAR-02, SC-01..04, NAM-API-01..05
 
-**Pending Requirements:** SC-05, NAM-API-01..06, PAR-01, PAR-03, PAR-04 (10 requirements)
+**Pending Requirements:** NAM-API-06, PAR-01, PAR-03, PAR-04 (4 requirements)
 
-**Status:** Milestone complete
+**Status:** Milestone in progress
 
 ## Performance Metrics
 
 **Velocity:**
-- v1.4 plans completed: 3/6 (Phase 7 complete, Phase 8-01 complete)
+- v1.4 plans completed: 5/8 (Phase 7 complete, Phase 8 complete, Phase 9-01 complete)
 - Milestone status: in progress
 
 **By Milestone:**
@@ -52,12 +52,13 @@ Progress: [████░░░░░░] 50%
 |-----------|-------|-------|----------|
 | v1.2 | 3/3 | 29 min | 9.7 min |
 | v1.3 | 5/5 | n/a | n/a |
-| v1.4 | 3/6 | n/a | n/a |
+| v1.4 | 5/8 | n/a | n/a |
 
 **Recent Trend:**
 - v1.3 execution closed with stable contract-driven tests and synchronized artifacts.
 - v1.4 Phase 7 delivered deterministic hour-pillar core and integration parity validators.
-- v1.4 Phase 8-01 delivered sexagenary cycle utilities with corrected formula using Chinese Remainder Theorem.
+- v1.4 Phase 8 delivered sexagenary cycle utilities and full-table parity validators.
+- v1.4 Phase 9-01 delivered core Na Am lookup APIs with TDD and type-safe error handling.
 
 ## Accumulated Context
 
@@ -140,8 +141,7 @@ Key decisions from v1.2 and v1.3:
 
 ### Pending Todos
 
-- Execute Phase 8 plan 08-02 (full-table parity validators)
-- Confirm Na Am API error contract conventions before Phase 9 implementation
+- Execute Phase 9 plan 09-02 (harden error contracts, schema tests, and requirement traceability sync)
 
 ### Blockers/Concerns
 
@@ -154,13 +154,13 @@ None active.
 
 ## Session Continuity
 
-Last session: 2026-03-03T17:13:01Z
-Stopped at: Completed Phase 8 Plan 1 (sexagenary cycle utilities)
+Last session: 2026-03-03T17:39:29Z
+Stopped at: Completed Phase 9 Plan 1 (Na Am lookup APIs)
 Resume file: None
 
 ### Active TODOs
 
-- Start `/gsd-execute-phase 8` for Phase 8 Plan 2 (full-table parity validators)
+- Start `/gsd-execute-phase 9` for Phase 9 Plan 2 (harden error contracts, schema tests, and requirement traceability sync)
 
 ### Context Handoff
 
@@ -172,9 +172,9 @@ Resume file: None
 - Must handle edge cases (Tiết Khí boundaries, leap months, year polarity transitions)
 
 **v1.4 Completion Criteria:**
-1. Hour pillar outputs match canonical table mappings across all day-stem groups and boundaries
-2. 60-cycle conversion/progression utilities pass full-table parity validators
-3. Na Am APIs (pair/index lookup) ship with stable schema, metadata, and explicit validation errors
+1. Hour pillar outputs match canonical table mappings across all day-stem groups and boundaries ✓
+2. 60-cycle conversion/progression utilities pass full-table parity validators ✓
+3. Na Am APIs (pair/index lookup) ship with stable schema, metadata, and explicit validation errors ⚠ (09-01 complete, 09-02 pending for schema tests and traceability)
 
 **Resources:**
 - .planning/ENGINE_EXPANSION_ANALYSIS.md — Earlier engine parity context and subsystem map
