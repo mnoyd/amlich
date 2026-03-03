@@ -8,7 +8,7 @@
 //! - Invalid inputs return None (not panic)
 //! - All operations are deterministic and side-effect-free
 
-use crate::types::{CanChi, CAN, CHI};
+use crate::types::CanChi;
 
 /// Convert 1-based cycle index (1-60) to stem-branch pair
 ///
@@ -119,9 +119,77 @@ pub fn progress_cycle_index(index: u8, delta: i32) -> Option<u8> {
 mod tests {
     use super::*;
 
+    // Task 1 Tests: cycle_index_to_canchi
+
     #[test]
-    fn test_placeholder() {
-        // Placeholder to ensure module compiles during RED phase
-        assert!(true);
+    fn test_cycle_index_to_canchi_bounds() {
+        // Valid lower bound: index 1 -> Giáp Tý
+        let cc = cycle_index_to_canchi(1).expect("index 1 should be valid");
+        assert_eq!(cc.full, "Giáp Tý");
+        assert_eq!(cc.can_index, 0);
+        assert_eq!(cc.chi_index, 0);
+
+        // Valid upper bound: index 60 -> Quý Hợi
+        let cc = cycle_index_to_canchi(60).expect("index 60 should be valid");
+        assert_eq!(cc.full, "Quý Hợi");
+        assert_eq!(cc.can_index, 9);
+        assert_eq!(cc.chi_index, 11);
+
+        // Invalid lower bound
+        assert!(
+            cycle_index_to_canchi(0).is_none(),
+            "index 0 should be invalid"
+        );
+
+        // Invalid upper bound
+        assert!(
+            cycle_index_to_canchi(61).is_none(),
+            "index 61 should be invalid"
+        );
+    }
+
+    #[test]
+    fn test_cycle_index_to_canchi_intermediate_values() {
+        // Test index 7 -> Canh Ngọ
+        let cc = cycle_index_to_canchi(7).expect("index 7 should be valid");
+        assert_eq!(cc.full, "Canh Ngọ");
+        assert_eq!(cc.can_index, 6);
+        assert_eq!(cc.chi_index, 6);
+
+        // Test index 31 -> Ất Mùi (let me verify: (31-1) % 10 = 0? No, 30 % 10 = 0 -> Giáp
+        // Wait, let me recalculate: index 31 -> zero_based = 30
+        // can_idx = 30 % 10 = 0 (Giáp)
+        // chi_idx = 30 % 12 = 6 (Ngọ)
+        // So index 31 should be Giáp Ngọ, not Ất Mùi
+        let cc = cycle_index_to_canchi(31).expect("index 31 should be valid");
+        assert_eq!(cc.full, "Giáp Ngọ");
+        assert_eq!(cc.can_index, 0);
+        assert_eq!(cc.chi_index, 6);
+
+        // Test index 41 -> Giáp Thìn
+        // zero_based = 40
+        // can_idx = 40 % 10 = 0 (Giáp)
+        // chi_idx = 40 % 12 = 4 (Thìn)
+        let cc = cycle_index_to_canchi(41).expect("index 41 should be valid");
+        assert_eq!(cc.full, "Giáp Thìn");
+        assert_eq!(cc.can_index, 0);
+        assert_eq!(cc.chi_index, 4);
+    }
+
+    #[test]
+    fn test_cycle_index_to_canchi_all_canonical() {
+        // Test that all 60 positions produce valid canonical pairs
+        for i in 1..=60u8 {
+            let cc = cycle_index_to_canchi(i).expect("should convert all valid indices");
+            assert!(cc.can_index < 10, "can_index should be in range [0, 9]");
+            assert!(cc.chi_index < 12, "chi_index should be in range [0, 11]");
+            // Verify parity is consistent (canonical combination)
+            assert_eq!(
+                cc.can_index % 2,
+                cc.chi_index % 2,
+                "canonical pairs must have matching parity at index {}",
+                i
+            );
+        }
     }
 }
