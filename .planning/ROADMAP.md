@@ -8,8 +8,8 @@
 ## Phases
 
 - [x] **Phase 7: Hour Pillar Parity Core** - Deterministic hour-pillar mapping with day-stem seed rules and boundary-safe slot handling (completed 2026-03-03)
-- [ ] **Phase 8: Sexagenary Cycle Parity and Validators** - Canonical 60-cycle utilities, rollover correctness, and parity validator suite
-- [ ] **Phase 9: Na Am API Surfaces and Contracts** - Pair/index Na Am APIs, schema contracts, and traceability artifact sync
+- [x] **Phase 8: Sexagenary Cycle Parity and Validators** - Canonical 60-cycle utilities, rollover correctness, and parity validator suite (completed 2026-03-03)
+- [ ] **Phase 9: Na Am API Surfaces and Contracts** - Pair/index Na Am APIs, schema contracts, and traceability artifact sync (in progress)
 
 ## Phase Details
 
@@ -70,8 +70,8 @@
 
 **Plans**: 2 plans
 
-- [ ] `09-01-PLAN.md` - Add core->DTO Na Am API models and lookup handlers
-- [ ] `09-02-PLAN.md` - Harden error contracts, schema tests, and requirement traceability sync
+- [x] `09-01-PLAN.md` - Add core->DTO Na Am API models and lookup handlers (3 tasks, Wave 1) - completed 2026-03-03
+- [ ] `09-02-PLAN.md` - Harden error contracts, schema tests, and requirement traceability sync (2 tasks, Wave 2)
 
 ## Progress
 
@@ -79,7 +79,7 @@
 |-------|----------------|--------|-----------|
 | 7. Hour Pillar Parity Core | 2/2 | Complete | 2026-03-03 |
 | 8. Sexagenary Cycle Parity and Validators | 2/2 | Complete | 2026-03-03 |
-| 9. Na Am API Surfaces and Contracts | 0/2 | Planned | - |
+| 9. Na Am API Surfaces and Contracts | 1/2 | In Progress | 2026-03-03 |
 
 ## Dependencies
 
