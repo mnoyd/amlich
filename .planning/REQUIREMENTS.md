@@ -25,19 +25,19 @@ Requirements for Lunar engine table parity milestone. Each maps to roadmap phase
 
 ### Na Am APIs
 
-- [ ] **NAM-API-01**: API exposes Na Am lookup by stem-branch pair
-- [ ] **NAM-API-02**: API exposes Na Am lookup by cycle index (1-60)
-- [ ] **NAM-API-03**: API returns normalized source metadata and method for each Na Am response
-- [ ] **NAM-API-04**: API conversion layer preserves backward compatibility for existing DayFortune consumers
-- [ ] **NAM-API-05**: API returns explicit validation error for invalid pair/index requests
-- [ ] **NAM-API-06**: Contract tests verify response schema and stable serialization for both lookup modes
+- [x] **NAM-API-01**: API exposes Na Am lookup by stem-branch pair
+- [x] **NAM-API-02**: API exposes Na Am lookup by cycle index (1-60)
+- [x] **NAM-API-03**: API returns normalized source metadata and method for each Na Am response
+- [x] **NAM-API-04**: API conversion layer preserves backward compatibility for existing DayFortune consumers
+- [x] **NAM-API-05**: API returns explicit validation error for invalid pair/index requests
+- [x] **NAM-API-06**: Contract tests verify response schema and stable serialization for both lookup modes
 
 ### Metadata and Verification
 
 - [x] **PAR-01**: Parity validators are added for hour pillar and full 60-cycle tables
 - [x] **PAR-02**: Golden fixtures include representative plus boundary cases for hour pillar and Na Am lookups
-- [ ] **PAR-03**: Traceability links every new requirement to one roadmap phase
-- [ ] **PAR-04**: Milestone artifacts document parity decisions and known source ambiguities
+- [x] **PAR-03**: Traceability links every new requirement to one roadmap phase
+- [x] **PAR-04**: Milestone artifacts document parity decisions and known source ambiguities
 
 ## v2 Requirements
 
@@ -76,16 +76,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SC-03 | Phase 8 | Complete |
 | SC-04 | Phase 8 | Complete |
 | SC-05 | Phase 8 | Planned |
-| NAM-API-01 | Phase 9 | Planned |
-| NAM-API-02 | Phase 9 | Planned |
-| NAM-API-03 | Phase 9 | Planned |
-| NAM-API-04 | Phase 9 | Planned |
-| NAM-API-05 | Phase 9 | Planned |
-| NAM-API-06 | Phase 9 | Planned |
-| PAR-01 | Phase 8 | Planned |
+| NAM-API-01 | Phase 9 | Complete |
+| NAM-API-02 | Phase 9 | Complete |
+| NAM-API-03 | Phase 9 | Complete |
+| NAM-API-04 | Phase 9 | Complete |
+| NAM-API-05 | Phase 9 | Complete |
+| NAM-API-06 | Phase 9 | Complete |
+| PAR-01 | Phase 8 | Complete |
 | PAR-02 | Phase 7 | Complete |
-| PAR-03 | Phase 9 | Planned |
-| PAR-04 | Phase 9 | Planned |
+| PAR-03 | Phase 9 | Complete |
+| PAR-04 | Phase 9 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total
