@@ -72,8 +72,10 @@ pub fn canchi_to_cycle_index(can_index: usize, chi_index: usize) -> Option<u8> {
     }
 
     // Compute 60-cycle position (0-based)
-    // Formula: (can_index * 6) + (chi_index / 2) modulo 60
-    let zero_based = ((can_index * 6) + (chi_index / 2)) % 60;
+    // Formula: solve for i where i % 10 = can_index and i % 12 = chi_index
+    // Using Chinese Remainder Theorem for moduli 10 and 12 (gcd=2, so parity must match)
+    let k = ((can_index as i32 - chi_index as i32) / 2).rem_euclid(6) as usize;
+    let zero_based = (can_index + 10 * k) % 60;
 
     // Convert to 1-based
     Some((zero_based + 1) as u8)
