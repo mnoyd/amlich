@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+use crate::almanac::thap_than::{get_thap_than, ThapThanResult};
 use crate::almanac::tu_menh::Gender;
 use crate::almanac::types::{HeavenlyStem, Polarity};
 use crate::canchi::{get_month_canchi, get_year_canchi};
@@ -384,6 +385,31 @@ mod tests {
                 assert_eq!(from_current, from_lookup, "mismatch at age {age}");
             }
         }
+
+        #[test]
+        fn years_to_next_transition_returns_exact_end_minus_age_for_in_range_age() {
+            let result = fixture_result();
+            let age = 4.25;
+            let remaining = years_to_next_transition(&result, age).expect("remaining years");
+
+            assert!((remaining - (12.0 - age)).abs() < 1e-9);
+        }
+
+        #[test]
+        fn years_to_next_transition_uses_incoming_pillar_at_exact_transition_age() {
+            let result = fixture_result();
+            let remaining = years_to_next_transition(&result, 12.0).expect("remaining years");
+
+            assert!((remaining - 10.0).abs() < 1e-9);
+        }
+
+        #[test]
+        fn years_to_next_transition_returns_none_for_out_of_range_ages() {
+            let result = fixture_result();
+
+            assert!(years_to_next_transition(&result, 1.999_999).is_none());
+            assert!(years_to_next_transition(&result, 32.0).is_none());
+        }
     }
 
     mod helpers_and_edge_cases {
@@ -471,6 +497,55 @@ mod tests {
             let r1 = calculate_dai_van(10, 2, 2024, Gender::Male);
             let r2 = calculate_dai_van(10, 2, 2024, Gender::Male);
             assert_eq!(r1, r2);
+        }
+    }
+
+    mod ten_gods_helpers {
+        use super::*;
+
+        #[test]
+        fn returns_ten_god_for_valid_day_stem_and_age() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Male);
+            let first = result.pillars.first().expect("first pillar");
+            let age = first.start_age + 0.5;
+            let pillar_stem = HeavenlyStem::try_from(first.can_chi.can.as_str())
+                .expect("pillar stem should parse");
+
+            let ten_god = get_ten_god_for_age(&result, age, Some(HeavenlyStem::Giap));
+
+            assert_eq!(
+                ten_god,
+                Some(crate::almanac::thap_than::get_thap_than(
+                    HeavenlyStem::Giap,
+                    pillar_stem
+                ))
+            );
+        }
+
+        #[test]
+        fn returns_none_when_birth_day_stem_missing() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Female);
+
+            assert_eq!(get_ten_god_for_pillar(&result, 0, None), None);
+            assert_eq!(
+                get_ten_god_for_age(&result, result.pillars[0].start_age + 0.5, None),
+                None
+            );
+        }
+
+        #[test]
+        fn returns_none_for_out_of_range_age_or_invalid_pillar_index() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Male);
+            let last = result.pillars.last().expect("last pillar");
+
+            assert_eq!(
+                get_ten_god_for_pillar(&result, result.pillars.len(), Some(HeavenlyStem::Giap)),
+                None
+            );
+            assert_eq!(
+                get_ten_god_for_age(&result, last.end_age, Some(HeavenlyStem::Giap)),
+                None
+            );
         }
     }
 }
