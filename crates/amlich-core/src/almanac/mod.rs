@@ -4,6 +4,7 @@ pub mod data;
 pub mod day_deity;
 pub mod golden_loader;
 pub mod hour_pillar;
+pub mod na_am;
 pub mod profile;
 pub mod sexagenary_cycle;
 pub mod star;
