@@ -2,11 +2,12 @@
 
 ## Current State
 
-The project has shipped three milestones:
+The project has shipped four milestones:
 
 - `v1.0` KHCBPPT alignment complete (full validator + zero-divergence audit cycle).
 - `v1.1` Foundation extensions complete and accepted (Xung Hop extensions, Tang Can, Tiet Khi regression fix).
 - `v1.2` Ten Gods and Kua Foundation complete (deterministic calculators, typed API, DayFortune integration).
+- `v1.3` Dai Van Core complete (core algorithm, helper contracts, Kua analysis, synchronized verification).
 
 Canonical status and acceptance evidence are archived in milestone artifacts:
 
@@ -20,17 +21,17 @@ Canonical status and acceptance evidence are archived in milestone artifacts:
 
 Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020-2030 date range, with test-backed and traceable evidence.
 
-## Current Milestone: v1.3 Dai Van Core
+## Current Milestone: v1.4 Lunar Engine Table Parity
 
-**Goal:** Implement core Dai Van computation with period transitions, Ten Gods correlation, and Kua integration.
+**Goal:** Reach deterministic table-level parity for hour pillar and 60-cycle calculations, then expose Na Am API surfaces with evidence-backed outputs.
 
 **Target features:**
-- Dai Van period transitions (9 cycles of 10 years each)
-- Ten Gods correlation for Dai Van periods
-- Kua-based fortune direction mapping
-- Deterministic computation with evidence metadata
+- Hour pillar (gio tru) parity against Vietnamese lunar engine tables
+- Full sexagenary 60-cycle parity for stem-branch progression contracts
+- Na Am API endpoints/types for direct pair lookup and cycle-index lookup
+- Validator and fixture evidence for parity claims
 
-**Last completed:** v1.2 Ten Gods and Kua Foundation (shipped 2026-03-02)
+**Last completed:** v1.3 Dai Van Core (shipped 2026-03-03)
 
 ## Key Decisions
 
@@ -54,4 +55,4 @@ Every almanac subsystem in amlich must produce output that matches KHCBPPT for t
 </details>
 
 ---
-*Last updated: 2026-03-03 after v1.3 milestone initialization*
+*Last updated: 2026-03-03 after v1.4 milestone initialization*

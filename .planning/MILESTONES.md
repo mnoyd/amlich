@@ -1,5 +1,21 @@
 # Milestones: Amlich Almanac Correctness Audit
 
+## v1.3 Dai Van Core (Shipped: 2026-03-03)
+
+**Delivered:** Deterministic Dai Van core with helper contracts and Kua directional analysis integrated into existing almanac flows.
+
+**Phases completed:** 3 phases, 5 plans
+
+**Key accomplishments:**
+- Implemented Dai Van core computation with start-age calculation, direction matrix handling, and contiguous pillar window generation.
+- Added deterministic helper queries for current pillar lookup, age transition distance, and out-of-range-safe access patterns.
+- Integrated Kua directional analysis using one-time birth Kua computation and per-pillar directional projections.
+- Preserved additive-only compatibility posture and synchronized planning traceability artifacts after implementation.
+
+**What's next:** Execute v1.4 (Lunar Engine Table Parity) planning and phase execution.
+
+---
+
 ## v1.2 Ten Gods and Kua Foundation (Shipped: 2026-03-02)
 
 **Delivered:** Deterministic Ten Gods and Kua calculators with typed API, evidence-rich output, and DayFortune/API integration with full backward compatibility.
