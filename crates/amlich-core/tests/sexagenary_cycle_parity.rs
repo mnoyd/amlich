@@ -8,7 +8,9 @@
 //! - PAR-01: Dedicated parity validators for full 60-cycle tables
 
 use amlich_core::almanac::data::baseline_data;
-use amlich_core::almanac::sexagenary_cycle::cycle_index_to_canchi;
+use amlich_core::almanac::sexagenary_cycle::{
+    canchi_to_cycle_index, cycle_index_to_canchi, progress_cycle_index,
+};
 
 /// SC-05: Validate full 60-cycle parity against baseline na_am_pairs
 ///
@@ -219,6 +221,166 @@ fn validate_divergence_report_collection() {
             data.sexagenary_na_am.contains_key(&key),
             "Key '{}' should exist in baseline",
             key
+        );
+    }
+}
+
+/// Regression test: Cycle index normalization handles all edge cases
+#[test]
+fn validate_cycle_index_normalization_edges() {
+    // Valid boundary indices should succeed
+    assert!(
+        cycle_index_to_canchi(1).is_some(),
+        "index 1 should be valid"
+    );
+    assert!(
+        cycle_index_to_canchi(60).is_some(),
+        "index 60 should be valid"
+    );
+
+    // Invalid indices should return None
+    assert!(
+        cycle_index_to_canchi(0).is_none(),
+        "index 0 should be invalid"
+    );
+    assert!(
+        cycle_index_to_canchi(61).is_none(),
+        "index 61 should be invalid"
+    );
+    assert!(
+        cycle_index_to_canchi(100).is_none(),
+        "index 100 should be invalid"
+    );
+
+    // Verify first and last positions are correct
+    let first = cycle_index_to_canchi(1).unwrap();
+    assert_eq!(first.can, "Giáp", "index 1 should be Giáp Tý");
+    assert_eq!(first.chi, "Tý", "index 1 should be Giáp Tý");
+
+    let last = cycle_index_to_canchi(60).unwrap();
+    assert_eq!(last.can, "Quý", "index 60 should be Quý Hợi");
+    assert_eq!(last.chi, "Hợi", "index 60 should be Quý Hợi");
+}
+
+/// Regression test: Invalid stem/branch pairs (non-canonical odd/even mismatch) are rejected
+#[test]
+fn validate_invalid_pair_rejection() {
+    // Canonical pairs (same parity) should succeed
+    assert!(
+        canchi_to_cycle_index(0, 0).is_some(),
+        "Giáp Tý (0,0) should be valid"
+    );
+    assert!(
+        canchi_to_cycle_index(1, 1).is_some(),
+        "Ất Sửu (1,1) should be valid"
+    );
+    assert!(
+        canchi_to_cycle_index(9, 11).is_some(),
+        "Quý Hợi (9,11) should be valid"
+    );
+
+    // Non-canonical pairs (odd/even mismatch) should return None
+    assert!(
+        canchi_to_cycle_index(0, 1).is_none(),
+        "Giáp Sửu (0,1) should be invalid (odd/even mismatch)"
+    );
+    assert!(
+        canchi_to_cycle_index(1, 0).is_none(),
+        "Ất Tý (1,0) should be invalid (odd/even mismatch)"
+    );
+    assert!(
+        canchi_to_cycle_index(2, 3).is_none(),
+        "Bính Mão (2,3) should be invalid (odd/even mismatch)"
+    );
+
+    // Out of bounds indices should return None
+    assert!(
+        canchi_to_cycle_index(10, 0).is_none(),
+        "can_index 10 should be out of bounds"
+    );
+    assert!(
+        canchi_to_cycle_index(0, 12).is_none(),
+        "chi_index 12 should be out of bounds"
+    );
+}
+
+/// Regression test: Progression boundary cases wrap correctly at 1 and 60
+#[test]
+fn validate_progression_boundary_rollover() {
+    // Forward rollover: 60 → 1
+    assert_eq!(
+        progress_cycle_index(60, 1),
+        Some(1),
+        "progress_cycle_index(60, 1) should wrap to 1"
+    );
+
+    // Backward rollover: 1 → 60
+    assert_eq!(
+        progress_cycle_index(1, -1),
+        Some(60),
+        "progress_cycle_index(1, -1) should wrap to 60"
+    );
+
+    // Large delta forward: wraps multiple times
+    assert_eq!(
+        progress_cycle_index(1, 125),
+        Some(6),
+        "progress_cycle_index(1, 125) should be 6 (125 % 60 + 1)"
+    );
+
+    // Large delta backward: wraps multiple times
+    assert_eq!(
+        progress_cycle_index(60, -125),
+        Some(55),
+        "progress_cycle_index(60, -125) should be 55"
+    );
+
+    // No progression: delta = 0
+    assert_eq!(
+        progress_cycle_index(30, 0),
+        Some(30),
+        "progress_cycle_index(30, 0) should stay at 30"
+    );
+
+    // Invalid start index should return None
+    assert!(
+        progress_cycle_index(0, 1).is_none(),
+        "index 0 should be invalid"
+    );
+    assert!(
+        progress_cycle_index(61, 1).is_none(),
+        "index 61 should be invalid"
+    );
+}
+
+/// Regression test: Bidirectional conversion roundtrip for all 60 valid positions
+#[test]
+fn validate_bidirectional_conversion_roundtrip() {
+    for index in 1..=60 {
+        // Convert index → CanChi
+        let canchi = match cycle_index_to_canchi(index) {
+            Some(cc) => cc,
+            None => {
+                panic!("cycle_index_to_canchi({}) should return Some", index);
+            }
+        };
+
+        // Convert CanChi → index using stem/branch indices
+        let roundtrip = match canchi_to_cycle_index(canchi.can_index, canchi.chi_index) {
+            Some(idx) => idx,
+            None => {
+                panic!(
+                    "canchi_to_cycle_index({}, {}) should return Some for index {}",
+                    canchi.can_index, canchi.chi_index, index
+                );
+            }
+        };
+
+        // Verify roundtrip preserves original index
+        assert_eq!(
+            roundtrip, index,
+            "Roundtrip failed: {} {} (index {}) → roundtrip {}",
+            canchi.can, canchi.chi, index, roundtrip
         );
     }
 }
