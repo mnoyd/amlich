@@ -3,22 +3,22 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-04T00:50:00.000Z"
+last_updated: "2026-03-03T17:57:42.220Z"
 progress:
-  total_phases: 13
-  completed_phases: 13
-  total_plans: 29
-  completed_plans: 29
+  total_phases: 14
+  completed_phases: 14
+  total_plans: 31
+  completed_plans: 31
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-03)
+See: .planning/PROJECT.md (updated 2026-03-04)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching KHCBPPT for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** v1.4 milestone planning and execution kickoff
+**Current focus:** Planning next milestone after v1.4 archival
 
 ## Current Position
 
@@ -38,7 +38,7 @@ Progress: [██████████] 100%
 
 **Pending Requirements:** None
 
-**Status:** v1.4 milestone complete (all phases executed and verified)
+**Status:** v1.4 milestone complete
 
 ## Performance Metrics
 
@@ -144,7 +144,7 @@ Key decisions from v1.2 and v1.3:
 
 ### Pending Todos
 
-- Execute Phase 10 (if planned) or complete v1.4 milestone
+- Start next milestone requirements + roadmap flow (`/gsd-new-milestone`)
 
 ### Blockers/Concerns
 
@@ -164,11 +164,12 @@ Resume file: None
 
 ### Active TODOs
 
-- Start `/gsd-complete-milestone` for v1.4 finalization or transition to next milestone
+- Create fresh `.planning/REQUIREMENTS.md` for the next milestone
+- Define next milestone scope and phase plan
 
 ### Context Handoff
 
-**Focus Area:** Implement v1.4 parity phases (hour pillar, 60-cycle, Na Am APIs)
+**Focus Area:** Transition from v1.4 completion to next milestone definition
 
 **Key Constraints:**
 - Must use deterministic algorithms (no Utc::now(), no floating-point without rounding)
@@ -178,13 +179,13 @@ Resume file: None
 **v1.4 Completion Criteria:**
 1. Hour pillar outputs match canonical table mappings across all day-stem groups and boundaries ✓
 2. 60-cycle conversion/progression utilities pass full-table parity validators ✓
-3. Na Am APIs (pair/index lookup) ship with stable schema, metadata, and explicit validation errors ✓ (Phase 9 complete with contract tests and traceability)
+3. Na Am APIs (pair/index lookup) ship with stable schema, metadata, and explicit validation errors ✓
 
 **Resources:**
 - .planning/ENGINE_EXPANSION_ANALYSIS.md — Earlier engine parity context and subsystem map
-- .planning/REQUIREMENTS.md — v1.4 requirement IDs and traceability targets
-- .planning/ROADMAP.md — Phase 7-9 scope, dependencies, and success criteria
+- .planning/milestones/v1.4-REQUIREMENTS.md — Archived v1.4 requirements and outcomes
+- .planning/milestones/v1.4-ROADMAP.md — Archived v1.4 scope, phases, and details
 - Existing modules: canchi, data, calc, api DTO conversion layer
 
 ---
-*State updated: 2026-03-04 after Phase 9 verification and v1.4 milestone completion*
+*State updated: 2026-03-04 after v1.4 milestone archival and completion*

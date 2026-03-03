@@ -1,5 +1,28 @@
 # Milestones: Amlich Almanac Correctness Audit
 
+## v1.4 Lunar Engine Table Parity (Shipped: 2026-03-04)
+
+**Delivered:** Deterministic hour-pillar and 60-cycle parity with Na Am pair/index APIs and stable contract validation.
+
+**Phases completed:** 3 phases, 6 plans, 13 tasks
+
+**Key accomplishments:**
+- Delivered deterministic hour-pillar computation from day stem + local time with full seed-group mapping and evidence metadata.
+- Added boundary-safe parity validators across all 12 two-hour slots, including Hoi->Ty rollover and transition edge assertions.
+- Implemented canonical 60-cycle utilities (`index->pair`, `pair->index`, signed progression) with corrected CRT-based inversion.
+- Locked full-table sexagenary parity using baseline-driven validators and regression guards for bounds, invalid pairs, and roundtrip consistency.
+- Shipped Na Am lookup APIs by cycle index and stem-branch pair with stable DTO contracts, typed deterministic errors, and metadata fields.
+- Added 18 Na Am API contract tests covering schema stability, serialization, backward compatibility, and index/pair consistency across all 60 positions.
+
+**Git range:** `5e179ac` -> `a6ff0c7`
+
+**Known gaps / tech debt:**
+- Non-blocking traceability metadata drift was observed during audit (`SC-05` row status); archival reflects completed status.
+
+**What's next:** Start next milestone with fresh requirements and roadmap via `/gsd-new-milestone`.
+
+---
+
 ## v1.3 Dai Van Core (Shipped: 2026-03-03)
 
 **Delivered:** Deterministic Dai Van core with helper contracts and Kua directional analysis integrated into existing almanac flows.

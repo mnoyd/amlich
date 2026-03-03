@@ -2,12 +2,13 @@
 
 ## Current State
 
-The project has shipped four milestones:
+The project has shipped five milestones:
 
 - `v1.0` KHCBPPT alignment complete (full validator + zero-divergence audit cycle).
 - `v1.1` Foundation extensions complete and accepted (Xung Hop extensions, Tang Can, Tiet Khi regression fix).
 - `v1.2` Ten Gods and Kua Foundation complete (deterministic calculators, typed API, DayFortune integration).
 - `v1.3` Dai Van Core complete (core algorithm, helper contracts, Kua analysis, synchronized verification).
+- `v1.4` Lunar Engine Table Parity complete (hour-pillar parity, full 60-cycle parity, Na Am API contracts).
 
 Canonical status and acceptance evidence are archived in milestone artifacts:
 
@@ -16,22 +17,24 @@ Canonical status and acceptance evidence are archived in milestone artifacts:
 - `.planning/milestones/v1.1-MILESTONE-AUDIT.md`
 - `.planning/milestones/v1.2-ROADMAP.md`
 - `.planning/milestones/v1.2-REQUIREMENTS.md`
+- `.planning/milestones/v1.4-ROADMAP.md`
+- `.planning/milestones/v1.4-REQUIREMENTS.md`
+- `.planning/milestones/v1.4-MILESTONE-AUDIT.md`
 
 ## Core Value
 
 Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020-2030 date range, with test-backed and traceable evidence.
 
-## Current Milestone: v1.4 Lunar Engine Table Parity
+## Next Milestone Goals
 
-**Goal:** Reach deterministic table-level parity for hour pillar and 60-cycle calculations, then expose Na Am API surfaces with evidence-backed outputs.
+- Define fresh milestone-scoped requirements in a new `.planning/REQUIREMENTS.md`.
+- Prioritize next subsystem parity targets and dependency order in a new `.planning/ROADMAP.md`.
+- Preserve deterministic behavior, evidence metadata coverage, and contract-level regression testing.
+- Resolve any lingering documentation/traceability drift during next milestone setup.
 
-**Target features:**
-- Hour pillar (gio tru) parity against Vietnamese lunar engine tables
-- Full sexagenary 60-cycle parity for stem-branch progression contracts
-- Na Am API endpoints/types for direct pair lookup and cycle-index lookup
-- Validator and fixture evidence for parity claims
+## Current Focus
 
-**Last completed:** v1.3 Dai Van Core (shipped 2026-03-03)
+Milestone `v1.4` is archived and tagged. The project is ready to start next-milestone definition (`/gsd-new-milestone`).
 
 ## Key Decisions
 
@@ -45,6 +48,9 @@ Every almanac subsystem in amlich must produce output that matches KHCBPPT for t
 | Kua calculator solar year basis | Vietnamese feng-shui convention using Gregorian calendar | ✓ Confirmed in v1.2 |
 | Kua 5 resolution (male→8, female→2) | Frozen project policy for consistent output | ✓ Confirmed in v1.2 |
 | Additive-only integration changes | Preserve backward compatibility while extending outputs | ✓ Confirmed in v1.2 |
+| Hour pillar parity via fixed slot + seed group model | Stable deterministic mapping across 12 windows and day-stem groups | ✓ Confirmed in v1.4 |
+| Sexagenary inversion via CRT-based formula | Correct roundtrip mapping between cycle index and stem-branch pairs | ✓ Confirmed in v1.4 |
+| Na Am API contracts with typed deterministic errors | Stable schema and explicit invalid-input handling for pair/index lookups | ✓ Confirmed in v1.4 |
 
 <details>
 <summary>Archived initialization snapshot (pre-v1.1)</summary>
@@ -54,5 +60,13 @@ Every almanac subsystem in amlich must produce output that matches KHCBPPT for t
 
 </details>
 
+<details>
+<summary>Archived v1.4 milestone scope</summary>
+
+- Goal: reach deterministic table-level parity for hour pillar and 60-cycle calculations, then expose Na Am API surfaces with evidence-backed outputs.
+- Delivered features: hour pillar parity, full sexagenary 60-cycle parity, Na Am pair/index APIs, and contract validators.
+
+</details>
+
 ---
-*Last updated: 2026-03-03 after v1.4 milestone initialization*
+*Last updated: 2026-03-04 after v1.4 milestone completion*
