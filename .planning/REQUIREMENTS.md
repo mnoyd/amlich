@@ -1,65 +1,53 @@
-# Requirements: Amlich v1.3 - Dai Van Core
+# Requirements: Amlich v1.4 - Lunar Engine Table Parity
 
 **Defined:** 2026-03-03
 **Core Value:** Every almanac subsystem in amlich must produce output matching KHCBPPT for 2020-2030 with test-backed, traceable evidence.
 
 ## v1 Requirements
 
-Requirements for Dai Van Core milestone. Each maps to roadmap phases.
+Requirements for Lunar engine table parity milestone. Each maps to roadmap phases.
 
-### Core Calculation
+### Hour Pillar Parity
 
-- [x] **DV-CALC-01**: System can calculate 8 Dai Van pillars from birth date (Gregorian) and gender
-- [x] **DV-CALC-02**: System determines Chieuthu direction (Thuận/Nghịch) from year polarity × gender
-- [x] **DV-CALC-03**: System calculates start age from Tiết Khí distance using 3 days = 1 year conversion
-- [x] **DV-CALC-04**: System generates 8 pillars with contiguous 10-year age ranges (start_age inclusive, end_age exclusive)
-- [x] **DV-CALC-05**: System uses month Can Chi as base pillar for Dai Van progression
-- [x] **DV-CALC-06**: System handles edge cases (Tiết Khí boundaries, leap months, year polarity transitions)
+- [x] **HP-01**: System can compute hour pillar (Can Chi) from day stem and local hour using deterministic branch-slot mapping
+- [x] **HP-02**: System applies correct stem-seed rule from day stem group (Giáp/Kỷ, Ất/Canh, Bính/Tân, Đinh/Nhâm, Mậu/Quý)
+- [x] **HP-03**: System handles edge boundaries for all 12 two-hour windows without overlap or gap
+- [x] **HP-04**: Hour pillar output includes evidence metadata (source_id, method, profile)
+- [x] **HP-05**: Hour pillar fixtures cover all day-stem groups and boundary times
 
-### Ten Gods Integration
+### Sexagenary 60-Cycle Parity
 
-- [x] **DV-TG-01**: System can correlate each pillar's Heavenly Stem with birth day stem via Thap Than
-- [x] **DV-TG-02**: Ten Gods calculation is lazy/on-demand (not pre-computed for all pillars)
-- [x] **DV-TG-03**: System supports unknown birth hour gracefully (Ten Gods = None or day_fortune-based targets)
+- [x] **SC-01**: System can convert cycle index (1-60) to canonical stem-branch pair
+- [x] **SC-02**: System can convert stem-branch pair to cycle index (1-60)
+- [x] **SC-03**: Forward/backward progression preserves modular correctness across rollover boundaries (10/12/60)
+- [x] **SC-04**: Cycle utilities expose deterministic helpers reusable by hour pillar and Na Am APIs
+- [ ] **SC-05**: Validation suite confirms full-table parity against canonical 60-cycle references
 
-### Kua Analysis
+### Na Am APIs
 
-- [x] **DV-KUA-01**: System can analyze pillar elements against birth Kua directions
-- [x] **DV-KUA-02**: Kua analysis provides favorable/unfavorable directions per pillar
-- [x] **DV-KUA-03**: Birth Kua is calculated once per person and reused for all pillars
-- [x] **DV-KUA-04**: Kua 5 resolution follows project convention (male→8, female→2)
+- [ ] **NAM-API-01**: API exposes Na Am lookup by stem-branch pair
+- [ ] **NAM-API-02**: API exposes Na Am lookup by cycle index (1-60)
+- [ ] **NAM-API-03**: API returns normalized source metadata and method for each Na Am response
+- [ ] **NAM-API-04**: API conversion layer preserves backward compatibility for existing DayFortune consumers
+- [ ] **NAM-API-05**: API returns explicit validation error for invalid pair/index requests
+- [ ] **NAM-API-06**: Contract tests verify response schema and stable serialization for both lookup modes
 
-### Helper Functions
+### Metadata and Verification
 
-- [x] **DV-HELP-01**: System can find current pillar for given age
-- [x] **DV-HELP-02**: System can calculate years until next transition
-- [x] **DV-HELP-03**: System can find pillar at specific age (range lookup)
-- [x] **DV-HELP-04**: Helper functions return Option to handle out-of-range ages gracefully
-
-### Metadata & Traceability
-
-- [x] **DV-META-01**: System includes convention metadata (year_basis, start_age_method, gender_encoding)
-- [x] **DV-META-02**: System includes evidence metadata (source_id, method)
-- [x] **DV-META-03**: Source_id uses "khcbppt" placeholder with TODO comment for manual verification
-- [x] **DV-META-04**: Method field documents calculation approach (e.g., "bai-quyet" for Bazi formulas)
+- [ ] **PAR-01**: Parity validators are added for hour pillar and full 60-cycle tables
+- [x] **PAR-02**: Golden fixtures include representative plus boundary cases for hour pillar and Na Am lookups
+- [ ] **PAR-03**: Traceability links every new requirement to one roadmap phase
+- [ ] **PAR-04**: Milestone artifacts document parity decisions and known source ambiguities
 
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
 
-### API Integration
+### Extended Fortune APIs
 
-- **DV-API-01**: System exposes Dai Van through optional dai_van field in DayFortune
-- **DV-API-02**: Optional field uses #[serde(skip_serializing_if = "Option::is_none")] for backward compatibility
-- **DV-API-03**: System adds DaYunResultDto and DaYunPillarDto in API layer
-- **DV-API-04**: System implements From<> conversion traits for core→DTO mapping
-- **DV-API-05**: calculate_day_fortune() signature updated with optional birth inputs (breaking change)
-
-### Extended Features
-
-- **DV-EXT-01**: System supports birth-hour aware Ten Gods calculation (full day pillar analysis)
-- **DV-EXT-02**: Tiểu Vận (yearly/decadal luck) cycles implemented
-- **DV-EXT-03**: Composite fortune scores combining Dai Van + Ten Gods + Kua
+- **FUT-01**: Unified birth-context endpoint combining Dai Van, hour pillar, and Ten Gods interpretation payloads
+- **FUT-02**: Human-language interpretation templates backed by deterministic feature flags
+- **FUT-03**: Batch parity verification endpoint for external dataset ingestion
 
 ## Out of Scope
 
@@ -67,12 +55,10 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| API Integration (DayFortune optional field) | Deferred to v1.4 to focus on core computation first |
-| Human-language fortune interpretation | Non-deterministic, outside correctness-critical scope; belongs to later separate milestone |
-| Composite "fortune score" | Pseudo-precision and heavy source ambiguity; likely causes trust regressions |
-| Separate BirthFortune API | Adds new API surface to maintain; optional field approach keeps API minimal |
-| Real-time prediction of life events | Over-claims from deterministic calculation; not scientifically verifiable |
-| Tiểu Vận (小运 - yearly luck) | Major scope expansion, different calculation rules, unclear KHCBPPT coverage |
+| Human-language interpretation text generation | Non-deterministic and outside correctness-first parity objective |
+| New scoring/fortune ranking engine | Introduces pseudo-precision and source ambiguity |
+| Multi-timezone historical DST normalization | Out of scope for this parity milestone; keep deterministic local-hour contract |
+| New public endpoint family beyond Na Am lookup surfaces | Avoids API sprawl while parity work is stabilized |
 
 ## Traceability
 
@@ -80,27 +66,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DV-CALC-01 | Phase 4 | Complete |
-| DV-CALC-02 | Phase 4 | Complete |
-| DV-CALC-03 | Phase 4 | Complete |
-| DV-CALC-04 | Phase 4 | Complete |
-| DV-CALC-05 | Phase 4 | Complete |
-| DV-CALC-06 | Phase 4 | Complete |
-| DV-TG-01 | Phase 5 | Complete |
-| DV-TG-02 | Phase 5 | Complete |
-| DV-TG-03 | Phase 5 | Complete |
-| DV-KUA-01 | Phase 6 | Complete |
-| DV-KUA-02 | Phase 6 | Complete |
-| DV-KUA-03 | Phase 6 | Complete |
-| DV-KUA-04 | Phase 6 | Complete |
-| DV-HELP-01 | Phase 5 | Complete |
-| DV-HELP-02 | Phase 5 | Complete |
-| DV-HELP-03 | Phase 5 | Complete |
-| DV-HELP-04 | Phase 5 | Complete |
-| DV-META-01 | Phase 4 | Complete |
-| DV-META-02 | Phase 4 | Complete |
-| DV-META-03 | Phase 4 | Complete |
-| DV-META-04 | Phase 4 | Complete |
+| HP-01 | Phase 7 | Complete |
+| HP-02 | Phase 7 | Complete |
+| HP-03 | Phase 7 | Complete |
+| HP-04 | Phase 7 | Complete |
+| HP-05 | Phase 7 | Complete |
+| SC-01 | Phase 8 | Complete |
+| SC-02 | Phase 8 | Complete |
+| SC-03 | Phase 8 | Complete |
+| SC-04 | Phase 8 | Complete |
+| SC-05 | Phase 8 | Planned |
+| NAM-API-01 | Phase 9 | Planned |
+| NAM-API-02 | Phase 9 | Planned |
+| NAM-API-03 | Phase 9 | Planned |
+| NAM-API-04 | Phase 9 | Planned |
+| NAM-API-05 | Phase 9 | Planned |
+| NAM-API-06 | Phase 9 | Planned |
+| PAR-01 | Phase 8 | Planned |
+| PAR-02 | Phase 7 | Complete |
+| PAR-03 | Phase 9 | Planned |
+| PAR-04 | Phase 9 | Planned |
 
 **Coverage:**
 - v1 requirements: 20 total
@@ -108,4 +93,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-03*
-*Last updated: 2026-03-03 after v1.3 checkpoint sync*
+*Last updated: 2026-03-03 after Phase 8 Plan 1 execution*

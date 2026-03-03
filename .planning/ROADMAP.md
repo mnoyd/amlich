@@ -50,7 +50,7 @@
 
 **Plans**: 2 plans
 
-- [ ] `08-01-PLAN.md` - Build canonical cycle conversion/progression helpers and invariants
+- [x] `08-01-PLAN.md` - Build canonical cycle conversion/progression helpers and invariants
 - [ ] `08-02-PLAN.md` - Implement full-table parity validators and regression coverage
 
 ### Phase 9: Na Am API Surfaces and Contracts
@@ -78,7 +78,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 7. Hour Pillar Parity Core | 2/2 | Complete | 2026-03-03 |
-| 8. Sexagenary Cycle Parity and Validators | 0/2 | Planned | - |
+| 8. Sexagenary Cycle Parity and Validators | 1/2 | In Progress | 2026-03-03 |
 | 9. Na Am API Surfaces and Contracts | 0/2 | Planned | - |
 
 ## Dependencies

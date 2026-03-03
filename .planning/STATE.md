@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
+milestone: v1.4
 milestone_name: milestone
-status: completed
-last_updated: "2026-03-03T13:25:00Z"
+status: execution
+last_updated: "2026-03-03T17:17:34.000Z"
 progress:
   total_phases: 3
-  completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
+  completed_phases: 1
+  total_plans: 6
+  completed_plans: 3
 ---
 
 # Project State
@@ -18,33 +18,33 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching KHCBPPT for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** v1.3 completed; preparing next milestone planning
+**Current focus:** v1.4 milestone planning and execution kickoff
 
 ## Current Position
 
-Milestone: v1.3 Dai Van Core (COMPLETED)
-Phase: Phase 6 - Kua Analysis
-Plans: 5/5 complete
-Status: Milestone completed
-Last activity: 2026-03-03T13:25:00Z — Completed Phase 6 Kua analysis implementation and verification
+Milestone: v1.4 Lunar Engine Table Parity
+Phase: Phase 8 - Sexagenary Cycle Parity and Validators
+Plans: 3/6 complete
+Status: Phase 08-01 complete (sexagenary cycle utilities); ready for 08-02
+Last activity: 2026-03-03T17:17:34Z — Completed Phase 8 Plan 1 sexagenary cycle utilities with TDD
 
-Progress: [██████████] 100%
+Progress: [████░░░░░░] 50%
 
-### Milestone Status: v1.3 Complete
+### Milestone Status: v1.4 In Progress
 
-**Goal:** Deliver Dai Van core + helper contracts + Kua directional analysis
+**Goal:** Deliver hour pillar parity, full 60-cycle parity, and Na Am API surfaces with validator evidence
 
-**Completed Requirements:** DV-CALC-01..06, DV-META-01..04, DV-TG-01..03, DV-HELP-01..04, DV-KUA-01..04 (21 requirements)
+**Completed Requirements:** HP-01..05, PAR-02, SC-01..04
 
-**Pending Requirements:** None
+**Pending Requirements:** SC-05, NAM-API-01..06, PAR-01, PAR-03, PAR-04 (10 requirements)
 
-**Status:** Phases 4-6 complete
+**Status:** Phase 8 in progress; 08-01 complete, 08-02 next
 
 ## Performance Metrics
 
 **Velocity:**
-- v1.3 plans completed: 5/5 (Phases 4-6)
-- Milestone status: complete
+- v1.4 plans completed: 3/6 (Phase 7 complete, Phase 8-01 complete)
+- Milestone status: in progress
 
 **By Milestone:**
 
@@ -52,10 +52,12 @@ Progress: [██████████] 100%
 |-----------|-------|-------|----------|
 | v1.2 | 3/3 | 29 min | 9.7 min |
 | v1.3 | 5/5 | n/a | n/a |
+| v1.4 | 3/6 | n/a | n/a |
 
 **Recent Trend:**
-- Execution remained stable through 04-01, 04-02, 05-01, 05-02, and 06-01 with contract-driven test hardening.
-- Minor rework came from float precision assertions, patch-context recovery, and direction-order assertion alignment.
+- v1.3 execution closed with stable contract-driven tests and synchronized artifacts.
+- v1.4 Phase 7 delivered deterministic hour-pillar core and integration parity validators.
+- v1.4 Phase 8-01 delivered sexagenary cycle utilities with corrected formula using Chinese Remainder Theorem.
 
 ## Accumulated Context
 
@@ -77,6 +79,7 @@ Key decisions from v1.2 and v1.3:
 - [Phase 05]: Keep Ten Gods out of DaiVanResult and derive through helper calls only to preserve lazy behavior.
 - [Checkpoint]: Treat phase-complete verification artifacts as source of truth for retrospective/state/requirements sync.
 - [Phase 06]: Compute birth Kua once per analysis run, then reuse for all per-pillar direction intersections.
+- [Phase 08-01]: Fixed canchi_to_cycle_index formula using Chinese Remainder Theorem for moduli 10 and 12 (k = ((can_idx - chi_idx) / 2).rem_euclid(6), i = (can_idx + 10*k) % 60) to correctly map stem-branch pairs to cycle positions.
 
 ### Research Insights (from research/SUMMARY.md)
 
@@ -137,7 +140,8 @@ Key decisions from v1.2 and v1.3:
 
 ### Pending Todos
 
-- Define next milestone scope after v1.3 completion
+- Execute Phase 8 plan 08-02 (full-table parity validators)
+- Confirm Na Am API error contract conventions before Phase 9 implementation
 
 ### Blockers/Concerns
 
@@ -150,33 +154,33 @@ None active.
 
 ## Session Continuity
 
-Last session: 2026-03-03T13:25:00Z
-Stopped at: Completed Phase 6 Kua analysis and synchronized planning docs
+Last session: 2026-03-03T17:13:01Z
+Stopped at: Completed Phase 8 Plan 1 (sexagenary cycle utilities)
 Resume file: None
 
 ### Active TODOs
 
-- Prepare next milestone planning
+- Start `/gsd-execute-phase 8` for Phase 8 Plan 2 (full-table parity validators)
 
 ### Context Handoff
 
-**Focus Area:** Define and prioritize post-v1.3 work
+**Focus Area:** Implement v1.4 parity phases (hour pillar, 60-cycle, Na Am APIs)
 
 **Key Constraints:**
 - Must use deterministic algorithms (no Utc::now(), no floating-point without rounding)
 - Must include convention and evidence metadata
 - Must handle edge cases (Tiết Khí boundaries, leap months, year polarity transitions)
 
-**v1.3 Completion Criteria:**
-1. Dai Van core, helper contracts, and Kua analysis are all implemented and tested
-2. Requirement traceability marks DV-CALC, DV-META, DV-TG, DV-HELP, and DV-KUA as complete
-3. Planning artifacts are synchronized with implementation state
+**v1.4 Completion Criteria:**
+1. Hour pillar outputs match canonical table mappings across all day-stem groups and boundaries
+2. 60-cycle conversion/progression utilities pass full-table parity validators
+3. Na Am APIs (pair/index lookup) ship with stable schema, metadata, and explicit validation errors
 
 **Resources:**
-- research/DAI_VAN_RESEARCH.md — Dai Van calculation formulas and 6-step algorithm
-- research/STACK.md — Rust code templates and data structures
-- research/PITFALLS.md — 11 detailed pitfalls with prevention strategies
-- Existing modules: canchi, tietkhi, thap_than, tu_menh
+- .planning/ENGINE_EXPANSION_ANALYSIS.md — Earlier engine parity context and subsystem map
+- .planning/REQUIREMENTS.md — v1.4 requirement IDs and traceability targets
+- .planning/ROADMAP.md — Phase 7-9 scope, dependencies, and success criteria
+- Existing modules: canchi, data, calc, api DTO conversion layer
 
 ---
-*State updated: 2026-03-03 after v1.3 completion sync*
+*State updated: 2026-03-03 after Phase 8 Plan 1 execution*
