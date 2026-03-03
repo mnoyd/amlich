@@ -378,6 +378,43 @@ pub struct DayInsightDto {
     pub tiet_khi: Option<TietKhiInsightDto>,
 }
 
+/// Na Am lookup result with cycle index and evidence metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NaAmLookupResultDto {
+    /// 1-based cycle index (1-60)
+    pub cycle_index: u8,
+    /// Heavenly stem (Vietnamese name)
+    pub can: String,
+    /// Earthly branch (Vietnamese name)
+    pub chi: String,
+    /// Na Am value (e.g., "Hải Trung Kim")
+    pub na_am: String,
+    /// Five element (last word of na_am)
+    pub element: String,
+    /// Evidence: source identifier
+    pub source_id: String,
+    /// Evidence: computation method
+    pub method: String,
+    /// Evidence: ruleset profile
+    pub profile: String,
+}
+
+/// Na Am lookup error with deterministic error type and human-readable message
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NaAmErrorDto {
+    /// Error type: "invalid_cycle_index" | "invalid_stem_branch_pair" | "unknown_stem" | "unknown_branch"
+    pub error: String,
+    /// Human-readable error description
+    pub message: String,
+}
+
+/// Na Am API response with success or error variant
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum NaAmResponseDto {
+    Success(NaAmLookupResultDto),
+    Error(NaAmErrorDto),
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

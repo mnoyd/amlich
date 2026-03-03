@@ -3,9 +3,9 @@ use crate::dto::{
     DayDeityDto, DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto,
     DayTabooDto, DayTenGodsDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto,
     GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto,
-    LocalizedTextDto, LunarDto, NguHanhDto, ProverbInsightDto, RegionsInsightDto, RuleEvidenceDto,
-    SolarDto, StarRuleEvidenceDto, TabooInsightDto, ThapThanResultDto, TietKhiDto,
-    TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
+    LocalizedTextDto, LunarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto, ProverbInsightDto,
+    RegionsInsightDto, RuleEvidenceDto, SolarDto, StarRuleEvidenceDto, TabooInsightDto,
+    ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -564,6 +564,66 @@ impl From<&amlich_core::insight_data::TietKhiInsight> for TietKhiInsightDto {
             agriculture: LocalizedListDto::from(&value.agriculture),
             health: LocalizedListDto::from(&value.health),
             weather: LocalizedTextDto::from(&value.weather),
+        }
+    }
+}
+
+// Na Am conversion implementations
+
+impl From<amlich_core::almanac::na_am::NaAmError> for NaAmErrorDto {
+    fn from(error: amlich_core::almanac::na_am::NaAmError) -> Self {
+        let (error_type, message) = match error {
+            amlich_core::almanac::na_am::NaAmError::InvalidCycleIndex => (
+                "invalid_cycle_index".to_string(),
+                "Cycle index must be between 1 and 60".to_string(),
+            ),
+            amlich_core::almanac::na_am::NaAmError::InvalidStemBranchPair => (
+                "invalid_stem_branch_pair".to_string(),
+                "Stem and branch must have matching parity (both odd or both even)".to_string(),
+            ),
+            amlich_core::almanac::na_am::NaAmError::UnknownStem => (
+                "unknown_stem".to_string(),
+                "Unknown heavenly stem name".to_string(),
+            ),
+            amlich_core::almanac::na_am::NaAmError::UnknownBranch => (
+                "unknown_branch".to_string(),
+                "Unknown earthly branch name".to_string(),
+            ),
+        };
+
+        Self {
+            error: error_type,
+            message,
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::data::NaAmEntry> for NaAmLookupResultDto {
+    fn from(entry: &amlich_core::almanac::data::NaAmEntry) -> Self {
+        // Find indices for can and chi
+        use amlich_core::types::{CAN, CHI};
+        let can_idx = CAN.iter().position(|&c| c == entry.can).unwrap_or(0);
+        let chi_idx = CHI.iter().position(|&c| c == entry.chi).unwrap_or(0);
+
+        // Convert to cycle index using sexagenary cycle utilities
+        use amlich_core::almanac::sexagenary_cycle::canchi_to_cycle_index;
+        let cycle_index = canchi_to_cycle_index(can_idx, chi_idx).unwrap_or(1);
+
+        // Get metadata and profile from ruleset data
+        use amlich_core::almanac::data::get_ruleset_data;
+        let ruleset =
+            get_ruleset_data("vn_baseline_v1").expect("default ruleset should be available");
+        let meta = &ruleset.na_am_meta;
+
+        Self {
+            cycle_index,
+            can: entry.can.clone(),
+            chi: entry.chi.clone(),
+            na_am: entry.na_am.clone(),
+            element: entry.element.clone(),
+            source_id: meta.source_id.clone(),
+            method: meta.method.clone(),
+            profile: ruleset.profile.clone(),
         }
     }
 }

@@ -10,6 +10,7 @@ use amlich_core::insight_data::{
 };
 
 pub use dto::*;
+pub use dto::{NaAmErrorDto, NaAmLookupResultDto, NaAmResponseDto};
 
 pub fn get_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
     if !(1..=12).contains(&query.month) {
@@ -102,4 +103,65 @@ pub fn get_day_insight_for_date(day: i32, month: i32, year: i32) -> Result<DayIn
         year,
         timezone: None,
     })
+}
+
+/// Lookup Na Am by 1-based cycle index (1-60)
+///
+/// # Arguments
+/// * `index` - 1-based cycle index in range [1, 60]
+///
+/// # Returns
+/// * `NaAmResponseDto::Success` with Na Am details if index is valid
+/// * `NaAmResponseDto::Error` with error details if index is invalid
+///
+/// # Examples
+/// ```ignore
+/// let response = get_na_am_by_index(1);
+/// match response {
+///     NaAmResponseDto::Success(result) => {
+///         println!("Na Am: {}", result.na_am); // "Hải Trung Kim"
+///     }
+///     NaAmResponseDto::Error(err) => {
+///         eprintln!("Error: {}", err.message);
+///     }
+/// }
+/// ```
+pub fn get_na_am_by_index(index: u8) -> NaAmResponseDto {
+    use amlich_core::almanac::na_am::get_na_am_by_index;
+
+    match get_na_am_by_index(index) {
+        Ok(entry) => NaAmResponseDto::Success(NaAmLookupResultDto::from(&entry)),
+        Err(error) => NaAmResponseDto::Error(NaAmErrorDto::from(error)),
+    }
+}
+
+/// Lookup Na Am by stem-branch pair (Vietnamese names)
+///
+/// # Arguments
+/// * `can` - Vietnamese stem name (e.g., "Giáp", "Ất")
+/// * `chi` - Vietnamese branch name (e.g., "Tý", "Sửu")
+///
+/// # Returns
+/// * `NaAmResponseDto::Success` with Na Am details if pair is valid
+/// * `NaAmResponseDto::Error` with error details if pair is invalid
+///
+/// # Examples
+/// ```ignore
+/// let response = get_na_am_by_pair("Giáp", "Tý");
+/// match response {
+///     NaAmResponseDto::Success(result) => {
+///         println!("Na Am: {}", result.na_am); // "Hải Trung Kim"
+///     }
+///     NaAmResponseDto::Error(err) => {
+///         eprintln!("Error: {}", err.message);
+///     }
+/// }
+/// ```
+pub fn get_na_am_by_pair(can: &str, chi: &str) -> NaAmResponseDto {
+    use amlich_core::almanac::na_am::get_na_am_by_pair;
+
+    match get_na_am_by_pair(can, chi) {
+        Ok(entry) => NaAmResponseDto::Success(NaAmLookupResultDto::from(&entry)),
+        Err(error) => NaAmResponseDto::Error(NaAmErrorDto::from(error)),
+    }
 }
