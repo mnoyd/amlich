@@ -209,8 +209,7 @@ pub fn get_ten_god_for_pillar(
 ) -> Option<ThapThanResult> {
     let day_stem = birth_day_stem?;
     let pillar = result.pillars.get(pillar_index)?;
-    let pillar_stem = HeavenlyStem::try_from(pillar.can_chi.can.as_str()).ok()?;
-    Some(get_thap_than(day_stem, pillar_stem))
+    resolve_ten_god_for_pillar(day_stem, pillar)
 }
 
 pub fn get_ten_god_for_age(
@@ -220,6 +219,13 @@ pub fn get_ten_god_for_age(
 ) -> Option<ThapThanResult> {
     let day_stem = birth_day_stem?;
     let pillar = get_pillar_at_age(result, age)?;
+    resolve_ten_god_for_pillar(day_stem, pillar)
+}
+
+fn resolve_ten_god_for_pillar(
+    day_stem: HeavenlyStem,
+    pillar: &DaiVanPillar,
+) -> Option<ThapThanResult> {
     let pillar_stem = HeavenlyStem::try_from(pillar.can_chi.can.as_str()).ok()?;
     Some(get_thap_than(day_stem, pillar_stem))
 }
