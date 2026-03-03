@@ -9,12 +9,12 @@ Requirements for Dai Van Core milestone. Each maps to roadmap phases.
 
 ### Core Calculation
 
-- [ ] **DV-CALC-01**: System can calculate 8 Dai Van pillars from birth date (Gregorian) and gender
-- [ ] **DV-CALC-02**: System determines Chieuthu direction (Thuận/Nghịch) from year polarity × gender
-- [ ] **DV-CALC-03**: System calculates start age from Tiết Khí distance using 3 days = 1 year conversion
-- [ ] **DV-CALC-04**: System generates 8 pillars with contiguous 10-year age ranges (start_age inclusive, end_age exclusive)
-- [ ] **DV-CALC-05**: System uses month Can Chi as base pillar for Dai Van progression
-- [ ] **DV-CALC-06**: System handles edge cases (Tiết Khí boundaries, leap months, year polarity transitions)
+- [x] **DV-CALC-01**: System can calculate 8 Dai Van pillars from birth date (Gregorian) and gender
+- [x] **DV-CALC-02**: System determines Chieuthu direction (Thuận/Nghịch) from year polarity × gender
+- [x] **DV-CALC-03**: System calculates start age from Tiết Khí distance using 3 days = 1 year conversion
+- [x] **DV-CALC-04**: System generates 8 pillars with contiguous 10-year age ranges (start_age inclusive, end_age exclusive)
+- [x] **DV-CALC-05**: System uses month Can Chi as base pillar for Dai Van progression
+- [x] **DV-CALC-06**: System handles edge cases (Tiết Khí boundaries, leap months, year polarity transitions)
 
 ### Ten Gods Integration
 
@@ -24,10 +24,10 @@ Requirements for Dai Van Core milestone. Each maps to roadmap phases.
 
 ### Kua Analysis
 
-- [ ] **DV-KUA-01**: System can analyze pillar elements against birth Kua directions
-- [ ] **DV-KUA-02**: Kua analysis provides favorable/unfavorable directions per pillar
-- [ ] **DV-KUA-03**: Birth Kua is calculated once per person and reused for all pillars
-- [ ] **DV-KUA-04**: Kua 5 resolution follows project convention (male→8, female→2)
+- [x] **DV-KUA-01**: System can analyze pillar elements against birth Kua directions
+- [x] **DV-KUA-02**: Kua analysis provides favorable/unfavorable directions per pillar
+- [x] **DV-KUA-03**: Birth Kua is calculated once per person and reused for all pillars
+- [x] **DV-KUA-04**: Kua 5 resolution follows project convention (male→8, female→2)
 
 ### Helper Functions
 
@@ -38,10 +38,10 @@ Requirements for Dai Van Core milestone. Each maps to roadmap phases.
 
 ### Metadata & Traceability
 
-- [ ] **DV-META-01**: System includes convention metadata (year_basis, start_age_method, gender_encoding)
-- [ ] **DV-META-02**: System includes evidence metadata (source_id, method)
-- [ ] **DV-META-03**: Source_id uses "khcbppt" placeholder with TODO comment for manual verification
-- [ ] **DV-META-04**: Method field documents calculation approach (e.g., "bai-quyet" for Bazi formulas)
+- [x] **DV-META-01**: System includes convention metadata (year_basis, start_age_method, gender_encoding)
+- [x] **DV-META-02**: System includes evidence metadata (source_id, method)
+- [x] **DV-META-03**: Source_id uses "khcbppt" placeholder with TODO comment for manual verification
+- [x] **DV-META-04**: Method field documents calculation approach (e.g., "bai-quyet" for Bazi formulas)
 
 ## v2 Requirements
 
@@ -80,27 +80,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DV-CALC-01 | Phase 4 | Pending |
-| DV-CALC-02 | Phase 4 | Pending |
-| DV-CALC-03 | Phase 4 | Pending |
-| DV-CALC-04 | Phase 4 | Pending |
-| DV-CALC-05 | Phase 4 | Pending |
-| DV-CALC-06 | Phase 4 | Pending |
+| DV-CALC-01 | Phase 4 | Complete |
+| DV-CALC-02 | Phase 4 | Complete |
+| DV-CALC-03 | Phase 4 | Complete |
+| DV-CALC-04 | Phase 4 | Complete |
+| DV-CALC-05 | Phase 4 | Complete |
+| DV-CALC-06 | Phase 4 | Complete |
 | DV-TG-01 | Phase 5 | Complete |
 | DV-TG-02 | Phase 5 | Complete |
 | DV-TG-03 | Phase 5 | Complete |
-| DV-KUA-01 | Phase 6 | Pending |
-| DV-KUA-02 | Phase 6 | Pending |
-| DV-KUA-03 | Phase 6 | Pending |
-| DV-KUA-04 | Phase 6 | Pending |
+| DV-KUA-01 | Phase 6 | Complete |
+| DV-KUA-02 | Phase 6 | Complete |
+| DV-KUA-03 | Phase 6 | Complete |
+| DV-KUA-04 | Phase 6 | Complete |
 | DV-HELP-01 | Phase 5 | Complete |
 | DV-HELP-02 | Phase 5 | Complete |
 | DV-HELP-03 | Phase 5 | Complete |
 | DV-HELP-04 | Phase 5 | Complete |
-| DV-META-01 | Phase 4 | Pending |
-| DV-META-02 | Phase 4 | Pending |
-| DV-META-03 | Phase 4 | Pending |
-| DV-META-04 | Phase 4 | Pending |
+| DV-META-01 | Phase 4 | Complete |
+| DV-META-02 | Phase 4 | Complete |
+| DV-META-03 | Phase 4 | Complete |
+| DV-META-04 | Phase 4 | Complete |
 
 **Coverage:**
 - v1 requirements: 20 total
@@ -108,4 +108,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-03*
-*Last updated: 2026-03-03 after roadmap creation*
+*Last updated: 2026-03-03 after v1.3 checkpoint sync*

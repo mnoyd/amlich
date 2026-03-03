@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::almanac::thap_than::get_thap_than;
-use crate::almanac::tu_menh::Gender;
-use crate::almanac::types::{HeavenlyStem, Polarity, ThapThanResult};
+use crate::almanac::tu_menh::{compute_kua, Direction, Gender, KuaResult};
+use crate::almanac::types::{FiveElement, HeavenlyStem, Polarity, ThapThanResult};
 use crate::canchi::{get_month_canchi, get_year_canchi};
 use crate::julian::jd_from_date;
 use crate::lunar::convert_solar_to_lunar;
@@ -113,6 +113,21 @@ pub struct DaiVanResult {
     pub pillars: Vec<DaiVanPillar>,
     pub convention: DaiVanConvention,
     pub evidence: DaiVanEvidence,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DaiVanKuaPillarAnalysis {
+    pub index: usize,
+    pub can_chi: DaiVanCanChi,
+    pub pillar_element: FiveElement,
+    pub favorable_directions: Vec<Direction>,
+    pub unfavorable_directions: Vec<Direction>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DaiVanKuaAnalysis {
+    pub birth_kua: KuaResult,
+    pub pillars: Vec<DaiVanKuaPillarAnalysis>,
 }
 
 pub fn determine_chieu_thu(year_stem: HeavenlyStem, gender: Gender) -> ChieuThu {
@@ -228,6 +243,88 @@ fn resolve_ten_god_for_pillar(
 ) -> Option<ThapThanResult> {
     let pillar_stem = HeavenlyStem::try_from(pillar.can_chi.can.as_str()).ok()?;
     Some(get_thap_than(day_stem, pillar_stem))
+}
+
+pub fn analyze_dai_van_with_kua(
+    result: &DaiVanResult,
+    birth_year: i32,
+    gender: Gender,
+) -> DaiVanKuaAnalysis {
+    let birth_kua = compute_kua(birth_year, gender);
+    analyze_dai_van_with_precomputed_kua(result, birth_kua)
+}
+
+pub fn analyze_dai_van_with_precomputed_kua(
+    result: &DaiVanResult,
+    birth_kua: KuaResult,
+) -> DaiVanKuaAnalysis {
+    let pillars = result
+        .pillars
+        .iter()
+        .filter_map(|pillar| analyze_single_pillar_with_kua(pillar, &birth_kua))
+        .collect();
+
+    DaiVanKuaAnalysis { birth_kua, pillars }
+}
+
+pub fn get_kua_analysis_for_pillar(
+    analysis: &DaiVanKuaAnalysis,
+    pillar_index: usize,
+) -> Option<&DaiVanKuaPillarAnalysis> {
+    analysis
+        .pillars
+        .iter()
+        .find(|pillar| pillar.index == pillar_index)
+}
+
+pub fn get_kua_analysis_for_age<'a>(
+    result: &DaiVanResult,
+    analysis: &'a DaiVanKuaAnalysis,
+    age: f64,
+) -> Option<&'a DaiVanKuaPillarAnalysis> {
+    let pillar = get_pillar_at_age(result, age)?;
+    get_kua_analysis_for_pillar(analysis, pillar.index)
+}
+
+fn analyze_single_pillar_with_kua(
+    pillar: &DaiVanPillar,
+    birth_kua: &KuaResult,
+) -> Option<DaiVanKuaPillarAnalysis> {
+    let pillar_stem = HeavenlyStem::try_from(pillar.can_chi.can.as_str()).ok()?;
+    let pillar_element = pillar_stem.element();
+    let element_directions = directions_for_element(pillar_element);
+
+    let favorable_directions = birth_kua
+        .favorable_directions
+        .iter()
+        .copied()
+        .filter(|direction| element_directions.contains(direction))
+        .collect();
+
+    let unfavorable_directions = birth_kua
+        .unfavorable_directions
+        .iter()
+        .copied()
+        .filter(|direction| element_directions.contains(direction))
+        .collect();
+
+    Some(DaiVanKuaPillarAnalysis {
+        index: pillar.index,
+        can_chi: pillar.can_chi.clone(),
+        pillar_element,
+        favorable_directions,
+        unfavorable_directions,
+    })
+}
+
+fn directions_for_element(element: FiveElement) -> &'static [Direction] {
+    match element {
+        FiveElement::Moc => &[Direction::East, Direction::Southeast],
+        FiveElement::Hoa => &[Direction::South],
+        FiveElement::Tho => &[Direction::Northeast, Direction::Southwest],
+        FiveElement::Kim => &[Direction::West, Direction::Northwest],
+        FiveElement::Thuy => &[Direction::North],
+    }
 }
 
 #[cfg(test)]
@@ -643,6 +740,137 @@ mod tests {
             let second = get_ten_god_for_age(&result, age, Some(HeavenlyStem::At));
 
             assert_eq!(first, second);
+        }
+    }
+
+    mod kua_helpers {
+        use super::*;
+
+        fn fixture_result_with_distinct_elements() -> DaiVanResult {
+            DaiVanResult {
+                chieu_thu: ChieuThu::Thuan,
+                chieu_thu_label: "Thuan".to_string(),
+                start_age_years: 0.0,
+                start_age_display: "0.00 years".to_string(),
+                pillars: vec![
+                    DaiVanPillar {
+                        index: 0,
+                        can_chi: DaiVanCanChi {
+                            can_index: 0,
+                            chi_index: 0,
+                            can: "Giap".to_string(),
+                            chi: "Ty".to_string(),
+                            full: "Giap Ty".to_string(),
+                            con_giap: "Ty (Rat)".to_string(),
+                        },
+                        start_age: 0.0,
+                        end_age: 10.0,
+                    },
+                    DaiVanPillar {
+                        index: 1,
+                        can_chi: DaiVanCanChi {
+                            can_index: 6,
+                            chi_index: 1,
+                            can: "Canh".to_string(),
+                            chi: "Suu".to_string(),
+                            full: "Canh Suu".to_string(),
+                            con_giap: "Suu (Ox)".to_string(),
+                        },
+                        start_age: 10.0,
+                        end_age: 20.0,
+                    },
+                    DaiVanPillar {
+                        index: 2,
+                        can_chi: DaiVanCanChi {
+                            can_index: 4,
+                            chi_index: 2,
+                            can: "Mau".to_string(),
+                            chi: "Dan".to_string(),
+                            full: "Mau Dan".to_string(),
+                            con_giap: "Dan (Tiger)".to_string(),
+                        },
+                        start_age: 20.0,
+                        end_age: 30.0,
+                    },
+                ],
+                convention: DaiVanConvention::project_default(),
+                evidence: DaiVanEvidence::project_default(),
+            }
+        }
+
+        #[test]
+        fn computes_birth_kua_once_and_reuses_for_all_pillars_in_analysis() {
+            let result = fixture_result_with_distinct_elements();
+            let analysis = analyze_dai_van_with_kua(&result, 2002, Gender::Male);
+
+            assert_eq!(analysis.birth_kua.kua, 8);
+            assert_eq!(
+                analysis.birth_kua.convention.kua5_resolution,
+                "male->8,female->2"
+            );
+            assert_eq!(analysis.pillars.len(), result.pillars.len());
+
+            for pillar in &analysis.pillars {
+                let from_index = get_kua_analysis_for_pillar(&analysis, pillar.index)
+                    .expect("pillar analysis by index");
+                assert_eq!(from_index, pillar);
+            }
+        }
+
+        #[test]
+        fn supports_kua_5_resolution_for_female_path() {
+            let result = fixture_result_with_distinct_elements();
+            let analysis = analyze_dai_van_with_kua(&result, 1998, Gender::Female);
+
+            assert_eq!(analysis.birth_kua.kua, 2);
+            assert_eq!(
+                analysis.birth_kua.convention.kua5_resolution,
+                "male->8,female->2"
+            );
+        }
+
+        #[test]
+        fn analyzes_pillar_element_against_kua_directions() {
+            let result = fixture_result_with_distinct_elements();
+            let analysis = analyze_dai_van_with_kua(&result, 1990, Gender::Female);
+
+            let moc_pillar = get_kua_analysis_for_pillar(&analysis, 0).expect("moc pillar");
+            assert_eq!(moc_pillar.pillar_element, FiveElement::Moc);
+            assert!(moc_pillar.favorable_directions.is_empty());
+            assert_eq!(
+                moc_pillar.unfavorable_directions,
+                vec![Direction::East, Direction::Southeast]
+            );
+
+            let kim_pillar = get_kua_analysis_for_pillar(&analysis, 1).expect("kim pillar");
+            assert_eq!(kim_pillar.pillar_element, FiveElement::Kim);
+            assert_eq!(
+                kim_pillar.favorable_directions,
+                vec![Direction::Northwest, Direction::West]
+            );
+            assert!(kim_pillar.unfavorable_directions.is_empty());
+
+            let tho_pillar = get_kua_analysis_for_pillar(&analysis, 2).expect("tho pillar");
+            assert_eq!(tho_pillar.pillar_element, FiveElement::Tho);
+            assert_eq!(
+                tho_pillar.favorable_directions,
+                vec![Direction::Southwest, Direction::Northeast]
+            );
+            assert!(tho_pillar.unfavorable_directions.is_empty());
+        }
+
+        #[test]
+        fn can_lookup_kua_analysis_by_age_using_existing_pillar_boundaries() {
+            let result = fixture_result_with_distinct_elements();
+            let analysis = analyze_dai_van_with_kua(&result, 1990, Gender::Female);
+
+            let first = get_kua_analysis_for_age(&result, &analysis, 0.0).expect("first age");
+            let second =
+                get_kua_analysis_for_age(&result, &analysis, 10.0).expect("transition age");
+
+            assert_eq!(first.index, 0);
+            assert_eq!(second.index, 1);
+            assert!(get_kua_analysis_for_age(&result, &analysis, 30.0).is_none());
         }
     }
 }

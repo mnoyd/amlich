@@ -3,13 +3,13 @@
 **Created:** 2026-03-03
 **Milestone:** v1.3 Dai Van Core
 **Depth:** Quick
-**Status:** In Progress
+**Status:** Completed
 
 ## Phases
 
-- [ ] **Phase 4: Core Dai Van Module** - Core calculation engine with 8-pillar generation, Chieuthu direction, and metadata traceability
-- [ ] **Phase 5: Ten Gods Integration and Helpers** - Ten Gods correlation per pillar and helper functions for age-based queries
-- [ ] **Phase 6: Kua Analysis** - Kua-based directional analysis per pillar with favorable/unfavorable directions
+- [x] **Phase 4: Core Dai Van Module** - Core calculation engine with 8-pillar generation, Chieuthu direction, and metadata traceability
+- [x] **Phase 5: Ten Gods Integration and Helpers** - Ten Gods correlation per pillar and helper functions for age-based queries
+- [x] **Phase 6: Kua Analysis** - Kua-based directional analysis per pillar with favorable/unfavorable directions
 
 ## Phase Details
 
@@ -67,7 +67,9 @@
 3. Birth Kua is calculated once per person and reused for all pillars
 4. Kua 5 resolution follows project convention (male→8, female→2)
 
-**Plans**: TBD
+**Plans**: 1 plan
+
+- [x] `06-01-PLAN.md` - Implement per-pillar Kua direction analysis with birth-Kua reuse and age/index helper queries
 
 ## Progress
 
@@ -75,7 +77,7 @@
 |-------|----------------|--------|-----------|
 | 4. Core Dai Van Module | 2/2 | Completed | 2026-03-03 |
 | 5. Ten Gods Integration and Helpers | 2/2 | Completed | 2026-03-03 |
-| 6. Kua Analysis | 0/0 | Not started | - |
+| 6. Kua Analysis | 1/1 | Completed | 2026-03-03 |
 
 ## Dependencies
 
@@ -113,3 +115,4 @@ This roadmap implements v1.3 Dai Van Core milestone, continuing from v1.2 (Ten G
 
 ---
 *Roadmap created: 2026-03-03*
+*Last updated: 2026-03-03 after Phase 6 completion*
