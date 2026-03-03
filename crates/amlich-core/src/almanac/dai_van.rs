@@ -1,0 +1,409 @@
+use serde::{Deserialize, Serialize};
+
+use crate::almanac::tu_menh::Gender;
+use crate::almanac::types::{HeavenlyStem, Polarity};
+use crate::canchi::{get_month_canchi, get_year_canchi};
+use crate::julian::jd_from_date;
+use crate::lunar::convert_solar_to_lunar;
+use crate::tietkhi::get_days_to_nearest_tiet_khi;
+use crate::types::CanChi;
+
+const PILLAR_COUNT: usize = 8;
+const PILLAR_SPAN_YEARS: f64 = 10.0;
+const VIETNAM_TIME_ZONE: f64 = 7.0;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ChieuThu {
+    Thuan,
+    Nghich,
+}
+
+impl ChieuThu {
+    pub fn display_label(self) -> &'static str {
+        match self {
+            ChieuThu::Thuan => "Thuan",
+            ChieuThu::Nghich => "Nghich",
+        }
+    }
+
+    fn step(self) -> i32 {
+        match self {
+            ChieuThu::Thuan => 1,
+            ChieuThu::Nghich => -1,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DaiVanConvention {
+    pub year_basis: String,
+    pub start_age_method: String,
+    pub gender_encoding: String,
+    pub direction_method: String,
+}
+
+impl DaiVanConvention {
+    pub fn project_default() -> Self {
+        Self {
+            year_basis: "lunar_year_stem_from_solar_birth_date".to_string(),
+            start_age_method: "nearest_tiet_khi_distance_days_div_3".to_string(),
+            gender_encoding: "enum(Male,Female)".to_string(),
+            direction_method: "year_polarity_x_gender".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DaiVanEvidence {
+    pub source_id: String,
+    pub method: String,
+    pub source_note: String,
+}
+
+impl DaiVanEvidence {
+    pub fn project_default() -> Self {
+        Self {
+            source_id: "khcbppt".to_string(),
+            method: "bai-quyet".to_string(),
+            source_note: "TODO: verify exact KHCBPPT chapter for Dai Van formula mapping"
+                .to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct DaiVanCanChi {
+    pub can_index: usize,
+    pub chi_index: usize,
+    pub can: String,
+    pub chi: String,
+    pub full: String,
+    pub con_giap: String,
+}
+
+impl From<&CanChi> for DaiVanCanChi {
+    fn from(value: &CanChi) -> Self {
+        Self {
+            can_index: value.can_index,
+            chi_index: value.chi_index,
+            can: value.can.clone(),
+            chi: value.chi.clone(),
+            full: value.full.clone(),
+            con_giap: value.con_giap.clone(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DaiVanPillar {
+    pub index: usize,
+    pub can_chi: DaiVanCanChi,
+    pub start_age: f64,
+    pub end_age: f64,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DaiVanResult {
+    pub chieu_thu: ChieuThu,
+    pub chieu_thu_label: String,
+    pub start_age_years: f64,
+    pub start_age_display: String,
+    pub pillars: Vec<DaiVanPillar>,
+    pub convention: DaiVanConvention,
+    pub evidence: DaiVanEvidence,
+}
+
+pub fn determine_chieu_thu(year_stem: HeavenlyStem, gender: Gender) -> ChieuThu {
+    match (year_stem.polarity(), gender) {
+        (Polarity::Duong, Gender::Male) | (Polarity::Am, Gender::Female) => ChieuThu::Thuan,
+        (Polarity::Duong, Gender::Female) | (Polarity::Am, Gender::Male) => ChieuThu::Nghich,
+    }
+}
+
+pub fn calculate_start_age_years(days_to_nearest_tiet_khi: f64) -> f64 {
+    days_to_nearest_tiet_khi.abs() / 3.0
+}
+
+pub fn generate_pillars(
+    base_month_canchi: &CanChi,
+    chieu_thu: ChieuThu,
+    start_age: f64,
+) -> Vec<DaiVanPillar> {
+    let step = chieu_thu.step();
+    let mut pillars = Vec::with_capacity(PILLAR_COUNT);
+
+    for index in 0..PILLAR_COUNT {
+        let offset = step * index as i32;
+        let can = (base_month_canchi.can_index as i32 + offset).rem_euclid(10) as usize;
+        let chi = (base_month_canchi.chi_index as i32 + offset).rem_euclid(12) as usize;
+        let can_chi = CanChi::new(can, chi);
+        let pillar_start = start_age + index as f64 * PILLAR_SPAN_YEARS;
+        let pillar_end = pillar_start + PILLAR_SPAN_YEARS;
+
+        pillars.push(DaiVanPillar {
+            index,
+            can_chi: DaiVanCanChi::from(&can_chi),
+            start_age: pillar_start,
+            end_age: pillar_end,
+        });
+    }
+
+    pillars
+}
+
+pub fn calculate_dai_van(day: i32, month: i32, year: i32, gender: Gender) -> DaiVanResult {
+    calculate_dai_van_with_timezone(day, month, year, gender, VIETNAM_TIME_ZONE)
+}
+
+pub fn calculate_dai_van_with_timezone(
+    day: i32,
+    month: i32,
+    year: i32,
+    gender: Gender,
+    time_zone: f64,
+) -> DaiVanResult {
+    let lunar = convert_solar_to_lunar(day, month, year, time_zone);
+    let year_canchi = get_year_canchi(lunar.year);
+    let month_canchi = get_month_canchi(lunar.month, lunar.year, lunar.is_leap);
+    let year_stem = HeavenlyStem::try_from(year_canchi.can.as_str())
+        .expect("year Can string should map to HeavenlyStem");
+
+    let chieu_thu = determine_chieu_thu(year_stem, gender);
+    let signed_days = get_days_to_nearest_tiet_khi(jd_from_date(day, month, year));
+    let start_age_years = calculate_start_age_years(signed_days as f64);
+    let pillars = generate_pillars(&month_canchi, chieu_thu, start_age_years);
+
+    DaiVanResult {
+        chieu_thu,
+        chieu_thu_label: chieu_thu.display_label().to_string(),
+        start_age_years,
+        start_age_display: format!("{start_age_years:.2} years"),
+        pillars,
+        convention: DaiVanConvention::project_default(),
+        evidence: DaiVanEvidence::project_default(),
+    }
+}
+
+pub fn get_pillar_at_age(result: &DaiVanResult, age: f64) -> Option<&DaiVanPillar> {
+    result
+        .pillars
+        .iter()
+        .find(|pillar| age >= pillar.start_age && age < pillar.end_age)
+}
+
+pub fn get_current_pillar(result: &DaiVanResult, age: f64) -> Option<&DaiVanPillar> {
+    get_pillar_at_age(result, age)
+}
+
+pub fn years_to_next_transition(result: &DaiVanResult, age: f64) -> Option<f64> {
+    let pillar = get_pillar_at_age(result, age)?;
+    Some(pillar.end_age - age)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod types_and_metadata {
+        use super::*;
+
+        #[test]
+        fn result_type_contains_convention_and_evidence_metadata() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Male);
+
+            assert_eq!(
+                result.convention.year_basis,
+                "lunar_year_stem_from_solar_birth_date"
+            );
+            assert_eq!(
+                result.convention.start_age_method,
+                "nearest_tiet_khi_distance_days_div_3"
+            );
+            assert_eq!(result.convention.gender_encoding, "enum(Male,Female)");
+            assert_eq!(result.evidence.source_id, "khcbppt");
+            assert_eq!(result.evidence.method, "bai-quyet");
+            assert!(result.evidence.source_note.contains("TODO"));
+        }
+
+        #[test]
+        fn direction_type_has_canonical_and_display_semantics() {
+            assert_eq!(ChieuThu::Thuan.display_label(), "Thuan");
+            assert_eq!(ChieuThu::Nghich.display_label(), "Nghich");
+            assert_eq!(ChieuThu::Thuan.step(), 1);
+            assert_eq!(ChieuThu::Nghich.step(), -1);
+        }
+
+        #[test]
+        fn pillar_range_structure_uses_half_open_ranges_with_decimal_age() {
+            let pillars = generate_pillars(&CanChi::new(2, 2), ChieuThu::Thuan, 3.5);
+            assert_eq!(pillars[0].start_age, 3.5);
+            assert_eq!(pillars[0].end_age, 13.5);
+            assert_eq!(pillars[1].start_age, 13.5);
+        }
+
+        #[test]
+        fn dai_van_result_serializes_cleanly() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Female);
+            let encoded = serde_json::to_string(&result).expect("serialize");
+            assert!(encoded.contains("\"convention\""));
+            assert!(encoded.contains("\"evidence\""));
+            assert!(encoded.contains("\"pillars\""));
+        }
+    }
+
+    mod direction_and_start_age {
+        use super::*;
+
+        #[test]
+        fn direction_matrix_covers_all_polarity_gender_cases() {
+            assert_eq!(
+                determine_chieu_thu(HeavenlyStem::Giap, Gender::Male),
+                ChieuThu::Thuan
+            );
+            assert_eq!(
+                determine_chieu_thu(HeavenlyStem::Giap, Gender::Female),
+                ChieuThu::Nghich
+            );
+            assert_eq!(
+                determine_chieu_thu(HeavenlyStem::At, Gender::Male),
+                ChieuThu::Nghich
+            );
+            assert_eq!(
+                determine_chieu_thu(HeavenlyStem::At, Gender::Female),
+                ChieuThu::Thuan
+            );
+        }
+
+        #[test]
+        fn start_age_zero_distance_is_zero() {
+            assert_eq!(calculate_start_age_years(0.0), 0.0);
+        }
+
+        #[test]
+        fn start_age_keeps_decimal_precision() {
+            assert!((calculate_start_age_years(4.5) - 1.5).abs() < 1e-9);
+            assert!((calculate_start_age_years(-4.5) - 1.5).abs() < 1e-9);
+        }
+    }
+
+    mod pillar_generation {
+        use super::*;
+
+        #[test]
+        fn calculate_dai_van_returns_exactly_eight_pillars() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Male);
+            assert_eq!(result.pillars.len(), 8);
+        }
+
+        #[test]
+        fn generated_pillars_are_contiguous_with_half_open_boundaries() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Male);
+            for i in 1..result.pillars.len() {
+                assert!((result.pillars[i - 1].end_age - result.pillars[i].start_age).abs() < 1e-9);
+                assert!(
+                    (result.pillars[i].end_age - result.pillars[i].start_age - PILLAR_SPAN_YEARS)
+                        .abs()
+                        < 1e-9
+                );
+            }
+        }
+
+        #[test]
+        fn month_canchi_is_base_of_progression() {
+            let base = get_month_canchi(1, 2024, false);
+            let pillars = generate_pillars(&base, ChieuThu::Thuan, 0.0);
+            assert_eq!(pillars[0].can_chi.full, base.full);
+            assert_eq!(pillars[1].can_chi.can_index, (base.can_index + 1) % 10);
+            assert_eq!(pillars[1].can_chi.chi_index, (base.chi_index + 1) % 12);
+        }
+    }
+
+    mod helpers_and_edge_cases {
+        use super::*;
+
+        #[test]
+        fn helpers_return_none_outside_covered_range() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Male);
+            let first = result.pillars.first().expect("first");
+            let last = result.pillars.last().expect("last");
+
+            assert!(get_current_pillar(&result, first.start_age - 0.01).is_none());
+            assert!(get_pillar_at_age(&result, last.end_age).is_none());
+        }
+
+        #[test]
+        fn years_to_next_transition_is_exact_in_range() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Female);
+            let first = result.pillars.first().expect("first");
+            let age = first.start_age + 2.25;
+            let remaining = years_to_next_transition(&result, age).expect("remaining");
+            assert!((remaining - 7.75).abs() < 1e-9);
+        }
+
+        #[test]
+        fn zero_distance_start_age_path_is_supported() {
+            let start_age = calculate_start_age_years(0.0);
+            let pillars = generate_pillars(&CanChi::new(0, 0), ChieuThu::Thuan, start_age);
+            assert_eq!(pillars[0].start_age, 0.0);
+        }
+
+        #[test]
+        fn leap_month_input_uses_month_canchi_integration_path() {
+            let mut leap_date = None;
+            for month in 1..=12 {
+                for day in 1..=31 {
+                    let lunar = convert_solar_to_lunar(day, month, 2023, 7.0);
+                    if lunar.is_leap {
+                        leap_date = Some((day, month, 2023));
+                        break;
+                    }
+                }
+                if leap_date.is_some() {
+                    break;
+                }
+            }
+
+            let (day, month, year) = leap_date.expect("should find leap-month date in 2023");
+            let lunar = convert_solar_to_lunar(day, month, year, 7.0);
+            let base = get_month_canchi(lunar.month, lunar.year, lunar.is_leap);
+            let result = calculate_dai_van(day, month, year, Gender::Male);
+            assert!(lunar.is_leap);
+            assert!(base.full.contains("(nhuận)"));
+            assert_eq!(result.pillars[0].can_chi.can_index, base.can_index);
+            assert_eq!(result.pillars[0].can_chi.chi_index, base.chi_index);
+        }
+
+        #[test]
+        fn year_polarity_transition_examples_remain_stable() {
+            let yang_year = get_year_canchi(2024);
+            let yin_year = get_year_canchi(2025);
+            let yang_stem = HeavenlyStem::try_from(yang_year.can.as_str()).expect("yang stem");
+            let yin_stem = HeavenlyStem::try_from(yin_year.can.as_str()).expect("yin stem");
+
+            assert_eq!(
+                determine_chieu_thu(yang_stem, Gender::Male),
+                ChieuThu::Thuan
+            );
+            assert_eq!(
+                determine_chieu_thu(yang_stem, Gender::Female),
+                ChieuThu::Nghich
+            );
+            assert_eq!(
+                determine_chieu_thu(yin_stem, Gender::Male),
+                ChieuThu::Nghich
+            );
+            assert_eq!(
+                determine_chieu_thu(yin_stem, Gender::Female),
+                ChieuThu::Thuan
+            );
+        }
+
+        #[test]
+        fn deterministic_same_input_same_output() {
+            let r1 = calculate_dai_van(10, 2, 2024, Gender::Male);
+            let r2 = calculate_dai_van(10, 2, 2024, Gender::Male);
+            assert_eq!(r1, r2);
+        }
+    }
+}

@@ -3,7 +3,7 @@
 **Created:** 2026-03-03
 **Milestone:** v1.3 Dai Van Core
 **Depth:** Quick
-**Status:** Pending
+**Status:** In Progress
 
 ## Phases
 
@@ -28,7 +28,10 @@
 4. All calculation results include convention metadata (year_basis, start_age_method, gender_encoding) and evidence metadata (source_id, method)
 5. Edge cases (Tiết Khí boundaries, leap months, year polarity transitions) are handled correctly
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+- [x] `04-01-PLAN.md` - Define Dai Van core types, direction matrix, start-age conversion, and metadata contracts
+- [x] `04-02-PLAN.md` - Implement 8-pillar generation flow, helper lookups, and edge-case coverage
 
 ### Phase 5: Ten Gods Integration and Helpers
 
@@ -67,7 +70,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 4. Core Dai Van Module | 0/0 | Not started | - |
+| 4. Core Dai Van Module | 2/2 | Completed | 2026-03-03 |
 | 5. Ten Gods Integration and Helpers | 0/0 | Not started | - |
 | 6. Kua Analysis | 0/0 | Not started | - |
 

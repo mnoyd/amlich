@@ -1,4 +1,5 @@
 pub mod calc;
+pub mod dai_van;
 pub mod data;
 pub mod day_deity;
 pub mod golden_loader;
