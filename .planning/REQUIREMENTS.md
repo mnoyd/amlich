@@ -31,10 +31,10 @@ Requirements for Dai Van Core milestone. Each maps to roadmap phases.
 
 ### Helper Functions
 
-- [ ] **DV-HELP-01**: System can find current pillar for given age
-- [ ] **DV-HELP-02**: System can calculate years until next transition
-- [ ] **DV-HELP-03**: System can find pillar at specific age (range lookup)
-- [ ] **DV-HELP-04**: Helper functions return Option to handle out-of-range ages gracefully
+- [x] **DV-HELP-01**: System can find current pillar for given age
+- [x] **DV-HELP-02**: System can calculate years until next transition
+- [x] **DV-HELP-03**: System can find pillar at specific age (range lookup)
+- [x] **DV-HELP-04**: Helper functions return Option to handle out-of-range ages gracefully
 
 ### Metadata & Traceability
 
@@ -93,10 +93,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DV-KUA-02 | Phase 6 | Pending |
 | DV-KUA-03 | Phase 6 | Pending |
 | DV-KUA-04 | Phase 6 | Pending |
-| DV-HELP-01 | Phase 5 | Pending |
-| DV-HELP-02 | Phase 5 | Pending |
-| DV-HELP-03 | Phase 5 | Pending |
-| DV-HELP-04 | Phase 5 | Pending |
+| DV-HELP-01 | Phase 5 | Complete |
+| DV-HELP-02 | Phase 5 | Complete |
+| DV-HELP-03 | Phase 5 | Complete |
+| DV-HELP-04 | Phase 5 | Complete |
 | DV-META-01 | Phase 4 | Pending |
 | DV-META-02 | Phase 4 | Pending |
 | DV-META-03 | Phase 4 | Pending |

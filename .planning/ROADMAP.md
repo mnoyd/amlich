@@ -48,7 +48,10 @@
 4. Helper functions gracefully handle out-of-range ages using Option returns
 5. Unknown birth hour is supported (Ten Gods = None or day_fortune-based targets)
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+- [ ] `05-01-PLAN.md` - Add lazy Ten Gods-per-pillar helpers in Dai Van with unknown-birth-hour Option handling
+- [x] `05-02-PLAN.md` - Lock and harden helper query contracts for age lookup and transition boundaries
 
 ### Phase 6: Kua Analysis
 
@@ -71,7 +74,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 4. Core Dai Van Module | 2/2 | Completed | 2026-03-03 |
-| 5. Ten Gods Integration and Helpers | 0/0 | Not started | - |
+| 5. Ten Gods Integration and Helpers | 1/2 | In Progress | - |
 | 6. Kua Analysis | 0/0 | Not started | - |
 
 ## Dependencies
