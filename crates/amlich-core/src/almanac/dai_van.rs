@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
 
-use crate::almanac::thap_than::{get_thap_than, ThapThanResult};
+use crate::almanac::thap_than::get_thap_than;
 use crate::almanac::tu_menh::Gender;
-use crate::almanac::types::{HeavenlyStem, Polarity};
+use crate::almanac::types::{HeavenlyStem, Polarity, ThapThanResult};
 use crate::canchi::{get_month_canchi, get_year_canchi};
 use crate::julian::jd_from_date;
 use crate::lunar::convert_solar_to_lunar;
@@ -200,6 +200,28 @@ pub fn get_current_pillar(result: &DaiVanResult, age: f64) -> Option<&DaiVanPill
 pub fn years_to_next_transition(result: &DaiVanResult, age: f64) -> Option<f64> {
     let pillar = get_pillar_at_age(result, age)?;
     Some(pillar.end_age - age)
+}
+
+pub fn get_ten_god_for_pillar(
+    result: &DaiVanResult,
+    pillar_index: usize,
+    birth_day_stem: Option<HeavenlyStem>,
+) -> Option<ThapThanResult> {
+    let day_stem = birth_day_stem?;
+    let pillar = result.pillars.get(pillar_index)?;
+    let pillar_stem = HeavenlyStem::try_from(pillar.can_chi.can.as_str()).ok()?;
+    Some(get_thap_than(day_stem, pillar_stem))
+}
+
+pub fn get_ten_god_for_age(
+    result: &DaiVanResult,
+    age: f64,
+    birth_day_stem: Option<HeavenlyStem>,
+) -> Option<ThapThanResult> {
+    let day_stem = birth_day_stem?;
+    let pillar = get_pillar_at_age(result, age)?;
+    let pillar_stem = HeavenlyStem::try_from(pillar.can_chi.can.as_str()).ok()?;
+    Some(get_thap_than(day_stem, pillar_stem))
 }
 
 #[cfg(test)]
