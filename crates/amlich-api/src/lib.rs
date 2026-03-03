@@ -146,11 +146,32 @@ pub fn get_na_am_by_index(index: u8) -> NaAmResponseDto {
 /// * `NaAmResponseDto::Error` with error details if pair is invalid
 ///
 /// # Examples
+///
+/// Lookup by cycle index (1-60):
+///
 /// ```ignore
-/// let response = get_na_am_by_pair("Giáp", "Tý");
-/// match response {
-///     NaAmResponseDto::Success(result) => {
-///         println!("Na Am: {}", result.na_am); // "Hải Trung Kim"
+/// use amlich_api::{get_na_am_by_index, get_na_am_by_pair};
+///
+/// let result = get_na_am_by_index(1);
+/// match result {
+///     NaAmResponseDto::Success(data) => {
+///         println!("Index {}: {} {} - {} ({})",
+///             data.cycle_index, data.can, data.chi, data.na_am, data.element);
+///     }
+///     NaAmResponseDto::Error(err) => {
+///         eprintln!("Error: {}", err.message);
+///     }
+/// }
+/// ```
+///
+/// Lookup by stem-branch pair:
+///
+/// ```ignore
+/// let result = get_na_am_by_pair("Giáp", "Tý");
+/// match result {
+///     NaAmResponseDto::Success(data) => {
+///         println!("{} {}: {} ({})",
+///             data.can, data.chi, data.na_am, data.element);
 ///     }
 ///     NaAmResponseDto::Error(err) => {
 ///         eprintln!("Error: {}", err.message);
