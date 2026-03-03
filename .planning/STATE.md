@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: completed
-last_updated: "2026-03-03T17:24:37.889Z"
+last_updated: "2026-03-04T00:45:29.000Z"
 progress:
   total_phases: 13
   completed_phases: 13
@@ -24,27 +24,27 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 Milestone: v1.4 Lunar Engine Table Parity
 Phase: Phase 9 - Na Am API Surfaces and Contracts
-Plans: 1/2 complete
-Status: Phase 09-01 complete (Na Am lookup APIs); ready for 09-02
-Last activity: 2026-03-03T17:39:29Z — Completed Phase 9 Plan 1 core Na Am lookup APIs with TDD
+Plans: 2/2 complete
+Status: Phase 9 complete (Na Am API with contract tests and traceability)
+Last activity: 2026-03-04T00:45:29Z — Completed Phase 9 Plan 2 contract tests and requirement traceability
 
-Progress: [████████░░] 83%
+Progress: [████████░░] 89%
 
 ### Milestone Status: v1.4 In Progress
 
 **Goal:** Deliver hour pillar parity, full 60-cycle parity, and Na Am API surfaces with validator evidence
 
-**Completed Requirements:** HP-01..05, PAR-02, SC-01..04, NAM-API-01..05
+**Completed Requirements:** HP-01..05, PAR-01..02, SC-01..04, NAM-API-01..06, PAR-03..04
 
-**Pending Requirements:** NAM-API-06, PAR-01, PAR-03, PAR-04 (4 requirements)
+**Pending Requirements:** None (all v1.4 requirements complete)
 
-**Status:** Milestone in progress
+**Status:** Phase 9 complete, ready for Phase 10 or milestone completion
 
 ## Performance Metrics
 
 **Velocity:**
-- v1.4 plans completed: 5/8 (Phase 7 complete, Phase 8 complete, Phase 9-01 complete)
-- Milestone status: in progress
+- v1.4 plans completed: 7/8 (Phase 7 complete, Phase 8 complete, Phase 9 complete)
+- Milestone status: Phase 9 complete, ready for Phase 10
 
 **By Milestone:**
 
@@ -52,13 +52,14 @@ Progress: [████████░░] 83%
 |-----------|-------|-------|----------|
 | v1.2 | 3/3 | 29 min | 9.7 min |
 | v1.3 | 5/5 | n/a | n/a |
-| v1.4 | 5/8 | n/a | n/a |
+| v1.4 | 7/8 | n/a | n/a |
 
 **Recent Trend:**
 - v1.3 execution closed with stable contract-driven tests and synchronized artifacts.
 - v1.4 Phase 7 delivered deterministic hour-pillar core and integration parity validators.
 - v1.4 Phase 8 delivered sexagenary cycle utilities and full-table parity validators.
 - v1.4 Phase 9-01 delivered core Na Am lookup APIs with TDD and type-safe error handling.
+- v1.4 Phase 9-02 delivered comprehensive contract tests (18 tests) and traceability artifacts.
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Key decisions from v1.2 and v1.3:
 - [Checkpoint]: Treat phase-complete verification artifacts as source of truth for retrospective/state/requirements sync.
 - [Phase 06]: Compute birth Kua once per analysis run, then reuse for all per-pillar direction intersections.
 - [Phase 08-01]: Fixed canchi_to_cycle_index formula using Chinese Remainder Theorem for moduli 10 and 12 (k = ((can_idx - chi_idx) / 2).rem_euclid(6), i = (can_idx + 10*k) % 60) to correctly map stem-branch pairs to cycle positions.
+- [Phase 09-02]: Na Am source uses actual baseline data source_id "tam-menh-thong-hoi" (not placeholder "khcbppt") for accurate attribution.
+- [Phase 09-02]: Contract testing pattern validates schema stability via serialize → deserialize → assert equality.
 
 ### Research Insights (from research/SUMMARY.md)
 
@@ -141,7 +144,7 @@ Key decisions from v1.2 and v1.3:
 
 ### Pending Todos
 
-- Execute Phase 9 plan 09-02 (harden error contracts, schema tests, and requirement traceability sync)
+- Execute Phase 10 (if planned) or complete v1.4 milestone
 
 ### Blockers/Concerns
 
@@ -151,16 +154,17 @@ None active.
 - Kua convention ambiguity: Frozen in v1.2-02 with explicit documentation and fixture coverage.
 - Person-context input requirements: Handled via optional Kua field (populates only when birth context provided) in v1.2-03.
 - Backward compatibility concerns: Addressed by additive-only changes and Option<T> fields.
+- Na Am source_id mismatch: Corrected test to use actual "tam-menh-thong-hoi" source_id from baseline data.
 
 ## Session Continuity
 
-Last session: 2026-03-03T17:39:29Z
-Stopped at: Completed Phase 9 Plan 1 (Na Am lookup APIs)
+Last session: 2026-03-04T00:45:29Z
+Stopped at: Completed Phase 9 Plan 2 (contract tests and traceability)
 Resume file: None
 
 ### Active TODOs
 
-- Start `/gsd-execute-phase 9` for Phase 9 Plan 2 (harden error contracts, schema tests, and requirement traceability sync)
+- Start `/gsd-execute-phase 10` or `/gsd-complete-milestone` for v1.4
 
 ### Context Handoff
 
@@ -174,7 +178,7 @@ Resume file: None
 **v1.4 Completion Criteria:**
 1. Hour pillar outputs match canonical table mappings across all day-stem groups and boundaries ✓
 2. 60-cycle conversion/progression utilities pass full-table parity validators ✓
-3. Na Am APIs (pair/index lookup) ship with stable schema, metadata, and explicit validation errors ⚠ (09-01 complete, 09-02 pending for schema tests and traceability)
+3. Na Am APIs (pair/index lookup) ship with stable schema, metadata, and explicit validation errors ✓ (Phase 9 complete with contract tests and traceability)
 
 **Resources:**
 - .planning/ENGINE_EXPANSION_ANALYSIS.md — Earlier engine parity context and subsystem map
