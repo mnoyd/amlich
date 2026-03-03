@@ -1,12 +1,134 @@
-//! Na Am lookup tests
+//! Na Am (Nạp Âm) lookup module
 //!
-//! Tests for Na Am (Nạp Âm) lookup functionality supporting both
-//! cycle index (1-60) and stem-branch pair lookup modes.
+//! Provides deterministic Na Am lookups through cycle index (1-60) or
+//! stem-branch pair with evidence metadata.
+//!
+//! # Public Contract
+//! - Cycle indices are 1-based (1-60) to match Vietnamese convention
+//! - Invalid inputs return NaAmError (not panic)
+//! - All operations are deterministic and side-effect-free
 
-use super::*;
-use crate::almanac::data::get_ruleset_data;
-use crate::almanac::sexagenary_cycle::{canchi_to_cycle_index, cycle_index_to_canchi};
-use crate::types::CAN;
+use crate::almanac::data::{get_ruleset_data, NaAmEntry};
+use crate::almanac::sexagenary_cycle::cycle_index_to_canchi;
+use crate::almanac::types::SourceMeta;
+use crate::types::{CAN, CHI};
+
+/// Na Am lookup error types
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NaAmError {
+    /// Invalid cycle index (outside [1, 60])
+    InvalidCycleIndex,
+    /// Non-canonical stem-branch pair (odd/even mismatch)
+    InvalidStemBranchPair,
+    /// Unknown stem name (not in CAN array)
+    UnknownStem,
+    /// Unknown branch name (not in CHI array)
+    UnknownBranch,
+}
+
+/// Lookup Na Am by 1-based cycle index (1-60)
+///
+/// # Arguments
+/// * `index` - 1-based cycle index in range [1, 60]
+///
+/// # Returns
+/// * `Ok(NaAmEntry)` if index is valid
+/// * `Err(NaAmError::InvalidCycleIndex)` if index is outside [1, 60]
+///
+/// # Examples
+/// ```ignore
+/// let entry = get_na_am_by_index(1).unwrap();
+/// assert_eq!(entry.can, "Giáp");
+/// assert_eq!(entry.chi, "Tý");
+/// assert_eq!(entry.na_am, "Hải Trung Kim");
+/// ```
+pub fn get_na_am_by_index(index: u8) -> Result<NaAmEntry, NaAmError> {
+    // Validate 1-based bounds
+    if !(1..=60).contains(&index) {
+        return Err(NaAmError::InvalidCycleIndex);
+    }
+
+    // Convert index to stem-branch pair
+    let canchi = cycle_index_to_canchi(index).ok_or(NaAmError::InvalidCycleIndex)?;
+
+    // Retrieve Na Am entry from ruleset data
+    let ruleset = get_ruleset_data("vn_baseline_v1").expect("default ruleset should be available");
+
+    ruleset
+        .sexagenary_na_am
+        .get(&canchi.full)
+        .cloned()
+        .ok_or(NaAmError::InvalidCycleIndex)
+}
+
+/// Lookup Na Am by stem-branch pair (Vietnamese names)
+///
+/// # Arguments
+/// * `can` - Vietnamese stem name (e.g., "Giáp", "Ất")
+/// * `chi` - Vietnamese branch name (e.g., "Tý", "Sửu")
+///
+/// # Returns
+/// * `Ok(NaAmEntry)` if pair is valid and canonical
+/// * `Err(NaAmError::UnknownStem)` if can is not valid
+/// * `Err(NaAmError::UnknownBranch)` if chi is not valid
+/// * `Err(NaAmError::InvalidStemBranchPair)` if combination is non-canonical
+///
+/// # Canonical Validation
+/// Only 60 of 120 possible stem/branch combinations are valid in the
+/// sexagenary cycle. Stems and branches must share polarity (both odd or both even).
+///
+/// # Examples
+/// ```ignore
+/// let entry = get_na_am_by_pair("Giáp", "Tý").unwrap();
+/// assert_eq!(entry.na_am, "Hải Trung Kim");
+///
+/// // Non-canonical combination returns error
+/// assert!(get_na_am_by_pair("Giáp", "Sửu").is_err());
+/// ```
+pub fn get_na_am_by_pair(can: &str, chi: &str) -> Result<NaAmEntry, NaAmError> {
+    // Validate stem name
+    let can_idx = CAN
+        .iter()
+        .position(|&c| c == can)
+        .ok_or(NaAmError::UnknownStem)?;
+
+    // Validate branch name
+    let chi_idx = CHI
+        .iter()
+        .position(|&c| c == chi)
+        .ok_or(NaAmError::UnknownBranch)?;
+
+    // Validate canonical combination: same polarity (odd/even)
+    if can_idx % 2 != chi_idx % 2 {
+        return Err(NaAmError::InvalidStemBranchPair);
+    }
+
+    // Retrieve Na Am entry from ruleset data
+    let ruleset = get_ruleset_data("vn_baseline_v1").expect("default ruleset should be available");
+
+    let key = format!("{can} {chi}");
+    ruleset
+        .sexagenary_na_am
+        .get(&key)
+        .cloned()
+        .ok_or(NaAmError::InvalidStemBranchPair)
+}
+
+/// Get Na Am metadata (source attribution)
+///
+/// # Returns
+/// Static reference to SourceMeta containing source_id, method, and profile
+///
+/// # Examples
+/// ```ignore
+/// let meta = get_na_am_metadata();
+/// assert!(!meta.source_id.is_empty());
+/// assert!(!meta.method.is_empty());
+/// ```
+pub fn get_na_am_metadata() -> &'static SourceMeta {
+    let ruleset = get_ruleset_data("vn_baseline_v1").expect("default ruleset should be available");
+    &ruleset.na_am_meta
+}
 
 #[cfg(test)]
 mod tests {
