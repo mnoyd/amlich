@@ -21,7 +21,7 @@ Requirements for Lunar engine table parity milestone. Each maps to roadmap phase
 - [x] **SC-02**: System can convert stem-branch pair to cycle index (1-60)
 - [x] **SC-03**: Forward/backward progression preserves modular correctness across rollover boundaries (10/12/60)
 - [x] **SC-04**: Cycle utilities expose deterministic helpers reusable by hour pillar and Na Am APIs
-- [ ] **SC-05**: Validation suite confirms full-table parity against canonical 60-cycle references
+- [x] **SC-05**: Validation suite confirms full-table parity against canonical 60-cycle references
 
 ### Na Am APIs
 
@@ -34,7 +34,7 @@ Requirements for Lunar engine table parity milestone. Each maps to roadmap phase
 
 ### Metadata and Verification
 
-- [ ] **PAR-01**: Parity validators are added for hour pillar and full 60-cycle tables
+- [x] **PAR-01**: Parity validators are added for hour pillar and full 60-cycle tables
 - [x] **PAR-02**: Golden fixtures include representative plus boundary cases for hour pillar and Na Am lookups
 - [ ] **PAR-03**: Traceability links every new requirement to one roadmap phase
 - [ ] **PAR-04**: Milestone artifacts document parity decisions and known source ambiguities
