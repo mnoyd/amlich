@@ -18,9 +18,9 @@ Requirements for Dai Van Core milestone. Each maps to roadmap phases.
 
 ### Ten Gods Integration
 
-- [ ] **DV-TG-01**: System can correlate each pillar's Heavenly Stem with birth day stem via Thap Than
-- [ ] **DV-TG-02**: Ten Gods calculation is lazy/on-demand (not pre-computed for all pillars)
-- [ ] **DV-TG-03**: System supports unknown birth hour gracefully (Ten Gods = None or day_fortune-based targets)
+- [x] **DV-TG-01**: System can correlate each pillar's Heavenly Stem with birth day stem via Thap Than
+- [x] **DV-TG-02**: Ten Gods calculation is lazy/on-demand (not pre-computed for all pillars)
+- [x] **DV-TG-03**: System supports unknown birth hour gracefully (Ten Gods = None or day_fortune-based targets)
 
 ### Kua Analysis
 
@@ -86,9 +86,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DV-CALC-04 | Phase 4 | Pending |
 | DV-CALC-05 | Phase 4 | Pending |
 | DV-CALC-06 | Phase 4 | Pending |
-| DV-TG-01 | Phase 5 | Pending |
-| DV-TG-02 | Phase 5 | Pending |
-| DV-TG-03 | Phase 5 | Pending |
+| DV-TG-01 | Phase 5 | Complete |
+| DV-TG-02 | Phase 5 | Complete |
+| DV-TG-03 | Phase 5 | Complete |
 | DV-KUA-01 | Phase 6 | Pending |
 | DV-KUA-02 | Phase 6 | Pending |
 | DV-KUA-03 | Phase 6 | Pending |

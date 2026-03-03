@@ -50,7 +50,7 @@
 
 **Plans**: 2 plans
 
-- [ ] `05-01-PLAN.md` - Add lazy Ten Gods-per-pillar helpers in Dai Van with unknown-birth-hour Option handling
+- [x] `05-01-PLAN.md` - Add lazy Ten Gods-per-pillar helpers in Dai Van with unknown-birth-hour Option handling
 - [x] `05-02-PLAN.md` - Lock and harden helper query contracts for age lookup and transition boundaries
 
 ### Phase 6: Kua Analysis
@@ -74,7 +74,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 4. Core Dai Van Module | 2/2 | Completed | 2026-03-03 |
-| 5. Ten Gods Integration and Helpers | 1/2 | In Progress | - |
+| 5. Ten Gods Integration and Helpers | 2/2 | Completed | 2026-03-03 |
 | 6. Kua Analysis | 0/0 | Not started | - |
 
 ## Dependencies
