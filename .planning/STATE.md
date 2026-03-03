@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Dai Van Core
-status: defining_requirements
-last_updated: "2026-03-03T00:30:00.000Z"
+status: planning_phases
+last_updated: "2026-03-03T01:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,16 +18,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching KHCBPPT for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** Defining requirements for v1.3 Dai Van Core
+**Current focus:** Planning phases for v1.3 Dai Van Core
 
 ## Current Position
 
 Milestone: v1.3 Dai Van Core (NOT STARTED)
+Phase: Phase 4 - Core Dai Van Module
 Plans: 0/0 complete
-Status: Defining requirements
-Last activity: 2026-03-03T00:30:00Z — Milestone v1.3 started
+Status: Planning phases
+Last activity: 2026-03-03T01:00:00Z — Roadmap created with 3 phases
 
 Progress: [░░░░░░░░░░] 0%
+
+### Phase 4: Core Dai Van Module
+
+**Goal:** Deliver deterministic Dai Van calculation engine with period transitions, Chieuthu direction, and evidence metadata
+
+**Requirements:** DV-CALC-01 through DV-CALC-06, DV-META-01 through DV-META-04 (10 requirements)
+
+**Status:** Not started
 
 ## Performance Metrics
 
@@ -41,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 | Milestone | Plans | Total | Avg/Plan |
 |-----------|-------|-------|----------|
 | v1.2 | 3/3 | 29 min | 9.7 min |
+| v1.3 | 0/0 | TBD | TBD |
 
 **Recent Trend:**
 - Last 5 plans: v1.2-03 (11 min), v1.2-02 (10 min), v1.2-01 (7 min)
@@ -63,10 +73,68 @@ Key decisions from v1.2:
 - All new fields are Option<T> to preserve backward compatibility.
 - JSON field names use snake_case for stable serialization.
 
+### Research Insights (from research/SUMMARY.md)
+
+**Recommended Stack:**
+- Rust workspace (edition 2021) — Deterministic Dai Van calculation engine
+- serde (workspace) — Serialize/deserialize Dai Van types and evidence metadata
+- chrono (workspace) — Birth date handling and Tiết Khí distance calculation
+- Existing modules — canchi (year/month Can Chi), tietkhi (days to nearest solar term), thap_than (Ten Gods), tu_menh (Kua calculator)
+
+**Critical Pitfalls:**
+1. Period transition boundary errors — Off-by-one errors in age range calculations
+2. Ten Gods correlation uses wrong stem — Must use birth day stem → pillar Can
+3. KHCBPPT source verification gap — Use standard Bazi formulas with placeholder source_id
+4. Start age calculation uses wrong Tiết Khí — Must use nearest (previous or next), signed distance
+5. Chiều rule matrix errors — (Year Yang/Âm × Gender) → Thuận/Nghịch matrix
+6. Backward compatibility broken — Adding birth inputs as required fields breaks existing API
+7. Determinism violations — Using Utc::now() or floating-point causes non-deterministic results
+8. Core/API schema mismatch — Core type updated but DTO/convert layer missing fields
+
+**Architecture Pattern:**
+
+**Phase 4 (Core Dai Van Module):**
+- Implements pure calculation module pattern (dai_van.rs isolated)
+- 6-step calculation algorithm:
+  1. Lunar conversion
+  2. Year/month Can Chi
+  3. Chieuthu direction
+  4. Start age from Tiết Khí
+  5. 8-pillar generation
+  6. Metadata generation
+
+**Phase 5 (Ten Gods Integration and Helpers):**
+- Implements module-level reuse pattern (calls thap_than without modification)
+- Lazy Ten Gods correlation per pillar
+- Helper functions: get_current_pillar(), years_to_next_transition(), get_pillar_at_age()
+
+**Phase 6 (Kua Analysis):**
+- Implements optional field additive integration pattern
+- Kua-based directional analysis per pillar
+- Birth Kua calculated once and reused
+
+### Known Gaps
+
+**KHCBPPT source verification gap:**
+- Dai Van KHCBPPT coverage uncertain (no explicit section found in online search)
+- Mitigation: Use standard Bazi formulas from vietnamese_lunar_engine_tables.md Section 15 as primary source
+- Document source_id as "khcbppt" placeholder with TODO comment
+- Create tracking issue for manual KHCBPPT verification
+
+**Start age rounding convention:**
+- Different schools may round differently (truncate vs. nearest integer)
+- Mitigation: Pick one convention (truncate/floor) and document explicitly
+- Add edge case fixtures showing chosen convention
+
+**Ten Gods birth hour dependency:**
+- Ten Gods correlation requires birth hour for complete day stem extraction
+- Mitigation: Support unknown birth hour gracefully (ten_gods = None or day_fortune-based targets)
+
 ### Pending Todos
 
-- Define requirements for v1.3 Dai Van Core
-- Create roadmap for v1.3 phases
+- Plan Phase 4: Core Dai Van Module
+- Implement dai_van.rs module with 6-step calculation algorithm
+- Add unit tests for all calculation steps
 
 ### Blockers/Concerns
 
@@ -79,6 +147,35 @@ None active.
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Starting v1.3 milestone definition
-Resume file: None - milestone v1.3 initialization in progress
+Last session: 2026-03-03T01:00:00Z
+Stopped at: Roadmap created for v1.3, ready for Phase 4 planning
+Resume file: None - Phase 4 planning next
+
+### Active TODOs
+
+None yet (planning phase)
+
+### Context Handoff
+
+**Focus Area:** Core Dai Van calculation engine (Phase 4)
+
+**Key Constraints:**
+- Must use deterministic algorithms (no Utc::now(), no floating-point without rounding)
+- Must include convention and evidence metadata
+- Must handle edge cases (Tiết Khí boundaries, leap months, year polarity transitions)
+
+**Success Criteria for Phase 4:**
+1. Generate 8 Dai Van pillars with contiguous 10-year age ranges
+2. Correct Chieuthu direction (Thuận/Nghịch) from year polarity × gender
+3. Accurate start age from Tiết Khí distance (3 days = 1 year)
+4. All results include convention and evidence metadata
+5. Edge cases handled correctly
+
+**Resources:**
+- research/DAI_VAN_RESEARCH.md — Dai Van calculation formulas and 6-step algorithm
+- research/STACK.md — Rust code templates and data structures
+- research/PITFALLS.md — 11 detailed pitfalls with prevention strategies
+- Existing modules: canchi, tietkhi, thap_than, tu_menh
+
+---
+*State updated: 2026-03-03*
