@@ -280,4 +280,103 @@ mod tests {
             );
         }
     }
+
+    // Task 3 Tests: progress_cycle_index
+
+    #[test]
+    fn test_progress_cycle_index_rollover() {
+        // Forward rollover: 60 + 1 = 1
+        assert_eq!(
+            progress_cycle_index(60, 1),
+            Some(1),
+            "forward from 60 by +1 should wrap to 1"
+        );
+
+        // Backward rollover: 1 - 1 = 60
+        assert_eq!(
+            progress_cycle_index(1, -1),
+            Some(60),
+            "backward from 1 by -1 should wrap to 60"
+        );
+    }
+
+    #[test]
+    fn test_progress_cycle_index_large_deltas() {
+        // Test large positive delta
+        // 1 + 125: zero_based = 0, 0 + 125 = 125, 125 % 60 = 5, result = 6
+        assert_eq!(
+            progress_cycle_index(1, 125),
+            Some(6),
+            "1 + 125 should wrap to 6"
+        );
+
+        // Test large negative delta
+        // 30 - 125: zero_based = 29, 29 - 125 = -96, (-96).rem_euclid(60) = 24, result = 25
+        assert_eq!(
+            progress_cycle_index(30, -125),
+            Some(25),
+            "30 - 125 should wrap to 25"
+        );
+
+        // Test delta equal to cycle length
+        // 50 + 60: should return same value
+        assert_eq!(
+            progress_cycle_index(50, 60),
+            Some(50),
+            "50 + 60 should return 50 (full cycle)"
+        );
+
+        // Test delta equal to negative cycle length
+        // 25 - 60: should return same value
+        assert_eq!(
+            progress_cycle_index(25, -60),
+            Some(25),
+            "25 - 60 should return 25 (full backward cycle)"
+        );
+    }
+
+    #[test]
+    fn test_progress_cycle_index_zero_delta() {
+        // Zero delta should return same index for all valid positions
+        for i in 1..=60u8 {
+            assert_eq!(
+                progress_cycle_index(i, 0),
+                Some(i),
+                "zero delta should preserve index {}",
+                i
+            );
+        }
+    }
+
+    #[test]
+    fn test_progress_cycle_index_invalid_start() {
+        // Invalid starting indices
+        assert!(
+            progress_cycle_index(0, 1).is_none(),
+            "index 0 should be invalid starting position"
+        );
+        assert!(
+            progress_cycle_index(61, -1).is_none(),
+            "index 61 should be invalid starting position"
+        );
+    }
+
+    #[test]
+    fn test_progress_cycle_index_composition() {
+        // Test that progression is composable: f(f(x, a), b) = f(x, a+b)
+        for start in 1..=60u8 {
+            for delta1 in [-125, -60, -1, 0, 1, 60, 125] {
+                for delta2 in [-2, -1, 0, 1, 2] {
+                    let result1 =
+                        progress_cycle_index(progress_cycle_index(start, delta1).unwrap(), delta2);
+                    let result2 = progress_cycle_index(start, delta1 + delta2);
+                    assert_eq!(
+                        result1, result2,
+                        "progression composition failed: start={}, delta1={}, delta2={}",
+                        start, delta1, delta2
+                    );
+                }
+            }
+        }
+    }
 }
