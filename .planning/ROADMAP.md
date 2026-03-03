@@ -1,105 +1,107 @@
-# ROADMAP: Amlich v1.3 - Dai Van Core
+# ROADMAP: Amlich v1.4 - Lunar Engine Table Parity
 
 **Created:** 2026-03-03
-**Milestone:** v1.3 Dai Van Core
+**Milestone:** v1.4 Lunar Engine Table Parity
 **Depth:** Quick
-**Status:** Completed
+**Status:** In Progress
 
 ## Phases
 
-- [x] **Phase 4: Core Dai Van Module** - Core calculation engine with 8-pillar generation, Chieuthu direction, and metadata traceability
-- [x] **Phase 5: Ten Gods Integration and Helpers** - Ten Gods correlation per pillar and helper functions for age-based queries
-- [x] **Phase 6: Kua Analysis** - Kua-based directional analysis per pillar with favorable/unfavorable directions
+- [x] **Phase 7: Hour Pillar Parity Core** - Deterministic hour-pillar mapping with day-stem seed rules and boundary-safe slot handling (completed 2026-03-03)
+- [ ] **Phase 8: Sexagenary Cycle Parity and Validators** - Canonical 60-cycle utilities, rollover correctness, and parity validator suite
+- [ ] **Phase 9: Na Am API Surfaces and Contracts** - Pair/index Na Am APIs, schema contracts, and traceability artifact sync
 
 ## Phase Details
 
-### Phase 4: Core Dai Van Module
+### Phase 7: Hour Pillar Parity Core
 
-**Goal**: Deliver deterministic Dai Van calculation engine with period transitions, Chieuthu direction, and evidence metadata
+**Goal**: Deliver table-parity hour pillar calculation with complete day-stem grouping and slot boundary correctness
 
-**Depends on**: Nothing (first phase of v1.3)
+**Depends on**: Nothing (first phase of v1.4)
 
-**Requirements**: DV-CALC-01, DV-CALC-02, DV-CALC-03, DV-CALC-04, DV-CALC-05, DV-CALC-06, DV-META-01, DV-META-02, DV-META-03, DV-META-04
+**Requirements**: HP-01, HP-02, HP-03, HP-04, HP-05, PAR-02
 
 **Success Criteria** (what must be TRUE):
-1. System can generate 8 Dai Van pillars with contiguous 10-year age ranges from birth date and gender
-2. Chieuthu direction (Thuận/Nghịch) is correctly determined from year polarity × gender
-3. Start age is accurately calculated from Tiết Khí distance using 3 days = 1 year conversion
-4. All calculation results include convention metadata (year_basis, start_age_method, gender_encoding) and evidence metadata (source_id, method)
-5. Edge cases (Tiết Khí boundaries, leap months, year polarity transitions) are handled correctly
+1. Hour pillar is computed deterministically from day stem plus local hour using 12 fixed two-hour branch windows
+2. Day-stem seed mapping (Giáp/Kỷ, Ất/Canh, Bính/Tân, Đinh/Nhâm, Mậu/Quý) produces correct stem progression across all 12 windows
+3. Boundary times at each window transition are covered by tests with no overlap/gap behavior
+4. Returned hour pillar includes evidence metadata fields aligned with existing RuleEvidence conventions
+5. Fixture matrix includes all day-stem groups and representative rollover cases
 
 **Plans**: 2 plans
 
-- [x] `04-01-PLAN.md` - Define Dai Van core types, direction matrix, start-age conversion, and metadata contracts
-- [x] `04-02-PLAN.md` - Implement 8-pillar generation flow, helper lookups, and edge-case coverage
+- [x] `07-01-PLAN.md` - Implement hour-slot and seed-mapping core with typed contracts
+- [x] `07-02-PLAN.md` - Add boundary fixtures, parity validators, and metadata assertions
 
-### Phase 5: Ten Gods Integration and Helpers
+### Phase 8: Sexagenary Cycle Parity and Validators
 
-**Goal**: Integrate Ten Gods correlation with Dai Van pillars and provide helper functions for age-based queries
+**Goal**: Deliver canonical 60-cycle conversion/progression utilities and full-table parity verification
 
-**Depends on**: Phase 4
+**Depends on**: Phase 7
 
-**Requirements**: DV-TG-01, DV-TG-02, DV-TG-03, DV-HELP-01, DV-HELP-02, DV-HELP-03, DV-HELP-04
+**Requirements**: SC-01, SC-02, SC-03, SC-04, SC-05, PAR-01
 
 **Success Criteria** (what must be TRUE):
-1. Each pillar's Heavenly Stem can be correlated with birth day stem via Thap Than (lazy/on-demand)
-2. Users can find the current pillar for any given age using helper functions
-3. System can calculate years until next transition between pillars
-4. Helper functions gracefully handle out-of-range ages using Option returns
-5. Unknown birth hour is supported (Ten Gods = None or day_fortune-based targets)
+1. Cycle index to stem-branch conversion and inverse conversion are both implemented with 1-60 bounded contracts
+2. Forward/backward progression remains correct across 10/12/60 rollover boundaries
+3. Utility APIs are reusable by hour-pillar and Na Am pathways without duplicate logic
+4. Full 60-entry parity validator confirms exact canonical table matching
+5. Regression tests guard cycle index normalization and invalid-input handling
 
 **Plans**: 2 plans
 
-- [x] `05-01-PLAN.md` - Add lazy Ten Gods-per-pillar helpers in Dai Van with unknown-birth-hour Option handling
-- [x] `05-02-PLAN.md` - Lock and harden helper query contracts for age lookup and transition boundaries
+- [ ] `08-01-PLAN.md` - Build canonical cycle conversion/progression helpers and invariants
+- [ ] `08-02-PLAN.md` - Implement full-table parity validators and regression coverage
 
-### Phase 6: Kua Analysis
+### Phase 9: Na Am API Surfaces and Contracts
 
-**Goal**: Deliver Kua-based directional analysis per pillar with favorable/unfavorable directions
+**Goal**: Expose Na Am lookups via pair/index APIs with stable schema, errors, and milestone traceability
 
-**Depends on**: Phase 4
+**Depends on**: Phase 8
 
-**Requirements**: DV-KUA-01, DV-KUA-02, DV-KUA-03, DV-KUA-04
+**Requirements**: NAM-API-01, NAM-API-02, NAM-API-03, NAM-API-04, NAM-API-05, NAM-API-06, PAR-03, PAR-04
 
 **Success Criteria** (what must be TRUE):
-1. Each pillar's elements can be analyzed against birth Kua directions
-2. Kua analysis provides favorable and unfavorable directions per pillar
-3. Birth Kua is calculated once per person and reused for all pillars
-4. Kua 5 resolution follows project convention (male→8, female→2)
+1. API supports Na Am lookup by stem-branch pair and by cycle index with consistent payload semantics
+2. Responses include source_id and method metadata aligned to existing evidence conventions
+3. Invalid pair/index inputs return explicit validation errors with deterministic formatting
+4. Existing DayFortune consumers remain backward compatible with additive API changes
+5. Contract tests assert schema stability and serialization consistency for both lookup modes
 
-**Plans**: 1 plan
+**Plans**: 2 plans
 
-- [x] `06-01-PLAN.md` - Implement per-pillar Kua direction analysis with birth-Kua reuse and age/index helper queries
+- [ ] `09-01-PLAN.md` - Add core->DTO Na Am API models and lookup handlers
+- [ ] `09-02-PLAN.md` - Harden error contracts, schema tests, and requirement traceability sync
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 4. Core Dai Van Module | 2/2 | Completed | 2026-03-03 |
-| 5. Ten Gods Integration and Helpers | 2/2 | Completed | 2026-03-03 |
-| 6. Kua Analysis | 1/1 | Completed | 2026-03-03 |
+| 7. Hour Pillar Parity Core | 2/2 | Complete | 2026-03-03 |
+| 8. Sexagenary Cycle Parity and Validators | 0/2 | Planned | - |
+| 9. Na Am API Surfaces and Contracts | 0/2 | Planned | - |
 
 ## Dependencies
 
 ```
-Phase 4 (Core Dai Van Module)
+Phase 7 (Hour Pillar Parity Core)
   ↓
-Phase 5 (Ten Gods Integration and Helpers)
+Phase 8 (Sexagenary Cycle Parity and Validators)
   ↓
-Phase 6 (Kua Analysis)
+Phase 9 (Na Am API Surfaces and Contracts)
 ```
 
 ## Milestone Context
 
-This roadmap implements v1.3 Dai Van Core milestone, continuing from v1.2 (Ten Gods and Kua Foundation) which completed 3 phases. Phase numbering starts at 4 to maintain continuity.
+This roadmap implements v1.4 Lunar Engine Table Parity milestone, continuing from v1.3 (Dai Van Core). Phase numbering starts at 7 to maintain continuity.
 
-**Goal**: Implement core Dai Van computation with period transitions, Ten Gods correlation, and Kua integration.
+**Goal**: Reach deterministic table-level parity for hour pillar and 60-cycle calculations, then expose Na Am APIs with evidence-backed outputs.
 
 **Target features**:
-- Dai Van period transitions (9 cycles of 10 years each)
-- Ten Gods correlation for Dai Van periods
-- Kua-based fortune direction mapping
-- Deterministic computation with evidence metadata
+- Hour pillar (gio tru) parity against Vietnamese lunar engine tables
+- Full sexagenary 60-cycle parity for stem-branch progression contracts
+- Na Am API endpoints/types for direct pair and cycle-index lookup
+- Validator and fixture evidence for parity claims
 
 ## Coverage Summary
 
@@ -109,10 +111,10 @@ This roadmap implements v1.3 Dai Van Core milestone, continuing from v1.2 (Ten G
 
 | Phase | Requirements | Category |
 |-------|--------------|----------|
-| 4 | DV-CALC-01 through DV-CALC-06, DV-META-01 through DV-META-04 | Core Calculation, Metadata & Traceability |
-| 5 | DV-TG-01 through DV-TG-03, DV-HELP-01 through DV-HELP-04 | Ten Gods Integration, Helper Functions |
-| 6 | DV-KUA-01 through DV-KUA-04 | Kua Analysis |
+| 7 | HP-01 through HP-05, PAR-02 | Hour Pillar Parity, Metadata and Verification |
+| 8 | SC-01 through SC-05, PAR-01 | Sexagenary 60-Cycle Parity, Metadata and Verification |
+| 9 | NAM-API-01 through NAM-API-06, PAR-03, PAR-04 | Na Am APIs, Metadata and Verification |
 
 ---
 *Roadmap created: 2026-03-03*
-*Last updated: 2026-03-03 after Phase 6 completion*
+*Last updated: 2026-03-03 after v1.4 milestone initialization*
