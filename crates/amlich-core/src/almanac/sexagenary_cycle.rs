@@ -192,4 +192,90 @@ mod tests {
             );
         }
     }
+
+    // Task 2 Tests: canchi_to_cycle_index
+
+    #[test]
+    fn test_canchi_to_cycle_index_edge_cases() {
+        // Giáp Tý (0, 0) -> 1
+        assert_eq!(
+            canchi_to_cycle_index(0, 0),
+            Some(1),
+            "Giáp Tý should map to index 1"
+        );
+
+        // Quý Hợi (9, 11) -> 60
+        assert_eq!(
+            canchi_to_cycle_index(9, 11),
+            Some(60),
+            "Quý Hợi should map to index 60"
+        );
+    }
+
+    #[test]
+    fn test_canchi_to_cycle_index_non_canonical() {
+        // Odd/even mismatch - should return None
+        assert!(
+            canchi_to_cycle_index(0, 1).is_none(),
+            "Giáp Sửu (0, 1) should be non-canonical (odd/even mismatch)"
+        );
+        assert!(
+            canchi_to_cycle_index(1, 0).is_none(),
+            "Ất Tý (1, 0) should be non-canonical (odd/even mismatch)"
+        );
+        assert!(
+            canchi_to_cycle_index(9, 10).is_none(),
+            "Quý Tuất (9, 10) should be non-canonical (odd/even mismatch)"
+        );
+        assert!(
+            canchi_to_cycle_index(8, 11).is_none(),
+            "Nhâm Hợi (8, 11) should be non-canonical (odd/even mismatch)"
+        );
+    }
+
+    #[test]
+    fn test_canchi_to_cycle_index_parity_validation() {
+        // All canonical pairs have matching parity (both odd or both even)
+        // Test a sampling of canonical pairs
+        let canonical_pairs = [
+            (0, 0),  // Giáp Tý (even, even)
+            (1, 1),  // Ất Sửu (odd, odd)
+            (2, 2),  // Bính Dần (even, even)
+            (3, 3),  // Đinh Mão (odd, odd)
+            (9, 11), // Quý Hợi (odd, odd)
+            (0, 10), // Giáp Tuất (even, even)
+            (2, 0),  // Bính Tý (even, even)
+        ];
+
+        for (can_idx, chi_idx) in canonical_pairs {
+            assert_eq!(
+                can_idx % 2,
+                chi_idx % 2,
+                "test pair ({}, {}) should have matching parity",
+                can_idx,
+                chi_idx
+            );
+            assert!(
+                canchi_to_cycle_index(can_idx, chi_idx).is_some(),
+                "canonical pair ({}, {}) should return Some(index)",
+                can_idx,
+                chi_idx
+            );
+        }
+    }
+
+    #[test]
+    fn test_canchi_to_cycle_index_roundtrip() {
+        // Test that conversion is invertible for all 60 cycle positions
+        for i in 1..=60u8 {
+            let cc = cycle_index_to_canchi(i).expect("should convert all valid indices");
+            let back = canchi_to_cycle_index(cc.can_index, cc.chi_index)
+                .expect("should convert back to cycle index");
+            assert_eq!(
+                back, i,
+                "roundtrip failed: index {} -> ({}, {}) -> {}",
+                i, cc.can_index, cc.chi_index, back
+            );
+        }
+    }
 }
