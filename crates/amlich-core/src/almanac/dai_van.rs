@@ -531,6 +531,30 @@ mod tests {
     mod ten_gods_helpers {
         use super::*;
 
+        fn fixture_with_single_canh_pillar() -> DaiVanResult {
+            DaiVanResult {
+                chieu_thu: ChieuThu::Thuan,
+                chieu_thu_label: "Thuan".to_string(),
+                start_age_years: 0.0,
+                start_age_display: "0.00 years".to_string(),
+                pillars: vec![DaiVanPillar {
+                    index: 0,
+                    can_chi: DaiVanCanChi {
+                        can_index: 6,
+                        chi_index: 0,
+                        can: "Canh".to_string(),
+                        chi: "Ty".to_string(),
+                        full: "Canh Ty".to_string(),
+                        con_giap: "Ty (Rat)".to_string(),
+                    },
+                    start_age: 0.0,
+                    end_age: 10.0,
+                }],
+                convention: DaiVanConvention::project_default(),
+                evidence: DaiVanEvidence::project_default(),
+            }
+        }
+
         #[test]
         fn returns_ten_god_for_valid_day_stem_and_age() {
             let result = calculate_dai_van(10, 2, 2024, Gender::Male);
@@ -574,6 +598,51 @@ mod tests {
                 get_ten_god_for_age(&result, last.end_age, Some(HeavenlyStem::Giap)),
                 None
             );
+        }
+
+        #[test]
+        fn preserves_day_to_pillar_orientation_when_computing_ten_gods() {
+            let result = fixture_with_single_canh_pillar();
+
+            let from_helper = get_ten_god_for_pillar(&result, 0, Some(HeavenlyStem::Giap))
+                .expect("expected ten gods result");
+            let expected =
+                crate::almanac::thap_than::get_thap_than(HeavenlyStem::Giap, HeavenlyStem::Canh);
+            let reversed =
+                crate::almanac::thap_than::get_thap_than(HeavenlyStem::Canh, HeavenlyStem::Giap);
+
+            assert_eq!(from_helper, expected);
+            assert_ne!(from_helper.label, reversed.label);
+        }
+
+        #[test]
+        fn calculate_dai_van_result_shape_remains_unchanged_after_helper_queries() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Male);
+            let snapshot = result.clone();
+
+            let _ = get_ten_god_for_pillar(&result, 0, Some(HeavenlyStem::Giap));
+            let _ = get_ten_god_for_age(
+                &result,
+                result.pillars[0].start_age + 0.5,
+                Some(HeavenlyStem::Giap),
+            );
+
+            assert_eq!(result, snapshot);
+
+            let encoded = serde_json::to_string(&result).expect("serialize dai van result");
+            assert!(!encoded.contains("ten_god"));
+            assert!(!encoded.contains("thap_than"));
+        }
+
+        #[test]
+        fn repeated_helper_calls_return_stable_equal_outputs() {
+            let result = calculate_dai_van(10, 2, 2024, Gender::Female);
+            let age = result.pillars[0].start_age + 1.0;
+
+            let first = get_ten_god_for_age(&result, age, Some(HeavenlyStem::At));
+            let second = get_ten_god_for_age(&result, age, Some(HeavenlyStem::At));
+
+            assert_eq!(first, second);
         }
     }
 }
