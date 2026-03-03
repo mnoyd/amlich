@@ -20,24 +20,17 @@ Canonical status and acceptance evidence are archived in milestone artifacts:
 
 Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020-2030 date range, with test-backed and traceable evidence.
 
-## Current Milestone: None
+## Current Milestone: v1.3 Dai Van Core
+
+**Goal:** Implement core Dai Van computation with period transitions, Ten Gods correlation, and Kua integration.
+
+**Target features:**
+- Dai Van period transitions (9 cycles of 10 years each)
+- Ten Gods correlation for Dai Van periods
+- Kua-based fortune direction mapping
+- Deterministic computation with evidence metadata
 
 **Last completed:** v1.2 Ten Gods and Kua Foundation (shipped 2026-03-02)
-
-**Delivered features:**
-- Deterministic Thap Than mapping engine with typed stems, 10x10 matrix validation, and evidence metadata.
-- Typed Tu Menh/Kua calculator with solar year basis, East/West grouping, and comprehensive fixture coverage (1899-2100).
-- DayFortune/API/serialization integration with optional Ten Gods and Kua fields and full backward compatibility.
-- All 16 requirements satisfied (TT-01 through TT-05, TM-01 through TM-05, INT-01 through INT-06).
-
-## Next Milestone Goals
-
-Planning required for next milestone. Potential candidates:
-
-1. `v1.3` Dai Van integration (period transitions, correlation with Ten Gods/Kua, API contracts).
-2. Extended validation (different date ranges, edge cases).
-3. Star rule completeness (fill contextual buckets in baseline.json).
-4. Performance optimization.
 
 ## Key Decisions
 
@@ -61,4 +54,4 @@ Planning required for next milestone. Potential candidates:
 </details>
 
 ---
-*Last updated: 2026-03-03 after v1.2 milestone completion*
+*Last updated: 2026-03-03 after v1.3 milestone initialization*
