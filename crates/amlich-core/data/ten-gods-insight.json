@@ -1,0 +1,24 @@
+{
+  "gods": [
+    { "id": "TyKien", "name": { "vi": "Tỷ Kiên", "en": "Companion" },
+      "meaning": { "vi": "Tỷ Kiên đại diện cho sự ngang hàng, bạn bè cùng chí hướng. Thể hiện tính tự lập, kiên định nhưng có thể cố chấp.", "en": "Companion represents peers and like-minded friends. Shows independence and determination but can be stubborn." } },
+    { "id": "KiepTai", "name": { "vi": "Kiếp Tài", "en": "Rob Wealth" },
+      "meaning": { "vi": "Kiếp Tài đại diện cho cạnh tranh và thử thách tài chính. Thể hiện tính cạnh tranh mạnh, năng động nhưng dễ hao tài.", "en": "Rob Wealth represents competition and financial challenges. Shows strong competitive drive, dynamism but prone to financial loss." } },
+    { "id": "ThucThan", "name": { "vi": "Thực Thần", "en": "Eating God" },
+      "meaning": { "vi": "Thực Thần đại diện cho sáng tạo, tài nghệ và hưởng thụ. Thể hiện tính lạc quan, nghệ thuật và khả năng biểu đạt.", "en": "Eating God represents creativity, talent and enjoyment. Shows optimism, artistic nature and expressive ability." } },
+    { "id": "ThuongQuan", "name": { "vi": "Thương Quan", "en": "Hurting Officer" },
+      "meaning": { "vi": "Thương Quan đại diện cho sự phá cách, nổi loạn và đổi mới. Thể hiện trí tuệ sắc bén, thách thức quyền uy.", "en": "Hurting Officer represents unconventionality, rebellion and innovation. Shows sharp intellect and challenges authority." } },
+    { "id": "ChinhTai", "name": { "vi": "Chính Tài", "en": "Direct Wealth" },
+      "meaning": { "vi": "Chính Tài đại diện cho thu nhập ổn định, tài chính bền vững. Thể hiện tính thực tế, cần cù và quản lý tài chính tốt.", "en": "Direct Wealth represents stable income and sustainable finances. Shows practicality, diligence and good financial management." } },
+    { "id": "ThienTai", "name": { "vi": "Thiên Tài", "en": "Indirect Wealth" },
+      "meaning": { "vi": "Thiên Tài đại diện cho cơ hội bất ngờ, đầu tư và kinh doanh. Thể hiện tính mạo hiểm, nhạy bén với cơ hội.", "en": "Indirect Wealth represents unexpected opportunities, investment and business. Shows risk-taking and sharp opportunity sense." } },
+    { "id": "ChinhQuan", "name": { "vi": "Chính Quan", "en": "Direct Officer" },
+      "meaning": { "vi": "Chính Quan đại diện cho kỷ luật, trách nhiệm và địa vị xã hội. Thể hiện tính chính trực, tuân thủ quy tắc.", "en": "Direct Officer represents discipline, responsibility and social status. Shows integrity and rule-following nature." } },
+    { "id": "ThatSat", "name": { "vi": "Thất Sát", "en": "Seven Killings" },
+      "meaning": { "vi": "Thất Sát đại diện cho quyền lực, sức mạnh và thách thức. Thể hiện tính quyết đoán, dũng cảm nhưng dễ gặp áp lực.", "en": "Seven Killings represents power, strength and challenge. Shows decisiveness, courage but prone to pressure." } },
+    { "id": "ChinhAn", "name": { "vi": "Chính Ấn", "en": "Direct Seal" },
+      "meaning": { "vi": "Chính Ấn đại diện cho học vấn, mẹ và sự bảo hộ. Thể hiện tính nhân hậu, ham học và được che chở.", "en": "Direct Seal represents education, mother and protection. Shows benevolence, love of learning and being sheltered." } },
+    { "id": "ThienAn", "name": { "vi": "Thiên Ấn", "en": "Indirect Seal" },
+      "meaning": { "vi": "Thiên Ấn đại diện cho trực giác, tâm linh và tư duy phi truyền thống. Thể hiện tính sáng tạo, nhạy cảm và hay suy tư.", "en": "Indirect Seal represents intuition, spirituality and unconventional thinking. Shows creativity, sensitivity and contemplation." } }
+  ]
+}
