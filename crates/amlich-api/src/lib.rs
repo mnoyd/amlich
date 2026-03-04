@@ -7,11 +7,29 @@ use std::collections::HashMap;
 use amlich_core::holiday_data::{lunar_festivals, solar_holidays};
 use amlich_core::holidays::get_vietnamese_holidays;
 use amlich_core::insight_data::{
-    all_elements, find_can, find_chi, find_tiet_khi_insight, get_day_guidance,
+    all_elements, find_can, find_chi, find_deity_classification_insight, find_deity_insight,
+    find_na_am_insight, find_ten_gods_insight, find_tiet_khi_insight, find_truc_insight,
+    get_day_guidance,
 };
 
 pub use dto::*;
 pub use dto::{NaAmErrorDto, NaAmLookupResultDto, NaAmResponseDto};
+
+/// Convert snake_case to PascalCase (e.g. "ty_kien" -> "TyKien")
+fn snake_to_pascal(s: &str) -> String {
+    s.split('_')
+        .map(|part| {
+            let mut chars = part.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => {
+                    let upper: String = first.to_uppercase().collect();
+                    upper + chars.as_str()
+                }
+            }
+        })
+        .collect()
+}
 
 pub fn get_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
     if !(1..=12).contains(&query.month) {
@@ -44,6 +62,16 @@ pub fn get_holidays(year: i32, major_only: bool) -> Vec<HolidayDto> {
 }
 
 pub fn get_day_insight(query: &DateQuery) -> Result<DayInsightDto, String> {
+    get_day_insight_with_profile(query, None, None, None, None)
+}
+
+pub fn get_day_insight_with_profile(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<DayInsightDto, String> {
     let day_info = get_day_info(query)?;
 
     let festival = lunar_festivals()
@@ -86,6 +114,244 @@ pub fn get_day_insight(query: &DateQuery) -> Result<DayInsightDto, String> {
     let day_guidance = get_day_guidance(&day_info.canchi.day.chi).map(DayGuidanceDto::from);
     let tiet_khi = find_tiet_khi_insight(&day_info.tiet_khi.name).map(TietKhiInsightDto::from);
 
+    let fortune = day_info.day_fortune.as_ref();
+
+    // Na Am insight
+    let na_am = fortune.and_then(|f| {
+        find_na_am_insight(&f.day_element.na_am).map(|n| NaAmInsightDto {
+            na_am: f.day_element.na_am.clone(),
+            element: f.day_element.element.clone(),
+            meaning: LocalizedTextDto::from(&n.meaning),
+        })
+    });
+
+    // Truc insight
+    let truc = fortune.and_then(|f| {
+        find_truc_insight(&f.truc.name).map(|t| TrucInsightDto {
+            name: f.truc.name.clone(),
+            quality: f.truc.quality.clone(),
+            meaning: LocalizedTextDto::from(&t.meaning),
+            good_for: LocalizedListDto::from(&t.good_for),
+            avoid_for: LocalizedListDto::from(&t.avoid_for),
+        })
+    });
+
+    // Day Deity insight
+    let day_deity = fortune.and_then(|f| {
+        f.day_deity.as_ref().map(|deity| {
+            // DTO stores "hoang_dao"/"hac_dao", insight data uses "HoangDao"/"HacDao"
+            let cls_id = match deity.classification.as_str() {
+                "hoang_dao" => "HoangDao",
+                "hac_dao" => "HacDao",
+                other => other,
+            };
+            let cls_meaning = find_deity_classification_insight(cls_id)
+                .map(|c| LocalizedTextDto::from(&c.meaning))
+                .unwrap_or_else(|| LocalizedTextDto {
+                    vi: String::new(),
+                    en: String::new(),
+                });
+            let deity_meaning =
+                find_deity_insight(&deity.name).map(|d| LocalizedTextDto::from(&d.meaning));
+            DayDeityInsightDto {
+                name: deity.name.clone(),
+                classification: deity.classification.clone(),
+                classification_meaning: cls_meaning,
+                deity_meaning,
+            }
+        })
+    });
+
+    // Stars insight
+    let stars = fortune.map(|f| StarsInsightDto {
+        cat_tinh: f.stars.cat_tinh.clone(),
+        sat_tinh: f.stars.sat_tinh.clone(),
+        day_star: f.stars.day_star.as_ref().map(|s| s.name.clone()),
+        day_star_quality: f.stars.day_star.as_ref().map(|s| s.quality.clone()),
+    });
+
+    // Taboos insight
+    let taboos = fortune
+        .map(|f| {
+            f.taboos
+                .iter()
+                .map(|t| TabooInsightItemDto {
+                    name: t.name.clone(),
+                    severity: t.severity.clone(),
+                    reason: t.reason.clone(),
+                })
+                .collect::<Vec<_>>()
+        })
+        .filter(|v| !v.is_empty());
+
+    // Travel insight
+    let travel = fortune.map(|f| TravelInsightDto {
+        xuat_hanh_huong: f.travel.xuat_hanh_huong.clone(),
+        tai_than: f.travel.tai_than.clone(),
+        hy_than: f.travel.hy_than.clone(),
+    });
+
+    // Xung Hop insight
+    let xung_hop = fortune.map(|f| XungHopInsightDto {
+        luc_xung: f.xung_hop.luc_xung.clone(),
+        tam_hop: f.xung_hop.tam_hop.clone(),
+        liu_he: f.xung_hop.liu_he.clone(),
+        xiang_hai: f.xung_hop.xiang_hai.clone(),
+    });
+
+    // Tang Can insight
+    let tang_can = fortune.and_then(|f| {
+        f.tang_can.as_ref().map(|tc| TangCanInsightDto {
+            main: tc.main.clone(),
+            central: tc.central.clone(),
+            residual: tc.residual.clone(),
+            strength: tc.strength,
+        })
+    });
+
+    // Ten Gods insight
+    // DTO labels are snake_case (e.g. "ty_kien"), insight data IDs are PascalCase (e.g. "TyKien")
+    let ten_gods = fortune.and_then(|f| {
+        f.ten_gods.as_ref().map(|tg| {
+            let map_entry = |r: &ThapThanResultDto| -> TenGodsEntryInsightDto {
+                let pascal_id = snake_to_pascal(&r.label);
+                let insight = find_ten_gods_insight(&pascal_id);
+                TenGodsEntryInsightDto {
+                    label: r.label.clone(),
+                    name: insight
+                        .map(|i| LocalizedTextDto::from(&i.name))
+                        .unwrap_or_else(|| LocalizedTextDto {
+                            vi: String::new(),
+                            en: String::new(),
+                        }),
+                    meaning: insight
+                        .map(|i| LocalizedTextDto::from(&i.meaning))
+                        .unwrap_or_else(|| LocalizedTextDto {
+                            vi: String::new(),
+                            en: String::new(),
+                        }),
+                    relation: r.relation.clone(),
+                    same_polarity: r.same_polarity,
+                }
+            };
+            TenGodsInsightDto {
+                to_year_stem: tg.to_year_stem.as_ref().map(map_entry),
+                to_self: tg.to_self.as_ref().map(map_entry),
+            }
+        })
+    });
+
+    // Hours insight
+    let hours = Some(HoursInsightDto {
+        good_hour_count: day_info.gio_hoang_dao.good_hours.len(),
+        good_hours: day_info
+            .gio_hoang_dao
+            .good_hours
+            .iter()
+            .map(|h| HourInsightEntryDto {
+                chi: h.hour_chi.clone(),
+                time_range: h.time_range.clone(),
+                star: h.star.clone(),
+            })
+            .collect(),
+    });
+
+    // Birth-dependent: Tu Menh (Kua)
+    let tu_menh = match (birth_year, gender) {
+        (Some(by), Some(g)) => {
+            use amlich_core::almanac::tu_menh::compute_kua;
+            use amlich_core::insight_data::{find_kua_group_insight, find_kua_insight};
+            let kua_result = compute_kua(by, g);
+            let group_id = format!("{:?}", kua_result.group);
+            let kua_insight = find_kua_insight(kua_result.kua);
+            let group_insight = find_kua_group_insight(&group_id);
+            let empty_text = || LocalizedTextDto {
+                vi: String::new(),
+                en: String::new(),
+            };
+            Some(TuMenhInsightDto {
+                kua: kua_result.kua,
+                group: group_id,
+                trigram: kua_insight
+                    .map(|k| LocalizedTextDto::from(&k.trigram))
+                    .unwrap_or_else(empty_text),
+                direction: kua_insight
+                    .map(|k| LocalizedTextDto::from(&k.direction))
+                    .unwrap_or_else(empty_text),
+                meaning: kua_insight
+                    .map(|k| LocalizedTextDto::from(&k.meaning))
+                    .unwrap_or_else(empty_text),
+                group_meaning: group_insight
+                    .map(|g| LocalizedTextDto::from(&g.meaning))
+                    .unwrap_or_else(empty_text),
+                favorable_directions: kua_result
+                    .favorable_directions
+                    .iter()
+                    .map(|d| format!("{:?}", d))
+                    .collect(),
+                unfavorable_directions: kua_result
+                    .unfavorable_directions
+                    .iter()
+                    .map(|d| format!("{:?}", d))
+                    .collect(),
+            })
+        }
+        _ => None,
+    };
+
+    // Birth-dependent: Dai Van
+    let dai_van = match (birth_day, birth_month, birth_year, gender) {
+        (Some(bd), Some(bm), Some(by), Some(g)) => {
+            use amlich_core::almanac::dai_van::calculate_dai_van;
+            use amlich_core::insight_data::{
+                dai_van_phases_insight, find_dai_van_direction_insight,
+                find_dai_van_element_insight,
+            };
+            let dv = calculate_dai_van(bd, bm, by, g);
+            let dir_id = format!("{:?}", dv.chieu_thu);
+            let dir_insight = find_dai_van_direction_insight(&dir_id);
+            let phases = dai_van_phases_insight();
+            let empty_text = || LocalizedTextDto {
+                vi: String::new(),
+                en: String::new(),
+            };
+            let pillars: Vec<DaiVanPillarInsightDto> = dv
+                .pillars
+                .iter()
+                .map(|p| {
+                    let element = amlich_core::almanac::na_am::get_na_am_by_pair(
+                        &p.can_chi.can,
+                        &p.can_chi.chi,
+                    )
+                    .map(|e| e.element)
+                    .unwrap_or_default();
+                    let el_insight = find_dai_van_element_insight(&element);
+                    DaiVanPillarInsightDto {
+                        index: p.index,
+                        can_chi: p.can_chi.full.clone(),
+                        start_age: p.start_age,
+                        end_age: p.end_age,
+                        element,
+                        element_meaning: el_insight
+                            .map(|e| LocalizedTextDto::from(&e.meaning))
+                            .unwrap_or_else(empty_text),
+                    }
+                })
+                .collect();
+            Some(DaiVanInsightDto {
+                direction: dv.chieu_thu_label.clone(),
+                direction_meaning: dir_insight
+                    .map(|d| LocalizedTextDto::from(&d.meaning))
+                    .unwrap_or_else(empty_text),
+                start_age: dv.start_age_display.clone(),
+                current_pillar: None,
+                all_pillars: pillars,
+                phases_meaning: LocalizedTextDto::from(&phases.meaning),
+            })
+        }
+        _ => None,
+    };
+
     Ok(DayInsightDto {
         solar: day_info.solar,
         lunar: day_info.lunar,
@@ -94,18 +360,18 @@ pub fn get_day_insight(query: &DateQuery) -> Result<DayInsightDto, String> {
         canchi,
         day_guidance,
         tiet_khi,
-        na_am: None,
-        truc: None,
-        day_deity: None,
-        stars: None,
-        taboos: None,
-        travel: None,
-        xung_hop: None,
-        tang_can: None,
-        ten_gods: None,
-        hours: None,
-        tu_menh: None,
-        dai_van: None,
+        na_am,
+        truc,
+        day_deity,
+        stars,
+        taboos,
+        travel,
+        xung_hop,
+        tang_can,
+        ten_gods,
+        hours,
+        tu_menh,
+        dai_van,
     })
 }
 
