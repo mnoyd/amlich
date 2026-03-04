@@ -427,6 +427,49 @@ fn lookup_commands_return_expected_shapes() {
 }
 
 #[test]
+fn config_profile_show_succeeds() {
+    let home = temp_home();
+    let output = run(&home, &["config", "profile", "show"]);
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value =
+        serde_json::from_slice(&output.stdout).expect("profile show should output json");
+    assert!(json.is_object());
+}
+
+#[test]
+fn config_profile_set_and_clear_roundtrip() {
+    let home = temp_home();
+
+    let set = run(
+        &home,
+        &[
+            "config", "profile", "set",
+            "--birth-year", "1990",
+            "--gender", "male",
+        ],
+    );
+    assert!(set.status.success());
+
+    let show = run(&home, &["config", "profile", "show"]);
+    assert!(show.status.success());
+    let json: Value = serde_json::from_slice(&show.stdout).expect("valid json");
+    assert_eq!(json["birth_year"].as_i64(), Some(1990));
+    assert_eq!(json["gender"].as_str(), Some("male"));
+
+    let clear = run(&home, &["config", "profile", "clear"]);
+    assert!(clear.status.success());
+
+    let show2 = run(&home, &["config", "profile", "show"]);
+    assert!(show2.status.success());
+    let json2: Value = serde_json::from_slice(&show2.stdout).expect("valid json");
+    assert!(json2.get("birth_year").is_none() || json2["birth_year"].is_null());
+}
+
+#[test]
 fn query_command_prints_deprecation_warning() {
     let home = temp_home();
     let output = run(&home, &["query", "2026-02-20"]);

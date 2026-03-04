@@ -413,6 +413,29 @@ struct ConfigArgs {
 #[derive(Subcommand, Debug)]
 enum ConfigCommand {
     Mode(ModeArgs),
+    Profile(ProfileSubArgs),
+}
+
+#[derive(Args, Debug)]
+struct ProfileSubArgs {
+    #[command(subcommand)]
+    command: ProfileCommand,
+}
+
+#[derive(Subcommand, Debug)]
+enum ProfileCommand {
+    Show,
+    Set {
+        #[arg(long)]
+        birth_year: Option<i32>,
+        #[arg(long)]
+        birth_month: Option<i32>,
+        #[arg(long)]
+        birth_day: Option<i32>,
+        #[arg(long)]
+        gender: Option<String>,
+    },
+    Clear,
 }
 
 #[derive(Args, Debug)]
@@ -881,6 +904,44 @@ fn run_config(args: ConfigArgs) -> Result<(), String> {
             ModeCommand::Toggle => {
                 let mode = toggle_mode()?;
                 println!("Mode set to: {mode}");
+            }
+        },
+        ConfigCommand::Profile(sub) => match sub.command {
+            ProfileCommand::Show => {
+                let p = crate::profile::load_profile();
+                let json = serde_json::to_string_pretty(&p)
+                    .map_err(|e| format!("failed to serialize: {e}"))?;
+                println!("{json}");
+            }
+            ProfileCommand::Set {
+                birth_year,
+                birth_month,
+                birth_day,
+                gender,
+            } => {
+                let mut p = crate::profile::load_profile();
+                if let Some(y) = birth_year {
+                    p.birth_year = Some(y);
+                }
+                if let Some(m) = birth_month {
+                    p.birth_month = Some(m);
+                }
+                if let Some(d) = birth_day {
+                    p.birth_day = Some(d);
+                }
+                if let Some(g) = &gender {
+                    p.gender = Some(match g.to_lowercase().as_str() {
+                        "male" | "m" => crate::profile::ProfileGender::Male,
+                        "female" | "f" => crate::profile::ProfileGender::Female,
+                        _ => return Err(format!("invalid gender '{g}'; use male or female")),
+                    });
+                }
+                crate::profile::save_profile(&p)?;
+                println!("Profile updated.");
+            }
+            ProfileCommand::Clear => {
+                crate::profile::save_profile(&crate::profile::UserProfile::default())?;
+                println!("Profile cleared.");
             }
         },
     }
