@@ -384,6 +384,29 @@ pub fn get_day_insight_for_date(day: i32, month: i32, year: i32) -> Result<DayIn
     })
 }
 
+pub fn get_day_insight_for_date_with_profile(
+    day: i32,
+    month: i32,
+    year: i32,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<DayInsightDto, String> {
+    get_day_insight_with_profile(
+        &DateQuery {
+            day,
+            month,
+            year,
+            timezone: None,
+        },
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+    )
+}
+
 /// Lookup Na Am by 1-based cycle index (1-60)
 ///
 /// # Arguments

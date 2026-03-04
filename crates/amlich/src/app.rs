@@ -1,4 +1,6 @@
-use amlich_api::{get_day_insight_for_date, DayInfoDto, DayInsightDto, HolidayDto};
+use amlich_api::{
+    get_day_insight_for_date_with_profile, DayInfoDto, DayInsightDto, HolidayDto,
+};
 use chrono::{Datelike, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
@@ -20,6 +22,9 @@ pub enum InsightTab {
     #[default]
     Guidance,
     TietKhi,
+    Almanac,
+    Advanced,
+    Personal,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -70,15 +75,21 @@ impl InsightTab {
         match self {
             InsightTab::Festival => InsightTab::Guidance,
             InsightTab::Guidance => InsightTab::TietKhi,
-            InsightTab::TietKhi => InsightTab::Festival,
+            InsightTab::TietKhi => InsightTab::Almanac,
+            InsightTab::Almanac => InsightTab::Advanced,
+            InsightTab::Advanced => InsightTab::Personal,
+            InsightTab::Personal => InsightTab::Festival,
         }
     }
 
     pub fn prev(self) -> Self {
         match self {
-            InsightTab::Festival => InsightTab::TietKhi,
+            InsightTab::Festival => InsightTab::Personal,
             InsightTab::Guidance => InsightTab::Festival,
             InsightTab::TietKhi => InsightTab::Guidance,
+            InsightTab::Almanac => InsightTab::TietKhi,
+            InsightTab::Advanced => InsightTab::Almanac,
+            InsightTab::Personal => InsightTab::Advanced,
         }
     }
 
@@ -90,6 +101,12 @@ impl InsightTab {
             (InsightTab::Guidance, InsightLang::En) => "Guidance",
             (InsightTab::TietKhi, InsightLang::Vi) => "Tiết khí",
             (InsightTab::TietKhi, InsightLang::En) => "Season",
+            (InsightTab::Almanac, InsightLang::Vi) => "Lịch",
+            (InsightTab::Almanac, InsightLang::En) => "Almanac",
+            (InsightTab::Advanced, InsightLang::Vi) => "Nâng cao",
+            (InsightTab::Advanced, InsightLang::En) => "Advanced",
+            (InsightTab::Personal, InsightLang::Vi) => "Cá nhân",
+            (InsightTab::Personal, InsightLang::En) => "Personal",
         }
     }
 }
@@ -123,6 +140,12 @@ pub struct App {
     selected_insight_cache_key: Option<(i32, u32, u32)>,
     selected_insight_cache: Option<DayInsightDto>,
 
+    // User profile for birth-dependent insight
+    profile_birth_year: Option<i32>,
+    profile_birth_month: Option<i32>,
+    profile_birth_day: Option<i32>,
+    profile_gender: Option<amlich_core::almanac::tu_menh::Gender>,
+
     // Bookmarks
     pub bookmarks: Vec<HistoryEntry>,
     pub show_bookmarks: bool,
@@ -149,6 +172,11 @@ impl App {
     pub fn new_with_date(initial_date: Option<NaiveDate>) -> Self {
         let today = Local::now().date_naive();
         let selected = initial_date.unwrap_or(today);
+        let profile = crate::profile::load_profile();
+        let profile_gender = profile.gender.map(|g| match g {
+            crate::profile::ProfileGender::Male => amlich_core::almanac::tu_menh::Gender::Male,
+            crate::profile::ProfileGender::Female => amlich_core::almanac::tu_menh::Gender::Female,
+        });
         let mut app = App {
             running: true,
             view_year: selected.year(),
@@ -170,6 +198,10 @@ impl App {
             almanac_scroll: 0,
             selected_insight_cache_key: None,
             selected_insight_cache: None,
+            profile_birth_year: profile.birth_year,
+            profile_birth_month: profile.birth_month,
+            profile_birth_day: profile.birth_day,
+            profile_gender,
             bookmarks: bookmark_store::load_bookmarks(),
             show_bookmarks: false,
             bookmark_scroll: 0,
@@ -379,8 +411,16 @@ impl App {
     fn refresh_selected_insight_cache(&mut self) {
         let key = (self.view_year, self.view_month, self.selected_day);
         self.selected_insight_cache_key = Some(key);
-        self.selected_insight_cache =
-            get_day_insight_for_date(key.2 as i32, key.1 as i32, key.0).ok();
+        self.selected_insight_cache = get_day_insight_for_date_with_profile(
+            key.2 as i32,
+            key.1 as i32,
+            key.0,
+            self.profile_birth_year,
+            self.profile_birth_month,
+            self.profile_birth_day,
+            self.profile_gender,
+        )
+        .ok();
     }
 
     #[cfg(test)]

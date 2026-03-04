@@ -481,6 +481,304 @@ impl<'a> InsightOverlay<'a> {
         lines
     }
 
+    fn render_almanac_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+        let mut lines = Vec::new();
+        let lang = self.app.insight_lang;
+
+        if let Some(truc) = &insight.truc {
+            lines.push(Line::from(vec![
+                Span::styled(
+                    pick_text(lang, "Trực: ", "Truc: "),
+                    Style::default().fg(theme::SECONDARY_FG),
+                ),
+                Span::styled(
+                    format!("{} ({})", truc.name, truc.quality),
+                    Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+                ),
+            ]));
+            lines.push(Line::from(pick_text(lang, &truc.meaning.vi, &truc.meaning.en)));
+            let good = pick_items(lang, &truc.good_for.vi, &truc.good_for.en);
+            if !good.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Nên làm:", "Good for:"),
+                    Style::default().fg(theme::GOOD_HOUR_FG),
+                )));
+                push_bulleted(&mut lines, &good, "•", 5);
+            }
+            let avoid = pick_items(lang, &truc.avoid_for.vi, &truc.avoid_for.en);
+            if !avoid.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Hạn chế:", "Avoid:"),
+                    Style::default().fg(theme::WEEKEND_FG),
+                )));
+                push_bulleted(&mut lines, &avoid, "•", 5);
+            }
+            lines.push(Line::from(""));
+        }
+
+        if let Some(deity) = &insight.day_deity {
+            let class_text = pick_text(lang, &deity.classification_meaning.vi, &deity.classification_meaning.en);
+            lines.push(Line::from(vec![
+                Span::styled(
+                    pick_text(lang, "Thần cai quản: ", "Day Deity: "),
+                    Style::default().fg(theme::SECONDARY_FG),
+                ),
+                Span::styled(
+                    format!("{} — {}", deity.name, class_text),
+                    Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+                ),
+            ]));
+            if let Some(meaning) = &deity.deity_meaning {
+                lines.push(Line::from(pick_text(lang, &meaning.vi, &meaning.en)));
+            }
+            lines.push(Line::from(""));
+        }
+
+        if let Some(stars) = &insight.stars {
+            if !stars.cat_tinh.is_empty() {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        pick_text(lang, "Cát tinh: ", "Lucky stars: "),
+                        Style::default().fg(theme::GOOD_HOUR_FG),
+                    ),
+                    Span::raw(stars.cat_tinh.join(", ")),
+                ]));
+            }
+            if !stars.sat_tinh.is_empty() {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        pick_text(lang, "Sát tinh: ", "Unlucky stars: "),
+                        Style::default().fg(theme::WEEKEND_FG),
+                    ),
+                    Span::raw(stars.sat_tinh.join(", ")),
+                ]));
+            }
+            lines.push(Line::from(""));
+        }
+
+        if let Some(na_am) = &insight.na_am {
+            lines.push(Line::from(vec![
+                Span::styled("Na Am: ", Style::default().fg(theme::SECONDARY_FG)),
+                Span::styled(
+                    format!("{} ({})", na_am.na_am, na_am.element),
+                    Style::default().fg(theme::ACCENT_FG),
+                ),
+            ]));
+            lines.push(Line::from(pick_text(lang, &na_am.meaning.vi, &na_am.meaning.en)));
+            lines.push(Line::from(""));
+        }
+
+        if let Some(taboos) = &insight.taboos {
+            if !taboos.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Kiêng kỵ:", "Taboos:"),
+                    Style::default().fg(theme::WEEKEND_FG).add_modifier(Modifier::BOLD),
+                )));
+                for t in taboos.iter().take(5) {
+                    lines.push(Line::from(format!("• [{}] {} — {}", t.severity, t.name, t.reason)));
+                }
+            }
+        }
+
+        if lines.is_empty() {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Không có dữ liệu lịch", "No almanac data"),
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+        }
+
+        lines
+    }
+
+    fn render_advanced_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+        let mut lines = Vec::new();
+        let lang = self.app.insight_lang;
+
+        if let Some(ten_gods) = &insight.ten_gods {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Thập Thần:", "Ten Gods:"),
+                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+            )));
+            if let Some(entry) = &ten_gods.to_year_stem {
+                lines.push(Line::from(format!(
+                    "  {} — {}",
+                    entry.label,
+                    pick_text(lang, &entry.meaning.vi, &entry.meaning.en),
+                )));
+            }
+            if let Some(entry) = &ten_gods.to_self {
+                lines.push(Line::from(format!(
+                    "  {} — {}",
+                    entry.label,
+                    pick_text(lang, &entry.meaning.vi, &entry.meaning.en),
+                )));
+            }
+            lines.push(Line::from(""));
+        }
+
+        if let Some(travel) = &insight.travel {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Xuất hành:", "Travel:"),
+                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!(
+                "  {} {} | {} {} | {} {}",
+                pick_text(lang, "Hướng:", "Direction:"), travel.xuat_hanh_huong,
+                pick_text(lang, "Tài Thần:", "Wealth:"), travel.tai_than,
+                pick_text(lang, "Hỷ Thần:", "Joy:"), travel.hy_than,
+            )));
+            lines.push(Line::from(""));
+        }
+
+        if let Some(xung_hop) = &insight.xung_hop {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Xung Hợp:", "Clash/Harmony:"),
+                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!(
+                "  {} {}",
+                pick_text(lang, "Lục Xung:", "Six Clash:"), xung_hop.luc_xung,
+            )));
+            if !xung_hop.tam_hop.is_empty() {
+                lines.push(Line::from(format!(
+                    "  {} {}",
+                    pick_text(lang, "Tam Hợp:", "Three Harmony:"), xung_hop.tam_hop.join(", "),
+                )));
+            }
+            if let Some(liu_he) = &xung_hop.liu_he {
+                lines.push(Line::from(format!(
+                    "  {} {liu_he}",
+                    pick_text(lang, "Lục Hợp:", "Six Harmony:"),
+                )));
+            }
+            lines.push(Line::from(""));
+        }
+
+        if let Some(tang_can) = &insight.tang_can {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Tàng Can:", "Hidden Stems:"),
+                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!(
+                "  {} {} ({}) | {} ({}) | {} ({})",
+                pick_text(lang, "Chính:", "Main:"), tang_can.main, tang_can.strength[0],
+                tang_can.central, tang_can.strength[1],
+                tang_can.residual, tang_can.strength[2],
+            )));
+            lines.push(Line::from(""));
+        }
+
+        if let Some(hours) = &insight.hours {
+            lines.push(Line::from(Span::styled(
+                format!(
+                    "{} ({})",
+                    pick_text(lang, "Giờ tốt:", "Good hours:"),
+                    hours.good_hour_count,
+                ),
+                Style::default().fg(theme::GOOD_HOUR_FG).add_modifier(Modifier::BOLD),
+            )));
+            for h in &hours.good_hours {
+                lines.push(Line::from(format!("  {} ({}) — {}", h.chi, h.time_range, h.star)));
+            }
+        }
+
+        if lines.is_empty() {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Không có dữ liệu nâng cao", "No advanced data"),
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+        }
+
+        lines
+    }
+
+    fn render_personal_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+        let mut lines = Vec::new();
+        let lang = self.app.insight_lang;
+
+        if insight.tu_menh.is_none() && insight.dai_van.is_none() {
+            lines.push(Line::from(Span::styled(
+                pick_text(
+                    lang,
+                    "Chưa cấu hình hồ sơ cá nhân.",
+                    "No personal profile configured.",
+                ),
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                pick_text(
+                    lang,
+                    "Dùng: amlich config profile set --birth-year XXXX --gender male/female",
+                    "Use: amlich config profile set --birth-year XXXX --gender male/female",
+                ),
+                Style::default().fg(theme::ACCENT_FG),
+            )));
+            return lines;
+        }
+
+        if let Some(tu_menh) = &insight.tu_menh {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Tứ Mệnh (Kua):", "Tu Menh (Kua):"),
+                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!(
+                "  Kua {} — {} ({})",
+                tu_menh.kua,
+                tu_menh.group,
+                pick_text(lang, &tu_menh.trigram.vi, &tu_menh.trigram.en),
+            )));
+            lines.push(Line::from(pick_text(lang, &tu_menh.meaning.vi, &tu_menh.meaning.en)));
+            lines.push(Line::from(""));
+
+            if !tu_menh.favorable_directions.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Hướng tốt:", "Favorable:"),
+                    Style::default().fg(theme::GOOD_HOUR_FG),
+                )));
+                let items: Vec<String> = tu_menh.favorable_directions.clone();
+                push_bulleted(&mut lines, &items, "•", 4);
+            }
+
+            if !tu_menh.unfavorable_directions.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Hướng xấu:", "Unfavorable:"),
+                    Style::default().fg(theme::WEEKEND_FG),
+                )));
+                let items: Vec<String> = tu_menh.unfavorable_directions.clone();
+                push_bulleted(&mut lines, &items, "•", 4);
+            }
+            lines.push(Line::from(""));
+        }
+
+        if let Some(dai_van) = &insight.dai_van {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Đại Vận:", "Dai Van:"),
+                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!(
+                "  {} — {}",
+                dai_van.direction,
+                pick_text(lang, &dai_van.direction_meaning.vi, &dai_van.direction_meaning.en),
+            )));
+            if let Some(pillar) = &dai_van.current_pillar {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "  Đại vận hiện tại:", "  Current pillar:"),
+                    Style::default().fg(theme::GOOD_HOUR_FG),
+                )));
+                lines.push(Line::from(format!(
+                    "  {} ({}-{}) — {}",
+                    pillar.can_chi,
+                    pillar.start_age,
+                    pillar.end_age,
+                    pick_text(lang, &pillar.element_meaning.vi, &pillar.element_meaning.en),
+                )));
+            }
+        }
+
+        lines
+    }
+
     fn tab_content(&self) -> Vec<Line<'_>> {
         let Some(insight) = self.app.selected_insight() else {
             let no_data = match self.app.insight_lang {
@@ -494,55 +792,41 @@ impl<'a> InsightOverlay<'a> {
             InsightTab::Festival => self.render_festival_tab(insight),
             InsightTab::Guidance => self.render_guidance_tab(insight),
             InsightTab::TietKhi => self.render_tiet_khi_tab(insight),
+            InsightTab::Almanac => self.render_almanac_tab(insight),
+            InsightTab::Advanced => self.render_advanced_tab(insight),
+            InsightTab::Personal => self.render_personal_tab(insight),
         }
     }
 
     fn tab_indicator(&self) -> Line<'_> {
-        let tab = self.app.insight_tab;
+        let current = self.app.insight_tab;
         let lang = self.app.insight_lang;
+        let tabs = [
+            (InsightTab::Festival, "1"),
+            (InsightTab::Guidance, "2"),
+            (InsightTab::TietKhi, "3"),
+            (InsightTab::Almanac, "4"),
+            (InsightTab::Advanced, "5"),
+            (InsightTab::Personal, "6"),
+        ];
 
-        let (festival_style, guidance_style, tiet_khi_style) = match tab {
-            InsightTab::Festival => (
-                Style::default()
-                    .fg(theme::HOLIDAY_FG)
-                    .add_modifier(Modifier::BOLD),
-                Style::default().fg(theme::SECONDARY_FG),
-                Style::default().fg(theme::SECONDARY_FG),
-            ),
-            InsightTab::Guidance => (
-                Style::default().fg(theme::SECONDARY_FG),
-                Style::default()
-                    .fg(theme::GOOD_HOUR_FG)
-                    .add_modifier(Modifier::BOLD),
-                Style::default().fg(theme::SECONDARY_FG),
-            ),
-            InsightTab::TietKhi => (
-                Style::default().fg(theme::SECONDARY_FG),
-                Style::default().fg(theme::SECONDARY_FG),
+        let mut spans = Vec::new();
+        for (i, (tab, key)) in tabs.iter().enumerate() {
+            let style = if *tab == current {
                 Style::default()
                     .fg(theme::ACCENT_FG)
-                    .add_modifier(Modifier::BOLD),
-            ),
-        };
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(theme::SECONDARY_FG)
+            };
+            spans.push(Span::styled(format!("[{key}] "), style));
+            spans.push(Span::styled(tab.name(lang), style));
+            if i < tabs.len() - 1 {
+                spans.push(Span::raw(" "));
+            }
+        }
 
-        let (festival_name, guidance_name, tiet_khi_name) = match lang {
-            InsightLang::Vi => ("Lễ hội", "Hướng dẫn", "Tiết khí"),
-            InsightLang::En => ("Festival", "Guidance", "Season"),
-        };
-
-        Line::from(vec![
-            Span::styled("[1", festival_style),
-            Span::styled("] ", festival_style),
-            Span::styled(festival_name, festival_style),
-            Span::raw("  "),
-            Span::styled("[2", guidance_style),
-            Span::styled("] ", guidance_style),
-            Span::styled(guidance_name, guidance_style),
-            Span::raw("  "),
-            Span::styled("[3", tiet_khi_style),
-            Span::styled("] ", tiet_khi_style),
-            Span::styled(tiet_khi_name, tiet_khi_style),
-        ])
+        Line::from(spans)
     }
 }
 
@@ -574,8 +858,8 @@ impl Widget for InsightOverlay<'_> {
         };
 
         let tab_help = match self.app.insight_lang {
-            InsightLang::Vi => " 1/2/3 tab ",
-            InsightLang::En => " 1/2/3 tabs ",
+            InsightLang::Vi => " 1-6 tab ",
+            InsightLang::En => " 1-6 tabs ",
         };
 
         let block = Block::default()
