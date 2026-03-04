@@ -1,0 +1,26 @@
+{
+  "groups": [
+    { "id": "East", "name": { "vi": "Đông Tứ Mệnh", "en": "East Group" },
+      "meaning": { "vi": "Nhóm Đông Tứ Mệnh gồm các Quái 1, 3, 4, 9. Hướng tốt: Đông, Đông Nam, Bắc, Nam.", "en": "East Group includes Kua 1, 3, 4, 9. Favorable directions: East, Southeast, North, South." } },
+    { "id": "West", "name": { "vi": "Tây Tứ Mệnh", "en": "West Group" },
+      "meaning": { "vi": "Nhóm Tây Tứ Mệnh gồm các Quái 2, 6, 7, 8. Hướng tốt: Tây, Tây Bắc, Tây Nam, Đông Bắc.", "en": "West Group includes Kua 2, 6, 7, 8. Favorable directions: West, Northwest, Southwest, Northeast." } }
+  ],
+  "kua": [
+    { "number": 1, "trigram": { "vi": "Khảm", "en": "Kan" }, "direction": { "vi": "Bắc", "en": "North" },
+      "meaning": { "vi": "Quái Khảm (Nước) — trí tuệ, linh hoạt, thích nghi tốt. Phương tốt nhất: Bắc.", "en": "Kan Trigram (Water) — wisdom, flexibility, adaptability. Best direction: North." } },
+    { "number": 2, "trigram": { "vi": "Khôn", "en": "Kun" }, "direction": { "vi": "Tây Nam", "en": "Southwest" },
+      "meaning": { "vi": "Quái Khôn (Đất) — nhân hậu, bao dung, chăm sóc. Phương tốt nhất: Tây Nam.", "en": "Kun Trigram (Earth) — benevolent, tolerant, nurturing. Best direction: Southwest." } },
+    { "number": 3, "trigram": { "vi": "Chấn", "en": "Zhen" }, "direction": { "vi": "Đông", "en": "East" },
+      "meaning": { "vi": "Quái Chấn (Sấm) — năng động, quyết đoán, khởi đầu mới. Phương tốt nhất: Đông.", "en": "Zhen Trigram (Thunder) — dynamic, decisive, new beginnings. Best direction: East." } },
+    { "number": 4, "trigram": { "vi": "Tốn", "en": "Xun" }, "direction": { "vi": "Đông Nam", "en": "Southeast" },
+      "meaning": { "vi": "Quái Tốn (Gió) — mềm mại, giao tiếp tốt, may mắn tài lộc. Phương tốt nhất: Đông Nam.", "en": "Xun Trigram (Wind) — gentle, good communication, financial fortune. Best direction: Southeast." } },
+    { "number": 6, "trigram": { "vi": "Càn", "en": "Qian" }, "direction": { "vi": "Tây Bắc", "en": "Northwest" },
+      "meaning": { "vi": "Quái Càn (Trời) — lãnh đạo, mạnh mẽ, có quyền lực. Phương tốt nhất: Tây Bắc.", "en": "Qian Trigram (Heaven) — leadership, strength, authority. Best direction: Northwest." } },
+    { "number": 7, "trigram": { "vi": "Đoài", "en": "Dui" }, "direction": { "vi": "Tây", "en": "West" },
+      "meaning": { "vi": "Quái Đoài (Đầm) — vui vẻ, giao tiếp, sáng tạo. Phương tốt nhất: Tây.", "en": "Dui Trigram (Lake) — joyful, communicative, creative. Best direction: West." } },
+    { "number": 8, "trigram": { "vi": "Cấn", "en": "Gen" }, "direction": { "vi": "Đông Bắc", "en": "Northeast" },
+      "meaning": { "vi": "Quái Cấn (Núi) — ổn định, kiên nhẫn, tĩnh lặng. Phương tốt nhất: Đông Bắc.", "en": "Gen Trigram (Mountain) — stable, patient, tranquil. Best direction: Northeast." } },
+    { "number": 9, "trigram": { "vi": "Ly", "en": "Li" }, "direction": { "vi": "Nam", "en": "South" },
+      "meaning": { "vi": "Quái Ly (Lửa) — sáng suốt, nhiệt huyết, nổi bật. Phương tốt nhất: Nam.", "en": "Li Trigram (Fire) — bright, passionate, prominent. Best direction: South." } }
+  ]
+}

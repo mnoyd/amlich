@@ -1,0 +1,21 @@
+{
+  "directions": [
+    { "id": "Thuan", "name": { "vi": "Thuận hành", "en": "Forward Progression" },
+      "meaning": { "vi": "Đại vận thuận hành theo chiều tiến, vận mệnh phát triển tự nhiên theo tuổi.", "en": "Forward progression follows natural age development, destiny unfolds in ascending order." } },
+    { "id": "Nghich", "name": { "vi": "Nghịch hành", "en": "Reverse Progression" },
+      "meaning": { "vi": "Đại vận nghịch hành theo chiều lùi, vận mệnh phát triển ngược dòng thời gian.", "en": "Reverse progression goes backward, destiny unfolds against the flow of time." } }
+  ],
+  "phases": {
+    "meaning": {
+      "vi": "Mỗi trụ đại vận kéo dài 10 năm, thể hiện một giai đoạn vận mệnh với ngũ hành và can chi riêng. Ngũ hành của trụ tương tác với tứ trụ bản mệnh để xác định vận may hay xấu.",
+      "en": "Each Dai Van pillar spans 10 years, representing a destiny phase with its own five-element and stem-branch pair. The pillar's element interacts with the natal chart to determine fortune."
+    }
+  },
+  "elements": [
+    { "element": "Kim", "meaning": { "vi": "Giai đoạn Kim — thời kỳ quyết đoán, sắc bén, thích hợp cho sự nghiệp và tài chính.", "en": "Metal phase — period of decisiveness and sharpness, favorable for career and finance." } },
+    { "element": "Mộc", "meaning": { "vi": "Giai đoạn Mộc — thời kỳ phát triển, sáng tạo, thích hợp cho học tập và khởi nghiệp.", "en": "Wood phase — period of growth and creativity, favorable for learning and starting ventures." } },
+    { "element": "Thủy", "meaning": { "vi": "Giai đoạn Thủy — thời kỳ trí tuệ, linh hoạt, thích hợp cho giao tiếp và du lịch.", "en": "Water phase — period of wisdom and flexibility, favorable for communication and travel." } },
+    { "element": "Hỏa", "meaning": { "vi": "Giai đoạn Hỏa — thời kỳ nhiệt huyết, nổi bật, thích hợp cho danh tiếng và quan hệ.", "en": "Fire phase — period of passion and prominence, favorable for fame and relationships." } },
+    { "element": "Thổ", "meaning": { "vi": "Giai đoạn Thổ — thời kỳ ổn định, bền vững, thích hợp cho bất động sản và gia đình.", "en": "Earth phase — period of stability and sustainability, favorable for property and family." } }
+  ]
+}
