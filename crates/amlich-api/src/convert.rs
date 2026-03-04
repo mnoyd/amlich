@@ -4,7 +4,7 @@ use crate::dto::{
     DayTabooDto, DayTenGodsDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto,
     GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto,
     LocalizedTextDto, LunarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto, ProverbInsightDto,
-    RegionsInsightDto, RuleEvidenceDto, SolarDto, StarRuleEvidenceDto, TabooInsightDto,
+    RegionsInsightDto, RuleEvidenceDto, SolarDto, StarRuleEvidenceDto, TabooInsightDto, TangCanDto,
     ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
 };
 
@@ -217,6 +217,20 @@ impl From<&amlich_core::almanac::types::XungHopResult> for XungHopDto {
             luc_xung: value.luc_xung.clone(),
             tam_hop: value.tam_hop.clone(),
             tu_hanh_xung: value.tu_hanh_xung.clone(),
+            liu_he: value.liu_he.clone(),
+            xiang_hai: value.xiang_hai.clone(),
+            xiang_xing: value.xiang_xing.clone(),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::types::TangCan> for TangCanDto {
+    fn from(value: &amlich_core::almanac::types::TangCan) -> Self {
+        Self {
+            main: value.main.clone(),
+            central: value.central.clone(),
+            residual: value.residual.clone(),
+            strength: value.strength,
         }
     }
 }
@@ -358,6 +372,7 @@ impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
             taboos: value.taboos.iter().map(DayTabooDto::from).collect(),
             xung_hop: XungHopDto::from(&value.xung_hop),
             truc: TrucDto::from(&value.truc),
+            tang_can: value.tang_can.as_ref().map(TangCanDto::from),
             ten_gods: value.ten_gods.as_ref().map(DayTenGodsDto::from),
             tu_menh: value.tu_menh.as_ref().map(KuaResultDto::from),
         }

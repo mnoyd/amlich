@@ -292,3 +292,145 @@ fn invalid_date_returns_error() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("invalid date"));
 }
+
+#[test]
+fn day_command_returns_v2_bundle_json() {
+    let home = temp_home();
+    let output = run(&home, &["day", "2026-02-20", "--format", "json"]);
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
+    let obj = json.as_object().expect("top-level should be object");
+    for key in ["meta", "solar", "lunar", "jd"] {
+        assert!(obj.contains_key(key), "missing key: {key}");
+    }
+    assert_eq!(
+        json["meta"]["schema_version"].as_str(),
+        Some("amlich.api/v2")
+    );
+}
+
+#[test]
+fn day_projection_fields_filters_output() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "day",
+            "2026-02-20",
+            "--format",
+            "json",
+            "--fields",
+            "solar.date_string,lunar.date_string",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
+    assert!(json.get("solar").is_some());
+    assert!(json.get("lunar").is_some());
+    assert!(json.get("meta").is_none());
+    assert!(json["solar"].get("day").is_none());
+    assert!(json["solar"].get("date_string").is_some());
+}
+
+#[test]
+fn range_ndjson_emits_one_object_per_day() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "range",
+            "--start",
+            "2026-02-20",
+            "--end",
+            "2026-02-22",
+            "--format",
+            "ndjson",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let lines: Vec<&str> = stdout.lines().filter(|l| !l.trim().is_empty()).collect();
+    assert_eq!(
+        lines.len(),
+        3,
+        "expected 3 ndjson rows, got {}",
+        lines.len()
+    );
+    for line in lines {
+        let row: Value = serde_json::from_str(line).expect("line should be json object");
+        assert!(row.get("solar").is_some());
+    }
+}
+
+#[test]
+fn lookup_commands_return_expected_shapes() {
+    let home = temp_home();
+
+    let na_am = run(
+        &home,
+        &["lookup", "na-am", "--index", "1", "--format", "json"],
+    );
+    assert!(na_am.status.success());
+    let na_am_json: Value = serde_json::from_slice(&na_am.stdout).expect("valid na-am json");
+    assert!(na_am_json.get("Success").is_some());
+
+    let ten_gods = run(
+        &home,
+        &[
+            "lookup",
+            "ten-gods",
+            "--day-can",
+            "Giáp",
+            "--target-can",
+            "Ất",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(ten_gods.status.success());
+    let tg_json: Value = serde_json::from_slice(&ten_gods.stdout).expect("valid ten-gods json");
+    assert!(tg_json.get("label").is_some());
+    assert!(tg_json.get("relation").is_some());
+
+    let kua = run(
+        &home,
+        &[
+            "lookup",
+            "kua",
+            "--birth-year",
+            "1990",
+            "--gender",
+            "male",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(kua.status.success());
+    let kua_json: Value = serde_json::from_slice(&kua.stdout).expect("valid kua json");
+    assert!(kua_json.get("kua").is_some());
+    assert!(kua_json.get("group").is_some());
+}
+
+#[test]
+fn query_command_prints_deprecation_warning() {
+    let home = temp_home();
+    let output = run(&home, &["query", "2026-02-20"]);
+    assert!(output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("deprecated"));
+}

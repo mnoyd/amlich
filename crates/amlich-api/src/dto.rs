@@ -154,6 +154,17 @@ pub struct XungHopDto {
     pub luc_xung: String,
     pub tam_hop: Vec<String>,
     pub tu_hanh_xung: Vec<String>,
+    pub liu_he: Option<String>,
+    pub xiang_hai: Option<String>,
+    pub xiang_xing: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TangCanDto {
+    pub main: String,
+    pub central: String,
+    pub residual: String,
+    pub strength: [u8; 3],
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -202,6 +213,7 @@ pub struct DayFortuneDto {
     pub taboos: Vec<DayTabooDto>,
     pub xung_hop: XungHopDto,
     pub truc: TrucDto,
+    pub tang_can: Option<TangCanDto>,
     /// Ten Gods relations for predefined targets (populated when day stem available)
     pub ten_gods: Option<DayTenGodsDto>,
     /// Kua (Tu Mến) result (populated only when birth year and gender provided)
@@ -460,6 +472,9 @@ mod tests {
                 luc_xung: "Tuất".to_string(),
                 tam_hop: vec![],
                 tu_hanh_xung: vec![],
+                liu_he: None,
+                xiang_hai: None,
+                xiang_xing: None,
             },
             truc: TrucDto {
                 index: 0,
@@ -467,6 +482,7 @@ mod tests {
                 quality: "cat".to_string(),
                 evidence: None,
             },
+            tang_can: None,
             ten_gods: None,
             tu_menh: None,
         };

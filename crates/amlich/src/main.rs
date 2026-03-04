@@ -14,6 +14,9 @@ mod widgets;
 use std::ffi::OsString;
 use std::io::{stdin, stdout, IsTerminal};
 
+use amlich_api::v2::Include;
+use amlich_api::{DateQuery, DayInsightDto};
+use chrono::{Datelike, Local, NaiveDate};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
 use crate::headless::{
@@ -21,7 +24,7 @@ use crate::headless::{
 };
 use crate::tui_runtime::run_tui;
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(
     name = "amlich",
     author = "Vietnamese Calendar Project",
@@ -33,21 +36,128 @@ struct Cli {
     command: Option<Command>,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum Command {
     /// Open the interactive terminal UI
     Tui(TuiArgs),
     /// Query date information without launching the TUI
-    Query(QueryArgs),
+    Day(DayArgs),
+    /// Query date range information
+    Range(RangeArgs),
+    /// Convert between solar and lunar dates
+    Convert(ConvertArgs),
+    /// Almanac-focused output for a day
+    Almanac(AlmanacArgs),
+    /// Cultural and interpretive day insight
+    Insight(InsightArgs),
+    /// List holidays in a year
+    Holidays(HolidaysArgs),
+    /// Solar term queries
+    TietKhi(TietKhiArgs),
+    /// Domain lookups
+    Lookup(LookupArgs),
     /// Manage persistent user settings
     Config(ConfigArgs),
+    /// DEPRECATED: use `day`
+    Query(QueryArgs),
 }
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 struct TuiArgs {
     /// Start TUI focused on a specific date in YYYY-MM-DD format
     #[arg(long, value_name = "DATE")]
     date: Option<String>,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum IncludeArg {
+    Base,
+    Canchi,
+    #[value(name = "tiet-khi")]
+    TietKhi,
+    Hours,
+    Fortune,
+    Insight,
+    Evidence,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum DayFormatArg {
+    Json,
+    Text,
+    Waybar,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum StructuredFormatArg {
+    Json,
+    Text,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum RangeFormatArg {
+    Json,
+    Ndjson,
+    Text,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum InsightLangArg {
+    Vi,
+    En,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum AlmanacTabArg {
+    Overview,
+    Taboos,
+    Stars,
+    Evidence,
+    All,
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum GenderArg {
+    Male,
+    Female,
+}
+
+#[derive(Args, Debug)]
+struct DayArgs {
+    /// Date in YYYY-MM-DD format (defaults to today)
+    #[arg(value_name = "DATE")]
+    date: Option<String>,
+
+    /// Output format
+    #[arg(long, value_enum, default_value_t = DayFormatArg::Json)]
+    format: DayFormatArg,
+
+    /// Include blocks in response (comma-separated)
+    #[arg(
+        long,
+        value_enum,
+        value_delimiter = ',',
+        default_values_t = [
+            IncludeArg::Base,
+            IncludeArg::Canchi,
+            IncludeArg::TietKhi,
+            IncludeArg::Hours,
+            IncludeArg::Fortune
+        ]
+    )]
+    include: Vec<IncludeArg>,
+
+    /// Field projection (comma-separated dot paths)
+    #[arg(long, value_delimiter = ',', value_name = "FIELDS")]
+    fields: Vec<String>,
+
+    /// Pretty-print JSON formats
+    #[arg(long)]
+    pretty: bool,
+
+    /// Timezone offset
+    #[arg(long, value_name = "TZ")]
+    timezone: Option<f64>,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -67,7 +177,7 @@ impl From<OutputFormat> for QueryFormat {
     }
 }
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 struct QueryArgs {
     /// Date in YYYY-MM-DD format (defaults to today)
     #[arg(value_name = "DATE")]
@@ -86,24 +196,231 @@ struct QueryArgs {
     pretty: bool,
 }
 
-#[derive(Args)]
+#[derive(Args, Debug)]
+struct RangeArgs {
+    #[arg(long, value_name = "DATE")]
+    start: String,
+
+    #[arg(long, value_name = "DATE")]
+    end: String,
+
+    #[arg(long, value_enum, default_value_t = RangeFormatArg::Json)]
+    format: RangeFormatArg,
+
+    #[arg(
+        long,
+        value_enum,
+        value_delimiter = ',',
+        default_values_t = [IncludeArg::Base, IncludeArg::Canchi, IncludeArg::TietKhi]
+    )]
+    include: Vec<IncludeArg>,
+
+    #[arg(long)]
+    pretty: bool,
+
+    #[arg(long, value_name = "TZ")]
+    timezone: Option<f64>,
+}
+
+#[derive(Args, Debug)]
+struct ConvertArgs {
+    #[command(subcommand)]
+    command: ConvertCommand,
+}
+
+#[derive(Subcommand, Debug)]
+enum ConvertCommand {
+    SolarToLunar(SolarToLunarArgs),
+    LunarToSolar(LunarToSolarArgs),
+}
+
+#[derive(Args, Debug)]
+struct SolarToLunarArgs {
+    #[arg(value_name = "DATE")]
+    date: String,
+
+    #[arg(long, value_name = "TZ")]
+    timezone: Option<f64>,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
+struct LunarToSolarArgs {
+    #[arg(long)]
+    day: i32,
+    #[arg(long)]
+    month: i32,
+    #[arg(long)]
+    year: i32,
+    #[arg(long, default_value_t = false)]
+    leap: bool,
+
+    #[arg(long, value_name = "TZ")]
+    timezone: Option<f64>,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
+struct AlmanacArgs {
+    #[arg(value_name = "DATE")]
+    date: Option<String>,
+
+    #[arg(long, value_enum, default_value_t = AlmanacTabArg::All)]
+    tab: AlmanacTabArg,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Text)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+
+    #[arg(long, value_name = "TZ")]
+    timezone: Option<f64>,
+}
+
+#[derive(Args, Debug)]
+struct InsightArgs {
+    #[arg(value_name = "DATE")]
+    date: Option<String>,
+
+    #[arg(long, value_enum, default_value_t = InsightLangArg::Vi)]
+    lang: InsightLangArg,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Text)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+
+    #[arg(long, value_name = "TZ")]
+    timezone: Option<f64>,
+}
+
+#[derive(Args, Debug)]
+struct HolidaysArgs {
+    #[arg(value_name = "YEAR")]
+    year: i32,
+
+    #[arg(long)]
+    major: bool,
+
+    #[arg(long, value_name = "CATEGORY")]
+    category: Vec<String>,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Text)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
+struct TietKhiArgs {
+    #[arg(value_name = "DATE", conflicts_with = "year")]
+    date: Option<String>,
+
+    #[arg(long, value_name = "YEAR", conflicts_with = "date")]
+    year: Option<i32>,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Text)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+
+    #[arg(long, value_name = "TZ")]
+    timezone: Option<f64>,
+}
+
+#[derive(Args, Debug)]
+struct LookupArgs {
+    #[command(subcommand)]
+    command: LookupCommand,
+}
+
+#[derive(Subcommand, Debug)]
+enum LookupCommand {
+    NaAm(LookupNaAmArgs),
+    TenGods(LookupTenGodsArgs),
+    Kua(LookupKuaArgs),
+}
+
+#[derive(Args, Debug)]
+struct LookupNaAmArgs {
+    #[arg(long, conflicts_with_all = ["can", "chi"])]
+    index: Option<u8>,
+
+    #[arg(long, requires = "chi", conflicts_with = "index")]
+    can: Option<String>,
+
+    #[arg(long, requires = "can", conflicts_with = "index")]
+    chi: Option<String>,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
+struct LookupTenGodsArgs {
+    #[arg(long = "day-can")]
+    day_can: String,
+
+    #[arg(long = "target-can")]
+    target_can: String,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
+struct LookupKuaArgs {
+    #[arg(long = "birth-year")]
+    birth_year: i32,
+
+    #[arg(long, value_enum)]
+    gender: GenderArg,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
 struct ConfigArgs {
     #[command(subcommand)]
     command: ConfigCommand,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum ConfigCommand {
     Mode(ModeArgs),
 }
 
-#[derive(Args)]
+#[derive(Args, Debug)]
 struct ModeArgs {
     #[command(subcommand)]
     command: ModeCommand,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Debug)]
 enum ModeCommand {
     Show,
     Set {
@@ -140,11 +457,403 @@ fn run(cli: Cli) -> Result<(), String> {
             let date = args.date.as_deref().map(parse_date).transpose()?;
             run_tui(date).map_err(|e| format!("failed to run TUI: {e}"))?;
         }
-        Some(Command::Query(args)) => run_query(args)?,
+        Some(Command::Day(args)) => run_day(args)?,
+        Some(Command::Range(args)) => run_range(args)?,
+        Some(Command::Convert(args)) => run_convert(args)?,
+        Some(Command::Almanac(args)) => run_almanac(args)?,
+        Some(Command::Insight(args)) => run_insight(args)?,
+        Some(Command::Holidays(args)) => run_holidays(args)?,
+        Some(Command::TietKhi(args)) => run_tiet_khi(args)?,
+        Some(Command::Lookup(args)) => run_lookup(args)?,
         Some(Command::Config(args)) => run_config(args)?,
+        Some(Command::Query(args)) => {
+            eprintln!("Warning: `amlich query` is deprecated; use `amlich day`");
+            run_query(args)?;
+        }
         None => run_auto_mode()?,
     }
 
+    Ok(())
+}
+
+fn parse_date_or_today(input: Option<&str>) -> Result<NaiveDate, String> {
+    match input {
+        Some(value) => parse_date(value),
+        None => Ok(Local::now().date_naive()),
+    }
+}
+
+fn include_args_to_api(include: &[IncludeArg]) -> Vec<Include> {
+    include
+        .iter()
+        .map(|x| match x {
+            IncludeArg::Base => Include::Base,
+            IncludeArg::Canchi => Include::CanChi,
+            IncludeArg::TietKhi => Include::TietKhi,
+            IncludeArg::Hours => Include::Hours,
+            IncludeArg::Fortune => Include::Fortune,
+            IncludeArg::Insight => Include::Insight,
+            IncludeArg::Evidence => Include::Evidence,
+        })
+        .collect()
+}
+
+fn print_json<T: serde::Serialize>(value: &T, pretty: bool) -> Result<(), String> {
+    let output = if pretty {
+        serde_json::to_string_pretty(value).map_err(|e| format!("failed to render json: {e}"))?
+    } else {
+        serde_json::to_string(value).map_err(|e| format!("failed to render json: {e}"))?
+    };
+    println!("{output}");
+    Ok(())
+}
+
+fn query_from_date(date: NaiveDate, timezone: Option<f64>) -> DateQuery {
+    DateQuery {
+        day: date.day() as i32,
+        month: date.month() as i32,
+        year: date.year(),
+        timezone,
+    }
+}
+
+fn run_day(args: DayArgs) -> Result<(), String> {
+    let date = parse_date_or_today(args.date.as_deref())?;
+    let query = query_from_date(date, args.timezone);
+    let includes = include_args_to_api(&args.include);
+
+    match args.format {
+        DayFormatArg::Json => {
+            if args.fields.is_empty() {
+                let bundle = amlich_api::v2::get_day_bundle(&query, &includes)?;
+                print_json(&bundle, args.pretty)?;
+            } else {
+                let projected =
+                    amlich_api::v2::get_day_bundle_projected(&query, &includes, &args.fields)?;
+                print_json(&projected, args.pretty)?;
+            }
+        }
+        DayFormatArg::Text => {
+            let bundle = amlich_api::v2::get_day_bundle(&query, &includes)?;
+            println!(
+                "{} | lunar {} | tiet-khi {}",
+                bundle.solar.date_string,
+                bundle.lunar.date_string,
+                bundle
+                    .tiet_khi
+                    .as_ref()
+                    .map(|t| t.name.as_str())
+                    .unwrap_or("n/a")
+            );
+        }
+        DayFormatArg::Waybar => {
+            let info = amlich_api::get_day_info(&query)?;
+            let payload = waybar::build_waybar_payload(&info, &read_mode());
+            if args.pretty {
+                print_json(&payload, true)?;
+            } else {
+                println!("{payload}");
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn run_range(args: RangeArgs) -> Result<(), String> {
+    let start = parse_date(&args.start)?;
+    let end = parse_date(&args.end)?;
+
+    let start_query = query_from_date(start, args.timezone);
+    let end_query = query_from_date(end, args.timezone);
+    let includes = include_args_to_api(&args.include);
+    let range = amlich_api::v2::get_day_range(start_query, end_query, &includes)?;
+
+    match args.format {
+        RangeFormatArg::Json => print_json(&range, args.pretty)?,
+        RangeFormatArg::Ndjson => {
+            for day in &range.days {
+                println!(
+                    "{}",
+                    serde_json::to_string(day)
+                        .map_err(|e| format!("failed to render ndjson: {e}"))?
+                );
+            }
+        }
+        RangeFormatArg::Text => {
+            for day in &range.days {
+                let tiet_khi = day
+                    .tiet_khi
+                    .as_ref()
+                    .map(|t| t.name.as_str())
+                    .unwrap_or("n/a");
+                println!(
+                    "{} | lunar {} | tiet-khi {}",
+                    day.solar.date_string, day.lunar.date_string, tiet_khi
+                );
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn run_convert(args: ConvertArgs) -> Result<(), String> {
+    match args.command {
+        ConvertCommand::SolarToLunar(a) => run_convert_solar_to_lunar(a),
+        ConvertCommand::LunarToSolar(a) => run_convert_lunar_to_solar(a),
+    }
+}
+
+fn run_convert_solar_to_lunar(args: SolarToLunarArgs) -> Result<(), String> {
+    let date = parse_date(&args.date)?;
+    let query = query_from_date(date, args.timezone);
+    let result = amlich_api::v2::convert_solar_to_lunar(&query)?;
+    match args.format {
+        StructuredFormatArg::Json => print_json(&result, args.pretty)?,
+        StructuredFormatArg::Text => println!("{} -> {}", date, result.date_string),
+    }
+    Ok(())
+}
+
+fn run_convert_lunar_to_solar(args: LunarToSolarArgs) -> Result<(), String> {
+    let result = amlich_api::v2::convert_lunar_to_solar(
+        args.day,
+        args.month,
+        args.year,
+        args.leap,
+        args.timezone,
+    )?;
+    match args.format {
+        StructuredFormatArg::Json => print_json(&result, args.pretty)?,
+        StructuredFormatArg::Text => println!("{}", result.date_string),
+    }
+    Ok(())
+}
+
+fn run_almanac(args: AlmanacArgs) -> Result<(), String> {
+    let date = parse_date_or_today(args.date.as_deref())?;
+    let query = query_from_date(date, args.timezone);
+    let almanac = amlich_api::v2::get_almanac(&query)?;
+    match args.format {
+        StructuredFormatArg::Json => print_json(&almanac, args.pretty)?,
+        StructuredFormatArg::Text => {
+            if matches!(args.tab, AlmanacTabArg::Overview | AlmanacTabArg::All) {
+                println!(
+                    "Ruleset: {}@{} ({})",
+                    almanac.ruleset_id, almanac.ruleset_version, almanac.profile
+                );
+                println!("Truc: {} [{}]", almanac.truc.name, almanac.truc.quality);
+                println!(
+                    "Day element: {} ({})",
+                    almanac.day_element.na_am, almanac.day_element.element
+                );
+            }
+            if matches!(args.tab, AlmanacTabArg::Taboos | AlmanacTabArg::All) {
+                if almanac.taboos.is_empty() {
+                    println!("Taboos: none");
+                } else {
+                    println!("Taboos:");
+                    for taboo in &almanac.taboos {
+                        println!("- [{}] {}: {}", taboo.severity, taboo.name, taboo.reason);
+                    }
+                }
+            }
+            if matches!(args.tab, AlmanacTabArg::Stars | AlmanacTabArg::All) {
+                println!("Stars (cat): {}", almanac.stars.cat_tinh.join(", "));
+                println!("Stars (sat): {}", almanac.stars.sat_tinh.join(", "));
+            }
+            if matches!(args.tab, AlmanacTabArg::Evidence | AlmanacTabArg::All) {
+                if let Some(ev) = &almanac.day_element.evidence {
+                    println!(
+                        "Evidence day_element: {} · {} · {}",
+                        ev.source_id, ev.method, ev.profile
+                    );
+                }
+                if let Some(ev) = &almanac.truc.evidence {
+                    println!(
+                        "Evidence truc: {} · {} · {}",
+                        ev.source_id, ev.method, ev.profile
+                    );
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+fn localized_text(lang: InsightLangArg, text: &amlich_api::LocalizedTextDto) -> String {
+    match lang {
+        InsightLangArg::Vi => text.vi.clone(),
+        InsightLangArg::En => text.en.clone(),
+    }
+}
+
+fn localized_list(lang: InsightLangArg, list: &amlich_api::LocalizedListDto) -> Vec<String> {
+    match lang {
+        InsightLangArg::Vi => list.vi.clone(),
+        InsightLangArg::En => list.en.clone(),
+    }
+}
+
+fn render_insight_text(lang: InsightLangArg, insight: &DayInsightDto) {
+    println!(
+        "Date: {} | Lunar: {}",
+        insight.solar.date_string, insight.lunar.date_string
+    );
+    if let Some(festival) = &insight.festival {
+        let names = match lang {
+            InsightLangArg::Vi => festival.names.vi.clone(),
+            InsightLangArg::En => festival.names.en.clone(),
+        };
+        println!("Festival: {}", names.join(", "));
+    }
+    if let Some(holiday) = &insight.holiday {
+        let names = match lang {
+            InsightLangArg::Vi => holiday.names.vi.clone(),
+            InsightLangArg::En => holiday.names.en.clone(),
+        };
+        println!("Holiday: {}", names.join(", "));
+    }
+    if let Some(guidance) = &insight.day_guidance {
+        println!(
+            "Good for: {}",
+            localized_list(lang, &guidance.good_for).join(", ")
+        );
+        println!(
+            "Avoid: {}",
+            localized_list(lang, &guidance.avoid_for).join(", ")
+        );
+    }
+    if let Some(tiet_khi) = &insight.tiet_khi {
+        println!("Tiet khi: {}", localized_text(lang, &tiet_khi.name));
+        println!("Weather: {}", localized_text(lang, &tiet_khi.weather));
+    }
+}
+
+fn run_insight(args: InsightArgs) -> Result<(), String> {
+    let date = parse_date_or_today(args.date.as_deref())?;
+    let query = query_from_date(date, args.timezone);
+    let insight = amlich_api::v2::get_insight(&query)?;
+    match args.format {
+        StructuredFormatArg::Json => print_json(&insight, args.pretty)?,
+        StructuredFormatArg::Text => render_insight_text(args.lang, &insight),
+    }
+    Ok(())
+}
+
+fn run_holidays(args: HolidaysArgs) -> Result<(), String> {
+    let mut holidays = amlich_api::get_holidays(args.year, args.major);
+    if !args.category.is_empty() {
+        holidays.retain(|h| {
+            args.category
+                .iter()
+                .any(|c| c.eq_ignore_ascii_case(&h.category))
+        });
+    }
+    match args.format {
+        StructuredFormatArg::Json => print_json(&holidays, args.pretty)?,
+        StructuredFormatArg::Text => {
+            for h in holidays {
+                println!(
+                    "{}: {:04}-{:02}-{:02} [{}]",
+                    h.name, h.solar_year, h.solar_month, h.solar_day, h.category
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+fn run_tiet_khi(args: TietKhiArgs) -> Result<(), String> {
+    if let Some(year) = args.year {
+        let year_data = amlich_api::v2::get_tiet_khi_for_year(year, args.timezone)?;
+        match args.format {
+            StructuredFormatArg::Json => print_json(&year_data, args.pretty)?,
+            StructuredFormatArg::Text => {
+                for transition in year_data.transitions {
+                    println!("{}: {}", transition.date, transition.term.name);
+                }
+            }
+        }
+        return Ok(());
+    }
+
+    let date = parse_date_or_today(args.date.as_deref())?;
+    let query = query_from_date(date, args.timezone);
+    let day = amlich_api::get_day_info(&query)?;
+    match args.format {
+        StructuredFormatArg::Json => print_json(&day.tiet_khi, args.pretty)?,
+        StructuredFormatArg::Text => {
+            println!(
+                "{}: {} ({})",
+                day.solar.date_string, day.tiet_khi.name, day.tiet_khi.season
+            );
+        }
+    }
+    Ok(())
+}
+
+fn run_lookup(args: LookupArgs) -> Result<(), String> {
+    match args.command {
+        LookupCommand::NaAm(a) => run_lookup_na_am(a),
+        LookupCommand::TenGods(a) => run_lookup_ten_gods(a),
+        LookupCommand::Kua(a) => run_lookup_kua(a),
+    }
+}
+
+fn run_lookup_na_am(args: LookupNaAmArgs) -> Result<(), String> {
+    let response = match (args.index, args.can.as_deref(), args.chi.as_deref()) {
+        (Some(index), None, None) => amlich_api::v2::lookup_na_am_by_index(index),
+        (None, Some(can), Some(chi)) => amlich_api::v2::lookup_na_am_by_pair(can, chi),
+        _ => {
+            return Err("provide either --index or --can+--chi".to_string());
+        }
+    };
+
+    match args.format {
+        StructuredFormatArg::Json => print_json(&response, args.pretty)?,
+        StructuredFormatArg::Text => match response {
+            amlich_api::NaAmResponseDto::Success(data) => {
+                println!(
+                    "{} {} (#{}): {} ({})",
+                    data.can, data.chi, data.cycle_index, data.na_am, data.element
+                )
+            }
+            amlich_api::NaAmResponseDto::Error(err) => {
+                println!("{}: {}", err.error, err.message)
+            }
+        },
+    }
+    Ok(())
+}
+
+fn run_lookup_ten_gods(args: LookupTenGodsArgs) -> Result<(), String> {
+    let result = amlich_api::v2::lookup_ten_gods(&args.day_can, &args.target_can)?;
+    match args.format {
+        StructuredFormatArg::Json => print_json(&result, args.pretty)?,
+        StructuredFormatArg::Text => println!(
+            "{} | {} | same_polarity={}",
+            result.label, result.relation, result.same_polarity
+        ),
+    }
+    Ok(())
+}
+
+fn run_lookup_kua(args: LookupKuaArgs) -> Result<(), String> {
+    let gender = match args.gender {
+        GenderArg::Male => amlich_core::Gender::Male,
+        GenderArg::Female => amlich_core::Gender::Female,
+    };
+    let result = amlich_api::v2::lookup_kua(args.birth_year, gender);
+    match args.format {
+        StructuredFormatArg::Json => print_json(&result, args.pretty)?,
+        StructuredFormatArg::Text => {
+            println!("Kua {} ({})", result.kua, result.group);
+            println!("Favorable: {}", result.favorable_directions.join(", "));
+            println!("Unfavorable: {}", result.unfavorable_directions.join(", "));
+        }
+    }
     Ok(())
 }
 
@@ -202,9 +911,23 @@ fn rewrite_headless_alias(args: Vec<OsString>) -> Result<Vec<OsString>, String> 
         .get(1)
         .map(|value| value.to_string_lossy().to_string());
     if let Some(value) = next {
-        if matches!(value.as_str(), "query" | "tui" | "config") {
+        if matches!(
+            value.as_str(),
+            "query"
+                | "day"
+                | "range"
+                | "convert"
+                | "almanac"
+                | "insight"
+                | "holidays"
+                | "tiet-khi"
+                | "lookup"
+                | "tui"
+                | "config"
+        ) {
             return Err(
-                "--headless cannot be used with subcommands; use `amlich query ...`".into(),
+                "--headless cannot be used with subcommands; use `amlich day ...` or `amlich query ...`"
+                    .into(),
             );
         }
     }

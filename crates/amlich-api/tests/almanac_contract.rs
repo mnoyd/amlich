@@ -132,7 +132,7 @@ fn day_fortune_exposes_source_evidence_metadata() {
 
     let day_star = fortune.stars.day_star.expect("day_star must be present");
     let day_star_evidence = day_star.evidence.expect("day_star evidence should exist");
-    assert_eq!(day_star_evidence.source_id, "nhi-thap-bat-tu");
+    assert_eq!(day_star_evidence.source_id, "khcbppt");
     assert_eq!(day_star_evidence.method, "jd-cycle");
 
     let truc_evidence = fortune.truc.evidence.expect("truc evidence should exist");

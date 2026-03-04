@@ -51,8 +51,13 @@ CLI examples:
 ```bash
 amlich               # TTY => TUI, non-TTY => Waybar JSON
 amlich tui --date 2026-02-20
-amlich query 2026-02-20 --format dayinfo-json --pretty
-amlich query --format waybar --mode minimal
+amlich day 2026-02-20 --format json --pretty
+amlich day --format waybar
+amlich range --start 2026-02-20 --end 2026-02-24 --format ndjson
+amlich convert solar-to-lunar 2026-02-20 --format text
+amlich lookup na-am --index 1 --format text
+amlich lookup ten-gods --day-can Giáp --target-can Ất --format json
+amlich lookup kua --birth-year 1990 --gender male --format json
 amlich config mode toggle
 ```
 
@@ -68,13 +73,17 @@ Old commands were replaced by explicit subcommands:
 
 ```bash
 amlich-tui                      -> amlich tui
-amlich today                    -> amlich query
-amlich date 2026-02-20          -> amlich query 2026-02-20
-amlich json 2026-02-20          -> amlich query 2026-02-20 --format dayinfo-json --pretty
+amlich today                    -> amlich day
+amlich date 2026-02-20          -> amlich day 2026-02-20
+amlich json 2026-02-20          -> amlich day 2026-02-20 --format json --pretty
 amlich mode                     -> amlich config mode show
 amlich set-mode minimal         -> amlich config mode set minimal
 amlich toggle                   -> amlich config mode toggle
 ```
+
+Compatibility note:
+
+- `amlich query` is still available as a deprecated alias and prints a migration warning.
 
 ## License
 
