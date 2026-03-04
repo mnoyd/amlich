@@ -94,6 +94,18 @@ pub fn get_day_insight(query: &DateQuery) -> Result<DayInsightDto, String> {
         canchi,
         day_guidance,
         tiet_khi,
+        na_am: None,
+        truc: None,
+        day_deity: None,
+        stars: None,
+        taboos: None,
+        travel: None,
+        xung_hop: None,
+        tang_can: None,
+        ten_gods: None,
+        hours: None,
+        tu_menh: None,
+        dai_van: None,
     })
 }
 

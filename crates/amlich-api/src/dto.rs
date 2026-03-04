@@ -380,14 +380,165 @@ pub struct TietKhiInsightDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NaAmInsightDto {
+    pub na_am: String,
+    pub element: String,
+    pub meaning: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TrucInsightDto {
+    pub name: String,
+    pub quality: String,
+    pub meaning: LocalizedTextDto,
+    pub good_for: LocalizedListDto,
+    pub avoid_for: LocalizedListDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayDeityInsightDto {
+    pub name: String,
+    pub classification: String,
+    pub classification_meaning: LocalizedTextDto,
+    pub deity_meaning: Option<LocalizedTextDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StarsInsightDto {
+    pub cat_tinh: Vec<String>,
+    pub sat_tinh: Vec<String>,
+    pub day_star: Option<String>,
+    pub day_star_quality: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TabooInsightItemDto {
+    pub name: String,
+    pub severity: String,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TravelInsightDto {
+    pub xuat_hanh_huong: String,
+    pub tai_than: String,
+    pub hy_than: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct XungHopInsightDto {
+    pub luc_xung: String,
+    pub tam_hop: Vec<String>,
+    pub liu_he: Option<String>,
+    pub xiang_hai: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TangCanInsightDto {
+    pub main: String,
+    pub central: String,
+    pub residual: String,
+    pub strength: [u8; 3],
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TenGodsEntryInsightDto {
+    pub label: String,
+    pub name: LocalizedTextDto,
+    pub meaning: LocalizedTextDto,
+    pub relation: String,
+    pub same_polarity: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TenGodsInsightDto {
+    pub to_year_stem: Option<TenGodsEntryInsightDto>,
+    pub to_self: Option<TenGodsEntryInsightDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HourInsightEntryDto {
+    pub chi: String,
+    pub time_range: String,
+    pub star: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HoursInsightDto {
+    pub good_hour_count: usize,
+    pub good_hours: Vec<HourInsightEntryDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TuMenhInsightDto {
+    pub kua: u8,
+    pub group: String,
+    pub trigram: LocalizedTextDto,
+    pub direction: LocalizedTextDto,
+    pub meaning: LocalizedTextDto,
+    pub group_meaning: LocalizedTextDto,
+    pub favorable_directions: Vec<String>,
+    pub unfavorable_directions: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DaiVanPillarInsightDto {
+    pub index: usize,
+    pub can_chi: String,
+    pub start_age: f64,
+    pub end_age: f64,
+    pub element: String,
+    pub element_meaning: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DaiVanInsightDto {
+    pub direction: String,
+    pub direction_meaning: LocalizedTextDto,
+    pub start_age: String,
+    pub current_pillar: Option<DaiVanPillarInsightDto>,
+    pub all_pillars: Vec<DaiVanPillarInsightDto>,
+    pub phases_meaning: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DayInsightDto {
     pub solar: SolarDto,
     pub lunar: LunarDto,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub festival: Option<FestivalInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub holiday: Option<HolidayInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub canchi: Option<CanChiInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub day_guidance: Option<DayGuidanceDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tiet_khi: Option<TietKhiInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub na_am: Option<NaAmInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub truc: Option<TrucInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub day_deity: Option<DayDeityInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stars: Option<StarsInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub taboos: Option<Vec<TabooInsightItemDto>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub travel: Option<TravelInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub xung_hop: Option<XungHopInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tang_can: Option<TangCanInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ten_gods: Option<TenGodsInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hours: Option<HoursInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tu_menh: Option<TuMenhInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dai_van: Option<DaiVanInsightDto>,
 }
 
 /// Na Am lookup result with cycle index and evidence metadata
