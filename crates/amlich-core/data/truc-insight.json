@@ -1,0 +1,184 @@
+{
+  "truc": [
+    {
+      "id": "Kiến",
+      "meaning": {
+        "vi": "Kiến là ngày khởi đầu, thích hợp cho việc bắt đầu mới, khai trương, động thổ.",
+        "en": "Kiến (Establish) is a day of new beginnings, suitable for starting businesses, groundbreaking, and launching ventures."
+      },
+      "good_for": {
+        "vi": ["Khai trương", "Động thổ", "Nhập trạch", "Cầu tài", "Xuất hành"],
+        "en": ["Grand opening", "Groundbreaking", "Moving in", "Seeking wealth", "Travel"]
+      },
+      "avoid_for": {
+        "vi": ["Kiện tụng", "An táng"],
+        "en": ["Litigation", "Burial"]
+      }
+    },
+    {
+      "id": "Trừ",
+      "meaning": {
+        "vi": "Trừ là ngày trừ bỏ, thích hợp cho việc dọn dẹp, chữa bệnh, giải quyết vấn đề cũ.",
+        "en": "Trừ (Remove) is a day of elimination, suitable for cleaning, healing, and resolving old matters."
+      },
+      "good_for": {
+        "vi": ["Chữa bệnh", "Dọn dẹp", "Tẩy uế", "Cắt may", "Giải trừ"],
+        "en": ["Medical treatment", "Cleaning", "Purification", "Tailoring", "Resolution"]
+      },
+      "avoid_for": {
+        "vi": ["Khai trương", "Cưới hỏi"],
+        "en": ["Grand opening", "Wedding"]
+      }
+    },
+    {
+      "id": "Mãn",
+      "meaning": {
+        "vi": "Mãn là ngày đầy đủ nhưng dễ tràn, nên thận trọng trong mọi việc.",
+        "en": "Mãn (Full) is a day of abundance but overflow risk, requiring caution in all matters."
+      },
+      "good_for": {
+        "vi": ["Cầu tài", "Khai trương nhỏ"],
+        "en": ["Seeking wealth", "Small openings"]
+      },
+      "avoid_for": {
+        "vi": ["Động thổ", "Xuất hành xa", "Kiện tụng", "An táng"],
+        "en": ["Groundbreaking", "Long travel", "Litigation", "Burial"]
+      }
+    },
+    {
+      "id": "Bình",
+      "meaning": {
+        "vi": "Bình là ngày bình ổn, thích hợp cho việc điều hòa, tu sửa, bảo trì.",
+        "en": "Bình (Balance) is a day of stability, suitable for adjustments, repairs, and maintenance."
+      },
+      "good_for": {
+        "vi": ["Tu sửa nhà", "Bảo trì", "Giải hòa", "Trồng cây"],
+        "en": ["Home repairs", "Maintenance", "Reconciliation", "Planting"]
+      },
+      "avoid_for": {
+        "vi": ["Khai trương", "Cưới hỏi", "Nhập trạch"],
+        "en": ["Grand opening", "Wedding", "Moving in"]
+      }
+    },
+    {
+      "id": "Định",
+      "meaning": {
+        "vi": "Định là ngày ổn định, thích hợp cho những quyết định quan trọng và giao kết.",
+        "en": "Định (Settle) is a day of determination, suitable for important decisions and agreements."
+      },
+      "good_for": {
+        "vi": ["Cưới hỏi", "Ký hợp đồng", "Giao dịch", "Khai trương", "Nhập trạch"],
+        "en": ["Wedding", "Contract signing", "Business deals", "Grand opening", "Moving in"]
+      },
+      "avoid_for": {
+        "vi": ["Kiện tụng", "Xuất hành xa"],
+        "en": ["Litigation", "Long travel"]
+      }
+    },
+    {
+      "id": "Chấp",
+      "meaning": {
+        "vi": "Chấp là ngày nắm giữ, thích hợp cho việc thu thập, bảo quản.",
+        "en": "Chấp (Grasp) is a day of holding, suitable for collecting and preserving."
+      },
+      "good_for": {
+        "vi": ["Thu hoạch", "Cất giữ", "Sửa chữa", "Bắt thú"],
+        "en": ["Harvesting", "Storage", "Repairs", "Hunting"]
+      },
+      "avoid_for": {
+        "vi": ["Khai trương", "Xuất hành", "Cưới hỏi"],
+        "en": ["Grand opening", "Travel", "Wedding"]
+      }
+    },
+    {
+      "id": "Phá",
+      "meaning": {
+        "vi": "Phá là ngày phá vỡ, hung nhiều hơn cát, nên tránh việc quan trọng.",
+        "en": "Phá (Break) is a day of disruption, more inauspicious than auspicious, avoid important matters."
+      },
+      "good_for": {
+        "vi": ["Phá dỡ", "Tháo gỡ", "Dọn dẹp cũ"],
+        "en": ["Demolition", "Dismantling", "Clearing old things"]
+      },
+      "avoid_for": {
+        "vi": ["Cưới hỏi", "Khai trương", "Ký kết", "Nhập trạch", "Động thổ"],
+        "en": ["Wedding", "Grand opening", "Signing contracts", "Moving in", "Groundbreaking"]
+      }
+    },
+    {
+      "id": "Nguy",
+      "meaning": {
+        "vi": "Nguy là ngày nguy hiểm, cần thận trọng đặc biệt trong mọi hoạt động.",
+        "en": "Nguy (Danger) is a perilous day, requiring special caution in all activities."
+      },
+      "good_for": {
+        "vi": ["Cầu nguyện", "Cúng tế"],
+        "en": ["Prayer", "Rituals"]
+      },
+      "avoid_for": {
+        "vi": ["Xuất hành", "Động thổ", "Khai trương", "Cưới hỏi", "Ký kết"],
+        "en": ["Travel", "Groundbreaking", "Grand opening", "Wedding", "Signing"]
+      }
+    },
+    {
+      "id": "Thành",
+      "meaning": {
+        "vi": "Thành là ngày thành tựu, vạn sự hanh thông, thích hợp cho mọi việc lớn.",
+        "en": "Thành (Succeed) is a day of achievement, everything goes smoothly, suitable for all major activities."
+      },
+      "good_for": {
+        "vi": ["Cưới hỏi", "Khai trương", "Nhập trạch", "Động thổ", "Ký kết", "Xuất hành"],
+        "en": ["Wedding", "Grand opening", "Moving in", "Groundbreaking", "Signing", "Travel"]
+      },
+      "avoid_for": {
+        "vi": ["Kiện tụng"],
+        "en": ["Litigation"]
+      }
+    },
+    {
+      "id": "Thu",
+      "meaning": {
+        "vi": "Thu là ngày thu lại, thích hợp cho việc kết thúc và thu hoạch.",
+        "en": "Thu (Collect) is a day of gathering, suitable for closing matters and harvesting."
+      },
+      "good_for": {
+        "vi": ["Thu hoạch", "Thu nợ", "Kết thúc công việc"],
+        "en": ["Harvesting", "Collecting debts", "Closing projects"]
+      },
+      "avoid_for": {
+        "vi": ["Khai trương", "Khởi công", "Cưới hỏi"],
+        "en": ["Grand opening", "Starting construction", "Wedding"]
+      }
+    },
+    {
+      "id": "Khai",
+      "meaning": {
+        "vi": "Khai là ngày mở ra, vạn sự tốt lành, thích hợp cho mọi khởi đầu.",
+        "en": "Khai (Open) is a day of opening, all things auspicious, suitable for any new beginning."
+      },
+      "good_for": {
+        "vi": ["Khai trương", "Nhập trạch", "Cưới hỏi", "Xuất hành", "Động thổ", "Ký kết"],
+        "en": ["Grand opening", "Moving in", "Wedding", "Travel", "Groundbreaking", "Signing"]
+      },
+      "avoid_for": {
+        "vi": ["An táng"],
+        "en": ["Burial"]
+      }
+    },
+    {
+      "id": "Bế",
+      "meaning": {
+        "vi": "Bế là ngày đóng lại, không thích hợp cho mọi khởi đầu hay khai mở.",
+        "en": "Bế (Close) is a day of closure, not suitable for any new beginnings or openings."
+      },
+      "good_for": {
+        "vi": ["An táng", "Bịt lỗ", "Tu sửa nội bộ"],
+        "en": ["Burial", "Sealing", "Internal repairs"]
+      },
+      "avoid_for": {
+        "vi": ["Khai trương", "Cưới hỏi", "Xuất hành", "Nhập trạch", "Động thổ"],
+        "en": ["Grand opening", "Wedding", "Travel", "Moving in", "Groundbreaking"]
+      }
+    }
+  ]
+}
