@@ -753,12 +753,127 @@ fn render_insight_text(lang: InsightLangArg, insight: &DayInsightDto) {
         println!("Tiet khi: {}", localized_text(lang, &tiet_khi.name));
         println!("Weather: {}", localized_text(lang, &tiet_khi.weather));
     }
+    if let Some(truc) = &insight.truc {
+        println!(
+            "Truc: {} ({}) — {}",
+            truc.name,
+            truc.quality,
+            localized_text(lang, &truc.meaning)
+        );
+        let good = localized_list(lang, &truc.good_for);
+        if !good.is_empty() {
+            println!("  Good for: {}", good.join(", "));
+        }
+        let avoid = localized_list(lang, &truc.avoid_for);
+        if !avoid.is_empty() {
+            println!("  Avoid: {}", avoid.join(", "));
+        }
+    }
+    if let Some(deity) = &insight.day_deity {
+        let class_text = localized_text(lang, &deity.classification_meaning);
+        println!("Day Deity: {} ({} — {})", deity.name, deity.classification, class_text);
+        if let Some(meaning) = &deity.deity_meaning {
+            println!("  {}", localized_text(lang, meaning));
+        }
+    }
+    if let Some(stars) = &insight.stars {
+        if !stars.cat_tinh.is_empty() {
+            println!("Cat tinh: {}", stars.cat_tinh.join(", "));
+        }
+        if !stars.sat_tinh.is_empty() {
+            println!("Sat tinh: {}", stars.sat_tinh.join(", "));
+        }
+    }
+    if let Some(na_am) = &insight.na_am {
+        println!(
+            "Na Am: {} ({}) — {}",
+            na_am.na_am,
+            na_am.element,
+            localized_text(lang, &na_am.meaning)
+        );
+    }
+    if let Some(taboos) = &insight.taboos {
+        if !taboos.is_empty() {
+            println!("Taboos:");
+            for t in taboos {
+                println!("  [{}] {} — {}", t.severity, t.name, t.reason);
+            }
+        }
+    }
+    if let Some(travel) = &insight.travel {
+        println!("Travel: {} | Tai Than: {} | Hy Than: {}", travel.xuat_hanh_huong, travel.tai_than, travel.hy_than);
+    }
+    if let Some(ten_gods) = &insight.ten_gods {
+        if let Some(entry) = &ten_gods.to_year_stem {
+            println!(
+                "Ten Gods (year): {} — {}",
+                entry.label,
+                localized_text(lang, &entry.meaning)
+            );
+        }
+        if let Some(entry) = &ten_gods.to_self {
+            println!(
+                "Ten Gods (self): {} — {}",
+                entry.label,
+                localized_text(lang, &entry.meaning)
+            );
+        }
+    }
+    if let Some(hours) = &insight.hours {
+        let hour_strs: Vec<String> = hours
+            .good_hours
+            .iter()
+            .map(|h| format!("{} ({})", h.chi, h.time_range))
+            .collect();
+        println!("Good hours ({}): {}", hours.good_hour_count, hour_strs.join(", "));
+    }
+    if let Some(tu_menh) = &insight.tu_menh {
+        println!(
+            "Tu Menh: Kua {} ({}) — {}",
+            tu_menh.kua,
+            tu_menh.group,
+            localized_text(lang, &tu_menh.meaning)
+        );
+        if !tu_menh.favorable_directions.is_empty() {
+            println!("  Favorable: {}", tu_menh.favorable_directions.join(", "));
+        }
+        if !tu_menh.unfavorable_directions.is_empty() {
+            println!("  Unfavorable: {}", tu_menh.unfavorable_directions.join(", "));
+        }
+    }
+    if let Some(dai_van) = &insight.dai_van {
+        println!(
+            "Dai Van: {} — {}",
+            dai_van.direction,
+            localized_text(lang, &dai_van.direction_meaning)
+        );
+        if let Some(pillar) = &dai_van.current_pillar {
+            println!(
+                "  Current pillar: {} ({}-{} tuoi) — {}",
+                pillar.can_chi,
+                pillar.start_age,
+                pillar.end_age,
+                localized_text(lang, &pillar.element_meaning)
+            );
+        }
+    }
 }
 
 fn run_insight(args: InsightArgs) -> Result<(), String> {
     let date = parse_date_or_today(args.date.as_deref())?;
     let query = query_from_date(date, args.timezone);
-    let insight = amlich_api::v2::get_insight(&query)?;
+    let profile = crate::profile::load_profile();
+    let gender = profile.gender.map(|g| match g {
+        crate::profile::ProfileGender::Male => amlich_core::almanac::tu_menh::Gender::Male,
+        crate::profile::ProfileGender::Female => amlich_core::almanac::tu_menh::Gender::Female,
+    });
+    let insight = amlich_api::v2::get_insight_with_profile(
+        &query,
+        profile.birth_year,
+        profile.birth_month,
+        profile.birth_day,
+        gender,
+    )?;
     match args.format {
         StructuredFormatArg::Json => print_json(&insight, args.pretty)?,
         StructuredFormatArg::Text => render_insight_text(args.lang, &insight),

@@ -241,6 +241,16 @@ pub fn get_insight(query: &DateQuery) -> Result<DayInsightDto, String> {
     crate::get_day_insight(query)
 }
 
+pub fn get_insight_with_profile(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<DayInsightDto, String> {
+    crate::get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)
+}
+
 pub fn get_tiet_khi_for_year(year: i32, timezone: Option<f64>) -> Result<TietKhiYearDto, String> {
     let tz = timezone.or(Some(amlich_core::VIETNAM_TIMEZONE));
     let mut by_date: BTreeMap<String, TietKhiDto> = BTreeMap::new();
