@@ -4,6 +4,10 @@ use std::sync::OnceLock;
 
 const CANCHI_JSON: &str = include_str!("../data/canchi.json");
 const TIET_KHI_JSON: &str = include_str!("../data/tiet-khi.json");
+const TRUC_INSIGHT_JSON: &str = include_str!("../data/truc-insight.json");
+const DAY_DEITY_INSIGHT_JSON: &str = include_str!("../data/day-deity-insight.json");
+const NA_AM_INSIGHT_JSON: &str = include_str!("../data/na-am-insight.json");
+const TEN_GODS_INSIGHT_JSON: &str = include_str!("../data/ten-gods-insight.json");
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct BilingualText {
@@ -74,8 +78,69 @@ struct TietKhiFile {
     tiet_khi: Vec<TietKhiInsight>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct TrucInsight {
+    pub id: String,
+    pub meaning: BilingualText,
+    pub good_for: BilingualList,
+    pub avoid_for: BilingualList,
+}
+
+#[derive(Debug, Deserialize)]
+struct TrucInsightFile {
+    truc: Vec<TrucInsight>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DeityClassificationInsight {
+    pub id: String,
+    pub name: BilingualText,
+    pub meaning: BilingualText,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DeityInsight {
+    pub name: String,
+    pub classification: String,
+    pub meaning: BilingualText,
+}
+
+#[derive(Debug, Deserialize)]
+struct DayDeityInsightFile {
+    classifications: Vec<DeityClassificationInsight>,
+    deities: Vec<DeityInsight>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct NaAmInsight {
+    pub na_am: String,
+    pub element: String,
+    pub meaning: BilingualText,
+}
+
+#[derive(Debug, Deserialize)]
+struct NaAmInsightFile {
+    pairs: Vec<NaAmInsight>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct TenGodsInsight {
+    pub id: String,
+    pub name: BilingualText,
+    pub meaning: BilingualText,
+}
+
+#[derive(Debug, Deserialize)]
+struct TenGodsInsightFile {
+    gods: Vec<TenGodsInsight>,
+}
+
 static CANCHI_DATA: OnceLock<CanChiFile> = OnceLock::new();
 static TIET_KHI_DATA: OnceLock<TietKhiFile> = OnceLock::new();
+static TRUC_INSIGHT_DATA: OnceLock<Vec<TrucInsight>> = OnceLock::new();
+static DAY_DEITY_INSIGHT_DATA: OnceLock<DayDeityInsightFile> = OnceLock::new();
+static NA_AM_INSIGHT_DATA: OnceLock<Vec<NaAmInsight>> = OnceLock::new();
+static TEN_GODS_INSIGHT_DATA: OnceLock<Vec<TenGodsInsight>> = OnceLock::new();
 
 fn canchi_data() -> &'static CanChiFile {
     CANCHI_DATA.get_or_init(|| {
@@ -127,6 +192,69 @@ pub fn find_tiet_khi_insight(term_name: &str) -> Option<&'static TietKhiInsight>
         .find(|item| item.name.vi == term_name || item.name.en == term_name)
 }
 
+pub fn all_truc_insights() -> &'static [TrucInsight] {
+    TRUC_INSIGHT_DATA
+        .get_or_init(|| {
+            let parsed: TrucInsightFile = serde_json::from_str(TRUC_INSIGHT_JSON)
+                .expect("Failed to parse data/truc-insight.json");
+            parsed.truc
+        })
+        .as_slice()
+}
+
+pub fn find_truc_insight(name: &str) -> Option<&'static TrucInsight> {
+    all_truc_insights().iter().find(|t| t.id == name)
+}
+
+fn day_deity_insight_data() -> &'static DayDeityInsightFile {
+    DAY_DEITY_INSIGHT_DATA.get_or_init(|| {
+        serde_json::from_str(DAY_DEITY_INSIGHT_JSON)
+            .expect("Failed to parse data/day-deity-insight.json")
+    })
+}
+
+pub fn find_deity_classification_insight(id: &str) -> Option<&'static DeityClassificationInsight> {
+    day_deity_insight_data()
+        .classifications
+        .iter()
+        .find(|c| c.id == id)
+}
+
+pub fn find_deity_insight(name: &str) -> Option<&'static DeityInsight> {
+    day_deity_insight_data()
+        .deities
+        .iter()
+        .find(|d| d.name == name)
+}
+
+pub fn all_na_am_insights() -> &'static [NaAmInsight] {
+    NA_AM_INSIGHT_DATA
+        .get_or_init(|| {
+            let parsed: NaAmInsightFile = serde_json::from_str(NA_AM_INSIGHT_JSON)
+                .expect("Failed to parse data/na-am-insight.json");
+            parsed.pairs
+        })
+        .as_slice()
+}
+
+pub fn find_na_am_insight(na_am: &str) -> Option<&'static NaAmInsight> {
+    all_na_am_insights().iter().find(|n| n.na_am == na_am)
+}
+
+pub fn all_ten_gods_insights() -> &'static [TenGodsInsight] {
+    TEN_GODS_INSIGHT_DATA
+        .get_or_init(|| {
+            let parsed: TenGodsInsightFile = serde_json::from_str(TEN_GODS_INSIGHT_JSON)
+                .expect("Failed to parse data/ten-gods-insight.json");
+            parsed.gods
+        })
+        .as_slice()
+}
+
+pub fn find_ten_gods_insight(id: &str) -> Option<&'static TenGodsInsight> {
+    all_ten_gods_insights().iter().find(|g| g.id == id)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
@@ -152,5 +280,45 @@ mod tests {
         let term = find_tiet_khi_insight("Xuân Phân").expect("Xuân Phân should exist");
         assert_eq!(term.longitude, 0);
         assert!(!term.health.vi.is_empty());
+    }
+
+    #[test]
+    fn all_truc_insights_has_12_entries() {
+        assert_eq!(super::all_truc_insights().len(), 12);
+    }
+
+    #[test]
+    fn find_truc_insight_returns_entry() {
+        let truc = super::find_truc_insight("Kiến");
+        assert!(truc.is_some());
+        assert!(!truc.unwrap().meaning.vi.is_empty());
+    }
+
+    #[test]
+    fn all_na_am_insights_has_30_entries() {
+        assert_eq!(super::all_na_am_insights().len(), 30);
+    }
+
+    #[test]
+    fn find_na_am_insight_returns_entry() {
+        let na_am = super::find_na_am_insight("Hải Trung Kim");
+        assert!(na_am.is_some());
+    }
+
+    #[test]
+    fn all_ten_gods_insights_has_10_entries() {
+        assert_eq!(super::all_ten_gods_insights().len(), 10);
+    }
+
+    #[test]
+    fn find_deity_classification_returns_entry() {
+        let cls = super::find_deity_classification_insight("HoangDao");
+        assert!(cls.is_some());
+    }
+
+    #[test]
+    fn find_deity_by_name_returns_entry() {
+        let deity = super::find_deity_insight("Thanh Long");
+        assert!(deity.is_some());
     }
 }
