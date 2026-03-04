@@ -8,6 +8,8 @@ const TRUC_INSIGHT_JSON: &str = include_str!("../data/truc-insight.json");
 const DAY_DEITY_INSIGHT_JSON: &str = include_str!("../data/day-deity-insight.json");
 const NA_AM_INSIGHT_JSON: &str = include_str!("../data/na-am-insight.json");
 const TEN_GODS_INSIGHT_JSON: &str = include_str!("../data/ten-gods-insight.json");
+const TU_MENH_INSIGHT_JSON: &str = include_str!("../data/tu-menh-insight.json");
+const DAI_VAN_INSIGHT_JSON: &str = include_str!("../data/dai-van-insight.json");
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct BilingualText {
@@ -135,12 +137,60 @@ struct TenGodsInsightFile {
     gods: Vec<TenGodsInsight>,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct KuaGroupInsight {
+    pub id: String,
+    pub name: BilingualText,
+    pub meaning: BilingualText,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct KuaInsight {
+    pub number: u8,
+    pub trigram: BilingualText,
+    pub direction: BilingualText,
+    pub meaning: BilingualText,
+}
+
+#[derive(Debug, Deserialize)]
+struct TuMenhInsightFile {
+    groups: Vec<KuaGroupInsight>,
+    kua: Vec<KuaInsight>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DaiVanDirectionInsight {
+    pub id: String,
+    pub name: BilingualText,
+    pub meaning: BilingualText,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DaiVanPhasesInsight {
+    pub meaning: BilingualText,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct DaiVanElementInsight {
+    pub element: String,
+    pub meaning: BilingualText,
+}
+
+#[derive(Debug, Deserialize)]
+struct DaiVanInsightFile {
+    directions: Vec<DaiVanDirectionInsight>,
+    phases: DaiVanPhasesInsight,
+    elements: Vec<DaiVanElementInsight>,
+}
+
 static CANCHI_DATA: OnceLock<CanChiFile> = OnceLock::new();
 static TIET_KHI_DATA: OnceLock<TietKhiFile> = OnceLock::new();
 static TRUC_INSIGHT_DATA: OnceLock<Vec<TrucInsight>> = OnceLock::new();
 static DAY_DEITY_INSIGHT_DATA: OnceLock<DayDeityInsightFile> = OnceLock::new();
 static NA_AM_INSIGHT_DATA: OnceLock<Vec<NaAmInsight>> = OnceLock::new();
 static TEN_GODS_INSIGHT_DATA: OnceLock<Vec<TenGodsInsight>> = OnceLock::new();
+static TU_MENH_INSIGHT_DATA: OnceLock<TuMenhInsightFile> = OnceLock::new();
+static DAI_VAN_INSIGHT_DATA: OnceLock<DaiVanInsightFile> = OnceLock::new();
 
 fn canchi_data() -> &'static CanChiFile {
     CANCHI_DATA.get_or_init(|| {
@@ -255,6 +305,60 @@ pub fn find_ten_gods_insight(id: &str) -> Option<&'static TenGodsInsight> {
     all_ten_gods_insights().iter().find(|g| g.id == id)
 }
 
+fn tu_menh_insight_data() -> &'static TuMenhInsightFile {
+    TU_MENH_INSIGHT_DATA.get_or_init(|| {
+        serde_json::from_str(TU_MENH_INSIGHT_JSON)
+            .expect("Failed to parse data/tu-menh-insight.json")
+    })
+}
+
+pub fn all_kua_group_insights() -> &'static [KuaGroupInsight] {
+    &tu_menh_insight_data().groups
+}
+
+pub fn all_kua_insights() -> &'static [KuaInsight] {
+    &tu_menh_insight_data().kua
+}
+
+pub fn find_kua_insight(number: u8) -> Option<&'static KuaInsight> {
+    all_kua_insights().iter().find(|k| k.number == number)
+}
+
+pub fn find_kua_group_insight(id: &str) -> Option<&'static KuaGroupInsight> {
+    all_kua_group_insights().iter().find(|g| g.id == id)
+}
+
+fn dai_van_insight_data() -> &'static DaiVanInsightFile {
+    DAI_VAN_INSIGHT_DATA.get_or_init(|| {
+        serde_json::from_str(DAI_VAN_INSIGHT_JSON)
+            .expect("Failed to parse data/dai-van-insight.json")
+    })
+}
+
+pub fn all_dai_van_direction_insights() -> &'static [DaiVanDirectionInsight] {
+    &dai_van_insight_data().directions
+}
+
+pub fn dai_van_phases_insight() -> &'static DaiVanPhasesInsight {
+    &dai_van_insight_data().phases
+}
+
+pub fn all_dai_van_element_insights() -> &'static [DaiVanElementInsight] {
+    &dai_van_insight_data().elements
+}
+
+pub fn find_dai_van_element_insight(element: &str) -> Option<&'static DaiVanElementInsight> {
+    all_dai_van_element_insights()
+        .iter()
+        .find(|e| e.element == element)
+}
+
+pub fn find_dai_van_direction_insight(id: &str) -> Option<&'static DaiVanDirectionInsight> {
+    all_dai_van_direction_insights()
+        .iter()
+        .find(|d| d.id == id)
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
@@ -320,5 +424,26 @@ mod tests {
     fn find_deity_by_name_returns_entry() {
         let deity = super::find_deity_insight("Thanh Long");
         assert!(deity.is_some());
+    }
+
+    #[test]
+    fn tu_menh_kua_insights_has_8_entries() {
+        assert_eq!(super::all_kua_insights().len(), 8);
+    }
+
+    #[test]
+    fn find_kua_insight_by_number() {
+        let kua = super::find_kua_insight(1);
+        assert!(kua.is_some());
+    }
+
+    #[test]
+    fn tu_menh_group_insights_has_2_entries() {
+        assert_eq!(super::all_kua_group_insights().len(), 2);
+    }
+
+    #[test]
+    fn dai_van_element_insights_has_5_entries() {
+        assert_eq!(super::all_dai_van_element_insights().len(), 5);
     }
 }
