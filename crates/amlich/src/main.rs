@@ -4,6 +4,7 @@ mod date_jump;
 mod event;
 mod headless;
 mod history;
+mod profile;
 mod search;
 mod theme;
 mod tui_runtime;
