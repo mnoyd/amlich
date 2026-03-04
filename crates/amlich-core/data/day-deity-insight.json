@@ -1,0 +1,70 @@
+{
+  "classifications": [
+    {
+      "id": "HoangDao",
+      "name": { "vi": "Hoàng Đạo", "en": "Auspicious Day" },
+      "meaning": {
+        "vi": "Ngày Hoàng Đạo là ngày tốt lành, được các vị thần bảo hộ. Thích hợp cho mọi việc quan trọng như cưới hỏi, khai trương, xuất hành, ký kết.",
+        "en": "Hoang Dao (Yellow Path) is an auspicious day protected by benevolent deities. Suitable for all important activities such as weddings, openings, travel, and contracts."
+      }
+    },
+    {
+      "id": "HacDao",
+      "name": { "vi": "Hắc Đạo", "en": "Inauspicious Day" },
+      "meaning": {
+        "vi": "Ngày Hắc Đạo là ngày xấu, nên tránh các việc quan trọng. Chỉ thích hợp cho việc nhỏ hoặc nội bộ.",
+        "en": "Hac Dao (Black Path) is an inauspicious day, avoid important activities. Only suitable for minor or internal matters."
+      }
+    }
+  ],
+  "deities": [
+    {
+      "name": "Thanh Long", "classification": "HoangDao",
+      "meaning": { "vi": "Thanh Long chủ về phúc lộc và may mắn.", "en": "Azure Dragon governs fortune and good luck." }
+    },
+    {
+      "name": "Minh Đường", "classification": "HoangDao",
+      "meaning": { "vi": "Minh Đường chủ về sáng suốt và hanh thông.", "en": "Bright Hall governs clarity and smooth progress." }
+    },
+    {
+      "name": "Kim Quỹ", "classification": "HoangDao",
+      "meaning": { "vi": "Kim Quỹ chủ về tài lộc và bảo vệ.", "en": "Golden Vault governs wealth and protection." }
+    },
+    {
+      "name": "Thiên Đức", "classification": "HoangDao",
+      "meaning": { "vi": "Thiên Đức chủ về nhân đức và che chở.", "en": "Heavenly Virtue governs benevolence and shelter." }
+    },
+    {
+      "name": "Ngọc Đường", "classification": "HoangDao",
+      "meaning": { "vi": "Ngọc Đường chủ về quý hiển và vinh hoa.", "en": "Jade Hall governs nobility and glory." }
+    },
+    {
+      "name": "Tư Mệnh", "classification": "HoangDao",
+      "meaning": { "vi": "Tư Mệnh chủ về mệnh vận và phù hộ.", "en": "Fate Commander governs destiny and divine assistance." }
+    },
+    {
+      "name": "Thiên Hình", "classification": "HacDao",
+      "meaning": { "vi": "Thiên Hình chủ về hình phạt và tai họa.", "en": "Heavenly Punishment governs penalties and calamity." }
+    },
+    {
+      "name": "Chu Tước", "classification": "HacDao",
+      "meaning": { "vi": "Chu Tước chủ về thị phi và tranh cãi.", "en": "Vermilion Bird governs gossip and disputes." }
+    },
+    {
+      "name": "Bạch Hổ", "classification": "HacDao",
+      "meaning": { "vi": "Bạch Hổ chủ về tang thương và tổn hại.", "en": "White Tiger governs mourning and loss." }
+    },
+    {
+      "name": "Thiên Lao", "classification": "HacDao",
+      "meaning": { "vi": "Thiên Lao chủ về giam cầm và trở ngại.", "en": "Heavenly Prison governs confinement and obstacles." }
+    },
+    {
+      "name": "Huyền Vũ", "classification": "HacDao",
+      "meaning": { "vi": "Huyền Vũ chủ về mất mát và bất an.", "en": "Dark Warrior governs loss and insecurity." }
+    },
+    {
+      "name": "Câu Trận", "classification": "HacDao",
+      "meaning": { "vi": "Câu Trận chủ về tranh chấp và kiện tụng.", "en": "Hook Formation governs conflicts and litigation." }
+    }
+  ]
+}
