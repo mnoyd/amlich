@@ -1,0 +1,17 @@
+[package]
+name = "amlich-tui"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+description = "Vietnamese Lunar Calendar - Next-gen scrolling TUI"
+
+[dependencies]
+amlich-api = { path = "../amlich-api", version = "0.1.2" }
+chrono = { workspace = true }
+crossterm = "0.28"
+ratatui = "0.29"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
