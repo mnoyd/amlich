@@ -6,6 +6,7 @@ pub mod golden_loader;
 pub mod hour_pillar;
 pub mod na_am;
 pub mod profile;
+pub mod recommendation;
 pub mod sexagenary_cycle;
 pub mod star;
 pub mod taboo;
