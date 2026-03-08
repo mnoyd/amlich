@@ -1,6 +1,4 @@
-use amlich_api::{
-    get_day_insight_for_date_with_profile, DayInfoDto, DayInsightDto, HolidayDto,
-};
+use amlich_api::{get_day_insight_for_date_with_profile, DayInfoDto, DayInsightDto, HolidayDto};
 use chrono::{Datelike, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 

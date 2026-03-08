@@ -67,6 +67,17 @@ Desktop app details: see `apps/desktop/README.md`.
 
 Shared data contract and validation: see `data/README.md`.
 
+## Recommendation Pipeline
+
+`amlich-core` now emits structured `daily_recommendations` and `amlich-api` transports the same payload through `DayInfoDto` and v2 `DayBundleDto`.
+
+Reference docs:
+
+- `docs/almanac/recommendation-taxonomy-audit.md`
+- `docs/almanac/recommendation-source-actionability.md`
+- `docs/almanac/recommendation-corpus.md`
+- `docs/almanac/recommendation-tui-spec.md`
+
 ## CLI Migration
 
 Old commands were replaced by explicit subcommands:

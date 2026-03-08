@@ -1,3 +1,4 @@
+use amlich_api::RecommendationBucketDto;
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -307,22 +308,72 @@ impl<'a> InfoPanel<'a> {
             )));
         }
 
-        if let Some(insight) = self.app.selected_insight() {
-            if let Some(guidance) = &insight.day_guidance {
-                lines.push(Line::from(""));
-                lines.push(Self::section_line("Nên / Tránh", width));
-                for item in guidance.good_for.vi.iter().take(3) {
-                    lines.push(Line::from(vec![
-                        Span::styled("✓ ", Style::default().fg(theme::GOOD_FG)),
-                        Span::styled(item.clone(), Style::default().fg(theme::PRIMARY_FG)),
-                    ]));
-                }
-                for item in guidance.avoid_for.vi.iter().take(3) {
-                    lines.push(Line::from(vec![
-                        Span::styled("✗ ", Style::default().fg(theme::BAD_FG)),
-                        Span::styled(item.clone(), Style::default().fg(theme::PRIMARY_FG)),
-                    ]));
-                }
+        lines.push(Line::from(""));
+        lines.push(Self::section_line("Khuyến nghị", width));
+        lines.push(Line::from(vec![
+            Span::styled("Tóm tắt: ", Style::default().fg(theme::SECONDARY_FG)),
+            Span::styled(
+                info.daily_recommendations.summary_vi.clone(),
+                Style::default().fg(theme::ACCENT_FG),
+            ),
+        ]));
+        for (bucket, marker, style) in [
+            (
+                RecommendationBucketDto::Nen,
+                "✓",
+                Style::default().fg(theme::GOOD_FG),
+            ),
+            (
+                RecommendationBucketDto::CoThe,
+                "•",
+                Style::default().fg(theme::ACCENT_FG),
+            ),
+            (
+                RecommendationBucketDto::Tranh,
+                "✗",
+                Style::default().fg(theme::BAD_FG),
+            ),
+            (
+                RecommendationBucketDto::KyManh,
+                "⛔",
+                Style::default()
+                    .fg(theme::BAD_FG)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ] {
+            let items: Vec<&amlich_api::SynthesizedRecommendationDto> = info
+                .daily_recommendations
+                .activities
+                .iter()
+                .filter(|activity| activity.bucket == bucket)
+                .collect();
+
+            if items.is_empty() {
+                continue;
+            }
+
+            let bucket_label = match bucket {
+                RecommendationBucketDto::Nen => "Nên",
+                RecommendationBucketDto::CoThe => "Có thể",
+                RecommendationBucketDto::Tranh => "Tránh",
+                RecommendationBucketDto::KyManh => "Kỵ mạnh",
+            };
+
+            lines.push(Line::from(vec![
+                Span::styled(
+                    format!("{bucket_label}: "),
+                    Style::default().fg(theme::SECONDARY_FG),
+                ),
+                Span::styled(format!("{} mục", items.len()), style),
+            ]));
+            for item in items.into_iter().take(2) {
+                lines.push(Line::from(vec![
+                    Span::styled(format!("{marker} "), style),
+                    Span::styled(
+                        item.label.vi.clone(),
+                        Style::default().fg(theme::PRIMARY_FG),
+                    ),
+                ]));
             }
         }
 

@@ -447,9 +447,13 @@ fn config_profile_set_and_clear_roundtrip() {
     let set = run(
         &home,
         &[
-            "config", "profile", "set",
-            "--birth-year", "1990",
-            "--gender", "male",
+            "config",
+            "profile",
+            "set",
+            "--birth-year",
+            "1990",
+            "--gender",
+            "male",
         ],
     );
     assert!(set.status.success());

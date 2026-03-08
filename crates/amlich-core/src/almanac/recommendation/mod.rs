@@ -8,7 +8,11 @@ pub use activity::{
     normalize_activity_alias, ActivityCategory, ActivityId, ActivityLabel, NormalizedActivity,
 };
 pub use evidence::{BaseDirection, BaseEvidenceHit};
-pub use synthesize::synthesize_base_daily_recommendations;
+pub use synthesize::{
+    synthesize_base_daily_recommendations, synthesize_daily_recommendations,
+    synthesize_daily_recommendations_with_layers, RecommendationLayer, RecommendationLayerHit,
+    RecommendationSynthesisContext,
+};
 pub use types::{
     DailyRecommendations, RecommendationBucket, RecommendationEvidence,
     RecommendationEvidenceSource, RecommendationReason, RecommendationScope,

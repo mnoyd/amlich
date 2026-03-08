@@ -1,0 +1,84 @@
+{
+  "version": "v1-layered",
+  "generated_from": "amlich-core daily_recommendations",
+  "cases": [
+    {
+      "id": "strong_favorable",
+      "date": "2024-05-13",
+      "rationale": "High support concentration with broad favorable spread and no hard-stop taboo impacts.",
+      "expect": {
+        "nen": 5,
+        "co_the": 1,
+        "tranh": 2,
+        "ky_manh": 0,
+        "summary_contains": "Ngày trung hòa",
+        "must_include_activity_ids": ["opening_start", "travel", "wedding_engagement"]
+      }
+    },
+    {
+      "id": "strong_avoid",
+      "date": "2024-01-03",
+      "rationale": "Taboo-heavy day that triggers multiple hard-stop outcomes and concentrated avoid recommendations.",
+      "expect": {
+        "nen": 1,
+        "co_the": 0,
+        "tranh": 4,
+        "ky_manh": 5,
+        "summary_contains": "kỵ mạnh",
+        "must_include_activity_ids": ["travel", "lawsuit_dispute", "wedding_engagement"]
+      }
+    },
+    {
+      "id": "conflicting_layered",
+      "date": "2024-02-14",
+      "rationale": "Mixed day with simultaneous favorable travel/social support and taboo-driven demotions.",
+      "expect": {
+        "nen": 2,
+        "co_the": 1,
+        "tranh": 4,
+        "ky_manh": 3,
+        "summary_contains": "kỵ mạnh",
+        "must_include_activity_ids": ["travel", "opening_start", "contract_agreement"]
+      }
+    },
+    {
+      "id": "sparse_relative",
+      "date": "2024-05-22",
+      "rationale": "Lowest emitted activity spread in 2024 scan, used as sparse-behavior guardrail.",
+      "expect": {
+        "nen": 1,
+        "co_the": 1,
+        "tranh": 5,
+        "ky_manh": 0,
+        "summary_contains": "thận trọng",
+        "must_include_activity_ids": ["meeting_social", "repair_renovation", "opening_start"]
+      }
+    },
+    {
+      "id": "edge_case_leap_day",
+      "date": "2024-02-29",
+      "rationale": "Gregorian leap-day boundary to protect date conversion and recommendation determinism.",
+      "expect": {
+        "nen": 2,
+        "co_the": 1,
+        "tranh": 6,
+        "ky_manh": 0,
+        "summary_contains": "thận trọng",
+        "must_include_activity_ids": ["travel", "finance_investment", "wedding_engagement"]
+      }
+    },
+    {
+      "id": "hard_stop_dense",
+      "date": "2024-12-22",
+      "rationale": "Dense layered case with high hard-stop count and surviving supportive recommendations.",
+      "expect": {
+        "nen": 2,
+        "co_the": 1,
+        "tranh": 2,
+        "ky_manh": 5,
+        "summary_contains": "kỵ mạnh",
+        "must_include_activity_ids": ["travel", "meeting_social", "wedding_engagement"]
+      }
+    }
+  ]
+}

@@ -771,7 +771,10 @@ fn render_insight_text(lang: InsightLangArg, insight: &DayInsightDto) {
     }
     if let Some(deity) = &insight.day_deity {
         let class_text = localized_text(lang, &deity.classification_meaning);
-        println!("Day Deity: {} ({} — {})", deity.name, deity.classification, class_text);
+        println!(
+            "Day Deity: {} ({} — {})",
+            deity.name, deity.classification, class_text
+        );
         if let Some(meaning) = &deity.deity_meaning {
             println!("  {}", localized_text(lang, meaning));
         }
@@ -801,7 +804,10 @@ fn render_insight_text(lang: InsightLangArg, insight: &DayInsightDto) {
         }
     }
     if let Some(travel) = &insight.travel {
-        println!("Travel: {} | Tai Than: {} | Hy Than: {}", travel.xuat_hanh_huong, travel.tai_than, travel.hy_than);
+        println!(
+            "Travel: {} | Tai Than: {} | Hy Than: {}",
+            travel.xuat_hanh_huong, travel.tai_than, travel.hy_than
+        );
     }
     if let Some(ten_gods) = &insight.ten_gods {
         if let Some(entry) = &ten_gods.to_year_stem {
@@ -825,7 +831,11 @@ fn render_insight_text(lang: InsightLangArg, insight: &DayInsightDto) {
             .iter()
             .map(|h| format!("{} ({})", h.chi, h.time_range))
             .collect();
-        println!("Good hours ({}): {}", hours.good_hour_count, hour_strs.join(", "));
+        println!(
+            "Good hours ({}): {}",
+            hours.good_hour_count,
+            hour_strs.join(", ")
+        );
     }
     if let Some(tu_menh) = &insight.tu_menh {
         println!(
@@ -838,7 +848,10 @@ fn render_insight_text(lang: InsightLangArg, insight: &DayInsightDto) {
             println!("  Favorable: {}", tu_menh.favorable_directions.join(", "));
         }
         if !tu_menh.unfavorable_directions.is_empty() {
-            println!("  Unfavorable: {}", tu_menh.unfavorable_directions.join(", "));
+            println!(
+                "  Unfavorable: {}",
+                tu_menh.unfavorable_directions.join(", ")
+            );
         }
     }
     if let Some(dai_van) = &insight.dai_van {

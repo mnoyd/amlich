@@ -1,5 +1,3 @@
-use std::cmp::max;
-
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -8,22 +6,17 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
-use amlich_api::{v2::DayBundleDto, LocalizedListDto};
+use amlich_api::{
+    v2::DayBundleDto, RecommendationBucketDto, RecommendationEvidenceSourceDto,
+    RecommendationSeverityDto,
+};
 
 use crate::layout::LayoutMode;
 use crate::state::AppState;
 
-const MEDIUM_COL_WIDTH: usize = 27;
-const LARGE_COL_WIDTH: usize = 34;
-const SMALL_LIMIT: usize = 3;
-const MEDIUM_LIMIT: usize = 5;
+const SMALL_LIMIT: usize = 2;
+const MEDIUM_LIMIT: usize = 4;
 const LARGE_LIMIT: usize = 6;
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum DecisionSide {
-    Nen,
-    Tranh,
-}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum DecisionEmphasis {
@@ -33,9 +26,7 @@ enum DecisionEmphasis {
 
 #[derive(Clone)]
 struct DecisionRow {
-    side: DecisionSide,
     text: String,
-    priority: i32,
     emphasis: DecisionEmphasis,
     reason_chip: Option<String>,
 }
@@ -56,34 +47,30 @@ impl Widget for GuidanceWidget<'_> {
         let Some(bundle) = &self.app.bundle else {
             return;
         };
-        let Some(insight) = &bundle.insight else {
-            return;
-        };
-        let Some(guidance) = &insight.day_guidance else {
+        let Some(recommendations) = &bundle.daily_recommendations else {
             return;
         };
 
-        let mut nen_rows = build_decision_rows(
-            bundle,
-            localized_items(&guidance.good_for),
-            DecisionSide::Nen,
-        );
-        let mut tranh_rows = build_decision_rows(
-            bundle,
-            localized_items(&guidance.avoid_for),
-            DecisionSide::Tranh,
-        );
+        let expanded = self.app.show_guidance_details;
+        let limit = display_limit(self.mode, expanded);
 
-        if nen_rows.is_empty() && tranh_rows.is_empty() {
+        let mut nen_rows = build_rows(recommendations, RecommendationBucketDto::Nen);
+        let mut co_the_rows = build_rows(recommendations, RecommendationBucketDto::CoThe);
+        let mut tranh_rows = build_rows(recommendations, RecommendationBucketDto::Tranh);
+        let mut ky_manh_rows = build_rows(recommendations, RecommendationBucketDto::KyManh);
+
+        if nen_rows.is_empty()
+            && co_the_rows.is_empty()
+            && tranh_rows.is_empty()
+            && ky_manh_rows.is_empty()
+        {
             return;
         }
 
         mark_primary(&mut nen_rows);
+        mark_primary(&mut co_the_rows);
         mark_primary(&mut tranh_rows);
-
-        let expanded = self.app.show_guidance_details;
-        let limit = display_limit(self.mode, expanded);
-        let summary = build_guidance_summary(bundle);
+        mark_primary(&mut ky_manh_rows);
 
         let mut lines = vec![];
         let header_style = Style::default().fg(Color::DarkGray);
@@ -97,38 +84,45 @@ impl Widget for GuidanceWidget<'_> {
         };
 
         lines.push(Line::from(vec![
-            Span::styled("── Hành Sự ", header_style),
-            Span::styled(format!("{:─<24}", ""), header_style),
+            Span::styled("── Khuyến Nghị ", header_style),
+            Span::styled(format!("{:─<20}", ""), header_style),
             Span::styled(expand_hint, hint_style),
         ]));
 
-        if let Some(summary) = summary {
-            lines.push(Line::from(vec![
-                Span::styled("   ", summary_style),
-                Span::styled(summary, summary_style),
-            ]));
-            lines.push(Line::from(""));
-        }
+        lines.push(Line::from(vec![
+            Span::styled("   ", summary_style),
+            Span::styled(recommendations.summary_vi.clone(), summary_style),
+        ]));
+        lines.push(Line::from(""));
 
-        match self.mode {
-            LayoutMode::Small => render_stacked(&mut lines, &nen_rows, &tranh_rows, limit),
-            LayoutMode::Medium => {
-                if area.width < 68 {
-                    render_stacked(&mut lines, &nen_rows, &tranh_rows, limit);
-                } else {
-                    render_side_by_side(
-                        &mut lines,
-                        &nen_rows,
-                        &tranh_rows,
-                        limit,
-                        MEDIUM_COL_WIDTH,
-                    );
-                }
-            }
-            LayoutMode::Large => {
-                render_side_by_side(&mut lines, &nen_rows, &tranh_rows, limit, LARGE_COL_WIDTH);
-            }
-        }
+        render_bucket_section(
+            &mut lines,
+            "Nên",
+            &nen_rows,
+            limit,
+            Style::default().fg(Color::Green),
+        );
+        render_bucket_section(
+            &mut lines,
+            "Có thể",
+            &co_the_rows,
+            limit,
+            Style::default().fg(Color::Cyan),
+        );
+        render_bucket_section(
+            &mut lines,
+            "Tránh",
+            &tranh_rows,
+            limit,
+            Style::default().fg(Color::Red),
+        );
+        render_bucket_section(
+            &mut lines,
+            "Kỵ mạnh",
+            &ky_manh_rows,
+            limit,
+            Style::default().fg(Color::Magenta),
+        );
 
         if let Some(footer) = build_footer_hint(bundle) {
             lines.push(Line::from(""));
@@ -142,124 +136,46 @@ impl Widget for GuidanceWidget<'_> {
     }
 }
 
-fn render_stacked(
+fn render_bucket_section(
     lines: &mut Vec<Line<'static>>,
-    nen_rows: &[DecisionRow],
-    tranh_rows: &[DecisionRow],
-    limit: usize,
-) {
-    let header_style = Style::default().fg(Color::DarkGray);
-    let nen_style = Style::default().fg(Color::Green);
-    let tranh_style = Style::default().fg(Color::Red);
-    let text_style = Style::default().fg(Color::White);
-    let chip_style = Style::default().fg(Color::Cyan);
-
-    if !nen_rows.is_empty() {
-        lines.push(Line::from(vec![
-            Span::styled("── Nên ", header_style),
-            Span::styled(format!("{:─<24}", ""), header_style),
-        ]));
-        for row in nen_rows.iter().take(limit) {
-            for rendered in render_row_lines(row, nen_style, text_style, chip_style, 48) {
-                lines.push(rendered);
-            }
-        }
-    }
-
-    if !tranh_rows.is_empty() {
-        if !nen_rows.is_empty() {
-            lines.push(Line::from(""));
-        }
-        lines.push(Line::from(vec![
-            Span::styled("── Tránh ", header_style),
-            Span::styled(format!("{:─<22}", ""), header_style),
-        ]));
-        for row in tranh_rows.iter().take(limit) {
-            for rendered in render_row_lines(row, tranh_style, text_style, chip_style, 48) {
-                lines.push(rendered);
-            }
-        }
-    }
-}
-
-fn render_side_by_side(
-    lines: &mut Vec<Line<'static>>,
-    nen_rows: &[DecisionRow],
-    tranh_rows: &[DecisionRow],
-    limit: usize,
-    col_width: usize,
-) {
-    let header_style = Style::default().fg(Color::DarkGray);
-    let text_style = Style::default().fg(Color::White);
-    let nen_style = Style::default().fg(Color::Green);
-    let tranh_style = Style::default().fg(Color::Red);
-    let chip_style = Style::default().fg(Color::Cyan);
-
-    let left_header = format!(
-        "── Nên {:─<width$}",
-        "",
-        width = col_width.saturating_sub(7)
-    );
-    let right_header = format!(
-        "── Tránh {:─<width$}",
-        "",
-        width = col_width.saturating_sub(9)
-    );
-    lines.push(Line::from(vec![
-        Span::styled(left_header, header_style),
-        Span::raw("   "),
-        Span::styled(right_header, header_style),
-    ]));
-
-    let left_blocks = rows_to_blocks(
-        nen_rows, limit, col_width, nen_style, text_style, chip_style,
-    );
-    let right_blocks = rows_to_blocks(
-        tranh_rows,
-        limit,
-        col_width,
-        tranh_style,
-        text_style,
-        chip_style,
-    );
-    let render_len = max(left_blocks.len(), right_blocks.len());
-
-    for i in 0..render_len {
-        let left = left_blocks
-            .get(i)
-            .cloned()
-            .unwrap_or_else(|| pad_line(col_width));
-        let right = right_blocks
-            .get(i)
-            .cloned()
-            .unwrap_or_else(|| Line::from(""));
-
-        let mut spans = left.spans;
-        spans.push(Span::raw("   "));
-        spans.extend(right.spans);
-        lines.push(Line::from(spans));
-    }
-}
-
-fn rows_to_blocks(
+    title: &str,
     rows: &[DecisionRow],
     limit: usize,
-    col_width: usize,
     marker_style: Style,
-    text_style: Style,
-    chip_style: Style,
-) -> Vec<Line<'static>> {
-    let mut rendered = Vec::new();
-    for row in rows.iter().take(limit) {
-        rendered.extend(render_row_lines(
-            row,
-            marker_style,
-            text_style,
-            chip_style,
-            col_width,
-        ));
+) {
+    if rows.is_empty() {
+        return;
     }
-    rendered
+
+    let header_style = Style::default().fg(Color::DarkGray);
+    let text_style = Style::default().fg(Color::White);
+    let chip_style = Style::default().fg(Color::Yellow);
+
+    if !lines.is_empty() {
+        lines.push(Line::from(""));
+    }
+
+    lines.push(Line::from(vec![
+        Span::styled(format!("── {title} ({}) ", rows.len()), header_style),
+        Span::styled(format!("{:─<22}", ""), header_style),
+    ]));
+
+    let take = rows.len().min(limit);
+    for row in rows.iter().take(take) {
+        for line in render_row_lines(row, marker_style, text_style, chip_style, 56) {
+            lines.push(line);
+        }
+    }
+
+    if rows.len() > take {
+        lines.push(Line::from(vec![
+            Span::raw("   "),
+            Span::styled(
+                format!("+{} mục ẩn", rows.len() - take),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]));
+    }
 }
 
 fn render_row_lines(
@@ -269,20 +185,18 @@ fn render_row_lines(
     chip_style: Style,
     width: usize,
 ) -> Vec<Line<'static>> {
-    let marker = match (row.side, row.emphasis) {
-        (DecisionSide::Nen, DecisionEmphasis::Primary) => "★ ",
-        (DecisionSide::Nen, DecisionEmphasis::Normal) => "✓ ",
-        (DecisionSide::Tranh, DecisionEmphasis::Primary) => "★ ",
-        (DecisionSide::Tranh, DecisionEmphasis::Normal) => "✗ ",
+    let marker = match row.emphasis {
+        DecisionEmphasis::Primary => "★ ",
+        DecisionEmphasis::Normal => "• ",
     };
+
     let base_indent = 3;
     let content_width = width.saturating_sub(base_indent + marker.len());
-    let chip = row.reason_chip.as_ref().map(|c| format!(" [{}]", c));
+    let chip = row.reason_chip.as_ref().map(|c| format!(" [{c}]"));
 
     let mut first = row.text.clone();
     if let Some(chip) = chip.as_ref() {
-        let needed = chip.chars().count();
-        if first.chars().count() + needed <= content_width {
+        if first.chars().count() + chip.chars().count() <= content_width {
             first.push_str(chip);
         }
     }
@@ -349,32 +263,34 @@ fn wrap_text(text: &str, width: usize) -> Vec<String> {
     lines
 }
 
-fn pad_line(width: usize) -> Line<'static> {
-    Line::from(Span::raw(format!("{:<width$}", "", width = width + 3)))
-}
-
-fn build_decision_rows(
-    bundle: &DayBundleDto,
-    items: &[String],
-    side: DecisionSide,
+fn build_rows(
+    bundle: &amlich_api::DailyRecommendationsDto,
+    bucket: RecommendationBucketDto,
 ) -> Vec<DecisionRow> {
-    let mut rows: Vec<DecisionRow> = items
+    bundle
+        .activities
         .iter()
-        .enumerate()
-        .map(|(idx, item)| {
-            let (priority, reason_chip) = score_item(bundle, item, side);
+        .filter(|activity| activity.bucket == bucket)
+        .map(|activity| {
+            let strongest = activity
+                .reasons
+                .iter()
+                .min_by_key(|reason| severity_rank(reason.severity));
+            let reason_chip = strongest.map(|reason| {
+                format!(
+                    "{} • {}",
+                    severity_label(reason.severity),
+                    source_label(reason.evidence.source)
+                )
+            });
+
             DecisionRow {
-                side,
-                text: item.clone(),
-                priority: priority * 10 - idx as i32,
+                text: activity.label.vi.clone(),
                 emphasis: DecisionEmphasis::Normal,
                 reason_chip,
             }
         })
-        .collect();
-
-    rows.sort_by(|a, b| b.priority.cmp(&a.priority));
-    rows
+        .collect()
 }
 
 fn mark_primary(rows: &mut [DecisionRow]) {
@@ -383,119 +299,53 @@ fn mark_primary(rows: &mut [DecisionRow]) {
     }
 }
 
-fn score_item(bundle: &DayBundleDto, item: &str, side: DecisionSide) -> (i32, Option<String>) {
-    let mut score = 0;
-    let lower = item.to_lowercase();
-
-    if let Some(fortune) = &bundle.day_fortune {
-        let truc_quality = fortune.truc.quality.as_str();
-        let cat_count = fortune.stars.cat_tinh.len() as i32;
-        let sat_count = fortune.stars.sat_tinh.len() as i32;
-        let taboo_count = fortune.taboos.len() as i32;
-
-        match side {
-            DecisionSide::Nen => {
-                if truc_quality == "cat" {
-                    score += 2;
-                }
-                if cat_count > sat_count {
-                    score += 2;
-                }
-                if matches_any(&lower, &["xuất hành", "đi", "di chuyển"]) {
-                    score += 2;
-                    return (score, Some("giờ tốt".to_string()));
-                }
-                if matches_any(&lower, &["gặp", "họp", "giao tiếp"]) && cat_count > 0 {
-                    score += 1;
-                    return (score, Some("cát tinh".to_string()));
-                }
-                if matches_any(&lower, &["khai", "khởi", "mở"]) && truc_quality == "cat" {
-                    score += 2;
-                    return (score, Some("trực tốt".to_string()));
-                }
-            }
-            DecisionSide::Tranh => {
-                if truc_quality == "hung" {
-                    score += 2;
-                }
-                if sat_count >= cat_count {
-                    score += 2;
-                }
-                if taboo_count > 0 {
-                    score += 1;
-                }
-                if matches_any(&lower, &["động thổ", "sửa", "xây", "đào"]) {
-                    score += 2;
-                    return (score, Some("trực xấu".to_string()));
-                }
-                if matches_any(&lower, &["tranh chấp", "kiện", "cãi"]) {
-                    score += 2;
-                    return (score, Some("xung ngày".to_string()));
-                }
-                if matches_any(&lower, &["quyết định", "đầu tư", "ký"]) && sat_count > 0 {
-                    score += 2;
-                    return (score, Some("sát tinh".to_string()));
-                }
-            }
-        }
-
-        if side == DecisionSide::Nen && cat_count > 0 {
-            return (score + 1, Some("cát tinh".to_string()));
-        }
-        if side == DecisionSide::Tranh && taboo_count > 0 {
-            return (score + 1, Some("kiêng kỵ".to_string()));
-        }
+fn severity_rank(severity: RecommendationSeverityDto) -> u8 {
+    match severity {
+        RecommendationSeverityDto::Override => 0,
+        RecommendationSeverityDto::Primary => 1,
+        RecommendationSeverityDto::Supporting => 2,
     }
-
-    if let Some(hours) = &bundle.gio_hoang_dao {
-        if side == DecisionSide::Nen && hours.good_hour_count >= 6 {
-            score += 1;
-        }
-    }
-
-    (score, None)
 }
 
-fn matches_any(haystack: &str, needles: &[&str]) -> bool {
-    needles.iter().any(|needle| haystack.contains(needle))
+fn severity_label(severity: RecommendationSeverityDto) -> &'static str {
+    match severity {
+        RecommendationSeverityDto::Override => "override",
+        RecommendationSeverityDto::Primary => "primary",
+        RecommendationSeverityDto::Supporting => "support",
+    }
 }
 
-fn build_guidance_summary(bundle: &DayBundleDto) -> Option<String> {
-    let fortune = bundle.day_fortune.as_ref()?;
-    let good_hours = bundle
-        .gio_hoang_dao
-        .as_ref()
-        .map(|hours| hours.good_hour_count)
-        .unwrap_or(0);
-    let cat_count = fortune.stars.cat_tinh.len();
-    let sat_count = fortune.stars.sat_tinh.len();
-    let taboo_count = fortune.taboos.len();
-    let truc = fortune.truc.name.as_str();
-
-    let summary = if fortune.truc.quality == "cat" && cat_count >= sat_count {
-        format!("Hợp việc triển khai gọn; trực {truc}, {good_hours} giờ tốt")
-    } else if taboo_count > 0 || fortune.truc.quality == "hung" {
-        format!("Nên giữ nhịp an toàn; trực {truc}, có dấu hiệu cần tránh việc lớn")
-    } else {
-        format!("Ngày trung hòa; trực {truc}, ưu tiên việc nhỏ và đều tay")
-    };
-
-    Some(summary)
+fn source_label(source: RecommendationEvidenceSourceDto) -> &'static str {
+    match source {
+        RecommendationEvidenceSourceDto::DayGuidance => "guidance",
+        RecommendationEvidenceSourceDto::Truc => "trực",
+        RecommendationEvidenceSourceDto::Stars => "sao",
+        RecommendationEvidenceSourceDto::DayDeity => "thần sát",
+        RecommendationEvidenceSourceDto::Taboo => "kiêng kỵ",
+        RecommendationEvidenceSourceDto::XungHop => "xung-hợp",
+        RecommendationEvidenceSourceDto::TietKhi => "tiết khí",
+        RecommendationEvidenceSourceDto::GioHoangDao => "giờ tốt",
+        RecommendationEvidenceSourceDto::Travel => "xuất hành",
+        RecommendationEvidenceSourceDto::ProductRule => "mở rộng",
+    }
 }
 
 fn build_footer_hint(bundle: &DayBundleDto) -> Option<String> {
-    let hours = bundle.gio_hoang_dao.as_ref()?;
-    let best: Vec<String> = hours
+    let Some(hours) = bundle.gio_hoang_dao.as_ref() else {
+        return None;
+    };
+
+    let top_hours: Vec<String> = hours
         .good_hours
         .iter()
         .take(3)
         .map(|hour| hour.time_range.clone())
         .collect();
 
-    if best.is_empty() {
+    if top_hours.is_empty() {
         None
     } else {
-        Some(format!("Giờ tốt nhất: {}", best.join(", ")))
+        Some(format!("Giờ đẹp tham chiếu: {}", top_hours.join(", ")))
     }
 }
 
@@ -511,10 +361,83 @@ fn display_limit(mode: LayoutMode, expanded: bool) -> usize {
     }
 }
 
-fn localized_items(list: &LocalizedListDto) -> &[String] {
-    if !list.vi.is_empty() {
-        &list.vi
-    } else {
-        &list.en
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use amlich_api::{
+        ActivityLabelDto, DailyRecommendationsDto, RecommendationBucketDto,
+        RecommendationEvidenceDto, RecommendationEvidenceSourceDto, RecommendationReasonDto,
+        RecommendationScopeDto, RecommendationSeverityDto, SynthesizedRecommendationDto,
+    };
+
+    fn sample_recommendations() -> DailyRecommendationsDto {
+        DailyRecommendationsDto {
+            scope: RecommendationScopeDto::GeneralDay,
+            version: "v1-layered".to_string(),
+            summary_vi: "Ngày thuận".to_string(),
+            summary_en: "Supportive day".to_string(),
+            activities: vec![
+                SynthesizedRecommendationDto {
+                    activity_id: "opening_start".to_string(),
+                    label: ActivityLabelDto {
+                        vi: "Khai mở".to_string(),
+                        en: "Opening and launching".to_string(),
+                    },
+                    bucket: RecommendationBucketDto::Nen,
+                    reasons: vec![RecommendationReasonDto {
+                        rule_id: "base.truc.truc.Khai.good_for".to_string(),
+                        severity: RecommendationSeverityDto::Primary,
+                        summary_vi: "Hợp cho khai trương".to_string(),
+                        summary_en: "Suitable for opening".to_string(),
+                        evidence: RecommendationEvidenceDto {
+                            source: RecommendationEvidenceSourceDto::Truc,
+                            code: "truc.Khai.good_for".to_string(),
+                            note: "Derived from truc".to_string(),
+                        },
+                    }],
+                },
+                SynthesizedRecommendationDto {
+                    activity_id: "contract_agreement".to_string(),
+                    label: ActivityLabelDto {
+                        vi: "Ký kết".to_string(),
+                        en: "Contracts and agreements".to_string(),
+                    },
+                    bucket: RecommendationBucketDto::Tranh,
+                    reasons: vec![RecommendationReasonDto {
+                        rule_id: "layer.taboo.taboo.tam_nuong.hard".to_string(),
+                        severity: RecommendationSeverityDto::Override,
+                        summary_vi: "Nên tránh ký kết lớn".to_string(),
+                        summary_en: "Avoid major signing".to_string(),
+                        evidence: RecommendationEvidenceDto {
+                            source: RecommendationEvidenceSourceDto::Taboo,
+                            code: "taboo.tam_nuong.hard".to_string(),
+                            note: "Derived from taboo".to_string(),
+                        },
+                    }],
+                },
+            ],
+        }
+    }
+
+    #[test]
+    fn build_rows_filters_by_bucket() {
+        let recommendations = sample_recommendations();
+        let nen_rows = build_rows(&recommendations, RecommendationBucketDto::Nen);
+        let tranh_rows = build_rows(&recommendations, RecommendationBucketDto::Tranh);
+        let co_the_rows = build_rows(&recommendations, RecommendationBucketDto::CoThe);
+
+        assert_eq!(nen_rows.len(), 1);
+        assert_eq!(nen_rows[0].text, "Khai mở");
+        assert_eq!(tranh_rows.len(), 1);
+        assert_eq!(tranh_rows[0].text, "Ký kết");
+        assert!(co_the_rows.is_empty());
+    }
+
+    #[test]
+    fn display_limit_changes_with_mode_and_expand() {
+        assert_eq!(display_limit(LayoutMode::Small, false), SMALL_LIMIT);
+        assert_eq!(display_limit(LayoutMode::Medium, false), MEDIUM_LIMIT);
+        assert_eq!(display_limit(LayoutMode::Large, false), LARGE_LIMIT);
+        assert_eq!(display_limit(LayoutMode::Small, true), usize::MAX);
     }
 }

@@ -221,6 +221,85 @@ pub struct DayFortuneDto {
     pub tu_menh: Option<KuaResultDto>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecommendationScopeDto {
+    GeneralDay,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecommendationBucketDto {
+    Nen,
+    CoThe,
+    Tranh,
+    KyManh,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecommendationSeverityDto {
+    Primary,
+    Supporting,
+    Override,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RecommendationEvidenceSourceDto {
+    DayGuidance,
+    Truc,
+    Stars,
+    DayDeity,
+    Taboo,
+    XungHop,
+    TietKhi,
+    GioHoangDao,
+    Travel,
+    ProductRule,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActivityLabelDto {
+    pub vi: String,
+    pub en: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecommendationEvidenceDto {
+    pub source: RecommendationEvidenceSourceDto,
+    pub code: String,
+    pub note: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecommendationReasonDto {
+    pub rule_id: String,
+    pub severity: RecommendationSeverityDto,
+    pub summary_vi: String,
+    pub summary_en: String,
+    pub evidence: RecommendationEvidenceDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SynthesizedRecommendationDto {
+    pub activity_id: String,
+    pub label: ActivityLabelDto,
+    pub bucket: RecommendationBucketDto,
+    #[serde(default)]
+    pub reasons: Vec<RecommendationReasonDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyRecommendationsDto {
+    pub scope: RecommendationScopeDto,
+    pub version: String,
+    pub summary_vi: String,
+    pub summary_en: String,
+    #[serde(default)]
+    pub activities: Vec<SynthesizedRecommendationDto>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KuaResultDto {
     pub kua: u8,
@@ -248,6 +327,7 @@ pub struct DayInfoDto {
     pub tiet_khi: TietKhiDto,
     pub gio_hoang_dao: GioHoangDaoDto,
     pub day_fortune: Option<DayFortuneDto>,
+    pub daily_recommendations: DailyRecommendationsDto,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

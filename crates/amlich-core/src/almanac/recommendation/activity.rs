@@ -193,9 +193,13 @@ pub fn normalize_activity_alias(input: &str) -> Option<NormalizedActivity> {
 
         "an tang" | "burial" | "tang le" | "memorial" => ActivityId::BurialMemorial,
 
-        "don dep" | "tay ue" | "giai tru" | "purification" | "cleaning" | "clearing old things" => {
-            ActivityId::CleaningPurging
-        }
+        "don dep"
+        | "don dep cu"
+        | "tay ue"
+        | "giai tru"
+        | "purification"
+        | "cleaning"
+        | "clearing old things" => ActivityId::CleaningPurging,
 
         _ => return None,
     };

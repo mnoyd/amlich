@@ -1,10 +1,13 @@
 use crate::dto::{
-    CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto, ConventionMetadataDto, DayConflictDto,
-    DayDeityDto, DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto,
-    DayTabooDto, DayTenGodsDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto,
-    GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto,
-    LocalizedTextDto, LunarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto, ProverbInsightDto,
-    RegionsInsightDto, RuleEvidenceDto, SolarDto, StarRuleEvidenceDto, TabooInsightDto, TangCanDto,
+    ActivityLabelDto, CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto,
+    ConventionMetadataDto, DailyRecommendationsDto, DayConflictDto, DayDeityDto, DayElementDto,
+    DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, DayTabooDto, DayTenGodsDto,
+    ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto,
+    HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto, LocalizedTextDto, LunarDto,
+    NaAmErrorDto, NaAmLookupResultDto, NguHanhDto, ProverbInsightDto, RecommendationBucketDto,
+    RecommendationEvidenceDto, RecommendationEvidenceSourceDto, RecommendationReasonDto,
+    RecommendationScopeDto, RecommendationSeverityDto, RegionsInsightDto, RuleEvidenceDto,
+    SolarDto, StarRuleEvidenceDto, SynthesizedRecommendationDto, TabooInsightDto, TangCanDto,
     ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
 };
 
@@ -379,6 +382,183 @@ impl From<&amlich_core::almanac::types::DayFortune> for DayFortuneDto {
     }
 }
 
+fn activity_id_to_snake_case(
+    activity_id: amlich_core::almanac::recommendation::ActivityId,
+) -> String {
+    match activity_id {
+        amlich_core::almanac::recommendation::ActivityId::Travel => "travel",
+        amlich_core::almanac::recommendation::ActivityId::MeetingSocial => "meeting_social",
+        amlich_core::almanac::recommendation::ActivityId::OpeningStart => "opening_start",
+        amlich_core::almanac::recommendation::ActivityId::ContractAgreement => "contract_agreement",
+        amlich_core::almanac::recommendation::ActivityId::BusinessTrade => "business_trade",
+        amlich_core::almanac::recommendation::ActivityId::FinanceInvestment => "finance_investment",
+        amlich_core::almanac::recommendation::ActivityId::ConstructionGroundbreaking => {
+            "construction_groundbreaking"
+        }
+        amlich_core::almanac::recommendation::ActivityId::RepairRenovation => "repair_renovation",
+        amlich_core::almanac::recommendation::ActivityId::MoveRelocation => "move_relocation",
+        amlich_core::almanac::recommendation::ActivityId::WeddingEngagement => "wedding_engagement",
+        amlich_core::almanac::recommendation::ActivityId::LawsuitDispute => "lawsuit_dispute",
+        amlich_core::almanac::recommendation::ActivityId::PrayerOffering => "prayer_offering",
+        amlich_core::almanac::recommendation::ActivityId::MedicalTreatment => "medical_treatment",
+        amlich_core::almanac::recommendation::ActivityId::BurialMemorial => "burial_memorial",
+        amlich_core::almanac::recommendation::ActivityId::CleaningPurging => "cleaning_purging",
+    }
+    .to_string()
+}
+
+impl From<&amlich_core::almanac::recommendation::ActivityLabel> for ActivityLabelDto {
+    fn from(value: &amlich_core::almanac::recommendation::ActivityLabel) -> Self {
+        Self {
+            vi: value.vi.clone(),
+            en: value.en.clone(),
+        }
+    }
+}
+
+impl From<amlich_core::almanac::recommendation::RecommendationScope> for RecommendationScopeDto {
+    fn from(value: amlich_core::almanac::recommendation::RecommendationScope) -> Self {
+        match value {
+            amlich_core::almanac::recommendation::RecommendationScope::GeneralDay => {
+                RecommendationScopeDto::GeneralDay
+            }
+        }
+    }
+}
+
+impl From<amlich_core::almanac::recommendation::RecommendationBucket> for RecommendationBucketDto {
+    fn from(value: amlich_core::almanac::recommendation::RecommendationBucket) -> Self {
+        match value {
+            amlich_core::almanac::recommendation::RecommendationBucket::Nen => {
+                RecommendationBucketDto::Nen
+            }
+            amlich_core::almanac::recommendation::RecommendationBucket::CoThe => {
+                RecommendationBucketDto::CoThe
+            }
+            amlich_core::almanac::recommendation::RecommendationBucket::Tranh => {
+                RecommendationBucketDto::Tranh
+            }
+            amlich_core::almanac::recommendation::RecommendationBucket::KyManh => {
+                RecommendationBucketDto::KyManh
+            }
+        }
+    }
+}
+
+impl From<amlich_core::almanac::recommendation::RecommendationSeverity>
+    for RecommendationSeverityDto
+{
+    fn from(value: amlich_core::almanac::recommendation::RecommendationSeverity) -> Self {
+        match value {
+            amlich_core::almanac::recommendation::RecommendationSeverity::Primary => {
+                RecommendationSeverityDto::Primary
+            }
+            amlich_core::almanac::recommendation::RecommendationSeverity::Supporting => {
+                RecommendationSeverityDto::Supporting
+            }
+            amlich_core::almanac::recommendation::RecommendationSeverity::Override => {
+                RecommendationSeverityDto::Override
+            }
+        }
+    }
+}
+
+impl From<amlich_core::almanac::recommendation::RecommendationEvidenceSource>
+    for RecommendationEvidenceSourceDto
+{
+    fn from(value: amlich_core::almanac::recommendation::RecommendationEvidenceSource) -> Self {
+        match value {
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::DayGuidance => {
+                RecommendationEvidenceSourceDto::DayGuidance
+            }
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::Truc => {
+                RecommendationEvidenceSourceDto::Truc
+            }
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::Stars => {
+                RecommendationEvidenceSourceDto::Stars
+            }
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::DayDeity => {
+                RecommendationEvidenceSourceDto::DayDeity
+            }
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::Taboo => {
+                RecommendationEvidenceSourceDto::Taboo
+            }
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::XungHop => {
+                RecommendationEvidenceSourceDto::XungHop
+            }
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::TietKhi => {
+                RecommendationEvidenceSourceDto::TietKhi
+            }
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::GioHoangDao => {
+                RecommendationEvidenceSourceDto::GioHoangDao
+            }
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::Travel => {
+                RecommendationEvidenceSourceDto::Travel
+            }
+            amlich_core::almanac::recommendation::RecommendationEvidenceSource::ProductRule => {
+                RecommendationEvidenceSourceDto::ProductRule
+            }
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::recommendation::RecommendationEvidence>
+    for RecommendationEvidenceDto
+{
+    fn from(value: &amlich_core::almanac::recommendation::RecommendationEvidence) -> Self {
+        Self {
+            source: RecommendationEvidenceSourceDto::from(value.source),
+            code: value.code.clone(),
+            note: value.note.clone(),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::recommendation::RecommendationReason> for RecommendationReasonDto {
+    fn from(value: &amlich_core::almanac::recommendation::RecommendationReason) -> Self {
+        Self {
+            rule_id: value.rule_id.clone(),
+            severity: RecommendationSeverityDto::from(value.severity),
+            summary_vi: value.summary_vi.clone(),
+            summary_en: value.summary_en.clone(),
+            evidence: RecommendationEvidenceDto::from(&value.evidence),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::recommendation::SynthesizedRecommendation>
+    for SynthesizedRecommendationDto
+{
+    fn from(value: &amlich_core::almanac::recommendation::SynthesizedRecommendation) -> Self {
+        Self {
+            activity_id: activity_id_to_snake_case(value.activity_id),
+            label: ActivityLabelDto::from(&value.label),
+            bucket: RecommendationBucketDto::from(value.bucket),
+            reasons: value
+                .reasons
+                .iter()
+                .map(RecommendationReasonDto::from)
+                .collect(),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::recommendation::DailyRecommendations> for DailyRecommendationsDto {
+    fn from(value: &amlich_core::almanac::recommendation::DailyRecommendations) -> Self {
+        Self {
+            scope: RecommendationScopeDto::from(value.scope),
+            version: value.version.clone(),
+            summary_vi: value.summary_vi.clone(),
+            summary_en: value.summary_en.clone(),
+            activities: value
+                .activities
+                .iter()
+                .map(SynthesizedRecommendationDto::from)
+                .collect(),
+        }
+    }
+}
+
 impl From<&amlich_core::DayInfo> for DayInfoDto {
     fn from(value: &amlich_core::DayInfo) -> Self {
         Self {
@@ -391,6 +571,7 @@ impl From<&amlich_core::DayInfo> for DayInfoDto {
             tiet_khi: TietKhiDto::from(&value.tiet_khi),
             gio_hoang_dao: GioHoangDaoDto::from(&value.gio_hoang_dao),
             day_fortune: Some(DayFortuneDto::from(&value.day_fortune)),
+            daily_recommendations: DailyRecommendationsDto::from(&value.daily_recommendations),
         }
     }
 }

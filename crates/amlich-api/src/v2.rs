@@ -5,8 +5,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::dto::{
-    CanChiInfoDto, DateQuery, DayFortuneDto, DayInsightDto, GioHoangDaoDto, KuaResultDto, LunarDto,
-    NaAmResponseDto, SolarDto, ThapThanResultDto, TietKhiDto,
+    CanChiInfoDto, DailyRecommendationsDto, DateQuery, DayFortuneDto, DayInsightDto,
+    GioHoangDaoDto, KuaResultDto, LunarDto, NaAmResponseDto, SolarDto, ThapThanResultDto,
+    TietKhiDto,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -39,6 +40,8 @@ pub struct DayBundleDto {
     pub tiet_khi: Option<TietKhiDto>,
     pub gio_hoang_dao: Option<GioHoangDaoDto>,
     pub day_fortune: Option<DayFortuneDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub daily_recommendations: Option<DailyRecommendationsDto>,
     pub insight: Option<DayInsightDto>,
 }
 
@@ -115,6 +118,9 @@ pub fn get_day_bundle(query: &DateQuery, includes: &[Include]) -> Result<DayBund
             info.day_fortune
                 .ok_or_else(|| "missing day_fortune in day info".to_string())?,
         ),
+        daily_recommendations: includes
+            .contains(&Include::Fortune)
+            .then_some(info.daily_recommendations),
         insight,
     })
 }
@@ -361,6 +367,7 @@ mod tests {
         };
         let bundle = get_day_bundle(&query, &[Include::Base, Include::CanChi]).expect("bundle");
         assert!(bundle.day_fortune.is_none());
+        assert!(bundle.daily_recommendations.is_none());
         assert!(bundle.canchi.is_some());
     }
 }

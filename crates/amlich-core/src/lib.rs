@@ -26,7 +26,9 @@ pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
 pub use types::*;
 
 use crate::almanac::calc::calculate_day_fortune;
-use crate::almanac::recommendation::{synthesize_base_daily_recommendations, DailyRecommendations};
+use crate::almanac::recommendation::{
+    synthesize_daily_recommendations, DailyRecommendations, RecommendationSynthesisContext,
+};
 use crate::almanac::types::DayFortune;
 use canchi::{get_day_canchi, get_month_canchi, get_year_canchi};
 use gio_hoang_dao::{get_gio_hoang_dao, GioHoangDao};
@@ -140,8 +142,15 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
         &year_canchi.can,
         &tiet_khi.name,
     );
-    let daily_recommendations =
-        synthesize_base_daily_recommendations(&day_canchi.chi, &day_fortune.truc.name);
+    let recommendation_context = RecommendationSynthesisContext {
+        day_chi: &day_canchi.chi,
+        day_fortune: &day_fortune,
+        gio_hoang_dao: Some(&gio_hoang_dao),
+        tiet_khi_name: Some(&tiet_khi.name),
+        profile_id: None,
+        event_kind: None,
+    };
+    let daily_recommendations = synthesize_daily_recommendations(&recommendation_context);
 
     // Build solar info
     let solar = SolarInfo {

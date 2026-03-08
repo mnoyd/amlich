@@ -1,20 +1,68 @@
 use std::collections::BTreeMap;
 
-use crate::insight_data::{get_day_guidance, DayGuidance};
+use crate::{
+    almanac::types::{DayDeityClassification, DayFortune, DayTaboo},
+    gio_hoang_dao::GioHoangDao,
+    insight_data::{get_day_guidance, DayGuidance},
+};
 
 use super::{
+    activity::ActivityId,
     evidence::{collect_truc_hits, normalize_legacy_guidance_hits},
     rules::{avoided_bucket, favored_bucket, truc_insight},
     BaseDirection, BaseEvidenceHit, DailyRecommendations, RecommendationBucket,
-    RecommendationEvidence, RecommendationReason, RecommendationScope, RecommendationSeverity,
-    SynthesizedRecommendation,
+    RecommendationEvidence, RecommendationEvidenceSource, RecommendationReason,
+    RecommendationScope, RecommendationSeverity, SynthesizedRecommendation,
 };
+
+#[derive(Debug, Clone)]
+pub struct RecommendationSynthesisContext<'a> {
+    pub day_chi: &'a str,
+    pub day_fortune: &'a DayFortune,
+    pub gio_hoang_dao: Option<&'a GioHoangDao>,
+    pub tiet_khi_name: Option<&'a str>,
+    pub profile_id: Option<&'a str>,
+    pub event_kind: Option<&'a str>,
+}
+
+#[derive(Debug, Clone)]
+pub struct RecommendationLayerHit {
+    pub activity_id: ActivityId,
+    pub source: RecommendationEvidenceSource,
+    pub source_code: String,
+    pub direction: BaseDirection,
+    pub summary_vi: String,
+    pub summary_en: String,
+    pub severity: RecommendationSeverity,
+    pub hard_stop: bool,
+}
+
+pub trait RecommendationLayer {
+    fn layer_id(&self) -> &'static str;
+    fn collect_hits(
+        &self,
+        context: &RecommendationSynthesisContext<'_>,
+    ) -> Vec<RecommendationLayerHit>;
+}
+
+#[derive(Debug, Clone)]
+struct CollectedHit {
+    activity_id: ActivityId,
+    source: RecommendationEvidenceSource,
+    source_code: String,
+    direction: BaseDirection,
+    summary_vi: String,
+    summary_en: String,
+    severity: RecommendationSeverity,
+    hard_stop: bool,
+}
 
 #[derive(Debug, Clone)]
 struct AggregateRecommendation {
     activity: SynthesizedRecommendation,
     saw_favor: bool,
     saw_avoid: bool,
+    saw_hard_stop: bool,
     favor_sources: usize,
 }
 
@@ -22,44 +70,423 @@ pub fn synthesize_base_daily_recommendations(
     day_chi: &str,
     truc_name: &str,
 ) -> DailyRecommendations {
+    synthesize_internal(day_chi, truc_name, None, None, None, &[])
+}
+
+pub fn synthesize_daily_recommendations(
+    context: &RecommendationSynthesisContext<'_>,
+) -> DailyRecommendations {
+    synthesize_daily_recommendations_with_layers(context, &[])
+}
+
+pub fn synthesize_daily_recommendations_with_layers(
+    context: &RecommendationSynthesisContext<'_>,
+    layers: &[&dyn RecommendationLayer],
+) -> DailyRecommendations {
+    synthesize_internal(
+        context.day_chi,
+        &context.day_fortune.truc.name,
+        Some(context),
+        context.gio_hoang_dao,
+        context.tiet_khi_name,
+        layers,
+    )
+}
+
+fn synthesize_internal(
+    day_chi: &str,
+    truc_name: &str,
+    context: Option<&RecommendationSynthesisContext<'_>>,
+    gio_hoang_dao: Option<&GioHoangDao>,
+    tiet_khi_name: Option<&str>,
+    layers: &[&dyn RecommendationLayer],
+) -> DailyRecommendations {
     let legacy_guidance = get_day_guidance(day_chi);
-    let hits = collect_base_hits(day_chi, truc_name, legacy_guidance);
+    let mut hits = collect_base_hits(legacy_guidance, truc_name);
+
+    if let Some(ctx) = context {
+        hits.extend(collect_star_modifier_hits(ctx.day_fortune));
+        hits.extend(collect_day_deity_modifier_hits(ctx.day_fortune));
+        hits.extend(collect_taboo_modifier_hits(ctx.day_fortune));
+        hits.extend(collect_xung_hop_modifier_hits(ctx.day_fortune));
+        hits.extend(collect_travel_modifier_hits(ctx.day_fortune));
+
+        if let Some(name) = tiet_khi_name {
+            hits.extend(collect_tiet_khi_modifier_hits(name));
+        }
+
+        if let Some(hours) = gio_hoang_dao {
+            hits.extend(collect_hours_modifier_hits(hours));
+        }
+
+        for layer in layers {
+            let _layer_id = layer.layer_id();
+            let extra = layer.collect_hits(ctx).into_iter().map(|hit| CollectedHit {
+                activity_id: hit.activity_id,
+                source: hit.source,
+                source_code: hit.source_code,
+                direction: hit.direction,
+                summary_vi: hit.summary_vi,
+                summary_en: hit.summary_en,
+                severity: hit.severity,
+                hard_stop: hit.hard_stop,
+            });
+            hits.extend(extra);
+        }
+    }
+
     let activities = merge_hits(hits);
     let (summary_vi, summary_en) = build_summary(&activities);
 
     DailyRecommendations {
         scope: RecommendationScope::GeneralDay,
-        version: "v1-base".to_string(),
+        version: if context.is_some() {
+            "v1-layered".to_string()
+        } else {
+            "v1-base".to_string()
+        },
         summary_vi,
         summary_en,
         activities,
     }
 }
 
-fn collect_base_hits(
-    day_chi: &str,
-    truc_name: &str,
-    legacy_guidance: Option<&DayGuidance>,
-) -> Vec<BaseEvidenceHit> {
+fn collect_base_hits(legacy_guidance: Option<&DayGuidance>, truc_name: &str) -> Vec<CollectedHit> {
     let mut hits = Vec::new();
 
     if let Some(guidance) = legacy_guidance {
-        hits.extend(normalize_legacy_guidance_hits(guidance));
+        hits.extend(
+            normalize_legacy_guidance_hits(guidance)
+                .into_iter()
+                .map(base_to_collected),
+        );
     }
 
     if let Some(truc) = truc_insight(truc_name) {
-        hits.extend(collect_truc_hits(truc));
-    }
-
-    if hits.is_empty() {
-        let note = format!("No normalized base recommendation hits for day chi {day_chi}");
-        let _ = note;
+        hits.extend(collect_truc_hits(truc).into_iter().map(base_to_collected));
     }
 
     hits
 }
 
-fn merge_hits(hits: Vec<BaseEvidenceHit>) -> Vec<SynthesizedRecommendation> {
+fn base_to_collected(hit: BaseEvidenceHit) -> CollectedHit {
+    CollectedHit {
+        activity_id: hit.activity_id,
+        source: hit.source,
+        source_code: hit.source_code,
+        direction: hit.direction,
+        summary_vi: hit.summary_vi,
+        summary_en: hit.summary_en,
+        severity: match hit.direction {
+            BaseDirection::Favor => RecommendationSeverity::Primary,
+            BaseDirection::Avoid => RecommendationSeverity::Override,
+        },
+        hard_stop: false,
+    }
+}
+
+fn collect_star_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
+    let mut hits = Vec::new();
+
+    for star in &day_fortune.stars.cat_tinh {
+        let activities = match star.as_str() {
+            "Thiên Đức" | "Nguyệt Đức" | "Thiên Quý" => vec![
+                ActivityId::OpeningStart,
+                ActivityId::ContractAgreement,
+                ActivityId::WeddingEngagement,
+            ],
+            "Thiên Hỷ" => vec![ActivityId::WeddingEngagement, ActivityId::MeetingSocial],
+            "Thanh Long" => vec![ActivityId::Travel, ActivityId::OpeningStart],
+            _ => vec![ActivityId::OpeningStart],
+        };
+
+        for activity_id in activities {
+            hits.push(CollectedHit {
+                activity_id,
+                source: RecommendationEvidenceSource::Stars,
+                source_code: format!("stars.cat_tinh.{star}"),
+                direction: BaseDirection::Favor,
+                summary_vi: format!("Cát tinh {star} hỗ trợ"),
+                summary_en: format!("Auspicious star {star} provides support"),
+                severity: RecommendationSeverity::Supporting,
+                hard_stop: false,
+            });
+        }
+    }
+
+    for star in &day_fortune.stars.sat_tinh {
+        let activities = match star.as_str() {
+            "Bạch Hổ" | "Thiên Hình" | "Thiên Lao" => vec![
+                ActivityId::ConstructionGroundbreaking,
+                ActivityId::WeddingEngagement,
+                ActivityId::MedicalTreatment,
+            ],
+            "Chu Tước" => vec![ActivityId::LawsuitDispute, ActivityId::ContractAgreement],
+            _ => vec![ActivityId::ContractAgreement],
+        };
+
+        for activity_id in activities {
+            hits.push(CollectedHit {
+                activity_id,
+                source: RecommendationEvidenceSource::Stars,
+                source_code: format!("stars.sat_tinh.{star}"),
+                direction: BaseDirection::Avoid,
+                summary_vi: format!("Sát tinh {star} gây bất lợi"),
+                summary_en: format!("Inauspicious star {star} adds risk"),
+                severity: RecommendationSeverity::Supporting,
+                hard_stop: false,
+            });
+        }
+    }
+
+    hits
+}
+
+fn collect_day_deity_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
+    let Some(deity) = &day_fortune.day_deity else {
+        return Vec::new();
+    };
+
+    let (direction, activities, summary_vi, summary_en) = match deity.classification {
+        DayDeityClassification::HoangDao => (
+            BaseDirection::Favor,
+            vec![
+                ActivityId::OpeningStart,
+                ActivityId::Travel,
+                ActivityId::MeetingSocial,
+            ],
+            format!("Hoàng đạo {} hỗ trợ việc hanh thông", deity.name),
+            format!("Auspicious deity {} supports smooth activities", deity.name),
+        ),
+        DayDeityClassification::HacDao => (
+            BaseDirection::Avoid,
+            vec![
+                ActivityId::ConstructionGroundbreaking,
+                ActivityId::ContractAgreement,
+                ActivityId::WeddingEngagement,
+            ],
+            format!("Hắc đạo {} cảnh báo nên tránh việc trọng", deity.name),
+            format!(
+                "Inauspicious deity {} warns against major activities",
+                deity.name
+            ),
+        ),
+    };
+
+    activities
+        .into_iter()
+        .map(|activity_id| CollectedHit {
+            activity_id,
+            source: RecommendationEvidenceSource::DayDeity,
+            source_code: format!("day_deity.{}", deity.name),
+            direction,
+            summary_vi: summary_vi.clone(),
+            summary_en: summary_en.clone(),
+            severity: RecommendationSeverity::Supporting,
+            hard_stop: false,
+        })
+        .collect()
+}
+
+fn collect_taboo_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
+    let mut hits = Vec::new();
+
+    for taboo in &day_fortune.taboos {
+        let activities = taboo_target_activities(taboo);
+        let hard_stop = matches!(taboo.severity.as_str(), "hard" | "high");
+        let severity = if hard_stop {
+            RecommendationSeverity::Override
+        } else {
+            RecommendationSeverity::Supporting
+        };
+
+        for activity_id in activities {
+            hits.push(CollectedHit {
+                activity_id,
+                source: RecommendationEvidenceSource::Taboo,
+                source_code: format!("taboo.{}.{}", taboo.rule_id, taboo.severity),
+                direction: BaseDirection::Avoid,
+                summary_vi: format!("{}: {}", taboo.name, taboo.reason),
+                summary_en: format!("{} taboo: {}", taboo.name, taboo.reason),
+                severity,
+                hard_stop,
+            });
+        }
+    }
+
+    hits
+}
+
+fn taboo_target_activities(taboo: &DayTaboo) -> Vec<ActivityId> {
+    match taboo.rule_id.as_str() {
+        "tam_nuong" => vec![
+            ActivityId::WeddingEngagement,
+            ActivityId::ConstructionGroundbreaking,
+            ActivityId::OpeningStart,
+            ActivityId::ContractAgreement,
+            ActivityId::FinanceInvestment,
+        ],
+        "nguyet_ky" => vec![
+            ActivityId::ConstructionGroundbreaking,
+            ActivityId::MoveRelocation,
+            ActivityId::WeddingEngagement,
+        ],
+        _ => vec![ActivityId::OpeningStart, ActivityId::ContractAgreement],
+    }
+}
+
+fn collect_xung_hop_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
+    let mut hits = Vec::new();
+
+    if !day_fortune.xung_hop.tu_hanh_xung.is_empty() {
+        hits.push(CollectedHit {
+            activity_id: ActivityId::LawsuitDispute,
+            source: RecommendationEvidenceSource::XungHop,
+            source_code: "xung_hop.tu_hanh_xung".to_string(),
+            direction: BaseDirection::Avoid,
+            summary_vi: "Tứ hành xung hiện diện, dễ phát sinh va chạm".to_string(),
+            summary_en: "Four-way clash present, disputes can escalate".to_string(),
+            severity: RecommendationSeverity::Supporting,
+            hard_stop: false,
+        });
+        hits.push(CollectedHit {
+            activity_id: ActivityId::ContractAgreement,
+            source: RecommendationEvidenceSource::XungHop,
+            source_code: "xung_hop.tu_hanh_xung".to_string(),
+            direction: BaseDirection::Avoid,
+            summary_vi: "Nên thận trọng khi ràng buộc cam kết".to_string(),
+            summary_en: "Exercise caution on binding agreements".to_string(),
+            severity: RecommendationSeverity::Supporting,
+            hard_stop: false,
+        });
+    }
+
+    if day_fortune.xung_hop.liu_he.is_some() || !day_fortune.xung_hop.tam_hop.is_empty() {
+        hits.push(CollectedHit {
+            activity_id: ActivityId::MeetingSocial,
+            source: RecommendationEvidenceSource::XungHop,
+            source_code: "xung_hop.harmony".to_string(),
+            direction: BaseDirection::Favor,
+            summary_vi: "Quan hệ hợp khí thuận cho gặp gỡ và hòa giải".to_string(),
+            summary_en: "Harmony signals support meetings and reconciliation".to_string(),
+            severity: RecommendationSeverity::Supporting,
+            hard_stop: false,
+        });
+    }
+
+    hits
+}
+
+fn collect_hours_modifier_hits(gio_hoang_dao: &GioHoangDao) -> Vec<CollectedHit> {
+    if gio_hoang_dao.good_hour_count >= 6 {
+        return vec![
+            CollectedHit {
+                activity_id: ActivityId::Travel,
+                source: RecommendationEvidenceSource::GioHoangDao,
+                source_code: "gio_hoang_dao.good_hours".to_string(),
+                direction: BaseDirection::Favor,
+                summary_vi: format!("Có {} giờ hoàng đạo", gio_hoang_dao.good_hour_count),
+                summary_en: format!(
+                    "{} auspicious hours are available",
+                    gio_hoang_dao.good_hour_count
+                ),
+                severity: RecommendationSeverity::Supporting,
+                hard_stop: false,
+            },
+            CollectedHit {
+                activity_id: ActivityId::OpeningStart,
+                source: RecommendationEvidenceSource::GioHoangDao,
+                source_code: "gio_hoang_dao.good_hours".to_string(),
+                direction: BaseDirection::Favor,
+                summary_vi: "Khung giờ thuận giúp triển khai việc mở đầu".to_string(),
+                summary_en: "Auspicious time windows support new starts".to_string(),
+                severity: RecommendationSeverity::Supporting,
+                hard_stop: false,
+            },
+        ];
+    }
+
+    if gio_hoang_dao.good_hour_count <= 4 {
+        return vec![CollectedHit {
+            activity_id: ActivityId::Travel,
+            source: RecommendationEvidenceSource::GioHoangDao,
+            source_code: "gio_hoang_dao.low_good_hours".to_string(),
+            direction: BaseDirection::Avoid,
+            summary_vi: "Ít giờ hoàng đạo, nên chọn thời điểm kỹ".to_string(),
+            summary_en: "Limited auspicious hours; timing needs extra care".to_string(),
+            severity: RecommendationSeverity::Supporting,
+            hard_stop: false,
+        }];
+    }
+
+    Vec::new()
+}
+
+fn collect_travel_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
+    if day_fortune.travel.xuat_hanh_huong.trim().is_empty() {
+        return Vec::new();
+    }
+
+    vec![CollectedHit {
+        activity_id: ActivityId::Travel,
+        source: RecommendationEvidenceSource::Travel,
+        source_code: "travel.xuat_hanh_huong".to_string(),
+        direction: BaseDirection::Favor,
+        summary_vi: format!(
+            "Có hướng xuất hành tham chiếu: {}",
+            day_fortune.travel.xuat_hanh_huong
+        ),
+        summary_en: format!(
+            "A travel direction is available: {}",
+            day_fortune.travel.xuat_hanh_huong
+        ),
+        severity: RecommendationSeverity::Supporting,
+        hard_stop: false,
+    }]
+}
+
+fn collect_tiet_khi_modifier_hits(tiet_khi_name: &str) -> Vec<CollectedHit> {
+    match tiet_khi_name {
+        "Lập Xuân" | "Lập Hạ" | "Lập Thu" | "Lập Đông" => vec![
+            CollectedHit {
+                activity_id: ActivityId::OpeningStart,
+                source: RecommendationEvidenceSource::TietKhi,
+                source_code: "tiet_khi.transition_start".to_string(),
+                direction: BaseDirection::Favor,
+                summary_vi: format!("{} thuận cho khởi sự có chuẩn bị", tiet_khi_name),
+                summary_en: format!("{tiet_khi_name} supports prepared beginnings"),
+                severity: RecommendationSeverity::Supporting,
+                hard_stop: false,
+            },
+            CollectedHit {
+                activity_id: ActivityId::MoveRelocation,
+                source: RecommendationEvidenceSource::TietKhi,
+                source_code: "tiet_khi.transition_start".to_string(),
+                direction: BaseDirection::Favor,
+                summary_vi: "Thời khí chuyển mùa hỗ trợ việc sắp xếp chuyển dịch".to_string(),
+                summary_en: "Seasonal transition supports relocation planning".to_string(),
+                severity: RecommendationSeverity::Supporting,
+                hard_stop: false,
+            },
+        ],
+        "Đại Hàn" | "Tiểu Hàn" | "Đại Thử" => vec![CollectedHit {
+            activity_id: ActivityId::ConstructionGroundbreaking,
+            source: RecommendationEvidenceSource::TietKhi,
+            source_code: "tiet_khi.extreme".to_string(),
+            direction: BaseDirection::Avoid,
+            summary_vi: format!(
+                "{} là tiết khí cực điểm, nên tránh việc nặng",
+                tiet_khi_name
+            ),
+            summary_en: format!("{tiet_khi_name} is climatically extreme for heavy tasks"),
+            severity: RecommendationSeverity::Supporting,
+            hard_stop: false,
+        }],
+        _ => Vec::new(),
+    }
+}
+
+fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
     let mut by_activity: BTreeMap<String, AggregateRecommendation> = BTreeMap::new();
 
     for hit in hits {
@@ -69,12 +496,13 @@ fn merge_hits(hits: Vec<BaseEvidenceHit>) -> Vec<SynthesizedRecommendation> {
             .or_insert_with(|| AggregateRecommendation {
                 activity: SynthesizedRecommendation {
                     activity_id: hit.activity_id,
-                    label: hit.label.clone(),
+                    label: hit.activity_id.labels(),
                     bucket: RecommendationBucket::CoThe,
                     reasons: vec![],
                 },
                 saw_favor: false,
                 saw_avoid: false,
+                saw_hard_stop: false,
                 favor_sources: 0,
             });
 
@@ -92,6 +520,10 @@ fn merge_hits(hits: Vec<BaseEvidenceHit>) -> Vec<SynthesizedRecommendation> {
             }
         }
 
+        if hit.hard_stop {
+            entry.saw_hard_stop = true;
+        }
+
         entry.activity.reasons.push(build_reason(&hit));
     }
 
@@ -102,8 +534,15 @@ fn merge_hits(hits: Vec<BaseEvidenceHit>) -> Vec<SynthesizedRecommendation> {
                 aggregate.activity.bucket,
                 aggregate.saw_favor,
                 aggregate.saw_avoid,
+                aggregate.saw_hard_stop,
                 aggregate.favor_sources,
             );
+            aggregate.activity.reasons.sort_by(|a, b| {
+                severity_rank(a.severity)
+                    .cmp(&severity_rank(b.severity))
+                    .then_with(|| a.rule_id.cmp(&b.rule_id))
+                    .then_with(|| a.summary_vi.cmp(&b.summary_vi))
+            });
             aggregate.activity
         })
         .collect();
@@ -112,6 +551,7 @@ fn merge_hits(hits: Vec<BaseEvidenceHit>) -> Vec<SynthesizedRecommendation> {
         bucket_rank(&a.bucket)
             .cmp(&bucket_rank(&b.bucket))
             .then_with(|| a.label.vi.cmp(&b.label.vi))
+            .then_with(|| a.label.en.cmp(&b.label.en))
     });
     activities
 }
@@ -120,8 +560,13 @@ fn resolve_bucket(
     current: RecommendationBucket,
     saw_favor: bool,
     saw_avoid: bool,
+    saw_hard_stop: bool,
     favor_sources: usize,
 ) -> RecommendationBucket {
+    if saw_hard_stop {
+        return RecommendationBucket::KyManh;
+    }
+
     if saw_avoid {
         return RecommendationBucket::Tranh;
     }
@@ -133,17 +578,10 @@ fn resolve_bucket(
     current
 }
 
-fn build_reason(hit: &BaseEvidenceHit) -> RecommendationReason {
+fn build_reason(hit: &CollectedHit) -> RecommendationReason {
     RecommendationReason {
-        rule_id: match hit.source {
-            super::RecommendationEvidenceSource::DayGuidance => "base.day_guidance".to_string(),
-            super::RecommendationEvidenceSource::Truc => "base.truc".to_string(),
-            _ => "base.unknown".to_string(),
-        },
-        severity: match hit.direction {
-            BaseDirection::Favor => RecommendationSeverity::Primary,
-            BaseDirection::Avoid => RecommendationSeverity::Override,
-        },
+        rule_id: format!("{}.{}", source_prefix(hit.source), hit.source_code),
+        severity: hit.severity,
         summary_vi: match hit.direction {
             BaseDirection::Favor => format!("Hợp cho {}", hit.summary_vi),
             BaseDirection::Avoid => format!("Nên tránh {}", hit.summary_vi),
@@ -155,16 +593,50 @@ fn build_reason(hit: &BaseEvidenceHit) -> RecommendationReason {
         evidence: RecommendationEvidence {
             source: hit.source,
             code: hit.source_code.clone(),
-            note: match hit.source {
-                super::RecommendationEvidenceSource::DayGuidance => {
-                    "Derived from legacy day guidance".to_string()
-                }
-                super::RecommendationEvidenceSource::Truc => {
-                    "Derived from truc day-duty guidance".to_string()
-                }
-                _ => "Derived from base recommendation evidence".to_string(),
-            },
+            note: evidence_note(hit.source),
         },
+    }
+}
+
+fn source_prefix(source: RecommendationEvidenceSource) -> &'static str {
+    match source {
+        RecommendationEvidenceSource::DayGuidance => "base.day_guidance",
+        RecommendationEvidenceSource::Truc => "base.truc",
+        RecommendationEvidenceSource::Stars => "layer.stars",
+        RecommendationEvidenceSource::DayDeity => "layer.day_deity",
+        RecommendationEvidenceSource::Taboo => "layer.taboo",
+        RecommendationEvidenceSource::XungHop => "layer.xung_hop",
+        RecommendationEvidenceSource::TietKhi => "layer.tiet_khi",
+        RecommendationEvidenceSource::GioHoangDao => "layer.gio_hoang_dao",
+        RecommendationEvidenceSource::Travel => "layer.travel",
+        RecommendationEvidenceSource::ProductRule => "layer.product_rule",
+    }
+}
+
+fn evidence_note(source: RecommendationEvidenceSource) -> String {
+    match source {
+        RecommendationEvidenceSource::DayGuidance => "Derived from legacy day guidance".to_string(),
+        RecommendationEvidenceSource::Truc => "Derived from truc day-duty guidance".to_string(),
+        RecommendationEvidenceSource::Stars => "Derived from day star buckets".to_string(),
+        RecommendationEvidenceSource::DayDeity => {
+            "Derived from hoang dao/hac dao day deity".to_string()
+        }
+        RecommendationEvidenceSource::Taboo => "Derived from structured day taboos".to_string(),
+        RecommendationEvidenceSource::XungHop => {
+            "Derived from xung-hop conflict/harmony relationships".to_string()
+        }
+        RecommendationEvidenceSource::TietKhi => {
+            "Derived from tiet-khi seasonal signal".to_string()
+        }
+        RecommendationEvidenceSource::GioHoangDao => {
+            "Derived from good-hour distribution".to_string()
+        }
+        RecommendationEvidenceSource::Travel => {
+            "Derived from travel-direction subsystem".to_string()
+        }
+        RecommendationEvidenceSource::ProductRule => {
+            "Derived from extension layer rule".to_string()
+        }
     }
 }
 
@@ -181,8 +653,17 @@ fn build_summary(activities: &[SynthesizedRecommendation]) -> (String, String) {
         .iter()
         .filter(|activity| activity.bucket == RecommendationBucket::Tranh)
         .count();
+    let ky_manh = activities
+        .iter()
+        .filter(|activity| activity.bucket == RecommendationBucket::KyManh)
+        .count();
 
-    if nen > 0 && tranh == 0 {
+    if ky_manh > 0 {
+        (
+            format!("Ngày cần kiêng trọng điểm, có {} việc kỵ mạnh", ky_manh),
+            format!("A restricted day with {ky_manh} hard-stop activities"),
+        )
+    } else if nen > 0 && tranh == 0 {
         (
             format!("Ngày thuận cho {} việc chính", nen),
             format!("A supportive day for {nen} primary activities"),
@@ -203,6 +684,14 @@ fn build_summary(activities: &[SynthesizedRecommendation]) -> (String, String) {
     }
 }
 
+fn severity_rank(severity: RecommendationSeverity) -> u8 {
+    match severity {
+        RecommendationSeverity::Override => 0,
+        RecommendationSeverity::Primary => 1,
+        RecommendationSeverity::Supporting => 2,
+    }
+}
+
 fn bucket_rank(bucket: &RecommendationBucket) -> u8 {
     match bucket {
         RecommendationBucket::Nen => 0,
@@ -214,6 +703,11 @@ fn bucket_rank(bucket: &RecommendationBucket) -> u8 {
 
 #[cfg(test)]
 mod tests {
+    use crate::{
+        almanac::calc::calculate_day_fortune, canchi::get_day_canchi,
+        gio_hoang_dao::get_gio_hoang_dao,
+    };
+
     use super::*;
 
     #[test]
@@ -239,6 +733,41 @@ mod tests {
     }
 
     #[test]
+    fn layered_hard_taboo_produces_ky_manh() {
+        let day_canchi = get_day_canchi(crate::julian::jd_from_date(14, 2, 2024));
+        let year_canchi = crate::canchi::get_year_canchi(2024);
+        let day_fortune = calculate_day_fortune(
+            crate::julian::jd_from_date(14, 2, 2024),
+            &day_canchi,
+            5,
+            1,
+            &year_canchi.can,
+            "Lập Xuân",
+        );
+        assert!(day_fortune
+            .taboos
+            .iter()
+            .any(|taboo| taboo.severity == "hard"));
+
+        let gio = get_gio_hoang_dao(day_canchi.chi_index);
+        let context = RecommendationSynthesisContext {
+            day_chi: &day_canchi.chi,
+            day_fortune: &day_fortune,
+            gio_hoang_dao: Some(&gio),
+            tiet_khi_name: Some("Lập Xuân"),
+            profile_id: None,
+            event_kind: None,
+        };
+
+        let recommendations = synthesize_daily_recommendations(&context);
+        assert!(recommendations
+            .activities
+            .iter()
+            .any(|activity| activity.bucket == RecommendationBucket::KyManh));
+        assert_eq!(recommendations.version, "v1-layered");
+    }
+
+    #[test]
     fn every_emitted_activity_has_reasons() {
         let recommendations = synthesize_base_daily_recommendations("Tý", "Khai");
         assert!(!recommendations.activities.is_empty());
@@ -247,5 +776,56 @@ mod tests {
             .iter()
             .all(|activity| !activity.reasons.is_empty()));
         assert!(!recommendations.summary_vi.is_empty());
+    }
+
+    #[test]
+    fn reason_order_is_deterministic() {
+        let recommendations_a = synthesize_base_daily_recommendations("Tý", "Khai");
+        let recommendations_b = synthesize_base_daily_recommendations("Tý", "Khai");
+        assert_eq!(recommendations_a.activities, recommendations_b.activities);
+    }
+
+    #[test]
+    fn supports_extension_layer_hits() {
+        struct TestLayer;
+        impl RecommendationLayer for TestLayer {
+            fn layer_id(&self) -> &'static str {
+                "test.layer"
+            }
+
+            fn collect_hits(
+                &self,
+                _context: &RecommendationSynthesisContext<'_>,
+            ) -> Vec<RecommendationLayerHit> {
+                vec![RecommendationLayerHit {
+                    activity_id: ActivityId::MedicalTreatment,
+                    source: RecommendationEvidenceSource::ProductRule,
+                    source_code: "test.layer.medical".to_string(),
+                    direction: BaseDirection::Favor,
+                    summary_vi: "Bổ sung theo ngữ cảnh sự kiện".to_string(),
+                    summary_en: "Added from event context".to_string(),
+                    severity: RecommendationSeverity::Supporting,
+                    hard_stop: false,
+                }]
+            }
+        }
+
+        let info = crate::get_day_info(10, 2, 2024);
+        let context = RecommendationSynthesisContext {
+            day_chi: &info.canchi.day.chi,
+            day_fortune: &info.day_fortune,
+            gio_hoang_dao: Some(&info.gio_hoang_dao),
+            tiet_khi_name: Some(&info.tiet_khi.name),
+            profile_id: Some("default"),
+            event_kind: Some("medical_checkup"),
+        };
+        let test_layer = TestLayer;
+        let recommendations =
+            synthesize_daily_recommendations_with_layers(&context, &[&test_layer]);
+
+        assert!(recommendations
+            .activities
+            .iter()
+            .any(|activity| activity.activity_id == ActivityId::MedicalTreatment));
     }
 }
