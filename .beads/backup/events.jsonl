@@ -55,3 +55,24 @@
 {"actor":"Hoang Manh","comment":null,"created_at":"2026-03-08T23:55:21Z","event_type":"closed","id":55,"issue_id":"aml-odi","new_value":"Completed","old_value":""}
 {"actor":"Hoang Manh","comment":null,"created_at":"2026-03-08T23:55:31Z","event_type":"closed","id":56,"issue_id":"aml-syf","new_value":"Completed","old_value":""}
 {"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:02:32Z","event_type":"created","id":57,"issue_id":"aml-kf7","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:02:48Z","event_type":"claimed","id":58,"issue_id":"aml-kf7","new_value":"{\"assignee\":\"Hoang Manh\",\"status\":\"in_progress\"}","old_value":"{\"id\":\"aml-kf7\",\"title\":\"Add base daily recommendation synthesis\",\"description\":\"Implement amlich-core base daily recommendations from truc and legacy day_guidance, with reasons and DayInfo wiring.\",\"status\":\"open\",\"priority\":2,\"issue_type\":\"task\",\"owner\":\"mnoy.dev@gmail.com\",\"created_at\":\"2026-03-08T17:02:32Z\",\"created_by\":\"Hoang Manh\",\"updated_at\":\"2026-03-08T17:02:32Z\"}"}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:07:08Z","event_type":"closed","id":59,"issue_id":"aml-kf7","new_value":"Completed","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:13:15Z","event_type":"created","id":60,"issue_id":"aml-3by","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:13:51Z","event_type":"created","id":61,"issue_id":"aml-3by.1","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:14:01Z","event_type":"created","id":62,"issue_id":"aml-3by.2","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:14:11Z","event_type":"created","id":63,"issue_id":"aml-3by.3","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:14:21Z","event_type":"created","id":64,"issue_id":"aml-3by.4","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:14:31Z","event_type":"created","id":65,"issue_id":"aml-3by.5","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:14:41Z","event_type":"created","id":66,"issue_id":"aml-3by.6","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:14:51Z","event_type":"created","id":67,"issue_id":"aml-3by.7","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:15:01Z","event_type":"created","id":68,"issue_id":"aml-3by.8","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:15:11Z","event_type":"created","id":69,"issue_id":"aml-3by.9","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:15:21Z","event_type":"created","id":70,"issue_id":"aml-3by.10","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:15:31Z","event_type":"created","id":71,"issue_id":"aml-3by.11","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:15:41Z","event_type":"created","id":72,"issue_id":"aml-3by.12","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:16:02Z","event_type":"created","id":73,"issue_id":"aml-3by.13","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:16:12Z","event_type":"created","id":74,"issue_id":"aml-3by.14","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:16:22Z","event_type":"created","id":75,"issue_id":"aml-3by.15","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:16:32Z","event_type":"created","id":76,"issue_id":"aml-3by.16","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:16:42Z","event_type":"created","id":77,"issue_id":"aml-3by.17","new_value":"","old_value":""}
+{"actor":"Hoang Manh","comment":null,"created_at":"2026-03-09T00:16:52Z","event_type":"created","id":78,"issue_id":"aml-3by.18","new_value":"","old_value":""}
