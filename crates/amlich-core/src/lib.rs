@@ -26,6 +26,7 @@ pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
 pub use types::*;
 
 use crate::almanac::calc::calculate_day_fortune;
+use crate::almanac::recommendation::{synthesize_base_daily_recommendations, DailyRecommendations};
 use crate::almanac::types::DayFortune;
 use canchi::{get_day_canchi, get_month_canchi, get_year_canchi};
 use gio_hoang_dao::{get_gio_hoang_dao, GioHoangDao};
@@ -75,6 +76,7 @@ pub struct DayInfo {
     pub tiet_khi: SolarTerm,
     pub gio_hoang_dao: GioHoangDao,
     pub day_fortune: DayFortune,
+    pub daily_recommendations: DailyRecommendations,
 }
 
 /// Get comprehensive information for a given solar date
@@ -138,6 +140,8 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
         &year_canchi.can,
         &tiet_khi.name,
     );
+    let daily_recommendations =
+        synthesize_base_daily_recommendations(&day_canchi.chi, &day_fortune.truc.name);
 
     // Build solar info
     let solar = SolarInfo {
@@ -185,6 +189,7 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
         tiet_khi,
         gio_hoang_dao,
         day_fortune,
+        daily_recommendations,
     }
 }
 
@@ -256,5 +261,12 @@ mod tests {
         assert_eq!(info.solar.day, 10);
         assert_eq!(info.solar.month, 2);
         assert_eq!(info.solar.year, 2024);
+    }
+
+    #[test]
+    fn test_daily_recommendations_present() {
+        let info = get_day_info(10, 2, 2024);
+        assert!(!info.daily_recommendations.activities.is_empty());
+        assert!(!info.daily_recommendations.summary_vi.is_empty());
     }
 }

@@ -143,8 +143,16 @@ pub fn normalize_activity_alias(input: &str) -> Option<NormalizedActivity> {
             ActivityId::MeetingSocial
         }
 
-        "khai truong" | "khai truong nho" | "khai mo" | "khoi dau" | "ra mat" | "grand opening"
-        | "small openings" => ActivityId::OpeningStart,
+        "khai truong"
+        | "khai truong nho"
+        | "khai mo"
+        | "khoi dau"
+        | "khoi su moi"
+        | "ra mat"
+        | "ra mat khai truong"
+        | "grand opening"
+        | "small openings"
+        | "starting new ventures" => ActivityId::OpeningStart,
 
         "ky hop dong" | "ky ket" | "signing contracts" | "signing" | "contract signing"
         | "hop dong" => ActivityId::ContractAgreement,
@@ -153,9 +161,14 @@ pub fn normalize_activity_alias(input: &str) -> Option<NormalizedActivity> {
             ActivityId::BusinessTrade
         }
 
-        "cau tai" | "thu no" | "seeking wealth" | "tai chinh" | "dau tu" | "investment" => {
-            ActivityId::FinanceInvestment
-        }
+        "cau tai"
+        | "thu no"
+        | "giao dich tai chinh"
+        | "financial transactions"
+        | "seeking wealth"
+        | "tai chinh"
+        | "dau tu"
+        | "investment" => ActivityId::FinanceInvestment,
 
         "dong tho" | "khoi cong" | "xay dung" | "groundbreaking" | "starting construction" => {
             ActivityId::ConstructionGroundbreaking
