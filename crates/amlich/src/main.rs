@@ -479,7 +479,7 @@ fn run(cli: Cli) -> Result<(), String> {
     match cli.command {
         Some(Command::Tui(args)) => {
             let date = args.date.as_deref().map(parse_date).transpose()?;
-            run_tui(date).map_err(|e| format!("failed to run TUI: {e}"))?;
+            amlich_tui::run_tui(date).map_err(|e| format!("failed to run TUI: {e}"))?;
         }
         Some(Command::Day(args)) => run_day(args)?,
         Some(Command::Range(args)) => run_range(args)?,

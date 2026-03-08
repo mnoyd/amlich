@@ -354,9 +354,7 @@ pub fn find_dai_van_element_insight(element: &str) -> Option<&'static DaiVanElem
 }
 
 pub fn find_dai_van_direction_insight(id: &str) -> Option<&'static DaiVanDirectionInsight> {
-    all_dai_van_direction_insights()
-        .iter()
-        .find(|d| d.id == id)
+    all_dai_van_direction_insights().iter().find(|d| d.id == id)
 }
 
 #[cfg(test)]

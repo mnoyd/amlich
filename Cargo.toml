@@ -5,6 +5,7 @@ members = [
     "crates/amlich-core",
     "crates/amlich-api",
     "crates/amlich-wasm",
+    "crates/amlich-tui",
     "apps/desktop/src-tauri",
 ]
 
