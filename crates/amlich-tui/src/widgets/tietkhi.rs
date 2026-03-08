@@ -22,8 +22,12 @@ impl<'a> TietKhiWidget<'a> {
 
 impl Widget for TietKhiWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let Some(bundle) = &self.app.bundle else { return };
-        let Some(tietkhi) = &bundle.tiet_khi else { return };
+        let Some(bundle) = &self.app.bundle else {
+            return;
+        };
+        let Some(tietkhi) = &bundle.tiet_khi else {
+            return;
+        };
 
         let mut lines = vec![];
         let header_style = Style::default().fg(Color::DarkGray);
@@ -49,7 +53,7 @@ impl Widget for TietKhiWidget<'_> {
             Span::raw(" · "),
             Span::styled(&tietkhi.season, text_style),
         ]));
-        
+
         let desc_lines: Vec<&str> = tietkhi.description.split('\n').collect();
         if let Some(first_line) = desc_lines.first() {
             lines.push(Line::from(vec![
@@ -66,7 +70,7 @@ impl Widget for TietKhiWidget<'_> {
                     lines.push(Line::from(""));
                     continue;
                 }
-                
+
                 // Very basic markdown-like bullet point styling
                 let styled_line = if line.starts_with("- ") || line.starts_with("* ") {
                     Line::from(vec![
@@ -74,17 +78,11 @@ impl Widget for TietKhiWidget<'_> {
                         Span::styled(line[2..].to_string(), text_style),
                     ])
                 } else if line.ends_with(':') {
-                    Line::from(vec![
-                        Span::raw("   "),
-                        Span::styled(*line, highlight),
-                    ])
+                    Line::from(vec![Span::raw("   "), Span::styled(*line, highlight)])
                 } else {
-                    Line::from(vec![
-                        Span::raw("   "),
-                        Span::styled(*line, text_style),
-                    ])
+                    Line::from(vec![Span::raw("   "), Span::styled(*line, text_style)])
                 };
-                
+
                 lines.push(styled_line);
             }
         }

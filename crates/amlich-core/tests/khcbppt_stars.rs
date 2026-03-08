@@ -68,9 +68,7 @@ fn verify_jd_epoch_against_khcbppt_dated_entries() {
             eprintln!("  {m}");
         }
         eprintln!("=== END JD EPOCH REPORT ===");
-        eprintln!(
-            "WARNING: JD epoch offset may be incorrect. All star validations are suspect.\n"
-        );
+        eprintln!("WARNING: JD epoch offset may be incorrect. All star validations are suspect.\n");
     }
     assert!(
         mismatches.is_empty(),

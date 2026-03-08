@@ -143,6 +143,8 @@
   let preferredDayOfMonth: number | null = null;
   let isLoading = $state(false);
   let error = $state<string | null>(null);
+  type DayViewMode = "solar" | "lunar";
+  let dayViewMode = $state<DayViewMode>("solar");
 
   let loadToken = 0;
 
@@ -336,6 +338,10 @@
     checkForAppUpdates(true);
   }
 
+  function setDayViewMode(mode: DayViewMode) {
+    dayViewMode = mode;
+  }
+
   const daysBySolarDate = $derived.by(() => {
     if (!monthData) return new Map<string, DayCell>();
     const map = new Map<string, DayCell>();
@@ -405,6 +411,11 @@
     // Insight toggle
     if (event.key === "i" && selectedDay) {
       toggleInsight();
+      return;
+    }
+
+    if (event.key === "v" && !event.ctrlKey && !event.metaKey) {
+      dayViewMode = dayViewMode === "solar" ? "lunar" : "solar";
       return;
     }
 
@@ -617,6 +628,26 @@
     </div>
 
     <div class="actions">
+      <div class="view-mode-toggle" role="group" aria-label="Chế độ hiển thị ngày">
+        <button
+          type="button"
+          class="view-mode-btn"
+          class:active={dayViewMode === "solar"}
+          aria-pressed={dayViewMode === "solar"}
+          onclick={() => setDayViewMode("solar")}
+        >
+          Dương lịch
+        </button>
+        <button
+          type="button"
+          class="view-mode-btn"
+          class:active={dayViewMode === "lunar"}
+          aria-pressed={dayViewMode === "lunar"}
+          onclick={() => setDayViewMode("lunar")}
+        >
+          Âm lịch
+        </button>
+      </div>
       <button
         class="action-btn insight-toggle {isInsightVisible ? 'active' : ''}"
         onclick={toggleInsight}
@@ -716,7 +747,9 @@
                   style={topCat ? `--accent-color: ${topCat.colorHex}; --accent-tint: ${topCat.colorHex}0D;` : ''}
                 >
                   <div class="day-header">
-                    <span class="solar-date">{day.day}</span>
+                    <span class="solar-date" class:lunar-primary={dayViewMode === "lunar"}>
+                      {dayViewMode === "solar" ? day.day : day.lunar_day}
+                    </span>
                     {#if dots.length > 0}
                       <span class="category-dots">
                         {#each dots as dot}
@@ -724,9 +757,10 @@
                         {/each}
                       </span>
                     {/if}
-                    <div class="lunar-stack">
-                      <span class="lunar-date">{day.lunar_day}</span>
-                      <span class="lunar-month">/{day.lunar_month}</span>
+                    <div class="lunar-stack" class:alt-mode={dayViewMode === "lunar"}>
+                      <span class="calendar-badge">{dayViewMode === "solar" ? "AL" : "DL"}</span>
+                      <span class="lunar-date">{dayViewMode === "solar" ? day.lunar_day : day.day}</span>
+                      <span class="lunar-month">/{dayViewMode === "solar" ? day.lunar_month : day.month}</span>
                     </div>
                   </div>
 
@@ -776,23 +810,37 @@
     <aside class={isInsightVisible ? "focus-panel" : "detail-panel"}>
       {#if selectedDay}
         {#if isInsightVisible}
-          <div class="focus-content">
-            <div class="focus-header-card">
-              <div class="header-main-row">
-                <div class="detail-solar-large">{selectedDay.day}</div>
-                <div class="detail-right-col">
-                  <div class="detail-weekday">{selectedDay.day_of_week}</div>
-                  <div class="detail-full-date">
-                    Tháng {selectedDay.month}, {selectedDay.year}
+            <div class="focus-content">
+              <div class="focus-header-card">
+                <div class="header-main-row">
+                  <div class="detail-solar-large" class:lunar-primary={dayViewMode === "lunar"}>
+                    {dayViewMode === "solar" ? selectedDay.day : selectedDay.lunar_day}
                   </div>
-                  <div class="detail-lunar-line">
-                    <span class="lunar-tag">Âm:</span>
-                    <span class="lunar-val">{selectedDay.lunar_date}</span>
-                    <span class="lunar-year">{selectedDay.canchi_year}</span>
+                  <div class="detail-right-col">
+                    <div class="detail-weekday">{selectedDay.day_of_week}</div>
+                    <div class="detail-full-date">
+                      {#if dayViewMode === "solar"}
+                        Tháng {selectedDay.month}, {selectedDay.year}
+                      {:else}
+                        Tháng {selectedDay.lunar_month} (ÂL), {selectedDay.lunar_year}
+                      {/if}
+                    </div>
+                    <div class="detail-lunar-line">
+                      {#if dayViewMode === "solar"}
+                        <span class="lunar-tag">Âm:</span>
+                        <span class="lunar-val">{selectedDay.lunar_date}</span>
+                        <span class="lunar-year">{selectedDay.canchi_year}</span>
+                      {:else}
+                        <span class="lunar-tag">Dương:</span>
+                        <span class="lunar-val">
+                          {selectedDay.day}/{selectedDay.month}/{selectedDay.year}
+                        </span>
+                        <span class="lunar-year">{selectedDay.day_of_week}</span>
+                      {/if}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
             <div class="focus-meta">
               <div class="focus-meta-item">
@@ -817,16 +865,30 @@
           <div class="detail-content">
             <div class="detail-header-card">
               <div class="header-main-row">
-                <div class="detail-solar-large">{selectedDay.day}</div>
+                <div class="detail-solar-large" class:lunar-primary={dayViewMode === "lunar"}>
+                  {dayViewMode === "solar" ? selectedDay.day : selectedDay.lunar_day}
+                </div>
                 <div class="detail-right-col">
                   <div class="detail-weekday">{selectedDay.day_of_week}</div>
                   <div class="detail-full-date">
-                    Tháng {selectedDay.month}, {selectedDay.year}
+                    {#if dayViewMode === "solar"}
+                      Tháng {selectedDay.month}, {selectedDay.year}
+                    {:else}
+                      Tháng {selectedDay.lunar_month} (ÂL), {selectedDay.lunar_year}
+                    {/if}
                   </div>
                   <div class="detail-lunar-line">
-                    <span class="lunar-tag">Âm:</span>
-                    <span class="lunar-val">{selectedDay.lunar_date}</span>
-                    <span class="lunar-year">{selectedDay.canchi_year}</span>
+                    {#if dayViewMode === "solar"}
+                      <span class="lunar-tag">Âm:</span>
+                      <span class="lunar-val">{selectedDay.lunar_date}</span>
+                      <span class="lunar-year">{selectedDay.canchi_year}</span>
+                    {:else}
+                      <span class="lunar-tag">Dương:</span>
+                      <span class="lunar-val">
+                        {selectedDay.day}/{selectedDay.month}/{selectedDay.year}
+                      </span>
+                      <span class="lunar-year">{selectedDay.day_of_week}</span>
+                    {/if}
                   </div>
                 </div>
               </div>
@@ -927,6 +989,10 @@
                 <span class="help-keys">i</span>
                 <span class="help-desc">Toggle cultural insight</span>
               </div>
+              <div class="help-item">
+                <span class="help-keys">v</span>
+                <span class="help-desc">Toggle solar/lunar day view</span>
+              </div>
             </div>
           </div>
 
@@ -954,9 +1020,10 @@
 <style>
   /* App Container */
   .app-container {
-    max-width: 1400px;
+    max-width: 2200px;
+    width: 100%;
     margin: 0 auto;
-    padding: 16px 24px;
+    padding: 16px 28px;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -1308,6 +1375,46 @@
     margin-left: auto;
   }
 
+  .view-mode-toggle {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    border: 1px solid rgba(212, 175, 55, 0.36);
+    background: rgba(255, 255, 255, 0.82);
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .view-mode-btn {
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 7px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .view-mode-btn:hover {
+    color: var(--text-primary);
+    background: rgba(212, 175, 55, 0.1);
+  }
+
+  .view-mode-btn.active {
+    color: #7a5120;
+    background: linear-gradient(
+      140deg,
+      rgba(212, 175, 55, 0.22) 0%,
+      rgba(212, 175, 55, 0.35) 100%
+    );
+    box-shadow: 0 2px 8px rgba(160, 126, 52, 0.16);
+  }
+
   .action-btn {
     padding: 8px 12px;
     border-radius: 99px;
@@ -1548,6 +1655,10 @@
     line-height: 1;
   }
 
+  .solar-date.lunar-primary {
+    color: #8f4e1f;
+  }
+
   .today .solar-date {
     color: var(--primary-red);
   }
@@ -1564,6 +1675,23 @@
   .lunar-month {
     font-size: 0.65rem;
     opacity: 0.8;
+  }
+
+  .calendar-badge {
+    font-size: 0.55rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 1px 4px;
+    border-radius: 999px;
+    background: rgba(42, 110, 100, 0.1);
+    color: var(--accent-jade);
+    margin-right: 3px;
+  }
+
+  .lunar-stack.alt-mode .calendar-badge {
+    background: rgba(217, 48, 37, 0.1);
+    color: var(--primary-red);
   }
 
   /* Category indicator dots — colored by event type */
@@ -1719,6 +1847,7 @@
 
   .main-layout.insight-mode .day-card {
     min-height: 34px;
+    aspect-ratio: auto;
     border-radius: 8px;
     padding: 3px 4px;
     box-shadow: none;
@@ -1882,6 +2011,10 @@
     opacity: 0.88;
   }
 
+  .detail-solar-large.lunar-primary {
+    color: #8f4e1f;
+  }
+
   .detail-right-col {
     display: flex;
     flex-direction: column;
@@ -2040,6 +2173,86 @@
     }
   }
 
+  @media (min-width: 1200px) {
+    .main-layout {
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 26px;
+    }
+
+    .calendar-grid {
+      gap: 8px;
+      grid-auto-rows: minmax(92px, auto);
+    }
+
+    .day-card {
+      aspect-ratio: 1.28 / 1;
+      min-height: 96px;
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+
+    .solar-date {
+      font-size: 1.45rem;
+    }
+
+    .lunar-stack {
+      font-size: 0.82rem;
+    }
+  }
+
+  @media (min-width: 1500px) {
+    .app-container {
+      max-width: 1700px;
+      padding: 18px 28px;
+    }
+
+    .main-layout {
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 28px;
+    }
+
+    .main-layout.insight-mode {
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .calendar-grid {
+      grid-auto-rows: minmax(94px, auto);
+      gap: 8px;
+    }
+
+    .day-card {
+      aspect-ratio: 1.35 / 1;
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+  }
+
+  @media (min-width: 1800px) {
+    .app-container {
+      max-width: 1900px;
+    }
+
+    .main-layout {
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 32px;
+    }
+
+    .main-layout.insight-mode {
+      grid-template-columns: 270px minmax(0, 1fr);
+      gap: 20px;
+    }
+
+    .calendar-grid {
+      grid-auto-rows: minmax(104px, auto);
+    }
+
+    .day-card {
+      aspect-ratio: 1.42 / 1;
+      min-height: 114px;
+    }
+  }
+
   /* Responsive Adjustments */
   @media (max-width: 1024px) {
     .main-layout {
@@ -2098,11 +2311,16 @@
       justify-content: flex-end;
     }
 
+    .view-mode-toggle {
+      margin-right: auto;
+    }
+
     .calendar-grid {
       gap: 4px;
     }
 
     .day-card {
+      aspect-ratio: auto;
       min-height: 60px;
       padding: 4px 6px;
     }

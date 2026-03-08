@@ -1,5 +1,4 @@
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
-use std::io;
 
 use crate::state::AppState;
 
@@ -14,7 +13,7 @@ pub fn handle_events(app: &mut AppState) -> Result<bool, Box<dyn std::error::Err
             if key.code == KeyCode::Char('c') && key.modifiers == KeyModifiers::CONTROL {
                 return Ok(true); // quit
             }
-            
+
             if app.show_search {
                 match key.code {
                     KeyCode::Esc => app.toggle_search(),
@@ -30,7 +29,28 @@ pub fn handle_events(app: &mut AppState) -> Result<bool, Box<dyn std::error::Err
                         app.toggle_search();
                     }
                     KeyCode::Char(c) => app.search_input.push(c),
-                    KeyCode::Backspace => { app.search_input.pop(); }
+                    KeyCode::Backspace => {
+                        app.search_input.pop();
+                    }
+                    _ => {}
+                }
+                return Ok(false);
+            }
+
+            if app.is_calendar_view() {
+                match key.code {
+                    KeyCode::Char('q') => app.running = false,
+                    KeyCode::Esc | KeyCode::Char(' ') | KeyCode::Char('c') => {
+                        app.close_calendar_view()
+                    }
+                    KeyCode::Enter => app.apply_calendar_selection(),
+                    KeyCode::Right | KeyCode::Char('l') => app.calendar_move_days(1),
+                    KeyCode::Left | KeyCode::Char('h') => app.calendar_move_days(-1),
+                    KeyCode::Down | KeyCode::Char('j') => app.calendar_move_days(7),
+                    KeyCode::Up | KeyCode::Char('k') => app.calendar_move_days(-7),
+                    KeyCode::PageDown | KeyCode::Char('n') => app.calendar_next_month(),
+                    KeyCode::PageUp | KeyCode::Char('p') => app.calendar_prev_month(),
+                    KeyCode::Char('t') => app.calendar_go_today(),
                     _ => {}
                 }
                 return Ok(false);
@@ -58,11 +78,12 @@ pub fn handle_events(app: &mut AppState) -> Result<bool, Box<dyn std::error::Err
 
                 // Interactives
                 KeyCode::Enter => app.toggle_tietkhi(),
+                KeyCode::Char('a') => app.toggle_guidance_details(),
 
                 // Modals / Overlays
-                KeyCode::Char(' ') => app.toggle_calendar(),
+                KeyCode::Char(' ') | KeyCode::Char('c') => app.toggle_calendar_view(),
                 KeyCode::Char('/') | KeyCode::Char('s') => app.toggle_search(),
-                
+
                 // (Other keys like 'g' for date jump, '/' for search to be added later)
                 _ => {}
             }

@@ -6,9 +6,9 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
-use amlich_api::v2::DayBundleDto;
 use crate::layout::LayoutMode;
 use crate::state::AppState;
+use amlich_api::v2::DayBundleDto;
 
 pub struct ScholarlyWidget<'a> {
     app: &'a AppState,
@@ -23,7 +23,9 @@ impl<'a> ScholarlyWidget<'a> {
 
 impl Widget for ScholarlyWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let Some(bundle) = &self.app.bundle else { return };
+        let Some(bundle) = &self.app.bundle else {
+            return;
+        };
 
         let chunks = Layout::vertical([
             Constraint::Length(7), // Trạch Cát (Stars/Deities)
@@ -64,20 +66,28 @@ impl<'a> ScholarlyWidget<'a> {
             // Stars
             if let Some(stars) = &insight.stars {
                 let cat_tinh = stars.cat_tinh.join(", ");
-                let cat_str = if stars.cat_tinh.is_empty() { "Không" } else { &cat_tinh };
+                let cat_str = if stars.cat_tinh.is_empty() {
+                    "Không"
+                } else {
+                    &cat_tinh
+                };
                 lines.push(Line::from(vec![
                     Span::raw("   Cát Tinh: "),
                     Span::styled(cat_str.to_string(), Style::default().fg(Color::Green)),
                 ]));
 
                 let sat_tinh = stars.sat_tinh.join(", ");
-                let sat_str = if stars.sat_tinh.is_empty() { "Không" } else { &sat_tinh };
+                let sat_str = if stars.sat_tinh.is_empty() {
+                    "Không"
+                } else {
+                    &sat_tinh
+                };
                 lines.push(Line::from(vec![
                     Span::raw("   Sát Tinh: "),
                     Span::styled(sat_str.to_string(), Style::default().fg(Color::Red)),
                 ]));
             }
-            
+
             // Deity
             if let Some(deity) = &insight.day_deity {
                 lines.push(Line::from(vec![
@@ -106,19 +116,34 @@ impl<'a> ScholarlyWidget<'a> {
 
         if let Some(fortune) = &bundle.day_fortune {
             let travel = &fortune.travel;
-            let col_width = if self.mode == LayoutMode::Small { 0 } else { 35 };
+            let col_width = if self.mode == LayoutMode::Small {
+                0
+            } else {
+                35
+            };
 
             if self.mode == LayoutMode::Small {
                 lines.push(Line::from(format!("   Hỷ Thần:  {}", travel.hy_than)));
                 lines.push(Line::from(format!("   Tài Thần: {}", travel.tai_than)));
-                lines.push(Line::from(format!("   Hạc Thần: {}", travel.xuat_hanh_huong))); // Simplified
+                lines.push(Line::from(format!(
+                    "   Hạc Thần: {}",
+                    travel.xuat_hanh_huong
+                ))); // Simplified
             } else {
                 lines.push(Line::from(vec![
-                    Span::raw(format!("   Hỷ Thần:  {:<width$}", travel.hy_than, width=col_width-13)),
+                    Span::raw(format!(
+                        "   Hỷ Thần:  {:<width$}",
+                        travel.hy_than,
+                        width = col_width - 13
+                    )),
                     Span::raw(format!("Tài Thần: {}", travel.tai_than)),
                 ]));
                 lines.push(Line::from(vec![
-                    Span::raw(format!("   Hạc Thần: {:<width$}", "(Tránh)", width=col_width-13)),
+                    Span::raw(format!(
+                        "   Hạc Thần: {:<width$}",
+                        "(Tránh)",
+                        width = col_width - 13
+                    )),
                     Span::raw(format!("Sát Hướng: {}", fortune.conflict.sat_huong)),
                 ]));
             }

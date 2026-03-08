@@ -1,3 +1,5 @@
+use crate::layout::LayoutMode;
+use crate::state::AppState;
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
@@ -6,24 +8,21 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-use amlich_api::v2::DayBundleDto;
-use crate::layout::LayoutMode;
-use crate::state::AppState;
-
 pub struct HeroWidget<'a> {
     app: &'a AppState,
-    mode: LayoutMode,
 }
 
 impl<'a> HeroWidget<'a> {
-    pub fn new(app: &'a AppState, mode: LayoutMode) -> Self {
-        Self { app, mode }
+    pub fn new(app: &'a AppState, _mode: LayoutMode) -> Self {
+        Self { app }
     }
 }
 
 impl Widget for HeroWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let Some(bundle) = &self.app.bundle else { return };
+        let Some(bundle) = &self.app.bundle else {
+            return;
+        };
 
         // 1. Solar Date Headline (e.g., THỨ BA · 5 THÁNG 3)
         let solar_str = format!(
@@ -52,9 +51,7 @@ impl Widget for HeroWidget<'_> {
         let lunar_str = if let Some(canchi) = &bundle.canchi {
             format!(
                 "{} {}, {}",
-                phase_emoji,
-                bundle.lunar.date_string,
-                canchi.year.full
+                phase_emoji, bundle.lunar.date_string, canchi.year.full
             )
         } else {
             format!("{} {}", phase_emoji, bundle.lunar.date_string)
@@ -83,7 +80,9 @@ impl Widget for HeroWidget<'_> {
         let lines = vec![
             Line::from(Span::styled(
                 solar_str,
-                Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
             )),
             Line::from(""), // spacing
             Line::from(Span::styled(lunar_str, Style::default().fg(Color::Cyan))),

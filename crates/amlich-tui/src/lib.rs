@@ -42,10 +42,7 @@ pub fn run_tui(initial_date: Option<NaiveDate>) -> io::Result<()> {
     result
 }
 
-fn run(
-    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
-    mut app: AppState,
-) -> io::Result<()> {
+fn run(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, mut app: AppState) -> io::Result<()> {
     while app.running {
         terminal.draw(|frame| draw(frame, &app))?;
         match handle_events(&mut app) {

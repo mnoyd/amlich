@@ -46,11 +46,12 @@ impl Widget for SearchOverlayWidget<'_> {
 
         let lines = vec![
             Line::from(" Nhập ngày (YYYY-MM-DD hoặc DD/MM/YYYY):"),
-            Line::from(Span::styled(input_display, Style::default().fg(Color::Yellow))),
+            Line::from(Span::styled(
+                input_display,
+                Style::default().fg(Color::Yellow),
+            )),
         ];
 
-        Paragraph::new(lines)
-            .block(block)
-            .render(popup_area, buf);
+        Paragraph::new(lines).block(block).render(popup_area, buf);
     }
 }

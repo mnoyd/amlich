@@ -11,7 +11,9 @@
 
 use std::collections::HashSet;
 
-use amlich_core::almanac::golden_loader::{GoldenCitation, GoldenDataset, GoldenEntry, GoldenMetadata};
+use amlich_core::almanac::golden_loader::{
+    GoldenCitation, GoldenDataset, GoldenEntry, GoldenMetadata,
+};
 use amlich_core::get_day_info;
 
 /// Known leap months in 2020-2030 (solar date ranges that fall in leap lunar months).
@@ -188,10 +190,7 @@ fn build_entry(day: i32, month: i32, year: i32) -> GoldenEntry {
         .as_ref()
         .expect("day_star must exist");
 
-    let day_deity = fortune
-        .day_deity
-        .as_ref()
-        .expect("day_deity must exist");
+    let day_deity = fortune.day_deity.as_ref().expect("day_deity must exist");
 
     let classification_str = match day_deity.classification {
         amlich_core::almanac::types::DayDeityClassification::HoangDao => "hoang_dao",
@@ -262,7 +261,11 @@ fn validate_coverage(entries: &[GoldenEntry]) {
     println!("  Total entries: {}", entries.len());
     println!("  Chi covered: {}/12 {:?}", chi_set.len(), chi_set);
     println!("  Can covered: {}/10 {:?}", can_set.len(), can_set);
-    println!("  Lunar months covered: {}/12 {:?}", month_set.len(), month_set);
+    println!(
+        "  Lunar months covered: {}/12 {:?}",
+        month_set.len(),
+        month_set
+    );
     println!("  Star positions covered: {}/28", star_set.len());
     println!("  Leap month entries: {}", leap_count);
 

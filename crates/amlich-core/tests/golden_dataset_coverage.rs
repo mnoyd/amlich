@@ -35,11 +35,7 @@ fn golden_dataset_covers_all_12_chi() {
 
     // Each chi must appear at least 7 times
     for chi in &chi_set {
-        let count = dataset
-            .entries
-            .iter()
-            .filter(|e| e.day_chi == *chi)
-            .count();
+        let count = dataset.entries.iter().filter(|e| e.day_chi == *chi).count();
         assert!(
             count >= 7,
             "Chi '{chi}' appears only {count} times, need at least 7"
@@ -55,11 +51,7 @@ fn golden_dataset_covers_all_10_can() {
 
     // Each can must appear at least 5 times
     for can in &can_set {
-        let count = dataset
-            .entries
-            .iter()
-            .filter(|e| e.day_can == *can)
-            .count();
+        let count = dataset.entries.iter().filter(|e| e.day_can == *can).count();
         assert!(
             count >= 5,
             "Can '{can}' appears only {count} times, need at least 5"
@@ -123,11 +115,7 @@ fn golden_dataset_covers_all_28_star_positions() {
 #[test]
 fn golden_dataset_has_at_least_2_leap_month_entries() {
     let dataset = load_golden();
-    let leap_count = dataset
-        .entries
-        .iter()
-        .filter(|e| e.is_leap_month)
-        .count();
+    let leap_count = dataset.entries.iter().filter(|e| e.is_leap_month).count();
     assert!(
         leap_count >= 2,
         "Need at least 2 leap month entries, got {leap_count}"
@@ -180,8 +168,7 @@ fn golden_dataset_values_match_get_day_info() {
 
     for i in (0..dataset.entries.len()).step_by(step) {
         let entry = &dataset.entries[i];
-        let info =
-            amlich_core::get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
+        let info = amlich_core::get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
 
         assert_eq!(
             info.canchi.day.full, entry.day_canchi,

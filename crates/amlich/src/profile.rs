@@ -21,12 +21,6 @@ pub struct UserProfile {
     pub gender: Option<ProfileGender>,
 }
 
-impl UserProfile {
-    pub fn has_birth_context(&self) -> bool {
-        self.birth_year.is_some() && self.gender.is_some()
-    }
-}
-
 fn profile_path() -> Option<PathBuf> {
     dirs::config_dir().map(|dir| dir.join("amlich").join("profile.json"))
 }
@@ -90,9 +84,9 @@ mod tests {
     #[test]
     fn has_birth_context_requires_year_and_gender() {
         let full = load_profile_from_str(r#"{"birth_year":1990,"gender":"female"}"#);
-        assert!(full.has_birth_context());
+        assert!(full.birth_year.is_some() && full.gender.is_some());
 
         let partial = load_profile_from_str(r#"{"birth_year":1990}"#);
-        assert!(!partial.has_birth_context());
+        assert!(!(partial.birth_year.is_some() && partial.gender.is_some()));
     }
 }

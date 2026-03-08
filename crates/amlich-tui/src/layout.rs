@@ -1,15 +1,10 @@
 use ratatui::{
-    layout::{Constraint, Layout, Rect},
+    layout::{Constraint, Layout},
     Frame,
 };
 
-use crate::state::{AppState, FocusLens};
-use crate::widgets::{
-    page::PageWidget,
-    ribbon::RibbonWidget,
-    calendar::CalendarOverlayWidget,
-    search::SearchOverlayWidget,
-};
+use crate::state::AppState;
+use crate::widgets::{page::PageWidget, ribbon::RibbonWidget, search::SearchOverlayWidget};
 
 const MIN_TERM_W: u16 = 40;
 const MIN_TERM_H: u16 = 15;
@@ -36,21 +31,21 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
 
     // Enforce minimum terminal size
     if size.width < MIN_TERM_W || size.height < MIN_TERM_H {
-        use ratatui::widgets::{Block, Borders, Paragraph};
         use ratatui::layout::Alignment;
-        
+        use ratatui::widgets::{Block, Borders, Paragraph};
+
         let msg = Paragraph::new("Terminal quá nhỏ.\nCần tối thiểu 40×15.")
             .alignment(Alignment::Center)
             .block(Block::default().borders(Borders::ALL));
-            
+
         frame.render_widget(msg, size);
         return;
     }
 
     // Main vertical layout: Page area (scrollable) + Ribbon area (fixed bottom)
     let main_layout = Layout::vertical([
-        Constraint::Min(10),    // Main scrolling page
-        Constraint::Length(2),  // Fixed bottom ribbon (includes top padding line)
+        Constraint::Min(10),   // Main scrolling page
+        Constraint::Length(2), // Fixed bottom ribbon (includes top padding line)
     ])
     .split(size);
 
@@ -59,7 +54,7 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
 
     // Determine the layout constraints based on mode
     let mode = layout_mode(size.width);
-    
+
     // For large screens, we constrain the maximum width of the reading area
     // to make it more readable (like a web page container)
     let content_area = match mode {
@@ -87,15 +82,11 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
 
     // Render the main page widget within the content area
     frame.render_widget(PageWidget::new(app, mode), content_area);
-    
+
     // Render the fixed ribbon at the bottom
     frame.render_widget(RibbonWidget::new(app, mode), ribbon_area);
-    
-    // Render overlays (Calendar, Search, etc) on top if active
-    if app.show_calendar {
-        frame.render_widget(CalendarOverlayWidget::new(app, mode), size);
-    }
-    
+
+    // Render overlays (Search, etc) on top if active
     if app.show_search {
         frame.render_widget(SearchOverlayWidget::new(app, mode), size);
     }
