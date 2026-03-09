@@ -1,0 +1,246 @@
+{
+  "version": "v1",
+  "generated_from": [
+    "docs/almanac/recommendation-research-reconciliation.md",
+    "docs/almanac/recommendation-conflict-triage.md",
+    "docs/almanac/daily-guidance-research-and-rust-proposal.md",
+    "docs/Almanac Recommendation Logic Framework.txt",
+    "docs/deep-research-report (1).md",
+    "docs/deep-research-report (2).md"
+  ],
+  "status_labels": [
+    "default_core",
+    "optional_pack",
+    "personalization_layer",
+    "defer",
+    "reject"
+  ],
+  "conflict_types": [
+    "architecture",
+    "source_authority",
+    "strength",
+    "scope",
+    "safety"
+  ],
+  "items": [
+    {
+      "id": "engine.precedence_vs_scoring",
+      "title": "Score-driven engine vs precedence-first engine",
+      "conflict_type": "architecture",
+      "disposition": "default_core",
+      "decision": {
+        "default_engine": "precedence_first",
+        "scoring_role": "bounded_support_only"
+      },
+      "why": "Prevents fake precision and fits the current deterministic merge model.",
+      "code_targets": [
+        "crates/amlich-core/src/almanac/recommendation/synthesize.rs"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/recommendation_corpus.rs",
+        "crates/amlich-api/tests/recommendation_corpus_parity.rs"
+      ]
+    },
+    {
+      "id": "signal.truc.primary_router",
+      "title": "Truc as a primary routing signal",
+      "conflict_type": "strength",
+      "disposition": "default_core",
+      "decision": {
+        "role": "primary_activity_router",
+        "authority": "high"
+      },
+      "why": "There is strong consensus that truc is high-signal and maps cleanly to activities.",
+      "code_targets": [
+        "crates/amlich-core/src/almanac/recommendation/synthesize.rs",
+        "crates/amlich-core/src/almanac/recommendation/activity.rs"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/recommendation_corpus.rs"
+      ]
+    },
+    {
+      "id": "signal.day_deity.bounded_modifier",
+      "title": "Hoang dao/hac dao as major authority vs bounded modifier",
+      "conflict_type": "strength",
+      "disposition": "default_core",
+      "decision": {
+        "role": "bounded_modifier",
+        "authority": "low_to_medium",
+        "override_capability": "cannot_override_stronger_activity_rules"
+      },
+      "why": "It is highly recognizable to users but weaker than activity-specific rules and explicit taboos.",
+      "code_targets": [
+        "crates/amlich-core/src/almanac/recommendation/synthesize.rs"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/recommendation_corpus.rs"
+      ]
+    },
+    {
+      "id": "signal.mansions.default_v1",
+      "title": "Nhi thap bat tu in default v1 vs optional/versioned pack",
+      "conflict_type": "scope",
+      "disposition": "defer",
+      "decision": {
+        "default_core": false,
+        "future_path": "optional_pack"
+      },
+      "why": "It is important but carries high variant risk and should not enter default output without stronger validation.",
+      "code_targets": [
+        "crates/amlich-core/src/almanac/recommendation/",
+        "crates/amlich-core/src/almanac/"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/recommendation_corpus.rs",
+        "crates/amlich-api/tests/recommendation_corpus_parity.rs"
+      ]
+    },
+    {
+      "id": "source.folk_taboos.baseline_vs_pack",
+      "title": "Folk taboo sets as universal truth vs explicit tradition pack",
+      "conflict_type": "source_authority",
+      "disposition": "optional_pack",
+      "decision": {
+        "default_core_behavior": "only_explicitly_frozen_baseline_families",
+        "future_behavior": "pack_or_ruleset_variant"
+      },
+      "why": "These rules matter in Vietnamese practice but should remain explicit and provenance-carrying rather than silently universalized.",
+      "code_targets": [
+        "crates/amlich-core/src/almanac/taboo.rs",
+        "crates/amlich-core/data/almanac/baseline.json"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/khcbppt_taboos.rs",
+        "crates/amlich-api/tests/almanac_contract.rs"
+      ]
+    },
+    {
+      "id": "source.modern_vn_practice.authority",
+      "title": "Modern VN practice sources as default logic authority",
+      "conflict_type": "source_authority",
+      "disposition": "reject",
+      "decision": {
+        "allowed_uses": [
+          "ux_terminology",
+          "feature_scope_expectations",
+          "optional_pack_design"
+        ],
+        "disallowed_use": "sole_default_logic_authority"
+      },
+      "why": "Practice-facing material is useful, but it should not silently replace curated source policy.",
+      "code_targets": [],
+      "test_targets": []
+    },
+    {
+      "id": "source.xieji_hierarchy.default_policy",
+      "title": "Xieji-style source hierarchy for strong claims",
+      "conflict_type": "source_authority",
+      "disposition": "default_core",
+      "decision": {
+        "policy": "use_structured_court_standard_style_authority_for_strong_claims",
+        "fallback": "separate_optional_packs_for_variant_or_folk_layers"
+      },
+      "why": "This gives the codebase a stable basis for strong claims and explicit conflict handling.",
+      "code_targets": [
+        "docs/almanac/research-sources.md",
+        "docs/almanac/known-differences.md"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/ruleset_determinism.rs"
+      ]
+    },
+    {
+      "id": "activity.burial.default_automation",
+      "title": "Burial/funeral recommendation automation",
+      "conflict_type": "safety",
+      "disposition": "defer",
+      "decision": {
+        "default_behavior": "conservative_only",
+        "recommended_product_posture": "consult_expert_or_narrow_caution"
+      },
+      "why": "This area is culturally sensitive and structurally distinct, and false confidence is a product risk.",
+      "code_targets": [
+        "crates/amlich-core/src/almanac/recommendation/activity.rs",
+        "crates/amlich-core/src/almanac/recommendation/synthesize.rs"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/recommendation_corpus.rs"
+      ]
+    },
+    {
+      "id": "layer.personalization.birth_profile",
+      "title": "Personalized xung tuoi / birth-year logic in day-wide output",
+      "conflict_type": "scope",
+      "disposition": "personalization_layer",
+      "decision": {
+        "default_core": false,
+        "delivery_shape": "profile_aware_recommendation_layer"
+      },
+      "why": "It is useful but requires profile input and should not be silently folded into the date-only engine.",
+      "code_targets": [
+        "crates/amlich-core/src/almanac/recommendation/synthesize.rs",
+        "crates/amlich-core/src/almanac/recommendation/mod.rs"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/",
+        "crates/amlich-api/tests/"
+      ]
+    },
+    {
+      "id": "signal.than_sat.long_tail",
+      "title": "Long-tail than_sat expansion",
+      "conflict_type": "scope",
+      "disposition": "defer",
+      "decision": {
+        "requirement": "curated_source_table_first"
+      },
+      "why": "The surface area is large, easy to overfit, and hard to explain without a curated provenance table.",
+      "code_targets": [
+        "crates/amlich-core/src/almanac/star.rs",
+        "crates/amlich-core/src/almanac/recommendation/"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/khcbppt_stars.rs",
+        "crates/amlich-core/tests/recommendation_corpus.rs"
+      ]
+    },
+    {
+      "id": "api.confidence.numeric_scores",
+      "title": "Numeric confidence scores in API/UI",
+      "conflict_type": "architecture",
+      "disposition": "defer",
+      "decision": {
+        "allowed_only_if": "derived_from_explicit_rule_classes_and_evidence_convergence",
+        "disallow": "opaque_percentages_or_invented_certainty"
+      },
+      "why": "Confidence should reflect source mode and evidence convergence, not arbitrary math.",
+      "code_targets": [
+        "crates/amlich-core/src/almanac/recommendation/types.rs",
+        "crates/amlich-api/src/dto.rs",
+        "crates/amlich-tui/src/widgets/guidance.rs"
+      ],
+      "test_targets": [
+        "crates/amlich-api/tests/recommendation_contract.rs"
+      ]
+    },
+    {
+      "id": "ruleset.multiple_tradition_modes",
+      "title": "Multiple tradition modes or packs",
+      "conflict_type": "source_authority",
+      "disposition": "default_core",
+      "decision": {
+        "policy": "separate_modes_or_packs_instead_of_flattening_conflicts"
+      },
+      "why": "This is the cleanest way to preserve determinism and explain source differences.",
+      "code_targets": [
+        "crates/amlich-core/data/almanac/",
+        "crates/amlich-core/src/almanac/profile.rs",
+        "docs/almanac/known-differences.md"
+      ],
+      "test_targets": [
+        "crates/amlich-core/tests/ruleset_determinism.rs"
+      ]
+    }
+  ]
+}

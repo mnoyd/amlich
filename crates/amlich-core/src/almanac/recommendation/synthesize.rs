@@ -61,9 +61,10 @@ struct CollectedHit {
 struct AggregateRecommendation {
     activity: SynthesizedRecommendation,
     saw_favor: bool,
-    saw_avoid: bool,
     saw_hard_stop: bool,
     favor_sources: usize,
+    strong_avoid_sources: usize,
+    supporting_avoid_sources: usize,
 }
 
 pub fn synthesize_base_daily_recommendations(
@@ -265,7 +266,7 @@ fn collect_day_deity_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit
                 ActivityId::ContractAgreement,
                 ActivityId::WeddingEngagement,
             ],
-            format!("Hắc đạo {} cảnh báo nên tránh việc trọng", deity.name),
+            format!("Hắc đạo {} cảnh báo việc trọng", deity.name),
             format!(
                 "Inauspicious deity {} warns against major activities",
                 deity.name
@@ -354,7 +355,7 @@ fn collect_xung_hop_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit>
             source: RecommendationEvidenceSource::XungHop,
             source_code: "xung_hop.tu_hanh_xung".to_string(),
             direction: BaseDirection::Avoid,
-            summary_vi: "Nên thận trọng khi ràng buộc cam kết".to_string(),
+            summary_vi: "thận trọng khi ràng buộc cam kết".to_string(),
             summary_en: "Exercise caution on binding agreements".to_string(),
             severity: RecommendationSeverity::Supporting,
             hard_stop: false,
@@ -412,7 +413,7 @@ fn collect_hours_modifier_hits(gio_hoang_dao: &GioHoangDao) -> Vec<CollectedHit>
             source: RecommendationEvidenceSource::GioHoangDao,
             source_code: "gio_hoang_dao.low_good_hours".to_string(),
             direction: BaseDirection::Avoid,
-            summary_vi: "Ít giờ hoàng đạo, nên chọn thời điểm kỹ".to_string(),
+            summary_vi: "Ít giờ hoàng đạo, cần chọn thời điểm kỹ".to_string(),
             summary_en: "Limited auspicious hours; timing needs extra care".to_string(),
             severity: RecommendationSeverity::Supporting,
             hard_stop: false,
@@ -474,10 +475,7 @@ fn collect_tiet_khi_modifier_hits(tiet_khi_name: &str) -> Vec<CollectedHit> {
             source: RecommendationEvidenceSource::TietKhi,
             source_code: "tiet_khi.extreme".to_string(),
             direction: BaseDirection::Avoid,
-            summary_vi: format!(
-                "{} là tiết khí cực điểm, nên tránh việc nặng",
-                tiet_khi_name
-            ),
+            summary_vi: format!("{} là tiết khí cực điểm cho việc nặng", tiet_khi_name),
             summary_en: format!("{tiet_khi_name} is climatically extreme for heavy tasks"),
             severity: RecommendationSeverity::Supporting,
             hard_stop: false,
@@ -498,25 +496,32 @@ fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
                     activity_id: hit.activity_id,
                     label: hit.activity_id.labels(),
                     bucket: RecommendationBucket::CoThe,
-                    reasons: vec![],
+                reasons: vec![],
                 },
                 saw_favor: false,
-                saw_avoid: false,
                 saw_hard_stop: false,
                 favor_sources: 0,
+                strong_avoid_sources: 0,
+                supporting_avoid_sources: 0,
             });
 
         match hit.direction {
             BaseDirection::Favor => {
                 entry.saw_favor = true;
                 entry.favor_sources += 1;
-                if !entry.saw_avoid {
+                if entry.strong_avoid_sources == 0 && entry.supporting_avoid_sources == 0 {
                     entry.activity.bucket = favored_bucket(hit.source);
                 }
             }
             BaseDirection::Avoid => {
-                entry.saw_avoid = true;
-                entry.activity.bucket = avoided_bucket();
+                if matches!(hit.severity, RecommendationSeverity::Override) {
+                    entry.strong_avoid_sources += 1;
+                } else {
+                    entry.supporting_avoid_sources += 1;
+                }
+                if entry.strong_avoid_sources > 0 || !entry.saw_favor {
+                    entry.activity.bucket = avoided_bucket();
+                }
             }
         }
 
@@ -531,11 +536,13 @@ fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
         .into_values()
         .map(|mut aggregate| {
             aggregate.activity.bucket = resolve_bucket(
+                aggregate.activity.activity_id,
                 aggregate.activity.bucket,
                 aggregate.saw_favor,
-                aggregate.saw_avoid,
                 aggregate.saw_hard_stop,
                 aggregate.favor_sources,
+                aggregate.strong_avoid_sources,
+                aggregate.supporting_avoid_sources,
             );
             aggregate.activity.reasons.sort_by(|a, b| {
                 severity_rank(a.severity)
@@ -557,39 +564,72 @@ fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
 }
 
 fn resolve_bucket(
+    activity_id: ActivityId,
     current: RecommendationBucket,
     saw_favor: bool,
-    saw_avoid: bool,
     saw_hard_stop: bool,
     favor_sources: usize,
+    strong_avoid_sources: usize,
+    supporting_avoid_sources: usize,
 ) -> RecommendationBucket {
     if saw_hard_stop {
         return RecommendationBucket::KyManh;
     }
 
-    if saw_avoid {
-        return RecommendationBucket::Tranh;
+    if strong_avoid_sources > 0 {
+        return apply_activity_guardrails(activity_id, RecommendationBucket::Tranh);
+    }
+
+    if saw_favor && supporting_avoid_sources > 0 {
+        return apply_activity_guardrails(activity_id, RecommendationBucket::CoThe);
+    }
+
+    if supporting_avoid_sources > 0 {
+        return apply_activity_guardrails(activity_id, RecommendationBucket::Tranh);
     }
 
     if saw_favor && favor_sources >= 2 {
-        return RecommendationBucket::Nen;
+        return apply_activity_guardrails(activity_id, RecommendationBucket::Nen);
     }
 
-    current
+    apply_activity_guardrails(activity_id, current)
+}
+
+fn apply_activity_guardrails(
+    activity_id: ActivityId,
+    bucket: RecommendationBucket,
+) -> RecommendationBucket {
+    match activity_id {
+        // Default v1 keeps burial/funeral output conservative even when generic
+        // favorable signals align.
+        ActivityId::BurialMemorial if bucket == RecommendationBucket::Nen => {
+            RecommendationBucket::CoThe
+        }
+        _ => bucket,
+    }
 }
 
 fn build_reason(hit: &CollectedHit) -> RecommendationReason {
+    let summary_vi = match (hit.activity_id, hit.direction) {
+        (ActivityId::BurialMemorial, BaseDirection::Favor) => {
+            format!("Cần thẩm định thêm: {}", hit.summary_vi)
+        }
+        (_, BaseDirection::Favor) => format!("Hợp cho {}", hit.summary_vi),
+        (_, BaseDirection::Avoid) => format!("Nên tránh {}", hit.summary_vi),
+    };
+    let summary_en = match (hit.activity_id, hit.direction) {
+        (ActivityId::BurialMemorial, BaseDirection::Favor) => {
+            format!("Needs expert review: {}", hit.summary_en)
+        }
+        (_, BaseDirection::Favor) => format!("Suitable for {}", hit.summary_en),
+        (_, BaseDirection::Avoid) => format!("Avoid {}", hit.summary_en),
+    };
+
     RecommendationReason {
         rule_id: format!("{}.{}", source_prefix(hit.source), hit.source_code),
         severity: hit.severity,
-        summary_vi: match hit.direction {
-            BaseDirection::Favor => format!("Hợp cho {}", hit.summary_vi),
-            BaseDirection::Avoid => format!("Nên tránh {}", hit.summary_vi),
-        },
-        summary_en: match hit.direction {
-            BaseDirection::Favor => format!("Suitable for {}", hit.summary_en),
-            BaseDirection::Avoid => format!("Avoid {}", hit.summary_en),
-        },
+        summary_vi,
+        summary_en,
         evidence: RecommendationEvidence {
             source: hit.source,
             code: hit.source_code.clone(),
@@ -827,5 +867,73 @@ mod tests {
             .activities
             .iter()
             .any(|activity| activity.activity_id == ActivityId::MedicalTreatment));
+    }
+
+    #[test]
+    fn supporting_avoid_modifier_does_not_override_primary_favor() {
+        let recommendations = merge_hits(vec![
+            CollectedHit {
+                activity_id: ActivityId::OpeningStart,
+                source: RecommendationEvidenceSource::Truc,
+                source_code: "truc.khai.good_for".to_string(),
+                direction: BaseDirection::Favor,
+                summary_vi: "Khai mở".to_string(),
+                summary_en: "opening".to_string(),
+                severity: RecommendationSeverity::Primary,
+                hard_stop: false,
+            },
+            CollectedHit {
+                activity_id: ActivityId::OpeningStart,
+                source: RecommendationEvidenceSource::DayDeity,
+                source_code: "day_deity.cau_tran".to_string(),
+                direction: BaseDirection::Avoid,
+                summary_vi: "Hắc đạo cảnh báo việc trọng".to_string(),
+                summary_en: "inauspicious deity warns against major tasks".to_string(),
+                severity: RecommendationSeverity::Supporting,
+                hard_stop: false,
+            },
+        ]);
+
+        let opening = recommendations
+            .iter()
+            .find(|activity| activity.activity_id == ActivityId::OpeningStart)
+            .expect("opening recommendation exists");
+        assert_eq!(opening.bucket, RecommendationBucket::CoThe);
+    }
+
+    #[test]
+    fn burial_recommendations_are_capped_to_conservative_bucket() {
+        let recommendations = merge_hits(vec![
+            CollectedHit {
+                activity_id: ActivityId::BurialMemorial,
+                source: RecommendationEvidenceSource::Truc,
+                source_code: "truc.tru.good_for".to_string(),
+                direction: BaseDirection::Favor,
+                summary_vi: "An táng".to_string(),
+                summary_en: "burial".to_string(),
+                severity: RecommendationSeverity::Primary,
+                hard_stop: false,
+            },
+            CollectedHit {
+                activity_id: ActivityId::BurialMemorial,
+                source: RecommendationEvidenceSource::Travel,
+                source_code: "travel.reference".to_string(),
+                direction: BaseDirection::Favor,
+                summary_vi: "Có tín hiệu tham khảo".to_string(),
+                summary_en: "supporting reference".to_string(),
+                severity: RecommendationSeverity::Supporting,
+                hard_stop: false,
+            },
+        ]);
+
+        let burial = recommendations
+            .iter()
+            .find(|activity| activity.activity_id == ActivityId::BurialMemorial)
+            .expect("burial recommendation exists");
+        assert_eq!(burial.bucket, RecommendationBucket::CoThe);
+        assert!(burial
+            .reasons
+            .iter()
+            .all(|reason| !reason.summary_vi.starts_with("Hợp cho")));
     }
 }

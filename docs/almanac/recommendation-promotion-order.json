@@ -1,0 +1,166 @@
+{
+  "version": "v1",
+  "derived_from": [
+    "docs/almanac/recommendation-rule-matrix.json",
+    "docs/almanac/recommendation-research-reconciliation.md",
+    "docs/almanac/recommendation-conflict-triage.md"
+  ],
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Core Policy Lock",
+      "goal": "Freeze non-negotiable engine policies before expanding rules.",
+      "items": [
+        {
+          "id": "engine.precedence_vs_scoring",
+          "priority": 1,
+          "readiness": "ready_now",
+          "depends_on": [],
+          "outcome": "Default engine remains precedence-first, with scoring limited to bounded support roles."
+        },
+        {
+          "id": "source.xieji_hierarchy.default_policy",
+          "priority": 2,
+          "readiness": "ready_now",
+          "depends_on": [],
+          "outcome": "Strong claims follow a structured source hierarchy instead of flattened consensus."
+        },
+        {
+          "id": "ruleset.multiple_tradition_modes",
+          "priority": 3,
+          "readiness": "ready_now",
+          "depends_on": [
+            "source.xieji_hierarchy.default_policy"
+          ],
+          "outcome": "Conflicting traditions are represented as separate packs or modes, not averaged together."
+        }
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Default Core Refinement",
+      "goal": "Improve the date-only recommendation baseline without increasing source-risk.",
+      "items": [
+        {
+          "id": "signal.truc.primary_router",
+          "priority": 1,
+          "readiness": "ready_now",
+          "depends_on": [
+            "engine.precedence_vs_scoring"
+          ],
+          "outcome": "Expand or tighten truc-to-activity mappings in the core synthesis engine."
+        },
+        {
+          "id": "signal.day_deity.bounded_modifier",
+          "priority": 2,
+          "readiness": "ready_now",
+          "depends_on": [
+            "engine.precedence_vs_scoring"
+          ],
+          "outcome": "Keep hoang dao/hac dao as a bounded modifier with explicit non-override behavior."
+        }
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Versioned Baseline Packs",
+      "goal": "Support explicit VN-practice or source-variant behavior without destabilizing default core.",
+      "items": [
+        {
+          "id": "source.folk_taboos.baseline_vs_pack",
+          "priority": 1,
+          "readiness": "partially_ready",
+          "depends_on": [
+            "ruleset.multiple_tradition_modes"
+          ],
+          "outcome": "Keep frozen baseline taboo families explicit and add future folk-taboo families only as packs or variant rulesets."
+        }
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Advanced Optional Packs",
+      "goal": "Add high-impact but high-variance rule families behind explicit versioning and validation gates.",
+      "items": [
+        {
+          "id": "signal.mansions.default_v1",
+          "priority": 1,
+          "readiness": "needs_source_validation",
+          "depends_on": [
+            "ruleset.multiple_tradition_modes"
+          ],
+          "outcome": "Design nhi thap bat tu as an optional recommendation pack rather than default v1 logic."
+        },
+        {
+          "id": "signal.than_sat.long_tail",
+          "priority": 2,
+          "readiness": "needs_curated_source_table",
+          "depends_on": [
+            "source.xieji_hierarchy.default_policy"
+          ],
+          "outcome": "Expand than_sat only after source tables and provenance policy are concrete."
+        }
+      ]
+    },
+    {
+      "phase": 5,
+      "name": "Profile-Aware Layers",
+      "goal": "Introduce user-specific recommendation layers without contaminating date-only outputs.",
+      "items": [
+        {
+          "id": "layer.personalization.birth_profile",
+          "priority": 1,
+          "readiness": "needs_profile_model",
+          "depends_on": [
+            "ruleset.multiple_tradition_modes"
+          ],
+          "outcome": "Implement personalization as a separate recommendation layer keyed by profile input."
+        }
+      ]
+    },
+    {
+      "phase": 6,
+      "name": "Safety-Sensitive Domains",
+      "goal": "Handle culturally sensitive activities only after explicit product policy and source constraints exist.",
+      "items": [
+        {
+          "id": "activity.burial.default_automation",
+          "priority": 1,
+          "readiness": "defer_until_policy",
+          "depends_on": [
+            "engine.precedence_vs_scoring",
+            "source.xieji_hierarchy.default_policy"
+          ],
+          "outcome": "Keep burial or funeral output conservative by default and avoid aggressive automation."
+        }
+      ]
+    },
+    {
+      "phase": 7,
+      "name": "Confidence and UX Extensions",
+      "goal": "Add confidence presentation only when it reflects explicit rule semantics.",
+      "items": [
+        {
+          "id": "api.confidence.numeric_scores",
+          "priority": 1,
+          "readiness": "defer_until_semantics_exist",
+          "depends_on": [
+            "engine.precedence_vs_scoring"
+          ],
+          "outcome": "Expose confidence only if it can be derived from source mode and evidence convergence rather than invented percentages."
+        }
+      ]
+    }
+  ],
+  "rejected": [
+    {
+      "id": "source.modern_vn_practice.authority",
+      "reason": "Modern VN practice sources can inform UX and pack design, but should not become sole default logic authority."
+    }
+  ],
+  "execution_notes": [
+    "Promote default_core items before optional packs.",
+    "Do not promote optional packs into default behavior without explicit ruleset or version boundaries.",
+    "Every promoted item needs deterministic tests and corpus coverage."
+  ]
+}

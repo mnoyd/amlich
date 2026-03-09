@@ -8,11 +8,16 @@
       "rationale": "High support concentration with broad favorable spread and no hard-stop taboo impacts.",
       "expect": {
         "nen": 5,
-        "co_the": 1,
-        "tranh": 2,
+        "co_the": 2,
+        "tranh": 1,
         "ky_manh": 0,
         "summary_contains": "Ngày trung hòa",
-        "must_include_activity_ids": ["opening_start", "travel", "wedding_engagement"]
+        "must_include_activity_ids": ["opening_start", "travel", "wedding_engagement"],
+        "must_match_activity_buckets": [
+          { "activity_id": "contract_agreement", "bucket": "co_the" },
+          { "activity_id": "construction_groundbreaking", "bucket": "co_the" },
+          { "activity_id": "opening_start", "bucket": "nen" }
+        ]
       }
     },
     {
@@ -25,7 +30,12 @@
         "tranh": 4,
         "ky_manh": 5,
         "summary_contains": "kỵ mạnh",
-        "must_include_activity_ids": ["travel", "lawsuit_dispute", "wedding_engagement"]
+        "must_include_activity_ids": ["travel", "lawsuit_dispute", "wedding_engagement"],
+        "must_match_activity_buckets": [
+          { "activity_id": "wedding_engagement", "bucket": "ky_manh" },
+          { "activity_id": "travel", "bucket": "tranh" },
+          { "activity_id": "opening_start", "bucket": "ky_manh" }
+        ]
       }
     },
     {
@@ -38,7 +48,12 @@
         "tranh": 4,
         "ky_manh": 3,
         "summary_contains": "kỵ mạnh",
-        "must_include_activity_ids": ["travel", "opening_start", "contract_agreement"]
+        "must_include_activity_ids": ["travel", "opening_start", "contract_agreement"],
+        "must_match_activity_buckets": [
+          { "activity_id": "travel", "bucket": "nen" },
+          { "activity_id": "opening_start", "bucket": "tranh" },
+          { "activity_id": "contract_agreement", "bucket": "tranh" }
+        ]
       }
     },
     {
@@ -47,8 +62,8 @@
       "rationale": "Lowest emitted activity spread in 2024 scan, used as sparse-behavior guardrail.",
       "expect": {
         "nen": 1,
-        "co_the": 1,
-        "tranh": 5,
+        "co_the": 2,
+        "tranh": 4,
         "ky_manh": 0,
         "summary_contains": "thận trọng",
         "must_include_activity_ids": ["meeting_social", "repair_renovation", "opening_start"]
@@ -77,7 +92,12 @@
         "tranh": 2,
         "ky_manh": 5,
         "summary_contains": "kỵ mạnh",
-        "must_include_activity_ids": ["travel", "meeting_social", "wedding_engagement"]
+        "must_include_activity_ids": ["travel", "meeting_social", "wedding_engagement"],
+        "must_match_activity_buckets": [
+          { "activity_id": "travel", "bucket": "nen" },
+          { "activity_id": "move_relocation", "bucket": "co_the" },
+          { "activity_id": "wedding_engagement", "bucket": "ky_manh" }
+        ]
       }
     }
   ]

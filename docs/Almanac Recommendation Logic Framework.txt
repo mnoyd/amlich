@@ -1,0 +1,727 @@
+﻿Traditional Almanac Signal Processing: A Software Architecture and Decision Framework
+The computational translation of traditional lunisolar almanac (tongshu/vạn sự) signals into a deterministic software architecture requires a rigorous decoupling of astronomical data generation from heuristic business logic. While the core engine successfully computes the underlying calendrical ephemerides—lunar phases, stem-branch (can-chi) interactions, solar terms (tiết khí), and lunar mansions (nhị thập bát tú)—the application of these signals to human activities relies on a complex, often contradictory matrix of historical texts and modern consensus.
+This report provides an exhaustive, implementation-ready decision framework designed for integration into a Business Rules Management System (BRMS). The objective is to translate computed signals into actionable recommendation logic (nên làm, không nên làm, nên tránh, kiêng kỵ) using decoupled JSON-based rules engines.1 This architecture strictly avoids cultural storytelling, focusing exclusively on data normalization, hierarchical conflict resolution, schema design, and API output contracts to deliver deterministic, low-latency, and culturally safe daily recommendations.
+A. Source Reliability Map
+To establish a mathematically sound rules engine, the underlying heuristic sources must be evaluated for structural integrity, systemic consistency, and algorithmic translatability. A persistent challenge in almanac software design is the divergence between classical, highly granular doctrine and modern, flattened internet heuristics. The system architecture must model these discrepancies explicitly rather than blending them into an inaccurate average.
+The following source reliability map evaluates the primary heuristic traditions, categorized by cultural origin, establishing the epistemological foundation for the rules engine's weighting models.
+Vietnamese Sources (Priority 1)
+Vietnamese almanac traditions form the primary operational baseline, blending localized practices with classical translations. The system must account for absolute taboos that dominate modern Vietnamese practice, even if those taboos are mathematically minor in classical texts.
+
+
+Source Title
+	Culture
+	Source Type
+	Reliability
+	Signals Informed
+	Rule Type
+	Reasoning & Application
+	Hiệp Kỷ Biện Phương Thư (Translated editions) 3
+	VN/CN
+	Classical Text (Translated)
+	High
+	Thần sát (Deities), Conflict Resolution (Quân Thần Tá Sứ)
+	Explicit Rules & Interpretive
+	Translates the definitive Qing-era imperial standard. It provides the highest-fidelity algorithmic resolution for conflicting signals via the principle of "dĩ cát chế hung" (using the auspicious to suppress the inauspicious).5 Essential for the core weighting model.
+	Ngọc Hạp Ký (Tăng bổ vạn toàn ngọc hạp ký) 3
+	VN
+	Later Compilation
+	High
+	Trực, Tú, Cát tinh, Hung tinh
+	Explicit Rules
+	Considered a foundational subset of broader almanac frameworks. Highly structured, binary conditions make it ideal for direct mapping to boolean rule sets within the engine.3
+	Contemporary Vạn Sự Architectures (e.g., Kiến Trúc Nhật Lam, WeDo) 6
+	VN
+	Modern Practitioner / Web Summary
+	Medium
+	Tam Nương, Nguyệt Kỵ, Sát Chủ, Thọ Tử, Tứ Tuyệt, Tứ Ly
+	Explicit Rules
+	While lacking theoretical depth and often flattening complex signals, these sources represent the strict modern consensus on absolute taboos. Highly reliable for establishing the hard_block constraints in modern Vietnamese applications.8
+	Vietnamese Ethnographic Funerary Records 9
+	VN
+	Ethnographic Data
+	High
+	Burial taboos, ritual timing
+	Interpretive Hints
+	Defines the critical safety boundaries for the activity.ritual.burial_funeral category. Prohibits the application of standard "auspicious" logic to Yin-state events, preventing severe user trust violations.
+	Chinese Sources (Priority 2)
+Chinese sources provide the deep mathematical scaffolding that modern compilations often omit. They are utilized to resolve edge cases and establish the baseline hierarchy of the daily signals.
+
+
+Source Title
+	Culture
+	Source Type
+	Reliability
+	Signals Informed
+	Rule Type
+	Reasoning & Application
+	Xieji Bianfang Shu (欽定協紀辨方書 - Imperially Endorsed Treatise) 12
+	CN
+	Classical Text
+	High
+	Wuxing (Five Elements), Directional alignments, Deity hierarchies
+	Explicit Rules
+	Compiled in 1739 by imperial order, this text standardized chaotic almanac calculations.12 It defines the exact hierarchical classification of day deities necessary for the engine's precedence models.13
+	Traditional Commercial Tongshu
+	CN
+	Commercial Almanac
+	Medium
+	Activity-specific mapping
+	Interpretive Hints
+	Provides the empirical frequency of how signals map to daily categories (e.g., groundbreaking, marriage). Serves as a statistical validation layer for the category tree mapping.
+	Korean Sources (Priority 3)
+Korean classical almanacs provide valuable comparative data, particularly regarding state-level adaptations of astronomical data and institutional modifications to ritual timing.
+
+
+Source Title
+	Culture
+	Source Type
+	Reliability
+	Signals Informed
+	Rule Type
+	Reasoning & Application
+	Manse-ryeok (萬歲曆 - Ten Thousand Year Calendar) 15
+	KR
+	Classical Text / Modern Almanac
+	Medium
+	Time-scale variances, ephemerides offsets, ritual timing
+	Interpretive Hints
+	Useful primarily for identifying edge cases in timezone handling and solar term precision. Korean adaptations demonstrate how state institutions adjusted almanac signals to local coordinates, providing a model for localization parameters.15
+	B. Signal Catalog (Normalization-Friendly)
+To utilize computed calendrical elements within a deterministic rule evaluation environment, raw string outputs or astronomical coordinates must be normalized into discrete, standardized software entities. The following catalog defines the canonical structure of the signals, mapping their typical recommendation polarity, execution strength, and the statistical confidence based on source consistency across the aforementioned texts.
+This schema is designed to be injected into the facts payload of a JSON Rules Engine.2
+
+
+Canonical ID
+	VN Name
+	CN Name / Hanzi
+	Plain-English Meaning
+	Polarity
+	Strength
+	Scope
+	Known Conflicts
+	Confidence (0.0-1.0)
+	truc_kien
+	Trực Kiến
+	建 (Jiàn)
+	Establish / Found
+	Conditional
+	Strong
+	Category
+	Clashes with construction.groundbreaking
+	0.95
+	truc_pha
+	Trực Phá
+	破 (Pò)
+	Break / Destroy
+	Unfavorable
+	Strong
+	Global
+	Overrides minor auspicious stars
+	0.95
+	tiet_khi_lap_xuan
+	Lập Xuân
+	立春 (Lìchūn)
+	Start of Spring
+	Favorable
+	Medium
+	Global
+	Preceded by tu_tuyet (taboo) 8
+	0.90
+	tu_tuyet
+	Tứ Tuyệt
+	四絕 (Sìjué)
+	Four Exhaustions (Day before season start)
+	Unfavorable
+	Strong
+	Global
+	Absolute hard-taboo, unmitigable 8
+	0.98
+	tu_ly
+	Tứ Ly
+	四離 (Sìlí)
+	Four Separations (Day before equinox/solstice)
+	Unfavorable
+	Strong
+	Global
+	Absolute hard-taboo, unmitigable 8
+	0.98
+	nhi_thap_bat_tu_giac
+	Sao Giác
+	角 (Jiǎo)
+	Horn (Mansion)
+	Favorable
+	Medium
+	Category
+	Conditionally nullified by kim_than_that_sat
+	0.85
+	hoang_dao_kim_quyi
+	Kim Quỹ
+	金匱 (Jīn Guì)
+	Golden Treasury (Auspicious Hour/Day)
+	Favorable
+	Strong
+	Global
+	Nullified by sat_chu (Master Killer)
+	0.90
+	tam_nuong
+	Tam Nương
+	三娘 (Sān Niáng)
+	Three Maidens (Days 3,7,13,18,22,27)
+	Unfavorable
+	Strong
+	Global
+	Ubiquitous in modern practice, low classical weight 8
+	0.95
+	nguyet_ky
+	Nguyệt Kỵ
+	月忌 (Yuè Jì)
+	Monthly Taboo (Days 5,14,23)
+	Unfavorable
+	Strong
+	Global
+	Ubiquitous in modern practice 8
+	0.95
+	sat_chu
+	Sát Chủ
+	殺主 (Shā Zhǔ)
+	Master Killer
+	Unfavorable
+	Strong
+	Category
+	Cannot be mitigated by any cát tinh 8
+	0.99
+	tho_tu
+	Thọ Tử
+	壽死 (Shòu Sǐ)
+	Death Taboo
+	Unfavorable
+	Strong
+	Category
+	Critical blocker for medical and ritual 8
+	0.99
+	can_chi_xung
+	Tứ Hành Xung
+	沖 (Chōng)
+	Stem/Branch Clash (e.g., Rat-Horse)
+	Unfavorable
+	Strong
+	Personal
+	Rejects personal event planning globally 8
+	0.95
+	can_chi_hop
+	Lục Hợp / Tam Hợp
+	合 (Hé)
+	Stem/Branch Harmony
+	Favorable
+	Strong
+	Personal
+	Acts as a high-tier multiplier for user-specific queries
+	0.95
+	kim_than_that_sat
+	Kim Thần Thất Sát
+	金神七殺
+	Golden God Seven Killers
+	Unfavorable
+	Strong
+	Global
+	Modifies/Inverts 28 Mansion signals 8
+	0.80
+	Ranked List: Top 10 Implementation-Ready Signals
+For an immediate software integration focusing on maximum computational precision, rapid execution, and high user trust, the following 10 signals offer the highest algorithmic determinism. These signals translate perfectly into boolean logic or highly weighted integers, avoiding the ambiguity of minor interpretative deities.
+1. tu_tuyet (Tứ Tuyệt): Implementation-ready due to its strict mathematical predictability (exactly one day before the four seasonal nodes). It serves as a Tier 0 absolute global blocker.
+2. tu_ly (Tứ Ly): Identical in structural predictability to Tứ Tuyệt, occurring one day before equinoxes and solstices. Evaluated as a Tier 0 boolean True/False blocker.
+3. sat_chu (Sát Chủ): Highly deterministic, following a strict monthly branch mapping (e.g., Month 1 = Tỵ, Month 2 = Tý).8 Acts as a hard blocker specifically for construction, burial, and high-risk investments.
+4. tam_nuong (Tam Nương): While classically debated, it is universally expected by modern Vietnamese users.8 It is purely mathematically derived from the lunar day integer (3, 7, 13, 18, 22, 27).
+5. nguyet_ky (Nguyệt Kỵ): Derived directly from lunar day integers (5, 14, 23). Triggers specific UI warnings for travel and business operations.
+6. truc (12 Kiến Trừ Thập Nhị Khách): The 12 Day Officers provide the most reliable algorithmic routing per category. Because the sequence is continuous and resets deterministically based on the month-branch 6, it forms the base_score matrix for all daily evaluations.
+7. can_chi_xung (Tứ Hành Xung): The clash between the computed day branch and the user's birth branch (modulo 12 array logic). Essential for personalizing the API response and shifting from a generic calendar to a personalized engine.
+8. hoang_dao_hac_dao (Hoàng Đạo / Hắc Đạo): Provides the hourly routing logic (Tier 4). Implementation is a direct array lookup matching the day's stem/branch to the six auspicious and six inauspicious hours.
+9. can_chi_hop (Tam Hợp / Lục Hợp): The inverse of xung. A deterministic geometric relationship on the 12-branch wheel (120 degrees for trine, specific pairs for sextile) that provides a major positive multiplier for personalized queries.
+10. tiet_khi (Tiết Khí): Solar terms provide the macro-boundaries for element shifting. While not a direct recommendation signal, it dictates the boundaries for calculating sat_chu and resetting truc, making it the highest-priority dependency in the data pipeline.
+C. Activity Taxonomy for Product Use
+A robust digital taxonomy organizes concepts logically for machine consumption, ensuring that nested rules inherit properties correctly.19 To map temporal signals to human action, the system utilizes a hierarchical "Activity Taxonomy."
+The taxonomy is structured as a Directed Acyclic Graph (DAG) or a JSON tree. If a Tier 0 taboo blocks the parent node (e.g., activity.property), all child nodes (e.g., construction, move_house) automatically inherit the TABOO state, optimizing processing time.
+
+
+JSON
+
+
+
+
+{
+ "activity": {
+   "life_event": {
+     "marriage": {},
+     "engagement": {},
+     "childbirth_procedures": {}
+   },
+   "property": {
+     "move_house": {},
+     "construction": {
+       "groundbreaking": {},
+       "roofing": {}
+     },
+     "interior_design": {}
+   },
+   "business": {
+     "business_opening": {},
+     "contract_signing": {},
+     "asset_purchase": {},
+     "trading": {}
+   },
+   "logistics": {
+     "travel": {
+       "long_distance": {},
+       "short_distance": {}
+     },
+     "vehicle_purchase": {}
+   },
+   "ritual": {
+     "burial_funeral": {},
+     "exhumation": {},
+     "ritual_worship": {},
+     "altar_placement": {}
+   },
+   "medical": {
+     "medical_procedure": {},
+     "acupuncture": {}
+   },
+   "legal": {
+     "litigation_negotiation": {}
+   },
+   "personal": {
+     "education_exam": {},
+     "haircut": {},
+     "agriculture": {}
+   }
+ }
+}
+
+Detailed Category Processing Logistics
+The engine evaluates signals differently based on the requested taxonomy node.
+1. activity.life_event.marriage
+* Top Influencing Signals: can_chi_hop (Trine/Sextile harmony of the couple), truc_thanh (Success), truc_khai (Open/Begin), nhi_thap_bat_tu_tam (Heart Mansion).
+* Hard-Taboo Triggers: tam_nuong (Absolute blocker for modern user trust), nguyet_ky, can_chi_xung (clash with either partner), kim_than_that_sat.
+* Soft-Warning Triggers: truc_be (Closure), truc_chap (Stubbornness).
+* Fallback Behavior: When the computed day lacks strong generic auspicious signals, the engine must fallback to evaluating the user-specific elements. If the day harmonizes perfectly with the bride's Bát Tự, the UI should return CONDITIONAL with a rationale emphasizing personal compatibility over generic day rating.
+2. activity.property.move_house (Nhập Trạch)
+* Top Influencing Signals: truc_kien (Establish), truc_man (Fullness), hoang_dao (specifically Thanh Long and Kim Quỹ).
+* Hard-Taboo Triggers: sat_chu (Master Killer), tho_tu (Death Taboo), tu_tuyet, tu_ly.
+* Soft-Warning Triggers: truc_pha (Destruction).
+* Fallback Behavior: If classical evidence is weak, the engine evaluates standard Gregorian weekend availability combined with an absence of Tier 0 blockers. It outputs FAVORABLE but explicitly states the recommendation is based on "convenience and lack of taboos."
+3. activity.property.construction.groundbreaking (Động Thổ)
+* Top Influencing Signals: truc_binh (Leveling), truc_man (Fullness), truc_thanh (Success). Note that truc_kien (Establish) is classically taboo for groundwork because it implies disturbing the earth when it is establishing itself.6
+* Hard-Taboo Triggers: tam_sa_sat (Three Sand Killers) 8, tu_tuyet, sat_chu, can_chi_xung (clash with the property owner's birth year).
+* Soft-Warning Triggers: hoang_dao_hac_dao (Black Path hours).
+* Fallback Behavior: Construction carries high financial risk. If evidence is thin, the system defaults to AVOID rather than risking algorithmic overconfidence.
+4. activity.business.business_opening (Khai Trương)
+* Top Influencing Signals: truc_man (Abundance), truc_thanh (Success), hoang_dao (specifically Kim Quỹ and Bảo Quang).
+* Hard-Taboo Triggers: nguyet_ky (Days 5, 14, 23 are strictly avoided in Vietnamese commerce).8
+* Soft-Warning Triggers: nhi_thap_bat_tu_nguy (Danger Mansion).
+* Fallback Behavior: If the day is structurally neutral but lacks strong positive stars, the engine will extract and highlight the specific hoang_dao hours within that day to salvage usability, outputting CONDITIONAL.
+5. activity.business.contract_signing (Ký Kết)
+* Top Influencing Signals: truc_thanh (Success), can_chi_hop (Harmony between partners).
+* Hard-Taboo Triggers: truc_pha (Breaking - high risk for broken contracts), nguyet_ky.
+* Soft-Warning Triggers: truc_chap (Stubbornness - bad for negotiation).
+* Fallback Behavior: Default to evaluating business hours (08:00 - 17:00). If the day is neutral, filter for the best hour within that window.
+6. activity.logistics.travel (Xuất Hành)
+* Top Influencing Signals: truc_khai (Open), hoang_dao_tu_menh (Destiny).
+* Hard-Taboo Triggers: nguyet_ky (Half-month taboos are traditionally tied to boat/travel disasters), tu_tuyet.
+* Soft-Warning Triggers: truc_thu (Receive/Retain - implies getting stuck).
+* Fallback Behavior: If neutral, output FAVORABLE based purely on modern logistical convenience.
+7. activity.ritual.burial_funeral (An Táng / Tang Lễ)
+* Top Influencing Signals: truc_tru (Removal), truc_pha (Breaking). Funerary rites invert many standard logic trees. What is prosperous for the living (Yang) is often disastrous for the dead (Yin).9
+* Hard-Taboo Triggers: tho_tu (Death Taboo - causes chain-deaths according to lore), sat_chu (Master Killer), trung_tang (Double Burial - derived from Can-Chi mapping of the deceased).
+* Soft-Warning Triggers: Highly auspicious hoang_dao days are occasionally warned against for burial, as they belong to the Yang realm.
+* Fallback Behavior: Exclude all identified taboos rigorously. If no clear favorable signal is found, mark as CAUTION and append a hardcoded string advising consultation with a specialized practitioner.
+8. activity.ritual.ritual_worship (Tế Tự / Cúng Bái)
+* Top Influencing Signals: truc_kien (Establish), hoang_dao_ngoc_duong (Jade Hall).
+* Hard-Taboo Triggers: sat_chu.
+* Soft-Warning Triggers: None. Rituals are generally safe on most days if not explicitly blocked.
+* Fallback Behavior: Output FAVORABLE automatically unless blocked by a Tier 0 constraint.
+9. activity.medical.medical_procedure (Chữa Bệnh / Phẫu Thuật)
+* Top Influencing Signals: truc_tru (Removal - excellent for excising tumors or illness), truc_pha.
+* Hard-Taboo Triggers: tho_tu (Death Taboo), can_chi_xung (Clash with patient).
+* Soft-Warning Triggers: truc_man (Fullness - implies illness remains or grows).
+* Fallback Behavior: Output NEUTRAL. Medical necessity always overrides almanac data. The UI must render a disclaimer.
+10. activity.legal.litigation_negotiation (Kiện Tụng)
+* Top Influencing Signals: truc_kien (Establish strength), truc_thanh (Success).
+* Hard-Taboo Triggers: truc_pha (Breakdown), tam_nuong.
+* Soft-Warning Triggers: truc_chap (Entrenchment).
+* Fallback Behavior: If neutral, output CAUTION.
+11. activity.personal.education_exam (Thi Cử / Nhậm Chức)
+* Top Influencing Signals: truc_thanh (Success), hoang_dao_minh_duong (Bright Hall).
+* Hard-Taboo Triggers: can_chi_xung (Personal clash).
+* Soft-Warning Triggers: truc_be (Closure).
+* Fallback Behavior: Output NEUTRAL.
+12. activity.personal.agriculture (Nông Nghiệp / Gieo Trồng)
+* Top Influencing Signals: tiet_khi (Solar Terms - e.g., Cốc Vũ / Grain Rain), truc_man (Fullness/Harvest).
+* Hard-Taboo Triggers: tu_tuyet, truc_pha.
+* Soft-Warning Triggers: Extreme weather correlations.
+* Fallback Behavior: Fall back entirely to empirical weather APIs and explicit tiet_khi boundaries rather than spiritual deities.
+D. Conflict Resolution Framework
+The central challenge in computational almanac processing is resolving contradictory signals. A day may simultaneously host a highly favorable major star and a moderately unfavorable minor demon. Simply summing these as raw integers leads to severe algorithmic drift, generating false positives and violating classical doctrine.
+This framework strictly models the Quân Thần Tá Sứ (Ruler, Minister, Assistant, Courier) hierarchy derived from the Hiệp Kỷ Biện Phương Thư.4 It introduces an algorithmic implementation of Dĩ cát chế hung (Using the auspicious to suppress the inauspicious).
+1. Precedence and Weighting Model (Prose Explanation)
+Signals are assigned to distinct heuristic tiers. Evaluation is hierarchical, not purely additive. Higher-tier vetoes instantly short-circuit the execution path, drastically reducing compute cycles and ensuring safety.
+* Tier 0: Absolute Taboos (The Void Layer)
+   * Base Weight: -1000 (Hard Block)
+   * Signals: tu_tuyet, tu_ly, nguyet_ky, tam_nuong, tho_tu, sat_chu.
+   * Logic: If any Tier 0 signal triggers for the specific activity context, the day is mathematically unrecoverable. Execution stops. No amount of auspicious stars can salvage it. This satisfies the modern practitioner consensus.8
+* Tier 1: Personal Relational Vetoes (The Clash Layer)
+   * Base Weight: -500 (Hard Block for a specific user profile)
+   * Signals: can_chi_xung (Clash), can_chi_hinh (Punishment).
+   * Logic: Overrides all favorable signals only for the specific user experiencing the clash. A globally perfect day becomes TABOO for the clashing individual.
+* Tier 2: Systemic Rulers (Quân - Major Stars/Trực)
+   * Base Weight: +100 or -100
+   * Signals: truc (12 Day Officers), Thái Dương (Great Sun), Nguyệt Đức (Lunar Virtue).
+   * Logic: Functions as the baseline state vector of the day. A strong Tier 2 positive (e.g., +100) will actively suppress any negative Tier 3 or Tier 4 signals via the suppression engine.
+* Tier 3: Ministers and Assistants (Thần / Tá - Minor Stars/Tú)
+   * Base Weight: +50 or -50
+   * Signals: nhi_thap_bat_tu (28 Mansions), secondary deity lists.
+   * Logic: Additive modifiers. They shape the edges of the recommendation but mathematically cannot overturn a Tier 2 polarity.
+* Tier 4: Couriers (Sứ - Hourly Modifiers)
+   * Base Weight: +20 or -20
+   * Signals: giờ hoàng đạo, giờ hắc đạo.
+   * Logic: Applied conditionally to specific hours. They do not alter the day's global score but populate an array of optimal time windows.
+2. Conflict Resolution Strategy (Pseudocode)
+The following Python-like pseudocode demonstrates the DAG evaluation flow, specifically highlighting the Dĩ cát chế hung (suppression) logic.
+
+
+Python
+
+
+
+
+def evaluate_activity(date_signals, user_signals, activity_category):
+   verdict_payload = {
+       "score": 0, "status": "UNKNOWN", "rationale":, "evidence":
+   }
+
+   # 1. Evaluate Tier 0 (Global Hard Blocks)
+   for signal in date_signals.get_tier(0):
+       if signal.is_taboo_for(activity_category):
+           verdict_payload["status"] = "TABOO"
+           verdict_payload["score"] = -1000
+           verdict_payload["rationale"].append(f"Absolute block triggered by {signal.name}")
+           return verdict_payload # Short-circuit
+
+   # 2. Evaluate Tier 1 (Personal Hard Blocks)
+   if user_signals:
+       if check_branch_clash(date_signals.can_chi, user_signals.can_chi):
+           verdict_payload["status"] = "TABOO"
+           verdict_payload["score"] -= 500
+           verdict_payload["rationale"].append("Personal branch clash detected.")
+           return verdict_payload # Short-circuit
+
+   # 3. Evaluate Tier 2 (Systemic Rulers)
+   tier_2_positives =
+   for signal in date_signals.get_tier(2):
+       weight = signal.get_weight_for(activity_category)
+       verdict_payload["score"] += weight
+       verdict_payload["evidence"].append(signal)
+       if weight > 0: 
+           tier_2_positives.append(signal)
+
+   # 4. Evaluate Tier 3 (Ministers) with Suppression Logic
+   for signal in date_signals.get_tier(3):
+       weight = signal.get_weight_for(activity_category)
+       
+       # Suppression Engine: Dĩ cát chế hung
+       if weight < 0 and len(tier_2_positives) > 0:
+           suppressed = False
+           for pos_sig in tier_2_positives:
+               if pos_sig.can_suppress(signal.type):
+                   suppressed = True
+                   verdict_payload["rationale"].append(f"{signal.name} suppressed by {pos_sig.name}")
+                   break
+           if suppressed: 
+               continue # Ignore the negative weight
+           
+       verdict_payload["score"] += weight
+       verdict_payload["evidence"].append(signal)
+
+   # 5. Final Verdict Mapping
+   verdict_payload["status"] = map_score_to_status(verdict_payload["score"])
+   return verdict_payload
+
+def map_score_to_status(score):
+   if score >= 100: return "RECOMMENDED"
+   if score >= 30: return "FAVORABLE"
+   if score >= -20: return "CAUTION"
+   return "AVOID"
+
+3. JSON-Like Config Schema for Rules Engine
+Decoupling the logic from the application code into a JSON schema allows domain experts to update weights without redeploying the backend.1 This schema uses standard any/all operators.
+
+
+JSON
+
+
+
+
+{
+ "rule_id": "rule_groundbreaking_taboo_01",
+ "description": "Evaluates Tier 0 and Tier 1 taboos for groundbreaking.",
+ "conditions": {
+   "any": [
+     {
+       "fact": "date_signals",
+       "path": "$.is_tu_tuyet",
+       "operator": "equal",
+       "value": true
+     },
+     {
+       "fact": "date_signals",
+       "path": "$.is_sat_chu",
+       "operator": "equal",
+       "value": true
+     },
+     {
+       "fact": "date_signals",
+       "path": "$.truc",
+       "operator": "in",
+       "value": ["truc_pha", "truc_be"]
+     },
+     {
+       "fact": "relational_signals",
+       "path": "$.is_branch_clash",
+       "operator": "equal",
+       "value": true
+     }
+   ]
+ },
+ "event": {
+   "type": "HARD_TABOO",
+   "params": {
+     "target_activity": "activity.property.construction.groundbreaking",
+     "verdict": "TABOO",
+     "human_rationale": "Ngày phạm Tứ Tuyệt, Sát Chủ, Trực Phá/Bế, hoặc xung tuổi. Tuyệt đối kiêng kỵ động thổ.",
+     "score_modifier": -1000,
+     "is_suppressible": false
+   }
+ }
+}
+
+E. Recommendation Output Contract (API-Ready)
+To serve multiple client interfaces (web apps, mobile apps, conversational agents), the backend engine must return a highly structured, deterministic JSON payload representing the evaluated state of a single requested date.
+The payload encapsulates global day scores, an array of category-specific evaluations, hourly micro-recommendations, and a transparent evidence trail for debugging and user trust.
+Sample API Payload
+
+
+JSON
+
+
+
+
+{
+ "query_metadata": {
+   "requested_date": "2026-04-15",
+   "user_can_chi": "Mậu Thìn",
+   "timezone": "Asia/Ho_Chi_Minh"
+ },
+ "global_evaluation": {
+   "can_chi_day": "Giáp Tý",
+   "overall_day_score": 65,
+   "confidence_score": 0.92,
+   "global_status": "FAVORABLE"
+ },
+ "activities": {
+   "activity.property.construction.groundbreaking": {
+     "verdict": "TABOO",
+     "score": -1000,
+     "recommended":,
+     "avoid": ["construction.groundbreaking"],
+     "taboo": ["construction.groundbreaking"],
+     "caution":,
+     "rationale":,
+     "evidence":
+   },
+   "activity.business.business_opening": {
+     "verdict": "RECOMMENDED",
+     "score": 120,
+     "recommended": ["business_opening", "contract_signing"],
+     "avoid":,
+     "taboo":,
+     "caution": ["trading"],
+     "rationale":,
+     "evidence":
+   }
+ },
+ "hourly_modifiers":
+}
+
+F. MVP Scope Proposal
+Deploying a fully comprehensive rules engine capturing all 200+ distinct minor deities (thần sát) identified in the classical corpus introduces immense logic complexity, heavy computational overhead, and a high risk of heuristic contradictions that cannot be programmatically resolved. An agile, progressive release strategy is strictly required.
+Minimal Credible v1 (Safe to Ship)
+The primary objective of the v1 release is to provide mathematically flawless calendrical mappings and protect the user from widely recognized cultural taboos, ensuring immediate product safety and market credibility.
+* Included Signals:
+   * Tier 0 Global Taboos: tam_nuong, nguyet_ky, tu_tuyet, tu_ly, sat_chu, tho_tu.
+   * Core Routing: truc (12 Day Officers), hoang_dao_hac_dao (Day and Hour level).
+   * Basic Personalization: can_chi_xung (Year level branch clash only).
+* Excluded/Deferred Signals:
+   * nhi_thap_bat_tu (28 Mansions): Deferred to v2. While historically significant, modern applications often misinterpret their overlapping vectors with truc. The mapping array is massive and requires extensive QA.
+   * Complex Thần Sát (Minor deities like Cẩu Giảo, Cô Thần): Deferred indefinitely. They introduce low-confidence heuristic noise that degrades the UI experience without adding actionable value.
+   * Bát Tự / Tứ Trụ (Four Pillars): Deferred to v3. Requires complex five-element balancing algorithms outside the scope of daily signal mapping.
+* Expected Limitations: The v1 system will exhibit a high rate of "Neutral" or "Caution" days due to the lack of secondary affirmative stars (Tier 3) to boost baseline scores. It operates defensively, prioritizing safety over aggressive recommendations.
+* Roadmap for Expansion:
+   * v2 (The Granularity Update): Integrate the 28 Mansions, mapping specific constellations to granular activities (e.g., separating contract_signing from business_opening). Introduce the full Dĩ cát chế hung suppression engine.
+   * v3 (The Personalization Update): Integrate full birth-chart elemental analysis, transforming global almanac data into deeply personalized algorithmic recommendations based on exact birth hours.
+G. Evidence Matrix
+The following matrix maps the computed signals directly to activity categories, proving the empirical and algorithmic traceability of the proposed rules. It dictates the base values fed into the JSON engine.
+
+
+Signal ID
+	Activity Category
+	Effect
+	Polarity
+	Strength
+	Source Citation
+	Source Reliability
+	Notes/Conflicts
+	tam_nuong
+	activity.life_event.*
+	Prohibits major milestones
+	Negative
+	Strong
+	Modern Almanac 8
+	Medium
+	Modern consensus overrides classical omission.
+	sat_chu
+	activity.property.*
+	Prohibits groundwork
+	Negative
+	Strong
+	Ngọc Hạp Ký 7
+	High
+	Triggers HARD_TABOO state.
+	tu_tuyet
+	activity.* (Global)
+	Total Prohibition
+	Negative
+	Critical
+	Hiệp Kỷ Biện Phương Thư
+	High
+	Cannot be suppressed. Occurs exactly 4x/year.8
+	tu_ly
+	activity.* (Global)
+	Total Prohibition
+	Negative
+	Critical
+	Hiệp Kỷ Biện Phương Thư
+	High
+	Cannot be suppressed. Occurs exactly 4x/year.8
+	truc_kien
+	activity.business.*
+	Favors creation/start
+	Positive
+	Strong
+	Ngọc Hạp Ký 6
+	High
+	Classically clashes with activity.property.construction.
+	truc_pha
+	activity.property.*
+	Prohibits building
+	Negative
+	Strong
+	Ngọc Hạp Ký 6
+	High
+	Favorable only for demolition or removal.
+	hoang_dao
+	activity.* (Global)
+	Multiplies base score
+	Positive
+	Medium
+	Tradition 23
+	High
+	Used as a critical tie-breaker when evidence is thin.
+	tho_tu
+	activity.ritual.*
+	Prohibits funerary
+	Negative
+	Critical
+	Modern Almanac 8
+	High
+	Highly localized to Vietnamese practice; absolute blocker.
+	can_chi_xung
+	activity.* (Global)
+	Personal Prohibition
+	Negative
+	Strong
+	Hiệp Kỷ Biện Phương Thư
+	High
+	Requires dynamic modulo 12 arithmetic against user data.
+	H. Initial Rule Pack for Core Activity Categories
+To accelerate implementation, the following outlines the logical construction for three primary use cases in a format ready for translation into a rules engine.
+Rule 1: Construction (Groundbreaking / Động Thổ)
+* Condition 1 (Tier 0 Blocker): IF date IN (tu_tuyet, tu_ly, sat_chu, tam_sa_sat) -> RETURN TABOO, Score -1000.
+* Condition 2 (Tier 1 Clash): IF user.can_chi_year IS xung WITH date.can_chi_day -> RETURN TABOO, Score -500.
+* Condition 3 (Tier 2 Base Positive): IF date.truc IN (truc_binh, truc_man, truc_thanh) -> ADD +100.
+* Condition 4 (Tier 2 Base Negative): IF date.truc IN (truc_kien, truc_pha, truc_be) -> SUBTRACT 100.
+* Condition 5 (Tier 4 Modifier): IF date.is_hoang_dao == TRUE -> ADD +50.
+* Evaluation Engine: Score > 100 (RECOMMENDED), Score > 30 (FAVORABLE), Score > -20 (CAUTION), Else (AVOID).
+Rule 2: Life Event (Marriage / Cưới Hỏi)
+* Condition 1 (Tier 0 Blocker): IF date IN (tam_nuong, nguyet_ky, tu_tuyet, tu_ly, kim_than_that_sat) -> RETURN TABOO, Score -1000.
+* Condition 2 (Tier 1 Clash): IF user.can_chi_year IS xung WITH date.can_chi_day -> RETURN TABOO, Score -500.
+* Condition 3 (Tier 2 Base): IF date.truc IN (truc_thanh, truc_khai) -> ADD +100.
+* Condition 4 (Tier 3 Modifier): IF date.nhi_thap_bat_tu IN (sao_tam, sao_phong) -> ADD +50.
+* Evaluation Engine: Strict adherence to absolute blockers. If day clears blockers but has score 0, flag as CAUTION (Requires deeper astrological reading of the Bát Tự).
+Rule 3: Ritual (Burial/Funeral / An Táng)
+* Condition 1 (Tier 0 Blocker): IF date IN (tho_tu, sat_chu, trung_tang) -> RETURN TABOO, Score -1000.
+* Condition 2 (Tier 2 Base): IF date.truc IN (truc_tru, truc_pha) -> ADD +100. (Implementation Note: This rule requires an inversion of standard logic. Breaking/removal is highly positive for burial, while accumulation/fullness is highly negative).
+* Evaluation Engine: Due to extreme cultural sensitivity 9, if score < 50, default the output payload's rationale string to advise consulting a specialized practitioner rather than outputting a generic AVOID.
+I. Risks & Misinterpretation
+Deploying algorithmic almanac logic into consumer software carries distinct product safety and user trust risks. The transition from computational ephemerides to heuristic recommendations is not purely mathematical; it is sociological.
+1. Modeling Contradictory Traditions: The most severe risk lies in the divergence between classical texts (e.g., Hiệp Kỷ Biện Phương Thư) and modern practical almanacs. For example, modern Vietnamese practice strictly avoids Tam Nương and Nguyệt Kỵ for all major activities 7, while classical Qing-era imperial texts afford them little to no mathematical weight compared to astronomical solar terms.12
+* Mitigation: The architecture must preserve this disagreement explicitly. The system enforces modern absolute taboos as Tier 0 blockers (honoring immediate user expectation and trust) while utilizing classical logic for the nuanced Tier 2/3 scoring matrix. Fake certainty must be avoided; if a day has conflicting parameters, the JSON response must output the exact rationale array detailing the source of the conflict.
+2. Algorithmic Overconfidence and Drift:
+A BRMS will mathematically process whatever array of facts it is fed. If a day evaluates to a massive +150 score merely because of stacked minor favorable stars (e.g., Tier 3/4), the UI might aggressively recommend a day that traditional practitioners know is structurally flawed due to an unmapped macro-pattern.
+* Mitigation: Implement a hard ceiling on cumulative modifier scoring. No amount of Tier 3 or Tier 4 stars should be mathematically capable of bypassing a Tier 1 or Tier 0 blocker. The DAG architecture ensures short-circuiting prevents runaway addition.
+3. Cultural Safety in Edge Cases (Yin vs. Yang States): Funeral logic (activity.ritual.burial_funeral) is profoundly sensitive.9 Recommending a day as "Highly Auspicious" for a funeral simply because of standard software string concatenation can deeply offend users and violate cultural norms.
+* Mitigation: The system must implement specialized string overrides for the activity.ritual.* category tree. Instead of outputting "Auspicious" (Tốt / Cát), the translation layer mapping from the JSON payload must render "Appropriate" (Thích hợp) or "Safe" (An toàn). Fallback states for life-or-death categories must be excessively conservative, actively pointing users to human experts when the algorithmic confidence falls below 0.80.
+J. Bibliography
+The following sources inform the epistemological foundation and rule derivation of this framework, categorized by cultural origin as requested.
+Vietnamese Sources
+* Hiệp Kỷ Biện Phương Thư (Translated Editions).3 (Definitive translated standard for complex deity resolution and precedence modeling).
+* Ngọc Hạp Ký (Tăng bổ vạn toàn ngọc hạp ký).3
+* Modern Vạn Sự and Tongshu architectural mappings (Kiến Trúc Nhật Lam, WeDo).6
+* Vietnamese Ethnographic and Funerary Records.9
+Chinese Sources
+* Xieji Bianfang Shu (欽定協紀辨方書).12 (Imperial standard for the origin of the five elements and baseline hierarchy).
+* Traditional Commercial Tongshu interpretative methodologies.
+Korean Sources
+* Manse-ryeok (萬歲曆 - Ten Thousand Year Calendar) and related astronomical adaptation analyses.15 (Used for ephemerides alignment and state-level offset modeling).
+* Korean traditional behavioral and etiquette norms.29 (Contextual variance).
+Works cited
+1. JSON Rules Engine: Separate Logic From Code - FlowWright, accessed on March 9, 2026, https://www.flowwright.com/json-rules-engine-separate-logic-from-code
+2. Introduction to JSON Rules Engine | by Riadh Mouamnia - Medium, accessed on March 9, 2026, https://medium.com/@riadh.mouamnia/introduction-to-json-rules-engine-3bea7b6a8eec
+3. Mua Sách Hiệp kỷ biện phương thư - Thần sát cát hung, tập 1 Giảm Giá | MuaSachHay.Vn, accessed on March 9, 2026, https://muasachhay.vn/san-pham/hiep-ky-bien-phuong-thu-than-sat-cat-hung-tap-1/
+4. Hiệp kỷ biện phương thư - Thần sát cát hung, accessed on March 9, 2026, https://thuvienphongthuy.vn/sach/74-hiep-ky-bien-phuong-thu-than-sat-cat-hung
+5. Sách - Nguyên lý chọn ngày theo Hiệp Kỷ Biện Phương Thư tập 2 - Dụng Sử Hỷ Kỵ, accessed on March 9, 2026, https://shopee.vn/S%C3%A1ch-Nguy%C3%AAn-l%C3%BD-ch%E1%BB%8Dn-ng%C3%A0y-theo-Hi%E1%BB%87p-K%E1%BB%B7-Bi%E1%BB%87n-Ph%C6%B0%C6%A1ng-Th%C6%B0-t%E1%BA%ADp-2-D%E1%BB%A5ng-S%E1%BB%AD-H%E1%BB%B7-K%E1%BB%B5-i.179991157.14816526606
+6. Tất tần tật cách tính trực theo ngày và luận giải ý nghĩa - WEDO, accessed on March 9, 2026, https://wedo.vn/cach-tinh-truc-theo-ngay/
+7. Những ngày xấu trong năm 2025 nên tránh khi khởi công xây dựng - Kiến Xinh, accessed on March 9, 2026, https://kienxinh.vn/tin-tuc/ngay-xau-trong-nam-2025-tranh-khoi-cong-xay-dung.html
+8. CÁC NGÀY XẤU CẦN TRÁNH TRONG NĂM - Kiến Trúc Nhật Lam, accessed on March 9, 2026, https://kientrucnhatlam.com/ngay-xau-can-tranh-trong-nam/
+9. Funerals. Important Traditions, Customs - Offroad Vietnam, accessed on March 9, 2026, https://offroadvietnam.com/vietnam-info/customs-and-rites/funerals
+10. Death Rituals in Vietnamese Society - EthnoMed, accessed on March 9, 2026, https://ethnomed.org/resource/death-rituals-in-vietnamese-society/
+11. Funeral and Cemetery Traditions of Vietnam | Vietnamese Funeral Culture - Rose Hills Memorial Park & Mortuaries, accessed on March 9, 2026, https://www.rosehills.com/planning-ahead/vietnamese-traditions
+12. (Qinding) Xieji bianfang shu (欽定)協紀辨方書 - Chinaknowledge, accessed on March 9, 2026, http://www.chinaknowledge.de/Literature/Daoists/xiejibianfangshu.html
+13. The Imperial Guide to Feng-Shui & Chinese Astrology: The Only Authentic Translation from the Original Chinese [First ed.] 9781842931769 - DOKUMEN.PUB, accessed on March 9, 2026, https://dokumen.pub/the-imperial-guide-to-feng-shui-amp-chinese-astrology-the-only-authentic-translation-from-the-original-chinese-firstnbsped-9781842931769.html
+14. The Art of Fate Calculation: Practicing Divination in Taipei, Beijing, and Kaifeng 9781800738133 - DOKUMEN.PUB, accessed on March 9, 2026, https://dokumen.pub/the-art-of-fate-calculation-practicing-divination-in-taipei-beijing-and-kaifeng-9781800738133.html
+15. A Comparative Study of Participants in Korean and Chinese Nuo Rituals - MDPI, accessed on March 9, 2026, https://www.mdpi.com/2077-1444/16/12/1557
+16. ANALYSIS OF ASTRONOMICAL ALMANAC AND CALENDAR IN NORTH KOREA AND ITS IMPLICATIONS, accessed on March 9, 2026, https://www.koreascience.kr/article/JAKO202426743224151.page
+17. (PDF) The Development of Astronomy in Korea and the Emergence of Astrophysics in South Korea - ResearchGate, accessed on March 9, 2026, https://www.researchgate.net/publication/320849331_The_Development_of_Astronomy_in_Korea_and_the_Emergence_of_Astrophysics_in_South_Korea
+18. akmjenkins/json-schema-rules-engine - GitHub, accessed on March 9, 2026, https://github.com/akmjenkins/json-schema-rules-engine
+19. Beginner's Guide to DAM Taxonomy | Hyland, accessed on March 9, 2026, https://www.hyland.com/en/resources/articles/dam-taxonomy
+20. CMS | 2025 | The Web Almanac by HTTP Archive, accessed on March 9, 2026, https://almanac.httparchive.org/en/2025/cms
+21. Digital Asset Management Taxonomy: 7 Best Practices for your DAM - Orange Logic, accessed on March 9, 2026, https://www.orangelogic.com/blog/digital-asset-taxonomy-best-practices
+22. Building Dynamic Business Logic with JSON-based Rules Engine in .NET, accessed on March 9, 2026, https://levelup.gitconnected.com/building-dynamic-business-logic-with-json-based-rules-engine-in-net-740813ff4d71
+23. TRẠNG TRÌNH NGUYỄN BỈNH KHIÊM - CHỌN NGÀY TỐT XẤU (P1) - ️Phongthuy.com.vn, accessed on March 9, 2026, https://phongthuy.com.vn/trang-trinh-nguyen-binh-khiem-chon-ngay-tot-xau-p1.html
+24. Hiệp Kỷ Biện Phương Thư Tập 2 - Dụng sự hỷ kỵ | 07 Mua, accessed on March 9, 2026, https://07mua.com/nguyen-ly-chon-ngay-theo-hiep-ky-bien-phuong-thu-dung-su-hy-ky-tap-2
+25. Vietnamese Death Anniversaries Unite Young and Old | Diverse Elders Coalition, accessed on March 9, 2026, https://diverseelders.org/2019/03/21/vietnamese-death-anniversaries-unite-young-and-old/
+26. Qin ding xie ji bian fang shu - Google Books, accessed on March 9, 2026, https://books.google.com/books/about/Qin_ding_xie_ji_bian_fang_shu.html?id=BuNfwAEACAAJ
+27. Catalog Record: Qin ding xie ji bian fang shu | HathiTrust Digital Library, accessed on March 9, 2026, https://catalog.hathitrust.org/Record/002274862
+28. Byeong-Hee MIHN | Korea Astronomy and Space Science Institute, Daejeon | Research profile - ResearchGate, accessed on March 9, 2026, https://www.researchgate.net/profile/Byeong-Hee-Mihn
+29. Your Guide to Korean Etiquette & Culture - Dynasty Korea, accessed on March 9, 2026, https://www.dynastykorea.com/your-guide-to-korean-etiquette-culture/
+30. South Korean Drinking Culture: Somaek, Etiquette & Rituals Explained - The Beer Atlas, accessed on March 9, 2026, https://thebeeratlas.com/south-korean-drinking-culture-explained/
+31. South Korean Cultural Rules: 5 Important Dos - Reach to Teach Recruiting, accessed on March 9, 2026, https://www.reachtoteachrecruiting.com/blog/south-korean-cultural-rules-5-important-dos-2/
+32. Traditions, manners, politeness, manners. A how-to guide. : r/korea - Reddit, accessed on March 9, 2026, https://www.reddit.com/r/korea/comments/ui751/traditions_manners_politeness_manners_a_howto/

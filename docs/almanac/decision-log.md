@@ -92,6 +92,42 @@ Policy reference:
 - Impact: Ruleset data, resolver tests, and `taboo-rules.md` can rely on one canonical v1 mapping; alternate tables must be introduced as new ruleset versions/variants.
 - Follow-up: `R-3001`, `I-3002`, `I-3003`, `T-3005`.
 
+## DEC-0009
+
+- Status: accepted
+- Date: 2026-03-09
+- Decision: Freeze the recommendation v1 planning contract around a precedence-first engine, bounded day-deity modifiers, explicit source-family separation, and versioned optional packs for variant-sensitive rule families.
+- Why: The recommendation research converges on explainability and explicit provenance, while the largest disagreements come from source mixing and fake precision.
+- Impact: The planning artifacts in `recommendation-research-reconciliation.md`, `recommendation-conflict-triage.md`, `recommendation-rule-matrix.json`, and `recommendation-promotion-order.json` become the active v1 policy contract for follow-up implementation beads.
+- Follow-up: `aml-bhy`, `aml-o99`, `aml-b0g`.
+
+## DEC-0010
+
+- Status: accepted
+- Date: 2026-03-09
+- Decision: Treat burial/funeral recommendation automation as a safety-sensitive domain that defaults to conservative wording and does not receive aggressive positive automation in default v1.
+- Why: This domain is culturally sensitive, variant-heavy across traditions, and carries outsized product trust risk when the engine overclaims.
+- Impact: Core recommendation logic and all presentation layers must avoid generic auspicious wording for burial/funeral output; future automation in this area requires explicit policy review and dedicated tests.
+- Follow-up: `aml-6km`, `aml-o99`.
+
+## DEC-0011
+
+- Status: accepted
+- Date: 2026-03-09
+- Decision: Do not expose numeric confidence scores in default v1 recommendation APIs or UI; confidence may only be expressed through explicit structural semantics such as provenance, rule class, and advisory posture.
+- Why: The current recommendation engine is deterministic and precedence-based, not probabilistic; numeric percentages would overstate certainty and obscure source variance.
+- Impact: Recommendation DTO and UI work must avoid invented percentage confidence until a fully specified semantics and parity contract exists.
+- Follow-up: `aml-6km`, `aml-o99`, future confidence-policy work.
+
+## DEC-0012
+
+- Status: accepted
+- Date: 2026-03-09
+- Decision: Limit strong recommendation wording to non-absolute, activity-specific language backed by deterministic baseline rules, and ban absolute safety or certainty phrasing.
+- Why: Recommendation text is a product contract; overly strong wording creates user-trust failures even when the underlying rule firing is technically correct.
+- Impact: Rendering layers should prefer phrases such as `Suitable`, `Generally favorable`, `Use caution`, or `Needs expert review`, and must avoid terms such as `Guaranteed`, `Perfect`, or `Risk-free`.
+- Follow-up: `aml-6km`, UI/API wording reviews, future recommendation presentation tests.
+
 ---
 
 ## Supersession Rules

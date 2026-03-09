@@ -25,6 +25,7 @@ Track source material used for each rule family so implementation decisions are 
 | Cuu Dieu | open | TBD | TBD | freeze gender-age cycle table | `vn_baseline_v1` |
 | Yearly Han | open | TBD | TBD | freeze table variant | `vn_baseline_v1` |
 | Direction families | open | Existing baseline table | TBD variant table | split VN/CN variants | `vn_baseline_v1` + future |
+| Sensitive recommendation domains | selected | `docs/almanac/recommendation-safety-policy.md` | Decision log (`DEC-0010`, `DEC-0011`, `DEC-0012`) | keep conservative defaults for burial/funeral, confidence, and wording | `vn_baseline_v1` |
 | Event scoring policy | open | Product policy doc | TBD domain reference | define hard/soft/weights | `vn_baseline_v1` |
 
 ## Decision Log Linkage

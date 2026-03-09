@@ -25,6 +25,14 @@ struct ExpectedCounts {
     ky_manh: usize,
     summary_contains: String,
     must_include_activity_ids: Vec<String>,
+    #[serde(default)]
+    must_match_activity_buckets: Vec<ExpectedActivityBucket>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ExpectedActivityBucket {
+    activity_id: String,
+    bucket: RecommendationBucket,
 }
 
 fn activity_id_to_snake_case(activity_id: ActivityId) -> String {
@@ -128,6 +136,19 @@ fn recommendation_corpus_matches_expected_profiles() {
                 case.id,
                 required,
                 case.rationale
+            );
+        }
+
+        for expected in &case.expect.must_match_activity_buckets {
+            let actual = rec
+                .activities
+                .iter()
+                .find(|activity| activity_id_to_snake_case(activity.activity_id) == expected.activity_id)
+                .unwrap_or_else(|| panic!("{} missing bucket-checked activity {}", case.id, expected.activity_id));
+            assert_eq!(
+                actual.bucket, expected.bucket,
+                "{} bucket mismatch for {} | rationale: {}",
+                case.id, expected.activity_id, case.rationale
             );
         }
     }

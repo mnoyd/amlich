@@ -196,3 +196,33 @@ A bead is done only when:
 3. Evidence metadata is present in output.
 4. Docs/changelog note are updated.
 5. No unversioned contract break is introduced.
+
+## Recommendation Roadmap Snapshot (2026-03-09)
+
+The recommendation-system roadmap now has a frozen planning baseline for v1 policy work.
+
+Active planning artifacts:
+
+- `docs/almanac/recommendation-research-reconciliation.md`
+- `docs/almanac/recommendation-conflict-triage.md`
+- `docs/almanac/recommendation-rule-matrix.json`
+- `docs/almanac/recommendation-promotion-order.json`
+- `docs/almanac/recommendation-safety-policy.md`
+- `docs/almanac/recommendation-pack-architecture.md`
+- `docs/almanac/personalized-recommendation-layer.md`
+
+Planning decisions now locked:
+
+- default engine remains precedence-first
+- `truc` remains a primary activity-routing signal
+- `hoang_dao/hac_dao` remains a bounded modifier
+- variant-sensitive rule families should expand through packs or versioned rulesets, not silent source blending
+- burial/funeral automation and numeric confidence remain conservative/deferred until explicit policy and test gates are met
+
+Current dependency order for follow-up beads:
+
+1. freeze planning and safety policy artifacts
+2. refine default core recommendation logic
+3. expand regression corpus and API parity
+4. design optional recommendation pack architecture
+5. define personalized recommendation layer
