@@ -546,6 +546,9 @@ impl From<&amlich_core::almanac::recommendation::SynthesizedRecommendation>
 impl From<&amlich_core::almanac::recommendation::DailyRecommendations> for DailyRecommendationsDto {
     fn from(value: &amlich_core::almanac::recommendation::DailyRecommendations) -> Self {
         Self {
+            ruleset_id: value.ruleset_id.clone(),
+            ruleset_version: value.ruleset_version.clone(),
+            profile: value.profile.clone(),
             scope: RecommendationScopeDto::from(value.scope),
             version: value.version.clone(),
             summary_vi: value.summary_vi.clone(),
@@ -564,6 +567,7 @@ impl From<&amlich_core::DayInfo> for DayInfoDto {
         Self {
             ruleset_id: value.ruleset_id.clone(),
             ruleset_version: value.ruleset_version.clone(),
+            profile: value.profile.clone(),
             solar: SolarDto::from(&value.solar),
             lunar: LunarDto::from(&value.lunar),
             jd: value.jd,

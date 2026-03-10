@@ -71,6 +71,7 @@ pub struct CanChiInfo {
 pub struct DayInfo {
     pub ruleset_id: String,
     pub ruleset_version: String,
+    pub profile: String,
     pub solar: SolarInfo,
     pub lunar: LunarInfo,
     pub jd: i32,
@@ -191,6 +192,7 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
     DayInfo {
         ruleset_id: day_fortune.ruleset_id.clone(),
         ruleset_version: day_fortune.ruleset_version.clone(),
+        profile: day_fortune.profile.clone(),
         solar,
         lunar,
         jd,
@@ -227,6 +229,7 @@ mod tests {
         assert_eq!(info.canchi.year.full, "Giáp Thìn");
         assert_eq!(info.ruleset_id, "vn_baseline_v1");
         assert_eq!(info.ruleset_version, "v1");
+        assert_eq!(info.profile, "baseline");
     }
 
     #[test]
@@ -277,5 +280,8 @@ mod tests {
         let info = get_day_info(10, 2, 2024);
         assert!(!info.daily_recommendations.activities.is_empty());
         assert!(!info.daily_recommendations.summary_vi.is_empty());
+        assert_eq!(info.daily_recommendations.ruleset_id, info.ruleset_id);
+        assert_eq!(info.daily_recommendations.ruleset_version, info.ruleset_version);
+        assert_eq!(info.daily_recommendations.profile, info.profile);
     }
 }

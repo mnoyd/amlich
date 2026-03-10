@@ -205,7 +205,9 @@ fn day_info_exposes_ruleset_metadata() {
 
     assert_eq!(info.ruleset_id, "vn_baseline_v1");
     assert_eq!(info.ruleset_version, "v1");
+    assert_eq!(info.profile, "baseline");
     let fortune = info.day_fortune.expect("day_fortune should exist");
     assert_eq!(fortune.ruleset_id, info.ruleset_id);
     assert_eq!(fortune.ruleset_version, info.ruleset_version);
+    assert_eq!(fortune.profile, info.profile);
 }

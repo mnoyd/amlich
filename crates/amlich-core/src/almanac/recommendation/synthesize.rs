@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 
 use crate::{
+    almanac::data::default_ruleset,
     almanac::types::{DayDeityClassification, DayFortune, DayTaboo},
     gio_hoang_dao::GioHoangDao,
 };
@@ -142,8 +143,12 @@ fn synthesize_internal(
 
     let activities = merge_hits(hits);
     let (summary_vi, summary_en) = build_summary(&activities);
+    let (ruleset_id, ruleset_version, profile) = recommendation_provenance(context);
 
     DailyRecommendations {
+        ruleset_id,
+        ruleset_version,
+        profile,
         scope: RecommendationScope::GeneralDay,
         version: if context.is_some() {
             "v1-layered".to_string()
@@ -154,6 +159,25 @@ fn synthesize_internal(
         summary_en,
         activities,
     }
+}
+
+fn recommendation_provenance(
+    context: Option<&RecommendationSynthesisContext<'_>>,
+) -> (String, String, String) {
+    if let Some(ctx) = context {
+        return (
+            ctx.day_fortune.ruleset_id.clone(),
+            ctx.day_fortune.ruleset_version.clone(),
+            ctx.day_fortune.profile.clone(),
+        );
+    }
+
+    let descriptor = default_ruleset().descriptor;
+    (
+        descriptor.id.to_string(),
+        descriptor.version.to_string(),
+        descriptor.profile.to_string(),
+    )
 }
 
 fn collect_base_hits(truc_name: &str) -> Vec<CollectedHit> {
@@ -825,6 +849,9 @@ mod tests {
             .activities
             .iter()
             .any(|activity| activity.bucket == RecommendationBucket::KyManh));
+        assert_eq!(recommendations.ruleset_id, day_fortune.ruleset_id);
+        assert_eq!(recommendations.ruleset_version, day_fortune.ruleset_version);
+        assert_eq!(recommendations.profile, day_fortune.profile);
         assert_eq!(recommendations.version, "v1-layered");
     }
 

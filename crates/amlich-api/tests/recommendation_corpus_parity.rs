@@ -97,6 +97,22 @@ fn corpus_recommendations_match_between_core_and_api() {
         let api_info = amlich_api::get_day_info(&query).expect("api day info");
 
         assert_eq!(
+            api_info.daily_recommendations.ruleset_id, core_info.daily_recommendations.ruleset_id,
+            "{} ruleset id mismatch",
+            case.id
+        );
+        assert_eq!(
+            api_info.daily_recommendations.ruleset_version,
+            core_info.daily_recommendations.ruleset_version,
+            "{} ruleset version mismatch",
+            case.id
+        );
+        assert_eq!(
+            api_info.daily_recommendations.profile, core_info.daily_recommendations.profile,
+            "{} profile mismatch",
+            case.id
+        );
+        assert_eq!(
             api_info.daily_recommendations.version, core_info.daily_recommendations.version,
             "{} version mismatch",
             case.id
@@ -190,6 +206,16 @@ fn corpus_recommendations_match_between_core_and_api() {
             .as_ref()
             .expect("bundle recommendations present");
 
+        assert_eq!(
+            bundle.meta.profile, api_info.profile,
+            "{} bundle profile mismatch",
+            case.id
+        );
+        assert_eq!(
+            bundle_rec.profile, api_info.daily_recommendations.profile,
+            "{} bundle recommendation profile mismatch",
+            case.id
+        );
         assert_eq!(
             bundle_rec.summary_vi, api_info.daily_recommendations.summary_vi,
             "{} bundle summary mismatch",

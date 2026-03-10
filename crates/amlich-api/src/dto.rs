@@ -292,6 +292,9 @@ pub struct SynthesizedRecommendationDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DailyRecommendationsDto {
+    pub ruleset_id: String,
+    pub ruleset_version: String,
+    pub profile: String,
     pub scope: RecommendationScopeDto,
     pub version: String,
     pub summary_vi: String,
@@ -320,6 +323,7 @@ pub struct ConventionMetadataDto {
 pub struct DayInfoDto {
     pub ruleset_id: String,
     pub ruleset_version: String,
+    pub profile: String,
     pub solar: SolarDto,
     pub lunar: LunarDto,
     pub jd: i32,

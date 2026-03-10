@@ -27,6 +27,7 @@ pub struct ApiMetaDto {
     pub schema_version: String,
     pub ruleset_id: String,
     pub ruleset_version: String,
+    pub profile: String,
     pub generated_at: String,
 }
 
@@ -102,6 +103,7 @@ pub fn get_day_bundle(query: &DateQuery, includes: &[Include]) -> Result<DayBund
             schema_version: "amlich.api/v2".to_string(),
             ruleset_id: info.ruleset_id.clone(),
             ruleset_version: info.ruleset_version.clone(),
+            profile: info.profile.clone(),
             generated_at: chrono::Utc::now().to_rfc3339(),
         },
         solar: info.solar,

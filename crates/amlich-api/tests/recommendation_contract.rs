@@ -26,6 +26,12 @@ fn bucket_rank(bucket: &str) -> u8 {
 fn day_info_exposes_daily_recommendations_contract() {
     let info = amlich_api::get_day_info(&query(10, 2, 2024)).expect("day info");
 
+    assert_eq!(info.ruleset_id, "vn_baseline_v1");
+    assert_eq!(info.ruleset_version, "v1");
+    assert_eq!(info.profile, "baseline");
+    assert_eq!(info.daily_recommendations.ruleset_id, info.ruleset_id);
+    assert_eq!(info.daily_recommendations.ruleset_version, info.ruleset_version);
+    assert_eq!(info.daily_recommendations.profile, info.profile);
     assert!(info.daily_recommendations.version.starts_with("v1-"));
     assert!(!info.daily_recommendations.summary_vi.is_empty());
     assert!(!info.daily_recommendations.activities.is_empty());
@@ -67,6 +73,13 @@ fn day_bundle_includes_daily_recommendations_with_fortune() {
         .daily_recommendations
         .as_ref()
         .expect("daily recommendations should be present");
+    assert_eq!(bundle.meta.profile, from_info.profile);
+    assert_eq!(bundle_rec.ruleset_id, from_info.daily_recommendations.ruleset_id);
+    assert_eq!(
+        bundle_rec.ruleset_version,
+        from_info.daily_recommendations.ruleset_version
+    );
+    assert_eq!(bundle_rec.profile, from_info.daily_recommendations.profile);
     assert_eq!(bundle_rec.version, from_info.daily_recommendations.version);
     assert_eq!(
         bundle_rec.summary_vi,
@@ -84,14 +97,18 @@ fn day_bundle_projection_supports_recommendation_fields() {
         &query(10, 2, 2024),
         &[],
         &[
+            "daily_recommendations.profile".to_string(),
             "daily_recommendations.summary_vi".to_string(),
             "daily_recommendations.activities".to_string(),
+            "meta.profile".to_string(),
             "meta.schema_version".to_string(),
         ],
     )
     .expect("projected");
 
     assert_eq!(projected["meta"]["schema_version"], "amlich.api/v2");
+    assert_eq!(projected["meta"]["profile"], "baseline");
+    assert_eq!(projected["daily_recommendations"]["profile"], "baseline");
     assert!(projected["daily_recommendations"]["summary_vi"]
         .as_str()
         .map(|s| !s.is_empty())

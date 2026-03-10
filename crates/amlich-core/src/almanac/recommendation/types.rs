@@ -67,6 +67,9 @@ pub struct SynthesizedRecommendation {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DailyRecommendations {
+    pub ruleset_id: String,
+    pub ruleset_version: String,
+    pub profile: String,
     pub scope: RecommendationScope,
     pub version: String,
     pub summary_vi: String,
@@ -82,6 +85,9 @@ mod tests {
     #[test]
     fn serializes_daily_recommendations_contract() {
         let rec = DailyRecommendations {
+            ruleset_id: "vn_baseline_v1".to_string(),
+            ruleset_version: "v1".to_string(),
+            profile: "baseline".to_string(),
             scope: RecommendationScope::GeneralDay,
             version: "v1alpha".to_string(),
             summary_vi: "Ngay hop viec nho".to_string(),
@@ -109,6 +115,9 @@ mod tests {
             serde_json::from_str(&json).expect("deserialize recommendations");
 
         assert_eq!(decoded.scope, RecommendationScope::GeneralDay);
+        assert_eq!(decoded.ruleset_id, "vn_baseline_v1");
+        assert_eq!(decoded.ruleset_version, "v1");
+        assert_eq!(decoded.profile, "baseline");
         assert_eq!(decoded.activities.len(), 1);
         assert_eq!(decoded.activities[0].bucket, RecommendationBucket::Nen);
     }
