@@ -128,6 +128,24 @@ Policy reference:
 - Impact: Rendering layers should prefer phrases such as `Suitable`, `Generally favorable`, `Use caution`, or `Needs expert review`, and must avoid terms such as `Guaranteed`, `Perfect`, or `Risk-free`.
 - Follow-up: `aml-6km`, UI/API wording reviews, future recommendation presentation tests.
 
+## DEC-0013
+
+- Status: accepted
+- Date: 2026-03-10
+- Decision: Freeze the v1 implementation target for recommendation alignment as follows: the public bucket taxonomy remains `Nên / Có thể / Tránh / Kỵ mạnh`; legacy `dayGuidance` remains informational-only and must not seed default recommendation synthesis; baseline recommendations remain date-only; and top-level day outputs are expected to expose `ruleset_id`, `ruleset_version`, and `profile` without requiring consumers to infer profile from nested fortune payloads.
+- Why: Current code and UI drift comes from mixing an older 2-column guidance surface with the newer recommendation engine, plus ambiguity around where profile provenance lives in day-level contracts.
+- Impact: Follow-up implementation beads should remove `dayGuidance` from the default merger, keep personalization separate, align DTO/meta contracts around top-level provenance, and keep presentation layers on the 4-bucket model.
+- Follow-up: `aml-ig4.2`, `aml-ig4.3`, `aml-ig4.6`, `aml-ig4.7`.
+
+## DEC-0014
+
+- Status: accepted
+- Date: 2026-03-10
+- Decision: In default v1, hard-stop (`Kỵ mạnh`) authority is reserved for policy-approved rule families with explicit blocking semantics, with structured taboo severity as the only built-in hard-stop source until another family is explicitly promoted by decision.
+- Why: The extension-layer API is intentionally flexible, but unrestricted hard-stop emission would let implementation details bypass the published safety policy and destabilize product meaning.
+- Impact: Recommendation-layer plumbing must not allow arbitrary extension hits to escalate to `Kỵ mạnh` without an explicit policy gate, and tests must cover both allowed and disallowed hard-stop producers.
+- Follow-up: `aml-ig4.5`, `aml-ig4.7`.
+
 ---
 
 ## Supersession Rules

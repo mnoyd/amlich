@@ -24,9 +24,13 @@ These remain insight-only until personal/event inputs are available:
 - personal astrology signals requiring birth data
 - event-specific constraints not derivable from date-only context
 
+Contract note:
+
+- `dayGuidance` is a legacy informational surface and must not seed default `daily_recommendations` synthesis in v1 alignment work.
+
 ## Guardrails
 
 - No modifier may invent a new canonical activity ID ad hoc.
 - Ambiguous mappings are dropped instead of guessed.
-- Hard-stop behavior is reserved for explicit taboo severity.
+- Hard-stop behavior is reserved for explicit taboo severity unless a later decision explicitly promotes another rule family into policy-approved hard-stop authority.
 - All emitted reasons must carry evidence source/code metadata.

@@ -98,6 +98,9 @@ Every computed almanac output should include:
 - `profile`
 - per-field or per-rule evidence metadata
 
+For day-level API/application contracts, this provenance should be available at the top-level day output or response metadata layer.
+Consumers should not need to inspect nested `day_fortune.profile` fields just to determine the active ruleset profile.
+
 For day-level output, v1 additionally requires:
 
 - `day_deity.name`
