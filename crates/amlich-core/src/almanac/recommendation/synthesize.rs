@@ -3,12 +3,11 @@ use std::collections::BTreeMap;
 use crate::{
     almanac::types::{DayDeityClassification, DayFortune, DayTaboo},
     gio_hoang_dao::GioHoangDao,
-    insight_data::{get_day_guidance, DayGuidance},
 };
 
 use super::{
     activity::ActivityId,
-    evidence::{collect_truc_hits, normalize_legacy_guidance_hits},
+    evidence::collect_truc_hits,
     rules::{avoided_bucket, favored_bucket, truc_insight},
     BaseDirection, BaseEvidenceHit, DailyRecommendations, RecommendationBucket,
     RecommendationEvidence, RecommendationEvidenceSource, RecommendationReason,
@@ -95,15 +94,14 @@ pub fn synthesize_daily_recommendations_with_layers(
 }
 
 fn synthesize_internal(
-    day_chi: &str,
+    _day_chi: &str,
     truc_name: &str,
     context: Option<&RecommendationSynthesisContext<'_>>,
     gio_hoang_dao: Option<&GioHoangDao>,
     tiet_khi_name: Option<&str>,
     layers: &[&dyn RecommendationLayer],
 ) -> DailyRecommendations {
-    let legacy_guidance = get_day_guidance(day_chi);
-    let mut hits = collect_base_hits(legacy_guidance, truc_name);
+    let mut hits = collect_base_hits(truc_name);
 
     if let Some(ctx) = context {
         hits.extend(collect_star_modifier_hits(ctx.day_fortune));
@@ -152,16 +150,8 @@ fn synthesize_internal(
     }
 }
 
-fn collect_base_hits(legacy_guidance: Option<&DayGuidance>, truc_name: &str) -> Vec<CollectedHit> {
+fn collect_base_hits(truc_name: &str) -> Vec<CollectedHit> {
     let mut hits = Vec::new();
-
-    if let Some(guidance) = legacy_guidance {
-        hits.extend(
-            normalize_legacy_guidance_hits(guidance)
-                .into_iter()
-                .map(base_to_collected),
-        );
-    }
 
     if let Some(truc) = truc_insight(truc_name) {
         hits.extend(collect_truc_hits(truc).into_iter().map(base_to_collected));
@@ -751,14 +741,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn agreement_between_truc_and_guidance_promotes_to_nen() {
+    fn truc_only_favor_stays_primary_without_legacy_guidance_promotion() {
         let recommendations = synthesize_base_daily_recommendations("Tý", "Khai");
         let opening = recommendations
             .activities
             .iter()
             .find(|activity| activity.label.vi == "Khai mở")
             .expect("opening recommendation exists");
-        assert_eq!(opening.bucket, RecommendationBucket::Nen);
+        assert_eq!(opening.bucket, RecommendationBucket::CoThe);
     }
 
     #[test]
@@ -770,6 +760,17 @@ mod tests {
             .find(|activity| activity.label.vi == "Kiện tụng")
             .expect("lawsuit recommendation exists");
         assert_eq!(dispute.bucket, RecommendationBucket::Tranh);
+    }
+
+    #[test]
+    fn base_synthesis_does_not_emit_legacy_day_guidance_evidence() {
+        let recommendations = synthesize_base_daily_recommendations("Tý", "Khai");
+        assert!(recommendations.activities.iter().all(|activity| {
+            activity
+                .reasons
+                .iter()
+                .all(|reason| reason.evidence.source != RecommendationEvidenceSource::DayGuidance)
+        }));
     }
 
     #[test]
