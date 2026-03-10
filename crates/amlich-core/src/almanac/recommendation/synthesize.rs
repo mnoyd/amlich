@@ -56,6 +56,12 @@ struct CollectedHit {
     hard_stop: bool,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HitOrigin {
+    CorePolicy,
+    ExtensionLayer,
+}
+
 #[derive(Debug, Clone)]
 struct AggregateRecommendation {
     activity: SynthesizedRecommendation,
@@ -128,7 +134,7 @@ fn synthesize_internal(
                 summary_vi: hit.summary_vi,
                 summary_en: hit.summary_en,
                 severity: hit.severity,
-                hard_stop: hit.hard_stop,
+                hard_stop: allow_hard_stop(hit.source, hit.hard_stop, HitOrigin::ExtensionLayer),
             });
             hits.extend(extra);
         }
@@ -172,8 +178,18 @@ fn base_to_collected(hit: BaseEvidenceHit) -> CollectedHit {
             BaseDirection::Favor => RecommendationSeverity::Primary,
             BaseDirection::Avoid => RecommendationSeverity::Override,
         },
-        hard_stop: false,
+        hard_stop: allow_hard_stop(hit.source, false, HitOrigin::CorePolicy),
     }
+}
+
+fn allow_hard_stop(
+    source: RecommendationEvidenceSource,
+    requested_hard_stop: bool,
+    origin: HitOrigin,
+) -> bool {
+    requested_hard_stop
+        && origin == HitOrigin::CorePolicy
+        && matches!(source, RecommendationEvidenceSource::Taboo)
 }
 
 fn collect_star_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
@@ -300,7 +316,11 @@ fn collect_taboo_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
                 summary_vi: format!("{}: {}", taboo.name, taboo.reason),
                 summary_en: format!("{} taboo: {}", taboo.name, taboo.reason),
                 severity,
-                hard_stop,
+                hard_stop: allow_hard_stop(
+                    RecommendationEvidenceSource::Taboo,
+                    hard_stop,
+                    HitOrigin::CorePolicy,
+                ),
             });
         }
     }
@@ -900,6 +920,55 @@ mod tests {
             .find(|activity| activity.activity_id == ActivityId::OpeningStart)
             .expect("opening recommendation exists");
         assert_eq!(opening.bucket, RecommendationBucket::CoThe);
+    }
+
+    #[test]
+    fn extension_layers_cannot_escalate_to_ky_manh() {
+        struct HardStopLayer;
+        impl RecommendationLayer for HardStopLayer {
+            fn layer_id(&self) -> &'static str {
+                "test.hard-stop"
+            }
+
+            fn collect_hits(
+                &self,
+                _context: &RecommendationSynthesisContext<'_>,
+            ) -> Vec<RecommendationLayerHit> {
+                vec![RecommendationLayerHit {
+                    activity_id: ActivityId::ContractAgreement,
+                    source: RecommendationEvidenceSource::Taboo,
+                    source_code: "extension.spoofed_taboo".to_string(),
+                    direction: BaseDirection::Avoid,
+                    summary_vi: "Lớp mở rộng yêu cầu chặn cứng".to_string(),
+                    summary_en: "Extension requested hard stop".to_string(),
+                    severity: RecommendationSeverity::Override,
+                    hard_stop: true,
+                }]
+            }
+        }
+
+        let info = crate::get_day_info(10, 2, 2024);
+        let context = RecommendationSynthesisContext {
+            day_chi: &info.canchi.day.chi,
+            day_fortune: &info.day_fortune,
+            gio_hoang_dao: Some(&info.gio_hoang_dao),
+            tiet_khi_name: Some(&info.tiet_khi.name),
+            profile_id: Some("default"),
+            event_kind: Some("contract_signing"),
+        };
+        let layer = HardStopLayer;
+        let recommendations = synthesize_daily_recommendations_with_layers(&context, &[&layer]);
+
+        let contract = recommendations
+            .activities
+            .iter()
+            .find(|activity| activity.activity_id == ActivityId::ContractAgreement)
+            .expect("contract recommendation exists");
+        assert_eq!(contract.bucket, RecommendationBucket::Tranh);
+        assert!(contract
+            .reasons
+            .iter()
+            .any(|reason| reason.rule_id == "layer.taboo.extension.spoofed_taboo"));
     }
 
     #[test]
