@@ -94,6 +94,28 @@
     }
   }
 
+  function advisoryNotes(recommendations: DailyRecommendationsDto): string[] {
+    const notes: string[] = [];
+
+    if (recommendations.activities.some((activity) => activity.activity_id === "medical_treatment")) {
+      notes.push(
+        lang === "vi"
+          ? "Lưu ý: việc điều trị thực tế luôn ưu tiên đánh giá chuyên môn; lịch chỉ mang tính tham khảo."
+          : "Note: real medical care should follow professional judgment first; calendar guidance is only advisory.",
+      );
+    }
+
+    if (recommendations.activities.some((activity) => activity.activity_id === "burial_memorial")) {
+      notes.push(
+        lang === "vi"
+          ? "Lưu ý: an táng hoặc tưởng niệm cần thẩm định thêm theo tập tục và chuyên gia địa phương."
+          : "Note: burial or memorial planning needs added review against local tradition and expert guidance.",
+      );
+    }
+
+    return notes;
+  }
+
   $effect(() => {
     if (!day) {
       insight = null;
@@ -205,6 +227,14 @@
             {/if}
           {/each}
         </div>
+
+        {#if advisoryNotes(dayInfo.daily_recommendations).length > 0}
+          <div class="advisory-block">
+            {#each advisoryNotes(dayInfo.daily_recommendations) as note}
+              <p class="card-note">{note}</p>
+            {/each}
+          </div>
+        {/if}
       </article>
     {/if}
 
@@ -442,6 +472,14 @@
 
   .guidance-reference {
     border-style: dashed;
+  }
+
+  .advisory-block {
+    display: grid;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(126, 79, 22, 0.22);
   }
 
   p {

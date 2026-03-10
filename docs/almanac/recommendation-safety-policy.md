@@ -187,6 +187,15 @@ Examples:
 
 Presentation layers should favor activity-specific wording over global day adjectives.
 
+## Consumer Surface Notes
+
+The following presentation differences are intentional in v1 and should remain explicit:
+
+- All consumer surfaces keep the canonical bucket taxonomy visible as `Nên / Có thể / Tránh / Kỵ mạnh`.
+- English-capable surfaces may add short glosses such as `(Recommended)` or `(Hard stop)`, but they must not replace the canonical Vietnamese bucket labels.
+- Compact TUI/CLI surfaces may truncate activity rows or collapse details for layout reasons, but they should preserve bucket order, summary text, and any sensitive-domain advisory notes.
+- Desktop may continue to show legacy `day_guidance` only as a secondary informational reference; it must not be presented as the primary recommendation contract.
+
 ## Implementation Gates
 
 Any new sensitive recommendation domain must not ship until all of the following are true:

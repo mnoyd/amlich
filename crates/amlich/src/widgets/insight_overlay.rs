@@ -29,6 +29,37 @@ fn push_bulleted(lines: &mut Vec<Line<'_>>, items: &[String], marker: &str, limi
     }
 }
 
+fn recommendation_advisories(lang: InsightLang, info: &amlich_api::DayInfoDto) -> Vec<String> {
+    let has_medical = info
+        .daily_recommendations
+        .activities
+        .iter()
+        .any(|activity| activity.activity_id == "medical_treatment");
+    let has_burial = info
+        .daily_recommendations
+        .activities
+        .iter()
+        .any(|activity| activity.activity_id == "burial_memorial");
+
+    let mut notes = Vec::new();
+    if has_medical {
+        notes.push(pick_text(
+            lang,
+            "Lưu ý: việc điều trị thực tế luôn ưu tiên đánh giá chuyên môn; lịch chỉ mang tính tham khảo.",
+            "Note: real medical care should follow professional judgment first; calendar guidance is only advisory.",
+        ));
+    }
+    if has_burial {
+        notes.push(pick_text(
+            lang,
+            "Lưu ý: an táng hoặc tưởng niệm cần thẩm định thêm theo tập tục và chuyên gia địa phương.",
+            "Note: burial or memorial planning needs added review against local tradition and expert guidance.",
+        ));
+    }
+
+    notes
+}
+
 pub struct InsightOverlay<'a> {
     app: &'a App,
 }
@@ -380,16 +411,16 @@ impl<'a> InsightOverlay<'a> {
                         .add_modifier(Modifier::BOLD),
                 ),
                 (InsightLang::En, amlich_api::RecommendationBucketDto::Nen) => {
-                    ("✅ Do", Style::default().fg(theme::GOOD_FG))
+                    ("✅ Nên (Recommended)", Style::default().fg(theme::GOOD_FG))
                 }
                 (InsightLang::En, amlich_api::RecommendationBucketDto::CoThe) => {
-                    ("ℹ Consider", Style::default().fg(theme::ACCENT_FG))
+                    ("ℹ Có thể (Consider)", Style::default().fg(theme::ACCENT_FG))
                 }
                 (InsightLang::En, amlich_api::RecommendationBucketDto::Tranh) => {
-                    ("⚠ Avoid", Style::default().fg(theme::BAD_FG))
+                    ("⚠ Tránh (Avoid)", Style::default().fg(theme::BAD_FG))
                 }
                 (InsightLang::En, amlich_api::RecommendationBucketDto::KyManh) => (
-                    "⛔ Hard stop",
+                    "⛔ Kỵ mạnh (Hard stop)",
                     Style::default()
                         .fg(theme::BAD_FG)
                         .add_modifier(Modifier::BOLD),
@@ -404,6 +435,13 @@ impl<'a> InsightOverlay<'a> {
                 lines.push(Line::from(format!("• {}", item.label.vi)));
             }
             lines.push(Line::from(""));
+        }
+
+        for note in recommendation_advisories(self.app.insight_lang, info) {
+            lines.push(Line::from(Span::styled(
+                note,
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
         }
 
         lines

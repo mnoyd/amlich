@@ -377,6 +377,35 @@ impl<'a> InfoPanel<'a> {
             }
         }
 
+        if info
+            .daily_recommendations
+            .activities
+            .iter()
+            .any(|activity| activity.activity_id == "medical_treatment")
+        {
+            lines.push(Line::from(vec![
+                Span::styled("Lưu ý: ", Style::default().fg(theme::SECONDARY_FG)),
+                Span::styled(
+                    "việc điều trị thực tế luôn ưu tiên đánh giá chuyên môn; lịch chỉ mang tính tham khảo.",
+                    Style::default().fg(theme::SECONDARY_FG),
+                ),
+            ]));
+        }
+        if info
+            .daily_recommendations
+            .activities
+            .iter()
+            .any(|activity| activity.activity_id == "burial_memorial")
+        {
+            lines.push(Line::from(vec![
+                Span::styled("Lưu ý: ", Style::default().fg(theme::SECONDARY_FG)),
+                Span::styled(
+                    "an táng hoặc tưởng niệm cần thẩm định thêm theo tập tục và chuyên gia địa phương.",
+                    Style::default().fg(theme::SECONDARY_FG),
+                ),
+            ]));
+        }
+
         if let Some(holiday) = self.app.holiday_for_day(self.app.selected_day) {
             lines.push(Line::from(""));
             lines.push(Line::from(vec![

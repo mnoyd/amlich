@@ -124,6 +124,14 @@ impl Widget for GuidanceWidget<'_> {
             Style::default().fg(Color::Magenta),
         );
 
+        if let Some(note) = build_sensitive_domain_note(recommendations) {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::styled("   ", hint_style),
+                Span::styled(note, hint_style.add_modifier(Modifier::ITALIC)),
+            ]));
+        }
+
         if let Some(footer) = build_footer_hint(bundle) {
             lines.push(Line::from(""));
             lines.push(Line::from(vec![
@@ -349,6 +357,37 @@ fn build_footer_hint(bundle: &DayBundleDto) -> Option<String> {
     }
 }
 
+fn build_sensitive_domain_note(bundle: &amlich_api::DailyRecommendationsDto) -> Option<String> {
+    let has_medical = bundle
+        .activities
+        .iter()
+        .any(|activity| activity.activity_id == "medical_treatment");
+    let has_burial = bundle
+        .activities
+        .iter()
+        .any(|activity| activity.activity_id == "burial_memorial");
+
+    let mut notes = Vec::new();
+    if has_medical {
+        notes.push(
+            "Lưu ý: điều trị thực tế luôn ưu tiên đánh giá chuyên môn; lịch chỉ mang tính tham khảo."
+                .to_string(),
+        );
+    }
+    if has_burial {
+        notes.push(
+            "Lưu ý: an táng hoặc tưởng niệm cần thẩm định thêm theo tập tục và chuyên gia địa phương."
+                .to_string(),
+        );
+    }
+
+    if notes.is_empty() {
+        None
+    } else {
+        Some(notes.join(" "))
+    }
+}
+
 fn display_limit(mode: LayoutMode, expanded: bool) -> usize {
     if expanded {
         return usize::MAX;
@@ -372,6 +411,9 @@ mod tests {
 
     fn sample_recommendations() -> DailyRecommendationsDto {
         DailyRecommendationsDto {
+            ruleset_id: "vn_baseline_v1".to_string(),
+            ruleset_version: "v1".to_string(),
+            profile: "baseline".to_string(),
             scope: RecommendationScopeDto::GeneralDay,
             version: "v1-layered".to_string(),
             summary_vi: "Ngày thuận".to_string(),
