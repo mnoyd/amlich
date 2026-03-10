@@ -22,3 +22,15 @@ export type {
   TietKhiInsightDto,
   DayInsightDto,
 } from "./insight-dto";
+
+export type {
+  RecommendationBucketDto,
+  RecommendationSeverityDto,
+  RecommendationEvidenceSourceDto,
+  ActivityLabelDto,
+  RecommendationEvidenceDto,
+  RecommendationReasonDto,
+  SynthesizedRecommendationDto,
+  DailyRecommendationsDto,
+  DayInfoDto,
+} from "./day-info-dto";

@@ -187,6 +187,17 @@ fn get_day_insight(day: i32, month: i32, year: i32) -> Result<DayInsightDto, Str
 }
 
 #[tauri::command]
+fn get_day_info(day: i32, month: i32, year: i32) -> Result<DayInfoDto, String> {
+    if !(1..=12).contains(&month) {
+        return Err("month must be 1-12".to_string());
+    }
+    if !(1..=31).contains(&day) {
+        return Err("day must be 1-31".to_string());
+    }
+    get_day_info_for_date(day, month, year)
+}
+
+#[tauri::command]
 fn get_install_context() -> InstallContext {
     let executable_path = std::env::current_exe()
         .ok()
@@ -231,6 +242,7 @@ pub fn run() {
             get_month_data,
             get_day_detail,
             get_day_insight,
+            get_day_info,
             get_install_context
         ])
         .run(tauri::generate_context!())
