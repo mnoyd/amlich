@@ -100,6 +100,7 @@ impl Widget for GuidanceWidget<'_> {
             "Nên",
             &nen_rows,
             limit,
+            self.app.show_evidence,
             Style::default().fg(Color::Green),
         );
         render_bucket_section(
@@ -107,6 +108,7 @@ impl Widget for GuidanceWidget<'_> {
             "Có thể",
             &co_the_rows,
             limit,
+            self.app.show_evidence,
             Style::default().fg(Color::Cyan),
         );
         render_bucket_section(
@@ -114,6 +116,7 @@ impl Widget for GuidanceWidget<'_> {
             "Tránh",
             &tranh_rows,
             limit,
+            self.app.show_evidence,
             Style::default().fg(Color::Red),
         );
         render_bucket_section(
@@ -121,6 +124,7 @@ impl Widget for GuidanceWidget<'_> {
             "Kỵ mạnh",
             &ky_manh_rows,
             limit,
+            self.app.show_evidence,
             Style::default().fg(Color::Magenta),
         );
 
@@ -149,6 +153,7 @@ fn render_bucket_section(
     title: &str,
     rows: &[DecisionRow],
     limit: usize,
+    show_evidence: bool,
     marker_style: Style,
 ) {
     if rows.is_empty() {
@@ -170,7 +175,7 @@ fn render_bucket_section(
 
     let take = rows.len().min(limit);
     for row in rows.iter().take(take) {
-        for line in render_row_lines(row, marker_style, text_style, chip_style, 56) {
+        for line in render_row_lines(row, marker_style, text_style, chip_style, 56, show_evidence) {
             lines.push(line);
         }
     }
@@ -192,6 +197,7 @@ fn render_row_lines(
     text_style: Style,
     chip_style: Style,
     width: usize,
+    show_evidence: bool,
 ) -> Vec<Line<'static>> {
     let marker = match row.emphasis {
         DecisionEmphasis::Primary => "★ ",
@@ -200,7 +206,10 @@ fn render_row_lines(
 
     let base_indent = 3;
     let content_width = width.saturating_sub(base_indent + marker.len());
-    let chip = row.reason_chip.as_ref().map(|c| format!(" [{c}]"));
+    let chip = show_evidence
+        .then_some(row.reason_chip.as_ref())
+        .flatten()
+        .map(|c| format!(" [{c}]"));
 
     let mut first = row.text.clone();
     if let Some(chip) = chip.as_ref() {
@@ -408,6 +417,10 @@ mod tests {
         RecommendationEvidenceDto, RecommendationEvidenceSourceDto, RecommendationReasonDto,
         RecommendationScopeDto, RecommendationSeverityDto, SynthesizedRecommendationDto,
     };
+    use amlich_api::v2::{ApiMetaDto, DayBundleDto};
+    use chrono::NaiveDate;
+    use crate::state::{FocusLens, PageSection, ViewMode};
+    use ratatui::layout::Rect;
 
     fn sample_recommendations() -> DailyRecommendationsDto {
         DailyRecommendationsDto {
@@ -439,6 +452,63 @@ mod tests {
                     }],
                 },
                 SynthesizedRecommendationDto {
+                    activity_id: "visit_network".to_string(),
+                    label: ActivityLabelDto {
+                        vi: "Gặp gỡ".to_string(),
+                        en: "Visits and networking".to_string(),
+                    },
+                    bucket: RecommendationBucketDto::Nen,
+                    reasons: vec![RecommendationReasonDto {
+                        rule_id: "base.travel.good_for".to_string(),
+                        severity: RecommendationSeverityDto::Supporting,
+                        summary_vi: "Có thể đi gặp mặt".to_string(),
+                        summary_en: "Suitable for visits".to_string(),
+                        evidence: RecommendationEvidenceDto {
+                            source: RecommendationEvidenceSourceDto::Travel,
+                            code: "travel.good_for".to_string(),
+                            note: "Derived from travel".to_string(),
+                        },
+                    }],
+                },
+                SynthesizedRecommendationDto {
+                    activity_id: "pray_offering".to_string(),
+                    label: ActivityLabelDto {
+                        vi: "Cúng lễ".to_string(),
+                        en: "Offering".to_string(),
+                    },
+                    bucket: RecommendationBucketDto::Nen,
+                    reasons: vec![RecommendationReasonDto {
+                        rule_id: "base.stars.good_for".to_string(),
+                        severity: RecommendationSeverityDto::Supporting,
+                        summary_vi: "Có thể cúng lễ".to_string(),
+                        summary_en: "Suitable for ritual".to_string(),
+                        evidence: RecommendationEvidenceDto {
+                            source: RecommendationEvidenceSourceDto::Stars,
+                            code: "stars.good_for".to_string(),
+                            note: "Derived from stars".to_string(),
+                        },
+                    }],
+                },
+                SynthesizedRecommendationDto {
+                    activity_id: "meet_people".to_string(),
+                    label: ActivityLabelDto {
+                        vi: "Họp mặt".to_string(),
+                        en: "Meeting".to_string(),
+                    },
+                    bucket: RecommendationBucketDto::CoThe,
+                    reasons: vec![RecommendationReasonDto {
+                        rule_id: "base.travel.soft".to_string(),
+                        severity: RecommendationSeverityDto::Supporting,
+                        summary_vi: "Khá ổn cho gặp gỡ".to_string(),
+                        summary_en: "Reasonable for meetings".to_string(),
+                        evidence: RecommendationEvidenceDto {
+                            source: RecommendationEvidenceSourceDto::Travel,
+                            code: "travel.soft".to_string(),
+                            note: "Derived from travel".to_string(),
+                        },
+                    }],
+                },
+                SynthesizedRecommendationDto {
                     activity_id: "contract_agreement".to_string(),
                     label: ActivityLabelDto {
                         vi: "Ký kết".to_string(),
@@ -457,8 +527,125 @@ mod tests {
                         },
                     }],
                 },
+                SynthesizedRecommendationDto {
+                    activity_id: "groundbreaking".to_string(),
+                    label: ActivityLabelDto {
+                        vi: "Động thổ".to_string(),
+                        en: "Groundbreaking".to_string(),
+                    },
+                    bucket: RecommendationBucketDto::KyManh,
+                    reasons: vec![RecommendationReasonDto {
+                        rule_id: "layer.taboo.taboo.tam_nuong.hard".to_string(),
+                        severity: RecommendationSeverityDto::Override,
+                        summary_vi: "Kỵ động thổ".to_string(),
+                        summary_en: "Strongly avoid groundbreaking".to_string(),
+                        evidence: RecommendationEvidenceDto {
+                            source: RecommendationEvidenceSourceDto::Taboo,
+                            code: "taboo.tam_nuong.hard".to_string(),
+                            note: "Derived from taboo".to_string(),
+                        },
+                    }],
+                },
             ],
         }
+    }
+
+    fn sample_app_state() -> AppState {
+        let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
+        AppState {
+            running: true,
+            date,
+            lens: FocusLens::General,
+            view_mode: ViewMode::Day,
+            scroll_offset: 0,
+            bundle: Some(DayBundleDto {
+                meta: ApiMetaDto {
+                    schema_version: "amlich.api/v2".to_string(),
+                    ruleset_id: "test".to_string(),
+                    ruleset_version: "v1".to_string(),
+                    profile: "baseline".to_string(),
+                    generated_at: "2026-03-12T00:00:00Z".to_string(),
+                },
+                solar: amlich_api::SolarDto {
+                    day: 12,
+                    month: 3,
+                    year: 2026,
+                    day_of_week: 4,
+                    day_of_week_name: "Thứ Năm".to_string(),
+                    date_string: "2026-03-12".to_string(),
+                },
+                lunar: amlich_api::LunarDto {
+                    day: 4,
+                    month: 2,
+                    year: 2026,
+                    is_leap_month: false,
+                    date_string: "Mùng 4 tháng Hai".to_string(),
+                },
+                jd: 0,
+                canchi: None,
+                tiet_khi: None,
+                gio_hoang_dao: Some(amlich_api::GioHoangDaoDto {
+                    day_chi: "Ngọ".to_string(),
+                    good_hour_count: 3,
+                    good_hours: vec![
+                        amlich_api::HourInfoDto {
+                            hour_index: 0,
+                            hour_chi: "Tý".to_string(),
+                            time_range: "23:00 - 01:00".to_string(),
+                            star: "Thanh Long".to_string(),
+                            is_good: true,
+                        },
+                        amlich_api::HourInfoDto {
+                            hour_index: 1,
+                            hour_chi: "Sửu".to_string(),
+                            time_range: "01:00 - 03:00".to_string(),
+                            star: "Minh Đường".to_string(),
+                            is_good: true,
+                        },
+                        amlich_api::HourInfoDto {
+                            hour_index: 2,
+                            hour_chi: "Dần".to_string(),
+                            time_range: "03:00 - 05:00".to_string(),
+                            star: "Kim Quỹ".to_string(),
+                            is_good: true,
+                        },
+                    ],
+                    all_hours: vec![],
+                    summary: "Giờ đẹp".to_string(),
+                }),
+                day_fortune: None,
+                daily_recommendations: Some(sample_recommendations()),
+                insight: None,
+            }),
+            is_loading: false,
+            error_msg: None,
+            show_guidance_details: false,
+            show_tietkhi_details: false,
+            show_evidence: false,
+            focused_section: PageSection::Recommendations,
+            zoomed_section: None,
+            expanded_sections: Default::default(),
+            show_search: false,
+            search_input: String::new(),
+            calendar_cursor: date,
+        }
+    }
+
+    fn render_text(app: &AppState, mode: LayoutMode) -> String {
+        let area = Rect::new(0, 0, 80, 20);
+        let mut buf = Buffer::empty(area);
+        GuidanceWidget::new(app, mode).render(area, &mut buf);
+
+        (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 
     #[test]
@@ -467,12 +654,14 @@ mod tests {
         let nen_rows = build_rows(&recommendations, RecommendationBucketDto::Nen);
         let tranh_rows = build_rows(&recommendations, RecommendationBucketDto::Tranh);
         let co_the_rows = build_rows(&recommendations, RecommendationBucketDto::CoThe);
+        let ky_manh_rows = build_rows(&recommendations, RecommendationBucketDto::KyManh);
 
-        assert_eq!(nen_rows.len(), 1);
+        assert_eq!(nen_rows.len(), 3);
         assert_eq!(nen_rows[0].text, "Khai mở");
         assert_eq!(tranh_rows.len(), 1);
         assert_eq!(tranh_rows[0].text, "Ký kết");
-        assert!(co_the_rows.is_empty());
+        assert_eq!(co_the_rows.len(), 1);
+        assert_eq!(ky_manh_rows.len(), 1);
     }
 
     #[test]
@@ -481,5 +670,54 @@ mod tests {
         assert_eq!(display_limit(LayoutMode::Medium, false), MEDIUM_LIMIT);
         assert_eq!(display_limit(LayoutMode::Large, false), LARGE_LIMIT);
         assert_eq!(display_limit(LayoutMode::Small, true), usize::MAX);
+    }
+
+    #[test]
+    fn collapsed_render_keeps_bucket_order_and_counts() {
+        let app = sample_app_state();
+        let text = render_text(&app, LayoutMode::Small);
+
+        let nen_idx = text.find("── Nên (3)").expect("nen header");
+        let co_the_idx = text.find("── Có thể (1)").expect("co_the header");
+        let tranh_idx = text.find("── Tránh (1)").expect("tranh header");
+        let ky_manh_idx = text.find("── Kỵ mạnh (1)").expect("ky_manh header");
+
+        assert!(nen_idx < co_the_idx && co_the_idx < tranh_idx && tranh_idx < ky_manh_idx);
+        assert!(text.contains("+1 mục ẩn"));
+    }
+
+    #[test]
+    fn expanded_render_shows_all_rows_for_focused_section() {
+        let mut app = sample_app_state();
+        app.expand_section(PageSection::Recommendations);
+
+        let text = render_text(&app, LayoutMode::Small);
+
+        assert!(text.contains("Cúng lễ"));
+        assert!(!text.contains("+1 mục ẩn"));
+    }
+
+    #[test]
+    fn evidence_toggle_hides_and_shows_reason_chips() {
+        let mut app = sample_app_state();
+
+        let without_evidence = render_text(&app, LayoutMode::Large);
+        assert!(!without_evidence.contains("primary • trực"));
+
+        app.show_evidence = true;
+        let with_evidence = render_text(&app, LayoutMode::Large);
+        assert!(with_evidence.contains("primary • trực"));
+    }
+
+    #[test]
+    fn primary_rows_are_visually_marked_first_per_bucket() {
+        let app = sample_app_state();
+        let text = render_text(&app, LayoutMode::Large);
+
+        assert!(text.contains("★ Khai mở"));
+        assert!(text.contains("• Gặp gỡ"));
+        assert!(text.contains("★ Họp mặt"));
+        assert!(text.contains("★ Ký kết"));
+        assert!(text.contains("★ Động thổ"));
     }
 }
