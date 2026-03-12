@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget},
 };
 
 use crate::layout::LayoutMode;
@@ -29,17 +29,20 @@ impl Widget for TimelineWidget<'_> {
         let mut lines = vec![];
         let header_style = Style::default().fg(Color::DarkGray);
 
-        lines.push(Line::from(vec![
-            Span::styled("── Khung Giờ Và Hành Động ", header_style),
-            Span::styled(format!("{:─<28}", ""), header_style),
-        ]));
+        let block = Block::default()
+            .title(" Khung Giờ Và Hành Động ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+            
+        let inner = block.inner(area);
+        block.render(area, buf);
 
         let Some(hours_data) = &bundle.gio_hoang_dao else {
             lines.push(Line::from(vec![
                 Span::raw("   "),
                 Span::styled("Chưa có dữ liệu giờ tốt.", Style::default().fg(Color::Gray)),
             ]));
-            Paragraph::new(lines).render(area, buf);
+            Paragraph::new(lines).render(inner, buf);
             return;
         };
 
@@ -112,7 +115,7 @@ impl Widget for TimelineWidget<'_> {
             }
         }
 
-        Paragraph::new(lines).render(area, buf);
+        Paragraph::new(lines).render(inner, buf);
     }
 }
 

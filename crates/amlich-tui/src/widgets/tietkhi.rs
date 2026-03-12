@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget},
 };
 
 use crate::layout::LayoutMode;
@@ -29,8 +29,8 @@ impl Widget for TietKhiWidget<'_> {
             return;
         };
 
-        let mut lines = vec![];
-        let header_style = Style::default().fg(Color::DarkGray);
+        let mut lines: Vec<Line<'_>> = vec![];
+
         let text_style = Style::default().fg(Color::White);
         let highlight = Style::default().fg(Color::Yellow);
 
@@ -40,11 +40,14 @@ impl Widget for TietKhiWidget<'_> {
             "▶ Chi tiết (Enter)"
         };
 
-        lines.push(Line::from(vec![
-            Span::styled("── Tiết Khí Tham Chiếu ", header_style),
-            Span::styled(format!("{:─<24}", ""), header_style),
-            Span::styled(expand_hint, Style::default().fg(Color::DarkGray)),
-        ]));
+        let title = format!(" Tiết Khí Tham Chiếu [{}] ", expand_hint);
+        let block = Block::default()
+            .title(title)
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+            
+        let inner = block.inner(area);
+        block.render(area, buf);
 
         // Summary (Always shown)
         lines.push(Line::from(vec![
@@ -87,7 +90,7 @@ impl Widget for TietKhiWidget<'_> {
             }
         }
 
-        Paragraph::new(lines).render(area, buf);
+        Paragraph::new(lines).render(inner, buf);
     }
 }
 

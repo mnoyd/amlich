@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget},
 };
 
 use crate::layout::LayoutMode;
@@ -32,13 +32,16 @@ impl Widget for ScholarlyWidget<'_> {
 
 impl<'a> ScholarlyWidget<'a> {
     fn render_evidence(&self, area: Rect, buf: &mut Buffer, bundle: &DayBundleDto) {
-        let mut lines = vec![];
-        let header_style = Style::default().fg(Color::DarkGray);
+        let mut lines: Vec<Line<'_>> = vec![];
 
-        lines.push(Line::from(vec![
-            Span::styled("── Chứng Cứ Truyền Thống ", header_style),
-            Span::styled(format!("{:─<31}", ""), header_style),
-        ]));
+
+        let block = Block::default()
+            .title(" Chứng Cứ Truyền Thống ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+            
+        let inner = block.inner(area);
+        block.render(area, buf);
 
         if let Some(insight) = &bundle.insight {
             if let Some(truc) = &insight.truc {
@@ -88,7 +91,7 @@ impl<'a> ScholarlyWidget<'a> {
             lines.push(Line::from("   Chưa có dữ liệu chứng cứ truyền thống."));
         }
 
-        Paragraph::new(lines).render(area, buf);
+        Paragraph::new(lines).render(inner, buf);
     }
 }
 

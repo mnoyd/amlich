@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget},
 };
 
 use crate::layout::LayoutMode;
@@ -22,12 +22,16 @@ impl<'a> TravelWidget<'a> {
 
 impl Widget for TravelWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let header_style = Style::default().fg(Color::DarkGray);
+
         let body_style = Style::default().fg(Color::White);
-        let mut lines = vec![Line::from(vec![
-            Span::styled("── Xuất Hành Và Hướng ", header_style),
-            Span::styled(format!("{:─<35}", ""), header_style),
-        ])];
+        let block = Block::default()
+            .title(" Xuất Hành Và Hướng ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+            
+        let inner = block.inner(area);
+        block.render(area, buf);
+        let mut lines = vec![];
 
         let Some(fortune) = self
             .app
@@ -39,7 +43,7 @@ impl Widget for TravelWidget<'_> {
                 Span::raw("   "),
                 Span::styled("Chưa có dữ liệu xuất hành.", Style::default().fg(Color::Gray)),
             ]));
-            Paragraph::new(lines).render(area, buf);
+            Paragraph::new(lines).render(inner, buf);
             return;
         };
 
@@ -68,7 +72,7 @@ impl Widget for TravelWidget<'_> {
             ]));
         }
 
-        Paragraph::new(lines).render(area, buf);
+        Paragraph::new(lines).render(inner, buf);
     }
 }
 

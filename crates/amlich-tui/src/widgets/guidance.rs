@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget},
 };
 
 use amlich_api::{
@@ -73,21 +73,24 @@ impl Widget for GuidanceWidget<'_> {
         mark_primary(&mut ky_manh_rows);
 
         let mut lines = vec![];
-        let header_style = Style::default().fg(Color::DarkGray);
+
         let summary_style = Style::default().fg(Color::Yellow);
         let hint_style = Style::default().fg(Color::DarkGray);
 
         let expand_hint = if expanded {
-            "▼ Thu gọn (a)"
+            "Thu gọn (a) ▼"
         } else {
-            "▶ Mở rộng (a)"
+            "Mở rộng (a) ▶"
         };
 
-        lines.push(Line::from(vec![
-            Span::styled("── Khuyến Nghị ", header_style),
-            Span::styled(format!("{:─<20}", ""), header_style),
-            Span::styled(expand_hint, hint_style),
-        ]));
+        let title = format!(" Khuyến Nghị [{}] ", expand_hint);
+        let block = Block::default()
+            .title(title)
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+            
+        let inner = block.inner(area);
+        block.render(area, buf);
 
         lines.push(Line::from(vec![
             Span::styled("   ", summary_style),
@@ -144,7 +147,7 @@ impl Widget for GuidanceWidget<'_> {
             ]));
         }
 
-        Paragraph::new(lines).render(area, buf);
+        Paragraph::new(lines).render(inner, buf);
     }
 }
 
@@ -170,7 +173,6 @@ fn render_bucket_section(
 
     lines.push(Line::from(vec![
         Span::styled(format!("── {title} ({}) ", rows.len()), header_style),
-        Span::styled(format!("{:─<22}", ""), header_style),
     ]));
 
     let take = rows.len().min(limit);
@@ -677,10 +679,10 @@ mod tests {
         let app = sample_app_state();
         let text = render_text(&app, LayoutMode::Small);
 
-        let nen_idx = text.find("── Nên (3)").expect("nen header");
-        let co_the_idx = text.find("── Có thể (1)").expect("co_the header");
-        let tranh_idx = text.find("── Tránh (1)").expect("tranh header");
-        let ky_manh_idx = text.find("── Kỵ mạnh (1)").expect("ky_manh header");
+        let nen_idx = text.find("Nên (3)").expect("nen header");
+        let co_the_idx = text.find("Có thể (1)").expect("co_the header");
+        let tranh_idx = text.find("Tránh (1)").expect("tranh header");
+        let ky_manh_idx = text.find("Kỵ mạnh (1)").expect("ky_manh header");
 
         assert!(nen_idx < co_the_idx && co_the_idx < tranh_idx && tranh_idx < ky_manh_idx);
         assert!(text.contains("+1 mục ẩn"));

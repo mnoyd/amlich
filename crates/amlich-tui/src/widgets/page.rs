@@ -48,43 +48,97 @@ impl Widget for PageWidget<'_> {
             return;
         }
 
-        let sections = if let Some(section) = self.app.zoomed_section {
-            vec![section]
-        } else {
-            home_section_order(self.app)
-        };
-        let constraints: Vec<Constraint> = sections
-            .iter()
-            .enumerate()
-            .map(|(index, section)| {
-                if index + 1 == sections.len() {
-                    Constraint::Min(section_height(self.app, self.mode, *section))
-                } else {
-                    Constraint::Length(section_height(self.app, self.mode, *section))
-                }
-            })
-            .collect();
-        let chunks = Layout::vertical(constraints).split(area);
+        let is_large = self.mode == LayoutMode::Large;
 
-        for (chunk, section) in chunks.iter().zip(sections.into_iter()) {
-            match section {
-                PageSection::Hero => HeroWidget::new(self.app, self.mode).render(*chunk, buf),
-                PageSection::Recommendations => {
-                    GuidanceWidget::new(self.app, self.mode).render(*chunk, buf)
-                }
-                PageSection::Timing => TimelineWidget::new(self.app, self.mode).render(*chunk, buf),
-                PageSection::Travel => TravelWidget::new(self.app, self.mode).render(*chunk, buf),
-                PageSection::Risks => RiskWidget::new(self.app, self.mode).render(*chunk, buf),
-                PageSection::TraditionalEvidence => {
-                    render_traditional_evidence(*chunk, buf, self.app, self.mode)
-                }
-                PageSection::ExpandedDetails => render_placeholder_section(
-                    *chunk,
-                    buf,
-                    section_title(section),
-                    &expanded_detail_lines(self.app),
-                ),
+        if is_large && self.app.zoomed_section.is_none() {
+            let cols = Layout::horizontal([
+                Constraint::Percentage(50), 
+                Constraint::Percentage(50)
+            ])
+            .margin(1)
+            .split(area);
+
+            let mut left_area = cols[0];
+            left_area.width = left_area.width.saturating_sub(1); // Gap
+            let mut right_area = cols[1];
+            right_area.x += 1;
+            right_area.width = right_area.width.saturating_sub(1);
+
+            let left_sections = vec![
+                PageSection::Hero,
+                PageSection::Timing,
+                PageSection::Travel,
+                PageSection::TraditionalEvidence,
+            ];
+            let right_sections = vec![
+                PageSection::Recommendations,
+                PageSection::Risks,
+            ];
+
+            let left_constraints: Vec<Constraint> = left_sections.iter().enumerate().map(|(i, s)| {
+                if i + 1 == left_sections.len() { Constraint::Min(section_height(self.app, self.mode, *s)) } 
+                else { Constraint::Length(section_height(self.app, self.mode, *s)) }
+            }).collect();
+            let right_constraints: Vec<Constraint> = right_sections.iter().enumerate().map(|(i, s)| {
+                if i + 1 == right_sections.len() { Constraint::Min(section_height(self.app, self.mode, *s)) } 
+                else { Constraint::Length(section_height(self.app, self.mode, *s)) }
+            }).collect();
+
+            let left_chunks = Layout::vertical(left_constraints).split(left_area);
+            let right_chunks = Layout::vertical(right_constraints).split(right_area);
+
+            for (chunk, section) in left_chunks.iter().zip(left_sections.into_iter()) {
+                self.render_section(section, *chunk, buf);
             }
+            for (chunk, section) in right_chunks.iter().zip(right_sections.into_iter()) {
+                self.render_section(section, *chunk, buf);
+            }
+
+        } else {
+            let sections = if let Some(section) = self.app.zoomed_section {
+                vec![section]
+            } else {
+                home_section_order(self.app)
+            };
+            let constraints: Vec<Constraint> = sections
+                .iter()
+                .enumerate()
+                .map(|(index, section)| {
+                    if index + 1 == sections.len() {
+                        Constraint::Min(section_height(self.app, self.mode, *section))
+                    } else {
+                        Constraint::Length(section_height(self.app, self.mode, *section))
+                    }
+                })
+                .collect();
+            let chunks = Layout::vertical(constraints).split(area);
+
+            for (chunk, section) in chunks.iter().zip(sections.into_iter()) {
+                self.render_section(section, *chunk, buf);
+            }
+        }
+    }
+}
+
+impl<'a> PageWidget<'a> {
+    fn render_section(&self, section: PageSection, chunk: ratatui::layout::Rect, buf: &mut Buffer) {
+        match section {
+            PageSection::Hero => HeroWidget::new(self.app, self.mode).render(chunk, buf),
+            PageSection::Recommendations => {
+                GuidanceWidget::new(self.app, self.mode).render(chunk, buf)
+            }
+            PageSection::Timing => TimelineWidget::new(self.app, self.mode).render(chunk, buf),
+            PageSection::Travel => TravelWidget::new(self.app, self.mode).render(chunk, buf),
+            PageSection::Risks => RiskWidget::new(self.app, self.mode).render(chunk, buf),
+            PageSection::TraditionalEvidence => {
+                render_traditional_evidence(chunk, buf, self.app, self.mode)
+            }
+            PageSection::ExpandedDetails => render_placeholder_section(
+                chunk,
+                buf,
+                section_title(section),
+                &expanded_detail_lines(self.app),
+            ),
         }
     }
 }
@@ -129,22 +183,27 @@ fn section_height(app: &AppState, mode: LayoutMode, section: PageSection) -> u16
 fn section_title(section: PageSection) -> &'static str {
     match section {
         PageSection::Hero => "Tóm Tắt",
-        PageSection::Recommendations => "Hôm Nay Nên Làm Gì",
+        PageSection::Recommendations => "Khuyến Nghị",
         PageSection::Timing => "Khung Giờ Và Hành Động",
         PageSection::Travel => "Xuất Hành Và Hướng",
-        PageSection::Risks => "Rủi Ro, Xung, Kiêng Kỵ",
+        PageSection::Risks => "Rủi Ro & Kiêng Kỵ",
         PageSection::TraditionalEvidence => "Chứng Cứ Truyền Thống",
         PageSection::ExpandedDetails => "Chi Tiết Mở Rộng",
     }
 }
 
 fn render_placeholder_section(area: Rect, buf: &mut Buffer, title: &str, lines: &[String]) {
-    let header_style = Style::default().fg(Color::DarkGray);
+    use ratatui::widgets::{Block, Borders};
+    let block = Block::default()
+        .title(format!(" {} ", title))
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+        
+    let inner = block.inner(area);
+    block.render(area, buf);
+    
     let body_style = Style::default().fg(Color::White);
-    let mut rendered = vec![Line::from(vec![
-        Span::styled(format!("── {title} "), header_style),
-        Span::styled(format!("{:─<42}", ""), header_style),
-    ])];
+    let mut rendered = vec![];
 
     for line in lines {
         rendered.push(Line::from(vec![
@@ -153,7 +212,7 @@ fn render_placeholder_section(area: Rect, buf: &mut Buffer, title: &str, lines: 
         ]));
     }
 
-    Paragraph::new(rendered).render(area, buf);
+    Paragraph::new(rendered).render(inner, buf);
 }
 
 fn render_traditional_evidence(area: Rect, buf: &mut Buffer, app: &AppState, mode: LayoutMode) {

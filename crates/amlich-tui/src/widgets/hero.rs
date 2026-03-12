@@ -52,6 +52,7 @@ impl Widget for HeroWidget<'_> {
         let identity_str = build_identity_row(bundle);
 
         let block = Block::default()
+            .title(" Tóm Tắt ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
 

@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget},
 };
 
 use crate::layout::LayoutMode;
@@ -22,11 +22,15 @@ impl<'a> RiskWidget<'a> {
 
 impl Widget for RiskWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        let header_style = Style::default().fg(Color::DarkGray);
-        let mut lines = vec![Line::from(vec![
-            Span::styled("── Rủi Ro, Xung, Kiêng Kỵ ", header_style),
-            Span::styled(format!("{:─<31}", ""), header_style),
-        ])];
+
+        let block = Block::default()
+            .title(" Rủi Ro & Kiêng Kỵ ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+            
+        let inner = block.inner(area);
+        block.render(area, buf);
+        let mut lines = vec![];
 
         let has_fortune = self
             .app
@@ -39,7 +43,7 @@ impl Widget for RiskWidget<'_> {
                 Span::raw("   "),
                 Span::styled("Chưa có dữ liệu rủi ro.", Style::default().fg(Color::Gray)),
             ]));
-            Paragraph::new(lines).render(area, buf);
+            Paragraph::new(lines).render(inner, buf);
             return;
         }
 
@@ -49,7 +53,7 @@ impl Widget for RiskWidget<'_> {
                 Span::raw("   "),
                 Span::styled("Chưa có dữ liệu rủi ro.", Style::default().fg(Color::Gray)),
             ]));
-            Paragraph::new(lines).render(area, buf);
+            Paragraph::new(lines).render(inner, buf);
             return;
         }
 
@@ -67,7 +71,7 @@ impl Widget for RiskWidget<'_> {
             ]));
         }
 
-        Paragraph::new(lines).render(area, buf);
+        Paragraph::new(lines).render(inner, buf);
     }
 }
 
