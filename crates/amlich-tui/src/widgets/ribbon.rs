@@ -7,8 +7,9 @@ use ratatui::{
 };
 
 use crate::layout::LayoutMode;
-use crate::state::AppState;
+use crate::state::{AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 use chrono::Datelike;
+use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
 
 const WEEKDAY_NAMES: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
@@ -58,6 +59,7 @@ impl Widget for RibbonWidget<'_> {
         }
 
         let section_name = match self.app.focused_section {
+            crate::state::PageSection::Explorer => "Explorer",
             crate::state::PageSection::Hero => "Tóm tắt",
             crate::state::PageSection::Recommendations => "Khuyến nghị",
             crate::state::PageSection::Timing => "Khung giờ",
@@ -117,10 +119,29 @@ impl Widget for RibbonWidget<'_> {
 mod tests {
     use super::*;
     use chrono::NaiveDate;
-    use crate::state::{FocusLens, PageSection, ViewMode};
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
+        let ruleset_catalog = vec![RulesetCatalogEntryDto {
+            id: "vn_baseline_v1".to_string(),
+            canonical_id: "vn_baseline_v1".to_string(),
+            version: "v1".to_string(),
+            region: "vn".to_string(),
+            profile: "baseline".to_string(),
+            schema_version: "amlich.engine/v1".to_string(),
+            is_default: true,
+            aliases: vec![],
+            defaults: RulesetDefaultsDto { tz_offset: 7.0, meridian: None },
+            source_notes: vec![],
+        }];
+        let recommendation_pack_catalog = vec![RecommendationPackCatalogEntryDto {
+            pack_id: "pack.nhi_thap_bat_tu.v1".to_string(),
+            request_field: "enabled_pack_ids".to_string(),
+            version: "v1".to_string(),
+            source_family: "traditional".to_string(),
+            mode: "advisory".to_string(),
+        }];
+        let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
         AppState {
             running: true,
             date,
@@ -130,6 +151,13 @@ mod tests {
             bundle: None,
             is_loading: false,
             error_msg: None,
+            ruleset_catalog,
+            recommendation_pack_catalog,
+            applied_selection: selection.clone(),
+            staged_selection: selection,
+            explorer_focus: ExplorerField::Date,
+            explorer_action: ExplorerAction::Apply,
+            pack_cursor: 0,
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,

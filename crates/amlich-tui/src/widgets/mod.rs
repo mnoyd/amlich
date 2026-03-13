@@ -1,7 +1,9 @@
 pub mod battu;
 pub mod calendar;
+pub mod explorer;
 pub mod guidance;
 pub mod hero;
+pub mod inspection;
 pub mod page;
 pub mod risk;
 pub mod ribbon;

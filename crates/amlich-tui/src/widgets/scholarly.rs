@@ -44,6 +44,25 @@ impl<'a> ScholarlyWidget<'a> {
         block.render(area, buf);
 
         if let Some(insight) = &bundle.insight {
+            if let Some(recommendations) = bundle
+                .contextual_recommendations
+                .as_ref()
+                .or(bundle.daily_recommendations.as_ref())
+            {
+                lines.push(Line::from(vec![
+                    Span::raw("   Metadata: "),
+                    Span::styled(
+                        format!(
+                            "ruleset_id={} · ruleset_version={} · profile={}",
+                            recommendations.ruleset_id,
+                            recommendations.ruleset_version,
+                            recommendations.profile
+                        ),
+                        Style::default().fg(Color::DarkGray),
+                    ),
+                ]));
+            }
+
             if let Some(truc) = &insight.truc {
                 lines.push(Line::from(vec![
                     Span::raw("   Trực: "),
@@ -99,15 +118,42 @@ impl<'a> ScholarlyWidget<'a> {
 mod tests {
     use super::*;
     use amlich_api::{
-        DayDeityInsightDto, DayInsightDto, LunarDto, LocalizedListDto, LocalizedTextDto, SolarDto,
-        StarsInsightDto, TrucInsightDto,
+        ActivityLabelDto, DayDeityInsightDto, DayInsightDto, DailyRecommendationsDto, LunarDto,
+        LocalizedListDto, LocalizedTextDto, RecommendationBucketDto, RecommendationEvidenceDto,
+        RecommendationEvidenceSourceDto, RecommendationReasonDto, RecommendationScopeDto,
+        RecommendationSeverityDto, SolarDto, StarsInsightDto, SynthesizedRecommendationDto,
+        TrucInsightDto,
     };
     use amlich_api::v2::DayBundleDto;
     use chrono::NaiveDate;
-    use crate::state::{FocusLens, PageSection, ViewMode};
+    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
+        let ruleset_catalog = vec![RulesetCatalogEntryDto {
+            id: "vn_baseline_v1".to_string(),
+            canonical_id: "vn_baseline_v1".to_string(),
+            version: "v1".to_string(),
+            region: "vn".to_string(),
+            profile: "baseline".to_string(),
+            schema_version: "amlich.engine/v1".to_string(),
+            is_default: true,
+            aliases: vec![],
+            defaults: RulesetDefaultsDto {
+                tz_offset: 7.0,
+                meridian: None,
+            },
+            source_notes: vec![],
+        }];
+        let recommendation_pack_catalog = vec![RecommendationPackCatalogEntryDto {
+            pack_id: "pack.nhi_thap_bat_tu.v1".to_string(),
+            request_field: "enabled_pack_ids".to_string(),
+            version: "v1".to_string(),
+            source_family: "traditional".to_string(),
+            mode: "advisory".to_string(),
+        }];
+        let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
         AppState {
             running: true,
             date,
@@ -141,7 +187,35 @@ mod tests {
                 tiet_khi: None,
                 gio_hoang_dao: None,
                 day_fortune: None,
-                daily_recommendations: None,
+                daily_recommendations: Some(DailyRecommendationsDto {
+                    ruleset_id: "test".to_string(),
+                    ruleset_version: "v1".to_string(),
+                    profile: "baseline".to_string(),
+                    scope: RecommendationScopeDto::GeneralDay,
+                    version: "v1".to_string(),
+                    summary_vi: "Ngày thử nghiệm".to_string(),
+                    summary_en: String::new(),
+                    active_packs: vec![],
+                    activities: vec![SynthesizedRecommendationDto {
+                        activity_id: "opening_start".to_string(),
+                        label: ActivityLabelDto {
+                            vi: "Khai mở".to_string(),
+                            en: "Opening".to_string(),
+                        },
+                        bucket: RecommendationBucketDto::Nen,
+                        reasons: vec![RecommendationReasonDto {
+                            rule_id: "truc.khai.good".to_string(),
+                            severity: RecommendationSeverityDto::Primary,
+                            summary_vi: "Hợp trực Khai".to_string(),
+                            summary_en: String::new(),
+                            evidence: RecommendationEvidenceDto {
+                                source: RecommendationEvidenceSourceDto::Truc,
+                                code: "truc.khai".to_string(),
+                                note: "test".to_string(),
+                            },
+                        }],
+                    }],
+                }),
                 contextual_recommendations: None,
                 insight: Some(DayInsightDto {
                     solar: SolarDto {
@@ -208,6 +282,13 @@ mod tests {
             }),
             is_loading: false,
             error_msg: None,
+            ruleset_catalog,
+            recommendation_pack_catalog,
+            applied_selection: selection.clone(),
+            staged_selection: selection,
+            explorer_focus: ExplorerField::Date,
+            explorer_action: ExplorerAction::Apply,
+            pack_cursor: 0,
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,
@@ -245,5 +326,7 @@ mod tests {
         assert!(text.contains("Trực:"));
         assert!(text.contains("Cát tinh:"));
         assert!(text.contains("Thần sát:"));
+        assert!(text.contains("Metadata:"));
+        assert!(text.contains("profile=baseline"));
     }
 }

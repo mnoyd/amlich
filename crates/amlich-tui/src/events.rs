@@ -1,6 +1,6 @@
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 
-use crate::state::{AppState, PageSection};
+use crate::state::{AppState, ExplorerField, PageSection};
 
 pub fn handle_events(app: &mut AppState) -> Result<bool, Box<dyn std::error::Error>> {
     if event::poll(std::time::Duration::from_millis(50))? {
@@ -61,8 +61,47 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         return false;
     }
 
+    if app.focused_section == PageSection::Explorer {
+        match code {
+            KeyCode::Char('q') | KeyCode::Esc => app.running = false,
+            KeyCode::Char('r') if app.error_msg.is_some() => app.retry_load(),
+            KeyCode::Tab => app.focus_next_section(),
+            KeyCode::BackTab => app.focus_previous_section(),
+            KeyCode::Down | KeyCode::Char('j') => match app.explorer_focus {
+                ExplorerField::Date => app.next_day(),
+                ExplorerField::Ruleset => app.cycle_ruleset(1),
+                ExplorerField::EventKind => app.cycle_event_kind(1),
+                ExplorerField::RecommendationPacks => app.move_pack_cursor(1),
+                ExplorerField::Actions => app.cycle_explorer_action(),
+            },
+            KeyCode::Up | KeyCode::Char('k') => match app.explorer_focus {
+                ExplorerField::Date => app.prev_day(),
+                ExplorerField::Ruleset => app.cycle_ruleset(-1),
+                ExplorerField::EventKind => app.cycle_event_kind(-1),
+                ExplorerField::RecommendationPacks => app.move_pack_cursor(-1),
+                ExplorerField::Actions => app.cycle_explorer_action(),
+            },
+            KeyCode::Right | KeyCode::Char('l') => app.focus_next_explorer_field(),
+            KeyCode::Left | KeyCode::Char('h') => app.focus_previous_explorer_field(),
+            KeyCode::Char(' ') => match app.explorer_focus {
+                ExplorerField::RecommendationPacks => app.toggle_focused_pack(),
+                ExplorerField::Actions => app.cycle_explorer_action(),
+                _ => {}
+            },
+            KeyCode::Char('r') => app.reset_staged_selection(),
+            KeyCode::Enter => app.activate_explorer_focus(),
+            KeyCode::Char('t') => {
+                app.go_today();
+            }
+            KeyCode::Char('c') => app.toggle_calendar_view(),
+            _ => {}
+        }
+        return false;
+    }
+
     match code {
         KeyCode::Char('q') | KeyCode::Esc => app.running = false,
+        KeyCode::Char('r') if app.error_msg.is_some() => app.retry_load(),
         KeyCode::Right | KeyCode::Char('l') => app.next_day(),
         KeyCode::Left | KeyCode::Char('h') => app.prev_day(),
         KeyCode::Char('t') => app.go_today(),
@@ -71,6 +110,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::PageDown => app.scroll_down_by(10),
         KeyCode::PageUp => app.scroll_up_by(10),
         KeyCode::Tab => app.focus_next_section(),
+        KeyCode::BackTab => app.focus_previous_section(),
         KeyCode::Enter => app.toggle_expand_focused_section(),
         KeyCode::Char('e') => app.toggle_evidence(),
         KeyCode::Char('z') => app.toggle_zoom_for_focused_section(),
@@ -87,10 +127,34 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
 mod tests {
     use super::*;
     use chrono::NaiveDate;
-    use crate::state::{FocusLens, ViewMode};
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, ViewMode};
+    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
+        let ruleset_catalog = vec![RulesetCatalogEntryDto {
+            id: "vn_baseline_v1".to_string(),
+            canonical_id: "vn_baseline_v1".to_string(),
+            version: "v1".to_string(),
+            region: "vn".to_string(),
+            profile: "baseline".to_string(),
+            schema_version: "amlich.engine/v1".to_string(),
+            is_default: true,
+            aliases: vec![],
+            defaults: RulesetDefaultsDto {
+                tz_offset: 7.0,
+                meridian: None,
+            },
+            source_notes: vec![],
+        }];
+        let recommendation_pack_catalog = vec![RecommendationPackCatalogEntryDto {
+            pack_id: "pack.nhi_thap_bat_tu.v1".to_string(),
+            request_field: "enabled_pack_ids".to_string(),
+            version: "v1".to_string(),
+            source_family: "traditional".to_string(),
+            mode: "advisory".to_string(),
+        }];
+        let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
         AppState {
             running: true,
             date,
@@ -100,10 +164,17 @@ mod tests {
             bundle: None,
             is_loading: false,
             error_msg: None,
+            ruleset_catalog,
+            recommendation_pack_catalog,
+            applied_selection: selection.clone(),
+            staged_selection: selection,
+            explorer_focus: ExplorerField::Date,
+            explorer_action: ExplorerAction::Apply,
+            pack_cursor: 0,
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,
-            focused_section: PageSection::Hero,
+            focused_section: PageSection::Explorer,
             zoomed_section: None,
             expanded_sections: Default::default(),
             show_search: false,
@@ -115,6 +186,7 @@ mod tests {
     #[test]
     fn tab_moves_panel_focus() {
         let mut app = sample_app_state();
+        app.focused_section = PageSection::Hero;
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
@@ -136,6 +208,7 @@ mod tests {
     #[test]
     fn char_e_toggles_evidence_visibility() {
         let mut app = sample_app_state();
+        app.focused_section = PageSection::Hero;
 
         dispatch_key(&mut app, KeyCode::Char('e'), KeyModifiers::NONE);
         assert!(app.show_evidence);
@@ -165,5 +238,40 @@ mod tests {
 
         assert_eq!(app.focused_section, PageSection::Recommendations);
         assert!(app.is_section_expanded(PageSection::Recommendations));
+    }
+
+    #[test]
+    fn explorer_space_toggles_pack_without_applying() {
+        let mut app = sample_app_state();
+        app.explorer_focus = ExplorerField::RecommendationPacks;
+
+        dispatch_key(&mut app, KeyCode::Char(' '), KeyModifiers::NONE);
+
+        assert_eq!(app.staged_selection.enabled_pack_ids, vec!["pack.nhi_thap_bat_tu.v1"]);
+        assert!(app.applied_selection.enabled_pack_ids.is_empty());
+    }
+
+    #[test]
+    fn explorer_enter_on_reset_restores_defaults() {
+        let mut app = sample_app_state();
+        app.staged_selection.event_kind = Some("travel".to_string());
+        app.staged_selection.enabled_pack_ids = vec!["pack.nhi_thap_bat_tu.v1".to_string()];
+        app.explorer_focus = ExplorerField::Actions;
+        app.explorer_action = ExplorerAction::Reset;
+
+        dispatch_key(&mut app, KeyCode::Enter, KeyModifiers::NONE);
+
+        assert_eq!(app.staged_selection.event_kind, None);
+        assert!(app.staged_selection.enabled_pack_ids.is_empty());
+    }
+
+    #[test]
+    fn retry_shortcut_reinvokes_load_when_error_is_present() {
+        let mut app = sample_app_state();
+        app.error_msg = Some("boom".to_string());
+
+        dispatch_key(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
+
+        assert!(app.error_msg.is_none());
     }
 }

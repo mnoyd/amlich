@@ -165,8 +165,9 @@ mod tests {
     use super::*;
     use amlich_api::{GioHoangDaoDto, HourInfoDto, LunarDto, SolarDto};
     use amlich_api::v2::DayBundleDto;
+    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
     use chrono::NaiveDate;
-    use crate::state::{FocusLens, PageSection, ViewMode};
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 
     fn sample_hours() -> GioHoangDaoDto {
         GioHoangDaoDto {
@@ -231,6 +232,29 @@ mod tests {
 
     fn sample_app_state(hours: Option<GioHoangDaoDto>) -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
+        let ruleset_catalog = vec![RulesetCatalogEntryDto {
+            id: "vn_baseline_v1".to_string(),
+            canonical_id: "vn_baseline_v1".to_string(),
+            version: "v1".to_string(),
+            region: "vn".to_string(),
+            profile: "baseline".to_string(),
+            schema_version: "amlich.engine/v1".to_string(),
+            is_default: true,
+            aliases: vec![],
+            defaults: RulesetDefaultsDto {
+                tz_offset: 7.0,
+                meridian: None,
+            },
+            source_notes: vec![],
+        }];
+        let recommendation_pack_catalog = vec![RecommendationPackCatalogEntryDto {
+            pack_id: "pack.nhi_thap_bat_tu.v1".to_string(),
+            request_field: "enabled_pack_ids".to_string(),
+            version: "v1".to_string(),
+            source_family: "traditional".to_string(),
+            mode: "advisory".to_string(),
+        }];
+        let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
         AppState {
             running: true,
             date,
@@ -270,6 +294,13 @@ mod tests {
             }),
             is_loading: false,
             error_msg: None,
+            ruleset_catalog,
+            recommendation_pack_catalog,
+            applied_selection: selection.clone(),
+            staged_selection: selection,
+            explorer_focus: ExplorerField::Date,
+            explorer_action: ExplorerAction::Apply,
+            pack_cursor: 0,
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,

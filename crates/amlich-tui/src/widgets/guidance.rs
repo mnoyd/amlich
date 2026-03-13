@@ -29,6 +29,7 @@ struct DecisionRow {
     text: String,
     emphasis: DecisionEmphasis,
     reason_chip: Option<String>,
+    reason_details: Vec<String>,
 }
 
 pub struct GuidanceWidget<'a> {
@@ -45,6 +46,10 @@ impl<'a> GuidanceWidget<'a> {
 impl Widget for GuidanceWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let Some(bundle) = &self.app.bundle else {
+            return;
+        };
+        let layers = self.app.recommendation_layers();
+        let Some(active_layer) = layers.first() else {
             return;
         };
         let Some(recommendations) = bundle
@@ -100,7 +105,19 @@ impl Widget for GuidanceWidget<'_> {
             Span::styled("   ", summary_style),
             Span::styled(recommendations.summary_vi.clone(), summary_style),
         ]));
-        if !recommendations.active_packs.is_empty() || recommendations.profile != "baseline" {
+        if layers.len() > 1 {
+            lines.push(Line::from(vec![
+                Span::styled("   ", hint_style),
+                Span::styled(
+                    format!(
+                        "Ưu tiên lớp {} · nền vẫn xem riêng: {}",
+                        active_layer.profile,
+                        layers[1].summary
+                    ),
+                    hint_style,
+                ),
+            ]));
+        } else if !recommendations.active_packs.is_empty() || recommendations.profile != "baseline" {
             let pack_labels = recommendations
                 .active_packs
                 .iter()
@@ -200,6 +217,14 @@ fn render_bucket_section(
     for row in rows.iter().take(take) {
         for line in render_row_lines(row, marker_style, text_style, chip_style, 56, show_evidence) {
             lines.push(line);
+        }
+        if show_evidence {
+            for detail in &row.reason_details {
+                lines.push(Line::from(vec![
+                    Span::raw("      ↳ "),
+                    Span::styled(detail.clone(), Style::default().fg(Color::DarkGray)),
+                ]));
+            }
         }
     }
 
@@ -328,6 +353,20 @@ fn build_rows(
                 text: activity.label.vi.clone(),
                 emphasis: DecisionEmphasis::Normal,
                 reason_chip,
+                reason_details: activity
+                    .reasons
+                    .iter()
+                    .map(|reason| {
+                        format!(
+                            "{} · {} · {} · rule={} · code={}",
+                            severity_label(reason.severity),
+                            source_label(reason.evidence.source),
+                            reason.summary_vi,
+                            reason.rule_id,
+                            reason.evidence.code
+                        )
+                    })
+                    .collect(),
             }
         })
         .collect()
@@ -439,8 +478,9 @@ mod tests {
         RecommendationScopeDto, RecommendationSeverityDto, SynthesizedRecommendationDto,
     };
     use amlich_api::v2::DayBundleDto;
+    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
     use chrono::NaiveDate;
-    use crate::state::{FocusLens, PageSection, ViewMode};
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
     use ratatui::layout::Rect;
 
     fn sample_recommendations() -> DailyRecommendationsDto {
@@ -574,6 +614,29 @@ mod tests {
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
+        let ruleset_catalog = vec![RulesetCatalogEntryDto {
+            id: "vn_baseline_v1".to_string(),
+            canonical_id: "vn_baseline_v1".to_string(),
+            version: "v1".to_string(),
+            region: "vn".to_string(),
+            profile: "baseline".to_string(),
+            schema_version: "amlich.engine/v1".to_string(),
+            is_default: true,
+            aliases: vec![],
+            defaults: RulesetDefaultsDto {
+                tz_offset: 7.0,
+                meridian: None,
+            },
+            source_notes: vec![],
+        }];
+        let recommendation_pack_catalog = vec![RecommendationPackCatalogEntryDto {
+            pack_id: "pack.nhi_thap_bat_tu.v1".to_string(),
+            request_field: "enabled_pack_ids".to_string(),
+            version: "v1".to_string(),
+            source_family: "traditional".to_string(),
+            mode: "advisory".to_string(),
+        }];
+        let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
         AppState {
             running: true,
             date,
@@ -641,6 +704,13 @@ mod tests {
             }),
             is_loading: false,
             error_msg: None,
+            ruleset_catalog,
+            recommendation_pack_catalog,
+            applied_selection: selection.clone(),
+            staged_selection: selection,
+            explorer_focus: ExplorerField::Date,
+            explorer_action: ExplorerAction::Apply,
+            pack_cursor: 0,
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,
@@ -684,6 +754,10 @@ mod tests {
         assert_eq!(tranh_rows[0].text, "Ký kết");
         assert_eq!(co_the_rows.len(), 1);
         assert_eq!(ky_manh_rows.len(), 1);
+        assert!(nen_rows[0]
+            .reason_details
+            .iter()
+            .any(|detail| detail.contains("Hợp cho khai trương")));
     }
 
     #[test]
@@ -726,7 +800,7 @@ mod tests {
 
         let text = render_text(&app, LayoutMode::Small);
         assert!(text.contains("Ưu tiên ký kết theo ngữ cảnh"));
-        assert!(text.contains("pack.nhi_thap_bat_tu.v1"));
+        assert!(text.contains("nền vẫn xem riêng: Ngày thuận"));
     }
 
     #[test]
@@ -750,6 +824,8 @@ mod tests {
         app.show_evidence = true;
         let with_evidence = render_text(&app, LayoutMode::Large);
         assert!(with_evidence.contains("primary • trực"));
+        assert!(with_evidence.contains("Hợp cho khai trương"));
+        assert!(with_evidence.contains("↳"));
     }
 
     #[test]

@@ -7,7 +7,6 @@ mod history;
 mod profile;
 mod search;
 mod theme;
-mod tui_runtime;
 mod ui;
 mod waybar;
 mod widgets;
@@ -23,8 +22,6 @@ use clap::{Args, Parser, Subcommand, ValueEnum};
 use crate::headless::{
     parse_date, query, read_mode, set_mode, toggle_mode, DisplayMode, QueryFormat,
 };
-use crate::tui_runtime::run_tui;
-
 #[derive(Parser, Debug)]
 #[command(
     name = "amlich",
@@ -1169,13 +1166,28 @@ fn run_config(args: ConfigArgs) -> Result<(), String> {
 
 fn run_auto_mode() -> Result<(), String> {
     if stdin().is_terminal() && stdout().is_terminal() {
-        run_tui(None).map_err(|e| format!("failed to run TUI: {e}"))?;
+        amlich_tui::run_tui(None).map_err(|e| format!("failed to run TUI: {e}"))?;
         return Ok(());
     }
 
-    let mode = read_mode();
-    let result = query(None, QueryFormat::Waybar, Some(mode), false)?;
-    println!("{}", result.output);
+    let args = DayArgs {
+        date: None,
+        format: DayFormatArg::Json,
+        include: vec![
+            IncludeArg::Base,
+            IncludeArg::Canchi,
+            IncludeArg::TietKhi,
+            IncludeArg::Hours,
+            IncludeArg::Fortune,
+        ],
+        fields: vec![],
+        pretty: false,
+        timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        recommendation_packs: vec![],
+    };
+    run_day(args)?;
     Ok(())
 }
 

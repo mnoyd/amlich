@@ -1,0 +1,17 @@
+commands:
+  install: pnpm install
+  check: cargo check --package amlich-api --package amlich-cli --package amlich-tui
+  typecheck: cargo check --package amlich-api --package amlich-cli --package amlich-tui
+  build: cargo build --package amlich-api --package amlich-cli --package amlich-tui
+  test: cargo test --package amlich-api --package amlich-cli --package amlich-tui -j 6 -- --test-threads=6
+  lint: cargo clippy --package amlich-api --package amlich-cli --package amlich-tui -- -D warnings
+  tui_tests: cargo test --package amlich-tui -j 6 -- --test-threads=6
+  cli_contract: cargo test --package amlich-cli --test cli_contract -- --nocapture
+  api_contract: cargo test --package amlich-api --test catalog_contract --test recommendation_contract -- --nocapture
+  smoke_tui: printf 'q' | timeout 15 script -qec "cargo run --package amlich-cli -- tui --date 2026-03-13" /dev/null
+  smoke_auto_tty: printf 'q' | timeout 15 script -qec "cargo run --package amlich-cli --" /dev/null
+  smoke_day_json: cargo run --package amlich-cli -- day 2026-03-13 --format json --pretty
+  smoke_range_ndjson: cargo run --package amlich-cli -- range --start 2026-03-13 --end 2026-03-15 --format ndjson
+  data_sync: ./scripts/check-core-data-sync.sh
+
+services: {}
