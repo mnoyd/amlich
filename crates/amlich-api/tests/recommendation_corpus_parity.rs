@@ -91,6 +91,8 @@ fn corpus_recommendations_match_between_core_and_api() {
             month,
             year,
             timezone: Some(7.0),
+            event_kind: None,
+            enabled_pack_ids: vec![],
         };
 
         let core_info = amlich_core::get_day_info(day, month, year);
@@ -207,7 +209,7 @@ fn corpus_recommendations_match_between_core_and_api() {
             .expect("bundle recommendations present");
 
         assert_eq!(
-            bundle.meta.profile, api_info.profile,
+            bundle.profile, api_info.profile,
             "{} bundle profile mismatch",
             case.id
         );

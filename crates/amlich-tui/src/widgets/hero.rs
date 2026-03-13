@@ -130,19 +130,18 @@ mod tests {
         RecommendationSeverityDto, SolarDto, SynthesizedRecommendationDto, TietKhiDto,
         TravelDirectionDto, TrucDto, XungHopDto,
     };
-    use amlich_api::v2::{ApiMetaDto, DayBundleDto};
+    use amlich_api::v2::DayBundleDto;
     use chrono::NaiveDate;
     use crate::state::{FocusLens, PageSection, ViewMode};
 
     fn sample_bundle() -> DayBundleDto {
         DayBundleDto {
-            meta: ApiMetaDto {
-                schema_version: "amlich.api/v2".to_string(),
+            schema_version: "amlich.engine/v1".to_string(),
                 ruleset_id: "test".to_string(),
                 ruleset_version: "v1".to_string(),
                 profile: "baseline".to_string(),
                 generated_at: "2026-03-12T00:00:00Z".to_string(),
-            },
+                
             solar: SolarDto {
                 day: 12,
                 month: 3,
@@ -279,6 +278,7 @@ mod tests {
                 version: "v1".to_string(),
                 summary_vi: "Ngày thuận việc mở đầu, tránh việc lớn.".to_string(),
                 summary_en: "Good for starting, avoid major matters.".to_string(),
+                active_packs: vec![],
                 activities: vec![
                     SynthesizedRecommendationDto {
                         activity_id: "opening_start".to_string(),
@@ -320,6 +320,7 @@ mod tests {
                     },
                 ],
             }),
+            contextual_recommendations: None,
             insight: None,
         }
     }

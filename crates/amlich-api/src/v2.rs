@@ -10,6 +10,8 @@ use crate::dto::{
     TietKhiDto,
 };
 
+const SCHEMA_VERSION: &str = "amlich.engine/v1";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Include {
@@ -33,25 +35,91 @@ pub struct ApiMetaDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DayBundleDto {
-    pub meta: ApiMetaDto,
+    pub schema_version: String,
+    pub ruleset_id: String,
+    pub ruleset_version: String,
+    pub profile: String,
+    pub generated_at: String,
     pub solar: SolarDto,
     pub lunar: LunarDto,
     pub jd: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub canchi: Option<CanChiInfoDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub tiet_khi: Option<TietKhiDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub gio_hoang_dao: Option<GioHoangDaoDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub day_fortune: Option<DayFortuneDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub daily_recommendations: Option<DailyRecommendationsDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contextual_recommendations: Option<DailyRecommendationsDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub insight: Option<DayInsightDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DayRangeDto {
-    pub meta: ApiMetaDto,
+    pub schema_version: String,
+    pub ruleset_id: String,
+    pub ruleset_version: String,
+    pub profile: String,
+    pub generated_at: String,
     pub start: String,
     pub end: String,
     pub days: Vec<DayBundleDto>,
+}
+
+impl From<&crate::dto::DayInfoDto> for ApiMetaDto {
+    fn from(info: &crate::dto::DayInfoDto) -> Self {
+        Self {
+            schema_version: SCHEMA_VERSION.to_string(),
+            ruleset_id: info.ruleset_id.clone(),
+            ruleset_version: info.ruleset_version.clone(),
+            profile: info.profile.clone(),
+            generated_at: chrono::Utc::now().to_rfc3339(),
+        }
+    }
+}
+
+impl DayBundleDto {
+    fn from_parts(info: crate::dto::DayInfoDto, insight: Option<DayInsightDto>, includes: &[Include]) -> Result<Self, String> {
+        let meta = ApiMetaDto::from(&info);
+        Ok(Self {
+            schema_version: meta.schema_version,
+            ruleset_id: meta.ruleset_id,
+            ruleset_version: meta.ruleset_version,
+            profile: meta.profile,
+            generated_at: meta.generated_at,
+            solar: info.solar,
+            lunar: info.lunar,
+            jd: info.jd,
+            canchi: includes.contains(&Include::CanChi).then_some(info.canchi),
+            tiet_khi: includes.contains(&Include::TietKhi).then_some(info.tiet_khi),
+            gio_hoang_dao: includes.contains(&Include::Hours).then_some(info.gio_hoang_dao),
+            day_fortune: includes.contains(&Include::Fortune).then_some(
+                info.day_fortune
+                    .ok_or_else(|| "missing day_fortune in day info".to_string())?,
+            ),
+            daily_recommendations: includes.contains(&Include::Fortune).then_some(info.daily_recommendations),
+            contextual_recommendations: includes
+                .contains(&Include::Fortune)
+                .then_some(info.contextual_recommendations)
+                .flatten(),
+            insight,
+        })
+    }
+
+    pub fn meta(&self) -> ApiMetaDto {
+        ApiMetaDto {
+            schema_version: self.schema_version.clone(),
+            ruleset_id: self.ruleset_id.clone(),
+            ruleset_version: self.ruleset_version.clone(),
+            profile: self.profile.clone(),
+            generated_at: self.generated_at.clone(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -98,33 +166,7 @@ pub fn get_day_bundle(query: &DateQuery, includes: &[Include]) -> Result<DayBund
         None
     };
 
-    Ok(DayBundleDto {
-        meta: ApiMetaDto {
-            schema_version: "amlich.api/v2".to_string(),
-            ruleset_id: info.ruleset_id.clone(),
-            ruleset_version: info.ruleset_version.clone(),
-            profile: info.profile.clone(),
-            generated_at: chrono::Utc::now().to_rfc3339(),
-        },
-        solar: info.solar,
-        lunar: info.lunar,
-        jd: info.jd,
-        canchi: includes.contains(&Include::CanChi).then_some(info.canchi),
-        tiet_khi: includes
-            .contains(&Include::TietKhi)
-            .then_some(info.tiet_khi),
-        gio_hoang_dao: includes
-            .contains(&Include::Hours)
-            .then_some(info.gio_hoang_dao),
-        day_fortune: includes.contains(&Include::Fortune).then_some(
-            info.day_fortune
-                .ok_or_else(|| "missing day_fortune in day info".to_string())?,
-        ),
-        daily_recommendations: includes
-            .contains(&Include::Fortune)
-            .then_some(info.daily_recommendations),
-        insight,
-    })
+    DayBundleDto::from_parts(info, insight, &includes)
 }
 
 pub fn get_day_bundle_for_date(
@@ -139,6 +181,8 @@ pub fn get_day_bundle_for_date(
         month,
         year,
         timezone,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
     get_day_bundle(&query, includes)
 }
@@ -232,7 +276,11 @@ pub fn get_day_range(
         .first()
         .ok_or_else(|| "empty range after processing".to_string())?;
     Ok(DayRangeDto {
-        meta: first.meta.clone(),
+        schema_version: first.schema_version.clone(),
+        ruleset_id: first.ruleset_id.clone(),
+        ruleset_version: first.ruleset_version.clone(),
+        profile: first.profile.clone(),
+        generated_at: first.generated_at.clone(),
         start: format!("{}-{:02}-{:02}", start.year, start.month, start.day),
         end: format!("{}-{:02}-{:02}", end.year, end.month, end.day),
         days,
@@ -273,6 +321,8 @@ pub fn get_tiet_khi_for_year(year: i32, timezone: Option<f64>) -> Result<TietKhi
             month: cursor.month() as i32,
             year: cursor.year(),
             timezone: tz,
+            event_kind: None,
+            enabled_pack_ids: vec![],
         };
         let day = crate::get_day_info(&query)?;
         by_date.insert(cursor.to_string(), day.tiet_khi);
@@ -366,10 +416,32 @@ mod tests {
             month: 2,
             year: 2024,
             timezone: None,
+            event_kind: None,
+            enabled_pack_ids: vec![],
         };
         let bundle = get_day_bundle(&query, &[Include::Base, Include::CanChi]).expect("bundle");
         assert!(bundle.day_fortune.is_none());
         assert!(bundle.daily_recommendations.is_none());
         assert!(bundle.canchi.is_some());
+    }
+
+    #[test]
+    fn day_bundle_exposes_top_level_metadata() {
+        let query = DateQuery {
+            day: 10,
+            month: 2,
+            year: 2024,
+            timezone: Some(7.0),
+            event_kind: None,
+            enabled_pack_ids: vec![],
+        };
+
+        let bundle = get_day_bundle(&query, &[]).expect("bundle");
+        assert_eq!(bundle.schema_version, SCHEMA_VERSION);
+        assert_eq!(bundle.ruleset_id, "vn_baseline_v1");
+        assert_eq!(bundle.ruleset_version, "v1");
+        assert_eq!(bundle.profile, "baseline");
+        assert!(!bundle.generated_at.is_empty());
+        assert_eq!(bundle.meta().ruleset_id, bundle.ruleset_id);
     }
 }

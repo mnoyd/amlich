@@ -304,12 +304,16 @@ impl AppState {
         self.set_section_expanded(section, true);
     }
 
-    pub fn top_recommendation_rows(&self) -> Vec<RecommendationRowVm> {
-        let Some(recommendations) = self
-            .bundle
+    fn selected_recommendations(&self) -> Option<&amlich_api::DailyRecommendationsDto> {
+        let bundle = self.bundle.as_ref()?;
+        bundle
+            .contextual_recommendations
             .as_ref()
-            .and_then(|bundle| bundle.daily_recommendations.as_ref())
-        else {
+            .or(bundle.daily_recommendations.as_ref())
+    }
+
+    pub fn top_recommendation_rows(&self) -> Vec<RecommendationRowVm> {
+        let Some(recommendations) = self.selected_recommendations() else {
             return Vec::new();
         };
 
@@ -320,10 +324,7 @@ impl AppState {
     }
 
     pub fn hero_verdict(&self) -> Option<HeroVerdictVm> {
-        let recommendations = self
-            .bundle
-            .as_ref()
-            .and_then(|bundle| bundle.daily_recommendations.as_ref())?;
+        let recommendations = self.selected_recommendations()?;
         let rows = self.top_recommendation_rows();
         let strongest_positive = rows
             .iter()
@@ -382,10 +383,7 @@ impl AppState {
     }
 
     pub fn sensitive_domain_notice(&self) -> Option<String> {
-        let recommendations = self
-            .bundle
-            .as_ref()
-            .and_then(|bundle| bundle.daily_recommendations.as_ref())?;
+        let recommendations = self.selected_recommendations()?;
         let has_medical = recommendations
             .activities
             .iter()
@@ -549,7 +547,7 @@ mod tests {
         RecommendationSeverityDto, RuleEvidenceDto, SolarDto, SynthesizedRecommendationDto,
         TietKhiDto, TravelDirectionDto, TrucDto, XungHopDto,
     };
-    use amlich_api::v2::{ApiMetaDto, DayBundleDto};
+    use amlich_api::v2::DayBundleDto;
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
@@ -576,13 +574,12 @@ mod tests {
 
     fn sample_bundle() -> DayBundleDto {
         DayBundleDto {
-            meta: ApiMetaDto {
-                schema_version: "amlich.api/v2".to_string(),
+            schema_version: "amlich.engine/v1".to_string(),
                 ruleset_id: "test".to_string(),
                 ruleset_version: "v1".to_string(),
                 profile: "baseline".to_string(),
                 generated_at: "2026-03-12T00:00:00Z".to_string(),
-            },
+                
             solar: SolarDto {
                 day: 12,
                 month: 3,
@@ -729,6 +726,7 @@ mod tests {
                 version: "v1".to_string(),
                 summary_vi: "Ngày thuận việc mở đầu, tránh việc lớn.".to_string(),
                 summary_en: "Good for starting, avoid major matters.".to_string(),
+                active_packs: vec![],
                 activities: vec![
                     SynthesizedRecommendationDto {
                         activity_id: "opening_start".to_string(),
@@ -808,6 +806,7 @@ mod tests {
                     },
                 ],
             }),
+            contextual_recommendations: None,
             insight: None,
         }
     }

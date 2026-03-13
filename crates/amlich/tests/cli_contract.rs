@@ -305,13 +305,19 @@ fn day_command_returns_v2_bundle_json() {
 
     let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
     let obj = json.as_object().expect("top-level should be object");
-    for key in ["meta", "solar", "lunar", "jd"] {
+    for key in [
+        "schema_version",
+        "ruleset_id",
+        "ruleset_version",
+        "profile",
+        "generated_at",
+        "solar",
+        "lunar",
+        "jd",
+    ] {
         assert!(obj.contains_key(key), "missing key: {key}");
     }
-    assert_eq!(
-        json["meta"]["schema_version"].as_str(),
-        Some("amlich.api/v2")
-    );
+    assert_eq!(json["schema_version"].as_str(), Some("amlich.engine/v1"));
 }
 
 #[test]
@@ -337,7 +343,7 @@ fn day_projection_fields_filters_output() {
     let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
     assert!(json.get("solar").is_some());
     assert!(json.get("lunar").is_some());
-    assert!(json.get("meta").is_none());
+    assert!(json.get("schema_version").is_none());
     assert!(json["solar"].get("day").is_none());
     assert!(json["solar"].get("date_string").is_some());
 }

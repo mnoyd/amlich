@@ -47,7 +47,11 @@ impl Widget for GuidanceWidget<'_> {
         let Some(bundle) = &self.app.bundle else {
             return;
         };
-        let Some(recommendations) = &bundle.daily_recommendations else {
+        let Some(recommendations) = bundle
+            .contextual_recommendations
+            .as_ref()
+            .or(bundle.daily_recommendations.as_ref())
+        else {
             return;
         };
 
@@ -96,6 +100,23 @@ impl Widget for GuidanceWidget<'_> {
             Span::styled("   ", summary_style),
             Span::styled(recommendations.summary_vi.clone(), summary_style),
         ]));
+        if !recommendations.active_packs.is_empty() || recommendations.profile != "baseline" {
+            let pack_labels = recommendations
+                .active_packs
+                .iter()
+                .map(|pack| pack.pack_id.as_str())
+                .collect::<Vec<_>>()
+                .join(", ");
+            let context_note = if pack_labels.is_empty() {
+                format!("Ngữ cảnh: {}", recommendations.profile)
+            } else {
+                format!("Ngữ cảnh: {} · pack: {}", recommendations.profile, pack_labels)
+            };
+            lines.push(Line::from(vec![
+                Span::styled("   ", hint_style),
+                Span::styled(context_note, hint_style),
+            ]));
+        }
         lines.push(Line::from(""));
 
         render_bucket_section(
@@ -350,9 +371,7 @@ fn source_label(source: RecommendationEvidenceSourceDto) -> &'static str {
 }
 
 fn build_footer_hint(bundle: &DayBundleDto) -> Option<String> {
-    let Some(hours) = bundle.gio_hoang_dao.as_ref() else {
-        return None;
-    };
+    let hours = bundle.gio_hoang_dao.as_ref()?;
 
     let top_hours: Vec<String> = hours
         .good_hours
@@ -419,7 +438,7 @@ mod tests {
         RecommendationEvidenceDto, RecommendationEvidenceSourceDto, RecommendationReasonDto,
         RecommendationScopeDto, RecommendationSeverityDto, SynthesizedRecommendationDto,
     };
-    use amlich_api::v2::{ApiMetaDto, DayBundleDto};
+    use amlich_api::v2::DayBundleDto;
     use chrono::NaiveDate;
     use crate::state::{FocusLens, PageSection, ViewMode};
     use ratatui::layout::Rect;
@@ -433,6 +452,7 @@ mod tests {
             version: "v1-layered".to_string(),
             summary_vi: "Ngày thuận".to_string(),
             summary_en: "Supportive day".to_string(),
+            active_packs: vec![],
             activities: vec![
                 SynthesizedRecommendationDto {
                     activity_id: "opening_start".to_string(),
@@ -561,13 +581,12 @@ mod tests {
             view_mode: ViewMode::Day,
             scroll_offset: 0,
             bundle: Some(DayBundleDto {
-                meta: ApiMetaDto {
-                    schema_version: "amlich.api/v2".to_string(),
-                    ruleset_id: "test".to_string(),
-                    ruleset_version: "v1".to_string(),
-                    profile: "baseline".to_string(),
-                    generated_at: "2026-03-12T00:00:00Z".to_string(),
-                },
+                schema_version: "amlich.engine/v1".to_string(),
+                ruleset_id: "test".to_string(),
+                ruleset_version: "v1".to_string(),
+                profile: "baseline".to_string(),
+                generated_at: "2026-03-12T00:00:00Z".to_string(),
+                
                 solar: amlich_api::SolarDto {
                     day: 12,
                     month: 3,
@@ -617,6 +636,7 @@ mod tests {
                 }),
                 day_fortune: None,
                 daily_recommendations: Some(sample_recommendations()),
+                contextual_recommendations: None,
                 insight: None,
             }),
             is_loading: false,
@@ -686,6 +706,27 @@ mod tests {
 
         assert!(nen_idx < co_the_idx && co_the_idx < tranh_idx && tranh_idx < ky_manh_idx);
         assert!(text.contains("+1 mục ẩn"));
+    }
+
+    #[test]
+    fn contextual_recommendations_take_precedence_in_render() {
+        let mut app = sample_app_state();
+        if let Some(bundle) = app.bundle.as_mut() {
+            let mut contextual = sample_recommendations();
+            contextual.profile = "contextual".to_string();
+            contextual.summary_vi = "Ưu tiên ký kết theo ngữ cảnh".to_string();
+            contextual.active_packs = vec![amlich_api::ActiveRecommendationPackDto {
+                pack_id: "pack.nhi_thap_bat_tu.v1".to_string(),
+                version: "v1".to_string(),
+                source_family: "nhi_thap_bat_tu".to_string(),
+                mode: "advisory".to_string(),
+            }];
+            bundle.contextual_recommendations = Some(contextual);
+        }
+
+        let text = render_text(&app, LayoutMode::Small);
+        assert!(text.contains("Ưu tiên ký kết theo ngữ cảnh"));
+        assert!(text.contains("pack.nhi_thap_bat_tu.v1"));
     }
 
     #[test]

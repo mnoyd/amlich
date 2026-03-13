@@ -100,7 +100,7 @@ fn page_content_area(page_area: ratatui::layout::Rect, mode: LayoutMode) -> rata
 #[cfg(test)]
 mod tests {
     use super::*;
-    use amlich_api::v2::{ApiMetaDto, DayBundleDto};
+    use amlich_api::v2::DayBundleDto;
     use chrono::NaiveDate;
     use crate::state::{FocusLens, PageSection, ViewMode};
 
@@ -113,13 +113,11 @@ mod tests {
             view_mode: ViewMode::Day,
             scroll_offset: 0,
             bundle: Some(DayBundleDto {
-                meta: ApiMetaDto {
-                    schema_version: "amlich.api/v2".to_string(),
-                    ruleset_id: "test".to_string(),
-                    ruleset_version: "v1".to_string(),
-                    profile: "baseline".to_string(),
-                    generated_at: "2026-03-12T00:00:00Z".to_string(),
-                },
+                schema_version: "amlich.engine/v1".to_string(),
+                ruleset_id: "test".to_string(),
+                ruleset_version: "v1".to_string(),
+                profile: "baseline".to_string(),
+                generated_at: "2026-03-12T00:00:00Z".to_string(),
                 solar: amlich_api::SolarDto {
                     day: 12,
                     month: 3,
@@ -141,6 +139,7 @@ mod tests {
                 gio_hoang_dao: None,
                 day_fortune: None,
                 daily_recommendations: None,
+                contextual_recommendations: None,
                 insight: None,
             }),
             is_loading: false,

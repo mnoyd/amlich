@@ -85,7 +85,7 @@ mod tests {
         RecommendationSeverityDto, SolarDto, SynthesizedRecommendationDto, TravelDirectionDto,
         TrucDto, XungHopDto,
     };
-    use amlich_api::v2::{ApiMetaDto, DayBundleDto};
+    use amlich_api::v2::DayBundleDto;
     use chrono::NaiveDate;
     use crate::state::{FocusLens, PageSection, ViewMode};
 
@@ -129,13 +129,12 @@ mod tests {
             view_mode: ViewMode::Day,
             scroll_offset: 0,
             bundle: Some(DayBundleDto {
-                meta: ApiMetaDto {
-                    schema_version: "amlich.api/v2".to_string(),
-                    ruleset_id: "test".to_string(),
-                    ruleset_version: "v1".to_string(),
-                    profile: "baseline".to_string(),
-                    generated_at: "2026-03-12T00:00:00Z".to_string(),
-                },
+                schema_version: "amlich.engine/v1".to_string(),
+                ruleset_id: "test".to_string(),
+                ruleset_version: "v1".to_string(),
+                profile: "baseline".to_string(),
+                generated_at: "2026-03-12T00:00:00Z".to_string(),
+                
                 solar: SolarDto {
                     day: 12,
                     month: 3,
@@ -221,8 +220,10 @@ mod tests {
                     version: "v1".to_string(),
                     summary_vi: "Tóm tắt".to_string(),
                     summary_en: "Summary".to_string(),
+                    active_packs: vec![],
                     activities,
                 }),
+                contextual_recommendations: None,
                 insight: None,
             }),
             is_loading: false,

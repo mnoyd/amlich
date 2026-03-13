@@ -9,6 +9,8 @@ fn query(day: i32, month: i32, year: i32) -> DateQuery {
         month,
         year,
         timezone: Some(7.0),
+        event_kind: None,
+        enabled_pack_ids: vec![],
     }
 }
 
@@ -32,6 +34,7 @@ fn day_info_exposes_daily_recommendations_contract() {
     assert_eq!(info.daily_recommendations.ruleset_id, info.ruleset_id);
     assert_eq!(info.daily_recommendations.ruleset_version, info.ruleset_version);
     assert_eq!(info.daily_recommendations.profile, info.profile);
+    assert!(info.contextual_recommendations.is_none());
     assert!(info.daily_recommendations.version.starts_with("v1-"));
     assert!(!info.daily_recommendations.summary_vi.is_empty());
     assert!(!info.daily_recommendations.activities.is_empty());
@@ -65,6 +68,29 @@ fn day_info_exposes_daily_recommendations_contract() {
 }
 
 #[test]
+fn day_info_can_expose_contextual_recommendations() {
+    let mut request = query(10, 2, 2024);
+    request.event_kind = Some("contract_signing".to_string());
+    request.enabled_pack_ids = vec!["pack.nhi_thap_bat_tu.v1".to_string()];
+
+    let info = amlich_api::get_day_info(&request).expect("day info");
+    let contextual = info
+        .contextual_recommendations
+        .as_ref()
+        .expect("contextual recommendations");
+
+    assert_eq!(contextual.active_packs.len(), 1);
+    assert!(contextual
+        .activities
+        .iter()
+        .find(|activity| activity.activity_id == "contract_agreement")
+        .expect("contract activity")
+        .reasons
+        .iter()
+        .any(|reason| reason.rule_id == "layer.product_rule.event_kind.contract_signing"));
+}
+
+#[test]
 fn day_bundle_includes_daily_recommendations_with_fortune() {
     let bundle = get_day_bundle(&query(10, 2, 2024), &[]).expect("bundle");
     let from_info = amlich_api::get_day_info(&query(10, 2, 2024)).expect("day info");
@@ -73,7 +99,11 @@ fn day_bundle_includes_daily_recommendations_with_fortune() {
         .daily_recommendations
         .as_ref()
         .expect("daily recommendations should be present");
-    assert_eq!(bundle.meta.profile, from_info.profile);
+    assert_eq!(bundle.schema_version, "amlich.engine/v1");
+    assert_eq!(bundle.ruleset_id, from_info.ruleset_id);
+    assert_eq!(bundle.ruleset_version, from_info.ruleset_version);
+    assert_eq!(bundle.profile, from_info.profile);
+    assert!(!bundle.generated_at.is_empty());
     assert_eq!(bundle_rec.ruleset_id, from_info.daily_recommendations.ruleset_id);
     assert_eq!(
         bundle_rec.ruleset_version,
@@ -97,17 +127,17 @@ fn day_bundle_projection_supports_recommendation_fields() {
         &query(10, 2, 2024),
         &[],
         &[
+            "schema_version".to_string(),
+            "profile".to_string(),
             "daily_recommendations.profile".to_string(),
             "daily_recommendations.summary_vi".to_string(),
             "daily_recommendations.activities".to_string(),
-            "meta.profile".to_string(),
-            "meta.schema_version".to_string(),
         ],
     )
     .expect("projected");
 
-    assert_eq!(projected["meta"]["schema_version"], "amlich.api/v2");
-    assert_eq!(projected["meta"]["profile"], "baseline");
+    assert_eq!(projected["schema_version"], "amlich.engine/v1");
+    assert_eq!(projected["profile"], "baseline");
     assert_eq!(projected["daily_recommendations"]["profile"], "baseline");
     assert!(projected["daily_recommendations"]["summary_vi"]
         .as_str()
@@ -117,4 +147,16 @@ fn day_bundle_projection_supports_recommendation_fields() {
         .as_array()
         .map(|a| !a.is_empty())
         .unwrap_or(false));
+}
+
+#[test]
+fn projection_cannot_bypass_omitted_sections() {
+    let err = get_day_bundle_projected(
+        &query(10, 2, 2024),
+        &[amlich_api::v2::Include::Base, amlich_api::v2::Include::CanChi],
+        &["day_fortune.ruleset_id".to_string()],
+    )
+    .expect_err("projection should fail when section is omitted");
+
+    assert!(err.contains("unknown field path"));
 }
