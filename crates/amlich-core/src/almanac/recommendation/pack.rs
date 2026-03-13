@@ -19,6 +19,10 @@ impl RecommendationPackDescriptor {
     }
 }
 
+pub const fn recommendation_pack_descriptors() -> &'static [RecommendationPackDescriptor] {
+    &[super::packs::nhi_thap_bat_tu::NHI_THAP_BAT_TU_PACK]
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum RecommendationPackLookupError {
     UnknownPackId(String),

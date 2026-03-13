@@ -78,6 +78,9 @@ pub fn get_day_info_js(day: i32, month: i32, year: i32) -> JsValue {
         month,
         year,
         timezone: Some(VIETNAM_TIMEZONE),
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
     match get_day_info(&query) {
         Ok(info) => serde_wasm_bindgen::to_value(&info).unwrap_or(JsValue::NULL),
@@ -93,6 +96,9 @@ pub fn get_day_info_with_timezone_js(day: i32, month: i32, year: i32, time_zone:
         month,
         year,
         timezone: Some(time_zone),
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
     match get_day_info(&query) {
         Ok(info) => serde_wasm_bindgen::to_value(&info).unwrap_or(JsValue::NULL),
@@ -108,6 +114,9 @@ pub fn format_day_info_js(day: i32, month: i32, year: i32) -> String {
         month,
         year,
         timezone: Some(VIETNAM_TIMEZONE),
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
 
     match get_day_info(&query) {

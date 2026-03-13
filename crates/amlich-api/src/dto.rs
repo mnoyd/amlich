@@ -318,6 +318,43 @@ pub struct ActiveRecommendationPackDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RulesetDefaultsDto {
+    pub tz_offset: f64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub meridian: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RulesetSourceNoteDto {
+    pub family: String,
+    pub source_id: String,
+    pub note: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RulesetCatalogEntryDto {
+    pub id: String,
+    pub version: String,
+    pub region: String,
+    pub profile: String,
+    pub schema_version: String,
+    pub is_default: bool,
+    #[serde(default)]
+    pub aliases: Vec<String>,
+    pub defaults: RulesetDefaultsDto,
+    #[serde(default)]
+    pub source_notes: Vec<RulesetSourceNoteDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RecommendationPackCatalogEntryDto {
+    pub pack_id: String,
+    pub version: String,
+    pub source_family: String,
+    pub mode: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KuaResultDto {
     pub kua: u8,
     pub group: String,

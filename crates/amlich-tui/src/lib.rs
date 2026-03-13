@@ -51,7 +51,7 @@ fn run(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, mut app: AppState)
             }
             Ok(false) => {}
             Err(e) => {
-                return Err(io::Error::new(io::ErrorKind::Other, e.to_string()));
+                return Err(io::Error::other(e.to_string()));
             }
         }
     }

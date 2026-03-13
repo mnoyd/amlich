@@ -1,13 +1,15 @@
 use crate::dto::{
-    ActivityLabelDto, CanChiDto, CanChiInfoDto, CanInsightDto, ChiInsightDto,
-    ConventionMetadataDto, DailyRecommendationsDto, DayConflictDto, DayDeityDto, DayElementDto,
-    DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, DayTabooDto, DayTenGodsDto,
-    ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HolidayDto,
-    HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto, LocalizedTextDto, LunarDto,
-    NaAmErrorDto, NaAmLookupResultDto, NguHanhDto, ProverbInsightDto, RecommendationBucketDto,
-    RecommendationEvidenceDto, RecommendationEvidenceSourceDto, RecommendationReasonDto,
-    RecommendationScopeDto, RecommendationSeverityDto, RegionsInsightDto, RuleEvidenceDto,
-    SolarDto, StarRuleEvidenceDto, SynthesizedRecommendationDto, TabooInsightDto, TangCanDto,
+    ActiveRecommendationPackDto, ActivityLabelDto, CanChiDto, CanChiInfoDto, CanInsightDto,
+    ChiInsightDto, ConventionMetadataDto, DailyRecommendationsDto, DayConflictDto, DayDeityDto,
+    DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto,
+    DayTabooDto, DayTenGodsDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto,
+    GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto,
+    LocalizedTextDto, LunarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto,
+    ProverbInsightDto, RecommendationBucketDto, RecommendationEvidenceDto,
+    RecommendationEvidenceSourceDto, RecommendationPackCatalogEntryDto, RecommendationReasonDto,
+    RecommendationScopeDto, RecommendationSeverityDto, RegionsInsightDto,
+    RulesetCatalogEntryDto, RulesetDefaultsDto, RulesetSourceNoteDto, RuleEvidenceDto, SolarDto,
+    StarRuleEvidenceDto, SynthesizedRecommendationDto, TabooInsightDto, TangCanDto,
     ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
 };
 
@@ -526,6 +528,95 @@ impl From<&amlich_core::almanac::recommendation::RecommendationReason> for Recom
     }
 }
 
+impl From<&amlich_core::almanac::recommendation::ActiveRecommendationPack>
+    for ActiveRecommendationPackDto
+{
+    fn from(value: &amlich_core::almanac::recommendation::ActiveRecommendationPack) -> Self {
+        Self {
+            pack_id: value.pack_id.clone(),
+            version: value.version.clone(),
+            source_family: value.source_family.clone(),
+            mode: match value.mode {
+                amlich_core::almanac::recommendation::RecommendationPackMode::Advisory => {
+                    "advisory"
+                }
+                amlich_core::almanac::recommendation::RecommendationPackMode::TraditionVariant => {
+                    "tradition_variant"
+                }
+                amlich_core::almanac::recommendation::RecommendationPackMode::Experimental => {
+                    "experimental"
+                }
+            }
+            .to_string(),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::types::RuleSetDefaults> for RulesetDefaultsDto {
+    fn from(value: &amlich_core::almanac::types::RuleSetDefaults) -> Self {
+        Self {
+            tz_offset: value.tz_offset,
+            meridian: value.meridian.clone(),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::types::RuleSetSourceNote> for RulesetSourceNoteDto {
+    fn from(value: &amlich_core::almanac::types::RuleSetSourceNote) -> Self {
+        Self {
+            family: value.family.clone(),
+            source_id: value.source_id.clone(),
+            note: value.note.clone(),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::data::RulesetRegistryEntry> for RulesetCatalogEntryDto {
+    fn from(value: &amlich_core::almanac::data::RulesetRegistryEntry) -> Self {
+        let descriptor = value.descriptor.to_document_descriptor();
+
+        Self {
+            id: descriptor.id,
+            version: descriptor.version,
+            region: descriptor.region,
+            profile: descriptor.profile,
+            schema_version: descriptor.schema_version,
+            is_default: value.descriptor.id == amlich_core::almanac::data::DEFAULT_RULESET_ID,
+            aliases: value.aliases.iter().map(|alias| (*alias).to_string()).collect(),
+            defaults: RulesetDefaultsDto::from(&descriptor.defaults),
+            source_notes: descriptor
+                .source_notes
+                .iter()
+                .map(RulesetSourceNoteDto::from)
+                .collect(),
+        }
+    }
+}
+
+impl From<&amlich_core::almanac::recommendation::RecommendationPackDescriptor>
+    for RecommendationPackCatalogEntryDto
+{
+    fn from(value: &amlich_core::almanac::recommendation::RecommendationPackDescriptor) -> Self {
+        Self {
+            pack_id: value.pack_id.to_string(),
+            version: value.version.to_string(),
+            source_family: value.source_family.to_string(),
+            mode: match value.mode {
+                amlich_core::almanac::recommendation::RecommendationPackMode::Advisory => {
+                    "advisory"
+                }
+                amlich_core::almanac::recommendation::RecommendationPackMode::TraditionVariant => {
+                    "tradition_variant"
+                }
+                amlich_core::almanac::recommendation::RecommendationPackMode::Experimental => {
+                    "experimental"
+                }
+            }
+            .to_string(),
+        }
+    }
+}
+
 impl From<&amlich_core::almanac::recommendation::SynthesizedRecommendation>
     for SynthesizedRecommendationDto
 {
@@ -553,6 +644,11 @@ impl From<&amlich_core::almanac::recommendation::DailyRecommendations> for Daily
             version: value.version.clone(),
             summary_vi: value.summary_vi.clone(),
             summary_en: value.summary_en.clone(),
+            active_packs: value
+                .active_packs
+                .iter()
+                .map(ActiveRecommendationPackDto::from)
+                .collect(),
             activities: value
                 .activities
                 .iter()
@@ -576,6 +672,10 @@ impl From<&amlich_core::DayInfo> for DayInfoDto {
             gio_hoang_dao: GioHoangDaoDto::from(&value.gio_hoang_dao),
             day_fortune: Some(DayFortuneDto::from(&value.day_fortune)),
             daily_recommendations: DailyRecommendationsDto::from(&value.daily_recommendations),
+            contextual_recommendations: value
+                .contextual_recommendations
+                .as_ref()
+                .map(DailyRecommendationsDto::from),
         }
     }
 }

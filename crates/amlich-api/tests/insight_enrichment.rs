@@ -7,6 +7,9 @@ fn enriched_insight_has_all_day_only_fields() {
         month: 1,
         year: 2025,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
     let insight = get_day_insight(&query).unwrap();
 
@@ -33,6 +36,9 @@ fn enriched_insight_bilingual_non_empty() {
         month: 6,
         year: 2025,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
     let insight = get_day_insight(&query).unwrap();
 
@@ -53,6 +59,9 @@ fn enriched_insight_with_profile_populates_birth_fields() {
         month: 1,
         year: 2025,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
     let insight = get_day_insight_with_profile(
         &query,
@@ -80,6 +89,9 @@ fn enriched_insight_json_roundtrip() {
         month: 3,
         year: 2025,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
     let insight = get_day_insight(&query).unwrap();
     let json = serde_json::to_string(&insight).unwrap();

@@ -484,6 +484,9 @@ fn test_day_fortune_api_unchanged() {
         month: 3,
         year: 2026,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
 
     let result = get_day_info(&query);
@@ -504,6 +507,9 @@ fn test_day_fortune_na_am_preserved() {
         month: 3,
         year: 2026,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
 
     let result = get_day_info(&query);

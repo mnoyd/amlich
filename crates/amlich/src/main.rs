@@ -159,6 +159,18 @@ struct DayArgs {
     /// Timezone offset
     #[arg(long, value_name = "TZ")]
     timezone: Option<f64>,
+
+    /// Almanac ruleset id (canonical id or alias)
+    #[arg(long, value_name = "RULESET")]
+    ruleset_id: Option<String>,
+
+    /// Contextual event kind for recommendation synthesis
+    #[arg(long, value_name = "EVENT_KIND")]
+    event_kind: Option<String>,
+
+    /// Enable recommendation packs (comma-separated pack ids)
+    #[arg(long, value_delimiter = ',', value_name = "PACKS")]
+    recommendation_packs: Vec<String>,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -221,6 +233,15 @@ struct RangeArgs {
 
     #[arg(long, value_name = "TZ")]
     timezone: Option<f64>,
+
+    #[arg(long, value_name = "RULESET")]
+    ruleset_id: Option<String>,
+
+    #[arg(long, value_name = "EVENT_KIND")]
+    event_kind: Option<String>,
+
+    #[arg(long, value_delimiter = ',', value_name = "PACKS")]
+    recommendation_packs: Vec<String>,
 }
 
 #[derive(Args, Debug)]
@@ -354,6 +375,8 @@ enum LookupCommand {
     NaAm(LookupNaAmArgs),
     TenGods(LookupTenGodsArgs),
     Kua(LookupKuaArgs),
+    Rulesets(LookupCatalogArgs),
+    RecommendationPacks(LookupCatalogArgs),
 }
 
 #[derive(Args, Debug)]
@@ -397,6 +420,15 @@ struct LookupKuaArgs {
     #[arg(long, value_enum)]
     gender: GenderArg,
 
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
+struct LookupCatalogArgs {
     #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
     format: StructuredFormatArg,
 
@@ -538,12 +570,18 @@ fn query_from_date(date: NaiveDate, timezone: Option<f64>) -> DateQuery {
         month: date.month() as i32,
         year: date.year(),
         timezone,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     }
 }
 
 fn run_day(args: DayArgs) -> Result<(), String> {
     let date = parse_date_or_today(args.date.as_deref())?;
-    let query = query_from_date(date, args.timezone);
+    let mut query = query_from_date(date, args.timezone);
+    query.ruleset_id = args.ruleset_id.clone();
+    query.event_kind = args.event_kind.clone();
+    query.enabled_pack_ids = args.recommendation_packs.clone();
     let includes = include_args_to_api(&args.include);
 
     match args.format {
@@ -588,8 +626,14 @@ fn run_range(args: RangeArgs) -> Result<(), String> {
     let start = parse_date(&args.start)?;
     let end = parse_date(&args.end)?;
 
-    let start_query = query_from_date(start, args.timezone);
-    let end_query = query_from_date(end, args.timezone);
+    let mut start_query = query_from_date(start, args.timezone);
+    let mut end_query = query_from_date(end, args.timezone);
+    start_query.ruleset_id = args.ruleset_id.clone();
+    start_query.event_kind = args.event_kind.clone();
+    start_query.enabled_pack_ids = args.recommendation_packs.clone();
+    end_query.ruleset_id = args.ruleset_id.clone();
+    end_query.event_kind = args.event_kind.clone();
+    end_query.enabled_pack_ids = args.recommendation_packs.clone();
     let includes = include_args_to_api(&args.include);
     let range = amlich_api::v2::get_day_range(start_query, end_query, &includes)?;
 
@@ -951,7 +995,53 @@ fn run_lookup(args: LookupArgs) -> Result<(), String> {
         LookupCommand::NaAm(a) => run_lookup_na_am(a),
         LookupCommand::TenGods(a) => run_lookup_ten_gods(a),
         LookupCommand::Kua(a) => run_lookup_kua(a),
+        LookupCommand::Rulesets(a) => run_lookup_rulesets(a),
+        LookupCommand::RecommendationPacks(a) => run_lookup_recommendation_packs(a),
     }
+}
+
+fn run_lookup_rulesets(args: LookupCatalogArgs) -> Result<(), String> {
+    let catalog = amlich_api::get_ruleset_catalog();
+    match args.format {
+        StructuredFormatArg::Json => print_json(&catalog, args.pretty)?,
+        StructuredFormatArg::Text => {
+            for entry in catalog {
+                let aliases = if entry.aliases.is_empty() {
+                    String::new()
+                } else {
+                    format!(" aliases={} ", entry.aliases.join(","))
+                };
+                println!(
+                    "{}@{} [{}] profile={} default={}{}tz={} schema={}",
+                    entry.id,
+                    entry.version,
+                    entry.region,
+                    entry.profile,
+                    entry.is_default,
+                    aliases,
+                    entry.defaults.tz_offset,
+                    entry.schema_version
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+fn run_lookup_recommendation_packs(args: LookupCatalogArgs) -> Result<(), String> {
+    let catalog = amlich_api::get_recommendation_pack_catalog();
+    match args.format {
+        StructuredFormatArg::Json => print_json(&catalog, args.pretty)?,
+        StructuredFormatArg::Text => {
+            for entry in catalog {
+                println!(
+                    "{}@{} family={} mode={}",
+                    entry.pack_id, entry.version, entry.source_family, entry.mode
+                );
+            }
+        }
+    }
+    Ok(())
 }
 
 fn run_lookup_na_am(args: LookupNaAmArgs) -> Result<(), String> {

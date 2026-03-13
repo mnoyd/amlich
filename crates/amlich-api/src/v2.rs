@@ -261,13 +261,16 @@ pub fn get_day_range(
     let mut days = Vec::new();
     let mut cursor = start_date;
     while cursor <= end_date {
-        days.push(get_day_bundle_for_date(
-            cursor.day() as i32,
-            cursor.month() as i32,
-            cursor.year(),
-            includes,
-            start.timezone,
-        )?);
+        let query = DateQuery {
+            day: cursor.day() as i32,
+            month: cursor.month() as i32,
+            year: cursor.year(),
+            timezone: start.timezone,
+            ruleset_id: start.ruleset_id.clone(),
+            event_kind: start.event_kind.clone(),
+            enabled_pack_ids: start.enabled_pack_ids.clone(),
+        };
+        days.push(get_day_bundle(&query, includes)?);
         cursor = cursor
             .succ_opt()
             .ok_or_else(|| "failed to iterate date range".to_string())?;

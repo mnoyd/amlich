@@ -351,6 +351,7 @@ mod tests {
             2024,
             VIETNAM_TIMEZONE,
             RecommendationRequest {
+                ruleset_id: None,
                 event_kind: Some("contract_signing"),
                 enabled_pack_ids: &[],
             },
@@ -379,6 +380,7 @@ mod tests {
             2024,
             VIETNAM_TIMEZONE,
             RecommendationRequest {
+                ruleset_id: None,
                 event_kind: None,
                 enabled_pack_ids: &["pack.unknown.v1"],
             },

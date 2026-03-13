@@ -6,6 +6,9 @@ fn tet_2024_fortune() -> amlich_api::DayFortuneDto {
         month: 2,
         year: 2024,
         timezone: Some(7.0),
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     })
     .expect("day info should be available");
     info.day_fortune.expect("day_fortune should exist")
@@ -76,6 +79,9 @@ fn day_fortune_applies_seeded_star_precedence_at_api_layer() {
         month: 2,
         year: 2024,
         timezone: Some(7.0),
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     })
     .expect("day info should be available");
 
@@ -175,6 +181,9 @@ fn day_fortune_exposes_structured_taboos() {
         month: 2,
         year: 2024,
         timezone: Some(7.0),
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     })
     .expect("day info should be available");
 
@@ -200,6 +209,9 @@ fn day_info_exposes_ruleset_metadata() {
         month: 2,
         year: 2024,
         timezone: Some(7.0),
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     })
     .expect("day info should be available");
 

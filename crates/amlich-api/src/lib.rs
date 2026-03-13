@@ -4,6 +4,8 @@ pub mod v2;
 
 use std::collections::HashMap;
 
+use amlich_core::almanac::data::{get_ruleset, ruleset_registry};
+use amlich_core::almanac::recommendation::pack::recommendation_pack_descriptors;
 use amlich_core::holiday_data::{lunar_festivals, solar_holidays};
 use amlich_core::holidays::get_vietnamese_holidays;
 use amlich_core::insight_data::{
@@ -11,7 +13,6 @@ use amlich_core::insight_data::{
     find_na_am_insight, find_ten_gods_insight, find_tiet_khi_insight, find_truc_insight,
     get_day_guidance,
 };
-use amlich_core::almanac::data::get_ruleset;
 
 pub use dto::*;
 pub use dto::{NaAmErrorDto, NaAmLookupResultDto, NaAmResponseDto};
@@ -105,6 +106,20 @@ pub fn get_day_info_for_date(day: i32, month: i32, year: i32) -> Result<DayInfoD
         event_kind: None,
         enabled_pack_ids: vec![],
     })
+}
+
+pub fn get_ruleset_catalog() -> Vec<RulesetCatalogEntryDto> {
+    ruleset_registry()
+        .iter()
+        .map(RulesetCatalogEntryDto::from)
+        .collect()
+}
+
+pub fn get_recommendation_pack_catalog() -> Vec<RecommendationPackCatalogEntryDto> {
+    recommendation_pack_descriptors()
+        .iter()
+        .map(RecommendationPackCatalogEntryDto::from)
+        .collect()
 }
 
 pub fn get_holidays(year: i32, major_only: bool) -> Vec<HolidayDto> {

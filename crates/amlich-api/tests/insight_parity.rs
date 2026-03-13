@@ -29,6 +29,9 @@ fn tet_2024_has_festival_and_guidance_insight() {
         month: 2,
         year: 2024,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     })
     .expect("day insight should be available");
 
@@ -47,6 +50,9 @@ fn teachers_day_has_holiday_insight_fields() {
         month: 11,
         year: 2024,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     })
     .expect("day insight should be available");
 
@@ -71,6 +77,9 @@ fn thanh_minh_has_solar_festival_insight() {
         month: 4,
         year: 2024,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     })
     .expect("day insight should be available");
 
@@ -87,6 +96,9 @@ fn day_info_and_day_insight_remain_consistent() {
         month: 1,
         year: 2025,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     };
 
     let info = get_day_info(&query).expect("day info should work");

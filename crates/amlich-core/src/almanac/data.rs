@@ -303,6 +303,10 @@ pub fn default_ruleset() -> &'static RulesetRegistryEntry {
     &RULESET_REGISTRY[0]
 }
 
+pub fn ruleset_registry() -> &'static [RulesetRegistryEntry] {
+    &RULESET_REGISTRY
+}
+
 pub fn get_ruleset(ruleset_id: &str) -> Result<&'static RulesetRegistryEntry, RulesetLookupError> {
     RULESET_REGISTRY
         .iter()

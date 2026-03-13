@@ -384,6 +384,253 @@ fn range_ndjson_emits_one_object_per_day() {
 }
 
 #[test]
+fn day_command_accepts_engine_selectors() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "day",
+            "2026-02-20",
+            "--format",
+            "json",
+            "--ruleset-id",
+            "baseline",
+            "--event-kind",
+            "contract_signing",
+            "--recommendation-packs",
+            "pack.nhi_thap_bat_tu.v1",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
+    assert_eq!(json["ruleset_id"].as_str(), Some("vn_baseline_v1"));
+    assert!(json.get("contextual_recommendations").is_some());
+    let active_packs = json["contextual_recommendations"]["active_packs"]
+        .as_array()
+        .expect("active_packs should be an array");
+    assert_eq!(active_packs.len(), 1);
+    assert_eq!(active_packs[0]["pack_id"].as_str(), Some("pack.nhi_thap_bat_tu.v1"));
+}
+
+#[test]
+fn range_command_accepts_engine_selectors() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "range",
+            "--start",
+            "2026-02-20",
+            "--end",
+            "2026-02-21",
+            "--format",
+            "json",
+            "--include",
+            "base,canchi,tiet-khi,hours,fortune",
+            "--ruleset-id",
+            "baseline",
+            "--event-kind",
+            "travel",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
+    assert_eq!(json["ruleset_id"].as_str(), Some("vn_baseline_v1"));
+    let days = json["days"].as_array().expect("days should be an array");
+    assert_eq!(days.len(), 2);
+    assert!(days[0].get("contextual_recommendations").is_some());
+}
+
+#[test]
+fn range_json_is_inclusive_and_matches_day_metadata() {
+    let home = temp_home();
+
+    let day_output = run(&home, &["day", "2026-02-20", "--format", "json"]);
+    assert!(
+        day_output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&day_output.stderr)
+    );
+    let day_json: Value =
+        serde_json::from_slice(&day_output.stdout).expect("stdout should be valid json");
+
+    let range_output = run(
+        &home,
+        &[
+            "range",
+            "--start",
+            "2026-02-20",
+            "--end",
+            "2026-02-22",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        range_output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&range_output.stderr)
+    );
+
+    let range_json: Value =
+        serde_json::from_slice(&range_output.stdout).expect("stdout should be valid json");
+    assert_eq!(range_json["start"].as_str(), Some("2026-02-20"));
+    assert_eq!(range_json["end"].as_str(), Some("2026-02-22"));
+
+    let days = range_json["days"].as_array().expect("days should be an array");
+    assert_eq!(days.len(), 3);
+    assert_eq!(days[0]["solar"]["date_string"].as_str(), Some("2026-02-20"));
+    assert_eq!(days[1]["solar"]["date_string"].as_str(), Some("2026-02-21"));
+    assert_eq!(days[2]["solar"]["date_string"].as_str(), Some("2026-02-22"));
+
+    for key in ["schema_version", "ruleset_id", "ruleset_version", "profile"] {
+        assert_eq!(range_json[key], day_json[key], "metadata mismatch for key: {key}");
+        assert_eq!(days[0][key], day_json[key], "day row mismatch for key: {key}");
+    }
+    assert!(range_json["generated_at"].as_str().is_some());
+    assert!(days[0]["generated_at"].as_str().is_some());
+}
+
+#[test]
+fn range_invalid_bounds_fail_explicitly() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "range",
+            "--start",
+            "2026-02-22",
+            "--end",
+            "2026-02-20",
+            "--format",
+            "json",
+        ],
+    );
+
+    assert!(!output.status.success(), "command should fail");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("end date must be greater than or equal to start date"));
+}
+
+#[test]
+fn day_rejects_invalid_include_dependency() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "day",
+            "2026-02-20",
+            "--format",
+            "json",
+            "--include",
+            "base,evidence",
+        ],
+    );
+
+    assert!(!output.status.success(), "command should fail");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("include=evidence requires include=fortune"));
+}
+
+#[test]
+fn day_rejects_invalid_selector_values() {
+    let home = temp_home();
+
+    let bad_ruleset = run(
+        &home,
+        &[
+            "day",
+            "2026-02-20",
+            "--format",
+            "json",
+            "--ruleset-id",
+            "nope",
+        ],
+    );
+    assert!(!bad_ruleset.status.success(), "command should fail");
+    assert!(
+        String::from_utf8_lossy(&bad_ruleset.stderr).contains("unknown almanac ruleset id")
+    );
+
+    let bad_event = run(
+        &home,
+        &[
+            "day",
+            "2026-02-20",
+            "--format",
+            "json",
+            "--event-kind",
+            "party",
+        ],
+    );
+    assert!(!bad_event.status.success(), "command should fail");
+    assert!(
+        String::from_utf8_lossy(&bad_event.stderr)
+            .contains("unsupported recommendation event_kind")
+    );
+}
+
+#[test]
+fn day_text_and_waybar_overlap_with_json_output() {
+    let home = temp_home();
+
+    let json_output = run(&home, &["day", "2026-02-20", "--format", "json"]);
+    assert!(json_output.status.success());
+    let json: Value = serde_json::from_slice(&json_output.stdout).expect("valid json");
+
+    let text_output = run(&home, &["day", "2026-02-20", "--format", "text"]);
+    assert!(text_output.status.success());
+    let text = String::from_utf8_lossy(&text_output.stdout);
+    assert!(text.contains(json["solar"]["date_string"].as_str().expect("date string")));
+    assert!(text.contains(json["lunar"]["date_string"].as_str().expect("lunar date")));
+    assert!(text.contains(json["tiet_khi"]["name"].as_str().expect("tiet khi name")));
+
+    let waybar_output = run(&home, &["day", "2026-02-20", "--format", "waybar"]);
+    assert!(waybar_output.status.success());
+    let waybar_json: Value = serde_json::from_slice(&waybar_output.stdout).expect("valid json");
+    let text_field = waybar_json["text"].as_str().expect("waybar text field");
+    let tooltip = waybar_json["tooltip"].as_str().expect("waybar tooltip field");
+    assert!(text_field.contains(json["lunar"]["day"].as_i64().expect("lunar day").to_string().as_str()));
+    assert!(tooltip.contains(json["solar"]["date_string"].as_str().expect("date string")));
+    assert!(tooltip.contains(json["canchi"]["day"]["full"].as_str().expect("canchi day")));
+}
+
+#[test]
+fn lookup_catalog_commands_return_expected_shapes() {
+    let home = temp_home();
+
+    let rulesets = run(&home, &["lookup", "rulesets", "--format", "json"]);
+    assert!(rulesets.status.success());
+    let rulesets_json: Value = serde_json::from_slice(&rulesets.stdout).expect("valid rulesets json");
+    let rulesets = rulesets_json.as_array().expect("rulesets should be an array");
+    assert!(!rulesets.is_empty());
+    assert_eq!(rulesets[0]["id"].as_str(), Some("vn_baseline_v1"));
+    assert!(rulesets[0]["aliases"].is_array());
+    assert_eq!(rulesets[0]["is_default"].as_bool(), Some(true));
+
+    let packs = run(
+        &home,
+        &["lookup", "recommendation-packs", "--format", "json"],
+    );
+    assert!(packs.status.success());
+    let packs_json: Value = serde_json::from_slice(&packs.stdout).expect("valid packs json");
+    let packs = packs_json.as_array().expect("packs should be an array");
+    assert!(!packs.is_empty());
+    assert_eq!(packs[0]["pack_id"].as_str(), Some("pack.nhi_thap_bat_tu.v1"));
+    assert!(packs[0].get("mode").is_some());
+}
+
+#[test]
 fn lookup_commands_return_expected_shapes() {
     let home = temp_home();
 
