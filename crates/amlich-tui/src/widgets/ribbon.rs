@@ -7,8 +7,9 @@ use ratatui::{
 };
 
 use crate::layout::LayoutMode;
-use crate::state::{AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
+use crate::state::AppState;
 use chrono::Datelike;
+#[cfg(test)]
 use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
 
 const WEEKDAY_NAMES: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
@@ -118,6 +119,7 @@ impl Widget for RibbonWidget<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
     use chrono::NaiveDate;
 
     fn sample_app_state() -> AppState {
