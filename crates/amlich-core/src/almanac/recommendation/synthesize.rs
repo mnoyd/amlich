@@ -2,13 +2,18 @@ use std::collections::BTreeMap;
 
 use crate::{
     almanac::data::default_ruleset,
-    almanac::types::{DayDeityClassification, DayFortune, DayTaboo},
+    almanac::types::{DayDeityClassification, DayFortune},
     gio_hoang_dao::GioHoangDao,
 };
 
 use super::{
     activity::ActivityId,
     evidence::collect_truc_hits,
+    event_kind::EventKindLayer,
+    matrix::taboo_entry,
+    pack::{RecommendationPackDescriptor, RecommendationPackLookupError},
+    packs::nhi_thap_bat_tu::{NhiThapBatTuPack, NHI_THAP_BAT_TU_PACK},
+    policy::{resolve_bucket, RecommendationPolicyInput},
     rules::{avoided_bucket, favored_bucket, truc_insight},
     BaseDirection, BaseEvidenceHit, DailyRecommendations, RecommendationBucket,
     RecommendationEvidence, RecommendationEvidenceSource, RecommendationReason,
@@ -23,6 +28,7 @@ pub struct RecommendationSynthesisContext<'a> {
     pub tiet_khi_name: Option<&'a str>,
     pub profile_id: Option<&'a str>,
     pub event_kind: Option<&'a str>,
+    pub enabled_pack_ids: &'a [&'a str],
 }
 
 #[derive(Debug, Clone)]
@@ -78,18 +84,20 @@ pub fn synthesize_base_daily_recommendations(
     truc_name: &str,
 ) -> DailyRecommendations {
     synthesize_internal(day_chi, truc_name, None, None, None, &[])
+        .expect("base recommendations should always synthesize")
 }
 
 pub fn synthesize_daily_recommendations(
     context: &RecommendationSynthesisContext<'_>,
 ) -> DailyRecommendations {
     synthesize_daily_recommendations_with_layers(context, &[])
+        .expect("validated recommendation context should synthesize")
 }
 
 pub fn synthesize_daily_recommendations_with_layers(
     context: &RecommendationSynthesisContext<'_>,
     layers: &[&dyn RecommendationLayer],
-) -> DailyRecommendations {
+) -> Result<DailyRecommendations, RecommendationPackLookupError> {
     synthesize_internal(
         context.day_chi,
         &context.day_fortune.truc.name,
@@ -107,8 +115,9 @@ fn synthesize_internal(
     gio_hoang_dao: Option<&GioHoangDao>,
     tiet_khi_name: Option<&str>,
     layers: &[&dyn RecommendationLayer],
-) -> DailyRecommendations {
+) -> Result<DailyRecommendations, RecommendationPackLookupError> {
     let mut hits = collect_base_hits(truc_name);
+    let mut active_packs = Vec::new();
 
     if let Some(ctx) = context {
         hits.extend(collect_star_modifier_hits(ctx.day_fortune));
@@ -125,7 +134,37 @@ fn synthesize_internal(
             hits.extend(collect_hours_modifier_hits(hours));
         }
 
-        for layer in layers {
+        let event_kind_layer = EventKindLayer;
+        if ctx.event_kind.is_some() {
+            let extra = event_kind_layer.collect_hits(ctx).into_iter().map(|hit| CollectedHit {
+                activity_id: hit.activity_id,
+                source: hit.source,
+                source_code: hit.source_code,
+                direction: hit.direction,
+                summary_vi: hit.summary_vi,
+                summary_en: hit.summary_en,
+                severity: hit.severity,
+                hard_stop: allow_hard_stop(hit.source, hit.hard_stop, HitOrigin::ExtensionLayer),
+            });
+            hits.extend(extra);
+        }
+
+        let mut pack_layers: Vec<&dyn RecommendationLayer> = Vec::new();
+        for descriptor in validate_enabled_pack_ids(ctx.enabled_pack_ids)? {
+            match descriptor.pack_id {
+                id if id == NHI_THAP_BAT_TU_PACK.pack_id => {
+                    pack_layers.push(&NhiThapBatTuPack);
+                    active_packs.push(descriptor.to_active());
+                }
+                id => {
+                    return Err(RecommendationPackLookupError::UnsupportedPackId(
+                        id.to_string(),
+                    ));
+                }
+            }
+        }
+
+        for layer in pack_layers.into_iter().chain(layers.iter().copied()) {
             let _layer_id = layer.layer_id();
             let extra = layer.collect_hits(ctx).into_iter().map(|hit| CollectedHit {
                 activity_id: hit.activity_id,
@@ -145,7 +184,7 @@ fn synthesize_internal(
     let (summary_vi, summary_en) = build_summary(&activities);
     let (ruleset_id, ruleset_version, profile) = recommendation_provenance(context);
 
-    DailyRecommendations {
+    Ok(DailyRecommendations {
         ruleset_id,
         ruleset_version,
         profile,
@@ -157,7 +196,39 @@ fn synthesize_internal(
         },
         summary_vi,
         summary_en,
+        active_packs,
         activities,
+    })
+}
+
+fn validate_enabled_pack_ids(
+    enabled_pack_ids: &[&str],
+) -> Result<Vec<&'static RecommendationPackDescriptor>, RecommendationPackLookupError> {
+    let mut descriptors = Vec::new();
+    let mut seen = std::collections::BTreeSet::new();
+
+    for pack_id in enabled_pack_ids {
+        if !seen.insert(*pack_id) {
+            return Err(RecommendationPackLookupError::DuplicatePackId(
+                (*pack_id).to_string(),
+            ));
+        }
+
+        let descriptor = recommendation_pack_descriptor(pack_id)?;
+        descriptors.push(descriptor);
+    }
+
+    Ok(descriptors)
+}
+
+fn recommendation_pack_descriptor(
+    pack_id: &str,
+) -> Result<&'static RecommendationPackDescriptor, RecommendationPackLookupError> {
+    match pack_id {
+        id if id == NHI_THAP_BAT_TU_PACK.pack_id => Ok(&NHI_THAP_BAT_TU_PACK),
+        _ => Err(RecommendationPackLookupError::UnknownPackId(
+            pack_id.to_string(),
+        )),
     }
 }
 
@@ -323,7 +394,6 @@ fn collect_taboo_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
     let mut hits = Vec::new();
 
     for taboo in &day_fortune.taboos {
-        let activities = taboo_target_activities(taboo);
         let hard_stop = matches!(taboo.severity.as_str(), "hard" | "high");
         let severity = if hard_stop {
             RecommendationSeverity::Override
@@ -331,18 +401,18 @@ fn collect_taboo_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
             RecommendationSeverity::Supporting
         };
 
-        for activity_id in activities {
+        for entry in taboo_entry(&taboo.rule_id, severity) {
             hits.push(CollectedHit {
-                activity_id,
-                source: RecommendationEvidenceSource::Taboo,
+                activity_id: entry.activity_id,
+                source: entry.source,
                 source_code: format!("taboo.{}.{}", taboo.rule_id, taboo.severity),
-                direction: BaseDirection::Avoid,
+                direction: entry.direction,
                 summary_vi: format!("{}: {}", taboo.name, taboo.reason),
                 summary_en: format!("{} taboo: {}", taboo.name, taboo.reason),
-                severity,
+                severity: entry.severity,
                 hard_stop: allow_hard_stop(
                     RecommendationEvidenceSource::Taboo,
-                    hard_stop,
+                    hard_stop && entry.hard_stop_eligible,
                     HitOrigin::CorePolicy,
                 ),
             });
@@ -350,24 +420,6 @@ fn collect_taboo_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
     }
 
     hits
-}
-
-fn taboo_target_activities(taboo: &DayTaboo) -> Vec<ActivityId> {
-    match taboo.rule_id.as_str() {
-        "tam_nuong" => vec![
-            ActivityId::WeddingEngagement,
-            ActivityId::ConstructionGroundbreaking,
-            ActivityId::OpeningStart,
-            ActivityId::ContractAgreement,
-            ActivityId::FinanceInvestment,
-        ],
-        "nguyet_ky" => vec![
-            ActivityId::ConstructionGroundbreaking,
-            ActivityId::MoveRelocation,
-            ActivityId::WeddingEngagement,
-        ],
-        _ => vec![ActivityId::OpeningStart, ActivityId::ContractAgreement],
-    }
 }
 
 fn collect_xung_hop_modifier_hits(day_fortune: &DayFortune) -> Vec<CollectedHit> {
@@ -570,13 +622,15 @@ fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
         .into_values()
         .map(|mut aggregate| {
             aggregate.activity.bucket = resolve_bucket(
-                aggregate.activity.activity_id,
-                aggregate.activity.bucket,
-                aggregate.saw_favor,
-                aggregate.saw_hard_stop,
-                aggregate.favor_sources,
-                aggregate.strong_avoid_sources,
-                aggregate.supporting_avoid_sources,
+                RecommendationPolicyInput {
+                    activity_id: aggregate.activity.activity_id,
+                    current: aggregate.activity.bucket,
+                    saw_favor: aggregate.saw_favor,
+                    saw_hard_stop: aggregate.saw_hard_stop,
+                    favor_sources: aggregate.favor_sources,
+                    strong_avoid_sources: aggregate.strong_avoid_sources,
+                    supporting_avoid_sources: aggregate.supporting_avoid_sources,
+                },
             );
             aggregate.activity.reasons.sort_by(|a, b| {
                 severity_rank(a.severity)
@@ -595,52 +649,6 @@ fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
             .then_with(|| a.label.en.cmp(&b.label.en))
     });
     activities
-}
-
-fn resolve_bucket(
-    activity_id: ActivityId,
-    current: RecommendationBucket,
-    saw_favor: bool,
-    saw_hard_stop: bool,
-    favor_sources: usize,
-    strong_avoid_sources: usize,
-    supporting_avoid_sources: usize,
-) -> RecommendationBucket {
-    if saw_hard_stop {
-        return RecommendationBucket::KyManh;
-    }
-
-    if strong_avoid_sources > 0 {
-        return apply_activity_guardrails(activity_id, RecommendationBucket::Tranh);
-    }
-
-    if saw_favor && supporting_avoid_sources > 0 {
-        return apply_activity_guardrails(activity_id, RecommendationBucket::CoThe);
-    }
-
-    if supporting_avoid_sources > 0 {
-        return apply_activity_guardrails(activity_id, RecommendationBucket::Tranh);
-    }
-
-    if saw_favor && favor_sources >= 2 {
-        return apply_activity_guardrails(activity_id, RecommendationBucket::Nen);
-    }
-
-    apply_activity_guardrails(activity_id, current)
-}
-
-fn apply_activity_guardrails(
-    activity_id: ActivityId,
-    bucket: RecommendationBucket,
-) -> RecommendationBucket {
-    match activity_id {
-        // Default v1 keeps burial/funeral output conservative even when generic
-        // favorable signals align.
-        ActivityId::BurialMemorial if bucket == RecommendationBucket::Nen => {
-            RecommendationBucket::CoThe
-        }
-        _ => bucket,
-    }
 }
 
 fn build_reason(hit: &CollectedHit) -> RecommendationReason {
@@ -842,6 +850,7 @@ mod tests {
             tiet_khi_name: Some("Lập Xuân"),
             profile_id: None,
             event_kind: None,
+            enabled_pack_ids: &[],
         };
 
         let recommendations = synthesize_daily_recommendations(&context);
@@ -906,10 +915,11 @@ mod tests {
             tiet_khi_name: Some(&info.tiet_khi.name),
             profile_id: Some("default"),
             event_kind: Some("medical_checkup"),
+            enabled_pack_ids: &[],
         };
         let test_layer = TestLayer;
-        let recommendations =
-            synthesize_daily_recommendations_with_layers(&context, &[&test_layer]);
+        let recommendations = synthesize_daily_recommendations_with_layers(&context, &[&test_layer])
+            .expect("layered recommendations");
 
         assert!(recommendations
             .activities
@@ -982,9 +992,11 @@ mod tests {
             tiet_khi_name: Some(&info.tiet_khi.name),
             profile_id: Some("default"),
             event_kind: Some("contract_signing"),
+            enabled_pack_ids: &[],
         };
         let layer = HardStopLayer;
-        let recommendations = synthesize_daily_recommendations_with_layers(&context, &[&layer]);
+        let recommendations = synthesize_daily_recommendations_with_layers(&context, &[&layer])
+            .expect("layered recommendations");
 
         let contract = recommendations
             .activities
@@ -1032,5 +1044,94 @@ mod tests {
             .reasons
             .iter()
             .all(|reason| !reason.summary_vi.starts_with("Hợp cho")));
+    }
+
+    #[test]
+    fn enabled_pack_metadata_is_emitted() {
+        let info = crate::get_day_info(10, 2, 2024);
+        let context = RecommendationSynthesisContext {
+            day_chi: &info.canchi.day.chi,
+            day_fortune: &info.day_fortune,
+            gio_hoang_dao: Some(&info.gio_hoang_dao),
+            tiet_khi_name: Some(&info.tiet_khi.name),
+            profile_id: None,
+            event_kind: None,
+            enabled_pack_ids: &[NHI_THAP_BAT_TU_PACK.pack_id],
+        };
+
+        let recommendations = synthesize_daily_recommendations(&context);
+        assert_eq!(recommendations.active_packs.len(), 1);
+        assert_eq!(
+            recommendations.active_packs[0].pack_id,
+            NHI_THAP_BAT_TU_PACK.pack_id
+        );
+    }
+
+    #[test]
+    fn event_kind_layer_adds_contract_activity_reason() {
+        let info = crate::get_day_info(10, 2, 2024);
+        let context = RecommendationSynthesisContext {
+            day_chi: &info.canchi.day.chi,
+            day_fortune: &info.day_fortune,
+            gio_hoang_dao: Some(&info.gio_hoang_dao),
+            tiet_khi_name: Some(&info.tiet_khi.name),
+            profile_id: Some("session"),
+            event_kind: Some("contract_signing"),
+            enabled_pack_ids: &[],
+        };
+
+        let recommendations = synthesize_daily_recommendations(&context);
+        let contract = recommendations
+            .activities
+            .iter()
+            .find(|activity| activity.activity_id == ActivityId::ContractAgreement)
+            .expect("contract activity exists");
+
+        assert!(contract
+            .reasons
+            .iter()
+            .any(|reason| reason.rule_id == "layer.product_rule.event_kind.contract_signing"));
+    }
+
+    #[test]
+    fn duplicate_pack_ids_fail_explicitly() {
+        let info = crate::get_day_info(10, 2, 2024);
+        let context = RecommendationSynthesisContext {
+            day_chi: &info.canchi.day.chi,
+            day_fortune: &info.day_fortune,
+            gio_hoang_dao: Some(&info.gio_hoang_dao),
+            tiet_khi_name: Some(&info.tiet_khi.name),
+            profile_id: None,
+            event_kind: None,
+            enabled_pack_ids: &[NHI_THAP_BAT_TU_PACK.pack_id, NHI_THAP_BAT_TU_PACK.pack_id],
+        };
+
+        let err = synthesize_daily_recommendations_with_layers(&context, &[])
+            .expect_err("duplicate pack ids must fail");
+        assert_eq!(
+            err.to_string(),
+            format!("duplicate recommendation pack id: {}", NHI_THAP_BAT_TU_PACK.pack_id)
+        );
+    }
+
+    #[test]
+    fn unknown_pack_ids_fail_explicitly() {
+        let info = crate::get_day_info(10, 2, 2024);
+        let context = RecommendationSynthesisContext {
+            day_chi: &info.canchi.day.chi,
+            day_fortune: &info.day_fortune,
+            gio_hoang_dao: Some(&info.gio_hoang_dao),
+            tiet_khi_name: Some(&info.tiet_khi.name),
+            profile_id: None,
+            event_kind: None,
+            enabled_pack_ids: &["pack.unknown.v1"],
+        };
+
+        let err = synthesize_daily_recommendations_with_layers(&context, &[])
+            .expect_err("unknown pack ids must fail");
+        assert_eq!(
+            err.to_string(),
+            "unknown recommendation pack id: pack.unknown.v1"
+        );
     }
 }

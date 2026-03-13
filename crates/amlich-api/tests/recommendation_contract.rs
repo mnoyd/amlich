@@ -9,6 +9,7 @@ fn query(day: i32, month: i32, year: i32) -> DateQuery {
         month,
         year,
         timezone: Some(7.0),
+        ruleset_id: None,
         event_kind: None,
         enabled_pack_ids: vec![],
     }
@@ -69,6 +70,7 @@ fn day_info_exposes_daily_recommendations_contract() {
 
 #[test]
 fn day_info_can_expose_contextual_recommendations() {
+    let baseline = amlich_api::get_day_info(&query(10, 2, 2024)).expect("baseline day info");
     let mut request = query(10, 2, 2024);
     request.event_kind = Some("contract_signing".to_string());
     request.enabled_pack_ids = vec!["pack.nhi_thap_bat_tu.v1".to_string()];
@@ -79,7 +81,34 @@ fn day_info_can_expose_contextual_recommendations() {
         .as_ref()
         .expect("contextual recommendations");
 
+    assert_eq!(
+        info.daily_recommendations.activities.len(),
+        baseline.daily_recommendations.activities.len()
+    );
+    let baseline_contract = baseline
+        .daily_recommendations
+        .activities
+        .iter()
+        .find(|activity| activity.activity_id == "contract_agreement")
+        .expect("baseline contract activity");
+    let controlled_contract = info
+        .daily_recommendations
+        .activities
+        .iter()
+        .find(|activity| activity.activity_id == "contract_agreement")
+        .expect("controlled baseline contract activity");
+    assert_eq!(controlled_contract.bucket, baseline_contract.bucket);
+    assert_eq!(controlled_contract.reasons.len(), baseline_contract.reasons.len());
+    assert_eq!(
+        info.daily_recommendations.summary_vi,
+        baseline.daily_recommendations.summary_vi
+    );
+    assert_eq!(
+        info.daily_recommendations.summary_en,
+        baseline.daily_recommendations.summary_en
+    );
     assert_eq!(contextual.active_packs.len(), 1);
+    assert!(baseline.daily_recommendations.active_packs.is_empty());
     assert!(contextual
         .activities
         .iter()
@@ -88,6 +117,40 @@ fn day_info_can_expose_contextual_recommendations() {
         .reasons
         .iter()
         .any(|reason| reason.rule_id == "layer.product_rule.event_kind.contract_signing"));
+}
+
+#[test]
+fn invalid_selectors_fail_explicitly() {
+    let mut unknown_ruleset = query(10, 2, 2024);
+    unknown_ruleset.ruleset_id = Some("not-a-ruleset".to_string());
+    assert_eq!(
+        amlich_api::get_day_info(&unknown_ruleset).expect_err("unknown ruleset must fail"),
+        "unknown almanac ruleset id: not-a-ruleset"
+    );
+
+    let mut duplicate_pack = query(10, 2, 2024);
+    duplicate_pack.enabled_pack_ids = vec![
+        "pack.nhi_thap_bat_tu.v1".to_string(),
+        "pack.nhi_thap_bat_tu.v1".to_string(),
+    ];
+    assert_eq!(
+        amlich_api::get_day_info(&duplicate_pack).expect_err("duplicate pack must fail"),
+        "duplicate recommendation pack id: pack.nhi_thap_bat_tu.v1"
+    );
+
+    let mut unknown_pack = query(10, 2, 2024);
+    unknown_pack.enabled_pack_ids = vec!["pack.unknown.v1".to_string()];
+    assert_eq!(
+        amlich_api::get_day_info(&unknown_pack).expect_err("unknown pack must fail"),
+        "unknown recommendation pack id: pack.unknown.v1"
+    );
+
+    let mut unsupported_event = query(10, 2, 2024);
+    unsupported_event.event_kind = Some("wedding".to_string());
+    assert_eq!(
+        amlich_api::get_day_info(&unsupported_event).expect_err("unsupported event kind must fail"),
+        "unsupported recommendation event_kind: wedding. supported values: contract_signing, medical_checkup, travel"
+    );
 }
 
 #[test]

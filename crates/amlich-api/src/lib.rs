@@ -11,6 +11,7 @@ use amlich_core::insight_data::{
     find_na_am_insight, find_ten_gods_insight, find_tiet_khi_insight, find_truc_insight,
     get_day_guidance,
 };
+use amlich_core::almanac::data::get_ruleset;
 
 pub use dto::*;
 pub use dto::{NaAmErrorDto, NaAmLookupResultDto, NaAmResponseDto};
@@ -39,9 +40,59 @@ pub fn get_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
         return Err("day must be 1-31".to_string());
     }
 
+    let normalized_ruleset_id = normalize_ruleset_id(query.ruleset_id.as_deref())?;
+    let normalized_event_kind = normalize_event_kind(query.event_kind.as_deref())?;
+    let enabled_pack_ids = normalize_enabled_pack_ids(&query.enabled_pack_ids)?;
+
     let tz = query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE);
-    let info = amlich_core::get_day_info_with_timezone(query.day, query.month, query.year, tz);
+    let info = amlich_core::get_day_info_with_recommendation_request(
+        query.day,
+        query.month,
+        query.year,
+        tz,
+        amlich_core::RecommendationRequest {
+            ruleset_id: normalized_ruleset_id.as_deref(),
+            event_kind: normalized_event_kind.as_deref(),
+            enabled_pack_ids: &enabled_pack_ids,
+        },
+    )?;
     Ok(DayInfoDto::from(&info))
+}
+
+fn normalize_ruleset_id(ruleset_id: Option<&str>) -> Result<Option<String>, String> {
+    let Some(ruleset_id) = ruleset_id.map(str::trim).filter(|id| !id.is_empty()) else {
+        return Ok(None);
+    };
+
+    let entry = get_ruleset(ruleset_id).map_err(|err| err.to_string())?;
+    Ok(Some(entry.descriptor.id.to_string()))
+}
+
+fn normalize_event_kind(event_kind: Option<&str>) -> Result<Option<String>, String> {
+    let Some(event_kind) = event_kind.map(str::trim).filter(|kind| !kind.is_empty()) else {
+        return Ok(None);
+    };
+
+    match event_kind {
+        "contract_signing" | "medical_checkup" | "travel" => {
+            Ok(Some(event_kind.to_string()))
+        }
+        other => Err(format!(
+            "unsupported recommendation event_kind: {other}. supported values: contract_signing, medical_checkup, travel"
+        )),
+    }
+}
+
+fn normalize_enabled_pack_ids(enabled_pack_ids: &[String]) -> Result<Vec<&str>, String> {
+    let mut normalized = Vec::with_capacity(enabled_pack_ids.len());
+    for pack_id in enabled_pack_ids {
+        let trimmed = pack_id.trim();
+        if trimmed.is_empty() {
+            return Err("recommendation pack id must not be empty".to_string());
+        }
+        normalized.push(trimmed);
+    }
+    Ok(normalized)
 }
 
 pub fn get_day_info_for_date(day: i32, month: i32, year: i32) -> Result<DayInfoDto, String> {
@@ -50,6 +101,9 @@ pub fn get_day_info_for_date(day: i32, month: i32, year: i32) -> Result<DayInfoD
         month,
         year,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     })
 }
 
@@ -381,6 +435,9 @@ pub fn get_day_insight_for_date(day: i32, month: i32, year: i32) -> Result<DayIn
         month,
         year,
         timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     })
 }
 
@@ -399,6 +456,9 @@ pub fn get_day_insight_for_date_with_profile(
             month,
             year,
             timezone: None,
+            ruleset_id: None,
+            event_kind: None,
+            enabled_pack_ids: vec![],
         },
         birth_year,
         birth_month,

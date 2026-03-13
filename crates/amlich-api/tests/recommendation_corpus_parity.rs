@@ -91,6 +91,7 @@ fn corpus_recommendations_match_between_core_and_api() {
             month,
             year,
             timezone: Some(7.0),
+            ruleset_id: None,
             event_kind: None,
             enabled_pack_ids: vec![],
         };

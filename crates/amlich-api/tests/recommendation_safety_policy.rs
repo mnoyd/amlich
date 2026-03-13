@@ -18,6 +18,9 @@ fn query(day: i32, month: i32, year: i32) -> DateQuery {
         month,
         year,
         timezone: Some(7.0),
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
     }
 }
 

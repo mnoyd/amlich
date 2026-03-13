@@ -6,6 +6,10 @@ pub struct DateQuery {
     pub month: i32,
     pub year: i32,
     pub timezone: Option<f64>,
+    pub ruleset_id: Option<String>,
+    pub event_kind: Option<String>,
+    #[serde(default)]
+    pub enabled_pack_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -300,7 +304,17 @@ pub struct DailyRecommendationsDto {
     pub summary_vi: String,
     pub summary_en: String,
     #[serde(default)]
+    pub active_packs: Vec<ActiveRecommendationPackDto>,
+    #[serde(default)]
     pub activities: Vec<SynthesizedRecommendationDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActiveRecommendationPackDto {
+    pub pack_id: String,
+    pub version: String,
+    pub source_family: String,
+    pub mode: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -332,6 +346,8 @@ pub struct DayInfoDto {
     pub gio_hoang_dao: GioHoangDaoDto,
     pub day_fortune: Option<DayFortuneDto>,
     pub daily_recommendations: DailyRecommendationsDto,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contextual_recommendations: Option<DailyRecommendationsDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

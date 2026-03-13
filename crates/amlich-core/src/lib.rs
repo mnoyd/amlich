@@ -26,8 +26,10 @@ pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
 pub use types::*;
 
 use crate::almanac::calc::calculate_day_fortune;
+use crate::almanac::data::get_ruleset;
 use crate::almanac::recommendation::{
-    synthesize_daily_recommendations, DailyRecommendations, RecommendationSynthesisContext,
+    synthesize_daily_recommendations, synthesize_daily_recommendations_with_layers,
+    DailyRecommendations, RecommendationSynthesisContext,
 };
 use crate::almanac::types::DayFortune;
 use canchi::{get_day_canchi, get_month_canchi, get_year_canchi};
@@ -80,6 +82,14 @@ pub struct DayInfo {
     pub gio_hoang_dao: GioHoangDao,
     pub day_fortune: DayFortune,
     pub daily_recommendations: DailyRecommendations,
+    pub contextual_recommendations: Option<DailyRecommendations>,
+}
+
+#[derive(Debug, Clone, Default)]
+pub struct RecommendationRequest<'a> {
+    pub ruleset_id: Option<&'a str>,
+    pub event_kind: Option<&'a str>,
+    pub enabled_pack_ids: &'a [&'a str],
 }
 
 /// Get comprehensive information for a given solar date
@@ -105,6 +115,16 @@ pub fn get_day_info(day: i32, month: i32, year: i32) -> DayInfo {
     get_day_info_with_timezone(day, month, year, VIETNAM_TIMEZONE)
 }
 
+pub fn get_day_info_with_recommendation_request(
+    day: i32,
+    month: i32,
+    year: i32,
+    time_zone: f64,
+    recommendation_request: RecommendationRequest<'_>,
+) -> Result<DayInfo, String> {
+    get_day_info_internal(day, month, year, time_zone, recommendation_request)
+}
+
 /// Get comprehensive information for a given solar date with custom timezone
 ///
 /// # Arguments
@@ -116,6 +136,22 @@ pub fn get_day_info(day: i32, month: i32, year: i32) -> DayInfo {
 /// # Returns
 /// Complete day information
 pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f64) -> DayInfo {
+    get_day_info_internal(day, month, year, time_zone, RecommendationRequest::default())
+        .expect("default recommendation request should be valid")
+}
+
+fn get_day_info_internal(
+    day: i32,
+    month: i32,
+    year: i32,
+    time_zone: f64,
+    recommendation_request: RecommendationRequest<'_>,
+) -> Result<DayInfo, String> {
+    let ruleset_entry = match recommendation_request.ruleset_id {
+        Some(ruleset_id) => Some(get_ruleset(ruleset_id).map_err(|err| err.to_string())?),
+        None => None,
+    };
+
     // Calculate Julian Day Number
     let jd = jd_from_date(day, month, year);
 
@@ -148,10 +184,30 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
         day_fortune: &day_fortune,
         gio_hoang_dao: Some(&gio_hoang_dao),
         tiet_khi_name: Some(&tiet_khi.name),
-        profile_id: None,
+        profile_id: ruleset_entry.map(|entry| entry.descriptor.profile),
         event_kind: None,
+        enabled_pack_ids: &[],
     };
     let daily_recommendations = synthesize_daily_recommendations(&recommendation_context);
+    let contextual_recommendations = if recommendation_request.event_kind.is_some()
+        || !recommendation_request.enabled_pack_ids.is_empty()
+    {
+        let contextual_context = RecommendationSynthesisContext {
+            day_chi: &day_canchi.chi,
+            day_fortune: &day_fortune,
+            gio_hoang_dao: Some(&gio_hoang_dao),
+            tiet_khi_name: Some(&tiet_khi.name),
+            profile_id: Some("contextual"),
+            event_kind: recommendation_request.event_kind,
+            enabled_pack_ids: recommendation_request.enabled_pack_ids,
+        };
+        Some(
+            synthesize_daily_recommendations_with_layers(&contextual_context, &[])
+                .map_err(|err| err.to_string())?,
+        )
+    } else {
+        None
+    };
 
     // Build solar info
     let solar = SolarInfo {
@@ -189,7 +245,7 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
         ),
     };
 
-    DayInfo {
+    Ok(DayInfo {
         ruleset_id: day_fortune.ruleset_id.clone(),
         ruleset_version: day_fortune.ruleset_version.clone(),
         profile: day_fortune.profile.clone(),
@@ -201,7 +257,8 @@ pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f6
         gio_hoang_dao,
         day_fortune,
         daily_recommendations,
-    }
+        contextual_recommendations,
+    })
 }
 
 #[cfg(test)]
@@ -283,5 +340,51 @@ mod tests {
         assert_eq!(info.daily_recommendations.ruleset_id, info.ruleset_id);
         assert_eq!(info.daily_recommendations.ruleset_version, info.ruleset_version);
         assert_eq!(info.daily_recommendations.profile, info.profile);
+        assert!(info.contextual_recommendations.is_none());
+    }
+
+    #[test]
+    fn contextual_recommendations_are_emitted_when_requested() {
+        let info = get_day_info_with_recommendation_request(
+            10,
+            2,
+            2024,
+            VIETNAM_TIMEZONE,
+            RecommendationRequest {
+                event_kind: Some("contract_signing"),
+                enabled_pack_ids: &[],
+            },
+        )
+        .expect("contextual day info");
+
+        let contextual = info
+            .contextual_recommendations
+            .as_ref()
+            .expect("contextual recommendations");
+        assert!(contextual
+            .activities
+            .iter()
+            .find(|activity| activity.activity_id == crate::almanac::recommendation::ActivityId::ContractAgreement)
+            .expect("contract activity")
+            .reasons
+            .iter()
+            .any(|reason| reason.rule_id == "layer.product_rule.event_kind.contract_signing"));
+    }
+
+    #[test]
+    fn contextual_request_rejects_unknown_pack_ids() {
+        let err = get_day_info_with_recommendation_request(
+            10,
+            2,
+            2024,
+            VIETNAM_TIMEZONE,
+            RecommendationRequest {
+                event_kind: None,
+                enabled_pack_ids: &["pack.unknown.v1"],
+            },
+        )
+        .expect_err("unknown pack should fail");
+
+        assert_eq!(err, "unknown recommendation pack id: pack.unknown.v1");
     }
 }

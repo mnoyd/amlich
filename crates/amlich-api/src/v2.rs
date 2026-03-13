@@ -181,6 +181,7 @@ pub fn get_day_bundle_for_date(
         month,
         year,
         timezone,
+        ruleset_id: None,
         event_kind: None,
         enabled_pack_ids: vec![],
     };
@@ -321,6 +322,7 @@ pub fn get_tiet_khi_for_year(year: i32, timezone: Option<f64>) -> Result<TietKhi
             month: cursor.month() as i32,
             year: cursor.year(),
             timezone: tz,
+            ruleset_id: None,
             event_kind: None,
             enabled_pack_ids: vec![],
         };
@@ -416,6 +418,7 @@ mod tests {
             month: 2,
             year: 2024,
             timezone: None,
+            ruleset_id: None,
             event_kind: None,
             enabled_pack_ids: vec![],
         };
@@ -432,6 +435,7 @@ mod tests {
             month: 2,
             year: 2024,
             timezone: Some(7.0),
+            ruleset_id: None,
             event_kind: None,
             enabled_pack_ids: vec![],
         };
