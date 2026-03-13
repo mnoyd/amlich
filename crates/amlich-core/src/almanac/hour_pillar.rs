@@ -40,7 +40,7 @@ pub fn resolve_hour_branch_slot(local_hour: u8, local_minute: u8) -> Option<Hour
     let slot_index = if local_hour == 23 || local_hour == 0 {
         0
     } else {
-        (local_hour as usize + 1) / 2
+        (local_hour as usize).div_ceil(2)
     };
 
     Some(HourBranchSlot {
