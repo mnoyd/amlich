@@ -334,6 +334,7 @@ pub struct RulesetSourceNoteDto {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RulesetCatalogEntryDto {
     pub id: String,
+    pub canonical_id: String,
     pub version: String,
     pub region: String,
     pub profile: String,
@@ -349,6 +350,7 @@ pub struct RulesetCatalogEntryDto {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RecommendationPackCatalogEntryDto {
     pub pack_id: String,
+    pub request_field: String,
     pub version: String,
     pub source_family: String,
     pub mode: String,

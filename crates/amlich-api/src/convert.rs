@@ -577,6 +577,7 @@ impl From<&amlich_core::almanac::data::RulesetRegistryEntry> for RulesetCatalogE
 
         Self {
             id: descriptor.id,
+            canonical_id: value.descriptor.id.to_string(),
             version: descriptor.version,
             region: descriptor.region,
             profile: descriptor.profile,
@@ -599,6 +600,7 @@ impl From<&amlich_core::almanac::recommendation::RecommendationPackDescriptor>
     fn from(value: &amlich_core::almanac::recommendation::RecommendationPackDescriptor) -> Self {
         Self {
             pack_id: value.pack_id.to_string(),
+            request_field: "enabled_pack_ids".to_string(),
             version: value.version.to_string(),
             source_family: value.source_family.to_string(),
             mode: match value.mode {
