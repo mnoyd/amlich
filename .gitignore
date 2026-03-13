@@ -53,3 +53,7 @@ build/
 # Dolt database files (added by bd init)
 .dolt/
 *.db
+
+# Beads repair backups
+.beads/backup/beads_amlich.pre_repair_*
+.beads/backup/dolt.pre_repair_*

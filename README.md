@@ -67,6 +67,35 @@ Desktop app details: see `apps/desktop/README.md`.
 
 Shared data contract and validation: see `data/README.md`.
 
+## Beads Recovery
+
+This repo has a repo-local Beads recovery helper for the known Dolt failure mode
+where `bd dolt pull` leaves `.beads/dolt/beads_amlich` in a conflicted or
+corrupted state.
+
+Use:
+
+```bash
+just beads-pull
+```
+
+This merges the cached Dolt remote-tracking ref (`origin/main`) into the local
+Beads repo. If you specifically want to force a live `dolt pull`, use:
+
+```bash
+just beads-pull-remote
+```
+
+The helper:
+
+- stops the Beads Dolt server
+- revives corrupted chunk journals if Dolt reports them
+- merges `origin/main` directly against the on-disk Beads repo
+- auto-resolves the known `events` / `metadata` conflict pattern
+- restarts the server and verifies `bd status`
+
+Backups are copied to `.beads/backup/` before any journal revival.
+
 ## Recommendation Pipeline
 
 `amlich-core` now emits structured `daily_recommendations` and `amlich-api` transports the same payload through `DayInfoDto` and v2 `DayBundleDto`.
