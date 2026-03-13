@@ -1,6 +1,7 @@
 {
   "database": "dolt",
-  "jsonl_export": "issues.jsonl",
   "backend": "dolt",
-  "dolt_database": "beads_amlich"
+  "dolt_mode": "server",
+  "dolt_database": "amlich",
+  "project_id": "a5e3ae73-89c6-4ec9-aefc-4e83de8b2f38"
 }

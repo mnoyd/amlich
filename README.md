@@ -67,34 +67,23 @@ Desktop app details: see `apps/desktop/README.md`.
 
 Shared data contract and validation: see `data/README.md`.
 
-## Beads Recovery
+## Beads Setup
 
-This repo has a repo-local Beads recovery helper for the known Dolt failure mode
-where `bd dolt pull` leaves `.beads/dolt/beads_amlich` in a conflicted or
-corrupted state.
+This repo uses `bd` for issue tracking.
 
-Use:
+If you need to set it up in a fresh clone or repair the local install, use:
 
 ```bash
-just beads-pull
+bd bootstrap
+bd hooks install --force --beads
+bd doctor --fix --yes
 ```
 
-This merges the cached Dolt remote-tracking ref (`origin/main`) into the local
-Beads repo. If you specifically want to force a live `dolt pull`, use:
+For workflow guidance, run:
 
 ```bash
-just beads-pull-remote
+bd prime
 ```
-
-The helper:
-
-- stops the Beads Dolt server
-- revives corrupted chunk journals if Dolt reports them
-- merges `origin/main` directly against the on-disk Beads repo
-- auto-resolves the known `events` / `metadata` conflict pattern
-- restarts the server and verifies `bd status`
-
-Backups are copied to `.beads/backup/` before any journal revival.
 
 ## Recommendation Pipeline
 

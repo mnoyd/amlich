@@ -68,14 +68,6 @@ test-verbose:
 dev:
     cd apps/desktop && pnpm tauri dev
 
-# Pull Beads changes using the repo-local repair workflow
-beads-pull:
-    ./scripts/beads-safe-pull.sh
-
-# Pull Beads changes using a live dolt pull instead of the cached origin/main ref
-beads-pull-remote:
-    FETCH_STRATEGY=remote ./scripts/beads-safe-pull.sh
-
 # Check code without building
 check:
     cargo check --workspace --exclude am-lich
