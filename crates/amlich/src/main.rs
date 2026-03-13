@@ -1,14 +1,23 @@
+#[cfg(test)]
 mod app;
+#[cfg(test)]
 mod bookmark_store;
+#[cfg(test)]
 mod date_jump;
+#[cfg(test)]
 mod event;
 mod headless;
+#[cfg(test)]
 mod history;
 mod profile;
+#[cfg(test)]
 mod search;
+#[cfg(test)]
 mod theme;
+#[cfg(test)]
 mod ui;
 mod waybar;
+#[cfg(test)]
 mod widgets;
 
 use std::ffi::OsString;
