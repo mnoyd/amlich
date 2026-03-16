@@ -267,18 +267,18 @@ fn parse_star_quality(input: &str) -> StarQuality {
 mod tests {
     use super::super::types::DayDeityClassification;
     use super::calculate_day_fortune;
-    use crate::get_day_info;
+    use crate::calculate_day_snapshot;
 
     #[test]
     fn computes_fortune_for_tet_2024() {
-        let info = get_day_info(10, 2, 2024);
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
         let fortune = calculate_day_fortune(
-            info.jd,
-            &info.canchi.day,
-            info.lunar.day,
-            info.lunar.month,
-            &info.canchi.year.can,
-            &info.tiet_khi.name,
+            snapshot.context.jd,
+            &snapshot.context.canchi.day,
+            snapshot.context.lunar.day,
+            snapshot.context.lunar.month,
+            &snapshot.context.canchi.year.can,
+            &snapshot.context.tiet_khi.name,
         );
 
         assert_eq!(fortune.profile, "baseline");
@@ -292,14 +292,14 @@ mod tests {
 
     #[test]
     fn computes_28_star_for_day() {
-        let info = get_day_info(29, 1, 2025);
+        let snapshot = calculate_day_snapshot(29, 1, 2025);
         let fortune = calculate_day_fortune(
-            info.jd,
-            &info.canchi.day,
-            info.lunar.day,
-            info.lunar.month,
-            &info.canchi.year.can,
-            &info.tiet_khi.name,
+            snapshot.context.jd,
+            &snapshot.context.canchi.day,
+            snapshot.context.lunar.day,
+            snapshot.context.lunar.month,
+            &snapshot.context.canchi.year.can,
+            &snapshot.context.tiet_khi.name,
         );
         let day_star = fortune.stars.day_star.expect("day star");
         assert!(day_star.index < 28);
@@ -307,14 +307,14 @@ mod tests {
 
     #[test]
     fn emits_structured_taboos_with_reason_and_evidence() {
-        let info = get_day_info(14, 2, 2024);
+        let snapshot = calculate_day_snapshot(14, 2, 2024);
         let fortune = calculate_day_fortune(
-            info.jd,
-            &info.canchi.day,
-            info.lunar.day,
-            info.lunar.month,
-            &info.canchi.year.can,
-            &info.tiet_khi.name,
+            snapshot.context.jd,
+            &snapshot.context.canchi.day,
+            snapshot.context.lunar.day,
+            snapshot.context.lunar.month,
+            &snapshot.context.canchi.year.can,
+            &snapshot.context.tiet_khi.name,
         );
 
         assert!(
@@ -336,14 +336,14 @@ mod tests {
 
     #[test]
     fn computes_day_deity_for_selected_date() {
-        let info = get_day_info(10, 2, 2024);
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
         let fortune = calculate_day_fortune(
-            info.jd,
-            &info.canchi.day,
-            info.lunar.day,
-            info.lunar.month,
-            &info.canchi.year.can,
-            &info.tiet_khi.name,
+            snapshot.context.jd,
+            &snapshot.context.canchi.day,
+            snapshot.context.lunar.day,
+            snapshot.context.lunar.month,
+            &snapshot.context.canchi.year.can,
+            &snapshot.context.tiet_khi.name,
         );
 
         let deity = fortune.day_deity.expect("day deity");
@@ -360,14 +360,14 @@ mod tests {
     #[test]
     fn ten_gods_populates_deterministically_when_day_stem_available() {
         // Test 1: Ten Gods populates deterministically when day stem available
-        let info = get_day_info(10, 2, 2024);
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
         let fortune = calculate_day_fortune(
-            info.jd,
-            &info.canchi.day,
-            info.lunar.day,
-            info.lunar.month,
-            &info.canchi.year.can,
-            &info.tiet_khi.name,
+            snapshot.context.jd,
+            &snapshot.context.canchi.day,
+            snapshot.context.lunar.day,
+            snapshot.context.lunar.month,
+            &snapshot.context.canchi.year.can,
+            &snapshot.context.tiet_khi.name,
         );
 
         let ten_gods = fortune.ten_gods.expect("ten_gods should be populated");
@@ -380,14 +380,14 @@ mod tests {
         );
 
         // Verify deterministic: same inputs = same outputs
-        let info2 = get_day_info(10, 2, 2024);
+        let snapshot2 = calculate_day_snapshot(10, 2, 2024);
         let fortune2 = calculate_day_fortune(
-            info2.jd,
-            &info2.canchi.day,
-            info2.lunar.day,
-            info2.lunar.month,
-            &info2.canchi.year.can,
-            &info2.tiet_khi.name,
+            snapshot2.context.jd,
+            &snapshot2.context.canchi.day,
+            snapshot2.context.lunar.day,
+            snapshot2.context.lunar.month,
+            &snapshot2.context.canchi.year.can,
+            &snapshot2.context.tiet_khi.name,
         );
 
         let ten_gods2 = fortune2.ten_gods.expect("ten_gods2 should be populated");
@@ -398,14 +398,14 @@ mod tests {
     #[test]
     fn kua_remains_none_for_date_only_requests() {
         // Test 3: Date-only requests leave Kua field as None
-        let info = get_day_info(10, 2, 2024);
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
         let fortune = calculate_day_fortune(
-            info.jd,
-            &info.canchi.day,
-            info.lunar.day,
-            info.lunar.month,
-            &info.canchi.year.can,
-            &info.tiet_khi.name,
+            snapshot.context.jd,
+            &snapshot.context.canchi.day,
+            snapshot.context.lunar.day,
+            snapshot.context.lunar.month,
+            &snapshot.context.canchi.year.can,
+            &snapshot.context.tiet_khi.name,
         );
 
         // Kua should be None for date-only requests (no birth context provided)

@@ -40,14 +40,16 @@ impl Widget for HeroWidget<'_> {
 
         let spotlight = verdict
             .as_ref()
-            .map(|item| match (&item.strongest_positive, &item.strongest_negative) {
-                (Some(positive), Some(negative)) => {
-                    format!("Nên mạnh: {positive} | Cần tránh: {negative}")
-                }
-                (Some(positive), None) => format!("Nên mạnh: {positive}"),
-                (None, Some(negative)) => format!("Cần tránh: {negative}"),
-                (None, None) => "Chưa có điểm nhấn khuyến nghị.".to_string(),
-            })
+            .map(
+                |item| match (&item.strongest_positive, &item.strongest_negative) {
+                    (Some(positive), Some(negative)) => {
+                        format!("Nên mạnh: {positive} | Cần tránh: {negative}")
+                    }
+                    (Some(positive), None) => format!("Nên mạnh: {positive}"),
+                    (None, Some(negative)) => format!("Cần tránh: {negative}"),
+                    (None, None) => "Chưa có điểm nhấn khuyến nghị.".to_string(),
+                },
+            )
             .unwrap_or_else(|| "Chưa có điểm nhấn khuyến nghị.".to_string());
         let identity_str = build_identity_row(bundle);
 
@@ -64,18 +66,9 @@ impl Widget for HeroWidget<'_> {
                     .add_modifier(Modifier::BOLD),
             )),
             Line::from(Span::styled(lunar_str, Style::default().fg(Color::Cyan))),
-            Line::from(Span::styled(
-                summary,
-                Style::default().fg(Color::Yellow),
-            )),
-            Line::from(Span::styled(
-                spotlight,
-                Style::default().fg(Color::Green),
-            )),
-            Line::from(Span::styled(
-                identity_str,
-                Style::default().fg(Color::Gray),
-            )),
+            Line::from(Span::styled(summary, Style::default().fg(Color::Yellow))),
+            Line::from(Span::styled(spotlight, Style::default().fg(Color::Green))),
+            Line::from(Span::styled(identity_str, Style::default().fg(Color::Gray))),
         ];
 
         Paragraph::new(lines)
@@ -122,6 +115,10 @@ fn holiday_badge(bundle: &amlich_api::v2::DayBundleDto) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+    };
+    use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, CanChiDto, CanChiInfoDto, DailyRecommendationsDto, DayConflictDto,
         DayElementDto, DayFortuneDto, DayStarsDto, GioHoangDaoDto, HourInfoDto, LunarDto,
@@ -130,19 +127,19 @@ mod tests {
         RecommendationSeverityDto, SolarDto, SynthesizedRecommendationDto, TietKhiDto,
         TravelDirectionDto, TrucDto, XungHopDto,
     };
-    use amlich_api::v2::DayBundleDto;
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 
     fn sample_bundle() -> DayBundleDto {
         DayBundleDto {
             schema_version: "amlich.engine/v1".to_string(),
-                ruleset_id: "test".to_string(),
-                ruleset_version: "v1".to_string(),
-                profile: "baseline".to_string(),
-                generated_at: "2026-03-12T00:00:00Z".to_string(),
-                
+            ruleset_id: "test".to_string(),
+            ruleset_version: "v1".to_string(),
+            profile: "baseline".to_string(),
+            generated_at: "2026-03-12T00:00:00Z".to_string(),
+
             solar: SolarDto {
                 day: 12,
                 month: 3,

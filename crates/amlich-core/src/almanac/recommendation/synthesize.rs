@@ -8,8 +8,8 @@ use crate::{
 
 use super::{
     activity::ActivityId,
-    evidence::collect_truc_hits,
     event_kind::EventKindLayer,
+    evidence::collect_truc_hits,
     matrix::taboo_entry,
     pack::{RecommendationPackDescriptor, RecommendationPackLookupError},
     packs::nhi_thap_bat_tu::{NhiThapBatTuPack, NHI_THAP_BAT_TU_PACK},
@@ -136,16 +136,23 @@ fn synthesize_internal(
 
         let event_kind_layer = EventKindLayer;
         if ctx.event_kind.is_some() {
-            let extra = event_kind_layer.collect_hits(ctx).into_iter().map(|hit| CollectedHit {
-                activity_id: hit.activity_id,
-                source: hit.source,
-                source_code: hit.source_code,
-                direction: hit.direction,
-                summary_vi: hit.summary_vi,
-                summary_en: hit.summary_en,
-                severity: hit.severity,
-                hard_stop: allow_hard_stop(hit.source, hit.hard_stop, HitOrigin::ExtensionLayer),
-            });
+            let extra = event_kind_layer
+                .collect_hits(ctx)
+                .into_iter()
+                .map(|hit| CollectedHit {
+                    activity_id: hit.activity_id,
+                    source: hit.source,
+                    source_code: hit.source_code,
+                    direction: hit.direction,
+                    summary_vi: hit.summary_vi,
+                    summary_en: hit.summary_en,
+                    severity: hit.severity,
+                    hard_stop: allow_hard_stop(
+                        hit.source,
+                        hit.hard_stop,
+                        HitOrigin::ExtensionLayer,
+                    ),
+                });
             hits.extend(extra);
         }
 
@@ -582,7 +589,7 @@ fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
                     activity_id: hit.activity_id,
                     label: hit.activity_id.labels(),
                     bucket: RecommendationBucket::CoThe,
-                reasons: vec![],
+                    reasons: vec![],
                 },
                 saw_favor: false,
                 saw_hard_stop: false,
@@ -621,17 +628,15 @@ fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
     let mut activities: Vec<SynthesizedRecommendation> = by_activity
         .into_values()
         .map(|mut aggregate| {
-            aggregate.activity.bucket = resolve_bucket(
-                RecommendationPolicyInput {
-                    activity_id: aggregate.activity.activity_id,
-                    current: aggregate.activity.bucket,
-                    saw_favor: aggregate.saw_favor,
-                    saw_hard_stop: aggregate.saw_hard_stop,
-                    favor_sources: aggregate.favor_sources,
-                    strong_avoid_sources: aggregate.strong_avoid_sources,
-                    supporting_avoid_sources: aggregate.supporting_avoid_sources,
-                },
-            );
+            aggregate.activity.bucket = resolve_bucket(RecommendationPolicyInput {
+                activity_id: aggregate.activity.activity_id,
+                current: aggregate.activity.bucket,
+                saw_favor: aggregate.saw_favor,
+                saw_hard_stop: aggregate.saw_hard_stop,
+                favor_sources: aggregate.favor_sources,
+                strong_avoid_sources: aggregate.strong_avoid_sources,
+                supporting_avoid_sources: aggregate.supporting_avoid_sources,
+            });
             aggregate.activity.reasons.sort_by(|a, b| {
                 severity_rank(a.severity)
                     .cmp(&severity_rank(b.severity))
@@ -907,19 +912,20 @@ mod tests {
             }
         }
 
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: Some("default"),
             event_kind: Some("medical_checkup"),
             enabled_pack_ids: &[],
         };
         let test_layer = TestLayer;
-        let recommendations = synthesize_daily_recommendations_with_layers(&context, &[&test_layer])
-            .expect("layered recommendations");
+        let recommendations =
+            synthesize_daily_recommendations_with_layers(&context, &[&test_layer])
+                .expect("layered recommendations");
 
         assert!(recommendations
             .activities
@@ -984,12 +990,12 @@ mod tests {
             }
         }
 
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: Some("default"),
             event_kind: Some("contract_signing"),
             enabled_pack_ids: &[],
@@ -1048,12 +1054,12 @@ mod tests {
 
     #[test]
     fn enabled_pack_metadata_is_emitted() {
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: None,
             event_kind: None,
             enabled_pack_ids: &[NHI_THAP_BAT_TU_PACK.pack_id],
@@ -1069,12 +1075,12 @@ mod tests {
 
     #[test]
     fn event_kind_layer_adds_contract_activity_reason() {
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: Some("session"),
             event_kind: Some("contract_signing"),
             enabled_pack_ids: &[],
@@ -1095,12 +1101,12 @@ mod tests {
 
     #[test]
     fn duplicate_pack_ids_fail_explicitly() {
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: None,
             event_kind: None,
             enabled_pack_ids: &[NHI_THAP_BAT_TU_PACK.pack_id, NHI_THAP_BAT_TU_PACK.pack_id],
@@ -1110,18 +1116,21 @@ mod tests {
             .expect_err("duplicate pack ids must fail");
         assert_eq!(
             err.to_string(),
-            format!("duplicate recommendation pack id: {}", NHI_THAP_BAT_TU_PACK.pack_id)
+            format!(
+                "duplicate recommendation pack id: {}",
+                NHI_THAP_BAT_TU_PACK.pack_id
+            )
         );
     }
 
     #[test]
     fn unknown_pack_ids_fail_explicitly() {
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: None,
             event_kind: None,
             enabled_pack_ids: &["pack.unknown.v1"],

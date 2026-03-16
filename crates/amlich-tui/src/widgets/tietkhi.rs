@@ -45,7 +45,7 @@ impl Widget for TietKhiWidget<'_> {
             .title(title)
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
-            
+
         let inner = block.inner(area);
         block.render(area, buf);
 
@@ -116,17 +116,21 @@ impl Widget for TietKhiWidget<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+    };
+    use crate::widgets::page::PageWidget;
+    use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, DailyRecommendationsDto, LunarDto, RecommendationBucketDto,
         RecommendationEvidenceDto, RecommendationEvidenceSourceDto, RecommendationReasonDto,
         RecommendationScopeDto, RecommendationSeverityDto, SolarDto, SynthesizedRecommendationDto,
         TietKhiDto,
     };
-    use amlich_api::v2::DayBundleDto;
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
-    use crate::widgets::page::PageWidget;
 
     fn sample_app_state(expanded: bool) -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
@@ -170,7 +174,7 @@ mod tests {
                 ruleset_version: "v1".to_string(),
                 profile: "baseline".to_string(),
                 generated_at: "2026-03-12T00:00:00Z".to_string(),
-                
+
                 solar: SolarDto {
                     day: 12,
                     month: 3,
@@ -191,7 +195,8 @@ mod tests {
                 tiet_khi: Some(TietKhiDto {
                     index: 3,
                     name: "Kinh Trập".to_string(),
-                    description: "Tóm tắt\n- Giai đoạn chuyển mùa\n- Nên giữ nhịp sinh hoạt đều".to_string(),
+                    description: "Tóm tắt\n- Giai đoạn chuyển mùa\n- Nên giữ nhịp sinh hoạt đều"
+                        .to_string(),
                     longitude: 345,
                     current_longitude: 345.0,
                     season: "Xuân".to_string(),
@@ -290,7 +295,9 @@ mod tests {
 
         assert!(collapsed.contains("Tiết Khí Tham Chiếu"));
         assert!(collapsed.contains("Kinh Trập"));
-        assert!(collapsed.contains("Metadata: ruleset_id=test · ruleset_version=v1 · profile=baseline"));
+        assert!(
+            collapsed.contains("Metadata: ruleset_id=test · ruleset_version=v1 · profile=baseline")
+        );
         assert!(!collapsed.contains("Giai đoạn chuyển mùa"));
         assert!(expanded.contains("Giai đoạn chuyển mùa"));
     }

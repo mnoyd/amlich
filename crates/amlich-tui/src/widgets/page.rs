@@ -10,9 +10,9 @@ use crate::layout::LayoutMode;
 use crate::state::{AppState, PageSection};
 
 use super::{
-    calendar::CalendarViewWidget, explorer::ExplorerWidget, guidance::GuidanceWidget, hero::HeroWidget,
-    inspection::InspectionWidget, risk::RiskWidget, scholarly::ScholarlyWidget, tietkhi::TietKhiWidget,
-    timeline::TimelineWidget, travel::TravelWidget,
+    calendar::CalendarViewWidget, explorer::ExplorerWidget, guidance::GuidanceWidget,
+    hero::HeroWidget, inspection::InspectionWidget, risk::RiskWidget, scholarly::ScholarlyWidget,
+    tietkhi::TietKhiWidget, timeline::TimelineWidget, travel::TravelWidget,
 };
 
 pub struct PageWidget<'a> {
@@ -80,12 +80,9 @@ impl Widget for PageWidget<'_> {
         let is_large = self.mode == LayoutMode::Large;
 
         if is_large && self.app.zoomed_section.is_none() {
-            let cols = Layout::horizontal([
-                Constraint::Percentage(50), 
-                Constraint::Percentage(50)
-            ])
-            .margin(1)
-            .split(area);
+            let cols = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                .margin(1)
+                .split(area);
 
             let mut left_area = cols[0];
             left_area.width = left_area.width.saturating_sub(1); // Gap
@@ -101,19 +98,30 @@ impl Widget for PageWidget<'_> {
                 PageSection::Travel,
                 PageSection::TraditionalEvidence,
             ];
-            let right_sections = vec![
-                PageSection::Recommendations,
-                PageSection::Risks,
-            ];
+            let right_sections = vec![PageSection::Recommendations, PageSection::Risks];
 
-            let left_constraints: Vec<Constraint> = left_sections.iter().enumerate().map(|(i, s)| {
-                if i + 1 == left_sections.len() { Constraint::Min(section_height(self.app, self.mode, *s)) } 
-                else { Constraint::Length(section_height(self.app, self.mode, *s)) }
-            }).collect();
-            let right_constraints: Vec<Constraint> = right_sections.iter().enumerate().map(|(i, s)| {
-                if i + 1 == right_sections.len() { Constraint::Min(section_height(self.app, self.mode, *s)) } 
-                else { Constraint::Length(section_height(self.app, self.mode, *s)) }
-            }).collect();
+            let left_constraints: Vec<Constraint> = left_sections
+                .iter()
+                .enumerate()
+                .map(|(i, s)| {
+                    if i + 1 == left_sections.len() {
+                        Constraint::Min(section_height(self.app, self.mode, *s))
+                    } else {
+                        Constraint::Length(section_height(self.app, self.mode, *s))
+                    }
+                })
+                .collect();
+            let right_constraints: Vec<Constraint> = right_sections
+                .iter()
+                .enumerate()
+                .map(|(i, s)| {
+                    if i + 1 == right_sections.len() {
+                        Constraint::Min(section_height(self.app, self.mode, *s))
+                    } else {
+                        Constraint::Length(section_height(self.app, self.mode, *s))
+                    }
+                })
+                .collect();
 
             let left_chunks = Layout::vertical(left_constraints).split(left_area);
             let right_chunks = Layout::vertical(right_constraints).split(right_area);
@@ -124,7 +132,6 @@ impl Widget for PageWidget<'_> {
             for (chunk, section) in right_chunks.iter().zip(right_sections.into_iter()) {
                 self.render_section(section, *chunk, buf);
             }
-
         } else {
             let sections = if let Some(section) = self.app.zoomed_section {
                 vec![section]
@@ -224,9 +231,13 @@ fn render_traditional_evidence(area: Rect, buf: &mut Buffer, app: &AppState, mod
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+    };
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");

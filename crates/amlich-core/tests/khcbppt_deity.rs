@@ -8,9 +8,11 @@
 //! Requirements: DEI-01 (12-deity cycle order and classification),
 //!               DEI-02 (12 month-start offsets, implicitly tested via 12 lunar months).
 
+mod support;
+
 use amlich_core::almanac::golden_loader::load_golden_dataset;
 use amlich_core::almanac::types::DayDeityClassification;
-use amlich_core::get_day_info;
+use support::day_snapshot;
 
 fn classification_to_str(c: &DayDeityClassification) -> &'static str {
     match c {
@@ -25,8 +27,8 @@ fn validate_deity_against_golden() {
     let mut mismatches: Vec<String> = Vec::new();
 
     for entry in &dataset.entries {
-        let info = get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
-        let fortune = &info.day_fortune;
+        let snapshot = day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
+        let fortune = &snapshot.day_fortune;
 
         match &fortune.day_deity {
             None => {

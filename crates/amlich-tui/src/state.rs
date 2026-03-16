@@ -1,10 +1,10 @@
 use std::collections::BTreeSet;
 
+use amlich_api::v2::{DayBundleDto, Include};
 use amlich_api::{
     DailyRecommendationsDto, RecommendationBucketDto, RecommendationEvidenceSourceDto,
     RecommendationPackCatalogEntryDto, RecommendationSeverityDto, RulesetCatalogEntryDto,
 };
-use amlich_api::v2::{DayBundleDto, Include};
 use chrono::{Datelike, Local, NaiveDate};
 
 const DEFAULT_EVENT_KIND: &str = "default";
@@ -157,10 +157,8 @@ impl ExplorerSelection {
         recommendation_pack_catalog: &[RecommendationPackCatalogEntryDto],
     ) -> Self {
         self.ruleset_id = normalize_ruleset_selection(ruleset_catalog, self.ruleset_id.as_deref());
-        self.enabled_pack_ids = normalize_enabled_pack_selection(
-            recommendation_pack_catalog,
-            &self.enabled_pack_ids,
-        );
+        self.enabled_pack_ids =
+            normalize_enabled_pack_selection(recommendation_pack_catalog, &self.enabled_pack_ids);
         self
     }
 
@@ -262,10 +260,8 @@ impl AppState {
         let date = initial_date.unwrap_or_else(|| Local::now().naive_local().date());
         let ruleset_catalog = amlich_api::get_ruleset_catalog();
         let recommendation_pack_catalog = amlich_api::get_recommendation_pack_catalog();
-        let default_selection = ExplorerSelection::defaults(date, &ruleset_catalog).normalized(
-            &ruleset_catalog,
-            &recommendation_pack_catalog,
-        );
+        let default_selection = ExplorerSelection::defaults(date, &ruleset_catalog)
+            .normalized(&ruleset_catalog, &recommendation_pack_catalog);
 
         let mut app = Self {
             running: true,
@@ -443,7 +439,11 @@ impl AppState {
             .staged_selection
             .ruleset_id
             .as_deref()
-            .and_then(|id| self.ruleset_catalog.iter().position(|entry| entry.canonical_id == id))
+            .and_then(|id| {
+                self.ruleset_catalog
+                    .iter()
+                    .position(|entry| entry.canonical_id == id)
+            })
             .unwrap_or_else(|| self.default_ruleset_index());
         let next = wrap_index(current, self.ruleset_catalog.len(), step);
         self.staged_selection.ruleset_id = Some(self.ruleset_catalog[next].canonical_id.clone());
@@ -452,11 +452,13 @@ impl AppState {
     pub fn cycle_event_kind(&mut self, step: i32) {
         let current = EVENT_KIND_OPTIONS
             .iter()
-            .position(|kind| match (self.staged_selection.event_kind.as_deref(), *kind) {
-                (None, DEFAULT_EVENT_KIND) => true,
-                (Some(active), candidate) => active == candidate,
-                _ => false,
-            })
+            .position(
+                |kind| match (self.staged_selection.event_kind.as_deref(), *kind) {
+                    (None, DEFAULT_EVENT_KIND) => true,
+                    (Some(active), candidate) => active == candidate,
+                    _ => false,
+                },
+            )
             .unwrap_or(0);
         let next = wrap_index(current, EVENT_KIND_OPTIONS.len(), step);
         self.staged_selection.event_kind = match EVENT_KIND_OPTIONS[next] {
@@ -487,7 +489,9 @@ impl AppState {
         {
             self.staged_selection.enabled_pack_ids.remove(index);
         } else {
-            self.staged_selection.enabled_pack_ids.push(pack.pack_id.clone());
+            self.staged_selection
+                .enabled_pack_ids
+                .push(pack.pack_id.clone());
         }
     }
 
@@ -515,10 +519,10 @@ impl AppState {
     }
 
     pub fn apply_staged_selection(&mut self) {
-        self.staged_selection = self.staged_selection.clone().normalized(
-            &self.ruleset_catalog,
-            &self.recommendation_pack_catalog,
-        );
+        self.staged_selection = self
+            .staged_selection
+            .clone()
+            .normalized(&self.ruleset_catalog, &self.recommendation_pack_catalog);
         self.date = self.staged_selection.date;
         self.applied_selection = self.staged_selection.clone();
         self.scroll_offset = 0;
@@ -526,8 +530,9 @@ impl AppState {
     }
 
     pub fn reset_staged_selection(&mut self) {
-        self.staged_selection = ExplorerSelection::defaults(self.applied_selection.date, &self.ruleset_catalog)
-            .normalized(&self.ruleset_catalog, &self.recommendation_pack_catalog);
+        self.staged_selection =
+            ExplorerSelection::defaults(self.applied_selection.date, &self.ruleset_catalog)
+                .normalized(&self.ruleset_catalog, &self.recommendation_pack_catalog);
         self.pack_cursor = self.clamp_pack_cursor();
         self.scroll_offset = 0;
     }
@@ -537,8 +542,15 @@ impl AppState {
     }
 
     pub fn ruleset_label(&self, ruleset_id: Option<&str>) -> String {
-        match ruleset_id.and_then(|id| self.ruleset_catalog.iter().find(|entry| entry.canonical_id == id)) {
-            Some(entry) => format!("{} · v{} · {} · {}", entry.canonical_id, entry.version, entry.region, entry.profile),
+        match ruleset_id.and_then(|id| {
+            self.ruleset_catalog
+                .iter()
+                .find(|entry| entry.canonical_id == id)
+        }) {
+            Some(entry) => format!(
+                "{} · v{} · {} · {}",
+                entry.canonical_id, entry.version, entry.region, entry.profile
+            ),
             None => "Mặc định hệ thống".to_string(),
         }
     }
@@ -666,10 +678,7 @@ impl AppState {
 
     pub fn toggle_tietkhi(&mut self) {
         self.show_tietkhi_details = !self.show_tietkhi_details;
-        self.set_section_expanded(
-            PageSection::TraditionalEvidence,
-            self.show_tietkhi_details,
-        );
+        self.set_section_expanded(PageSection::TraditionalEvidence, self.show_tietkhi_details);
     }
 
     pub fn toggle_guidance_details(&mut self) {
@@ -1051,6 +1060,7 @@ fn normalize_enabled_pack_selection(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, CanChiDto, CanChiInfoDto, DailyRecommendationsDto, DayConflictDto,
         DayElementDto, DayFortuneDto, DayStarsDto, DayTabooDto, GioHoangDaoDto, HourInfoDto,
@@ -1059,7 +1069,6 @@ mod tests {
         RecommendationSeverityDto, RuleEvidenceDto, SolarDto, SynthesizedRecommendationDto,
         TietKhiDto, TravelDirectionDto, TrucDto, XungHopDto,
     };
-    use amlich_api::v2::DayBundleDto;
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
@@ -1117,11 +1126,11 @@ mod tests {
     fn sample_bundle() -> DayBundleDto {
         DayBundleDto {
             schema_version: "amlich.engine/v1".to_string(),
-                ruleset_id: "test".to_string(),
-                ruleset_version: "v1".to_string(),
-                profile: "baseline".to_string(),
-                generated_at: "2026-03-12T00:00:00Z".to_string(),
-                
+            ruleset_id: "test".to_string(),
+            ruleset_version: "v1".to_string(),
+            profile: "baseline".to_string(),
+            generated_at: "2026-03-12T00:00:00Z".to_string(),
+
             solar: SolarDto {
                 day: 12,
                 month: 3,
@@ -1433,7 +1442,9 @@ mod tests {
         let rows = app.top_recommendation_rows();
 
         assert_eq!(
-            rows.iter().map(|row| row.label.as_str()).collect::<Vec<_>>(),
+            rows.iter()
+                .map(|row| row.label.as_str())
+                .collect::<Vec<_>>(),
             vec!["Khai mở", "Gặp gỡ", "Ký kết", "Động thổ"]
         );
         assert_eq!(
@@ -1471,7 +1482,10 @@ mod tests {
         assert_eq!(risk_summary.items[0], "Kỵ mạnh: Động thổ");
         assert_eq!(risk_summary.items[1], "Kiêng kỵ: Tam Nương");
         assert!(
-            risk_summary.items.iter().any(|item| item.contains("Lục xung: Tý")),
+            risk_summary
+                .items
+                .iter()
+                .any(|item| item.contains("Lục xung: Tý")),
             "expected luc xung entry in risk summary"
         );
     }
@@ -1494,7 +1508,8 @@ mod tests {
         app.applied_selection.event_kind = Some("travel".to_string());
         app.applied_selection.enabled_pack_ids = vec!["pack.nhi_thap_bat_tu.v1".to_string()];
 
-        let selection = ExplorerSelection::from_loaded_data(&sample_bundle(), &app.applied_selection);
+        let selection =
+            ExplorerSelection::from_loaded_data(&sample_bundle(), &app.applied_selection);
 
         assert_eq!(selection.event_kind.as_deref(), Some("travel"));
         assert_eq!(selection.enabled_pack_ids, vec!["pack.nhi_thap_bat_tu.v1"]);
@@ -1531,9 +1546,18 @@ mod tests {
 
         app.apply_staged_selection();
 
-        assert_eq!(app.applied_selection.ruleset_id.as_deref(), Some("vn_baseline_v1"));
-        assert_eq!(app.staged_selection.ruleset_id.as_deref(), Some("vn_baseline_v1"));
-        assert_eq!(app.applied_selection.enabled_pack_ids, vec!["pack.nhi_thap_bat_tu.v1"]);
+        assert_eq!(
+            app.applied_selection.ruleset_id.as_deref(),
+            Some("vn_baseline_v1")
+        );
+        assert_eq!(
+            app.staged_selection.ruleset_id.as_deref(),
+            Some("vn_baseline_v1")
+        );
+        assert_eq!(
+            app.applied_selection.enabled_pack_ids,
+            vec!["pack.nhi_thap_bat_tu.v1"]
+        );
     }
 
     #[test]
@@ -1625,12 +1649,18 @@ mod tests {
         let mut app = sample_app_state();
 
         app.toggle_focused_pack();
-        assert_eq!(app.staged_selection.enabled_pack_ids, vec!["pack.nhi_thap_bat_tu.v1"]);
+        assert_eq!(
+            app.staged_selection.enabled_pack_ids,
+            vec!["pack.nhi_thap_bat_tu.v1"]
+        );
         assert!(app.explorer_has_staged_changes());
 
         app.reset_staged_selection();
         assert!(app.staged_selection.enabled_pack_ids.is_empty());
-        assert_eq!(app.staged_selection.ruleset_id, Some("vn_baseline_v1".to_string()));
+        assert_eq!(
+            app.staged_selection.ruleset_id,
+            Some("vn_baseline_v1".to_string())
+        );
         assert_eq!(app.staged_selection.event_kind, None);
     }
 }

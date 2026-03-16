@@ -34,12 +34,11 @@ impl<'a> ScholarlyWidget<'a> {
     fn render_evidence(&self, area: Rect, buf: &mut Buffer, bundle: &DayBundleDto) {
         let mut lines: Vec<Line<'_>> = vec![];
 
-
         let block = Block::default()
             .title(" Chứng Cứ Truyền Thống ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
-            
+
         let inner = block.inner(area);
         block.render(area, buf);
 
@@ -117,17 +116,21 @@ impl<'a> ScholarlyWidget<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use amlich_api::{
-        ActivityLabelDto, DayDeityInsightDto, DayInsightDto, DailyRecommendationsDto, LunarDto,
-        LocalizedListDto, LocalizedTextDto, RecommendationBucketDto, RecommendationEvidenceDto,
-        RecommendationEvidenceSourceDto, RecommendationReasonDto, RecommendationScopeDto,
-        RecommendationSeverityDto, SolarDto, StarsInsightDto, SynthesizedRecommendationDto,
-        TrucInsightDto,
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
     };
     use amlich_api::v2::DayBundleDto;
+    use amlich_api::{
+        ActivityLabelDto, DailyRecommendationsDto, DayDeityInsightDto, DayInsightDto,
+        LocalizedListDto, LocalizedTextDto, LunarDto, RecommendationBucketDto,
+        RecommendationEvidenceDto, RecommendationEvidenceSourceDto, RecommendationReasonDto,
+        RecommendationScopeDto, RecommendationSeverityDto, SolarDto, StarsInsightDto,
+        SynthesizedRecommendationDto, TrucInsightDto,
+    };
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
@@ -166,7 +169,7 @@ mod tests {
                 ruleset_version: "v1".to_string(),
                 profile: "baseline".to_string(),
                 generated_at: "2026-03-12T00:00:00Z".to_string(),
-                
+
                 solar: SolarDto {
                     day: 12,
                     month: 3,

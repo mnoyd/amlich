@@ -126,9 +126,11 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::NaiveDate;
     use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, ViewMode};
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
+    use chrono::NaiveDate;
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
@@ -247,7 +249,10 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Char(' '), KeyModifiers::NONE);
 
-        assert_eq!(app.staged_selection.enabled_pack_ids, vec!["pack.nhi_thap_bat_tu.v1"]);
+        assert_eq!(
+            app.staged_selection.enabled_pack_ids,
+            vec!["pack.nhi_thap_bat_tu.v1"]
+        );
         assert!(app.applied_selection.enabled_pack_ids.is_empty());
     }
 

@@ -96,43 +96,43 @@ fn corpus_recommendations_match_between_core_and_api() {
             enabled_pack_ids: vec![],
         };
 
-        let core_info = amlich_core::get_day_info(day, month, year);
+        let snapshot = amlich_core::calculate_day_snapshot(day, month, year);
         let api_info = amlich_api::get_day_info(&query).expect("api day info");
 
         assert_eq!(
-            api_info.daily_recommendations.ruleset_id, core_info.daily_recommendations.ruleset_id,
+            api_info.daily_recommendations.ruleset_id, snapshot.daily_recommendations.ruleset_id,
             "{} ruleset id mismatch",
             case.id
         );
         assert_eq!(
             api_info.daily_recommendations.ruleset_version,
-            core_info.daily_recommendations.ruleset_version,
+            snapshot.daily_recommendations.ruleset_version,
             "{} ruleset version mismatch",
             case.id
         );
         assert_eq!(
-            api_info.daily_recommendations.profile, core_info.daily_recommendations.profile,
+            api_info.daily_recommendations.profile, snapshot.daily_recommendations.profile,
             "{} profile mismatch",
             case.id
         );
         assert_eq!(
-            api_info.daily_recommendations.version, core_info.daily_recommendations.version,
+            api_info.daily_recommendations.version, snapshot.daily_recommendations.version,
             "{} version mismatch",
             case.id
         );
         assert_eq!(
-            api_info.daily_recommendations.summary_vi, core_info.daily_recommendations.summary_vi,
+            api_info.daily_recommendations.summary_vi, snapshot.daily_recommendations.summary_vi,
             "{} summary mismatch",
             case.id
         );
         assert_eq!(
             api_info.daily_recommendations.activities.len(),
-            core_info.daily_recommendations.activities.len(),
+            snapshot.daily_recommendations.activities.len(),
             "{} activity count mismatch",
             case.id
         );
 
-        let core_ids: Vec<String> = core_info
+        let core_ids: Vec<String> = snapshot
             .daily_recommendations
             .activities
             .iter()
@@ -150,7 +150,7 @@ fn corpus_recommendations_match_between_core_and_api() {
             .daily_recommendations
             .activities
             .iter()
-            .zip(core_info.daily_recommendations.activities.iter())
+            .zip(snapshot.daily_recommendations.activities.iter())
         {
             assert_eq!(
                 api_activity.reasons.len(),
@@ -162,12 +162,16 @@ fn corpus_recommendations_match_between_core_and_api() {
         }
 
         for expected in &case.expect.must_match_activity_buckets {
-            let core_activity = core_info
+            let core_activity = snapshot
                 .daily_recommendations
                 .activities
                 .iter()
-                .find(|activity| activity_id_to_snake_case(activity.activity_id) == expected.activity_id)
-                .unwrap_or_else(|| panic!("{} missing core activity {}", case.id, expected.activity_id));
+                .find(|activity| {
+                    activity_id_to_snake_case(activity.activity_id) == expected.activity_id
+                })
+                .unwrap_or_else(|| {
+                    panic!("{} missing core activity {}", case.id, expected.activity_id)
+                });
             assert_eq!(
                 core_activity.bucket, expected.bucket,
                 "{} core expected bucket mismatch for {}",
@@ -179,7 +183,9 @@ fn corpus_recommendations_match_between_core_and_api() {
                 .activities
                 .iter()
                 .find(|activity| activity.activity_id == expected.activity_id)
-                .unwrap_or_else(|| panic!("{} missing api activity {}", case.id, expected.activity_id));
+                .unwrap_or_else(|| {
+                    panic!("{} missing api activity {}", case.id, expected.activity_id)
+                });
             let expected_api_bucket = match expected.bucket {
                 RecommendationBucket::Nen => amlich_api::RecommendationBucketDto::Nen,
                 RecommendationBucket::CoThe => amlich_api::RecommendationBucketDto::CoThe,
@@ -226,7 +232,7 @@ fn corpus_recommendations_match_between_core_and_api() {
         );
 
         // Bucket profile parity check protects enum conversion + serialization shape.
-        let core_buckets = core_info.daily_recommendations.activities.iter().fold(
+        let core_buckets = snapshot.daily_recommendations.activities.iter().fold(
             (0usize, 0usize, 0usize, 0usize),
             |acc, activity| match activity.bucket {
                 RecommendationBucket::Nen => (acc.0 + 1, acc.1, acc.2, acc.3),

@@ -159,39 +159,41 @@ fn golden_dataset_all_entries_have_nonempty_citations() {
     }
 }
 
+mod support;
+
 #[test]
-fn golden_dataset_values_match_get_day_info() {
+fn golden_dataset_values_match_day_snapshot() {
     let dataset = load_golden();
-    // Spot-check a sample of entries to verify golden values match get_day_info output
+    // Spot-check a sample of entries to verify golden values match day_snapshot output
     let sample_size = dataset.entries.len().min(20);
     let step = dataset.entries.len() / sample_size;
 
     for i in (0..dataset.entries.len()).step_by(step) {
         let entry = &dataset.entries[i];
-        let info = amlich_core::get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
+        let snapshot = support::day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
 
         assert_eq!(
-            info.canchi.day.full, entry.day_canchi,
+            snapshot.context.canchi.day.full, entry.day_canchi,
             "day_canchi mismatch for {}",
             entry.solar_date
         );
         assert_eq!(
-            info.canchi.day.can, entry.day_can,
+            snapshot.context.canchi.day.can, entry.day_can,
             "day_can mismatch for {}",
             entry.solar_date
         );
         assert_eq!(
-            info.canchi.day.chi, entry.day_chi,
+            snapshot.context.canchi.day.chi, entry.day_chi,
             "day_chi mismatch for {}",
             entry.solar_date
         );
         assert_eq!(
-            info.lunar.month, entry.lunar_month,
+            snapshot.context.lunar.month, entry.lunar_month,
             "lunar_month mismatch for {}",
             entry.solar_date
         );
         assert_eq!(
-            info.day_fortune.truc.name, entry.expected_truc_name,
+            snapshot.day_fortune.truc.name, entry.expected_truc_name,
             "truc_name mismatch for {}",
             entry.solar_date
         );

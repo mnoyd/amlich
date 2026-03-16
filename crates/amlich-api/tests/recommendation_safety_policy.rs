@@ -1,6 +1,4 @@
-use amlich_api::{
-    DateQuery, RecommendationBucketDto, RecommendationEvidenceSourceDto,
-};
+use amlich_api::{DateQuery, RecommendationBucketDto, RecommendationEvidenceSourceDto};
 
 fn days_in_month(month: i32, year: i32) -> i32 {
     match month {
@@ -56,7 +54,10 @@ fn api_burial_recommendations_remain_conservative() {
         }
     }
 
-    assert!(checked > 0, "expected burial recommendations during the 2024 api scan");
+    assert!(
+        checked > 0,
+        "expected burial recommendations during the 2024 api scan"
+    );
 }
 
 #[test]
@@ -74,12 +75,9 @@ fn api_ky_manh_recommendations_keep_taboo_authority() {
             {
                 checked += 1;
                 assert!(
-                    activity
-                        .reasons
-                        .iter()
-                        .any(|reason| {
-                            reason.evidence.source == RecommendationEvidenceSourceDto::Taboo
-                        }),
+                    activity.reasons.iter().any(|reason| {
+                        reason.evidence.source == RecommendationEvidenceSourceDto::Taboo
+                    }),
                     "api ky_manh activity {} on 2024-{month:02}-{day:02} lost taboo authority",
                     activity.activity_id
                 );
@@ -87,5 +85,8 @@ fn api_ky_manh_recommendations_keep_taboo_authority() {
         }
     }
 
-    assert!(checked > 0, "expected at least one api ky_manh recommendation in the 2024 scan");
+    assert!(
+        checked > 0,
+        "expected at least one api ky_manh recommendation in the 2024 scan"
+    );
 }

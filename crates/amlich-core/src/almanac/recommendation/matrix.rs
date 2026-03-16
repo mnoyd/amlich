@@ -12,7 +12,10 @@ pub struct RecommendationMatrixEntry {
     pub sensitive_domain: bool,
 }
 
-pub fn taboo_entry(rule_id: &str, severity: RecommendationSeverity) -> Vec<RecommendationMatrixEntry> {
+pub fn taboo_entry(
+    rule_id: &str,
+    severity: RecommendationSeverity,
+) -> Vec<RecommendationMatrixEntry> {
     let hard_stop_eligible = matches!(severity, RecommendationSeverity::Override);
 
     taboo_target_activities(rule_id)

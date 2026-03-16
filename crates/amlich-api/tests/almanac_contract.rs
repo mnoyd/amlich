@@ -1,4 +1,4 @@
-use amlich_api::{get_day_info, DateQuery};
+use amlich_api::{get_day_info, DateQuery, DayInfoDto};
 
 fn tet_2024_fortune() -> amlich_api::DayFortuneDto {
     let info = get_day_info(&DateQuery {
@@ -222,4 +222,54 @@ fn day_info_exposes_ruleset_metadata() {
     assert_eq!(fortune.ruleset_id, info.ruleset_id);
     assert_eq!(fortune.ruleset_version, info.ruleset_version);
     assert_eq!(fortune.profile, info.profile);
+}
+
+#[test]
+fn api_is_public_source_of_day_info_dto() {
+    let _: DayInfoDto = get_day_info(&DateQuery {
+        day: 10,
+        month: 2,
+        year: 2024,
+        timezone: Some(7.0),
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
+    })
+    .expect("api should assemble day info dto");
+}
+
+#[test]
+fn api_normalizes_ruleset_selection_before_assembly() {
+    let canonical = get_day_info(&DateQuery {
+        day: 10,
+        month: 2,
+        year: 2024,
+        timezone: Some(7.0),
+        ruleset_id: Some("vn_baseline_v1".to_string()),
+        event_kind: None,
+        enabled_pack_ids: vec![],
+    })
+    .expect("canonical ruleset response");
+    let alias = get_day_info(&DateQuery {
+        day: 10,
+        month: 2,
+        year: 2024,
+        timezone: Some(7.0),
+        ruleset_id: Some("baseline".to_string()),
+        event_kind: None,
+        enabled_pack_ids: vec![],
+    })
+    .expect("aliased ruleset response");
+
+    assert_eq!(alias.ruleset_id, canonical.ruleset_id);
+    assert_eq!(alias.ruleset_version, canonical.ruleset_version);
+    assert_eq!(alias.profile, canonical.profile);
+
+    let alias_fortune = alias.day_fortune.expect("alias fortune");
+    let canonical_fortune = canonical.day_fortune.expect("canonical fortune");
+    assert_eq!(alias_fortune.ruleset_id, canonical_fortune.ruleset_id);
+    assert_eq!(
+        alias_fortune.ruleset_version,
+        canonical_fortune.ruleset_version
+    );
 }

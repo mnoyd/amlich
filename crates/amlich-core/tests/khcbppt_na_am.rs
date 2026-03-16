@@ -7,8 +7,10 @@
 //! This is INVENTORY ONLY -- no corrections are applied.
 //! Requirements: NAM-01 (30 nap am pairs cross-referenced against KHCBPPT).
 
+mod support;
+
 use amlich_core::almanac::golden_loader::load_golden_dataset;
-use amlich_core::get_day_info;
+use support::day_snapshot;
 
 /// NAM-01: Validate na am (sexagenary sound) and element fields for all 233 golden entries.
 ///
@@ -21,8 +23,8 @@ fn validate_na_am_against_golden() {
     let mut mismatches: Vec<String> = Vec::new();
 
     for entry in &dataset.entries {
-        let info = get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
-        let day_element = &info.day_fortune.day_element;
+        let snapshot = day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
+        let day_element = &snapshot.day_fortune.day_element;
 
         if day_element.na_am != entry.expected_na_am {
             mismatches.push(format!(

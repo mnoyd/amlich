@@ -84,7 +84,11 @@ impl From<&crate::dto::DayInfoDto> for ApiMetaDto {
 }
 
 impl DayBundleDto {
-    fn from_parts(info: crate::dto::DayInfoDto, insight: Option<DayInsightDto>, includes: &[Include]) -> Result<Self, String> {
+    fn from_parts(
+        info: crate::dto::DayInfoDto,
+        insight: Option<DayInsightDto>,
+        includes: &[Include],
+    ) -> Result<Self, String> {
         let meta = ApiMetaDto::from(&info);
         Ok(Self {
             schema_version: meta.schema_version,
@@ -96,13 +100,19 @@ impl DayBundleDto {
             lunar: info.lunar,
             jd: info.jd,
             canchi: includes.contains(&Include::CanChi).then_some(info.canchi),
-            tiet_khi: includes.contains(&Include::TietKhi).then_some(info.tiet_khi),
-            gio_hoang_dao: includes.contains(&Include::Hours).then_some(info.gio_hoang_dao),
+            tiet_khi: includes
+                .contains(&Include::TietKhi)
+                .then_some(info.tiet_khi),
+            gio_hoang_dao: includes
+                .contains(&Include::Hours)
+                .then_some(info.gio_hoang_dao),
             day_fortune: includes.contains(&Include::Fortune).then_some(
                 info.day_fortune
                     .ok_or_else(|| "missing day_fortune in day info".to_string())?,
             ),
-            daily_recommendations: includes.contains(&Include::Fortune).then_some(info.daily_recommendations),
+            daily_recommendations: includes
+                .contains(&Include::Fortune)
+                .then_some(info.daily_recommendations),
             contextual_recommendations: includes
                 .contains(&Include::Fortune)
                 .then_some(info.contextual_recommendations)

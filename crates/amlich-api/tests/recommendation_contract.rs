@@ -33,7 +33,10 @@ fn day_info_exposes_daily_recommendations_contract() {
     assert_eq!(info.ruleset_version, "v1");
     assert_eq!(info.profile, "baseline");
     assert_eq!(info.daily_recommendations.ruleset_id, info.ruleset_id);
-    assert_eq!(info.daily_recommendations.ruleset_version, info.ruleset_version);
+    assert_eq!(
+        info.daily_recommendations.ruleset_version,
+        info.ruleset_version
+    );
     assert_eq!(info.daily_recommendations.profile, info.profile);
     assert!(info.contextual_recommendations.is_none());
     assert!(info.daily_recommendations.version.starts_with("v1-"));
@@ -98,7 +101,10 @@ fn day_info_can_expose_contextual_recommendations() {
         .find(|activity| activity.activity_id == "contract_agreement")
         .expect("controlled baseline contract activity");
     assert_eq!(controlled_contract.bucket, baseline_contract.bucket);
-    assert_eq!(controlled_contract.reasons.len(), baseline_contract.reasons.len());
+    assert_eq!(
+        controlled_contract.reasons.len(),
+        baseline_contract.reasons.len()
+    );
     assert_eq!(
         info.daily_recommendations.summary_vi,
         baseline.daily_recommendations.summary_vi
@@ -167,7 +173,10 @@ fn day_bundle_includes_daily_recommendations_with_fortune() {
     assert_eq!(bundle.ruleset_version, from_info.ruleset_version);
     assert_eq!(bundle.profile, from_info.profile);
     assert!(!bundle.generated_at.is_empty());
-    assert_eq!(bundle_rec.ruleset_id, from_info.daily_recommendations.ruleset_id);
+    assert_eq!(
+        bundle_rec.ruleset_id,
+        from_info.daily_recommendations.ruleset_id
+    );
     assert_eq!(
         bundle_rec.ruleset_version,
         from_info.daily_recommendations.ruleset_version
@@ -216,7 +225,10 @@ fn day_bundle_projection_supports_recommendation_fields() {
 fn projection_cannot_bypass_omitted_sections() {
     let err = get_day_bundle_projected(
         &query(10, 2, 2024),
-        &[amlich_api::v2::Include::Base, amlich_api::v2::Include::CanChi],
+        &[
+            amlich_api::v2::Include::Base,
+            amlich_api::v2::Include::CanChi,
+        ],
         &["day_fortune.ruleset_id".to_string()],
     )
     .expect_err("projection should fail when section is omitted");

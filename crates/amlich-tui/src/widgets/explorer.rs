@@ -40,7 +40,10 @@ impl Widget for ExplorerWidget<'_> {
         let mut lines = vec![
             Line::from(vec![
                 label(self.app, ExplorerField::Date, "Ngày"),
-                Span::raw(format!(": {}", self.app.staged_selection.date.format("%Y-%m-%d"))),
+                Span::raw(format!(
+                    ": {}",
+                    self.app.staged_selection.date.format("%Y-%m-%d")
+                )),
             ]),
             Line::from(vec![
                 label(self.app, ExplorerField::Ruleset, "Ruleset"),
@@ -140,7 +143,9 @@ fn action_chip(app: &AppState, action: ExplorerAction, text: &str) -> Span<'stat
 mod tests {
     use super::*;
     use crate::state::{ExplorerSelection, FocusLens, PageSection, ViewMode};
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
 
     fn sample_app_state() -> AppState {
@@ -203,7 +208,10 @@ mod tests {
 
         let rows = app.pack_status_rows();
 
-        assert_eq!(rows[0], "> [+] pack.nhi_thap_bat_tu.v1 · traditional · advisory");
+        assert_eq!(
+            rows[0],
+            "> [+] pack.nhi_thap_bat_tu.v1 · traditional · advisory"
+        );
     }
 
     #[test]

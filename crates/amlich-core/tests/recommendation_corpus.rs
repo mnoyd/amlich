@@ -1,7 +1,10 @@
+mod support;
+
 use std::{fs, path::PathBuf};
 
 use amlich_core::almanac::recommendation::{ActivityId, RecommendationBucket};
 use serde::Deserialize;
+use support::day_snapshot;
 
 #[derive(Debug, Deserialize)]
 struct Corpus {
@@ -90,8 +93,8 @@ fn recommendation_corpus_matches_expected_profiles() {
 
     for case in corpus.cases {
         let (day, month, year) = parse_ymd(&case.date);
-        let info = amlich_core::get_day_info(day, month, year);
-        let rec = info.daily_recommendations;
+        let snapshot = day_snapshot(day, month, year);
+        let rec = snapshot.daily_recommendations;
 
         let nen = rec
             .activities
@@ -143,8 +146,15 @@ fn recommendation_corpus_matches_expected_profiles() {
             let actual = rec
                 .activities
                 .iter()
-                .find(|activity| activity_id_to_snake_case(activity.activity_id) == expected.activity_id)
-                .unwrap_or_else(|| panic!("{} missing bucket-checked activity {}", case.id, expected.activity_id));
+                .find(|activity| {
+                    activity_id_to_snake_case(activity.activity_id) == expected.activity_id
+                })
+                .unwrap_or_else(|| {
+                    panic!(
+                        "{} missing bucket-checked activity {}",
+                        case.id, expected.activity_id
+                    )
+                });
             assert_eq!(
                 actual.bucket, expected.bucket,
                 "{} bucket mismatch for {} | rationale: {}",

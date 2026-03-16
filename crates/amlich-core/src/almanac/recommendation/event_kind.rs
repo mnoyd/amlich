@@ -52,18 +52,18 @@ impl RecommendationLayer for EventKindLayer {
 
 #[cfg(test)]
 mod tests {
-    use crate::get_day_info;
+    use crate::calculate_day_snapshot;
 
     use super::*;
 
     #[test]
     fn emits_contract_event_hit() {
-        let info = get_day_info(10, 2, 2024);
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: Some("session"),
             event_kind: Some("contract_signing"),
             enabled_pack_ids: &[],

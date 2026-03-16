@@ -9,8 +9,10 @@
 //!
 //! Tam hop and tu hanh xung are compared as sorted vectors (order-independent).
 
+mod support;
+
 use amlich_core::almanac::golden_loader::load_golden_dataset;
-use amlich_core::get_day_info;
+use support::day_snapshot;
 
 #[test]
 fn validate_xung_hop_against_golden() {
@@ -18,8 +20,8 @@ fn validate_xung_hop_against_golden() {
     let mut mismatches: Vec<String> = Vec::new();
 
     for entry in &dataset.entries {
-        let info = get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
-        let fortune = &info.day_fortune;
+        let snapshot = day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
+        let fortune = &snapshot.day_fortune;
 
         // Luc xung: direct string comparison
         if fortune.xung_hop.luc_xung != entry.expected_luc_xung {
