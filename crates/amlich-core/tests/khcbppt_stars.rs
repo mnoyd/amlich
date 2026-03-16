@@ -7,9 +7,11 @@
 //! This is INVENTORY ONLY -- no corrections are applied.
 //! Requirements: STR-01, STR-02, STR-03
 
+mod support;
+
 use amlich_core::almanac::golden_loader::load_golden_dataset;
 use amlich_core::almanac::types::StarQuality;
-use amlich_core::get_day_info;
+use support::day_snapshot;
 
 fn star_quality_to_str(q: &StarQuality) -> &'static str {
     match q {
@@ -34,8 +36,8 @@ fn verify_jd_epoch_against_khcbppt_dated_entries() {
     let epoch_entries = dataset.entries.iter().take(5);
 
     for entry in epoch_entries {
-        let info = get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
-        match &info.day_fortune.stars.day_star {
+        let snapshot = day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
+        match &snapshot.day_fortune.stars.day_star {
             None => {
                 mismatches.push(format!(
                     "[{}] star: expected '{}' (index {}), got NONE",
@@ -87,8 +89,8 @@ fn validate_stars_against_golden() {
     let mut mismatches: Vec<String> = Vec::new();
 
     for entry in &dataset.entries {
-        let info = get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
-        match &info.day_fortune.stars.day_star {
+        let snapshot = day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
+        match &snapshot.day_fortune.stars.day_star {
             None => {
                 mismatches.push(format!(
                     "[{}] star name: expected '{}', got NONE",
@@ -159,8 +161,8 @@ fn report_star_rule_sparsity() {
         .entries
         .iter()
         .filter(|entry| {
-            let info = get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
-            let matched = &info.day_fortune.stars.matched_rules;
+            let snapshot = day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
+            let matched = &snapshot.day_fortune.stars.matched_rules;
             !matched
                 .iter()
                 .any(|r| contextual_categories.contains(&r.category.as_str()))

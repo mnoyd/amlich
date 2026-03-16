@@ -7,10 +7,12 @@
 //! This is INVENTORY ONLY -- no corrections are applied.
 //! Requirements: TAB-01, TAB-02, TAB-03, TAB-04
 
+mod support;
+
 use amlich_core::almanac::golden_loader::load_golden_dataset;
 use amlich_core::almanac::types::DayTaboo;
-use amlich_core::get_day_info;
 use std::collections::HashSet;
+use support::day_snapshot;
 
 /// Compare expected taboo rule_id sets against actual DayTaboo lists.
 ///
@@ -57,11 +59,11 @@ fn validate_taboos_against_golden() {
     let mut mismatches: Vec<String> = Vec::new();
 
     for entry in &dataset.entries {
-        let info = get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
+        let snapshot = day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
         compare_taboo_sets(
             &entry.solar_date,
             &entry.expected_taboos,
-            &info.day_fortune.taboos,
+            &snapshot.day_fortune.taboos,
             &mut mismatches,
         );
     }
@@ -97,11 +99,11 @@ fn validate_taboo_coverage_by_rule() {
     let mut impl_rules: HashSet<String> = HashSet::new();
 
     for entry in &dataset.entries {
-        let info = get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
+        let snapshot = day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
         for rule_id in &entry.expected_taboos {
             golden_rules.insert(rule_id.clone());
         }
-        for taboo in &info.day_fortune.taboos {
+        for taboo in &snapshot.day_fortune.taboos {
             impl_rules.insert(taboo.rule_id.clone());
         }
     }

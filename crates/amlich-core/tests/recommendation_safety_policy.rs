@@ -1,6 +1,9 @@
+mod support;
+
 use amlich_core::almanac::recommendation::{
     ActivityId, RecommendationBucket, RecommendationEvidenceSource,
 };
+use support::day_snapshot;
 
 fn days_in_month(month: i32, year: i32) -> i32 {
     match month {
@@ -18,8 +21,8 @@ fn burial_recommendations_remain_conservative_in_default_engine() {
 
     for month in 1..=12 {
         for day in 1..=days_in_month(month, 2024) {
-            let info = amlich_core::get_day_info(day, month, 2024);
-            let Some(burial) = info
+            let snapshot = day_snapshot(day, month, 2024);
+            let Some(burial) = snapshot
                 .daily_recommendations
                 .activities
                 .iter()
@@ -53,8 +56,8 @@ fn ky_manh_recommendations_always_include_taboo_evidence() {
 
     for month in 1..=12 {
         for day in 1..=days_in_month(month, 2024) {
-            let info = amlich_core::get_day_info(day, month, 2024);
-            for activity in info
+            let snapshot = day_snapshot(day, month, 2024);
+            for activity in snapshot
                 .daily_recommendations
                 .activities
                 .iter()

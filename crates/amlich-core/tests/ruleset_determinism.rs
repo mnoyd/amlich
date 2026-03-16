@@ -1,7 +1,12 @@
+use amlich_core::almanac::calc::calculate_day_fortune;
 use amlich_core::almanac::data::{
     get_ruleset_data, get_ruleset_descriptor_doc, DEFAULT_RULESET_ID,
 };
-use amlich_core::get_day_info;
+use amlich_core::canchi::{get_day_canchi, get_year_canchi};
+use amlich_core::julian::jd_from_date;
+use amlich_core::lunar::convert_solar_to_lunar;
+use amlich_core::tietkhi::get_tiet_khi;
+use amlich_core::VIETNAM_TIMEZONE;
 
 #[test]
 fn ruleset_descriptor_is_deterministic_for_same_id() {
@@ -31,17 +36,35 @@ fn unknown_ruleset_id_returns_explicit_error() {
 }
 
 #[test]
-fn day_output_is_deterministic_for_same_input() {
-    let a = get_day_info(10, 2, 2024);
-    let b = get_day_info(10, 2, 2024);
+fn day_fortune_is_deterministic_for_same_explicit_inputs() {
+    let jd = jd_from_date(10, 2, 2024);
+    let lunar = convert_solar_to_lunar(10, 2, 2024, VIETNAM_TIMEZONE);
+    let day_canchi = get_day_canchi(jd);
+    let year_canchi = get_year_canchi(lunar.year);
+    let tiet_khi = get_tiet_khi(jd, VIETNAM_TIMEZONE);
+
+    let a = calculate_day_fortune(
+        jd,
+        &day_canchi,
+        lunar.day,
+        lunar.month,
+        &year_canchi.can,
+        &tiet_khi.name,
+    );
+    let b = calculate_day_fortune(
+        jd,
+        &day_canchi,
+        lunar.day,
+        lunar.month,
+        &year_canchi.can,
+        &tiet_khi.name,
+    );
 
     assert_eq!(a.ruleset_id, "vn_baseline_v1");
     assert_eq!(a.ruleset_id, b.ruleset_id);
     assert_eq!(a.ruleset_version, b.ruleset_version);
-    assert_eq!(a.canchi.day.full, b.canchi.day.full);
-    assert_eq!(a.lunar.date_string, b.lunar.date_string);
 
-    let fortune_a = serde_json::to_string(&a.day_fortune).expect("serialize day fortune A");
-    let fortune_b = serde_json::to_string(&b.day_fortune).expect("serialize day fortune B");
+    let fortune_a = serde_json::to_string(&a).expect("serialize day fortune A");
+    let fortune_b = serde_json::to_string(&b).expect("serialize day fortune B");
     assert_eq!(fortune_a, fortune_b);
 }

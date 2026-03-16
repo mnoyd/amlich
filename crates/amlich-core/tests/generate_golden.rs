@@ -4,17 +4,19 @@
 //!
 //! This generates `crates/amlich-core/data/almanac/khcbppt-golden.json` by:
 //! 1. Selecting ~200 dates using coverage-driven algorithm
-//! 2. Calling get_day_info() for each date to extract subsystem values
+//! 2. Calling day_snapshot() for each date to extract subsystem values
 //! 3. Attaching KHCBPPT citations per Phase 1 reference files
 //! 4. Validating dimensional coverage
 //! 5. Writing pretty-printed JSON to disk
 
 use std::collections::HashSet;
 
+mod support;
+
 use amlich_core::almanac::golden_loader::{
     GoldenCitation, GoldenDataset, GoldenEntry, GoldenMetadata,
 };
-use amlich_core::get_day_info;
+use support::day_snapshot;
 
 /// Known leap months in 2020-2030 (solar date ranges that fall in leap lunar months).
 /// These were identified from Vietnamese calendar references:
@@ -169,7 +171,7 @@ fn select_dates() -> Vec<(i32, i32, i32)> {
 
 fn make_citation() -> GoldenCitation {
     GoldenCitation {
-        entry_note: "Values from get_day_info() verified against Phase 1 KHCBPPT reference files".to_string(),
+        entry_note: "Values from day_snapshot() verified against Phase 1 KHCBPPT reference files".to_string(),
         truc: "KHCBPPT, Nghia Le section; 12 quality assignments verified in docs/reference/khcbppt/truc.md".to_string(),
         day_deity: "KHCBPPT, 12-deity cycle; verified in docs/reference/khcbppt/day_deity.md".to_string(),
         taboos: "KHCBPPT, Nguyet Bieu vols 20-31; verified in docs/reference/khcbppt/taboos.md".to_string(),
@@ -181,8 +183,9 @@ fn make_citation() -> GoldenCitation {
 }
 
 fn build_entry(day: i32, month: i32, year: i32) -> GoldenEntry {
-    let info = get_day_info(day, month, year);
-    let fortune = &info.day_fortune;
+    let snapshot = day_snapshot(day, month, year);
+    let context = &snapshot.context;
+    let fortune = &snapshot.day_fortune;
 
     let day_star = fortune
         .stars
@@ -208,19 +211,19 @@ fn build_entry(day: i32, month: i32, year: i32) -> GoldenEntry {
         solar_day: day,
         solar_month: month,
         solar_year: year,
-        lunar_day: info.lunar.day,
-        lunar_month: info.lunar.month,
-        lunar_year: info.lunar.year,
-        is_leap_month: info.lunar.is_leap_month,
-        jd: info.jd,
+        lunar_day: context.lunar.day,
+        lunar_month: context.lunar.month,
+        lunar_year: context.lunar.year,
+        is_leap_month: context.lunar.is_leap,
+        jd: context.jd,
 
-        day_canchi: info.canchi.day.full.clone(),
-        day_can: info.canchi.day.can.clone(),
-        day_chi: info.canchi.day.chi.clone(),
-        day_chi_index: info.canchi.day.chi_index,
-        year_can: info.canchi.year.can.clone(),
+        day_canchi: context.canchi.day.full.clone(),
+        day_can: context.canchi.day.can.clone(),
+        day_chi: context.canchi.day.chi.clone(),
+        day_chi_index: context.canchi.day.chi_index,
+        year_can: context.canchi.year.can.clone(),
 
-        tiet_khi: info.tiet_khi.name.clone(),
+        tiet_khi: context.tiet_khi.name.clone(),
 
         expected_truc_name: fortune.truc.name.clone(),
         expected_truc_index: fortune.truc.index,

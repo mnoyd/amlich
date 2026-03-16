@@ -46,18 +46,16 @@ pub fn get_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
     let enabled_pack_ids = normalize_enabled_pack_ids(&query.enabled_pack_ids)?;
 
     let tz = query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE);
-    let info = amlich_core::get_day_info_with_recommendation_request(
+    let snapshot = amlich_core::calculate_day_snapshot_with_recommendation_request(
         query.day,
         query.month,
         query.year,
         tz,
-        amlich_core::RecommendationRequest {
-            ruleset_id: normalized_ruleset_id.as_deref(),
-            event_kind: normalized_event_kind.as_deref(),
-            enabled_pack_ids: &enabled_pack_ids,
-        },
+        normalized_ruleset_id.as_deref(),
+        normalized_event_kind.as_deref(),
+        &enabled_pack_ids,
     )?;
-    Ok(DayInfoDto::from(&info))
+    Ok(DayInfoDto::from(&snapshot))
 }
 
 fn normalize_ruleset_id(ruleset_id: Option<&str>) -> Result<Option<String>, String> {

@@ -907,12 +907,12 @@ mod tests {
             }
         }
 
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: Some("default"),
             event_kind: Some("medical_checkup"),
             enabled_pack_ids: &[],
@@ -984,12 +984,12 @@ mod tests {
             }
         }
 
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: Some("default"),
             event_kind: Some("contract_signing"),
             enabled_pack_ids: &[],
@@ -1048,12 +1048,12 @@ mod tests {
 
     #[test]
     fn enabled_pack_metadata_is_emitted() {
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: None,
             event_kind: None,
             enabled_pack_ids: &[NHI_THAP_BAT_TU_PACK.pack_id],
@@ -1069,12 +1069,12 @@ mod tests {
 
     #[test]
     fn event_kind_layer_adds_contract_activity_reason() {
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: Some("session"),
             event_kind: Some("contract_signing"),
             enabled_pack_ids: &[],
@@ -1095,12 +1095,12 @@ mod tests {
 
     #[test]
     fn duplicate_pack_ids_fail_explicitly() {
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: None,
             event_kind: None,
             enabled_pack_ids: &[NHI_THAP_BAT_TU_PACK.pack_id, NHI_THAP_BAT_TU_PACK.pack_id],
@@ -1116,12 +1116,12 @@ mod tests {
 
     #[test]
     fn unknown_pack_ids_fail_explicitly() {
-        let info = crate::get_day_info(10, 2, 2024);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
-            day_chi: &info.canchi.day.chi,
-            day_fortune: &info.day_fortune,
-            gio_hoang_dao: Some(&info.gio_hoang_dao),
-            tiet_khi_name: Some(&info.tiet_khi.name),
+            day_chi: &snapshot.context.canchi.day.chi,
+            day_fortune: &snapshot.day_fortune,
+            gio_hoang_dao: Some(&snapshot.context.gio_hoang_dao),
+            tiet_khi_name: Some(&snapshot.context.tiet_khi.name),
             profile_id: None,
             event_kind: None,
             enabled_pack_ids: &["pack.unknown.v1"],

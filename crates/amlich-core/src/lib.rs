@@ -35,155 +35,145 @@ use crate::almanac::types::DayFortune;
 use canchi::{get_day_canchi, get_month_canchi, get_year_canchi};
 use gio_hoang_dao::{get_gio_hoang_dao, GioHoangDao};
 use julian::jd_from_date;
-use lunar::convert_solar_to_lunar;
+use lunar::{convert_solar_to_lunar, LunarDate};
 use tietkhi::{get_tiet_khi, SolarTerm};
 
-/// Solar date information
 #[derive(Debug, Clone)]
-pub struct SolarInfo {
+pub struct SolarDate {
     pub day: i32,
     pub month: i32,
     pub year: i32,
     pub day_of_week: usize,
-    pub day_of_week_name: String,
-    pub date_string: String,
 }
 
-/// Lunar date information
 #[derive(Debug, Clone)]
-pub struct LunarInfo {
-    pub day: i32,
-    pub month: i32,
-    pub year: i32,
-    pub is_leap_month: bool,
-    pub date_string: String,
-}
-
-/// Can Chi information for day, month, and year
-#[derive(Debug, Clone)]
-pub struct CanChiInfo {
+pub struct CanChiSet {
     pub day: CanChi,
     pub month: CanChi,
     pub year: CanChi,
-    pub full: String,
 }
 
-/// Complete information about a day
 #[derive(Debug, Clone)]
-pub struct DayInfo {
+pub struct DayContext {
+    pub solar: SolarDate,
+    pub lunar: LunarDate,
+    pub jd: i32,
+    pub weekday_index: usize,
+    pub canchi: CanChiSet,
+    pub tiet_khi: SolarTerm,
+    pub gio_hoang_dao: GioHoangDao,
+}
+
+#[derive(Debug, Clone)]
+pub struct DaySnapshot {
     pub ruleset_id: String,
     pub ruleset_version: String,
     pub profile: String,
-    pub solar: SolarInfo,
-    pub lunar: LunarInfo,
-    pub jd: i32,
-    pub canchi: CanChiInfo,
-    pub tiet_khi: SolarTerm,
-    pub gio_hoang_dao: GioHoangDao,
+    pub context: DayContext,
     pub day_fortune: DayFortune,
     pub daily_recommendations: DailyRecommendations,
     pub contextual_recommendations: Option<DailyRecommendations>,
 }
 
 #[derive(Debug, Clone, Default)]
-pub struct RecommendationRequest<'a> {
-    pub ruleset_id: Option<&'a str>,
-    pub event_kind: Option<&'a str>,
-    pub enabled_pack_ids: &'a [&'a str],
+struct SnapshotRequest<'a> {
+    ruleset_id: Option<&'a str>,
+    event_kind: Option<&'a str>,
+    enabled_pack_ids: &'a [&'a str],
 }
 
-/// Get comprehensive information for a given solar date
-///
-/// # Arguments
-/// * `day` - Day (1-31)
-/// * `month` - Month (1-12)
-/// * `year` - Year
-///
-/// # Returns
-/// Complete day information including solar, lunar, Can Chi, solar terms, and auspicious hours
-///
-/// # Example
-/// ```
-/// use amlich_core::get_day_info;
-///
-/// // Get info for Tết 2024 (February 10, 2024)
-/// let info = get_day_info(10, 2, 2024);
-/// println!("Lunar date: {}/{}/{}", info.lunar.day, info.lunar.month, info.lunar.year);
-/// println!("Day Can Chi: {}", info.canchi.day.full);
-/// ```
-pub fn get_day_info(day: i32, month: i32, year: i32) -> DayInfo {
-    get_day_info_with_timezone(day, month, year, VIETNAM_TIMEZONE)
+pub fn compute_day_context(day: i32, month: i32, year: i32, time_zone: f64) -> DayContext {
+    let jd = jd_from_date(day, month, year);
+    let lunar = convert_solar_to_lunar(day, month, year, time_zone);
+    let weekday_index = ((jd + 1) % 7) as usize;
+    let day_canchi = get_day_canchi(jd);
+    let month_canchi = get_month_canchi(lunar.month, lunar.year, lunar.is_leap);
+    let year_canchi = get_year_canchi(lunar.year);
+    let tiet_khi = get_tiet_khi(jd, time_zone);
+    let gio_hoang_dao = get_gio_hoang_dao(day_canchi.chi_index);
+
+    DayContext {
+        solar: SolarDate {
+            day,
+            month,
+            year,
+            day_of_week: weekday_index,
+        },
+        lunar,
+        jd,
+        weekday_index,
+        canchi: CanChiSet {
+            day: day_canchi,
+            month: month_canchi,
+            year: year_canchi,
+        },
+        tiet_khi,
+        gio_hoang_dao,
+    }
 }
 
-pub fn get_day_info_with_recommendation_request(
+pub fn calculate_day_snapshot(day: i32, month: i32, year: i32) -> DaySnapshot {
+    calculate_day_snapshot_with_timezone(day, month, year, VIETNAM_TIMEZONE)
+}
+
+pub fn calculate_day_snapshot_with_recommendation_request(
     day: i32,
     month: i32,
     year: i32,
     time_zone: f64,
-    recommendation_request: RecommendationRequest<'_>,
-) -> Result<DayInfo, String> {
-    get_day_info_internal(day, month, year, time_zone, recommendation_request)
+    ruleset_id: Option<&str>,
+    event_kind: Option<&str>,
+    enabled_pack_ids: &[&str],
+) -> Result<DaySnapshot, String> {
+    calculate_day_snapshot_internal(
+        day,
+        month,
+        year,
+        time_zone,
+        SnapshotRequest {
+            ruleset_id,
+            event_kind,
+            enabled_pack_ids,
+        },
+    )
 }
 
-/// Get comprehensive information for a given solar date with custom timezone
-///
-/// # Arguments
-/// * `day` - Day (1-31)
-/// * `month` - Month (1-12)
-/// * `year` - Year
-/// * `time_zone` - Timezone offset (default: VIETNAM_TIMEZONE for Vietnam UTC+7)
-///
-/// # Returns
-/// Complete day information
-pub fn get_day_info_with_timezone(day: i32, month: i32, year: i32, time_zone: f64) -> DayInfo {
-    get_day_info_internal(day, month, year, time_zone, RecommendationRequest::default())
+pub fn calculate_day_snapshot_with_timezone(
+    day: i32,
+    month: i32,
+    year: i32,
+    time_zone: f64,
+) -> DaySnapshot {
+    calculate_day_snapshot_internal(day, month, year, time_zone, SnapshotRequest::default())
         .expect("default recommendation request should be valid")
 }
 
-fn get_day_info_internal(
+fn calculate_day_snapshot_internal(
     day: i32,
     month: i32,
     year: i32,
     time_zone: f64,
-    recommendation_request: RecommendationRequest<'_>,
-) -> Result<DayInfo, String> {
+    recommendation_request: SnapshotRequest<'_>,
+) -> Result<DaySnapshot, String> {
     let ruleset_entry = match recommendation_request.ruleset_id {
         Some(ruleset_id) => Some(get_ruleset(ruleset_id).map_err(|err| err.to_string())?),
         None => None,
     };
 
-    // Calculate Julian Day Number
-    let jd = jd_from_date(day, month, year);
-
-    // Convert to lunar date
-    let lunar_date = convert_solar_to_lunar(day, month, year, time_zone);
-
-    // Calculate day of week (JD + 1 because JD 0 was Monday)
-    let day_of_week = ((jd + 1) % 7) as usize;
-
-    // Calculate Can Chi for day, month, year
-    let day_canchi = get_day_canchi(jd);
-    let month_canchi = get_month_canchi(lunar_date.month, lunar_date.year, lunar_date.is_leap);
-    let year_canchi = get_year_canchi(lunar_date.year);
-
-    // Calculate Solar Term (Tiết Khí)
-    let tiet_khi = get_tiet_khi(jd, time_zone);
-
-    // Calculate Auspicious Hours (Giờ Hoàng Đạo)
-    let gio_hoang_dao = get_gio_hoang_dao(day_canchi.chi_index);
+    let context = compute_day_context(day, month, year, time_zone);
     let day_fortune = calculate_day_fortune(
-        jd,
-        &day_canchi,
-        lunar_date.day,
-        lunar_date.month,
-        &year_canchi.can,
-        &tiet_khi.name,
+        context.jd,
+        &context.canchi.day,
+        context.lunar.day,
+        context.lunar.month,
+        &context.canchi.year.can,
+        &context.tiet_khi.name,
     );
     let recommendation_context = RecommendationSynthesisContext {
-        day_chi: &day_canchi.chi,
+        day_chi: &context.canchi.day.chi,
         day_fortune: &day_fortune,
-        gio_hoang_dao: Some(&gio_hoang_dao),
-        tiet_khi_name: Some(&tiet_khi.name),
+        gio_hoang_dao: Some(&context.gio_hoang_dao),
+        tiet_khi_name: Some(&context.tiet_khi.name),
         profile_id: ruleset_entry.map(|entry| entry.descriptor.profile),
         event_kind: None,
         enabled_pack_ids: &[],
@@ -193,10 +183,10 @@ fn get_day_info_internal(
         || !recommendation_request.enabled_pack_ids.is_empty()
     {
         let contextual_context = RecommendationSynthesisContext {
-            day_chi: &day_canchi.chi,
+            day_chi: &context.canchi.day.chi,
             day_fortune: &day_fortune,
-            gio_hoang_dao: Some(&gio_hoang_dao),
-            tiet_khi_name: Some(&tiet_khi.name),
+            gio_hoang_dao: Some(&context.gio_hoang_dao),
+            tiet_khi_name: Some(&context.tiet_khi.name),
             profile_id: Some("contextual"),
             event_kind: recommendation_request.event_kind,
             enabled_pack_ids: recommendation_request.enabled_pack_ids,
@@ -209,52 +199,11 @@ fn get_day_info_internal(
         None
     };
 
-    // Build solar info
-    let solar = SolarInfo {
-        day,
-        month,
-        year,
-        day_of_week,
-        day_of_week_name: THU[day_of_week].to_string(),
-        date_string: format!("{}-{:02}-{:02}", year, month, day),
-    };
-
-    // Build lunar info
-    let lunar = LunarInfo {
-        day: lunar_date.day,
-        month: lunar_date.month,
-        year: lunar_date.year,
-        is_leap_month: lunar_date.is_leap,
-        date_string: format!(
-            "{}/{}/{}{}",
-            lunar_date.day,
-            lunar_date.month,
-            lunar_date.year,
-            if lunar_date.is_leap { " (nhuận)" } else { "" }
-        ),
-    };
-
-    // Build Can Chi info
-    let canchi = CanChiInfo {
-        day: day_canchi.clone(),
-        month: month_canchi.clone(),
-        year: year_canchi.clone(),
-        full: format!(
-            "{}, tháng {}, năm {}",
-            day_canchi.full, month_canchi.full, year_canchi.full
-        ),
-    };
-
-    Ok(DayInfo {
+    Ok(DaySnapshot {
         ruleset_id: day_fortune.ruleset_id.clone(),
         ruleset_version: day_fortune.ruleset_version.clone(),
         profile: day_fortune.profile.clone(),
-        solar,
-        lunar,
-        jd,
-        canchi,
-        tiet_khi,
-        gio_hoang_dao,
+        context,
         day_fortune,
         daily_recommendations,
         contextual_recommendations,
@@ -266,99 +215,61 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_day_info_tet_2024() {
-        // Tết 2024: February 10, 2024
-        let info = get_day_info(10, 2, 2024);
+    fn compute_day_context_exposes_structured_calendar_facts() {
+        let context = compute_day_context(10, 2, 2024, VIETNAM_TIMEZONE);
 
-        // Check solar date
-        assert_eq!(info.solar.day, 10);
-        assert_eq!(info.solar.month, 2);
-        assert_eq!(info.solar.year, 2024);
-
-        // Check lunar date (should be 1/1/2024)
-        assert_eq!(info.lunar.day, 1);
-        assert_eq!(info.lunar.month, 1);
-        assert_eq!(info.lunar.year, 2024);
-        assert!(!info.lunar.is_leap_month);
-
-        // Check Can Chi
-        assert_eq!(info.canchi.day.full, "Giáp Thìn");
-        assert_eq!(info.canchi.year.full, "Giáp Thìn");
-        assert_eq!(info.ruleset_id, "vn_baseline_v1");
-        assert_eq!(info.ruleset_version, "v1");
-        assert_eq!(info.profile, "baseline");
+        assert_eq!(context.solar.day, 10);
+        assert_eq!(context.solar.month, 2);
+        assert_eq!(context.solar.year, 2024);
+        assert_eq!(context.weekday_index, context.solar.day_of_week);
+        assert_eq!(context.lunar.day, 1);
+        assert_eq!(context.lunar.month, 1);
+        assert_eq!(context.lunar.year, 2024);
+        assert!(!context.lunar.is_leap);
+        assert_eq!(context.canchi.day.full, "Giáp Thìn");
+        assert_eq!(context.canchi.year.full, "Giáp Thìn");
+        assert_eq!(context.tiet_khi.name, "Lập Xuân");
+        assert_eq!(context.gio_hoang_dao.good_hour_count, 6);
     }
 
     #[test]
-    fn test_get_day_info_tet_2025() {
-        // Tết 2025: January 29, 2025
-        let info = get_day_info(29, 1, 2025);
+    fn compute_day_context_supports_custom_timezone() {
+        let context = compute_day_context(10, 2, 2024, 8.0);
 
-        // Check lunar date (should be 1/1/2025)
-        assert_eq!(info.lunar.day, 1);
-        assert_eq!(info.lunar.month, 1);
-        assert_eq!(info.lunar.year, 2025);
-
-        // Check Can Chi
-        assert_eq!(info.canchi.day.full, "Mậu Tuất");
-        assert_eq!(info.canchi.year.full, "Ất Tỵ");
+        assert_eq!(context.solar.day, 10);
+        assert_eq!(context.solar.month, 2);
+        assert_eq!(context.solar.year, 2024);
     }
 
     #[test]
-    fn test_day_of_week() {
-        // Test a known day: January 1, 2000 was a Saturday (index 6)
-        let info = get_day_info(1, 1, 2000);
-        assert_eq!(info.solar.day_of_week, 6);
-        assert_eq!(info.solar.day_of_week_name, "Thứ Bảy");
+    fn calculate_day_snapshot_keeps_recommendations_and_ruleset_metadata() {
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
+
+        assert_eq!(snapshot.ruleset_id, "vn_baseline_v1");
+        assert_eq!(snapshot.ruleset_version, "v1");
+        assert_eq!(snapshot.profile, "baseline");
+        assert!(!snapshot.daily_recommendations.activities.is_empty());
+        assert!(!snapshot.daily_recommendations.summary_vi.is_empty());
+        assert_eq!(snapshot.daily_recommendations.ruleset_id, snapshot.ruleset_id);
+        assert_eq!(snapshot.daily_recommendations.ruleset_version, snapshot.ruleset_version);
+        assert_eq!(snapshot.daily_recommendations.profile, snapshot.profile);
+        assert!(snapshot.contextual_recommendations.is_none());
     }
 
     #[test]
-    fn test_gio_hoang_dao_present() {
-        let info = get_day_info(10, 2, 2024);
-
-        // Should have 6 good hours
-        assert_eq!(info.gio_hoang_dao.good_hour_count, 6);
-        assert_eq!(info.gio_hoang_dao.good_hours.len(), 6);
-    }
-
-    #[test]
-    fn test_custom_timezone() {
-        // Test with different timezone (should work but give potentially different results)
-        let info = get_day_info_with_timezone(10, 2, 2024, 8.0);
-
-        // Should still work
-        assert_eq!(info.solar.day, 10);
-        assert_eq!(info.solar.month, 2);
-        assert_eq!(info.solar.year, 2024);
-    }
-
-    #[test]
-    fn test_daily_recommendations_present() {
-        let info = get_day_info(10, 2, 2024);
-        assert!(!info.daily_recommendations.activities.is_empty());
-        assert!(!info.daily_recommendations.summary_vi.is_empty());
-        assert_eq!(info.daily_recommendations.ruleset_id, info.ruleset_id);
-        assert_eq!(info.daily_recommendations.ruleset_version, info.ruleset_version);
-        assert_eq!(info.daily_recommendations.profile, info.profile);
-        assert!(info.contextual_recommendations.is_none());
-    }
-
-    #[test]
-    fn contextual_recommendations_are_emitted_when_requested() {
-        let info = get_day_info_with_recommendation_request(
+    fn calculate_day_snapshot_emits_contextual_recommendations_when_requested() {
+        let snapshot = calculate_day_snapshot_with_recommendation_request(
             10,
             2,
             2024,
             VIETNAM_TIMEZONE,
-            RecommendationRequest {
-                ruleset_id: None,
-                event_kind: Some("contract_signing"),
-                enabled_pack_ids: &[],
-            },
+            None,
+            Some("contract_signing"),
+            &[],
         )
-        .expect("contextual day info");
+        .expect("contextual day snapshot");
 
-        let contextual = info
+        let contextual = snapshot
             .contextual_recommendations
             .as_ref()
             .expect("contextual recommendations");
@@ -373,17 +284,15 @@ mod tests {
     }
 
     #[test]
-    fn contextual_request_rejects_unknown_pack_ids() {
-        let err = get_day_info_with_recommendation_request(
+    fn calculate_day_snapshot_rejects_unknown_pack_ids() {
+        let err = calculate_day_snapshot_with_recommendation_request(
             10,
             2,
             2024,
             VIETNAM_TIMEZONE,
-            RecommendationRequest {
-                ruleset_id: None,
-                event_kind: None,
-                enabled_pack_ids: &["pack.unknown.v1"],
-            },
+            None,
+            None,
+            &["pack.unknown.v1"],
         )
         .expect_err("unknown pack should fail");
 

@@ -7,8 +7,10 @@
 //! This is INVENTORY ONLY -- no corrections are applied.
 //! Requirements: THH-01 (10 stems x 3 directions: xuat_hanh, tai_than, hy_than).
 
+mod support;
+
 use amlich_core::almanac::golden_loader::load_golden_dataset;
-use amlich_core::get_day_info;
+use support::day_snapshot;
 
 /// THH-01: Validate travel direction fields for all 233 golden entries.
 ///
@@ -22,8 +24,8 @@ fn validate_than_huong_against_golden() {
     let mut mismatches: Vec<String> = Vec::new();
 
     for entry in &dataset.entries {
-        let info = get_day_info(entry.solar_day, entry.solar_month, entry.solar_year);
-        let travel = &info.day_fortune.travel;
+        let snapshot = day_snapshot(entry.solar_day, entry.solar_month, entry.solar_year);
+        let travel = &snapshot.day_fortune.travel;
 
         if travel.xuat_hanh_huong != entry.expected_xuat_hanh {
             mismatches.push(format!(

@@ -36,38 +36,47 @@ impl From<&amlich_core::CanChi> for CanChiDto {
     }
 }
 
-impl From<&amlich_core::CanChiInfo> for CanChiInfoDto {
-    fn from(value: &amlich_core::CanChiInfo) -> Self {
+impl From<&amlich_core::CanChiSet> for CanChiInfoDto {
+    fn from(value: &amlich_core::CanChiSet) -> Self {
         Self {
             day: CanChiDto::from(&value.day),
             month: CanChiDto::from(&value.month),
             year: CanChiDto::from(&value.year),
-            full: value.full.clone(),
+            full: format!(
+                "{}, tháng {}, năm {}",
+                value.day.full, value.month.full, value.year.full
+            ),
         }
     }
 }
 
-impl From<&amlich_core::SolarInfo> for SolarDto {
-    fn from(value: &amlich_core::SolarInfo) -> Self {
+impl From<&amlich_core::SolarDate> for SolarDto {
+    fn from(value: &amlich_core::SolarDate) -> Self {
         Self {
             day: value.day,
             month: value.month,
             year: value.year,
             day_of_week: value.day_of_week,
-            day_of_week_name: value.day_of_week_name.clone(),
-            date_string: value.date_string.clone(),
+            day_of_week_name: amlich_core::THU[value.day_of_week].to_string(),
+            date_string: format!("{}-{:02}-{:02}", value.year, value.month, value.day),
         }
     }
 }
 
-impl From<&amlich_core::LunarInfo> for LunarDto {
-    fn from(value: &amlich_core::LunarInfo) -> Self {
+impl From<&amlich_core::lunar::LunarDate> for LunarDto {
+    fn from(value: &amlich_core::lunar::LunarDate) -> Self {
         Self {
             day: value.day,
             month: value.month,
             year: value.year,
-            is_leap_month: value.is_leap_month,
-            date_string: value.date_string.clone(),
+            is_leap_month: value.is_leap,
+            date_string: format!(
+                "{}/{}/{}{}",
+                value.day,
+                value.month,
+                value.year,
+                if value.is_leap { " (nhuận)" } else { "" }
+            ),
         }
     }
 }
@@ -660,18 +669,18 @@ impl From<&amlich_core::almanac::recommendation::DailyRecommendations> for Daily
     }
 }
 
-impl From<&amlich_core::DayInfo> for DayInfoDto {
-    fn from(value: &amlich_core::DayInfo) -> Self {
+impl From<&amlich_core::DaySnapshot> for DayInfoDto {
+    fn from(value: &amlich_core::DaySnapshot) -> Self {
         Self {
             ruleset_id: value.ruleset_id.clone(),
             ruleset_version: value.ruleset_version.clone(),
             profile: value.profile.clone(),
-            solar: SolarDto::from(&value.solar),
-            lunar: LunarDto::from(&value.lunar),
-            jd: value.jd,
-            canchi: CanChiInfoDto::from(&value.canchi),
-            tiet_khi: TietKhiDto::from(&value.tiet_khi),
-            gio_hoang_dao: GioHoangDaoDto::from(&value.gio_hoang_dao),
+            solar: SolarDto::from(&value.context.solar),
+            lunar: LunarDto::from(&value.context.lunar),
+            jd: value.context.jd,
+            canchi: CanChiInfoDto::from(&value.context.canchi),
+            tiet_khi: TietKhiDto::from(&value.context.tiet_khi),
+            gio_hoang_dao: GioHoangDaoDto::from(&value.context.gio_hoang_dao),
             day_fortune: Some(DayFortuneDto::from(&value.day_fortune)),
             daily_recommendations: DailyRecommendationsDto::from(&value.daily_recommendations),
             contextual_recommendations: value
