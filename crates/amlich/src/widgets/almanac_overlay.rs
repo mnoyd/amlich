@@ -59,6 +59,60 @@ impl<'a> AlmanacOverlay<'a> {
         Line::from(Span::styled(format!("-- {label} "), theme::section_style()))
     }
 
+    fn tr<'b>(&self, vi: &'b str, en: &'b str) -> &'b str {
+        match self.app.insight_lang {
+            InsightLang::Vi => vi,
+            InsightLang::En => en,
+        }
+    }
+
+    fn map_source_token(&self, token: &str) -> String {
+        match token {
+            "khcbppt" => self
+                .tr("Khâm định hiệp kỷ biện phương thư", "KhCBBPT")
+                .to_string(),
+            "tam-menh-thong-hoi" => self
+                .tr("Tam mệnh thông hội", "Tam Menh Thong Hoi")
+                .to_string(),
+            "nhi-thap-bat-tu" => self.tr("Nhị thập bát tú", "28 Mansions").to_string(),
+            other => other.to_string(),
+        }
+    }
+
+    fn map_method_token(&self, token: &str) -> String {
+        match token {
+            "table-lookup" => self.tr("Tra bảng", "Table lookup").to_string(),
+            "bai-quyet" => self.tr("Bài quyết", "Verse rule").to_string(),
+            "formula" => self.tr("Công thức", "Formula").to_string(),
+            "jd-cycle" => self.tr("Chu kỳ JD", "JD cycle").to_string(),
+            other => other.to_string(),
+        }
+    }
+
+    fn map_profile_token(&self, token: &str) -> String {
+        match token {
+            "baseline" => self.tr("Mặc định", "Baseline").to_string(),
+            other => other.to_string(),
+        }
+    }
+
+    fn push_kv_line<'b>(lines: &mut Vec<Line<'b>>, label: &str, value: String) {
+        lines.push(Line::from(vec![
+            Span::styled(
+                format!("{label}: "),
+                Style::default().fg(theme::SECONDARY_FG),
+            ),
+            Span::styled(value, Style::default().fg(theme::PRIMARY_FG)),
+        ]));
+    }
+
+    fn push_wrapped_text<'b>(lines: &mut Vec<Line<'b>>, prefix: &str, value: String) {
+        lines.push(Line::from(vec![
+            Span::styled(prefix.to_string(), Style::default().fg(theme::SECONDARY_FG)),
+            Span::styled(value, Style::default().fg(theme::PRIMARY_FG)),
+        ]));
+    }
+
     fn no_fortune_message(&self) -> &'static str {
         match self.app.insight_lang {
             InsightLang::Vi => "Khong co du lieu almanac cho ngay nay",
@@ -296,22 +350,42 @@ impl<'a> AlmanacOverlay<'a> {
         lines
     }
 
-    fn push_evidence_line<'b>(
+    fn push_evidence_item<'b>(
         lines: &mut Vec<Line<'b>>,
-        label: &str,
+        label: String,
         ev: Option<&amlich_api::RuleEvidenceDto>,
+        raw_mode: bool,
+        overlay: &AlmanacOverlay<'_>,
     ) {
         if let Some(ev) = ev {
             lines.push(Line::from(vec![
+                Span::styled("• ", Style::default().fg(theme::ACCENT_FG)),
                 Span::styled(
-                    format!("{label}: "),
-                    Style::default().fg(theme::SECONDARY_FG),
-                ),
-                Span::styled(
-                    format!("{} · {} · {}", ev.source_id, ev.method, ev.profile),
-                    Style::default().fg(theme::PRIMARY_FG),
+                    label,
+                    Style::default()
+                        .fg(theme::PRIMARY_FG)
+                        .add_modifier(Modifier::BOLD),
                 ),
             ]));
+            if raw_mode {
+                Self::push_wrapped_text(
+                    lines,
+                    "  raw: ",
+                    format!("{} · {} · {}", ev.source_id, ev.method, ev.profile),
+                );
+            } else {
+                Self::push_wrapped_text(
+                    lines,
+                    "  nguồn: ",
+                    overlay.map_source_token(&ev.source_id),
+                );
+                Self::push_wrapped_text(
+                    lines,
+                    "  cách tính: ",
+                    overlay.map_method_token(&ev.method),
+                );
+                Self::push_wrapped_text(lines, "  hồ sơ: ", overlay.map_profile_token(&ev.profile));
+            }
         }
     }
 
@@ -327,68 +401,120 @@ impl<'a> AlmanacOverlay<'a> {
             ))];
         };
 
-        lines.push(Self::section_line("Ruleset provenance"));
-        lines.push(Line::from(vec![
-            Span::styled(
-                "DayInfo ruleset: ",
-                Style::default().fg(theme::SECONDARY_FG),
+        let raw_mode = self.app.almanac_evidence_raw;
+        let ruleset_title = self.tr("Nguồn dữ liệu", "Ruleset provenance");
+        lines.push(Self::section_line(ruleset_title));
+        Self::push_kv_line(
+            &mut lines,
+            self.tr("DayInfo", "DayInfo"),
+            format!("{}@{}", info.ruleset_id, info.ruleset_version),
+        );
+        Self::push_kv_line(
+            &mut lines,
+            self.tr("Day fortune", "Day fortune"),
+            format!(
+                "{}@{} ({})",
+                fortune.ruleset_id,
+                fortune.ruleset_version,
+                if raw_mode {
+                    fortune.profile.clone()
+                } else {
+                    self.map_profile_token(&fortune.profile)
+                }
             ),
-            Span::styled(
-                format!("{}@{}", info.ruleset_id, info.ruleset_version),
-                Style::default().fg(theme::PRIMARY_FG),
-            ),
-        ]));
-        lines.push(Line::from(vec![
-            Span::styled(
-                "Fortune ruleset: ",
-                Style::default().fg(theme::SECONDARY_FG),
-            ),
-            Span::styled(
-                format!(
-                    "{}@{} ({})",
-                    fortune.ruleset_id, fortune.ruleset_version, fortune.profile
-                ),
-                Style::default().fg(theme::PRIMARY_FG),
-            ),
-        ]));
+        );
+        lines.push(Line::from(Span::styled(
+            if raw_mode {
+                self.tr("[r] Chế độ raw: bật", "[r] Raw mode: on")
+            } else {
+                self.tr("[r] Chế độ raw: tắt", "[r] Raw mode: off")
+            },
+            Style::default().fg(theme::SECONDARY_FG),
+        )));
 
         lines.push(Line::from(""));
-        lines.push(Self::section_line("Evidence"));
-        Self::push_evidence_line(
+        lines.push(Self::section_line(
+            self.tr("Cách tính theo mục", "Per-field evidence"),
+        ));
+        Self::push_evidence_item(
             &mut lines,
-            "Day element",
+            self.tr("Mệnh ngày", "Day element").to_string(),
             fortune.day_element.evidence.as_ref(),
+            raw_mode,
+            self,
         );
-        Self::push_evidence_line(&mut lines, "Conflict", fortune.conflict.evidence.as_ref());
-        Self::push_evidence_line(&mut lines, "Travel", fortune.travel.evidence.as_ref());
-        Self::push_evidence_line(&mut lines, "Truc", fortune.truc.evidence.as_ref());
-        Self::push_evidence_line(&mut lines, "Stars", fortune.stars.evidence.as_ref());
+        Self::push_evidence_item(
+            &mut lines,
+            self.tr("Xung khắc", "Conflict").to_string(),
+            fortune.conflict.evidence.as_ref(),
+            raw_mode,
+            self,
+        );
+        Self::push_evidence_item(
+            &mut lines,
+            self.tr("Xuất hành / thần hướng", "Travel directions")
+                .to_string(),
+            fortune.travel.evidence.as_ref(),
+            raw_mode,
+            self,
+        );
+        Self::push_evidence_item(
+            &mut lines,
+            self.tr("Trực", "Truc").to_string(),
+            fortune.truc.evidence.as_ref(),
+            raw_mode,
+            self,
+        );
+        Self::push_evidence_item(
+            &mut lines,
+            self.tr("Sao", "Stars").to_string(),
+            fortune.stars.evidence.as_ref(),
+            raw_mode,
+            self,
+        );
         if let Some(deity) = &fortune.day_deity {
-            Self::push_evidence_line(&mut lines, "Day deity", deity.evidence.as_ref());
+            Self::push_evidence_item(
+                &mut lines,
+                self.tr("Thần ngày", "Day deity").to_string(),
+                deity.evidence.as_ref(),
+                raw_mode,
+                self,
+            );
         }
         if let Some(day_star) = &fortune.stars.day_star {
-            Self::push_evidence_line(&mut lines, "Day star", day_star.evidence.as_ref());
+            Self::push_evidence_item(
+                &mut lines,
+                self.tr("Sao chủ", "Day star").to_string(),
+                day_star.evidence.as_ref(),
+                raw_mode,
+                self,
+            );
         }
 
         if !fortune.taboos.is_empty() {
             lines.push(Line::from(""));
-            lines.push(Self::section_line("Taboo rule IDs"));
+            lines.push(Self::section_line(
+                self.tr("Quy tắc kiêng kỵ đang áp dụng", "Applied taboo rules"),
+            ));
             for taboo in fortune.taboos.iter().take(20) {
                 lines.push(Line::from(vec![
                     Span::styled("• ", Style::default().fg(theme::ACCENT_FG)),
-                    Span::styled(
-                        taboo.rule_id.clone(),
-                        Style::default().fg(theme::PRIMARY_FG),
-                    ),
-                    Span::raw("  "),
-                    Span::styled(taboo.name.clone(), Style::default().fg(theme::SECONDARY_FG)),
+                    Span::styled(taboo.name.clone(), Style::default().fg(theme::PRIMARY_FG)),
                 ]));
+                if raw_mode {
+                    Self::push_wrapped_text(&mut lines, "  rule_id: ", taboo.rule_id.clone());
+                } else {
+                    Self::push_wrapped_text(&mut lines, "  mã quy tắc: ", taboo.rule_id.clone());
+                }
             }
         }
 
         if lines.len() <= 3 {
             lines.push(Line::from(Span::styled(
-                "No evidence metadata available",
+                self.tr(
+                    "Không có dữ liệu nguồn/cách tính",
+                    "No evidence metadata available",
+                ),
                 Style::default().fg(theme::SECONDARY_FG),
             )));
         }
@@ -435,6 +561,8 @@ impl Widget for AlmanacOverlay<'_> {
                     Span::styled(" j/k scroll ", Style::default().fg(theme::ACCENT_FG)),
                     Span::raw(" "),
                     Span::styled(" 1-4 tabs ", Style::default().fg(theme::ACCENT_FG)),
+                    Span::raw(" "),
+                    Span::styled(" r raw ", Style::default().fg(theme::ACCENT_FG)),
                 ])
                 .alignment(Alignment::Center),
             );
@@ -489,7 +617,20 @@ mod tests {
         ));
         app.almanac_tab = AlmanacTab::Evidence;
         let text = lines_text(AlmanacOverlay::new(&app).tab_content());
-        assert!(text.contains("Ruleset provenance"));
-        assert!(text.contains("Fortune ruleset:"));
+        assert!(text.contains("Nguồn dữ liệu"));
+        assert!(text.contains("Day fortune:"));
+    }
+
+    #[test]
+    fn evidence_tab_renders_human_labels_by_default() {
+        let mut app = App::new_with_date(Some(
+            NaiveDate::from_ymd_opt(2024, 2, 10).expect("valid date"),
+        ));
+        app.almanac_tab = AlmanacTab::Evidence;
+        let text = lines_text(AlmanacOverlay::new(&app).tab_content());
+        assert!(text.contains("cách tính"));
+        assert!(
+            text.contains("Tra bảng") || text.contains("Bài quyết") || text.contains("Công thức")
+        );
     }
 }
