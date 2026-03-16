@@ -56,9 +56,14 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
     let mode = layout_mode(size.width);
 
     let content_area = page_content_area(page_area, mode);
+    let page_render_area = if app.is_calendar_view() {
+        page_area
+    } else {
+        content_area
+    };
 
-    // Render the main page widget within the content area
-    frame.render_widget(PageWidget::new(app, mode), content_area);
+    // Render the main page widget within the centered content area or fullscreen calendar overlay.
+    frame.render_widget(PageWidget::new(app, mode), page_render_area);
 
     // Render the fixed ribbon at the bottom
     frame.render_widget(RibbonWidget::new(app, mode), ribbon_area);
@@ -178,12 +183,14 @@ mod tests {
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,
+            show_week_strip: true,
             focused_section: PageSection::Hero,
             zoomed_section: None,
             expanded_sections: Default::default(),
             show_search: false,
             search_input: String::new(),
             calendar_cursor: date,
+            navigation_history: Vec::new(),
         }
     }
 

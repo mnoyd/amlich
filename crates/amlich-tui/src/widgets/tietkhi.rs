@@ -247,12 +247,14 @@ mod tests {
             show_guidance_details: false,
             show_tietkhi_details: expanded,
             show_evidence: false,
+            show_week_strip: true,
             focused_section: PageSection::TraditionalEvidence,
             zoomed_section: None,
             expanded_sections,
             show_search: false,
             search_input: String::new(),
             calendar_cursor: date,
+            navigation_history: Vec::new(),
         }
     }
 

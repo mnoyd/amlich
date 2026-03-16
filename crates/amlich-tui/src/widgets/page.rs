@@ -13,6 +13,7 @@ use super::{
     calendar::CalendarViewWidget, explorer::ExplorerWidget, guidance::GuidanceWidget,
     hero::HeroWidget, inspection::InspectionWidget, risk::RiskWidget, scholarly::ScholarlyWidget,
     tietkhi::TietKhiWidget, timeline::TimelineWidget, travel::TravelWidget,
+    week_strip::WeekStripWidget,
 };
 
 pub struct PageWidget<'a> {
@@ -77,12 +78,20 @@ impl Widget for PageWidget<'_> {
             return;
         }
 
+        let content_area = if self.app.show_week_strip {
+            let chunks = Layout::vertical([Constraint::Length(4), Constraint::Min(1)]).split(area);
+            WeekStripWidget::new(self.app).render(chunks[0], buf);
+            chunks[1]
+        } else {
+            area
+        };
+
         let is_large = self.mode == LayoutMode::Large;
 
         if is_large && self.app.zoomed_section.is_none() {
             let cols = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                 .margin(1)
-                .split(area);
+                .split(content_area);
 
             let mut left_area = cols[0];
             left_area.width = left_area.width.saturating_sub(1); // Gap
@@ -149,7 +158,7 @@ impl Widget for PageWidget<'_> {
                     }
                 })
                 .collect();
-            let chunks = Layout::vertical(constraints).split(area);
+            let chunks = Layout::vertical(constraints).split(content_area);
 
             for (chunk, section) in chunks.iter().zip(sections.into_iter()) {
                 self.render_section(section, *chunk, buf);
@@ -283,12 +292,14 @@ mod tests {
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,
+            show_week_strip: true,
             focused_section: PageSection::Hero,
             zoomed_section: None,
             expanded_sections: Default::default(),
             show_search: false,
             search_input: String::new(),
             calendar_cursor: date,
+            navigation_history: Vec::new(),
         }
     }
 

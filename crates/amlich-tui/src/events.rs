@@ -27,11 +27,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             KeyCode::Enter => {
                 let q = app.search_input.clone();
                 if let Ok(d) = chrono::NaiveDate::parse_from_str(&q, "%Y-%m-%d") {
-                    app.date = d;
-                    app.load_data();
+                    app.jump_to_date(d);
                 } else if let Ok(d) = chrono::NaiveDate::parse_from_str(&q, "%d/%m/%Y") {
-                    app.date = d;
-                    app.load_data();
+                    app.jump_to_date(d);
                 }
                 app.toggle_search();
             }
@@ -47,14 +45,16 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
     if app.is_calendar_view() {
         match code {
             KeyCode::Char('q') => app.running = false,
-            KeyCode::Esc | KeyCode::Char(' ') | KeyCode::Char('c') => app.close_calendar_view(),
+            KeyCode::Char('m') | KeyCode::Esc => app.close_calendar_view(),
             KeyCode::Enter => app.apply_calendar_selection(),
             KeyCode::Right | KeyCode::Char('l') => app.calendar_move_days(1),
             KeyCode::Left | KeyCode::Char('h') => app.calendar_move_days(-1),
             KeyCode::Down | KeyCode::Char('j') => app.calendar_move_days(7),
             KeyCode::Up | KeyCode::Char('k') => app.calendar_move_days(-7),
-            KeyCode::PageDown | KeyCode::Char('n') => app.calendar_next_month(),
-            KeyCode::PageUp | KeyCode::Char('p') => app.calendar_prev_month(),
+            KeyCode::Char(']') | KeyCode::PageDown | KeyCode::Char('n') => {
+                app.calendar_next_month()
+            }
+            KeyCode::Char('[') | KeyCode::PageUp | KeyCode::Char('p') => app.calendar_prev_month(),
             KeyCode::Char('t') => app.calendar_go_today(),
             _ => {}
         }
@@ -90,9 +90,11 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             },
             KeyCode::Char('r') => app.reset_staged_selection(),
             KeyCode::Enter => app.activate_explorer_focus(),
-            KeyCode::Char('t') => {
-                app.go_today();
-            }
+            KeyCode::Char('t') => app.jump_to_today(),
+            KeyCode::Char('m') => app.open_calendar_view(),
+            KeyCode::Char('w') => app.toggle_week_strip(),
+            KeyCode::Char('g') => app.toggle_search(),
+            KeyCode::Char('u') => app.undo_navigation(),
             KeyCode::Char('c') => app.toggle_calendar_view(),
             _ => {}
         }
@@ -102,9 +104,13 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
     match code {
         KeyCode::Char('q') | KeyCode::Esc => app.running = false,
         KeyCode::Char('r') if app.error_msg.is_some() => app.retry_load(),
-        KeyCode::Right | KeyCode::Char('l') => app.next_day(),
-        KeyCode::Left | KeyCode::Char('h') => app.prev_day(),
-        KeyCode::Char('t') => app.go_today(),
+        KeyCode::Right | KeyCode::Char('l') => app.navigate_days(1),
+        KeyCode::Left | KeyCode::Char('h') => app.navigate_days(-1),
+        KeyCode::Char('L') => app.navigate_weeks(1),
+        KeyCode::Char('H') => app.navigate_weeks(-1),
+        KeyCode::Char(']') => app.navigate_months(1),
+        KeyCode::Char('[') => app.navigate_months(-1),
+        KeyCode::Char('t') => app.jump_to_today(),
         KeyCode::Down | KeyCode::Char('j') => app.scroll_down(),
         KeyCode::Up | KeyCode::Char('k') => app.scroll_up(),
         KeyCode::PageDown => app.scroll_down_by(10),
@@ -115,6 +121,10 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::Char('e') => app.toggle_evidence(),
         KeyCode::Char('z') => app.toggle_zoom_for_focused_section(),
         KeyCode::Char('a') => app.expand_section(PageSection::Recommendations),
+        KeyCode::Char('m') => app.open_calendar_view(),
+        KeyCode::Char('w') => app.toggle_week_strip(),
+        KeyCode::Char('g') => app.toggle_search(),
+        KeyCode::Char('u') => app.undo_navigation(),
         KeyCode::Char(' ') | KeyCode::Char('c') => app.toggle_calendar_view(),
         KeyCode::Char('/') | KeyCode::Char('s') => app.toggle_search(),
         _ => {}
@@ -176,12 +186,14 @@ mod tests {
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,
+            show_week_strip: true,
             focused_section: PageSection::Explorer,
             zoomed_section: None,
             expanded_sections: Default::default(),
             show_search: false,
             search_input: String::new(),
             calendar_cursor: date,
+            navigation_history: Vec::new(),
         }
     }
 
@@ -217,6 +229,45 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Char('e'), KeyModifiers::NONE);
         assert!(!app.show_evidence);
+    }
+
+    #[test]
+    fn key_t_jumps_to_today() {
+        let mut app = sample_app_state();
+        app.focused_section = PageSection::Hero;
+
+        dispatch_key(&mut app, KeyCode::Char('t'), KeyModifiers::NONE);
+
+        assert_eq!(app.date, chrono::Local::now().naive_local().date());
+    }
+
+    #[test]
+    fn key_shift_h_and_shift_l_navigate_week() {
+        let mut app = sample_app_state();
+        app.focused_section = PageSection::Hero;
+        let start = app.date;
+
+        dispatch_key(&mut app, KeyCode::Char('L'), KeyModifiers::SHIFT);
+        assert_eq!(app.date, start + chrono::Duration::days(7));
+
+        dispatch_key(&mut app, KeyCode::Char('H'), KeyModifiers::SHIFT);
+        assert_eq!(app.date, start);
+    }
+
+    #[test]
+    fn key_m_opens_month_popup_and_enter_applies_selection() {
+        let mut app = sample_app_state();
+        app.focused_section = PageSection::Hero;
+        let start = app.staged_selection.date;
+
+        dispatch_key(&mut app, KeyCode::Char('m'), KeyModifiers::NONE);
+        assert!(app.is_calendar_view());
+
+        dispatch_key(&mut app, KeyCode::Right, KeyModifiers::NONE);
+        dispatch_key(&mut app, KeyCode::Enter, KeyModifiers::NONE);
+
+        assert!(!app.is_calendar_view());
+        assert_eq!(app.staged_selection.date, start + chrono::Duration::days(1));
     }
 
     #[test]
