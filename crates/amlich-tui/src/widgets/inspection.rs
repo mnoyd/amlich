@@ -29,7 +29,7 @@ impl Widget for InspectionWidget<'_> {
         };
 
         let block = Block::default()
-            .title(" Inspection workspace ")
+            .title(" Nguồn Dữ Liệu & Ngữ Cảnh ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
         let inner = block.inner(area);
@@ -41,43 +41,19 @@ impl Widget for InspectionWidget<'_> {
         let mut lines = vec![
             Line::from(vec![
                 Span::styled(
-                    "Ngày kiểm tra: ",
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Span::raw(
-                    self.app
-                        .applied_selection
-                        .date
-                        .format("%Y-%m-%d")
-                        .to_string(),
-                ),
-            ]),
-            Line::from(vec![
-                Span::styled(
-                    "Bundle engine: ",
+                    "Engine đang áp dụng: ",
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw(format!(
-                    "ruleset_id={} · ruleset_version={} · profile={}",
+                    "{}@{} · {}",
                     bundle.ruleset_id, bundle.ruleset_version, bundle.profile
                 )),
             ]),
             Line::from(vec![
                 Span::styled(
-                    "Bundle schema: ",
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Span::raw(format!("schema_version={}", bundle.schema_version)),
-            ]),
-            Line::from(vec![
-                Span::styled(
-                    "Ngữ cảnh: ",
+                    "Kích hoạt ngữ cảnh: ",
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),
@@ -93,23 +69,29 @@ impl Widget for InspectionWidget<'_> {
                 ),
                 Span::raw(self.app.active_bundle_packs_summary()),
             ]),
-            Line::from(vec![
-                Span::styled(
-                    "Quay lại explorer: ",
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Span::raw("Tab/Shift+Tab giữ nguyên cấu hình đang áp dụng"),
-            ]),
         ];
 
-        if active_packs.is_empty() {
+        for layer in recommendation_layers.iter().take(2) {
+            let layer_label = match layer.kind {
+                RecommendationLayerKind::Contextual => "Lớp ngữ cảnh",
+                RecommendationLayerKind::Baseline => "Lớp nền",
+            };
+            let pack_label = if layer.active_pack_ids.is_empty() {
+                "packs=none".to_string()
+            } else {
+                format!("packs={}", layer.active_pack_ids.join(", "))
+            };
             lines.push(Line::from(vec![
-                Span::raw("  • "),
-                Span::raw("runtime provenance: packs=none"),
+                Span::styled(
+                    format!("{layer_label}: "),
+                    Style::default().fg(Color::Yellow),
+                ),
+                Span::raw(format!("{} · {}", layer.summary, pack_label)),
             ]));
-        } else {
+        }
+
+        if self.app.show_evidence {
+            lines.push(Line::from(""));
             lines.push(Line::from(vec![
                 Span::styled(
                     "Runtime provenance: ",
@@ -117,8 +99,20 @@ impl Widget for InspectionWidget<'_> {
                         .fg(Color::Yellow)
                         .add_modifier(Modifier::BOLD),
                 ),
-                Span::raw("active recommendation packs"),
+                Span::raw("chi tiết nguồn tổng hợp"),
             ]));
+            lines.push(Line::from(vec![
+                Span::raw("  • "),
+                Span::raw(format!("schema_version={}", bundle.schema_version)),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("  • "),
+                Span::raw(format!(
+                    "ruleset_id={} · ruleset_version={} · profile={}",
+                    bundle.ruleset_id, bundle.ruleset_version, bundle.profile
+                )),
+            ]));
+
             for pack in active_packs {
                 lines.push(Line::from(vec![
                     Span::raw("  • "),
@@ -128,44 +122,11 @@ impl Widget for InspectionWidget<'_> {
                     )),
                 ]));
             }
-        }
-
-        for layer in recommendation_layers {
-            lines.push(Line::from(""));
-            lines.push(Line::from(vec![
-                Span::styled(
-                    match layer.kind {
-                        RecommendationLayerKind::Contextual => "Khuyến nghị ngữ cảnh: ",
-                        RecommendationLayerKind::Baseline => "Khuyến nghị nền: ",
-                    },
-                    Style::default()
-                        .fg(match layer.kind {
-                            RecommendationLayerKind::Contextual => Color::Yellow,
-                            RecommendationLayerKind::Baseline => Color::Green,
-                        })
-                        .add_modifier(Modifier::BOLD),
-                ),
-                Span::raw(layer.label),
-            ]));
-            lines.push(Line::from(vec![
-                Span::raw("  • "),
-                Span::raw(format!(
-                    "ruleset_id={} · ruleset_version={} · profile={} · scope={}",
-                    layer.ruleset_id, layer.ruleset_version, layer.profile, layer.scope_label
-                )),
-            ]));
-            lines.push(Line::from(vec![
-                Span::raw("  • "),
-                Span::raw(if layer.active_pack_ids.is_empty() {
-                    "packs=none".to_string()
-                } else {
-                    format!("packs={}", layer.active_pack_ids.join(", "))
-                }),
-            ]));
-            lines.push(Line::from(vec![
-                Span::raw("  • "),
-                Span::raw(layer.summary),
-            ]));
+        } else {
+            lines.push(Line::from(vec![Span::styled(
+                "Nhấn e để xem chứng cứ và metadata chi tiết.",
+                Style::default().fg(Color::DarkGray),
+            )]));
         }
 
         Paragraph::new(lines).render(inner, buf);
@@ -240,6 +201,8 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
     }
 
@@ -377,13 +340,12 @@ mod tests {
 
         let text = render_text(&app);
 
-        assert!(text.contains("Bundle engine:"));
-        assert!(text.contains("schema_version=amlich.engine/v1"));
-        assert!(text.contains("Khuyến nghị ngữ cảnh:"));
-        assert!(text.contains("profile=contract_signing"));
-        assert!(text.contains("packs=pack.contract.v1"));
-        assert!(text.contains("Khuyến nghị nền:"));
+        assert!(text.contains("Engine đang áp dụng:"));
+        assert!(text.contains("Kích hoạt ngữ cảnh:"));
+        assert!(text.contains("pack.contract.v1"));
         assert!(text.contains("Ngày nền ổn định"));
+        assert!(!text.contains("schema_version="));
+        assert!(!text.contains("ruleset_id="));
     }
 
     #[test]
@@ -435,6 +397,7 @@ mod tests {
             contextual_recommendations: None,
             insight: None,
         });
+        app.show_evidence = true;
 
         let text = render_text(&app);
 

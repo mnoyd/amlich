@@ -38,19 +38,14 @@ impl Widget for HeroWidget<'_> {
             .map(|item| item.summary.as_str())
             .unwrap_or("Chưa có tóm tắt khuyến nghị.");
 
-        let spotlight = verdict
+        let positive = verdict
             .as_ref()
-            .map(
-                |item| match (&item.strongest_positive, &item.strongest_negative) {
-                    (Some(positive), Some(negative)) => {
-                        format!("Nên mạnh: {positive} | Cần tránh: {negative}")
-                    }
-                    (Some(positive), None) => format!("Nên mạnh: {positive}"),
-                    (None, Some(negative)) => format!("Cần tránh: {negative}"),
-                    (None, None) => "Chưa có điểm nhấn khuyến nghị.".to_string(),
-                },
-            )
-            .unwrap_or_else(|| "Chưa có điểm nhấn khuyến nghị.".to_string());
+            .and_then(|item| item.strongest_positive.as_deref())
+            .unwrap_or("Chưa có mục nên ưu tiên.");
+        let negative = verdict
+            .as_ref()
+            .and_then(|item| item.strongest_negative.as_deref())
+            .unwrap_or("Chưa có mục cần tránh.");
         let identity_str = build_identity_row(bundle);
 
         let block = Block::default()
@@ -66,8 +61,20 @@ impl Widget for HeroWidget<'_> {
                     .add_modifier(Modifier::BOLD),
             )),
             Line::from(Span::styled(lunar_str, Style::default().fg(Color::Cyan))),
-            Line::from(Span::styled(summary, Style::default().fg(Color::Yellow))),
-            Line::from(Span::styled(spotlight, Style::default().fg(Color::Green))),
+            Line::from(Span::styled(
+                format!("Kết luận nhanh: {summary}"),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )),
+            Line::from(Span::styled(
+                format!("Nên ưu tiên: {positive}"),
+                Style::default().fg(Color::Green),
+            )),
+            Line::from(Span::styled(
+                format!("Cần tránh: {negative}"),
+                Style::default().fg(Color::Red),
+            )),
             Line::from(Span::styled(identity_str, Style::default().fg(Color::Gray))),
         ];
 
@@ -375,6 +382,8 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
     }
 

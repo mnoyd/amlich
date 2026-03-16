@@ -15,8 +15,8 @@ use crate::layout::LayoutMode;
 use crate::state::AppState;
 
 const SMALL_LIMIT: usize = 2;
-const MEDIUM_LIMIT: usize = 4;
-const LARGE_LIMIT: usize = 6;
+const MEDIUM_LIMIT: usize = 3;
+const LARGE_LIMIT: usize = 4;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum DecisionEmphasis {
@@ -730,6 +730,8 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
     }
 

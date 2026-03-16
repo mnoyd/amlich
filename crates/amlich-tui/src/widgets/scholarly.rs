@@ -35,33 +35,39 @@ impl<'a> ScholarlyWidget<'a> {
         let mut lines: Vec<Line<'_>> = vec![];
 
         let block = Block::default()
-            .title(" Chứng Cứ Truyền Thống ")
+            .title(" Can Chi · Ngũ Hành · Sao ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
 
         let inner = block.inner(area);
         block.render(area, buf);
 
-        if let Some(insight) = &bundle.insight {
-            if let Some(recommendations) = bundle
-                .contextual_recommendations
-                .as_ref()
-                .or(bundle.daily_recommendations.as_ref())
-            {
-                lines.push(Line::from(vec![
-                    Span::raw("   Metadata: "),
-                    Span::styled(
-                        format!(
-                            "ruleset_id={} · ruleset_version={} · profile={}",
-                            recommendations.ruleset_id,
-                            recommendations.ruleset_version,
-                            recommendations.profile
-                        ),
-                        Style::default().fg(Color::DarkGray),
-                    ),
-                ]));
-            }
+        let can_chi_day = bundle
+            .canchi
+            .as_ref()
+            .map(|canchi| canchi.day.full.clone())
+            .unwrap_or_else(|| "chưa có dữ liệu".to_string());
+        lines.push(Line::from(vec![
+            Span::raw("   Can Chi ngày: "),
+            Span::styled(can_chi_day, Style::default().fg(Color::Cyan)),
+        ]));
 
+        let ngu_hanh_naam = bundle
+            .day_fortune
+            .as_ref()
+            .map(|fortune| {
+                format!(
+                    "{} · {}",
+                    fortune.day_element.element, fortune.day_element.na_am
+                )
+            })
+            .unwrap_or_else(|| "chưa có dữ liệu".to_string());
+        lines.push(Line::from(vec![
+            Span::raw("   Ngũ hành/Nạp âm: "),
+            Span::styled(ngu_hanh_naam, Style::default().fg(Color::Yellow)),
+        ]));
+
+        if let Some(insight) = &bundle.insight {
             if let Some(truc) = &insight.truc {
                 lines.push(Line::from(vec![
                     Span::raw("   Trực: "),
@@ -303,6 +309,8 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
     }
 
@@ -327,11 +335,12 @@ mod tests {
         let app = sample_app_state();
         let text = render_text(&app);
 
-        assert!(text.contains("Chứng Cứ Truyền Thống"));
+        assert!(text.contains("Can Chi · Ngũ Hành · Sao"));
+        assert!(text.contains("Can Chi ngày:"));
+        assert!(text.contains("Ngũ hành/Nạp âm:"));
         assert!(text.contains("Trực:"));
         assert!(text.contains("Cát tinh:"));
         assert!(text.contains("Thần sát:"));
-        assert!(text.contains("Metadata:"));
-        assert!(text.contains("profile=baseline"));
+        assert!(!text.contains("Metadata:"));
     }
 }

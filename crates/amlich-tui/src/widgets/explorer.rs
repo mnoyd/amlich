@@ -25,7 +25,7 @@ impl<'a> ExplorerWidget<'a> {
 impl Widget for ExplorerWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let block = Block::default()
-            .title(" Explorer cấu hình ")
+            .title(" Điều Khiển Nhanh ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
         let inner = block.inner(area);
@@ -43,14 +43,6 @@ impl Widget for ExplorerWidget<'_> {
                 Span::raw(format!(
                     ": {}",
                     self.app.staged_selection.date.format("%Y-%m-%d")
-                )),
-            ]),
-            Line::from(vec![
-                label(self.app, ExplorerField::Ruleset, "Ruleset"),
-                Span::raw(format!(
-                    ": {}",
-                    self.app
-                        .ruleset_label(self.app.staged_selection.ruleset_id.as_deref())
                 )),
             ]),
             Line::from(vec![
@@ -74,7 +66,14 @@ impl Widget for ExplorerWidget<'_> {
             )));
         }
 
-        lines.push(Line::from(""));
+        lines.push(Line::from(vec![Span::styled(
+            format!(
+                "Nguồn dữ liệu: {}",
+                self.app
+                    .ruleset_brief_label(self.app.applied_selection.ruleset_id.as_deref())
+            ),
+            Style::default().fg(Color::Gray),
+        )]));
         lines.push(Line::from(vec![
             label(self.app, ExplorerField::Actions, "Áp dụng"),
             Span::raw(": "),
@@ -84,32 +83,25 @@ impl Widget for ExplorerWidget<'_> {
         ]));
         lines.push(Line::from(Span::styled(
             format!(
-                "Applied: {} | {} | {} | {}",
-                self.app.applied_selection.date.format("%Y-%m-%d"),
-                self.app
-                    .ruleset_label(self.app.applied_selection.ruleset_id.as_deref()),
+                "Đang áp dụng: {} | {}",
                 self.app
                     .event_kind_label(self.app.applied_selection.event_kind.as_deref()),
                 self.app.active_pack_summary(&self.app.applied_selection)
             ),
             Style::default().fg(Color::Gray),
         )));
-        lines.push(Line::from(Span::styled(
-            format!(
-                "Staged: {} | {} | {} | {}",
-                self.app.staged_selection.date.format("%Y-%m-%d"),
-                self.app
-                    .ruleset_label(self.app.staged_selection.ruleset_id.as_deref()),
-                self.app
-                    .event_kind_label(self.app.staged_selection.event_kind.as_deref()),
-                self.app.active_pack_summary(&self.app.staged_selection)
-            ),
-            if self.app.explorer_has_staged_changes() {
-                Style::default().fg(Color::Yellow)
-            } else {
-                Style::default().fg(Color::Gray)
-            },
-        )));
+        if self.app.explorer_has_staged_changes() {
+            lines.push(Line::from(Span::styled(
+                format!(
+                    "Chờ áp dụng: {} | {} | {}",
+                    self.app.staged_selection.date.format("%Y-%m-%d"),
+                    self.app
+                        .event_kind_label(self.app.staged_selection.event_kind.as_deref()),
+                    self.app.active_pack_summary(&self.app.staged_selection)
+                ),
+                Style::default().fg(Color::Yellow),
+            )));
+        }
 
         Paragraph::new(lines).render(inner, buf);
     }
@@ -200,6 +192,8 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
     }
 

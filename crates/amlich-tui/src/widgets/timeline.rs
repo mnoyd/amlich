@@ -1,3 +1,4 @@
+use chrono::{Local, Timelike};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
@@ -53,6 +54,15 @@ impl Widget for TimelineWidget<'_> {
                 Span::styled(
                     format!("Khung tốt: {}", top_windows.join(", ")),
                     Style::default().fg(Color::Green),
+                ),
+            ]));
+        }
+        if let Some(upcoming) = upcoming_good_window(self.app.date, hours_data) {
+            lines.push(Line::from(vec![
+                Span::raw("   "),
+                Span::styled(
+                    format!("Khung sắp tới: {upcoming}"),
+                    Style::default().fg(Color::Cyan),
                 ),
             ]));
         }
@@ -129,6 +139,45 @@ fn top_good_windows(hours_data: &amlich_api::GioHoangDaoDto) -> Vec<String> {
         .take(3)
         .map(|hour| hour.time_range.clone())
         .collect()
+}
+
+fn upcoming_good_window(
+    date: chrono::NaiveDate,
+    hours_data: &amlich_api::GioHoangDaoDto,
+) -> Option<String> {
+    if hours_data.good_hours.is_empty() {
+        return None;
+    }
+
+    if date != Local::now().date_naive() {
+        return hours_data
+            .good_hours
+            .first()
+            .map(|hour| hour.time_range.clone());
+    }
+
+    let current_hour = Local::now().hour();
+    hours_data
+        .good_hours
+        .iter()
+        .find(|hour| {
+            parse_start_hour(&hour.time_range)
+                .map(|start_hour| start_hour >= current_hour)
+                .unwrap_or(false)
+        })
+        .map(|hour| hour.time_range.clone())
+        .or_else(|| {
+            hours_data
+                .good_hours
+                .first()
+                .map(|hour| format!("{} (ngày sau)", hour.time_range))
+        })
+}
+
+fn parse_start_hour(time_range: &str) -> Option<u32> {
+    let (start, _) = time_range.split_once(" - ")?;
+    let (hour, _) = start.split_once(':')?;
+    hour.parse().ok()
 }
 
 fn compact_good_hours(hours_data: &amlich_api::GioHoangDaoDto) -> String {
@@ -319,6 +368,8 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
     }
 
@@ -345,6 +396,7 @@ mod tests {
         let text = render_text(&app, LayoutMode::Large);
 
         assert!(text.contains("23:00 - 01:00, 01:00 - 03:00, 03:00 - 05:00"));
+        assert!(text.contains("Khung sắp tới: 23:00 - 01:00"));
         assert!(text.contains("Nên ưu tiên"));
     }
 

@@ -255,6 +255,8 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
     }
 
@@ -305,14 +307,15 @@ mod tests {
     }
 
     #[test]
-    fn evidence_sections_respect_focus_and_zoom_flags() {
+    fn screen_mode_uses_active_screen_over_legacy_zoom_flags() {
         let mut app = sample_app_state(true);
         app.zoomed_section = Some(PageSection::TraditionalEvidence);
+        app.active_screen = crate::state::AppScreen::General;
 
         let text = render_page(&app);
 
-        assert!(text.contains("Chứng Cứ Truyền Thống"));
-        assert!(text.contains("Tiết Khí Tham Chiếu"));
+        assert!(text.contains("Màn hình General"));
+        assert!(text.contains("Tiết khí:"));
         assert!(!text.contains("Khung Giờ Và Hành Động"));
     }
 }

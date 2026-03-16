@@ -56,32 +56,34 @@ impl Widget for RibbonWidget<'_> {
             return;
         }
 
-        let section_name = match self.app.focused_section {
-            crate::state::PageSection::Explorer => "Explorer",
-            crate::state::PageSection::Hero => "Tóm tắt",
-            crate::state::PageSection::Recommendations => "Khuyến nghị",
-            crate::state::PageSection::Timing => "Khung giờ",
-            crate::state::PageSection::Travel => "Xuất hành",
-            crate::state::PageSection::Risks => "Rủi ro",
-            crate::state::PageSection::TraditionalEvidence => "Chứng cứ",
-            crate::state::PageSection::ExpandedDetails => "Chi tiết",
-        };
+        let screen_name = self.app.active_screen_label();
 
         let dow0 = self.app.date.weekday().num_days_from_monday() as usize;
 
-        let mut spans = vec![
+        let hotkey_line = Line::from(vec![
             Span::styled(
-                format!(" [{}] ", section_name),
+                format!(" [{}] ", screen_name),
                 Style::default()
                     .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             ),
             Span::styled(
-                " Tab: mục  Enter: mở  t: hôm nay  m: tháng  u: quay lại  a: khuyến nghị  e: chứng cứ  z: zoom  ",
+                "Tab: màn  ←/→: ngày  t: hôm nay  m: tháng  ?: trợ giúp",
                 Style::default().fg(Color::DarkGray),
             ),
-            Span::raw("  ◂ "),
-        ];
+        ]);
+
+        let top_line = Rect {
+            x: area.x,
+            y: area.y,
+            width: area.width,
+            height: 1,
+        };
+        Paragraph::new(hotkey_line)
+            .alignment(Alignment::Center)
+            .render(top_line, buf);
+
+        let mut spans = vec![Span::raw(" < ")];
 
         for (i, name) in WEEKDAY_NAMES.iter().enumerate() {
             if i == dow0 {
@@ -99,10 +101,9 @@ impl Widget for RibbonWidget<'_> {
                 ));
             }
         }
-        spans.push(Span::raw("▸"));
+        spans.push(Span::raw(">"));
 
         let p = Paragraph::new(Line::from(spans)).alignment(Alignment::Center);
-        // The area has 2 height (constraint), we put this on the bottom line.
         let bottom_line = Rect {
             x: area.x,
             y: area.y + 1,
@@ -173,10 +174,12 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
     }
 
-    fn render_text(app: &AppState) -> String {
+    fn render_lines(app: &AppState) -> Vec<String> {
         let area = Rect::new(0, 0, 120, 2);
         let mut buf = Buffer::empty(area);
         RibbonWidget::new(app, LayoutMode::Large).render(area, &mut buf);
@@ -189,28 +192,30 @@ mod tests {
                     .to_string()
             })
             .collect::<Vec<_>>()
-            .join("\n")
     }
 
     #[test]
-    fn ribbon_shows_new_focus_expand_evidence_controls() {
+    fn ribbon_places_hotkeys_on_the_top_line_only() {
         let app = sample_app_state();
-        let text = render_text(&app);
+        let lines = render_lines(&app);
+        let hotkey_line = &lines[0];
+        let weekday_line = &lines[1];
 
-        assert!(text.contains("Tab: mục"));
-        assert!(text.contains("Enter: mở"));
-        assert!(text.contains("a: khuyến nghị"));
-        assert!(text.contains("e: chứng cứ"));
-        assert!(text.contains("z: zoom"));
+        assert!(hotkey_line.contains("[General]"));
+        assert!(hotkey_line.contains("Tab: màn"));
+        assert!(hotkey_line.contains("?: trợ giúp"));
+        assert!(!weekday_line.contains("Tab:"));
+        assert!(!weekday_line.contains("màn"));
     }
 
     #[test]
-    fn ribbon_shows_navigation_contract_shortcuts() {
+    fn ribbon_keeps_weekday_strip_clean_and_highlighted() {
         let app = sample_app_state();
-        let text = render_text(&app);
+        let lines = render_lines(&app);
+        let weekday_line = &lines[1];
 
-        assert!(text.contains("t: hôm nay"));
-        assert!(text.contains("m: tháng"));
-        assert!(text.contains("u: quay lại"));
+        assert!(weekday_line.contains("[T5]"));
+        assert!(weekday_line.contains("T2"));
+        assert!(weekday_line.contains("CN"));
     }
 }

@@ -40,6 +40,43 @@ pub enum ViewMode {
     Calendar,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum AppScreen {
+    General,
+    Insight,
+    Recommendations,
+    Deep,
+}
+
+impl AppScreen {
+    pub fn next(self) -> Self {
+        match self {
+            Self::General => Self::Insight,
+            Self::Insight => Self::Recommendations,
+            Self::Recommendations => Self::Deep,
+            Self::Deep => Self::General,
+        }
+    }
+
+    pub fn previous(self) -> Self {
+        match self {
+            Self::General => Self::Deep,
+            Self::Insight => Self::General,
+            Self::Recommendations => Self::Insight,
+            Self::Deep => Self::Recommendations,
+        }
+    }
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::General => "General",
+            Self::Insight => "Insight",
+            Self::Recommendations => "Recommendations",
+            Self::Deep => "Deep",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum PageSection {
     Explorer,
@@ -248,6 +285,8 @@ pub struct AppState {
     pub show_tietkhi_details: bool,
     pub show_evidence: bool,
     pub show_week_strip: bool,
+    pub active_screen: AppScreen,
+    pub screen_history: Vec<AppScreen>,
     pub focused_section: PageSection,
     pub zoomed_section: Option<PageSection>,
     pub expanded_sections: BTreeSet<PageSection>,
@@ -285,6 +324,8 @@ impl AppState {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            active_screen: AppScreen::General,
+            screen_history: Vec::new(),
             focused_section: PageSection::Explorer,
             zoomed_section: None,
             expanded_sections: BTreeSet::new(),
@@ -421,6 +462,31 @@ impl AppState {
     pub fn next_lens(&mut self) {
         self.lens = self.lens.next();
         self.scroll_offset = 0; // Reset scroll on lens change
+    }
+
+    pub fn next_screen(&mut self) {
+        self.screen_history.push(self.active_screen);
+        self.active_screen = self.active_screen.next();
+        self.scroll_offset = 0;
+    }
+
+    pub fn prev_screen(&mut self) {
+        self.screen_history.push(self.active_screen);
+        self.active_screen = self.active_screen.previous();
+        self.scroll_offset = 0;
+    }
+
+    pub fn go_to_screen(&mut self, screen: AppScreen) {
+        if self.active_screen == screen {
+            return;
+        }
+        self.screen_history.push(self.active_screen);
+        self.active_screen = screen;
+        self.scroll_offset = 0;
+    }
+
+    pub fn active_screen_label(&self) -> &'static str {
+        self.active_screen.label()
     }
 
     pub fn focus_next_section(&mut self) {
@@ -613,6 +679,17 @@ impl AppState {
                 entry.canonical_id, entry.version, entry.region, entry.profile
             ),
             None => "Mặc định hệ thống".to_string(),
+        }
+    }
+
+    pub fn ruleset_brief_label(&self, ruleset_id: Option<&str>) -> String {
+        match ruleset_id.and_then(|id| {
+            self.ruleset_catalog
+                .iter()
+                .find(|entry| entry.canonical_id == id)
+        }) {
+            Some(entry) => format!("{}@{}", entry.canonical_id, entry.version),
+            None => "default".to_string(),
         }
     }
 
@@ -1184,6 +1261,8 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            active_screen: AppScreen::General,
+            screen_history: Vec::new(),
             focused_section: PageSection::Hero,
             zoomed_section: None,
             expanded_sections: Default::default(),
@@ -1437,6 +1516,38 @@ mod tests {
         let mut app = sample_app_state();
         app.bundle = Some(sample_bundle());
         app
+    }
+
+    #[test]
+    fn screen_cycle_moves_forward_in_expected_order() {
+        let mut app = sample_app_state();
+        let expected = [
+            AppScreen::Insight,
+            AppScreen::Recommendations,
+            AppScreen::Deep,
+            AppScreen::General,
+        ];
+
+        for screen in expected {
+            app.next_screen();
+            assert_eq!(app.active_screen, screen);
+        }
+    }
+
+    #[test]
+    fn screen_cycle_moves_backward_in_expected_order() {
+        let mut app = sample_app_state();
+        let expected = [
+            AppScreen::Deep,
+            AppScreen::Recommendations,
+            AppScreen::Insight,
+            AppScreen::General,
+        ];
+
+        for screen in expected {
+            app.prev_screen();
+            assert_eq!(app.active_screen, screen);
+        }
     }
 
     #[test]

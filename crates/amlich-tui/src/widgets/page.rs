@@ -10,9 +10,11 @@ use crate::layout::LayoutMode;
 use crate::state::{AppState, PageSection};
 
 use super::{
-    calendar::CalendarViewWidget, explorer::ExplorerWidget, guidance::GuidanceWidget,
-    hero::HeroWidget, inspection::InspectionWidget, risk::RiskWidget, scholarly::ScholarlyWidget,
-    tietkhi::TietKhiWidget, timeline::TimelineWidget, travel::TravelWidget,
+    calendar::CalendarViewWidget,
+    screens::{
+        deep::DeepScreenWidget, general::GeneralScreenWidget, insight::InsightScreenWidget,
+        recommendations::RecommendationsScreenWidget,
+    },
     week_strip::WeekStripWidget,
 };
 
@@ -86,82 +88,18 @@ impl Widget for PageWidget<'_> {
             area
         };
 
-        let is_large = self.mode == LayoutMode::Large;
-
-        if is_large && self.app.zoomed_section.is_none() {
-            let cols = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
-                .margin(1)
-                .split(content_area);
-
-            let mut left_area = cols[0];
-            left_area.width = left_area.width.saturating_sub(1); // Gap
-            let mut right_area = cols[1];
-            right_area.x += 1;
-            right_area.width = right_area.width.saturating_sub(1);
-
-            let left_sections = vec![
-                PageSection::Explorer,
-                PageSection::Hero,
-                PageSection::ExpandedDetails,
-                PageSection::Timing,
-                PageSection::Travel,
-                PageSection::TraditionalEvidence,
-            ];
-            let right_sections = vec![PageSection::Recommendations, PageSection::Risks];
-
-            let left_constraints: Vec<Constraint> = left_sections
-                .iter()
-                .enumerate()
-                .map(|(i, s)| {
-                    if i + 1 == left_sections.len() {
-                        Constraint::Min(section_height(self.app, self.mode, *s))
-                    } else {
-                        Constraint::Length(section_height(self.app, self.mode, *s))
-                    }
-                })
-                .collect();
-            let right_constraints: Vec<Constraint> = right_sections
-                .iter()
-                .enumerate()
-                .map(|(i, s)| {
-                    if i + 1 == right_sections.len() {
-                        Constraint::Min(section_height(self.app, self.mode, *s))
-                    } else {
-                        Constraint::Length(section_height(self.app, self.mode, *s))
-                    }
-                })
-                .collect();
-
-            let left_chunks = Layout::vertical(left_constraints).split(left_area);
-            let right_chunks = Layout::vertical(right_constraints).split(right_area);
-
-            for (chunk, section) in left_chunks.iter().zip(left_sections.into_iter()) {
-                self.render_section(section, *chunk, buf);
+        match self.app.active_screen {
+            crate::state::AppScreen::General => {
+                GeneralScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
-            for (chunk, section) in right_chunks.iter().zip(right_sections.into_iter()) {
-                self.render_section(section, *chunk, buf);
+            crate::state::AppScreen::Insight => {
+                InsightScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
-        } else {
-            let sections = if let Some(section) = self.app.zoomed_section {
-                vec![section]
-            } else {
-                home_section_order(self.app)
-            };
-            let constraints: Vec<Constraint> = sections
-                .iter()
-                .enumerate()
-                .map(|(index, section)| {
-                    if index + 1 == sections.len() {
-                        Constraint::Min(section_height(self.app, self.mode, *section))
-                    } else {
-                        Constraint::Length(section_height(self.app, self.mode, *section))
-                    }
-                })
-                .collect();
-            let chunks = Layout::vertical(constraints).split(content_area);
-
-            for (chunk, section) in chunks.iter().zip(sections.into_iter()) {
-                self.render_section(section, *chunk, buf);
+            crate::state::AppScreen::Recommendations => {
+                RecommendationsScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
+            crate::state::AppScreen::Deep => {
+                DeepScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
         }
     }
@@ -171,27 +109,7 @@ fn shell_message(lines: Vec<Line<'static>>, area: Rect, buf: &mut Buffer) {
     Paragraph::new(lines).render(area, buf);
 }
 
-impl<'a> PageWidget<'a> {
-    fn render_section(&self, section: PageSection, chunk: ratatui::layout::Rect, buf: &mut Buffer) {
-        match section {
-            PageSection::Explorer => ExplorerWidget::new(self.app, self.mode).render(chunk, buf),
-            PageSection::Hero => HeroWidget::new(self.app, self.mode).render(chunk, buf),
-            PageSection::Recommendations => {
-                GuidanceWidget::new(self.app, self.mode).render(chunk, buf)
-            }
-            PageSection::Timing => TimelineWidget::new(self.app, self.mode).render(chunk, buf),
-            PageSection::Travel => TravelWidget::new(self.app, self.mode).render(chunk, buf),
-            PageSection::Risks => RiskWidget::new(self.app, self.mode).render(chunk, buf),
-            PageSection::TraditionalEvidence => {
-                render_traditional_evidence(chunk, buf, self.app, self.mode)
-            }
-            PageSection::ExpandedDetails => {
-                InspectionWidget::new(self.app, self.mode).render(chunk, buf)
-            }
-        }
-    }
-}
-
+#[allow(dead_code)]
 pub(crate) fn home_section_order(_app: &AppState) -> Vec<PageSection> {
     vec![
         PageSection::Explorer,
@@ -205,48 +123,20 @@ pub(crate) fn home_section_order(_app: &AppState) -> Vec<PageSection> {
     ]
 }
 
-fn section_height(app: &AppState, mode: LayoutMode, section: PageSection) -> u16 {
-    match section {
-        PageSection::Explorer => 12,
-        PageSection::Hero => 7,
-        PageSection::Recommendations => match (mode, app.is_section_expanded(section)) {
-            (LayoutMode::Small, true) => 12,
-            (LayoutMode::Medium, true) => 11,
-            (LayoutMode::Large, true) => 12,
-            (LayoutMode::Small, false) => 9,
-            (LayoutMode::Medium, false) => 8,
-            (LayoutMode::Large, false) => 9,
-        },
-        PageSection::Timing => 7,
-        PageSection::Travel => 5,
-        PageSection::Risks => 6,
-        PageSection::TraditionalEvidence => {
-            if app.is_section_expanded(section) {
-                12
-            } else {
-                8
-            }
-        }
-        PageSection::ExpandedDetails => 4,
-    }
-}
-
-fn render_traditional_evidence(area: Rect, buf: &mut Buffer, app: &AppState, mode: LayoutMode) {
-    let chunks = Layout::vertical([Constraint::Length(4), Constraint::Min(3)]).split(area);
-    ScholarlyWidget::new(app, mode).render(chunks[0], buf);
-    TietKhiWidget::new(app, mode).render(chunks[1], buf);
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+        AppScreen, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
+        ViewMode,
     };
+    use amlich_api::v2::DayBundleDto;
     use amlich_api::{
-        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+        LunarDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+        SolarDto,
     };
     use chrono::NaiveDate;
+    use ratatui::{buffer::Buffer, layout::Rect};
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
@@ -300,7 +190,58 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
+    }
+
+    fn sample_bundle() -> DayBundleDto {
+        DayBundleDto {
+            schema_version: "amlich.engine/v1".to_string(),
+            ruleset_id: "test".to_string(),
+            ruleset_version: "v1".to_string(),
+            profile: "baseline".to_string(),
+            generated_at: "2026-03-12T00:00:00Z".to_string(),
+            solar: SolarDto {
+                day: 12,
+                month: 3,
+                year: 2026,
+                day_of_week: 4,
+                day_of_week_name: "Thứ Năm".to_string(),
+                date_string: "2026-03-12".to_string(),
+            },
+            lunar: LunarDto {
+                day: 4,
+                month: 2,
+                year: 2026,
+                is_leap_month: false,
+                date_string: "Mùng 4 tháng Hai".to_string(),
+            },
+            jd: 0,
+            canchi: None,
+            tiet_khi: None,
+            gio_hoang_dao: None,
+            day_fortune: None,
+            daily_recommendations: None,
+            contextual_recommendations: None,
+            insight: None,
+        }
+    }
+
+    fn render_text(app: &AppState) -> String {
+        let area = Rect::new(0, 0, 120, 40);
+        let mut buf = Buffer::empty(area);
+        PageWidget::new(app, LayoutMode::Large).render(area, &mut buf);
+        (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 
     #[test]
@@ -320,5 +261,27 @@ mod tests {
                 PageSection::ExpandedDetails,
             ]
         );
+    }
+
+    #[test]
+    fn page_routes_to_general_screen_widget() {
+        let mut app = sample_app_state();
+        app.bundle = Some(sample_bundle());
+        app.active_screen = AppScreen::General;
+
+        let text = render_text(&app);
+
+        assert!(text.contains("Màn hình General"));
+    }
+
+    #[test]
+    fn page_routes_to_deep_screen_widget() {
+        let mut app = sample_app_state();
+        app.bundle = Some(sample_bundle());
+        app.active_screen = AppScreen::Deep;
+
+        let text = render_text(&app);
+
+        assert!(text.contains("Màn hình Deep"));
     }
 }

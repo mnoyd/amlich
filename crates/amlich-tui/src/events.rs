@@ -65,8 +65,8 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         match code {
             KeyCode::Char('q') | KeyCode::Esc => app.running = false,
             KeyCode::Char('r') if app.error_msg.is_some() => app.retry_load(),
-            KeyCode::Tab => app.focus_next_section(),
-            KeyCode::BackTab => app.focus_previous_section(),
+            KeyCode::Tab => app.next_screen(),
+            KeyCode::BackTab => app.prev_screen(),
             KeyCode::Down | KeyCode::Char('j') => match app.explorer_focus {
                 ExplorerField::Date => app.next_day(),
                 ExplorerField::Ruleset => app.cycle_ruleset(1),
@@ -81,8 +81,10 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 ExplorerField::RecommendationPacks => app.move_pack_cursor(-1),
                 ExplorerField::Actions => app.cycle_explorer_action(),
             },
-            KeyCode::Right | KeyCode::Char('l') => app.focus_next_explorer_field(),
-            KeyCode::Left | KeyCode::Char('h') => app.focus_previous_explorer_field(),
+            KeyCode::Right => app.navigate_days(1),
+            KeyCode::Left => app.navigate_days(-1),
+            KeyCode::Char('l') => app.focus_next_explorer_field(),
+            KeyCode::Char('h') => app.focus_previous_explorer_field(),
             KeyCode::Char(' ') => match app.explorer_focus {
                 ExplorerField::RecommendationPacks => app.toggle_focused_pack(),
                 ExplorerField::Actions => app.cycle_explorer_action(),
@@ -115,12 +117,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::Up | KeyCode::Char('k') => app.scroll_up(),
         KeyCode::PageDown => app.scroll_down_by(10),
         KeyCode::PageUp => app.scroll_up_by(10),
-        KeyCode::Tab => app.focus_next_section(),
-        KeyCode::BackTab => app.focus_previous_section(),
-        KeyCode::Enter => app.toggle_expand_focused_section(),
+        KeyCode::Tab => app.next_screen(),
+        KeyCode::BackTab => app.prev_screen(),
         KeyCode::Char('e') => app.toggle_evidence(),
-        KeyCode::Char('z') => app.toggle_zoom_for_focused_section(),
-        KeyCode::Char('a') => app.expand_section(PageSection::Recommendations),
         KeyCode::Char('m') => app.open_calendar_view(),
         KeyCode::Char('w') => app.toggle_week_strip(),
         KeyCode::Char('g') => app.toggle_search(),
@@ -136,7 +135,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, ViewMode};
+    use crate::state::{
+        AppScreen, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, ViewMode,
+    };
     use amlich_api::{
         RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
     };
@@ -194,26 +195,36 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            active_screen: crate::state::AppScreen::General,
+            screen_history: Vec::new(),
         }
     }
 
     #[test]
-    fn tab_moves_panel_focus() {
+    fn tab_cycles_screen_forward() {
         let mut app = sample_app_state();
         app.focused_section = PageSection::Hero;
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.focused_section, PageSection::Recommendations);
+        assert_eq!(app.active_screen, AppScreen::Insight);
     }
 
     #[test]
-    fn enter_toggles_focused_section() {
+    fn backtab_cycles_screen_backward() {
+        let mut app = sample_app_state();
+        app.focused_section = PageSection::Hero;
+
+        dispatch_key(&mut app, KeyCode::BackTab, KeyModifiers::SHIFT);
+
+        assert_eq!(app.active_screen, AppScreen::Deep);
+    }
+
+    #[test]
+    fn enter_does_not_toggle_section_in_screen_mode() {
         let mut app = sample_app_state();
         app.focus_section(PageSection::TraditionalEvidence);
-
-        dispatch_key(&mut app, KeyCode::Enter, KeyModifiers::NONE);
-        assert!(app.is_section_expanded(PageSection::TraditionalEvidence));
+        assert!(!app.is_section_expanded(PageSection::TraditionalEvidence));
 
         dispatch_key(&mut app, KeyCode::Enter, KeyModifiers::NONE);
         assert!(!app.is_section_expanded(PageSection::TraditionalEvidence));
@@ -271,26 +282,23 @@ mod tests {
     }
 
     #[test]
-    fn char_z_toggles_zoom_for_current_section() {
+    fn char_z_does_not_toggle_zoom_in_screen_mode() {
         let mut app = sample_app_state();
         app.focus_section(PageSection::Risks);
-
-        dispatch_key(&mut app, KeyCode::Char('z'), KeyModifiers::NONE);
-        assert_eq!(app.zoomed_section, Some(PageSection::Risks));
 
         dispatch_key(&mut app, KeyCode::Char('z'), KeyModifiers::NONE);
         assert_eq!(app.zoomed_section, None);
     }
 
     #[test]
-    fn char_a_expands_recommendation_section() {
+    fn char_a_does_not_expand_recommendation_section_in_screen_mode() {
         let mut app = sample_app_state();
         app.focus_section(PageSection::Risks);
 
         dispatch_key(&mut app, KeyCode::Char('a'), KeyModifiers::NONE);
 
-        assert_eq!(app.focused_section, PageSection::Recommendations);
-        assert!(app.is_section_expanded(PageSection::Recommendations));
+        assert_eq!(app.focused_section, PageSection::Risks);
+        assert!(!app.is_section_expanded(PageSection::Recommendations));
     }
 
     #[test]
@@ -319,6 +327,21 @@ mod tests {
 
         assert_eq!(app.staged_selection.event_kind, None);
         assert!(app.staged_selection.enabled_pack_ids.is_empty());
+    }
+
+    #[test]
+    fn explorer_arrow_keys_move_weekday_selection() {
+        let mut app = sample_app_state();
+        app.explorer_focus = ExplorerField::Ruleset;
+        let start = app.date;
+
+        dispatch_key(&mut app, KeyCode::Right, KeyModifiers::NONE);
+        assert_eq!(app.date, start + chrono::Duration::days(1));
+        assert_eq!(app.explorer_focus, ExplorerField::Ruleset);
+
+        dispatch_key(&mut app, KeyCode::Left, KeyModifiers::NONE);
+        assert_eq!(app.date, start);
+        assert_eq!(app.explorer_focus, ExplorerField::Ruleset);
     }
 
     #[test]
