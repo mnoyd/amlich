@@ -38,12 +38,9 @@ impl Widget for RibbonWidget<'_> {
                     "h/l, j/k: di chuyển  ",
                     Style::default().fg(Color::DarkGray),
                 ),
+                Span::styled("[ ]: đổi tháng  ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    "PgUp/PgDn: đổi tháng  ",
-                    Style::default().fg(Color::DarkGray),
-                ),
-                Span::styled(
-                    "Enter: chọn  Esc/Space: đóng",
+                    "Enter: chọn  m/Esc: đóng",
                     Style::default().fg(Color::DarkGray),
                 ),
             ]);
@@ -80,7 +77,7 @@ impl Widget for RibbonWidget<'_> {
                     .add_modifier(Modifier::BOLD),
             ),
             Span::styled(
-                " Tab: mục  Enter: mở  a: khuyến nghị  e: chứng cứ  z: zoom  ",
+                " Tab: mục  Enter: mở  t: hôm nay  m: tháng  u: quay lại  a: khuyến nghị  e: chứng cứ  z: zoom  ",
                 Style::default().fg(Color::DarkGray),
             ),
             Span::raw("  ◂ "),
@@ -168,12 +165,14 @@ mod tests {
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,
+            show_week_strip: true,
             focused_section: PageSection::Recommendations,
             zoomed_section: None,
             expanded_sections: Default::default(),
             show_search: false,
             search_input: String::new(),
             calendar_cursor: date,
+            navigation_history: Vec::new(),
         }
     }
 
@@ -203,5 +202,15 @@ mod tests {
         assert!(text.contains("a: khuyến nghị"));
         assert!(text.contains("e: chứng cứ"));
         assert!(text.contains("z: zoom"));
+    }
+
+    #[test]
+    fn ribbon_shows_navigation_contract_shortcuts() {
+        let app = sample_app_state();
+        let text = render_text(&app);
+
+        assert!(text.contains("t: hôm nay"));
+        assert!(text.contains("m: tháng"));
+        assert!(text.contains("u: quay lại"));
     }
 }

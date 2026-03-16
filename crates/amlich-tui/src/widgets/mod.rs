@@ -12,3 +12,4 @@ pub mod search;
 pub mod tietkhi;
 pub mod timeline;
 pub mod travel;
+pub mod week_strip;

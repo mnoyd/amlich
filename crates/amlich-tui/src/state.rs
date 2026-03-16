@@ -247,12 +247,14 @@ pub struct AppState {
     pub show_guidance_details: bool,
     pub show_tietkhi_details: bool,
     pub show_evidence: bool,
+    pub show_week_strip: bool,
     pub focused_section: PageSection,
     pub zoomed_section: Option<PageSection>,
     pub expanded_sections: BTreeSet<PageSection>,
     pub show_search: bool,
     pub search_input: String,
     pub calendar_cursor: NaiveDate,
+    pub(crate) navigation_history: Vec<NaiveDate>,
 }
 
 impl AppState {
@@ -282,12 +284,14 @@ impl AppState {
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,
+            show_week_strip: true,
             focused_section: PageSection::Explorer,
             zoomed_section: None,
             expanded_sections: BTreeSet::new(),
             show_search: false,
             search_input: String::new(),
             calendar_cursor: date,
+            navigation_history: Vec::new(),
         };
 
         app.load_data();
@@ -356,6 +360,64 @@ impl AppState {
         self.scroll_offset = 0;
     }
 
+    pub fn navigate_days(&mut self, delta: i64) {
+        if delta == 0 {
+            return;
+        }
+
+        let Some(target) = self.date.checked_add_signed(chrono::Duration::days(delta)) else {
+            return;
+        };
+
+        self.jump_to_date(target);
+    }
+
+    pub fn navigate_weeks(&mut self, delta: i64) {
+        self.navigate_days(delta.saturating_mul(7));
+    }
+
+    pub fn navigate_months(&mut self, delta: i32) {
+        if delta == 0 {
+            return;
+        }
+
+        let current = self.date;
+        let total_months = current.year() * 12 + current.month0() as i32 + delta;
+        let target_year = total_months.div_euclid(12);
+        let target_month0 = total_months.rem_euclid(12) as u32;
+        let target_month = target_month0 + 1;
+        let target_day = current.day().min(days_in_month(target_year, target_month));
+
+        if let Some(target) = NaiveDate::from_ymd_opt(target_year, target_month, target_day) {
+            self.jump_to_date(target);
+        }
+    }
+
+    pub fn jump_to_today(&mut self) {
+        self.jump_to_date(Local::now().naive_local().date());
+    }
+
+    pub fn jump_to_date(&mut self, date: NaiveDate) {
+        if date == self.date {
+            return;
+        }
+
+        self.navigation_history.push(self.date);
+        self.apply_navigated_date(date);
+    }
+
+    pub fn undo_navigation(&mut self) {
+        let Some(previous_date) = self.navigation_history.pop() else {
+            return;
+        };
+
+        self.apply_navigated_date(previous_date);
+    }
+
+    pub fn toggle_week_strip(&mut self) {
+        self.show_week_strip = !self.show_week_strip;
+    }
+
     pub fn next_lens(&mut self) {
         self.lens = self.lens.next();
         self.scroll_offset = 0; // Reset scroll on lens change
@@ -403,8 +465,7 @@ impl AppState {
 
     pub fn open_calendar_view(&mut self) {
         self.view_mode = ViewMode::Calendar;
-        self.calendar_cursor = self.staged_selection.date;
-        self.scroll_offset = 0;
+        self.calendar_cursor = self.date;
     }
 
     pub fn close_calendar_view(&mut self) {
@@ -412,9 +473,9 @@ impl AppState {
     }
 
     pub fn apply_calendar_selection(&mut self) {
-        self.staged_selection.date = self.calendar_cursor;
+        let selected_date = self.calendar_cursor;
         self.view_mode = ViewMode::Day;
-        self.scroll_offset = 0;
+        self.jump_to_date(selected_date);
     }
 
     pub fn calendar_move_days(&mut self, delta_days: i64) {
@@ -908,6 +969,14 @@ impl AppState {
             _ => {}
         }
     }
+
+    fn apply_navigated_date(&mut self, date: NaiveDate) {
+        self.date = date;
+        self.applied_selection.date = date;
+        self.staged_selection.date = date;
+        self.calendar_cursor = date;
+        self.load_data();
+    }
 }
 
 fn recommendation_bucket_order() -> [RecommendationBucketDto; 4] {
@@ -1114,12 +1183,14 @@ mod tests {
             show_guidance_details: false,
             show_tietkhi_details: false,
             show_evidence: false,
+            show_week_strip: true,
             focused_section: PageSection::Hero,
             zoomed_section: None,
             expanded_sections: Default::default(),
             show_search: false,
             search_input: String::new(),
             calendar_cursor: date,
+            navigation_history: Vec::new(),
         }
     }
 
@@ -1500,6 +1571,48 @@ mod tests {
         assert_ne!(app.staged_selection.date, original);
         assert_eq!(app.applied_selection.date, original);
         assert!(app.explorer_has_staged_changes());
+    }
+
+    #[test]
+    fn date_navigation_applies_immediately_and_keeps_focus_context() {
+        let mut app = sample_app_state();
+        app.focus_section(PageSection::Risks);
+        app.scroll_offset = 7;
+
+        app.navigate_days(1);
+
+        assert_eq!(app.focused_section, PageSection::Risks);
+        assert_eq!(app.scroll_offset, 7);
+        assert!(app.bundle.is_some());
+    }
+
+    #[test]
+    fn undo_navigation_returns_to_previous_date() {
+        let mut app = sample_app_state();
+        let start = app.date;
+        app.navigate_days(1);
+        app.navigate_days(1);
+
+        app.undo_navigation();
+        assert_ne!(app.date, start);
+
+        app.undo_navigation();
+        assert_eq!(app.date, start);
+    }
+
+    #[test]
+    fn apply_calendar_selection_keeps_scroll_and_focus() {
+        let mut app = sample_app_state();
+        app.focus_section(PageSection::TraditionalEvidence);
+        app.scroll_offset = 9;
+        app.open_calendar_view();
+        app.calendar_move_days(14);
+
+        app.apply_calendar_selection();
+
+        assert_eq!(app.focused_section, PageSection::TraditionalEvidence);
+        assert_eq!(app.scroll_offset, 9);
+        assert!(!app.is_calendar_view());
     }
 
     #[test]
