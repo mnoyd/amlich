@@ -33,7 +33,7 @@ impl Widget for TimelineWidget<'_> {
             .title(" Khung Giờ Và Hành Động ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
-            
+
         let inner = block.inner(area);
         block.render(area, buf);
 
@@ -58,7 +58,10 @@ impl Widget for TimelineWidget<'_> {
         }
         lines.push(Line::from(vec![
             Span::raw("   "),
-            Span::styled(action_summary(hours_data), Style::default().fg(Color::Yellow)),
+            Span::styled(
+                action_summary(hours_data),
+                Style::default().fg(Color::Yellow),
+            ),
         ]));
 
         match self.mode {
@@ -163,11 +166,15 @@ fn action_summary(hours_data: &amlich_api::GioHoangDaoDto) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use amlich_api::{GioHoangDaoDto, HourInfoDto, LunarDto, SolarDto};
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+    };
     use amlich_api::v2::DayBundleDto;
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
+    use amlich_api::{GioHoangDaoDto, HourInfoDto, LunarDto, SolarDto};
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 
     fn sample_hours() -> GioHoangDaoDto {
         GioHoangDaoDto {
@@ -267,7 +274,7 @@ mod tests {
                 ruleset_version: "v1".to_string(),
                 profile: "baseline".to_string(),
                 generated_at: "2026-03-12T00:00:00Z".to_string(),
-                
+
                 solar: SolarDto {
                     day: 12,
                     month: 3,

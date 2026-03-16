@@ -97,7 +97,7 @@ impl Widget for GuidanceWidget<'_> {
             .title(title)
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
-            
+
         let inner = block.inner(area);
         block.render(area, buf);
 
@@ -111,13 +111,13 @@ impl Widget for GuidanceWidget<'_> {
                 Span::styled(
                     format!(
                         "Ưu tiên lớp {} · nền vẫn xem riêng: {}",
-                        active_layer.profile,
-                        layers[1].summary
+                        active_layer.profile, layers[1].summary
                     ),
                     hint_style,
                 ),
             ]));
-        } else if !recommendations.active_packs.is_empty() || recommendations.profile != "baseline" {
+        } else if !recommendations.active_packs.is_empty() || recommendations.profile != "baseline"
+        {
             let pack_labels = recommendations
                 .active_packs
                 .iter()
@@ -127,7 +127,10 @@ impl Widget for GuidanceWidget<'_> {
             let context_note = if pack_labels.is_empty() {
                 format!("Ngữ cảnh: {}", recommendations.profile)
             } else {
-                format!("Ngữ cảnh: {} · pack: {}", recommendations.profile, pack_labels)
+                format!(
+                    "Ngữ cảnh: {} · pack: {}",
+                    recommendations.profile, pack_labels
+                )
             };
             lines.push(Line::from(vec![
                 Span::styled("   ", hint_style),
@@ -209,9 +212,10 @@ fn render_bucket_section(
         lines.push(Line::from(""));
     }
 
-    lines.push(Line::from(vec![
-        Span::styled(format!("── {title} ({}) ", rows.len()), header_style),
-    ]));
+    lines.push(Line::from(vec![Span::styled(
+        format!("── {title} ({}) ", rows.len()),
+        header_style,
+    )]));
 
     let take = rows.len().min(limit);
     for row in rows.iter().take(take) {
@@ -472,15 +476,19 @@ fn display_limit(mode: LayoutMode, expanded: bool) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+    };
+    use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, DailyRecommendationsDto, RecommendationBucketDto,
         RecommendationEvidenceDto, RecommendationEvidenceSourceDto, RecommendationReasonDto,
         RecommendationScopeDto, RecommendationSeverityDto, SynthesizedRecommendationDto,
     };
-    use amlich_api::v2::DayBundleDto;
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
     use ratatui::layout::Rect;
 
     fn sample_recommendations() -> DailyRecommendationsDto {
@@ -649,7 +657,7 @@ mod tests {
                 ruleset_version: "v1".to_string(),
                 profile: "baseline".to_string(),
                 generated_at: "2026-03-12T00:00:00Z".to_string(),
-                
+
                 solar: amlich_api::SolarDto {
                     day: 12,
                     month: 3,

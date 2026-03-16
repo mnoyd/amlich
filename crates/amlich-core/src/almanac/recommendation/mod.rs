@@ -1,6 +1,6 @@
 pub mod activity;
-pub mod evidence;
 pub mod event_kind;
+pub mod evidence;
 pub mod matrix;
 pub mod pack;
 pub mod packs;
@@ -22,7 +22,6 @@ pub use synthesize::{
 };
 pub use types::{
     ActiveRecommendationPack, DailyRecommendations, RecommendationBucket, RecommendationEvidence,
-    RecommendationPackMode,
-    RecommendationEvidenceSource, RecommendationReason, RecommendationScope,
-    RecommendationSeverity, SynthesizedRecommendation,
+    RecommendationEvidenceSource, RecommendationPackMode, RecommendationReason,
+    RecommendationScope, RecommendationSeverity, SynthesizedRecommendation,
 };

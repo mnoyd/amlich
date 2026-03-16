@@ -268,5 +268,8 @@ fn api_normalizes_ruleset_selection_before_assembly() {
     let alias_fortune = alias.day_fortune.expect("alias fortune");
     let canonical_fortune = canonical.day_fortune.expect("canonical fortune");
     assert_eq!(alias_fortune.ruleset_id, canonical_fortune.ruleset_id);
-    assert_eq!(alias_fortune.ruleset_version, canonical_fortune.ruleset_version);
+    assert_eq!(
+        alias_fortune.ruleset_version,
+        canonical_fortune.ruleset_version
+    );
 }

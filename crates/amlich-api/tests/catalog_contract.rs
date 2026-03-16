@@ -1,6 +1,4 @@
-use amlich_api::{
-    get_day_info, get_recommendation_pack_catalog, get_ruleset_catalog, DateQuery,
-};
+use amlich_api::{get_day_info, get_recommendation_pack_catalog, get_ruleset_catalog, DateQuery};
 
 fn query(day: i32, month: i32, year: i32) -> DateQuery {
     DateQuery {
@@ -30,7 +28,10 @@ fn ruleset_catalog_exposes_canonical_default_and_request_metadata() {
     assert_eq!(entry.aliases, vec!["baseline".to_string()]);
     assert_eq!(entry.defaults.tz_offset, 7.0);
     assert_eq!(entry.defaults.meridian, None);
-    assert!(entry.source_notes.iter().any(|note| note.family == "travel"));
+    assert!(entry
+        .source_notes
+        .iter()
+        .any(|note| note.family == "travel"));
 }
 
 #[test]

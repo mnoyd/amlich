@@ -47,7 +47,10 @@ fn burial_recommendations_remain_conservative_in_default_engine() {
         }
     }
 
-    assert!(checked > 0, "expected burial recommendations during the 2024 scan");
+    assert!(
+        checked > 0,
+        "expected burial recommendations during the 2024 scan"
+    );
 }
 
 #[test]
@@ -76,5 +79,8 @@ fn ky_manh_recommendations_always_include_taboo_evidence() {
         }
     }
 
-    assert!(checked > 0, "expected at least one ky_manh recommendation in the 2024 scan");
+    assert!(
+        checked > 0,
+        "expected at least one ky_manh recommendation in the 2024 scan"
+    );
 }

@@ -42,14 +42,24 @@ impl Widget for InspectionWidget<'_> {
             Line::from(vec![
                 Span::styled(
                     "Ngày kiểm tra: ",
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
-                Span::raw(self.app.applied_selection.date.format("%Y-%m-%d").to_string()),
+                Span::raw(
+                    self.app
+                        .applied_selection
+                        .date
+                        .format("%Y-%m-%d")
+                        .to_string(),
+                ),
             ]),
             Line::from(vec![
                 Span::styled(
                     "Bundle engine: ",
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw(format!(
                     "ruleset_id={} · ruleset_version={} · profile={}",
@@ -59,28 +69,36 @@ impl Widget for InspectionWidget<'_> {
             Line::from(vec![
                 Span::styled(
                     "Bundle schema: ",
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw(format!("schema_version={}", bundle.schema_version)),
             ]),
             Line::from(vec![
                 Span::styled(
                     "Ngữ cảnh: ",
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw(self.app.inspection_context_summary()),
             ]),
             Line::from(vec![
                 Span::styled(
                     "Pack đang hoạt động: ",
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw(self.app.active_bundle_packs_summary()),
             ]),
             Line::from(vec![
                 Span::styled(
                     "Quay lại explorer: ",
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw("Tab/Shift+Tab giữ nguyên cấu hình đang áp dụng"),
             ]),
@@ -95,7 +113,9 @@ impl Widget for InspectionWidget<'_> {
             lines.push(Line::from(vec![
                 Span::styled(
                     "Runtime provenance: ",
-                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
                 ),
                 Span::raw("active recommendation packs"),
             ]));
@@ -142,7 +162,10 @@ impl Widget for InspectionWidget<'_> {
                     format!("packs={}", layer.active_pack_ids.join(", "))
                 }),
             ]));
-            lines.push(Line::from(vec![Span::raw("  • "), Span::raw(layer.summary)]));
+            lines.push(Line::from(vec![
+                Span::raw("  • "),
+                Span::raw(layer.summary),
+            ]));
         }
 
         Paragraph::new(lines).render(inner, buf);
@@ -153,12 +176,15 @@ impl Widget for InspectionWidget<'_> {
 mod tests {
     use super::InspectionWidget;
     use crate::layout::LayoutMode;
-    use crate::state::{AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
+    use crate::state::{
+        AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
+        ViewMode,
+    };
+    use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActiveRecommendationPackDto, DailyRecommendationsDto, RecommendationPackCatalogEntryDto,
         RecommendationScopeDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
     };
-    use amlich_api::v2::DayBundleDto;
     use chrono::NaiveDate;
     use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
 

@@ -146,8 +146,15 @@ fn recommendation_corpus_matches_expected_profiles() {
             let actual = rec
                 .activities
                 .iter()
-                .find(|activity| activity_id_to_snake_case(activity.activity_id) == expected.activity_id)
-                .unwrap_or_else(|| panic!("{} missing bucket-checked activity {}", case.id, expected.activity_id));
+                .find(|activity| {
+                    activity_id_to_snake_case(activity.activity_id) == expected.activity_id
+                })
+                .unwrap_or_else(|| {
+                    panic!(
+                        "{} missing bucket-checked activity {}",
+                        case.id, expected.activity_id
+                    )
+                });
             assert_eq!(
                 actual.bucket, expected.bucket,
                 "{} bucket mismatch for {} | rationale: {}",

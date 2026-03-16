@@ -1,9 +1,9 @@
 use crate::almanac::types::StarQuality;
 
 use super::super::{
-    activity::ActivityId, pack::RecommendationPackDescriptor, BaseDirection, RecommendationLayer,
-    RecommendationLayerHit, RecommendationPackMode, RecommendationSeverity,
-    RecommendationSynthesisContext, RecommendationEvidenceSource,
+    activity::ActivityId, pack::RecommendationPackDescriptor, BaseDirection,
+    RecommendationEvidenceSource, RecommendationLayer, RecommendationLayerHit,
+    RecommendationPackMode, RecommendationSeverity, RecommendationSynthesisContext,
 };
 
 pub const NHI_THAP_BAT_TU_PACK: RecommendationPackDescriptor = RecommendationPackDescriptor {

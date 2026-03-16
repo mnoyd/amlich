@@ -8,9 +8,9 @@ use ratatui::{
 
 use crate::layout::LayoutMode;
 use crate::state::AppState;
-use chrono::Datelike;
 #[cfg(test)]
 use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
+use chrono::Datelike;
 
 const WEEKDAY_NAMES: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
@@ -119,7 +119,9 @@ impl Widget for RibbonWidget<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+    };
     use chrono::NaiveDate;
 
     fn sample_app_state() -> AppState {
@@ -133,7 +135,10 @@ mod tests {
             schema_version: "amlich.engine/v1".to_string(),
             is_default: true,
             aliases: vec![],
-            defaults: RulesetDefaultsDto { tz_offset: 7.0, meridian: None },
+            defaults: RulesetDefaultsDto {
+                tz_offset: 7.0,
+                meridian: None,
+            },
             source_notes: vec![],
         }];
         let recommendation_pack_catalog = vec![RecommendationPackCatalogEntryDto {

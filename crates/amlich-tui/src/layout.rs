@@ -4,11 +4,7 @@ use ratatui::{
 };
 
 use crate::state::AppState;
-use crate::widgets::{
-    page::PageWidget,
-    ribbon::RibbonWidget,
-    search::SearchOverlayWidget,
-};
+use crate::widgets::{page::PageWidget, ribbon::RibbonWidget, search::SearchOverlayWidget};
 
 const MIN_TERM_W: u16 = 40;
 const MIN_TERM_H: u16 = 15;
@@ -100,10 +96,14 @@ fn page_content_area(page_area: ratatui::layout::Rect, mode: LayoutMode) -> rata
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+    };
     use amlich_api::v2::DayBundleDto;
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 
     fn sample_app_state() -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");

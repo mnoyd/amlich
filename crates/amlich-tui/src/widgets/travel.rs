@@ -22,13 +22,12 @@ impl<'a> TravelWidget<'a> {
 
 impl Widget for TravelWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-
         let body_style = Style::default().fg(Color::White);
         let block = Block::default()
             .title(" Xuất Hành Và Hướng ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
-            
+
         let inner = block.inner(area);
         block.render(area, buf);
         let mut lines = vec![];
@@ -41,7 +40,10 @@ impl Widget for TravelWidget<'_> {
         else {
             lines.push(Line::from(vec![
                 Span::raw("   "),
-                Span::styled("Chưa có dữ liệu xuất hành.", Style::default().fg(Color::Gray)),
+                Span::styled(
+                    "Chưa có dữ liệu xuất hành.",
+                    Style::default().fg(Color::Gray),
+                ),
             ]));
             Paragraph::new(lines).render(inner, buf);
             return;
@@ -79,14 +81,18 @@ impl Widget for TravelWidget<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+    };
+    use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         DailyRecommendationsDto, DayConflictDto, DayElementDto, DayFortuneDto, DayStarsDto,
         LunarDto, RecommendationScopeDto, SolarDto, TravelDirectionDto, TrucDto, XungHopDto,
     };
-    use amlich_api::v2::DayBundleDto;
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 
     fn sample_app_state(with_fortune: bool) -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
@@ -125,7 +131,7 @@ mod tests {
                 ruleset_version: "v1".to_string(),
                 profile: "baseline".to_string(),
                 generated_at: "2026-03-12T00:00:00Z".to_string(),
-                
+
                 solar: SolarDto {
                     day: 12,
                     month: 3,

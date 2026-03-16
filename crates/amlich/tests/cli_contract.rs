@@ -32,8 +32,7 @@ fn auto_mode_without_tty_outputs_default_bundle_json() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let json: Value =
-        serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
+    let json: Value = serde_json::from_slice(&output.stdout).expect("stdout should be valid json");
     let obj = json.as_object().expect("top-level should be object");
     for key in [
         "schema_version",
@@ -47,7 +46,10 @@ fn auto_mode_without_tty_outputs_default_bundle_json() {
     ] {
         assert!(obj.contains_key(key), "missing key: {key}");
     }
-    assert!(output.stderr.is_empty(), "stderr should be empty for machine output");
+    assert!(
+        output.stderr.is_empty(),
+        "stderr should be empty for machine output"
+    );
 }
 
 #[test]
@@ -60,7 +62,8 @@ fn auto_mode_without_tty_matches_explicit_day_json_identity() {
         "command failed: {}",
         String::from_utf8_lossy(&auto.stderr)
     );
-    let auto_json: Value = serde_json::from_slice(&auto.stdout).expect("stdout should be valid json");
+    let auto_json: Value =
+        serde_json::from_slice(&auto.stdout).expect("stdout should be valid json");
 
     let date = auto_json["solar"]["date_string"]
         .as_str()
@@ -472,7 +475,10 @@ fn selector_machine_formats_preserve_context_metadata_and_ndjson_rows_are_self_d
     let range_json: Value = serde_json::from_slice(&range_output.stdout).expect("valid range json");
 
     for key in ["schema_version", "ruleset_id", "ruleset_version", "profile"] {
-        assert_eq!(range_json[key], day_json[key], "range metadata mismatch for key: {key}");
+        assert_eq!(
+            range_json[key], day_json[key],
+            "range metadata mismatch for key: {key}"
+        );
     }
 
     let day_context = day_json["contextual_recommendations"]
@@ -483,17 +489,25 @@ fn selector_machine_formats_preserve_context_metadata_and_ndjson_rows_are_self_d
     assert_eq!(range_days.len(), 2);
     for row in range_days {
         for key in ["schema_version", "ruleset_id", "ruleset_version", "profile"] {
-            assert_eq!(row[key], day_json[key], "range row metadata mismatch for key: {key}");
+            assert_eq!(
+                row[key], day_json[key],
+                "range row metadata mismatch for key: {key}"
+            );
         }
-        assert_eq!(row["contextual_recommendations"]["ruleset_id"], day_json["ruleset_id"]);
+        assert_eq!(
+            row["contextual_recommendations"]["ruleset_id"],
+            day_json["ruleset_id"]
+        );
         assert_eq!(
             row["contextual_recommendations"]["ruleset_version"],
             day_json["ruleset_version"]
         );
-        assert_eq!(row["contextual_recommendations"]["profile"], day_json["profile"]);
         assert_eq!(
-            row["contextual_recommendations"]["active_packs"],
-            day_active_packs,
+            row["contextual_recommendations"]["profile"],
+            day_json["profile"]
+        );
+        assert_eq!(
+            row["contextual_recommendations"]["active_packs"], day_active_packs,
             "range row should preserve active pack context"
         );
     }
@@ -526,7 +540,13 @@ fn selector_machine_formats_preserve_context_metadata_and_ndjson_rows_are_self_d
 
     for (index, line) in lines.iter().enumerate() {
         let row: Value = serde_json::from_str(line).expect("line should be valid json");
-        for key in ["schema_version", "ruleset_id", "ruleset_version", "profile", "solar"] {
+        for key in [
+            "schema_version",
+            "ruleset_id",
+            "ruleset_version",
+            "profile",
+            "solar",
+        ] {
             assert!(row.get(key).is_some(), "ndjson row missing key: {key}");
         }
         assert_eq!(row["ruleset_id"], day_json["ruleset_id"]);
@@ -539,8 +559,7 @@ fn selector_machine_formats_preserve_context_metadata_and_ndjson_rows_are_self_d
             day_active_packs
         );
         assert_eq!(
-            row["solar"]["date_string"],
-            range_days[index]["solar"]["date_string"],
+            row["solar"]["date_string"], range_days[index]["solar"]["date_string"],
             "ndjson row should remain self-describing per date"
         );
     }
@@ -577,7 +596,10 @@ fn day_command_accepts_engine_selectors() {
         .as_array()
         .expect("active_packs should be an array");
     assert_eq!(active_packs.len(), 1);
-    assert_eq!(active_packs[0]["pack_id"].as_str(), Some("pack.nhi_thap_bat_tu.v1"));
+    assert_eq!(
+        active_packs[0]["pack_id"].as_str(),
+        Some("pack.nhi_thap_bat_tu.v1")
+    );
 }
 
 #[test]
@@ -640,7 +662,10 @@ fn alias_backed_selector_identity_stays_canonical_across_day_and_range_outputs()
         assert_eq!(contextual["profile"], day_json["profile"]);
         let packs = contextual["active_packs"].as_array().expect("active packs");
         assert_eq!(packs.len(), 1);
-        assert_eq!(packs[0]["pack_id"].as_str(), Some("pack.nhi_thap_bat_tu.v1"));
+        assert_eq!(
+            packs[0]["pack_id"].as_str(),
+            Some("pack.nhi_thap_bat_tu.v1")
+        );
     }
 }
 
@@ -714,15 +739,23 @@ fn range_json_is_inclusive_and_matches_day_metadata() {
     assert_eq!(range_json["start"].as_str(), Some("2026-02-20"));
     assert_eq!(range_json["end"].as_str(), Some("2026-02-22"));
 
-    let days = range_json["days"].as_array().expect("days should be an array");
+    let days = range_json["days"]
+        .as_array()
+        .expect("days should be an array");
     assert_eq!(days.len(), 3);
     assert_eq!(days[0]["solar"]["date_string"].as_str(), Some("2026-02-20"));
     assert_eq!(days[1]["solar"]["date_string"].as_str(), Some("2026-02-21"));
     assert_eq!(days[2]["solar"]["date_string"].as_str(), Some("2026-02-22"));
 
     for key in ["schema_version", "ruleset_id", "ruleset_version", "profile"] {
-        assert_eq!(range_json[key], day_json[key], "metadata mismatch for key: {key}");
-        assert_eq!(days[0][key], day_json[key], "day row mismatch for key: {key}");
+        assert_eq!(
+            range_json[key], day_json[key],
+            "metadata mismatch for key: {key}"
+        );
+        assert_eq!(
+            days[0][key], day_json[key],
+            "day row mismatch for key: {key}"
+        );
     }
     assert!(range_json["generated_at"].as_str().is_some());
     assert!(days[0]["generated_at"].as_str().is_some());
@@ -784,7 +817,10 @@ fn single_day_range_output_matches_day_output_for_same_selector_context() {
         "daily_recommendations",
         "contextual_recommendations",
     ] {
-        assert_eq!(range_day[key], day_json[key], "single-day range mismatch for key: {key}");
+        assert_eq!(
+            range_day[key], day_json[key],
+            "single-day range mismatch for key: {key}"
+        );
     }
 }
 
@@ -845,9 +881,7 @@ fn day_rejects_invalid_selector_values() {
         ],
     );
     assert!(!bad_ruleset.status.success(), "command should fail");
-    assert!(
-        String::from_utf8_lossy(&bad_ruleset.stderr).contains("unknown almanac ruleset id")
-    );
+    assert!(String::from_utf8_lossy(&bad_ruleset.stderr).contains("unknown almanac ruleset id"));
 
     let bad_event = run(
         &home,
@@ -861,10 +895,8 @@ fn day_rejects_invalid_selector_values() {
         ],
     );
     assert!(!bad_event.status.success(), "command should fail");
-    assert!(
-        String::from_utf8_lossy(&bad_event.stderr)
-            .contains("unsupported recommendation event_kind")
-    );
+    assert!(String::from_utf8_lossy(&bad_event.stderr)
+        .contains("unsupported recommendation event_kind"));
 }
 
 #[test]
@@ -883,10 +915,11 @@ fn invalid_selector_failures_keep_machine_stdout_clean() {
         ],
     );
     assert!(!bad_ruleset.status.success());
-    assert!(bad_ruleset.stdout.is_empty(), "stdout should be empty on selector failure");
     assert!(
-        String::from_utf8_lossy(&bad_ruleset.stderr).contains("unknown almanac ruleset id")
+        bad_ruleset.stdout.is_empty(),
+        "stdout should be empty on selector failure"
     );
+    assert!(String::from_utf8_lossy(&bad_ruleset.stderr).contains("unknown almanac ruleset id"));
 
     let bad_range = run(
         &home,
@@ -903,11 +936,12 @@ fn invalid_selector_failures_keep_machine_stdout_clean() {
         ],
     );
     assert!(!bad_range.status.success());
-    assert!(bad_range.stdout.is_empty(), "ndjson stdout should be empty on selector failure");
     assert!(
-        String::from_utf8_lossy(&bad_range.stderr)
-            .contains("unsupported recommendation event_kind")
+        bad_range.stdout.is_empty(),
+        "ndjson stdout should be empty on selector failure"
     );
+    assert!(String::from_utf8_lossy(&bad_range.stderr)
+        .contains("unsupported recommendation event_kind"));
 }
 
 #[test]
@@ -925,7 +959,8 @@ fn machine_output_warnings_stay_on_stderr() {
         ],
     );
     assert!(output.status.success());
-    let _: Value = serde_json::from_slice(&output.stdout).expect("stdout should remain valid machine json");
+    let _: Value =
+        serde_json::from_slice(&output.stdout).expect("stdout should remain valid machine json");
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(
         !stdout.contains("Warning:") && !stdout.contains("deprecated"),
@@ -955,8 +990,16 @@ fn day_text_and_waybar_overlap_with_json_output() {
     assert!(waybar_output.status.success());
     let waybar_json: Value = serde_json::from_slice(&waybar_output.stdout).expect("valid json");
     let text_field = waybar_json["text"].as_str().expect("waybar text field");
-    let tooltip = waybar_json["tooltip"].as_str().expect("waybar tooltip field");
-    assert!(text_field.contains(json["lunar"]["day"].as_i64().expect("lunar day").to_string().as_str()));
+    let tooltip = waybar_json["tooltip"]
+        .as_str()
+        .expect("waybar tooltip field");
+    assert!(text_field.contains(
+        json["lunar"]["day"]
+            .as_i64()
+            .expect("lunar day")
+            .to_string()
+            .as_str()
+    ));
     assert!(tooltip.contains(json["solar"]["date_string"].as_str().expect("date string")));
     assert!(tooltip.contains(json["canchi"]["day"]["full"].as_str().expect("canchi day")));
 }
@@ -967,8 +1010,11 @@ fn lookup_catalog_commands_return_expected_shapes() {
 
     let rulesets = run(&home, &["lookup", "rulesets", "--format", "json"]);
     assert!(rulesets.status.success());
-    let rulesets_json: Value = serde_json::from_slice(&rulesets.stdout).expect("valid rulesets json");
-    let rulesets = rulesets_json.as_array().expect("rulesets should be an array");
+    let rulesets_json: Value =
+        serde_json::from_slice(&rulesets.stdout).expect("valid rulesets json");
+    let rulesets = rulesets_json
+        .as_array()
+        .expect("rulesets should be an array");
     assert!(!rulesets.is_empty());
     assert_eq!(rulesets[0]["id"].as_str(), Some("vn_baseline_v1"));
     assert!(rulesets[0]["aliases"].is_array());
@@ -982,7 +1028,10 @@ fn lookup_catalog_commands_return_expected_shapes() {
     let packs_json: Value = serde_json::from_slice(&packs.stdout).expect("valid packs json");
     let packs = packs_json.as_array().expect("packs should be an array");
     assert!(!packs.is_empty());
-    assert_eq!(packs[0]["pack_id"].as_str(), Some("pack.nhi_thap_bat_tu.v1"));
+    assert_eq!(
+        packs[0]["pack_id"].as_str(),
+        Some("pack.nhi_thap_bat_tu.v1")
+    );
     assert!(packs[0].get("mode").is_some());
 }
 

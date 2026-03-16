@@ -22,12 +22,11 @@ impl<'a> RiskWidget<'a> {
 
 impl Widget for RiskWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-
         let block = Block::default()
             .title(" Rủi Ro & Kiêng Kỵ ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
-            
+
         let inner = block.inner(area);
         block.render(area, buf);
         let mut lines = vec![];
@@ -78,6 +77,10 @@ impl Widget for RiskWidget<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::state::{
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+    };
+    use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, DailyRecommendationsDto, DayConflictDto, DayElementDto, DayFortuneDto,
         DayStarsDto, DayTabooDto, LunarDto, RecommendationBucketDto, RecommendationEvidenceDto,
@@ -85,10 +88,10 @@ mod tests {
         RecommendationSeverityDto, SolarDto, SynthesizedRecommendationDto, TravelDirectionDto,
         TrucDto, XungHopDto,
     };
-    use amlich_api::v2::DayBundleDto;
-    use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
     use chrono::NaiveDate;
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode};
 
     fn sample_app_state(with_fortune: bool, include_medical: bool) -> AppState {
         let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
@@ -158,7 +161,7 @@ mod tests {
                 ruleset_version: "v1".to_string(),
                 profile: "baseline".to_string(),
                 generated_at: "2026-03-12T00:00:00Z".to_string(),
-                
+
                 solar: SolarDto {
                     day: 12,
                     month: 3,

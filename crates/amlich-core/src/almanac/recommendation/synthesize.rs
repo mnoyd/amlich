@@ -8,8 +8,8 @@ use crate::{
 
 use super::{
     activity::ActivityId,
-    evidence::collect_truc_hits,
     event_kind::EventKindLayer,
+    evidence::collect_truc_hits,
     matrix::taboo_entry,
     pack::{RecommendationPackDescriptor, RecommendationPackLookupError},
     packs::nhi_thap_bat_tu::{NhiThapBatTuPack, NHI_THAP_BAT_TU_PACK},
@@ -136,16 +136,23 @@ fn synthesize_internal(
 
         let event_kind_layer = EventKindLayer;
         if ctx.event_kind.is_some() {
-            let extra = event_kind_layer.collect_hits(ctx).into_iter().map(|hit| CollectedHit {
-                activity_id: hit.activity_id,
-                source: hit.source,
-                source_code: hit.source_code,
-                direction: hit.direction,
-                summary_vi: hit.summary_vi,
-                summary_en: hit.summary_en,
-                severity: hit.severity,
-                hard_stop: allow_hard_stop(hit.source, hit.hard_stop, HitOrigin::ExtensionLayer),
-            });
+            let extra = event_kind_layer
+                .collect_hits(ctx)
+                .into_iter()
+                .map(|hit| CollectedHit {
+                    activity_id: hit.activity_id,
+                    source: hit.source,
+                    source_code: hit.source_code,
+                    direction: hit.direction,
+                    summary_vi: hit.summary_vi,
+                    summary_en: hit.summary_en,
+                    severity: hit.severity,
+                    hard_stop: allow_hard_stop(
+                        hit.source,
+                        hit.hard_stop,
+                        HitOrigin::ExtensionLayer,
+                    ),
+                });
             hits.extend(extra);
         }
 
@@ -582,7 +589,7 @@ fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
                     activity_id: hit.activity_id,
                     label: hit.activity_id.labels(),
                     bucket: RecommendationBucket::CoThe,
-                reasons: vec![],
+                    reasons: vec![],
                 },
                 saw_favor: false,
                 saw_hard_stop: false,
@@ -621,17 +628,15 @@ fn merge_hits(hits: Vec<CollectedHit>) -> Vec<SynthesizedRecommendation> {
     let mut activities: Vec<SynthesizedRecommendation> = by_activity
         .into_values()
         .map(|mut aggregate| {
-            aggregate.activity.bucket = resolve_bucket(
-                RecommendationPolicyInput {
-                    activity_id: aggregate.activity.activity_id,
-                    current: aggregate.activity.bucket,
-                    saw_favor: aggregate.saw_favor,
-                    saw_hard_stop: aggregate.saw_hard_stop,
-                    favor_sources: aggregate.favor_sources,
-                    strong_avoid_sources: aggregate.strong_avoid_sources,
-                    supporting_avoid_sources: aggregate.supporting_avoid_sources,
-                },
-            );
+            aggregate.activity.bucket = resolve_bucket(RecommendationPolicyInput {
+                activity_id: aggregate.activity.activity_id,
+                current: aggregate.activity.bucket,
+                saw_favor: aggregate.saw_favor,
+                saw_hard_stop: aggregate.saw_hard_stop,
+                favor_sources: aggregate.favor_sources,
+                strong_avoid_sources: aggregate.strong_avoid_sources,
+                supporting_avoid_sources: aggregate.supporting_avoid_sources,
+            });
             aggregate.activity.reasons.sort_by(|a, b| {
                 severity_rank(a.severity)
                     .cmp(&severity_rank(b.severity))
@@ -918,8 +923,9 @@ mod tests {
             enabled_pack_ids: &[],
         };
         let test_layer = TestLayer;
-        let recommendations = synthesize_daily_recommendations_with_layers(&context, &[&test_layer])
-            .expect("layered recommendations");
+        let recommendations =
+            synthesize_daily_recommendations_with_layers(&context, &[&test_layer])
+                .expect("layered recommendations");
 
         assert!(recommendations
             .activities
@@ -1110,7 +1116,10 @@ mod tests {
             .expect_err("duplicate pack ids must fail");
         assert_eq!(
             err.to_string(),
-            format!("duplicate recommendation pack id: {}", NHI_THAP_BAT_TU_PACK.pack_id)
+            format!(
+                "duplicate recommendation pack id: {}",
+                NHI_THAP_BAT_TU_PACK.pack_id
+            )
         );
     }
 

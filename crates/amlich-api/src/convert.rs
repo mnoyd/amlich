@@ -1,16 +1,16 @@
 use crate::dto::{
     ActiveRecommendationPackDto, ActivityLabelDto, CanChiDto, CanChiInfoDto, CanInsightDto,
     ChiInsightDto, ConventionMetadataDto, DailyRecommendationsDto, DayConflictDto, DayDeityDto,
-    DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto,
-    DayTabooDto, DayTenGodsDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto,
-    GioHoangDaoDto, HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto,
-    LocalizedTextDto, LunarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto,
-    ProverbInsightDto, RecommendationBucketDto, RecommendationEvidenceDto,
-    RecommendationEvidenceSourceDto, RecommendationPackCatalogEntryDto, RecommendationReasonDto,
-    RecommendationScopeDto, RecommendationSeverityDto, RegionsInsightDto,
-    RulesetCatalogEntryDto, RulesetDefaultsDto, RulesetSourceNoteDto, RuleEvidenceDto, SolarDto,
-    StarRuleEvidenceDto, SynthesizedRecommendationDto, TabooInsightDto, TangCanDto,
-    ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
+    DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, DayTabooDto,
+    DayTenGodsDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto,
+    HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto, LocalizedTextDto,
+    LunarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto, ProverbInsightDto,
+    RecommendationBucketDto, RecommendationEvidenceDto, RecommendationEvidenceSourceDto,
+    RecommendationPackCatalogEntryDto, RecommendationReasonDto, RecommendationScopeDto,
+    RecommendationSeverityDto, RegionsInsightDto, RuleEvidenceDto, RulesetCatalogEntryDto,
+    RulesetDefaultsDto, RulesetSourceNoteDto, SolarDto, StarRuleEvidenceDto,
+    SynthesizedRecommendationDto, TabooInsightDto, TangCanDto, ThapThanResultDto, TietKhiDto,
+    TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -592,7 +592,11 @@ impl From<&amlich_core::almanac::data::RulesetRegistryEntry> for RulesetCatalogE
             profile: descriptor.profile,
             schema_version: descriptor.schema_version,
             is_default: value.descriptor.id == amlich_core::almanac::data::DEFAULT_RULESET_ID,
-            aliases: value.aliases.iter().map(|alias| (*alias).to_string()).collect(),
+            aliases: value
+                .aliases
+                .iter()
+                .map(|alias| (*alias).to_string())
+                .collect(),
             defaults: RulesetDefaultsDto::from(&descriptor.defaults),
             source_notes: descriptor
                 .source_notes

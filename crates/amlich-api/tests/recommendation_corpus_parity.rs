@@ -166,8 +166,12 @@ fn corpus_recommendations_match_between_core_and_api() {
                 .daily_recommendations
                 .activities
                 .iter()
-                .find(|activity| activity_id_to_snake_case(activity.activity_id) == expected.activity_id)
-                .unwrap_or_else(|| panic!("{} missing core activity {}", case.id, expected.activity_id));
+                .find(|activity| {
+                    activity_id_to_snake_case(activity.activity_id) == expected.activity_id
+                })
+                .unwrap_or_else(|| {
+                    panic!("{} missing core activity {}", case.id, expected.activity_id)
+                });
             assert_eq!(
                 core_activity.bucket, expected.bucket,
                 "{} core expected bucket mismatch for {}",
@@ -179,7 +183,9 @@ fn corpus_recommendations_match_between_core_and_api() {
                 .activities
                 .iter()
                 .find(|activity| activity.activity_id == expected.activity_id)
-                .unwrap_or_else(|| panic!("{} missing api activity {}", case.id, expected.activity_id));
+                .unwrap_or_else(|| {
+                    panic!("{} missing api activity {}", case.id, expected.activity_id)
+                });
             let expected_api_bucket = match expected.bucket {
                 RecommendationBucket::Nen => amlich_api::RecommendationBucketDto::Nen,
                 RecommendationBucket::CoThe => amlich_api::RecommendationBucketDto::CoThe,

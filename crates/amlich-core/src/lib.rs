@@ -250,8 +250,14 @@ mod tests {
         assert_eq!(snapshot.profile, "baseline");
         assert!(!snapshot.daily_recommendations.activities.is_empty());
         assert!(!snapshot.daily_recommendations.summary_vi.is_empty());
-        assert_eq!(snapshot.daily_recommendations.ruleset_id, snapshot.ruleset_id);
-        assert_eq!(snapshot.daily_recommendations.ruleset_version, snapshot.ruleset_version);
+        assert_eq!(
+            snapshot.daily_recommendations.ruleset_id,
+            snapshot.ruleset_id
+        );
+        assert_eq!(
+            snapshot.daily_recommendations.ruleset_version,
+            snapshot.ruleset_version
+        );
         assert_eq!(snapshot.daily_recommendations.profile, snapshot.profile);
         assert!(snapshot.contextual_recommendations.is_none());
     }
@@ -276,7 +282,8 @@ mod tests {
         assert!(contextual
             .activities
             .iter()
-            .find(|activity| activity.activity_id == crate::almanac::recommendation::ActivityId::ContractAgreement)
+            .find(|activity| activity.activity_id
+                == crate::almanac::recommendation::ActivityId::ContractAgreement)
             .expect("contract activity")
             .reasons
             .iter()
