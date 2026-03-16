@@ -276,7 +276,7 @@ Do not change external serialized field names in this task.
 Run: `cargo test -p amlich-api na_am_api_tests --offline`
 Expected: PASS.
 
-Run: `cargo test -p amlich cli_contract --offline`
+Run: `cargo test -p am-lich cli_contract --offline`
 Expected: PASS.
 
 **Step 5: Commit**
@@ -356,7 +356,7 @@ Update imports/usages so runtime crates call `amlich-api` entrypoints for assemb
 
 **Step 4: Run targeted tests again**
 
-Run: `cargo test -p amlich cli_contract --offline`
+Run: `cargo test -p am-lich cli_contract --offline`
 Expected: PASS.
 
 Run: `cargo test -p amlich-api golden_parity --offline`
@@ -409,6 +409,13 @@ git commit -m "refactor(core): narrow public exports after api migration"
 
 ### Task 10: Final verification and regression sweep
 
+## Implementation Notes
+
+- Add this section only after the refactor is implemented and verified.
+- If the final implementation removes transport-shaped aggregate APIs from `amlich-core` and moves DTO/presentation assembly into `amlich-api`, record that here as the main boundary outcome.
+- If core tests are migrated away from `get_day_info`, describe the new helper strategy generically unless the helper names are introduced earlier in this plan.
+- This plan previously used `cargo test -p amlich --offline` for runtime verification, but the correct package name in this workspace is `am-lich`.
+
 **Files:**
 - Modify: `docs/plans/2026-03-16-core-api-boundary-refactor.md`
 
@@ -420,7 +427,7 @@ Expected: PASS.
 Run: `cargo test -p amlich-api --offline`
 Expected: PASS.
 
-Run: `cargo test -p amlich --offline`
+Run: `cargo test -p am-lich --offline`
 Expected: PASS.
 
 Run: `cargo test -p amlich-wasm --offline`
