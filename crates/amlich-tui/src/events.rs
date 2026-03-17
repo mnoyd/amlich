@@ -61,12 +61,28 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             return false;
         }
         KeyCode::Char('3') => {
-            app.go_to_view(crate::state::ActiveView::Planning);
+            app.go_to_view(crate::state::ActiveView::Hours);
             return false;
         }
         KeyCode::Char('4') => {
+            app.go_to_view(crate::state::ActiveView::Elements);
+            return false;
+        }
+        KeyCode::Char('5') => {
+            app.go_to_view(crate::state::ActiveView::FengShui);
+            return false;
+        }
+        KeyCode::Char('6') => {
+            app.go_to_view(crate::state::ActiveView::SolarTerms);
+            return false;
+        }
+        KeyCode::Char('7') => {
+            app.go_to_view(crate::state::ActiveView::Planning);
+            return false;
+        }
+        KeyCode::Char('8') => {
             app.go_to_view(crate::state::ActiveView::Calendar);
-            app.calendar_cursor = app.date; // Make sure cursor is synced
+            app.calendar_cursor = app.date;
             return false;
         }
         _ => {}
