@@ -39,6 +39,10 @@ pub enum ActiveView {
     Dashboard,
     Event,
     Scholar,
+    Hours,
+    Elements,
+    FengShui,
+    SolarTerms,
     Planning,
     Calendar,
 }
@@ -49,8 +53,26 @@ impl ActiveView {
             Self::Dashboard => "Dashboard",
             Self::Event => "Event",
             Self::Scholar => "Scholar",
+            Self::Hours => "Giờ Tốt",
+            Self::Elements => "Ngũ Hành",
+            Self::FengShui => "Phong Thủy",
+            Self::SolarTerms => "Tiết Khí",
             Self::Planning => "Planning",
             Self::Calendar => "Calendar",
+        }
+    }
+
+    pub fn short_label(self) -> &'static str {
+        match self {
+            Self::Dashboard => "Dash",
+            Self::Event => "Evt",
+            Self::Scholar => "Sch",
+            Self::Hours => "Giờ",
+            Self::Elements => "NHành",
+            Self::FengShui => "PThủy",
+            Self::SolarTerms => "TKhí",
+            Self::Planning => "Plan",
+            Self::Calendar => "Cal",
         }
     }
 }
@@ -467,6 +489,10 @@ impl AppState {
         }
         views.extend(vec![
             ActiveView::Scholar,
+            ActiveView::Hours,
+            ActiveView::Elements,
+            ActiveView::FengShui,
+            ActiveView::SolarTerms,
             ActiveView::Planning,
             ActiveView::Calendar,
         ]);

@@ -189,7 +189,7 @@ mod tests {
     }
 
     fn render_lines(app: &AppState) -> Vec<String> {
-        let area = Rect::new(0, 0, 120, 2);
+        let area = Rect::new(0, 0, 200, 2);
         let mut buf = Buffer::empty(area);
         RibbonWidget::new(app, LayoutMode::Large).render(area, &mut buf);
         (0..area.height)

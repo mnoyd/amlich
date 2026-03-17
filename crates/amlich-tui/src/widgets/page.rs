@@ -105,6 +105,10 @@ impl Widget for PageWidget<'_> {
             crate::state::ActiveView::Calendar => {
                 CalendarViewWidget::new(self.app, self.mode).render(area, buf)
             }
+            // Stub: new views will be wired in a follow-up commit
+            _ => {
+                Paragraph::new("Đang phát triển...").render(content_area, buf)
+            }
         }
     }
 }
