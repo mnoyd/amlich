@@ -134,7 +134,7 @@ mod tests {
     use super::*;
     use crate::state::{
         AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
-        ViewMode,
+        ActiveView,
     };
     use amlich_api::{
         LunarDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
@@ -171,7 +171,7 @@ mod tests {
             running: true,
             date,
             lens: FocusLens::General,
-            view_mode: ViewMode::Day,
+            
             scroll_offset: 0,
             bundle: Some(amlich_api::v2::DayBundleDto {
                 schema_version: "amlich.engine/v1".to_string(),
@@ -219,12 +219,12 @@ mod tests {
             focused_section: PageSection::Hero,
             zoomed_section: None,
             expanded_sections: Default::default(),
-            show_search: false,
+            app_mode: crate::state::AppMode::Normal,
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_screen: crate::state::AppScreen::General,
-            screen_history: Vec::new(),
+            active_view: crate::state::ActiveView::Dashboard,
+            view_history: Vec::new(),
         }
     }
 

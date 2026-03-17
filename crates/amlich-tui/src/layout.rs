@@ -69,7 +69,7 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
     frame.render_widget(RibbonWidget::new(app, mode), ribbon_area);
 
     // Render overlays (Search, etc) on top if active
-    if app.show_search {
+    if app.app_mode == crate::state::AppMode::SearchModal {
         frame.render_widget(SearchOverlayWidget::new(app, mode), size);
     }
 }
@@ -102,7 +102,7 @@ fn page_content_area(page_area: ratatui::layout::Rect, mode: LayoutMode) -> rata
 mod tests {
     use super::*;
     use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+        AppMode, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
@@ -137,9 +137,10 @@ mod tests {
         let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
         AppState {
             running: true,
+            app_mode: AppMode::Normal,
             date,
             lens: FocusLens::General,
-            view_mode: ViewMode::Day,
+
             scroll_offset: 0,
             bundle: Some(DayBundleDto {
                 schema_version: "amlich.engine/v1".to_string(),
@@ -187,12 +188,12 @@ mod tests {
             focused_section: PageSection::Hero,
             zoomed_section: None,
             expanded_sections: Default::default(),
-            show_search: false,
+
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_screen: crate::state::AppScreen::General,
-            screen_history: Vec::new(),
+            active_view: crate::state::ActiveView::Dashboard,
+            view_history: Vec::new(),
         }
     }
 

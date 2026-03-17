@@ -139,7 +139,7 @@ mod tests {
     use crate::layout::LayoutMode;
     use crate::state::{
         AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
-        ViewMode,
+        ActiveView,
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
@@ -178,7 +178,7 @@ mod tests {
             running: true,
             date,
             lens: FocusLens::General,
-            view_mode: ViewMode::Day,
+            
             scroll_offset: 0,
             bundle: None,
             is_loading: false,
@@ -197,12 +197,12 @@ mod tests {
             focused_section: PageSection::Hero,
             zoomed_section: None,
             expanded_sections: Default::default(),
-            show_search: false,
+            app_mode: crate::state::AppMode::Normal,
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_screen: crate::state::AppScreen::General,
-            screen_history: Vec::new(),
+            active_view: crate::state::ActiveView::Dashboard,
+            view_history: Vec::new(),
         }
     }
 

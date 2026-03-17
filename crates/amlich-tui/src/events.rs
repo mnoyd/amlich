@@ -21,7 +21,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         return true;
     }
 
-    if app.show_search {
+    if app.app_mode == crate::state::AppMode::SearchModal {
         match code {
             KeyCode::Esc => app.toggle_search(),
             KeyCode::Enter => {
@@ -42,6 +42,36 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         return false;
     }
 
+    // Global view switching
+    match code {
+        KeyCode::Tab => {
+            app.next_view();
+            return false;
+        }
+        KeyCode::BackTab => {
+            app.prev_view();
+            return false;
+        }
+        KeyCode::Char('1') => {
+            app.go_to_view(crate::state::ActiveView::Dashboard);
+            return false;
+        }
+        KeyCode::Char('2') => {
+            app.go_to_view(crate::state::ActiveView::Scholar);
+            return false;
+        }
+        KeyCode::Char('3') => {
+            app.go_to_view(crate::state::ActiveView::Planning);
+            return false;
+        }
+        KeyCode::Char('4') => {
+            app.go_to_view(crate::state::ActiveView::Calendar);
+            app.calendar_cursor = app.date; // Make sure cursor is synced
+            return false;
+        }
+        _ => {}
+    }
+
     if app.is_calendar_view() {
         match code {
             KeyCode::Char('q') => app.running = false,
@@ -51,10 +81,12 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             KeyCode::Left | KeyCode::Char('h') => app.calendar_move_days(-1),
             KeyCode::Down | KeyCode::Char('j') => app.calendar_move_days(7),
             KeyCode::Up | KeyCode::Char('k') => app.calendar_move_days(-7),
-            KeyCode::Char(']') | KeyCode::PageDown | KeyCode::Char('n') => {
+            KeyCode::Char(']') | KeyCode::PageDown | KeyCode::Char('n') | KeyCode::Char('L') => {
                 app.calendar_next_month()
             }
-            KeyCode::Char('[') | KeyCode::PageUp | KeyCode::Char('p') => app.calendar_prev_month(),
+            KeyCode::Char('[') | KeyCode::PageUp | KeyCode::Char('p') | KeyCode::Char('H') => {
+                app.calendar_prev_month()
+            }
             KeyCode::Char('t') => app.calendar_go_today(),
             _ => {}
         }
@@ -65,8 +97,6 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         match code {
             KeyCode::Char('q') | KeyCode::Esc => app.running = false,
             KeyCode::Char('r') if app.error_msg.is_some() => app.retry_load(),
-            KeyCode::Tab => app.next_screen(),
-            KeyCode::BackTab => app.prev_screen(),
             KeyCode::Down | KeyCode::Char('j') => match app.explorer_focus {
                 ExplorerField::Date => app.next_day(),
                 ExplorerField::Ruleset => app.cycle_ruleset(1),
@@ -108,8 +138,8 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::Char('r') if app.error_msg.is_some() => app.retry_load(),
         KeyCode::Right | KeyCode::Char('l') => app.navigate_days(1),
         KeyCode::Left | KeyCode::Char('h') => app.navigate_days(-1),
-        KeyCode::Char('L') => app.navigate_weeks(1),
-        KeyCode::Char('H') => app.navigate_weeks(-1),
+        KeyCode::Char('L') => app.navigate_months(1),
+        KeyCode::Char('H') => app.navigate_months(-1),
         KeyCode::Char(']') => app.navigate_months(1),
         KeyCode::Char('[') => app.navigate_months(-1),
         KeyCode::Char('t') => app.jump_to_today(),
@@ -117,8 +147,28 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::Up | KeyCode::Char('k') => app.scroll_up(),
         KeyCode::PageDown => app.scroll_down_by(10),
         KeyCode::PageUp => app.scroll_up_by(10),
-        KeyCode::Tab => app.next_screen(),
-        KeyCode::BackTab => app.prev_screen(),
+        KeyCode::Char('y') => {
+            if let Some(bundle) = &app.bundle {
+                let summary = format!(
+                    "{} ({}) - {}.\nGiờ Hoàng Đạo: {}",
+                    bundle.solar.date_string,
+                    bundle.lunar.date_string,
+                    bundle
+                        .canchi
+                        .as_ref()
+                        .map(|c| c.day.full.as_str())
+                        .unwrap_or(""),
+                    bundle
+                        .gio_hoang_dao
+                        .as_ref()
+                        .map(|g| g.summary.as_str())
+                        .unwrap_or("")
+                );
+                if let Ok(mut clipboard) = arboard::Clipboard::new() {
+                    let _ = clipboard.set_text(summary);
+                }
+            }
+        }
         KeyCode::Char('e') => app.toggle_evidence(),
         KeyCode::Char('m') => app.open_calendar_view(),
         KeyCode::Char('w') => app.toggle_week_strip(),
@@ -136,7 +186,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
 mod tests {
     use super::*;
     use crate::state::{
-        AppScreen, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, ViewMode,
+        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
     };
     use amlich_api::{
         RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
@@ -170,9 +220,10 @@ mod tests {
         let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
         AppState {
             running: true,
+            app_mode: AppMode::Normal,
             date,
             lens: FocusLens::General,
-            view_mode: ViewMode::Day,
+
             scroll_offset: 0,
             bundle: None,
             is_loading: false,
@@ -191,12 +242,12 @@ mod tests {
             focused_section: PageSection::Explorer,
             zoomed_section: None,
             expanded_sections: Default::default(),
-            show_search: false,
+
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_screen: crate::state::AppScreen::General,
-            screen_history: Vec::new(),
+            active_view: crate::state::ActiveView::Dashboard,
+            view_history: Vec::new(),
         }
     }
 
@@ -207,7 +258,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_screen, AppScreen::Insight);
+        assert_eq!(app.active_view, ActiveView::Scholar);
     }
 
     #[test]
@@ -217,7 +268,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::BackTab, KeyModifiers::SHIFT);
 
-        assert_eq!(app.active_screen, AppScreen::Deep);
+        assert_eq!(app.active_view, ActiveView::Calendar);
     }
 
     #[test]
@@ -253,13 +304,18 @@ mod tests {
     }
 
     #[test]
-    fn key_shift_h_and_shift_l_navigate_week() {
+    fn key_shift_h_and_shift_l_navigate_month() {
         let mut app = sample_app_state();
         app.focused_section = PageSection::Hero;
         let start = app.date;
 
         dispatch_key(&mut app, KeyCode::Char('L'), KeyModifiers::SHIFT);
-        assert_eq!(app.date, start + chrono::Duration::days(7));
+        // month navigation adds 1 month. 2026-03-12 -> 2026-04-12
+        let mut expected_date = start;
+        expected_date = expected_date
+            .checked_add_months(chrono::Months::new(1))
+            .unwrap();
+        assert_eq!(app.date, expected_date);
 
         dispatch_key(&mut app, KeyCode::Char('H'), KeyModifiers::SHIFT);
         assert_eq!(app.date, start);

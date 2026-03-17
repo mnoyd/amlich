@@ -117,7 +117,7 @@ impl Widget for TietKhiWidget<'_> {
 mod tests {
     use super::*;
     use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+        ActiveView, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
     };
     use crate::widgets::page::PageWidget;
     use amlich_api::v2::DayBundleDto;
@@ -166,7 +166,7 @@ mod tests {
             running: true,
             date,
             lens: FocusLens::General,
-            view_mode: ViewMode::Day,
+
             scroll_offset: 0,
             bundle: Some(DayBundleDto {
                 schema_version: "amlich.engine/v1".to_string(),
@@ -251,12 +251,12 @@ mod tests {
             focused_section: PageSection::TraditionalEvidence,
             zoomed_section: None,
             expanded_sections,
-            show_search: false,
+            app_mode: crate::state::AppMode::Normal,
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_screen: crate::state::AppScreen::General,
-            screen_history: Vec::new(),
+            active_view: crate::state::ActiveView::Dashboard,
+            view_history: Vec::new(),
         }
     }
 
@@ -304,18 +304,5 @@ mod tests {
         );
         assert!(!collapsed.contains("Giai đoạn chuyển mùa"));
         assert!(expanded.contains("Giai đoạn chuyển mùa"));
-    }
-
-    #[test]
-    fn screen_mode_uses_active_screen_over_legacy_zoom_flags() {
-        let mut app = sample_app_state(true);
-        app.zoomed_section = Some(PageSection::TraditionalEvidence);
-        app.active_screen = crate::state::AppScreen::General;
-
-        let text = render_page(&app);
-
-        assert!(text.contains("Màn hình General"));
-        assert!(text.contains("Tiết khí:"));
-        assert!(!text.contains("Khung Giờ Và Hành Động"));
     }
 }

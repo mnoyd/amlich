@@ -56,7 +56,7 @@ impl Widget for RibbonWidget<'_> {
             return;
         }
 
-        let screen_name = self.app.active_screen_label();
+        let screen_name = self.app.active_view_label();
 
         let dow0 = self.app.date.weekday().num_days_from_monday() as usize;
 
@@ -118,7 +118,7 @@ impl Widget for RibbonWidget<'_> {
 mod tests {
     use super::*;
     use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+        ActiveView, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
     };
     use chrono::NaiveDate;
 
@@ -151,7 +151,7 @@ mod tests {
             running: true,
             date,
             lens: FocusLens::General,
-            view_mode: ViewMode::Day,
+
             scroll_offset: 0,
             bundle: None,
             is_loading: false,
@@ -170,12 +170,12 @@ mod tests {
             focused_section: PageSection::Recommendations,
             zoomed_section: None,
             expanded_sections: Default::default(),
-            show_search: false,
+            app_mode: crate::state::AppMode::Normal,
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_screen: crate::state::AppScreen::General,
-            screen_history: Vec::new(),
+            active_view: crate::state::ActiveView::Dashboard,
+            view_history: Vec::new(),
         }
     }
 
@@ -201,7 +201,7 @@ mod tests {
         let hotkey_line = &lines[0];
         let weekday_line = &lines[1];
 
-        assert!(hotkey_line.contains("[General]"));
+        assert!(hotkey_line.contains("[Dashboard]"));
         assert!(hotkey_line.contains("Tab: màn"));
         assert!(hotkey_line.contains("?: trợ giúp"));
         assert!(!weekday_line.contains("Tab:"));

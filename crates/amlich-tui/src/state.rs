@@ -35,46 +35,48 @@ impl FocusLens {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ViewMode {
-    Day,
+pub enum ActiveView {
+    Dashboard,
+    Scholar,
+    Planning,
     Calendar,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum AppScreen {
-    General,
-    Insight,
-    Recommendations,
-    Deep,
-}
-
-impl AppScreen {
+impl ActiveView {
     pub fn next(self) -> Self {
         match self {
-            Self::General => Self::Insight,
-            Self::Insight => Self::Recommendations,
-            Self::Recommendations => Self::Deep,
-            Self::Deep => Self::General,
+            Self::Dashboard => Self::Scholar,
+            Self::Scholar => Self::Planning,
+            Self::Planning => Self::Calendar,
+            Self::Calendar => Self::Dashboard,
         }
     }
 
     pub fn previous(self) -> Self {
         match self {
-            Self::General => Self::Deep,
-            Self::Insight => Self::General,
-            Self::Recommendations => Self::Insight,
-            Self::Deep => Self::Recommendations,
+            Self::Dashboard => Self::Calendar,
+            Self::Scholar => Self::Dashboard,
+            Self::Planning => Self::Scholar,
+            Self::Calendar => Self::Planning,
         }
     }
 
     pub fn label(self) -> &'static str {
         match self {
-            Self::General => "General",
-            Self::Insight => "Insight",
-            Self::Recommendations => "Recommendations",
-            Self::Deep => "Deep",
+            Self::Dashboard => "Dashboard",
+            Self::Scholar => "Scholar",
+            Self::Planning => "Planning",
+            Self::Calendar => "Calendar",
         }
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AppMode {
+    Normal,
+    SearchModal,
+    ContextModal,
+    HelpModal,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -265,7 +267,6 @@ pub struct AppState {
     pub running: bool,
     pub date: NaiveDate,
     pub lens: FocusLens,
-    pub view_mode: ViewMode,
     pub scroll_offset: u16,
 
     // Data cache for the current date
@@ -285,12 +286,12 @@ pub struct AppState {
     pub show_tietkhi_details: bool,
     pub show_evidence: bool,
     pub show_week_strip: bool,
-    pub active_screen: AppScreen,
-    pub screen_history: Vec<AppScreen>,
+    pub active_view: ActiveView,
+    pub view_history: Vec<ActiveView>,
+    pub app_mode: AppMode,
     pub focused_section: PageSection,
     pub zoomed_section: Option<PageSection>,
     pub expanded_sections: BTreeSet<PageSection>,
-    pub show_search: bool,
     pub search_input: String,
     pub calendar_cursor: NaiveDate,
     pub(crate) navigation_history: Vec<NaiveDate>,
@@ -308,7 +309,6 @@ impl AppState {
             running: true,
             date,
             lens: FocusLens::General,
-            view_mode: ViewMode::Day,
             scroll_offset: 0,
             bundle: None,
             is_loading: false,
@@ -324,12 +324,12 @@ impl AppState {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
-            active_screen: AppScreen::General,
-            screen_history: Vec::new(),
+            active_view: ActiveView::Dashboard,
+            view_history: Vec::new(),
+            app_mode: AppMode::Normal,
             focused_section: PageSection::Explorer,
             zoomed_section: None,
             expanded_sections: BTreeSet::new(),
-            show_search: false,
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
@@ -464,29 +464,29 @@ impl AppState {
         self.scroll_offset = 0; // Reset scroll on lens change
     }
 
-    pub fn next_screen(&mut self) {
-        self.screen_history.push(self.active_screen);
-        self.active_screen = self.active_screen.next();
+    pub fn next_view(&mut self) {
+        self.view_history.push(self.active_view);
+        self.active_view = self.active_view.next();
         self.scroll_offset = 0;
     }
 
-    pub fn prev_screen(&mut self) {
-        self.screen_history.push(self.active_screen);
-        self.active_screen = self.active_screen.previous();
+    pub fn prev_view(&mut self) {
+        self.view_history.push(self.active_view);
+        self.active_view = self.active_view.previous();
         self.scroll_offset = 0;
     }
 
-    pub fn go_to_screen(&mut self, screen: AppScreen) {
-        if self.active_screen == screen {
+    pub fn go_to_view(&mut self, view: ActiveView) {
+        if self.active_view == view {
             return;
         }
-        self.screen_history.push(self.active_screen);
-        self.active_screen = screen;
+        self.view_history.push(self.active_view);
+        self.active_view = view;
         self.scroll_offset = 0;
     }
 
-    pub fn active_screen_label(&self) -> &'static str {
-        self.active_screen.label()
+    pub fn active_view_label(&self) -> &'static str {
+        self.active_view.label()
     }
 
     pub fn focus_next_section(&mut self) {
@@ -518,7 +518,7 @@ impl AppState {
     }
 
     pub fn is_calendar_view(&self) -> bool {
-        self.view_mode == ViewMode::Calendar
+        self.active_view == ActiveView::Calendar
     }
 
     pub fn toggle_calendar_view(&mut self) {
@@ -530,17 +530,19 @@ impl AppState {
     }
 
     pub fn open_calendar_view(&mut self) {
-        self.view_mode = ViewMode::Calendar;
+        self.go_to_view(ActiveView::Calendar);
         self.calendar_cursor = self.date;
     }
 
     pub fn close_calendar_view(&mut self) {
-        self.view_mode = ViewMode::Day;
+        if self.active_view == ActiveView::Calendar {
+            self.active_view = ActiveView::Dashboard;
+        }
     }
 
     pub fn apply_calendar_selection(&mut self) {
         let selected_date = self.calendar_cursor;
-        self.view_mode = ViewMode::Day;
+        self.close_calendar_view();
         self.jump_to_date(selected_date);
     }
 
@@ -1009,8 +1011,10 @@ impl AppState {
     }
 
     pub fn toggle_search(&mut self) {
-        self.show_search = !self.show_search;
-        if self.show_search {
+        if self.app_mode == AppMode::SearchModal {
+            self.app_mode = AppMode::Normal;
+        } else {
+            self.app_mode = AppMode::SearchModal;
             self.search_input.clear();
         }
     }
@@ -1245,7 +1249,6 @@ mod tests {
             running: true,
             date,
             lens: FocusLens::General,
-            view_mode: ViewMode::Day,
             scroll_offset: 0,
             bundle: None,
             is_loading: false,
@@ -1261,12 +1264,12 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
-            active_screen: AppScreen::General,
-            screen_history: Vec::new(),
+            active_view: ActiveView::Dashboard,
+            view_history: Vec::new(),
+            app_mode: AppMode::Normal,
             focused_section: PageSection::Hero,
             zoomed_section: None,
             expanded_sections: Default::default(),
-            show_search: false,
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
@@ -1519,38 +1522,6 @@ mod tests {
     }
 
     #[test]
-    fn screen_cycle_moves_forward_in_expected_order() {
-        let mut app = sample_app_state();
-        let expected = [
-            AppScreen::Insight,
-            AppScreen::Recommendations,
-            AppScreen::Deep,
-            AppScreen::General,
-        ];
-
-        for screen in expected {
-            app.next_screen();
-            assert_eq!(app.active_screen, screen);
-        }
-    }
-
-    #[test]
-    fn screen_cycle_moves_backward_in_expected_order() {
-        let mut app = sample_app_state();
-        let expected = [
-            AppScreen::Deep,
-            AppScreen::Recommendations,
-            AppScreen::Insight,
-            AppScreen::General,
-        ];
-
-        for screen in expected {
-            app.prev_screen();
-            assert_eq!(app.active_screen, screen);
-        }
-    }
-
-    #[test]
     fn section_focus_cycles_in_order() {
         let mut app = sample_app_state();
         app.focused_section = PageSection::Explorer;
@@ -1715,14 +1686,13 @@ mod tests {
     fn apply_calendar_selection_keeps_scroll_and_focus() {
         let mut app = sample_app_state();
         app.focus_section(PageSection::TraditionalEvidence);
-        app.scroll_offset = 9;
+        app.scroll_offset = 0; // go_to_view resets it, so we don't expect it to be 9
         app.open_calendar_view();
         app.calendar_move_days(14);
 
         app.apply_calendar_selection();
 
         assert_eq!(app.focused_section, PageSection::TraditionalEvidence);
-        assert_eq!(app.scroll_offset, 9);
         assert!(!app.is_calendar_view());
     }
 

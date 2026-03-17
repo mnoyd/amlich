@@ -22,7 +22,7 @@ impl<'a> SearchOverlayWidget<'a> {
 
 impl Widget for SearchOverlayWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        if !self.app.show_search {
+        if self.app.app_mode != crate::state::AppMode::SearchModal {
             return;
         }
 

@@ -216,7 +216,7 @@ fn action_summary(hours_data: &amlich_api::GioHoangDaoDto) -> String {
 mod tests {
     use super::*;
     use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ViewMode,
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ActiveView,
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{GioHoangDaoDto, HourInfoDto, LunarDto, SolarDto};
@@ -315,7 +315,7 @@ mod tests {
             running: true,
             date,
             lens: FocusLens::General,
-            view_mode: ViewMode::Day,
+            
             scroll_offset: 0,
             bundle: Some(DayBundleDto {
                 schema_version: "amlich.engine/v1".to_string(),
@@ -364,12 +364,12 @@ mod tests {
             focused_section: PageSection::Timing,
             zoomed_section: None,
             expanded_sections: Default::default(),
-            show_search: false,
+            app_mode: crate::state::AppMode::Normal,
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_screen: crate::state::AppScreen::General,
-            screen_history: Vec::new(),
+            active_view: crate::state::ActiveView::Dashboard,
+            view_history: Vec::new(),
         }
     }
 
