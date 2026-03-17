@@ -561,6 +561,35 @@ impl<'a> InsightOverlay<'a> {
         let mut lines = Vec::new();
         let lang = self.app.insight_lang;
 
+        // Can Chi insight detail
+        if let Some(canchi) = &insight.canchi {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Can Chi ngày:", "Day Stem-Branch:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(vec![
+                Span::raw(format!("  {} — ", canchi.can.name)),
+                Span::styled(
+                    pick_text(lang, &canchi.can.nature.vi, &canchi.can.nature.en),
+                    Style::default().fg(theme::SECONDARY_FG),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw(format!("  {} — ", canchi.chi.name)),
+                Span::styled(
+                    pick_text(lang, &canchi.chi.meaning.vi, &canchi.chi.meaning.en),
+                    Style::default().fg(theme::SECONDARY_FG),
+                ),
+                Span::raw(format!(
+                    " ({})",
+                    pick_text(lang, &canchi.chi.animal.vi, &canchi.chi.animal.en),
+                )),
+            ]));
+            lines.push(Line::from(""));
+        }
+
         if let Some(truc) = &insight.truc {
             lines.push(Line::from(vec![
                 Span::styled(
@@ -639,6 +668,22 @@ impl<'a> InsightOverlay<'a> {
                         Style::default().fg(theme::WEEKEND_FG),
                     ),
                     Span::raw(stars.sat_tinh.join(", ")),
+                ]));
+            }
+            if let Some(day_star) = &stars.day_star {
+                let quality = stars.day_star_quality.as_deref().unwrap_or("");
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        pick_text(lang, "Sao chủ ngày: ", "Day star: "),
+                        Style::default().fg(theme::SECONDARY_FG),
+                    ),
+                    Span::styled(
+                        day_star.as_str(),
+                        Style::default()
+                            .fg(theme::ACCENT_FG)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::raw(format!(" ({quality})")),
                 ]));
             }
             lines.push(Line::from(""));
