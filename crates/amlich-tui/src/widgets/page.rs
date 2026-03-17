@@ -12,8 +12,13 @@ use crate::state::{AppState, PageSection};
 use super::{
     calendar::CalendarViewWidget,
     screens::{
-        dashboard::DashboardScreenWidget, insight::InsightScreenWidget,
+        dashboard::DashboardScreenWidget,
+        elements::ElementsScreenWidget,
+        feng_shui::FengShuiScreenWidget,
+        hours::HoursScreenWidget,
+        insight::InsightScreenWidget,
         recommendations::RecommendationsScreenWidget,
+        solar_terms::SolarTermsScreenWidget,
     },
     week_strip::WeekStripWidget,
 };
@@ -99,15 +104,23 @@ impl Widget for PageWidget<'_> {
             crate::state::ActiveView::Scholar => {
                 InsightScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
+            crate::state::ActiveView::Hours => {
+                HoursScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
+            crate::state::ActiveView::Elements => {
+                ElementsScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
+            crate::state::ActiveView::FengShui => {
+                FengShuiScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
+            crate::state::ActiveView::SolarTerms => {
+                SolarTermsScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
             crate::state::ActiveView::Planning => {
                 RecommendationsScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
             crate::state::ActiveView::Calendar => {
                 CalendarViewWidget::new(self.app, self.mode).render(area, buf)
-            }
-            // Stub: new views will be wired in a follow-up commit
-            _ => {
-                Paragraph::new("Đang phát triển...").render(content_area, buf)
             }
         }
     }
