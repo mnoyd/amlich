@@ -736,30 +736,7 @@ impl<'a> InsightOverlay<'a> {
         let mut lines = Vec::new();
         let lang = self.app.insight_lang;
 
-        if let Some(ten_gods) = &insight.ten_gods {
-            lines.push(Line::from(Span::styled(
-                pick_text(lang, "Thập Thần:", "Ten Gods:"),
-                Style::default()
-                    .fg(theme::ACCENT_FG)
-                    .add_modifier(Modifier::BOLD),
-            )));
-            if let Some(entry) = &ten_gods.to_year_stem {
-                lines.push(Line::from(format!(
-                    "  {} — {}",
-                    entry.label,
-                    pick_text(lang, &entry.meaning.vi, &entry.meaning.en),
-                )));
-            }
-            if let Some(entry) = &ten_gods.to_self {
-                lines.push(Line::from(format!(
-                    "  {} — {}",
-                    entry.label,
-                    pick_text(lang, &entry.meaning.vi, &entry.meaning.en),
-                )));
-            }
-            lines.push(Line::from(""));
-        }
-
+        // Travel directions (kept here — not moved to other tabs)
         if let Some(travel) = &insight.travel {
             lines.push(Line::from(Span::styled(
                 pick_text(lang, "Xuất hành:", "Travel:"),
@@ -767,91 +744,48 @@ impl<'a> InsightOverlay<'a> {
                     .fg(theme::ACCENT_FG)
                     .add_modifier(Modifier::BOLD),
             )));
-            lines.push(Line::from(format!(
-                "  {} {} | {} {} | {} {}",
-                pick_text(lang, "Hướng:", "Direction:"),
-                travel.xuat_hanh_huong,
-                pick_text(lang, "Tài Thần:", "Wealth:"),
-                travel.tai_than,
-                pick_text(lang, "Hỷ Thần:", "Joy:"),
-                travel.hy_than,
-            )));
-            lines.push(Line::from(""));
-        }
-
-        if let Some(xung_hop) = &insight.xung_hop {
-            lines.push(Line::from(Span::styled(
-                pick_text(lang, "Xung Hợp:", "Clash/Harmony:"),
-                Style::default()
-                    .fg(theme::ACCENT_FG)
-                    .add_modifier(Modifier::BOLD),
-            )));
-            lines.push(Line::from(format!(
-                "  {} {}",
-                pick_text(lang, "Lục Xung:", "Six Clash:"),
-                xung_hop.luc_xung,
-            )));
-            if !xung_hop.tam_hop.is_empty() {
-                lines.push(Line::from(format!(
-                    "  {} {}",
-                    pick_text(lang, "Tam Hợp:", "Three Harmony:"),
-                    xung_hop.tam_hop.join(", "),
-                )));
-            }
-            if let Some(liu_he) = &xung_hop.liu_he {
-                lines.push(Line::from(format!(
-                    "  {} {liu_he}",
-                    pick_text(lang, "Lục Hợp:", "Six Harmony:"),
-                )));
-            }
-            lines.push(Line::from(""));
-        }
-
-        if let Some(tang_can) = &insight.tang_can {
-            lines.push(Line::from(Span::styled(
-                pick_text(lang, "Tàng Can:", "Hidden Stems:"),
-                Style::default()
-                    .fg(theme::ACCENT_FG)
-                    .add_modifier(Modifier::BOLD),
-            )));
-            lines.push(Line::from(format!(
-                "  {} {} ({}) | {} ({}) | {} ({})",
-                pick_text(lang, "Chính:", "Main:"),
-                tang_can.main,
-                tang_can.strength[0],
-                tang_can.central,
-                tang_can.strength[1],
-                tang_can.residual,
-                tang_can.strength[2],
-            )));
-            lines.push(Line::from(""));
-        }
-
-        if let Some(hours) = &insight.hours {
-            lines.push(Line::from(Span::styled(
-                format!(
-                    "{} ({})",
-                    pick_text(lang, "Giờ tốt:", "Good hours:"),
-                    hours.good_hour_count,
+            lines.push(Line::from(vec![
+                Span::styled(
+                    pick_text(lang, "  Hướng: ", "  Direction: "),
+                    Style::default().fg(theme::SECONDARY_FG),
                 ),
-                Style::default()
-                    .fg(theme::GOOD_HOUR_FG)
-                    .add_modifier(Modifier::BOLD),
-            )));
-            for h in &hours.good_hours {
-                lines.push(Line::from(format!(
-                    "  {} ({}) — {}",
-                    h.chi, h.time_range, h.star
-                )));
-            }
+                Span::styled(
+                    &travel.xuat_hanh_huong,
+                    Style::default().fg(theme::GOOD_HOUR_FG),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::styled(
+                    pick_text(lang, "  Tài Thần: ", "  Wealth God: "),
+                    Style::default().fg(theme::SECONDARY_FG),
+                ),
+                Span::styled(
+                    &travel.tai_than,
+                    Style::default().fg(theme::ACCENT_FG),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::styled(
+                    pick_text(lang, "  Hỷ Thần: ", "  Joy God: "),
+                    Style::default().fg(theme::SECONDARY_FG),
+                ),
+                Span::styled(
+                    &travel.hy_than,
+                    Style::default().fg(theme::GOOD_HOUR_FG),
+                ),
+            ]));
+            lines.push(Line::from(""));
         }
 
-        if lines.is_empty() {
-            lines.push(Line::from(Span::styled(
-                pick_text(lang, "Không có dữ liệu nâng cao", "No advanced data"),
-                Style::default().fg(theme::SECONDARY_FG),
-            )));
-        }
+        // Cross-reference hints
+        lines.push(Line::from(Span::styled(
+            pick_text(
+                lang,
+                "Xem thêm: [5] Giờ  [6] Ngũ hành  [7] Phong thủy",
+                "See also: [5] Hours  [6] Elements  [7] Feng Shui",
+            ),
+            Style::default().fg(theme::SECONDARY_FG),
+        )));
 
         lines
     }
@@ -951,6 +885,16 @@ impl<'a> InsightOverlay<'a> {
                 )));
             }
         }
+
+        lines.push(Line::from(""));
+        lines.push(Line::from(Span::styled(
+            pick_text(
+                lang,
+                "Chi tiết: [7] Phong thủy (la bàn, đại vận, hướng)",
+                "Details: [7] Feng Shui (compass, dai van, directions)",
+            ),
+            Style::default().fg(theme::SECONDARY_FG),
+        )));
 
         lines
     }
