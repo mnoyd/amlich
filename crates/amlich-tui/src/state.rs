@@ -37,33 +37,17 @@ impl FocusLens {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActiveView {
     Dashboard,
+    Event,
     Scholar,
     Planning,
     Calendar,
 }
 
 impl ActiveView {
-    pub fn next(self) -> Self {
-        match self {
-            Self::Dashboard => Self::Scholar,
-            Self::Scholar => Self::Planning,
-            Self::Planning => Self::Calendar,
-            Self::Calendar => Self::Dashboard,
-        }
-    }
-
-    pub fn previous(self) -> Self {
-        match self {
-            Self::Dashboard => Self::Calendar,
-            Self::Scholar => Self::Dashboard,
-            Self::Planning => Self::Scholar,
-            Self::Calendar => Self::Planning,
-        }
-    }
-
     pub fn label(self) -> &'static str {
         match self {
             Self::Dashboard => "Dashboard",
+            Self::Event => "Event",
             Self::Scholar => "Scholar",
             Self::Planning => "Planning",
             Self::Calendar => "Calendar",
@@ -464,15 +448,50 @@ impl AppState {
         self.scroll_offset = 0; // Reset scroll on lens change
     }
 
+    pub fn has_event_today(&self) -> bool {
+        let Some(bundle) = &self.bundle else {
+            return false;
+        };
+        if let Some(insight) = &bundle.insight {
+            if insight.festival.is_some() || insight.holiday.is_some() {
+                return true;
+            }
+        }
+        bundle.lunar.day == 1 || bundle.lunar.day == 15
+    }
+
+    pub fn available_views(&self) -> Vec<ActiveView> {
+        let mut views = vec![ActiveView::Dashboard];
+        if self.has_event_today() {
+            views.push(ActiveView::Event);
+        }
+        views.extend(vec![
+            ActiveView::Scholar,
+            ActiveView::Planning,
+            ActiveView::Calendar,
+        ]);
+        views
+    }
+
     pub fn next_view(&mut self) {
         self.view_history.push(self.active_view);
-        self.active_view = self.active_view.next();
+        let views = self.available_views();
+        let idx = views
+            .iter()
+            .position(|&v| v == self.active_view)
+            .unwrap_or(0);
+        self.active_view = views[(idx + 1) % views.len()];
         self.scroll_offset = 0;
     }
 
     pub fn prev_view(&mut self) {
         self.view_history.push(self.active_view);
-        self.active_view = self.active_view.previous();
+        let views = self.available_views();
+        let idx = views
+            .iter()
+            .position(|&v| v == self.active_view)
+            .unwrap_or(0);
+        self.active_view = views[(idx + views.len() - 1) % views.len()];
         self.scroll_offset = 0;
     }
 
@@ -1532,7 +1551,7 @@ mod tests {
                 ],
             }),
             contextual_recommendations: None,
-            insight: None,
+            insight: None, upcoming_events: vec![],
         }
     }
 

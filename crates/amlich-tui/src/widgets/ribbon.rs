@@ -56,22 +56,33 @@ impl Widget for RibbonWidget<'_> {
             return;
         }
 
-        let screen_name = self.app.active_view_label();
+        let available = self.app.available_views();
+        let mut view_spans = vec![];
+        for v in available.iter() {
+            if v == &self.app.active_view {
+                view_spans.push(Span::styled(
+                    format!(" [{}] ", v.label()),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ));
+            } else {
+                view_spans.push(Span::styled(
+                    format!(" {} ", v.label()),
+                    Style::default().fg(Color::DarkGray),
+                ));
+            }
+        }
+
+        let mut all_spans = view_spans;
+        all_spans.push(Span::styled(
+            "| Tab: màn  ←/→: ngày  t: hôm nay  m: tháng  ?: trợ giúp",
+            Style::default().fg(Color::DarkGray),
+        ));
 
         let dow0 = self.app.date.weekday().num_days_from_monday() as usize;
 
-        let hotkey_line = Line::from(vec![
-            Span::styled(
-                format!(" [{}] ", screen_name),
-                Style::default()
-                    .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            Span::styled(
-                "Tab: màn  ←/→: ngày  t: hôm nay  m: tháng  ?: trợ giúp",
-                Style::default().fg(Color::DarkGray),
-            ),
-        ]);
+        let hotkey_line = Line::from(all_spans);
 
         let top_line = Rect {
             x: area.x,
@@ -117,9 +128,7 @@ impl Widget for RibbonWidget<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
-    };
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection};
     use chrono::NaiveDate;
 
     fn sample_app_state() -> AppState {

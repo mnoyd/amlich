@@ -24,6 +24,57 @@ pub struct Holiday {
     pub is_major: bool,
 }
 
+#[derive(Debug, Clone)]
+pub struct UpcomingEvent {
+    pub name: String,
+    pub jd: i32,
+    pub days_left: i32,
+    pub is_lunar: bool,
+}
+
+pub fn get_upcoming_events(
+    current_jd: i32,
+    current_solar_year: i32,
+    limit_days: i32,
+) -> Vec<UpcomingEvent> {
+    let mut all_holidays = get_vietnamese_holidays(current_solar_year);
+    // If it's near end of year, fetch next year too
+    all_holidays.extend(get_vietnamese_holidays(current_solar_year + 1));
+
+    let mut upcoming = Vec::new();
+
+    // Track seen JDs to prioritize major holidays or first encountered
+    let mut seen_jds = std::collections::HashSet::new();
+
+    // Sort to make sure we process chronologically, but we want major holidays to take precedence
+    // So we first sort by JD, then by `is_major` desc
+    all_holidays.sort_by(|a, b| {
+        let jd_a = jd_from_date(a.solar_day, a.solar_month, a.solar_year);
+        let jd_b = jd_from_date(b.solar_day, b.solar_month, b.solar_year);
+        jd_a.cmp(&jd_b).then_with(|| b.is_major.cmp(&a.is_major))
+    });
+
+    for h in all_holidays {
+        let jd = jd_from_date(h.solar_day, h.solar_month, h.solar_year);
+        let days_left = jd - current_jd;
+        if days_left > 0 && days_left <= limit_days {
+            if !seen_jds.contains(&jd) {
+                seen_jds.insert(jd);
+                upcoming.push(UpcomingEvent {
+                    name: h.name.clone(),
+                    jd,
+                    days_left,
+                    is_lunar: !h.is_solar,
+                });
+            }
+        }
+    }
+
+    // Sort back by JD just in case
+    upcoming.sort_by_key(|e| e.jd);
+    upcoming
+}
+
 struct LunarHolidayInput<'a> {
     name: &'a str,
     lunar_day: i32,

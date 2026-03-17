@@ -92,6 +92,10 @@ impl Widget for PageWidget<'_> {
             crate::state::ActiveView::Dashboard => {
                 DashboardScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
+            crate::state::ActiveView::Event => {
+                super::screens::event::EventScreenWidget::new(self.app, self.mode)
+                    .render(content_area, buf)
+            }
             crate::state::ActiveView::Scholar => {
                 InsightScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
@@ -223,7 +227,7 @@ mod tests {
             day_fortune: None,
             daily_recommendations: None,
             contextual_recommendations: None,
-            insight: None,
+            insight: None, upcoming_events: vec![],
         }
     }
 

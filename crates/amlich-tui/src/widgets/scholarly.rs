@@ -223,7 +223,7 @@ mod tests {
                         }],
                     }],
                 }),
-                contextual_recommendations: None,
+                contextual_recommendations: None, upcoming_events: vec![],
                 insight: Some(DayInsightDto {
                     solar: SolarDto {
                         day: 12,

@@ -7,7 +7,7 @@ use serde_json::{Map, Value};
 use crate::dto::{
     CanChiInfoDto, DailyRecommendationsDto, DateQuery, DayFortuneDto, DayInsightDto,
     GioHoangDaoDto, KuaResultDto, LunarDto, NaAmResponseDto, SolarDto, ThapThanResultDto,
-    TietKhiDto,
+    TietKhiDto, UpcomingEventDto,
 };
 
 const SCHEMA_VERSION: &str = "amlich.engine/v1";
@@ -57,6 +57,8 @@ pub struct DayBundleDto {
     pub contextual_recommendations: Option<DailyRecommendationsDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub insight: Option<DayInsightDto>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub upcoming_events: Vec<UpcomingEventDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -90,6 +92,17 @@ impl DayBundleDto {
         includes: &[Include],
     ) -> Result<Self, String> {
         let meta = ApiMetaDto::from(&info);
+
+        let upcoming_events =
+            amlich_core::holidays::get_upcoming_events(info.jd, info.solar.year, 14)
+                .into_iter()
+                .map(|e| UpcomingEventDto {
+                    name: e.name,
+                    days_left: e.days_left,
+                    is_lunar: e.is_lunar,
+                })
+                .collect();
+
         Ok(Self {
             schema_version: meta.schema_version,
             ruleset_id: meta.ruleset_id,
@@ -118,6 +131,7 @@ impl DayBundleDto {
                 .then_some(info.contextual_recommendations)
                 .flatten(),
             insight,
+            upcoming_events,
         })
     }
 

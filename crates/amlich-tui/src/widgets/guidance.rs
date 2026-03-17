@@ -706,7 +706,7 @@ mod tests {
                 day_fortune: None,
                 daily_recommendations: Some(sample_recommendations()),
                 contextual_recommendations: None,
-                insight: None,
+                insight: None, upcoming_events: vec![],
             }),
             is_loading: false,
             error_msg: None,

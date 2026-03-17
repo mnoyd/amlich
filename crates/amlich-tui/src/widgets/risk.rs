@@ -249,7 +249,7 @@ mod tests {
                     activities,
                 }),
                 contextual_recommendations: None,
-                insight: None,
+                insight: None, upcoming_events: vec![],
             }),
             is_loading: false,
             error_msg: None,

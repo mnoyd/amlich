@@ -63,9 +63,21 @@ impl Widget for HeroWidget<'_> {
         let inner = block.inner(area);
         block.render(area, buf);
 
+        let mut upcoming_text = None;
+        if !bundle.upcoming_events.is_empty() {
+            let events_str = bundle
+                .upcoming_events
+                .iter()
+                .map(|e| format!("[{} ngày] {}", e.days_left, e.name))
+                .collect::<Vec<_>>()
+                .join(" • ");
+            upcoming_text = Some(format!(" 👉 Sắp tới: {} ", events_str));
+        }
+
         let layout = Layout::vertical([
-            Constraint::Min(8),    // Day + Text
-            Constraint::Length(1), // Holiday
+            Constraint::Min(8),                                              // Day + Text
+            Constraint::Length(if upcoming_text.is_some() { 1 } else { 0 }), // Upcoming
+            Constraint::Length(1),                                           // Holiday
         ])
         .split(inner);
 
@@ -139,6 +151,17 @@ impl Widget for HeroWidget<'_> {
             .alignment(Alignment::Left)
             .render(top_layout[1], buf);
 
+        if let Some(text) = upcoming_text {
+            Paragraph::new(Span::styled(
+                text,
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ))
+            .alignment(Alignment::Center)
+            .render(layout[1], buf);
+        }
+
         if let Some(badge) = holiday_badge(bundle) {
             let banner = Paragraph::new(Line::from(vec![
                 Span::styled(" ★ ", Style::default().fg(Color::Yellow)),
@@ -153,18 +176,28 @@ impl Widget for HeroWidget<'_> {
             .alignment(Alignment::Center)
             .style(Style::default().bg(Color::Rgb(180, 0, 0))); // Red bg
 
-            banner.render(layout[1], buf);
+            banner.render(layout[2], buf);
         }
     }
 }
 
 fn holiday_badge(bundle: &amlich_api::v2::DayBundleDto) -> Option<String> {
-    let insight = bundle.insight.as_ref()?;
-    if let Some(holiday) = insight.holiday.as_ref() {
-        return holiday.names.vi.first().cloned();
+    if let Some(insight) = &bundle.insight {
+        if let Some(holiday) = insight.holiday.as_ref() {
+            return holiday.names.vi.first().cloned();
+        }
+        if let Some(festival) = insight.festival.as_ref() {
+            return festival.names.vi.first().cloned();
+        }
     }
-    insight
-        .festival
-        .as_ref()
-        .and_then(|festival| festival.names.vi.first().cloned())
+
+    // Default fallback for Mùng 1 and Rằm if not covered by a major festival
+    if bundle.lunar.day == 1 {
+        return Some("Mùng Một".to_string());
+    }
+    if bundle.lunar.day == 15 {
+        return Some("Ngày Rằm".to_string());
+    }
+
+    None
 }

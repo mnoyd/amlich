@@ -470,6 +470,13 @@ pub struct HolidayInsightDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UpcomingEventDto {
+    pub name: String,
+    pub days_left: i32,
+    pub is_lunar: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ElementInsightDto {
     pub key: String,
     pub name: LocalizedTextDto,
