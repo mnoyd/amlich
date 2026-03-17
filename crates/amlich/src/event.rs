@@ -111,8 +111,11 @@ fn handle_key(app: &mut App, key: KeyEvent) {
             KeyCode::Char('2') => app.set_insight_tab(InsightTab::Guidance),
             KeyCode::Char('3') => app.set_insight_tab(InsightTab::TietKhi),
             KeyCode::Char('4') => app.set_insight_tab(InsightTab::Almanac),
-            KeyCode::Char('5') => app.set_insight_tab(InsightTab::Advanced),
-            KeyCode::Char('6') => app.set_insight_tab(InsightTab::Personal),
+            KeyCode::Char('5') => app.set_insight_tab(InsightTab::Hours),
+            KeyCode::Char('6') => app.set_insight_tab(InsightTab::Elements),
+            KeyCode::Char('7') => app.set_insight_tab(InsightTab::FengShui),
+            KeyCode::Char('8') => app.set_insight_tab(InsightTab::Advanced),
+            KeyCode::Char('9') => app.set_insight_tab(InsightTab::Personal),
             KeyCode::Char('n') => app.next_insight_tab(),
             KeyCode::Char('L') => app.toggle_insight_lang(),
             _ => {}

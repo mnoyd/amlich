@@ -910,6 +910,18 @@ impl<'a> InsightOverlay<'a> {
         lines
     }
 
+    fn render_hours_tab(&self, _insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+        vec![Line::from("(Hours tab — coming next)")]
+    }
+
+    fn render_elements_tab(&self, _insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+        vec![Line::from("(Elements tab — coming next)")]
+    }
+
+    fn render_feng_shui_tab(&self, _insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+        vec![Line::from("(Feng Shui tab — coming next)")]
+    }
+
     fn tab_content(&self) -> Vec<Line<'_>> {
         let Some(insight) = self.app.selected_insight() else {
             let no_data = match self.app.insight_lang {
@@ -924,6 +936,9 @@ impl<'a> InsightOverlay<'a> {
             InsightTab::Guidance => self.render_guidance_tab(insight),
             InsightTab::TietKhi => self.render_tiet_khi_tab(insight),
             InsightTab::Almanac => self.render_almanac_tab(insight),
+            InsightTab::Hours => self.render_hours_tab(insight),
+            InsightTab::Elements => self.render_elements_tab(insight),
+            InsightTab::FengShui => self.render_feng_shui_tab(insight),
             InsightTab::Advanced => self.render_advanced_tab(insight),
             InsightTab::Personal => self.render_personal_tab(insight),
         }
@@ -937,8 +952,11 @@ impl<'a> InsightOverlay<'a> {
             (InsightTab::Guidance, "2"),
             (InsightTab::TietKhi, "3"),
             (InsightTab::Almanac, "4"),
-            (InsightTab::Advanced, "5"),
-            (InsightTab::Personal, "6"),
+            (InsightTab::Hours, "5"),
+            (InsightTab::Elements, "6"),
+            (InsightTab::FengShui, "7"),
+            (InsightTab::Advanced, "8"),
+            (InsightTab::Personal, "9"),
         ];
 
         let mut spans = Vec::new();
@@ -950,7 +968,7 @@ impl<'a> InsightOverlay<'a> {
             } else {
                 Style::default().fg(theme::SECONDARY_FG)
             };
-            spans.push(Span::styled(format!("[{key}] "), style));
+            spans.push(Span::styled(format!("[{key}]"), style));
             spans.push(Span::styled(tab.name(lang), style));
             if i < tabs.len() - 1 {
                 spans.push(Span::raw(" "));
@@ -989,8 +1007,8 @@ impl Widget for InsightOverlay<'_> {
         };
 
         let tab_help = match self.app.insight_lang {
-            InsightLang::Vi => " 1-6 tab ",
-            InsightLang::En => " 1-6 tabs ",
+            InsightLang::Vi => " 1-9 tab ",
+            InsightLang::En => " 1-9 tabs ",
         };
 
         let block = Block::default()
