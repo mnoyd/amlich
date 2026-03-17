@@ -1,7 +1,7 @@
 use chrono::{Local, Timelike};
 use ratatui::{
     buffer::Buffer,
-    layout::{Constraint, Layout, Rect, Alignment},
+    layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget},
@@ -44,7 +44,8 @@ impl Widget for TimelineWidget<'_> {
             Constraint::Length(1), // Bar
             Constraint::Length(1), // Labels
             Constraint::Min(1),    // Legend/Upcoming
-        ]).split(inner);
+        ])
+        .split(inner);
 
         // 12 canh giờ
         // We will render a continuous bar using block characters.
@@ -61,13 +62,19 @@ impl Widget for TimelineWidget<'_> {
             };
 
             bar_spans.push(Span::styled("████", Style::default().fg(color)));
-            
+
             // Labels (e.g. 23, 01, 03)
             let start_hour = hd.time_range.split(':').next().unwrap_or("00");
             if i == 0 {
-                label_spans.push(Span::styled(format!("{:<4}", start_hour), Style::default().fg(Color::Gray)));
+                label_spans.push(Span::styled(
+                    format!("{:<4}", start_hour),
+                    Style::default().fg(Color::Gray),
+                ));
             } else {
-                label_spans.push(Span::styled(format!("{:<4}", start_hour), Style::default().fg(Color::Gray)));
+                label_spans.push(Span::styled(
+                    format!("{:<4}", start_hour),
+                    Style::default().fg(Color::Gray),
+                ));
             }
         }
 

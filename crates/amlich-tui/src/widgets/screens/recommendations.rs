@@ -1,11 +1,7 @@
-use ratatui::{
-    buffer::Buffer,
-    layout::Rect,
-    widgets::Widget,
-};
+use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
 
-use crate::{layout::LayoutMode, state::AppState};
 use crate::widgets::guidance::GuidanceWidget;
+use crate::{layout::LayoutMode, state::AppState};
 
 pub struct RecommendationsScreenWidget<'a> {
     app: &'a AppState,

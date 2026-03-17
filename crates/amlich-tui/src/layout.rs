@@ -4,7 +4,10 @@ use ratatui::{
 };
 
 use crate::state::AppState;
-use crate::widgets::{page::PageWidget, ribbon::RibbonWidget, search::SearchOverlayWidget};
+use crate::widgets::{
+    context::ContextModalWidget, help::HelpModalWidget, page::PageWidget, ribbon::RibbonWidget,
+    search::SearchOverlayWidget,
+};
 
 const MIN_TERM_W: u16 = 40;
 const MIN_TERM_H: u16 = 15;
@@ -68,9 +71,18 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
     // Render the fixed ribbon at the bottom
     frame.render_widget(RibbonWidget::new(app, mode), ribbon_area);
 
-    // Render overlays (Search, etc) on top if active
-    if app.app_mode == crate::state::AppMode::SearchModal {
-        frame.render_widget(SearchOverlayWidget::new(app, mode), size);
+    // Render overlays (Search, Context, Help) on top if active
+    match app.app_mode {
+        crate::state::AppMode::SearchModal => {
+            frame.render_widget(SearchOverlayWidget::new(app, mode), size);
+        }
+        crate::state::AppMode::ContextModal => {
+            frame.render_widget(ContextModalWidget::new(app, mode), size);
+        }
+        crate::state::AppMode::HelpModal => {
+            frame.render_widget(HelpModalWidget::new(app, mode), size);
+        }
+        _ => {}
     }
 }
 

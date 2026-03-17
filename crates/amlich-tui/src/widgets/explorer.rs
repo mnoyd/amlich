@@ -169,7 +169,7 @@ mod tests {
             running: true,
             date,
             lens: FocusLens::General,
-            
+
             scroll_offset: 0,
             bundle: None,
             is_loading: false,

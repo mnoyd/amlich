@@ -19,16 +19,36 @@ impl<'a> HeroWidget<'a> {
 }
 
 const ASCII_DIGITS: [&[&str]; 10] = [
-    &["  000  ", " 0   0 ", "0     0", "0     0", " 0   0 ", "  000  "],
-    &["   1   ", "  11   ", " 1 1   ", "   1   ", "   1   ", " 11111 "],
-    &["  222  ", " 2   2 ", "    2  ", "   2   ", "  2    ", " 22222 "],
-    &[" 3333  ", "     3 ", "   33  ", "     3 ", " 3   3 ", "  333  "],
-    &["    4  ", "   44  ", "  4 4  ", " 44444 ", "    4  ", "    4  "],
-    &[" 55555 ", " 5     ", " 5555  ", "     5 ", " 5   5 ", "  555  "],
-    &["  666  ", " 6     ", " 6666  ", " 6   6 ", " 6   6 ", "  666  "],
-    &[" 77777 ", "    7  ", "   7   ", "  7    ", " 7     ", " 7     "],
-    &["  888  ", " 8   8 ", "  888  ", " 8   8 ", " 8   8 ", "  888  "],
-    &["  999  ", " 9   9 ", "  9999 ", "     9 ", "    9  ", "  99   "],
+    &[
+        "  000  ", " 0   0 ", "0     0", "0     0", " 0   0 ", "  000  ",
+    ],
+    &[
+        "   1   ", "  11   ", " 1 1   ", "   1   ", "   1   ", " 11111 ",
+    ],
+    &[
+        "  222  ", " 2   2 ", "    2  ", "   2   ", "  2    ", " 22222 ",
+    ],
+    &[
+        " 3333  ", "     3 ", "   33  ", "     3 ", " 3   3 ", "  333  ",
+    ],
+    &[
+        "    4  ", "   44  ", "  4 4  ", " 44444 ", "    4  ", "    4  ",
+    ],
+    &[
+        " 55555 ", " 5     ", " 5555  ", "     5 ", " 5   5 ", "  555  ",
+    ],
+    &[
+        "  666  ", " 6     ", " 6666  ", " 6   6 ", " 6   6 ", "  666  ",
+    ],
+    &[
+        " 77777 ", "    7  ", "   7   ", "  7    ", " 7     ", " 7     ",
+    ],
+    &[
+        "  888  ", " 8   8 ", "  888  ", " 8   8 ", " 8   8 ", "  888  ",
+    ],
+    &[
+        "  999  ", " 9   9 ", "  9999 ", "     9 ", "    9  ", "  99   ",
+    ],
 ];
 
 impl Widget for HeroWidget<'_> {
@@ -46,12 +66,14 @@ impl Widget for HeroWidget<'_> {
         let layout = Layout::vertical([
             Constraint::Min(8),    // Day + Text
             Constraint::Length(1), // Holiday
-        ]).split(inner);
+        ])
+        .split(inner);
 
         let top_layout = Layout::horizontal([
             Constraint::Length(25), // Ascii digits
             Constraint::Min(20),
-        ]).split(layout[0]);
+        ])
+        .split(layout[0]);
 
         // Render ascii day
         let day = bundle.solar.day;
@@ -63,7 +85,9 @@ impl Widget for HeroWidget<'_> {
             let s = format!("{}  {}", ASCII_DIGITS[d1][i], ASCII_DIGITS[d2][i]);
             ascii_lines[i] = Line::from(Span::styled(
                 s,
-                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
             ));
         }
 
@@ -72,7 +96,9 @@ impl Widget for HeroWidget<'_> {
         let mut final_ascii = vec![Line::from(""); padding as usize];
         final_ascii.extend(ascii_lines);
 
-        Paragraph::new(final_ascii).alignment(Alignment::Center).render(top_layout[0], buf);
+        Paragraph::new(final_ascii)
+            .alignment(Alignment::Center)
+            .render(top_layout[0], buf);
 
         let dow = bundle.solar.day_of_week_name.to_uppercase();
         let solar_month_year = format!("THÁNG {} NĂM {}", bundle.solar.month, bundle.solar.year);
@@ -93,11 +119,15 @@ impl Widget for HeroWidget<'_> {
         right_lines.extend(vec![
             Line::from(Span::styled(
                 dow,
-                Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
             )),
             Line::from(Span::styled(
                 solar_month_year,
-                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
             )),
             Line::from(""),
             Line::from(Span::styled(lunar_str, Style::default().fg(Color::Cyan))),
@@ -112,7 +142,12 @@ impl Widget for HeroWidget<'_> {
         if let Some(badge) = holiday_badge(bundle) {
             let banner = Paragraph::new(Line::from(vec![
                 Span::styled(" ★ ", Style::default().fg(Color::Yellow)),
-                Span::styled(badge, Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                Span::styled(
+                    badge,
+                    Style::default()
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD),
+                ),
                 Span::styled(" ★ ", Style::default().fg(Color::Yellow)),
             ]))
             .alignment(Alignment::Center)

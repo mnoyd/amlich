@@ -30,7 +30,7 @@ impl Widget for ActionBoardWidget<'_> {
             .title(" Hành Động (Nên / Tránh) ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
-        
+
         let inner = block.inner(area);
         block.render(area, buf);
 
@@ -47,7 +47,9 @@ impl Widget for ActionBoardWidget<'_> {
         // Collect top 2 Nen
         let mut nen = vec![];
         for act in &recs.activities {
-            if act.bucket == RecommendationBucketDto::Nen || act.bucket == RecommendationBucketDto::CoThe {
+            if act.bucket == RecommendationBucketDto::Nen
+                || act.bucket == RecommendationBucketDto::CoThe
+            {
                 if nen.len() < 2 {
                     nen.push(act);
                 }
@@ -57,20 +59,31 @@ impl Widget for ActionBoardWidget<'_> {
         // Collect top 2 Tranh
         let mut tranh = vec![];
         for act in &recs.activities {
-            if act.bucket == RecommendationBucketDto::KyManh || act.bucket == RecommendationBucketDto::Tranh {
+            if act.bucket == RecommendationBucketDto::KyManh
+                || act.bucket == RecommendationBucketDto::Tranh
+            {
                 if tranh.len() < 2 {
                     tranh.push(act);
                 }
             }
         }
 
-        let mut nen_lines = vec![Line::from(Span::styled(
-            " NÊN LÀM ",
-            Style::default().fg(Color::Black).bg(Color::Green).add_modifier(Modifier::BOLD),
-        )), Line::from("")];
-        
+        let mut nen_lines = vec![
+            Line::from(Span::styled(
+                " NÊN LÀM ",
+                Style::default()
+                    .fg(Color::Black)
+                    .bg(Color::Green)
+                    .add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+        ];
+
         if nen.is_empty() {
-            nen_lines.push(Line::from(Span::styled("Không có thông tin.", Style::default().fg(Color::Gray))));
+            nen_lines.push(Line::from(Span::styled(
+                "Không có thông tin.",
+                Style::default().fg(Color::Gray),
+            )));
         } else {
             for act in nen {
                 nen_lines.push(Line::from(Span::styled(
@@ -86,13 +99,22 @@ impl Widget for ActionBoardWidget<'_> {
             }
         }
 
-        let mut tranh_lines = vec![Line::from(Span::styled(
-            " CẦN TRÁNH ",
-            Style::default().fg(Color::Black).bg(Color::Red).add_modifier(Modifier::BOLD),
-        )), Line::from("")];
-        
+        let mut tranh_lines = vec![
+            Line::from(Span::styled(
+                " CẦN TRÁNH ",
+                Style::default()
+                    .fg(Color::Black)
+                    .bg(Color::Red)
+                    .add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
+        ];
+
         if tranh.is_empty() {
-            tranh_lines.push(Line::from(Span::styled("Không có thông tin.", Style::default().fg(Color::Gray))));
+            tranh_lines.push(Line::from(Span::styled(
+                "Không có thông tin.",
+                Style::default().fg(Color::Gray),
+            )));
         } else {
             for act in tranh {
                 tranh_lines.push(Line::from(Span::styled(

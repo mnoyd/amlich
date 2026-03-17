@@ -34,10 +34,10 @@ impl Widget for MiniCalendarWidget<'_> {
         let date = self.app.date;
         let year = date.year();
         let month = date.month();
-        
+
         let first_day = NaiveDate::from_ymd_opt(year, month, 1).unwrap();
         let mut start_date = first_day;
-        
+
         // Backtrack to Monday
         while start_date.weekday() != chrono::Weekday::Mon {
             start_date = start_date.pred_opt().unwrap();
@@ -45,18 +45,21 @@ impl Widget for MiniCalendarWidget<'_> {
 
         let mut rows = vec![];
         let mut current_date = start_date;
-        let today_style = Style::default().fg(Color::Black).bg(Color::Yellow).add_modifier(Modifier::BOLD);
+        let today_style = Style::default()
+            .fg(Color::Black)
+            .bg(Color::Yellow)
+            .add_modifier(Modifier::BOLD);
         let current_month_style = Style::default().fg(Color::White);
         let other_month_style = Style::default().fg(Color::DarkGray);
 
         for _ in 0..6 {
             let mut row_cells = vec![];
             let mut has_current_month = false;
-            
+
             for _ in 0..7 {
                 let is_today = current_date == date;
                 let is_current_month = current_date.month() == month;
-                
+
                 if is_current_month {
                     has_current_month = true;
                 }
@@ -69,7 +72,10 @@ impl Widget for MiniCalendarWidget<'_> {
                     other_month_style
                 };
 
-                row_cells.push(Cell::from(Span::styled(format!("{:>2}", current_date.day()), style)));
+                row_cells.push(Cell::from(Span::styled(
+                    format!("{:>2}", current_date.day()),
+                    style,
+                )));
                 current_date = current_date.succ_opt().unwrap();
             }
 

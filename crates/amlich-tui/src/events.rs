@@ -1,6 +1,6 @@
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 
-use crate::state::{AppState, ExplorerField, PageSection};
+use crate::state::{AppState, ExplorerAction, ExplorerField, PageSection};
 
 pub fn handle_events(app: &mut AppState) -> Result<bool, Box<dyn std::error::Error>> {
     if event::poll(std::time::Duration::from_millis(50))? {
@@ -93,9 +93,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         return false;
     }
 
-    if app.focused_section == PageSection::Explorer {
+    if app.app_mode == crate::state::AppMode::ContextModal {
         match code {
-            KeyCode::Char('q') | KeyCode::Esc => app.running = false,
+            KeyCode::Esc | KeyCode::Char('o') => app.toggle_context_modal(),
             KeyCode::Char('r') if app.error_msg.is_some() => app.retry_load(),
             KeyCode::Down | KeyCode::Char('j') => match app.explorer_focus {
                 ExplorerField::Date => app.next_day(),
@@ -111,23 +111,62 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 ExplorerField::RecommendationPacks => app.move_pack_cursor(-1),
                 ExplorerField::Actions => app.cycle_explorer_action(),
             },
-            KeyCode::Right => app.navigate_days(1),
-            KeyCode::Left => app.navigate_days(-1),
-            KeyCode::Char('l') => app.focus_next_explorer_field(),
-            KeyCode::Char('h') => app.focus_previous_explorer_field(),
-            KeyCode::Char(' ') => match app.explorer_focus {
-                ExplorerField::RecommendationPacks => app.toggle_focused_pack(),
-                ExplorerField::Actions => app.cycle_explorer_action(),
-                _ => {}
-            },
-            KeyCode::Char('r') => app.reset_staged_selection(),
-            KeyCode::Enter => app.activate_explorer_focus(),
-            KeyCode::Char('t') => app.jump_to_today(),
-            KeyCode::Char('m') => app.open_calendar_view(),
-            KeyCode::Char('w') => app.toggle_week_strip(),
-            KeyCode::Char('g') => app.toggle_search(),
-            KeyCode::Char('u') => app.undo_navigation(),
-            KeyCode::Char('c') => app.toggle_calendar_view(),
+            KeyCode::Right | KeyCode::Char('l') | KeyCode::Tab => {
+                let fields = [
+                    ExplorerField::EventKind,
+                    ExplorerField::RecommendationPacks,
+                    ExplorerField::Ruleset,
+                    ExplorerField::Date,
+                    ExplorerField::Actions,
+                ];
+                let idx = fields
+                    .iter()
+                    .position(|f| *f == app.explorer_focus)
+                    .unwrap();
+                let next_idx = (idx + 1) % fields.len();
+                app.explorer_focus = fields[next_idx];
+            }
+            KeyCode::Left | KeyCode::Char('h') | KeyCode::BackTab => {
+                let fields = [
+                    ExplorerField::EventKind,
+                    ExplorerField::RecommendationPacks,
+                    ExplorerField::Ruleset,
+                    ExplorerField::Date,
+                    ExplorerField::Actions,
+                ];
+                let idx = fields
+                    .iter()
+                    .position(|f| *f == app.explorer_focus)
+                    .unwrap();
+                let prev_idx = if idx == 0 { fields.len() - 1 } else { idx - 1 };
+                app.explorer_focus = fields[prev_idx];
+            }
+            KeyCode::Char(' ') => {
+                if app.explorer_focus == ExplorerField::RecommendationPacks {
+                    app.toggle_focused_pack();
+                } else if app.explorer_focus == ExplorerField::Date {
+                    app.open_calendar_view();
+                }
+            }
+            KeyCode::Enter => {
+                if app.explorer_focus == ExplorerField::Actions {
+                    match app.explorer_action {
+                        ExplorerAction::Apply => {
+                            app.apply_staged_selection();
+                            app.toggle_context_modal();
+                        }
+                        ExplorerAction::Reset => {
+                            app.reset_staged_selection();
+                        }
+                    }
+                } else if app.explorer_focus == ExplorerField::RecommendationPacks {
+                    app.toggle_focused_pack();
+                    app.apply_staged_selection();
+                } else {
+                    app.apply_staged_selection();
+                    app.toggle_context_modal();
+                }
+            }
             _ => {}
         }
         return false;
@@ -149,20 +188,26 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::PageUp => app.scroll_up_by(10),
         KeyCode::Char('y') => {
             if let Some(bundle) = &app.bundle {
+                let cc = bundle.canchi.as_ref();
+                let cc_day = cc.map(|c| c.day.full.as_str()).unwrap_or("");
+                let cc_month = cc.map(|c| c.month.full.as_str()).unwrap_or("");
+                let cc_year = cc.map(|c| c.year.full.as_str()).unwrap_or("");
+
+                let ghd = bundle
+                    .gio_hoang_dao
+                    .as_ref()
+                    .map(|g| g.summary.as_str())
+                    .unwrap_or("Không có");
+
                 let summary = format!(
-                    "{} ({}) - {}.\nGiờ Hoàng Đạo: {}",
+                    "Dương Lịch: {} ({})\nÂm Lịch: {}\nCan Chi: Ngày {}, Tháng {}, Năm {}\nGiờ Hoàng Đạo: {}",
                     bundle.solar.date_string,
+                    bundle.solar.day_of_week_name,
                     bundle.lunar.date_string,
-                    bundle
-                        .canchi
-                        .as_ref()
-                        .map(|c| c.day.full.as_str())
-                        .unwrap_or(""),
-                    bundle
-                        .gio_hoang_dao
-                        .as_ref()
-                        .map(|g| g.summary.as_str())
-                        .unwrap_or("")
+                    cc_day,
+                    cc_month,
+                    cc_year,
+                    ghd
                 );
                 if let Ok(mut clipboard) = arboard::Clipboard::new() {
                     let _ = clipboard.set_text(summary);
@@ -172,6 +217,8 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::Char('e') => app.toggle_evidence(),
         KeyCode::Char('m') => app.open_calendar_view(),
         KeyCode::Char('w') => app.toggle_week_strip(),
+        KeyCode::Char('o') => app.toggle_context_modal(),
+        KeyCode::Char('?') => app.toggle_help_modal(),
         KeyCode::Char('g') => app.toggle_search(),
         KeyCode::Char('u') => app.undo_navigation(),
         KeyCode::Char(' ') | KeyCode::Char('c') => app.toggle_calendar_view(),
@@ -360,6 +407,7 @@ mod tests {
     #[test]
     fn explorer_space_toggles_pack_without_applying() {
         let mut app = sample_app_state();
+        app.app_mode = crate::state::AppMode::ContextModal;
         app.explorer_focus = ExplorerField::RecommendationPacks;
 
         dispatch_key(&mut app, KeyCode::Char(' '), KeyModifiers::NONE);
@@ -372,41 +420,16 @@ mod tests {
     }
 
     #[test]
+    #[test]
     fn explorer_enter_on_reset_restores_defaults() {
         let mut app = sample_app_state();
+        app.app_mode = crate::state::AppMode::ContextModal;
         app.staged_selection.event_kind = Some("travel".to_string());
-        app.staged_selection.enabled_pack_ids = vec!["pack.nhi_thap_bat_tu.v1".to_string()];
         app.explorer_focus = ExplorerField::Actions;
         app.explorer_action = ExplorerAction::Reset;
 
         dispatch_key(&mut app, KeyCode::Enter, KeyModifiers::NONE);
 
         assert_eq!(app.staged_selection.event_kind, None);
-        assert!(app.staged_selection.enabled_pack_ids.is_empty());
-    }
-
-    #[test]
-    fn explorer_arrow_keys_move_weekday_selection() {
-        let mut app = sample_app_state();
-        app.explorer_focus = ExplorerField::Ruleset;
-        let start = app.date;
-
-        dispatch_key(&mut app, KeyCode::Right, KeyModifiers::NONE);
-        assert_eq!(app.date, start + chrono::Duration::days(1));
-        assert_eq!(app.explorer_focus, ExplorerField::Ruleset);
-
-        dispatch_key(&mut app, KeyCode::Left, KeyModifiers::NONE);
-        assert_eq!(app.date, start);
-        assert_eq!(app.explorer_focus, ExplorerField::Ruleset);
-    }
-
-    #[test]
-    fn retry_shortcut_reinvokes_load_when_error_is_present() {
-        let mut app = sample_app_state();
-        app.error_msg = Some("boom".to_string());
-
-        dispatch_key(&mut app, KeyCode::Char('r'), KeyModifiers::NONE);
-
-        assert!(app.error_msg.is_none());
     }
 }

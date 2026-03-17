@@ -46,9 +46,18 @@ impl Widget for AlmanacGridWidget<'_> {
 
         let row_nguhanh = Row::new(vec![
             Cell::from("Ngũ Hành").style(Style::default().fg(Color::Gray)),
-            Cell::from(format!("{} - {}", canchi.year.ngu_hanh.can, canchi.year.ngu_hanh.chi)),
-            Cell::from(format!("{} - {}", canchi.month.ngu_hanh.can, canchi.month.ngu_hanh.chi)),
-            Cell::from(format!("{} - {}", canchi.day.ngu_hanh.can, canchi.day.ngu_hanh.chi)),
+            Cell::from(format!(
+                "{} - {}",
+                canchi.year.ngu_hanh.can, canchi.year.ngu_hanh.chi
+            )),
+            Cell::from(format!(
+                "{} - {}",
+                canchi.month.ngu_hanh.can, canchi.month.ngu_hanh.chi
+            )),
+            Cell::from(format!(
+                "{} - {}",
+                canchi.day.ngu_hanh.can, canchi.day.ngu_hanh.chi
+            )),
         ]);
 
         let mut rows = vec![row_canchi, row_nguhanh];
@@ -58,7 +67,8 @@ impl Widget for AlmanacGridWidget<'_> {
                 Cell::from("Nạp Âm").style(Style::default().fg(Color::Gray)),
                 Cell::from(""), // Year nap am not available
                 Cell::from(""), // Month nap am not available
-                Cell::from(fortune.day_element.na_am.clone()).style(Style::default().fg(Color::Cyan)),
+                Cell::from(fortune.day_element.na_am.clone())
+                    .style(Style::default().fg(Color::Cyan)),
             ]);
             rows.push(row_napam);
         }

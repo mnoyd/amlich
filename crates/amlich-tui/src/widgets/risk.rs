@@ -77,9 +77,7 @@ impl Widget for RiskWidget<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
-    };
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection};
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, DailyRecommendationsDto, DayConflictDto, DayElementDto, DayFortuneDto,
@@ -153,7 +151,7 @@ mod tests {
             running: true,
             date,
             lens: FocusLens::General,
-            
+
             scroll_offset: 0,
             bundle: Some(DayBundleDto {
                 schema_version: "amlich.engine/v1".to_string(),

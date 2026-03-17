@@ -1023,6 +1023,23 @@ impl AppState {
         }
     }
 
+    pub fn toggle_context_modal(&mut self) {
+        if self.app_mode == AppMode::ContextModal {
+            self.app_mode = AppMode::Normal;
+        } else {
+            self.app_mode = AppMode::ContextModal;
+            self.explorer_focus = ExplorerField::EventKind;
+        }
+    }
+
+    pub fn toggle_help_modal(&mut self) {
+        if self.app_mode == AppMode::HelpModal {
+            self.app_mode = AppMode::Normal;
+        } else {
+            self.app_mode = AppMode::HelpModal;
+        }
+    }
+
     pub fn scroll_up(&mut self) {
         self.scroll_offset = self.scroll_offset.saturating_sub(1);
     }
