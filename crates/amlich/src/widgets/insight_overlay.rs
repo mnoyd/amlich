@@ -1232,8 +1232,272 @@ impl<'a> InsightOverlay<'a> {
         lines
     }
 
-    fn render_feng_shui_tab(&self, _insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
-        vec![Line::from("(Feng Shui tab — coming next)")]
+    fn render_feng_shui_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+        let mut lines = Vec::new();
+        let lang = self.app.insight_lang;
+
+        if insight.tu_menh.is_none() && insight.dai_van.is_none() {
+            lines.push(Line::from(Span::styled(
+                pick_text(
+                    lang,
+                    "Chưa cấu hình hồ sơ cá nhân.",
+                    "No personal profile configured.",
+                ),
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                pick_text(
+                    lang,
+                    "Dùng: amlich config profile set --birth-year XXXX --gender male/female",
+                    "Use: amlich config profile set --birth-year XXXX --gender male/female",
+                ),
+                Style::default().fg(theme::ACCENT_FG),
+            )));
+            return lines;
+        }
+
+        // Section 1: Kua / Tứ Mệnh
+        if let Some(tu_menh) = &insight.tu_menh {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Tứ Mệnh (Kua):", "Tu Menh (Kua):"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(vec![
+                Span::raw("  Kua "),
+                Span::styled(
+                    tu_menh.kua.to_string(),
+                    Style::default()
+                        .fg(theme::ACCENT_FG)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::raw(format!(
+                    " — {} ({})",
+                    tu_menh.group,
+                    pick_text(lang, &tu_menh.trigram.vi, &tu_menh.trigram.en),
+                )),
+            ]));
+            lines.push(Line::from(pick_text(
+                lang,
+                &tu_menh.meaning.vi,
+                &tu_menh.meaning.en,
+            )));
+            lines.push(Line::from(""));
+
+            // Favorable directions
+            if !tu_menh.favorable_directions.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Hướng tốt:", "Favorable:"),
+                    Style::default().fg(theme::GOOD_HOUR_FG),
+                )));
+                for dir in &tu_menh.favorable_directions {
+                    lines.push(Line::from(vec![
+                        Span::styled("  ★ ", Style::default().fg(theme::GOOD_HOUR_FG)),
+                        Span::raw(dir.as_str()),
+                    ]));
+                }
+            }
+            if !tu_menh.unfavorable_directions.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Hướng xấu:", "Unfavorable:"),
+                    Style::default().fg(theme::WEEKEND_FG),
+                )));
+                for dir in &tu_menh.unfavorable_directions {
+                    lines.push(Line::from(vec![
+                        Span::styled("  ✖ ", Style::default().fg(theme::WEEKEND_FG)),
+                        Span::raw(dir.as_str()),
+                    ]));
+                }
+            }
+            lines.push(Line::from(""));
+
+            // ASCII compass
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "La Bàn:", "Compass:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+
+            let good: Vec<&str> = tu_menh
+                .favorable_directions
+                .iter()
+                .map(|s| s.as_str())
+                .collect();
+            let bad: Vec<&str> = tu_menh
+                .unfavorable_directions
+                .iter()
+                .map(|s| s.as_str())
+                .collect();
+
+            let dir_style = |name: &str| -> Style {
+                if good.iter().any(|d| d.contains(name)) {
+                    Style::default()
+                        .fg(theme::GOOD_HOUR_FG)
+                        .add_modifier(Modifier::BOLD)
+                } else if bad.iter().any(|d| d.contains(name)) {
+                    Style::default().fg(theme::WEEKEND_FG)
+                } else {
+                    Style::default().fg(theme::SECONDARY_FG)
+                }
+            };
+            let marker = |name: &str| -> &str {
+                if good.iter().any(|d| d.contains(name)) {
+                    "★"
+                } else if bad.iter().any(|d| d.contains(name)) {
+                    "✖"
+                } else {
+                    "·"
+                }
+            };
+
+            let bac = pick_text(lang, "Bắc", "N");
+            let nam = pick_text(lang, "Nam", "S");
+            let dong = pick_text(lang, "Đông", "E");
+            let tay = pick_text(lang, "Tây", "W");
+
+            lines.push(Line::from(vec![
+                Span::raw("           "),
+                Span::styled(
+                    format!("{} {bac}", marker("Bắc")),
+                    dir_style("Bắc"),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("      "),
+                Span::styled(format!("{} TB", marker("Tây Bắc")), dir_style("Tây Bắc")),
+                Span::raw("   |   "),
+                Span::styled(format!("ĐB {}", marker("Đông Bắc")), dir_style("Đông Bắc")),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("     "),
+                Span::styled(
+                    format!("{} {tay}", marker("Tây")),
+                    dir_style("Tây"),
+                ),
+                Span::raw(" ——●—— "),
+                Span::styled(
+                    format!("{dong} {}", marker("Đông")),
+                    dir_style("Đông"),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("      "),
+                Span::styled(format!("{} TN", marker("Tây Nam")), dir_style("Tây Nam")),
+                Span::raw("   |   "),
+                Span::styled(
+                    format!("ĐN {}", marker("Đông Nam")),
+                    dir_style("Đông Nam"),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("           "),
+                Span::styled(
+                    format!("{} {nam}", marker("Nam")),
+                    dir_style("Nam"),
+                ),
+            ]));
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::styled("  ★ ", Style::default().fg(theme::GOOD_HOUR_FG)),
+                Span::raw(pick_text(lang, "Tốt  ", "Good  ")),
+                Span::styled("✖ ", Style::default().fg(theme::WEEKEND_FG)),
+                Span::raw(pick_text(lang, "Xấu", "Bad")),
+            ]));
+            lines.push(Line::from(""));
+        }
+
+        // Section 2: Đại Vận
+        if let Some(dai_van) = &insight.dai_van {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Đại Vận:", "Dai Van:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!(
+                "  {} — {}",
+                dai_van.direction,
+                pick_text(
+                    lang,
+                    &dai_van.direction_meaning.vi,
+                    &dai_van.direction_meaning.en
+                ),
+            )));
+
+            // Current pillar
+            if let Some(pillar) = &dai_van.current_pillar {
+                lines.push(Line::from(""));
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "  Đại vận hiện tại:", "  Current pillar:"),
+                    Style::default().fg(theme::GOOD_HOUR_FG),
+                )));
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        format!("  ▶ {} ", pillar.can_chi),
+                        Style::default()
+                            .fg(theme::ACCENT_FG)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::raw(format!(
+                        "({}-{}) ",
+                        pillar.start_age as u32,
+                        pillar.end_age as u32
+                    )),
+                    Span::styled(&pillar.element, Style::default().fg(theme::ACCENT_FG)),
+                ]));
+                lines.push(Line::from(format!(
+                    "    {}",
+                    pick_text(lang, &pillar.element_meaning.vi, &pillar.element_meaning.en)
+                )));
+            }
+
+            // All pillars timeline
+            lines.push(Line::from(""));
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "  Các đại vận:", "  All pillars:"),
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+            for pillar in &dai_van.all_pillars {
+                let is_current = dai_van
+                    .current_pillar
+                    .as_ref()
+                    .map(|c| c.index == pillar.index)
+                    .unwrap_or(false);
+
+                let marker_str = if is_current { "◄" } else { " " };
+                let style = if is_current {
+                    Style::default()
+                        .fg(theme::ACCENT_FG)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(theme::SECONDARY_FG)
+                };
+
+                lines.push(Line::from(Span::styled(
+                    format!(
+                        "  {}. {:<10} ({:>2}-{:>2}) {:>4} {marker_str}",
+                        pillar.index,
+                        pillar.can_chi,
+                        pillar.start_age as u32,
+                        pillar.end_age as u32,
+                        pillar.element,
+                    ),
+                    style,
+                )));
+            }
+        }
+
+        if lines.is_empty() {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Không có dữ liệu phong thủy", "No feng shui data"),
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+        }
+
+        lines
     }
 
     fn tab_content(&self) -> Vec<Line<'_>> {
