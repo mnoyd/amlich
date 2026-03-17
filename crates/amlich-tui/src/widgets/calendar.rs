@@ -189,7 +189,7 @@ fn days_in_month(year: i32, month: u32) -> u32 {
 mod tests {
     use super::*;
     use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ActiveView,
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
     };
     use amlich_api::{
         RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,

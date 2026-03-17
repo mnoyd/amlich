@@ -78,7 +78,7 @@ impl Widget for RiskWidget<'_> {
 mod tests {
     use super::*;
     use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ActiveView,
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{

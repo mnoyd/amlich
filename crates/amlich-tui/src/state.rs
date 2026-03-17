@@ -536,7 +536,11 @@ impl AppState {
 
     pub fn close_calendar_view(&mut self) {
         if self.active_view == ActiveView::Calendar {
-            self.active_view = ActiveView::Dashboard;
+            if let Some(prev) = self.view_history.pop() {
+                self.active_view = prev;
+            } else {
+                self.active_view = ActiveView::Dashboard;
+            }
         }
     }
 
