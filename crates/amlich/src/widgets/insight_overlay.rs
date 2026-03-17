@@ -1025,8 +1025,211 @@ impl<'a> InsightOverlay<'a> {
         lines
     }
 
-    fn render_elements_tab(&self, _insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
-        vec![Line::from("(Elements tab — coming next)")]
+    fn render_elements_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+        let mut lines = Vec::new();
+        let lang = self.app.insight_lang;
+
+        // Section 1: Can Chi & Ngũ Hành overview
+        if let Some(canchi) = &insight.canchi {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Can Chi ngày:", "Day Stem-Branch:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(vec![
+                Span::raw("  Can: "),
+                Span::styled(
+                    &canchi.can.name,
+                    Style::default().fg(theme::ACCENT_FG),
+                ),
+                Span::raw(format!(
+                    " ({}) — {}",
+                    canchi.can.element,
+                    pick_text(lang, &canchi.can.meaning.vi, &canchi.can.meaning.en),
+                )),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("  Chi: "),
+                Span::styled(
+                    &canchi.chi.name,
+                    Style::default().fg(theme::ACCENT_FG),
+                ),
+                Span::raw(format!(
+                    " ({}) — {}",
+                    canchi.chi.element,
+                    pick_text(lang, &canchi.chi.meaning.vi, &canchi.chi.meaning.en),
+                )),
+            ]));
+            if let Some(element) = &canchi.element {
+                lines.push(Line::from(vec![
+                    Span::raw(pick_text(lang, "  Nạp âm: ", "  Na Am: ")),
+                    Span::styled(
+                        pick_text(lang, &element.name.vi, &element.name.en),
+                        Style::default().fg(theme::ACCENT_FG),
+                    ),
+                ]));
+            }
+            lines.push(Line::from(""));
+        }
+
+        // Section 2: Tàng Can (Hidden Stems)
+        if let Some(tang_can) = &insight.tang_can {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Tàng Can:", "Hidden Stems:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            let labels = [
+                pick_text(lang, "Chính", "Main"),
+                pick_text(lang, "Trung", "Central"),
+                pick_text(lang, "Dư", "Residual"),
+            ];
+            let values = [&tang_can.main, &tang_can.central, &tang_can.residual];
+            for (i, (label, value)) in labels.iter().zip(values.iter()).enumerate() {
+                let s = tang_can.strength[i];
+                let bar_len = (s as usize * 10) / 100;
+                let bar_full: String = "█".repeat(bar_len);
+                let bar_empty: String = "░".repeat(10 - bar_len);
+                lines.push(Line::from(vec![
+                    Span::raw(format!("  {label}: ")),
+                    Span::styled(
+                        format!("{value:<4}"),
+                        Style::default()
+                            .fg(theme::ACCENT_FG)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(&bar_full, Style::default().fg(theme::GOOD_HOUR_FG)),
+                    Span::styled(&bar_empty, Style::default().fg(theme::SECONDARY_FG)),
+                    Span::raw(format!(" {s}%")),
+                ]));
+            }
+            lines.push(Line::from(""));
+        }
+
+        // Section 3: Thập Thần (Ten Gods)
+        if let Some(ten_gods) = &insight.ten_gods {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Thập Thần:", "Ten Gods:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            if let Some(entry) = &ten_gods.to_year_stem {
+                let polarity = if entry.same_polarity {
+                    pick_text(lang, "đồng cực", "same polarity")
+                } else {
+                    pick_text(lang, "khác cực", "diff polarity")
+                };
+                lines.push(Line::from(vec![
+                    Span::raw(pick_text(lang, "  Với năm: ", "  To year: ")),
+                    Span::styled(
+                        &entry.label,
+                        Style::default().fg(theme::ACCENT_FG),
+                    ),
+                    Span::raw(format!(
+                        " — {} ({}, {})",
+                        pick_text(lang, &entry.meaning.vi, &entry.meaning.en),
+                        entry.relation,
+                        polarity,
+                    )),
+                ]));
+            }
+            if let Some(entry) = &ten_gods.to_self {
+                let polarity = if entry.same_polarity {
+                    pick_text(lang, "đồng cực", "same polarity")
+                } else {
+                    pick_text(lang, "khác cực", "diff polarity")
+                };
+                lines.push(Line::from(vec![
+                    Span::raw(pick_text(lang, "  Với mình: ", "  To self: ")),
+                    Span::styled(
+                        &entry.label,
+                        Style::default().fg(theme::ACCENT_FG),
+                    ),
+                    Span::raw(format!(
+                        " — {} ({}, {})",
+                        pick_text(lang, &entry.meaning.vi, &entry.meaning.en),
+                        entry.relation,
+                        polarity,
+                    )),
+                ]));
+            }
+            lines.push(Line::from(""));
+        }
+
+        // Section 4: Xung Hợp (Clash/Harmony)
+        if let Some(xung_hop) = &insight.xung_hop {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Xung Hợp:", "Clash/Harmony:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(vec![
+                Span::styled(
+                    pick_text(lang, "  Lục Xung: ", "  Six Clash: "),
+                    Style::default().fg(theme::WEEKEND_FG),
+                ),
+                Span::raw(&xung_hop.luc_xung),
+            ]));
+            if !xung_hop.tam_hop.is_empty() {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        pick_text(lang, "  Tam Hợp: ", "  Three Harmony: "),
+                        Style::default().fg(theme::GOOD_HOUR_FG),
+                    ),
+                    Span::raw(xung_hop.tam_hop.join(" — ")),
+                ]));
+            }
+            if let Some(liu_he) = &xung_hop.liu_he {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        pick_text(lang, "  Lục Hợp: ", "  Six Harmony: "),
+                        Style::default().fg(theme::GOOD_HOUR_FG),
+                    ),
+                    Span::raw(liu_he.as_str()),
+                ]));
+            }
+            if let Some(xiang_hai) = &xung_hop.xiang_hai {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        pick_text(lang, "  Tương Hại: ", "  Mutual Harm: "),
+                        Style::default().fg(theme::WEEKEND_FG),
+                    ),
+                    Span::raw(xiang_hai.as_str()),
+                ]));
+            }
+            lines.push(Line::from(""));
+        }
+
+        // Section 5: Ngũ Hành from Na Am
+        if let Some(na_am) = &insight.na_am {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Nạp Âm:", "Na Am:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(vec![
+                Span::raw(format!("  {} ({})", na_am.na_am, na_am.element)),
+            ]));
+            lines.push(Line::from(pick_text(
+                lang,
+                &na_am.meaning.vi,
+                &na_am.meaning.en,
+            )));
+        }
+
+        if lines.is_empty() {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Không có dữ liệu ngũ hành", "No element data"),
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+        }
+
+        lines
     }
 
     fn render_feng_shui_tab(&self, _insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
