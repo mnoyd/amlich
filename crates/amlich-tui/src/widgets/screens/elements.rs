@@ -107,7 +107,7 @@ fn render_tang_can(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
         lines.push(Line::from(vec![
             Span::raw(format!("  {label}: ")),
             Span::styled(
-                format!("{value}"),
+                value.to_string(),
                 Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
             ),
             Span::raw(format!(" {bar} {s}%")),
