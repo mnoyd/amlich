@@ -911,7 +911,118 @@ impl<'a> InsightOverlay<'a> {
     }
 
     fn render_hours_tab(&self, _insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
-        vec![Line::from("(Hours tab — coming next)")]
+        let mut lines = Vec::new();
+        let lang = self.app.insight_lang;
+
+        // Section 1: All 12 hours from DayInfoDto
+        if let Some(info) = self.app.selected_info() {
+            let gio = &info.gio_hoang_dao;
+
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Tổng quan 12 giờ:", "12-Hour Overview:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!(
+                "  {} {} — {} {}",
+                pick_text(lang, "Ngày:", "Day:"),
+                gio.day_chi,
+                gio.good_hour_count,
+                pick_text(lang, "giờ tốt", "good hours"),
+            )));
+            lines.push(Line::from(""));
+
+            // Good hours section
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "★ Giờ Hoàng Đạo:", "★ Auspicious Hours:"),
+                Style::default()
+                    .fg(theme::GOOD_HOUR_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            for h in &gio.all_hours {
+                if h.is_good {
+                    lines.push(Line::from(vec![
+                        Span::styled("  ★ ", Style::default().fg(theme::GOOD_HOUR_FG)),
+                        Span::styled(
+                            format!("{:<6}", h.hour_chi),
+                            Style::default()
+                                .fg(theme::ACCENT_FG)
+                                .add_modifier(Modifier::BOLD),
+                        ),
+                        Span::styled(
+                            format!("({}) ", h.time_range),
+                            Style::default().fg(theme::SECONDARY_FG),
+                        ),
+                        Span::raw(format!("— {}", h.star)),
+                    ]));
+                }
+            }
+            lines.push(Line::from(""));
+
+            // Bad hours section
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "· Giờ Hắc Đạo:", "· Inauspicious Hours:"),
+                Style::default()
+                    .fg(theme::WEEKEND_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            for h in &gio.all_hours {
+                if !h.is_good {
+                    lines.push(Line::from(vec![
+                        Span::styled("  · ", Style::default().fg(theme::WEEKEND_FG)),
+                        Span::styled(
+                            format!("{:<6}", h.hour_chi),
+                            Style::default().fg(theme::SECONDARY_FG),
+                        ),
+                        Span::styled(
+                            format!("({}) ", h.time_range),
+                            Style::default().fg(theme::SECONDARY_FG),
+                        ),
+                        Span::raw(format!("— {}", h.star)),
+                    ]));
+                }
+            }
+            lines.push(Line::from(""));
+
+            // Timeline summary
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Biểu đồ giờ:", "Hour Chart:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            let mut chart_spans = vec![Span::raw("  ")];
+            for h in &gio.all_hours {
+                let marker = if h.is_good { "★" } else { "·" };
+                let style = if h.is_good {
+                    Style::default().fg(theme::GOOD_HOUR_FG)
+                } else {
+                    Style::default().fg(theme::SECONDARY_FG)
+                };
+                chart_spans.push(Span::styled(marker, style));
+            }
+            lines.push(Line::from(chart_spans));
+
+            let mut label_spans = vec![Span::raw("  ")];
+            for h in gio.all_hours.iter().take(12) {
+                let ch: String = h.hour_chi.chars().take(1).collect();
+                let style = if h.is_good {
+                    Style::default().fg(theme::GOOD_HOUR_FG)
+                } else {
+                    Style::default().fg(theme::SECONDARY_FG)
+                };
+                label_spans.push(Span::styled(ch, style));
+            }
+            lines.push(Line::from(label_spans));
+        } else {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Không có dữ liệu giờ", "No hour data"),
+                Style::default().fg(theme::SECONDARY_FG),
+            )));
+        }
+
+        lines
     }
 
     fn render_elements_tab(&self, _insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
