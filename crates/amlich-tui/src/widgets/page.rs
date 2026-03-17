@@ -280,6 +280,6 @@ mod tests {
         // For now, mapping calendar or just removing this test
         app.active_view = ActiveView::Calendar;
 
-        let text = render_text(&app);
+        let _text = render_text(&app);
     }
 }

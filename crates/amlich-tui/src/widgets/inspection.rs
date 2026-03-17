@@ -138,7 +138,7 @@ mod tests {
     use super::InspectionWidget;
     use crate::layout::LayoutMode;
     use crate::state::{
-        ActiveView, AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
+        AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
         PageSection,
     };
     use amlich_api::v2::DayBundleDto;

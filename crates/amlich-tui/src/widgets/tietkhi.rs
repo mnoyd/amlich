@@ -117,9 +117,8 @@ impl Widget for TietKhiWidget<'_> {
 mod tests {
     use super::*;
     use crate::state::{
-        ActiveView, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
     };
-    use crate::widgets::page::PageWidget;
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, DailyRecommendationsDto, LunarDto, RecommendationBucketDto,
@@ -276,21 +275,6 @@ mod tests {
             .join("\n")
     }
 
-    fn render_page(app: &AppState) -> String {
-        let area = Rect::new(0, 0, 100, 40);
-        let mut buf = Buffer::empty(area);
-        PageWidget::new(app, LayoutMode::Large).render(area, &mut buf);
-        (0..area.height)
-            .map(|y| {
-                (0..area.width)
-                    .map(|x| buf[(x, y)].symbol())
-                    .collect::<String>()
-                    .trim_end()
-                    .to_string()
-            })
-            .collect::<Vec<_>>()
-            .join("\n")
-    }
 
     #[test]
     fn tietkhi_widget_collapses_to_summary_and_expands_details() {

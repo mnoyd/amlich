@@ -1,6 +1,6 @@
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 
-use crate::state::{AppState, ExplorerAction, ExplorerField, PageSection};
+use crate::state::{AppState, ExplorerAction, ExplorerField};
 
 pub fn handle_events(app: &mut AppState) -> Result<bool, Box<dyn std::error::Error>> {
     if event::poll(std::time::Duration::from_millis(50))? {
@@ -233,7 +233,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
 mod tests {
     use super::*;
     use crate::state::{
-        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
+        ActiveView, AppMode, PageSection, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
     };
     use amlich_api::{
         RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
@@ -419,7 +419,6 @@ mod tests {
         assert!(app.applied_selection.enabled_pack_ids.is_empty());
     }
 
-    #[test]
     #[test]
     fn explorer_enter_on_reset_restores_defaults() {
         let mut app = sample_app_state();

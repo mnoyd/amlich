@@ -133,7 +133,7 @@ fn day_labels(app: &AppState, date: NaiveDate) -> (String, Option<String>) {
 mod tests {
     use super::*;
     use crate::state::{
-        ActiveView, AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
+        AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
         PageSection,
     };
     use amlich_api::{

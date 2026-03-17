@@ -118,7 +118,7 @@ impl Widget for RibbonWidget<'_> {
 mod tests {
     use super::*;
     use crate::state::{
-        ActiveView, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
+        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
     };
     use chrono::NaiveDate;
 
