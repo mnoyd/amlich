@@ -19,3 +19,4 @@ pub mod tietkhi;
 pub mod timeline;
 pub mod travel;
 pub mod week_strip;
+pub mod event_summary;
