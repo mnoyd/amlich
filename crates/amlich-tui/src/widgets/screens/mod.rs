@@ -1,4 +1,3 @@
-pub mod deep;
-pub mod general;
+pub mod dashboard;
 pub mod insight;
 pub mod recommendations;

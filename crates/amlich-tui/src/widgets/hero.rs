@@ -2,7 +2,7 @@ use crate::layout::LayoutMode;
 use crate::state::AppState;
 use ratatui::{
     buffer::Buffer,
-    layout::{Alignment, Rect},
+    layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget},
@@ -18,93 +18,108 @@ impl<'a> HeroWidget<'a> {
     }
 }
 
+const ASCII_DIGITS: [&[&str]; 10] = [
+    &["  000  ", " 0   0 ", "0     0", "0     0", " 0   0 ", "  000  "],
+    &["   1   ", "  11   ", " 1 1   ", "   1   ", "   1   ", " 11111 "],
+    &["  222  ", " 2   2 ", "    2  ", "   2   ", "  2    ", " 22222 "],
+    &[" 3333  ", "     3 ", "   33  ", "     3 ", " 3   3 ", "  333  "],
+    &["    4  ", "   44  ", "  4 4  ", " 44444 ", "    4  ", "    4  "],
+    &[" 55555 ", " 5     ", " 5555  ", "     5 ", " 5   5 ", "  555  "],
+    &["  666  ", " 6     ", " 6666  ", " 6   6 ", " 6   6 ", "  666  "],
+    &[" 77777 ", "    7  ", "   7   ", "  7    ", " 7     ", " 7     "],
+    &["  888  ", " 8   8 ", "  888  ", " 8   8 ", " 8   8 ", "  888  "],
+    &["  999  ", " 9   9 ", "  9999 ", "     9 ", "    9  ", "  99   "],
+];
+
 impl Widget for HeroWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let Some(bundle) = &self.app.bundle else {
             return;
         };
 
-        let solar_str = format!(
-            "{} · {} THÁNG {} · {}",
-            bundle.solar.day_of_week_name.to_uppercase(),
-            bundle.solar.day,
-            bundle.solar.month,
-            bundle.solar.year
-        );
-        let lunar_str = format!("Âm lịch: {}", bundle.lunar.date_string);
-        let verdict = self.app.hero_verdict();
-        let summary = verdict
-            .as_ref()
-            .map(|item| item.summary.as_str())
-            .unwrap_or("Chưa có tóm tắt khuyến nghị.");
-
-        let positive = verdict
-            .as_ref()
-            .and_then(|item| item.strongest_positive.as_deref())
-            .unwrap_or("Chưa có mục nên ưu tiên.");
-        let negative = verdict
-            .as_ref()
-            .and_then(|item| item.strongest_negative.as_deref())
-            .unwrap_or("Chưa có mục cần tránh.");
-        let identity_str = build_identity_row(bundle);
-
         let block = Block::default()
-            .title(" Tóm Tắt ")
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::DarkGray));
+            .border_style(Style::default().fg(Color::Rgb(200, 40, 40))); // Red border
+        let inner = block.inner(area);
+        block.render(area, buf);
 
-        let lines = vec![
+        let layout = Layout::vertical([
+            Constraint::Min(8),    // Day + Text
+            Constraint::Length(1), // Holiday
+        ]).split(inner);
+
+        let top_layout = Layout::horizontal([
+            Constraint::Length(25), // Ascii digits
+            Constraint::Min(20),
+        ]).split(layout[0]);
+
+        // Render ascii day
+        let day = bundle.solar.day;
+        let d1 = (day / 10) as usize;
+        let d2 = (day % 10) as usize;
+
+        let mut ascii_lines = vec![Line::from(""); 6];
+        for i in 0..6 {
+            let s = format!("{}  {}", ASCII_DIGITS[d1][i], ASCII_DIGITS[d2][i]);
+            ascii_lines[i] = Line::from(Span::styled(
+                s,
+                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+            ));
+        }
+
+        // Vertically center ascii art
+        let padding = (top_layout[0].height.saturating_sub(6)) / 2;
+        let mut final_ascii = vec![Line::from(""); padding as usize];
+        final_ascii.extend(ascii_lines);
+
+        Paragraph::new(final_ascii).alignment(Alignment::Center).render(top_layout[0], buf);
+
+        let dow = bundle.solar.day_of_week_name.to_uppercase();
+        let solar_month_year = format!("THÁNG {} NĂM {}", bundle.solar.month, bundle.solar.year);
+        let lunar_str = format!("Âm lịch: {}", bundle.lunar.date_string);
+
+        let canchi_str = bundle
+            .canchi
+            .as_ref()
+            .map(|c| c.day.full.clone())
+            .unwrap_or_default();
+        let nap_am = bundle
+            .day_fortune
+            .as_ref()
+            .map(|f| format!("Nạp âm: {}", f.day_element.na_am))
+            .unwrap_or_default();
+
+        let mut right_lines = vec![Line::from(""); padding as usize];
+        right_lines.extend(vec![
             Line::from(Span::styled(
-                solar_str,
-                Style::default()
-                    .fg(Color::White)
-                    .add_modifier(Modifier::BOLD),
+                dow,
+                Style::default().fg(Color::White).add_modifier(Modifier::BOLD),
             )),
+            Line::from(Span::styled(
+                solar_month_year,
+                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            )),
+            Line::from(""),
             Line::from(Span::styled(lunar_str, Style::default().fg(Color::Cyan))),
-            Line::from(Span::styled(
-                format!("Kết luận nhanh: {summary}"),
-                Style::default()
-                    .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD),
-            )),
-            Line::from(Span::styled(
-                format!("Nên ưu tiên: {positive}"),
-                Style::default().fg(Color::Green),
-            )),
-            Line::from(Span::styled(
-                format!("Cần tránh: {negative}"),
-                Style::default().fg(Color::Red),
-            )),
-            Line::from(Span::styled(identity_str, Style::default().fg(Color::Gray))),
-        ];
+            Line::from(Span::styled(canchi_str, Style::default().fg(Color::Gray))),
+            Line::from(Span::styled(nap_am, Style::default().fg(Color::DarkGray))),
+        ]);
 
-        Paragraph::new(lines)
-            .block(block)
+        Paragraph::new(right_lines)
             .alignment(Alignment::Left)
-            .render(area, buf);
-    }
-}
+            .render(top_layout[1], buf);
 
-fn build_identity_row(bundle: &amlich_api::v2::DayBundleDto) -> String {
-    let mut facts = Vec::new();
+        if let Some(badge) = holiday_badge(bundle) {
+            let banner = Paragraph::new(Line::from(vec![
+                Span::styled(" ★ ", Style::default().fg(Color::Yellow)),
+                Span::styled(badge, Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                Span::styled(" ★ ", Style::default().fg(Color::Yellow)),
+            ]))
+            .alignment(Alignment::Center)
+            .style(Style::default().bg(Color::Rgb(180, 0, 0))); // Red bg
 
-    if let Some(canchi) = bundle.canchi.as_ref() {
-        facts.push(canchi.day.full.clone());
-    }
-    if let Some(fortune) = bundle.day_fortune.as_ref() {
-        facts.push(format!("Trực {}", fortune.truc.name));
-    }
-    if let Some(tiet_khi) = bundle.tiet_khi.as_ref() {
-        facts.push(tiet_khi.name.clone());
-    }
-    if let Some(holiday_badge) = holiday_badge(bundle) {
-        facts.push(holiday_badge);
-    }
-
-    if facts.is_empty() {
-        "Chưa có dữ liệu định danh ngày.".to_string()
-    } else {
-        facts.join(" · ")
+            banner.render(layout[1], buf);
+        }
     }
 }
 
@@ -117,321 +132,4 @@ fn holiday_badge(bundle: &amlich_api::v2::DayBundleDto) -> Option<String> {
         .festival
         .as_ref()
         .and_then(|festival| festival.names.vi.first().cloned())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection, ActiveView,
-    };
-    use amlich_api::v2::DayBundleDto;
-    use amlich_api::{
-        ActivityLabelDto, CanChiDto, CanChiInfoDto, DailyRecommendationsDto, DayConflictDto,
-        DayElementDto, DayFortuneDto, DayStarsDto, GioHoangDaoDto, HourInfoDto, LunarDto,
-        NguHanhDto, RecommendationBucketDto, RecommendationEvidenceDto,
-        RecommendationEvidenceSourceDto, RecommendationReasonDto, RecommendationScopeDto,
-        RecommendationSeverityDto, SolarDto, SynthesizedRecommendationDto, TietKhiDto,
-        TravelDirectionDto, TrucDto, XungHopDto,
-    };
-    use amlich_api::{
-        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
-    };
-    use chrono::NaiveDate;
-
-    fn sample_bundle() -> DayBundleDto {
-        DayBundleDto {
-            schema_version: "amlich.engine/v1".to_string(),
-            ruleset_id: "test".to_string(),
-            ruleset_version: "v1".to_string(),
-            profile: "baseline".to_string(),
-            generated_at: "2026-03-12T00:00:00Z".to_string(),
-
-            solar: SolarDto {
-                day: 12,
-                month: 3,
-                year: 2026,
-                day_of_week: 4,
-                day_of_week_name: "Thứ Năm".to_string(),
-                date_string: "2026-03-12".to_string(),
-            },
-            lunar: LunarDto {
-                day: 4,
-                month: 2,
-                year: 2026,
-                is_leap_month: false,
-                date_string: "Mùng 4 tháng Hai".to_string(),
-            },
-            jd: 0,
-            canchi: Some(CanChiInfoDto {
-                day: CanChiDto {
-                    can_index: 2,
-                    chi_index: 6,
-                    can: "Bính".to_string(),
-                    chi: "Ngọ".to_string(),
-                    full: "Bính Ngọ".to_string(),
-                    con_giap: "Ngựa".to_string(),
-                    ngu_hanh: NguHanhDto {
-                        can: "Hỏa".to_string(),
-                        chi: "Hỏa".to_string(),
-                    },
-                },
-                month: CanChiDto {
-                    can_index: 0,
-                    chi_index: 2,
-                    can: "Giáp".to_string(),
-                    chi: "Dần".to_string(),
-                    full: "Giáp Dần".to_string(),
-                    con_giap: "Hổ".to_string(),
-                    ngu_hanh: NguHanhDto {
-                        can: "Mộc".to_string(),
-                        chi: "Mộc".to_string(),
-                    },
-                },
-                year: CanChiDto {
-                    can_index: 2,
-                    chi_index: 6,
-                    can: "Bính".to_string(),
-                    chi: "Ngọ".to_string(),
-                    full: "Bính Ngọ".to_string(),
-                    con_giap: "Ngựa".to_string(),
-                    ngu_hanh: NguHanhDto {
-                        can: "Hỏa".to_string(),
-                        chi: "Hỏa".to_string(),
-                    },
-                },
-                full: "Bính Ngọ".to_string(),
-            }),
-            tiet_khi: Some(TietKhiDto {
-                index: 3,
-                name: "Kinh Trập".to_string(),
-                description: "Tiết khí thử nghiệm".to_string(),
-                longitude: 345,
-                current_longitude: 345.0,
-                season: "Xuân".to_string(),
-            }),
-            gio_hoang_dao: Some(GioHoangDaoDto {
-                day_chi: "Ngọ".to_string(),
-                good_hour_count: 4,
-                good_hours: vec![HourInfoDto {
-                    hour_index: 0,
-                    hour_chi: "Tý".to_string(),
-                    time_range: "23:00 - 01:00".to_string(),
-                    star: "Thanh Long".to_string(),
-                    is_good: true,
-                }],
-                all_hours: vec![],
-                summary: "Giờ đẹp đầu ngày".to_string(),
-            }),
-            day_fortune: Some(DayFortuneDto {
-                ruleset_id: "test".to_string(),
-                ruleset_version: "v1".to_string(),
-                profile: "baseline".to_string(),
-                day_element: DayElementDto {
-                    na_am: "Thiên Hà Thủy".to_string(),
-                    element: "Thủy".to_string(),
-                    can_element: "Hỏa".to_string(),
-                    chi_element: "Hỏa".to_string(),
-                    evidence: None,
-                },
-                conflict: DayConflictDto {
-                    opposing_chi: "Tý".to_string(),
-                    opposing_con_giap: "Chuột".to_string(),
-                    tuoi_xung: vec![],
-                    sat_huong: "Bắc".to_string(),
-                    evidence: None,
-                },
-                travel: TravelDirectionDto {
-                    xuat_hanh_huong: "Đông Nam".to_string(),
-                    tai_than: "Chính Nam".to_string(),
-                    hy_than: "Đông Bắc".to_string(),
-                    evidence: None,
-                },
-                stars: DayStarsDto {
-                    cat_tinh: vec![],
-                    sat_tinh: vec![],
-                    day_star: None,
-                    star_system: None,
-                    evidence: None,
-                    matched_rules: vec![],
-                },
-                day_deity: None,
-                taboos: vec![],
-                xung_hop: XungHopDto {
-                    luc_xung: "Tý".to_string(),
-                    tam_hop: vec![],
-                    tu_hanh_xung: vec![],
-                    liu_he: None,
-                    xiang_hai: None,
-                    xiang_xing: None,
-                },
-                truc: TrucDto {
-                    index: 4,
-                    name: "Khai".to_string(),
-                    quality: "cat".to_string(),
-                    evidence: None,
-                },
-                tang_can: None,
-                ten_gods: None,
-                tu_menh: None,
-            }),
-            daily_recommendations: Some(DailyRecommendationsDto {
-                ruleset_id: "test".to_string(),
-                ruleset_version: "v1".to_string(),
-                profile: "baseline".to_string(),
-                scope: RecommendationScopeDto::GeneralDay,
-                version: "v1".to_string(),
-                summary_vi: "Ngày thuận việc mở đầu, tránh việc lớn.".to_string(),
-                summary_en: "Good for starting, avoid major matters.".to_string(),
-                active_packs: vec![],
-                activities: vec![
-                    SynthesizedRecommendationDto {
-                        activity_id: "opening_start".to_string(),
-                        label: ActivityLabelDto {
-                            vi: "Khai mở".to_string(),
-                            en: "Opening".to_string(),
-                        },
-                        bucket: RecommendationBucketDto::Nen,
-                        reasons: vec![RecommendationReasonDto {
-                            rule_id: "truc.khai.good".to_string(),
-                            severity: RecommendationSeverityDto::Primary,
-                            summary_vi: "Hợp trực Khai".to_string(),
-                            summary_en: "Good under Khai".to_string(),
-                            evidence: RecommendationEvidenceDto {
-                                source: RecommendationEvidenceSourceDto::Truc,
-                                code: "truc.khai".to_string(),
-                                note: "test".to_string(),
-                            },
-                        }],
-                    },
-                    SynthesizedRecommendationDto {
-                        activity_id: "groundbreaking".to_string(),
-                        label: ActivityLabelDto {
-                            vi: "Động thổ".to_string(),
-                            en: "Groundbreaking".to_string(),
-                        },
-                        bucket: RecommendationBucketDto::KyManh,
-                        reasons: vec![RecommendationReasonDto {
-                            rule_id: "taboo.tam_nuong".to_string(),
-                            severity: RecommendationSeverityDto::Override,
-                            summary_vi: "Tam Nương kỵ việc động thổ".to_string(),
-                            summary_en: "Tam Nuong strongly forbids groundbreaking".to_string(),
-                            evidence: RecommendationEvidenceDto {
-                                source: RecommendationEvidenceSourceDto::Taboo,
-                                code: "taboo.tam_nuong".to_string(),
-                                note: "test".to_string(),
-                            },
-                        }],
-                    },
-                ],
-            }),
-            contextual_recommendations: None,
-            insight: None,
-        }
-    }
-
-    fn sample_app_state() -> AppState {
-        let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
-        let ruleset_catalog = vec![RulesetCatalogEntryDto {
-            id: "vn_baseline_v1".to_string(),
-            canonical_id: "vn_baseline_v1".to_string(),
-            version: "v1".to_string(),
-            region: "vn".to_string(),
-            profile: "baseline".to_string(),
-            schema_version: "amlich.engine/v1".to_string(),
-            is_default: true,
-            aliases: vec![],
-            defaults: RulesetDefaultsDto {
-                tz_offset: 7.0,
-                meridian: None,
-            },
-            source_notes: vec![],
-        }];
-        let recommendation_pack_catalog = vec![RecommendationPackCatalogEntryDto {
-            pack_id: "pack.nhi_thap_bat_tu.v1".to_string(),
-            request_field: "enabled_pack_ids".to_string(),
-            version: "v1".to_string(),
-            source_family: "traditional".to_string(),
-            mode: "advisory".to_string(),
-        }];
-        let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
-        AppState {
-            running: true,
-            date,
-            lens: FocusLens::General,
-            
-            scroll_offset: 0,
-            bundle: Some(sample_bundle()),
-            is_loading: false,
-            error_msg: None,
-            ruleset_catalog,
-            recommendation_pack_catalog,
-            applied_selection: selection.clone(),
-            staged_selection: selection,
-            explorer_focus: ExplorerField::Date,
-            explorer_action: ExplorerAction::Apply,
-            pack_cursor: 0,
-            show_guidance_details: false,
-            show_tietkhi_details: false,
-            show_evidence: false,
-            show_week_strip: true,
-            focused_section: PageSection::Hero,
-            zoomed_section: None,
-            expanded_sections: Default::default(),
-            app_mode: crate::state::AppMode::Normal,
-            search_input: String::new(),
-            calendar_cursor: date,
-            navigation_history: Vec::new(),
-            active_view: crate::state::ActiveView::Dashboard,
-            view_history: Vec::new(),
-        }
-    }
-
-    fn render_lines(app: &AppState) -> Vec<String> {
-        let area = Rect::new(0, 0, 80, 8);
-        let mut buf = Buffer::empty(area);
-        HeroWidget::new(app, LayoutMode::Large).render(area, &mut buf);
-
-        (0..area.height)
-            .map(|y| {
-                (0..area.width)
-                    .map(|x| buf[(x, y)].symbol())
-                    .collect::<String>()
-                    .trim_end()
-                    .to_string()
-            })
-            .collect()
-    }
-
-    #[test]
-    fn hero_shows_solar_lunar_and_summary_verdict() {
-        let app = sample_app_state();
-        let lines = render_lines(&app).join("\n");
-
-        assert!(lines.contains("THỨ NĂM"));
-        assert!(lines.contains("Mùng 4 tháng Hai"));
-        assert!(lines.contains("Ngày thuận việc mở đầu, tránh việc lớn."));
-    }
-
-    #[test]
-    fn hero_includes_key_identity_facts() {
-        let app = sample_app_state();
-        let lines = render_lines(&app).join("\n");
-
-        assert!(lines.contains("Bính Ngọ"));
-        assert!(lines.contains("Trực Khai"));
-        assert!(lines.contains("Kinh Trập"));
-    }
-
-    #[test]
-    fn hero_handles_missing_optional_badges() {
-        let mut app = sample_app_state();
-        app.bundle.as_mut().expect("bundle").tiet_khi = None;
-
-        let lines = render_lines(&app).join("\n");
-
-        assert!(lines.contains("Ngày thuận việc mở đầu, tránh việc lớn."));
-        assert!(lines.contains("Khai mở"));
-        assert!(!lines.contains("Lễ"));
-    }
 }

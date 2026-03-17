@@ -12,7 +12,7 @@ use crate::state::{AppState, PageSection};
 use super::{
     calendar::CalendarViewWidget,
     screens::{
-        deep::DeepScreenWidget, general::GeneralScreenWidget, insight::InsightScreenWidget,
+        dashboard::DashboardScreenWidget, insight::InsightScreenWidget,
         recommendations::RecommendationsScreenWidget,
     },
     week_strip::WeekStripWidget,
@@ -90,7 +90,7 @@ impl Widget for PageWidget<'_> {
 
         match self.app.active_view {
             crate::state::ActiveView::Dashboard => {
-                GeneralScreenWidget::new(self.app, self.mode).render(content_area, buf)
+                DashboardScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
             crate::state::ActiveView::Scholar => {
                 InsightScreenWidget::new(self.app, self.mode).render(content_area, buf)
@@ -270,7 +270,7 @@ mod tests {
 
         let text = render_text(&app);
 
-        assert!(text.contains("Màn hình General"));
+        assert!(text.contains("Âm lịch"));
     }
 
     #[test]

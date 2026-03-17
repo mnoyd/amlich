@@ -1,9 +1,12 @@
+pub mod action_board;
+pub mod almanac;
 pub mod battu;
 pub mod calendar;
 pub mod explorer;
 pub mod guidance;
 pub mod hero;
 pub mod inspection;
+pub mod mini_calendar;
 pub mod page;
 pub mod ribbon;
 pub mod risk;
