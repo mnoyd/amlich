@@ -16,11 +16,12 @@ const WEEKDAY_NAMES: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
 pub struct RibbonWidget<'a> {
     app: &'a AppState,
+    mode: LayoutMode,
 }
 
 impl<'a> RibbonWidget<'a> {
-    pub fn new(app: &'a AppState, _mode: LayoutMode) -> Self {
-        Self { app }
+    pub fn new(app: &'a AppState, mode: LayoutMode) -> Self {
+        Self { app, mode }
     }
 }
 
@@ -59,24 +60,42 @@ impl Widget for RibbonWidget<'_> {
         let available = self.app.available_views();
         let mut view_spans = vec![];
         for v in available.iter() {
-            if v == &self.app.active_view {
-                view_spans.push(Span::styled(
-                    format!(" [{}] ", v.label()),
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD),
-                ));
+            let label = match self.mode {
+                LayoutMode::Small => {
+                    if v != &self.app.active_view {
+                        continue;
+                    }
+                    format!("< [{}] >", v.short_label())
+                }
+                LayoutMode::Medium => {
+                    if v == &self.app.active_view {
+                        format!(" [{}] ", v.short_label())
+                    } else {
+                        format!(" {} ", v.short_label())
+                    }
+                }
+                LayoutMode::Large => {
+                    if v == &self.app.active_view {
+                        format!(" [{}] ", v.label())
+                    } else {
+                        format!(" {} ", v.label())
+                    }
+                }
+            };
+
+            let style = if v == &self.app.active_view {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
             } else {
-                view_spans.push(Span::styled(
-                    format!(" {} ", v.label()),
-                    Style::default().fg(Color::DarkGray),
-                ));
-            }
+                Style::default().fg(Color::DarkGray)
+            };
+            view_spans.push(Span::styled(label, style));
         }
 
         let mut all_spans = view_spans;
         all_spans.push(Span::styled(
-            "| Tab: màn  ←/→: ngày  t: hôm nay  m: tháng  ?: trợ giúp",
+            "| Tab: màn  1-8: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp",
             Style::default().fg(Color::DarkGray),
         ));
 
@@ -212,7 +231,7 @@ mod tests {
 
         assert!(hotkey_line.contains("[Dashboard]"));
         assert!(hotkey_line.contains("Tab: màn"));
-        assert!(hotkey_line.contains("?: trợ giúp"));
+        assert!(hotkey_line.contains("1-8: chọn"));
         assert!(!weekday_line.contains("Tab:"));
         assert!(!weekday_line.contains("màn"));
     }
