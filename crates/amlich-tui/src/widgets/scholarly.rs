@@ -52,6 +52,37 @@ impl<'a> ScholarlyWidget<'a> {
             Span::styled(can_chi_day, Style::default().fg(Color::Cyan)),
         ]));
 
+        // CanChi insight detail
+        if let Some(insight) = &bundle.insight {
+            if let Some(ci) = &insight.canchi {
+                lines.push(Line::from(vec![
+                    Span::raw("    \u{251C} Can: "),
+                    Span::styled(&ci.can.name, Style::default().fg(Color::Cyan)),
+                    Span::raw(" \u{2014} "),
+                    Span::raw(&ci.can.meaning.vi),
+                ]));
+                lines.push(Line::from(vec![
+                    Span::raw("    \u{2514} Chi: "),
+                    Span::styled(&ci.chi.name, Style::default().fg(Color::Cyan)),
+                    Span::raw(" \u{2014} "),
+                    Span::raw(&ci.chi.meaning.vi),
+                    Span::raw(format!(" ({})", ci.chi.animal.vi)),
+                ]));
+            }
+        }
+
+        // Month and year Can Chi
+        if let Some(canchi) = &bundle.canchi {
+            lines.push(Line::from(vec![
+                Span::raw("   Can Chi tháng: "),
+                Span::styled(&canchi.month.full, Style::default().fg(Color::Cyan)),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("   Can Chi năm: "),
+                Span::styled(&canchi.year.full, Style::default().fg(Color::Cyan)),
+            ]));
+        }
+
         let ngu_hanh_naam = bundle
             .day_fortune
             .as_ref()
