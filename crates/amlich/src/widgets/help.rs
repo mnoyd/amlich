@@ -64,7 +64,7 @@ impl Widget for HelpOverlay {
                 "Display",
                 vec![
                     ("H", "danh sách ngày lễ"),
-                    ("i", "insight (lễ/hd/tiết khí)"),
+                    ("i", "insight (9 tab chi tiết)"),
                     ("a", "almanac (trực/kỵ/sao)"),
                     ("L", "đổi ngôn ngữ VI/EN"),
                 ],
@@ -72,9 +72,10 @@ impl Widget for HelpOverlay {
             (
                 "Overlay Controls",
                 vec![
-                    ("1..4", "đổi tab overlay"),
+                    ("1..9", "đổi tab insight"),
+                    ("1..4", "đổi tab almanac"),
                     ("j/k", "cuộn nội dung"),
-                    ("r", "raw luận cứ (tab 4)"),
+                    ("r", "raw luận cứ (almanac tab 4)"),
                     ("Esc/q", "đóng overlay"),
                 ],
             ),
