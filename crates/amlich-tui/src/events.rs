@@ -42,6 +42,14 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         return false;
     }
 
+    if app.app_mode == crate::state::AppMode::HelpModal {
+        match code {
+            KeyCode::Esc | KeyCode::Char('?') => app.toggle_help_modal(),
+            _ => {}
+        }
+        return false;
+    }
+
     // Global view switching
     match code {
         KeyCode::Tab => {
@@ -446,5 +454,18 @@ mod tests {
         dispatch_key(&mut app, KeyCode::Enter, KeyModifiers::NONE);
 
         assert_eq!(app.staged_selection.event_kind, None);
+    }
+
+    #[test]
+    fn help_modal_consumes_tab_navigation_until_closed() {
+        let mut app = sample_app_state();
+        app.app_mode = AppMode::HelpModal;
+        let active_before = app.active_view;
+
+        dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+        assert_eq!(app.active_view, active_before);
+
+        dispatch_key(&mut app, KeyCode::Char('?'), KeyModifiers::NONE);
+        assert_eq!(app.app_mode, AppMode::Normal);
     }
 }

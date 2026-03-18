@@ -254,4 +254,14 @@ mod tests {
         assert_eq!(status_area.y, rect.y);
         assert_eq!(ribbon_area.y + ribbon_area.height, rect.y + rect.height);
     }
+
+    #[test]
+    fn shell_layout_remains_usable_at_min_terminal_size() {
+        let rect = ratatui::layout::Rect::new(0, 0, 40, 15);
+        let (status_area, page_area, ribbon_area) = shell_areas(rect);
+
+        assert_eq!(status_area.height, 1);
+        assert_eq!(ribbon_area.height, 2);
+        assert!(page_area.height >= 10);
+    }
 }
