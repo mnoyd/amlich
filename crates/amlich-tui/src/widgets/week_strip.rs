@@ -2,12 +2,13 @@ use chrono::{Datelike, Local, NaiveDate};
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Constraint, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::Modifier,
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
 use crate::state::AppState;
+use crate::theme::Theme;
 
 const WEEKDAY_LABELS: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
@@ -41,14 +42,14 @@ impl Widget for WeekStripWidget<'_> {
 
         for (cell, chunk) in cells.into_iter().zip(chunks.iter().copied()) {
             let weekday = WEEKDAY_LABELS[cell.date.weekday().num_days_from_monday() as usize];
-            let mut block_style = Style::default().fg(Color::DarkGray);
+            let mut block_style = Theme::text_dim();
             if cell.is_today {
                 block_style = block_style.add_modifier(Modifier::UNDERLINED);
             }
             if cell.is_selected {
                 block_style = block_style
-                    .bg(Color::Cyan)
-                    .fg(Color::Black)
+                    .bg(Theme::INFO)
+                    .fg(Theme::SURFACE_BG)
                     .add_modifier(Modifier::BOLD);
             }
 

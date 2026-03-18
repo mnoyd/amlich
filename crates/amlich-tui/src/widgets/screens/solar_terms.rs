@@ -7,6 +7,7 @@ use ratatui::{
 };
 
 use crate::{layout::LayoutMode, state::AppState};
+use crate::theme::Theme;
 
 pub struct SolarTermsScreenWidget<'a> {
     app: &'a AppState,
@@ -21,8 +22,18 @@ impl<'a> SolarTermsScreenWidget<'a> {
 
 impl Widget for SolarTermsScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let shell = Layout::vertical([Constraint::Length(1), Constraint::Min(1)]).split(area);
+        Paragraph::new(Line::from(vec![
+            Span::styled(
+                "▶ SolarTerms",
+                Theme::accent_warn().add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(" · Nhịp tiết khí và ứng dụng theo mùa", Theme::text_dim()),
+        ]))
+        .render(shell[0], buf);
+
         let Some(bundle) = &self.app.bundle else {
-            Paragraph::new("Chưa có dữ liệu.").render(area, buf);
+            Paragraph::new("Chưa có dữ liệu.").render(shell[1], buf);
             return;
         };
 
@@ -32,7 +43,7 @@ impl Widget for SolarTermsScreenWidget<'_> {
                     Constraint::Percentage(50),
                     Constraint::Percentage(50),
                 ])
-                .split(area);
+                .split(shell[1]);
                 let top = Layout::horizontal([
                     Constraint::Percentage(50),
                     Constraint::Percentage(50),
@@ -56,7 +67,7 @@ impl Widget for SolarTermsScreenWidget<'_> {
                     Constraint::Min(8),
                     Constraint::Min(8),
                 ])
-                .split(area);
+                .split(shell[1]);
                 render_current(bundle, rows[0], buf);
                 render_astronomy(bundle, rows[1], buf);
                 render_agriculture(bundle, rows[2], buf);

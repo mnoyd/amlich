@@ -7,6 +7,7 @@ use ratatui::{
 };
 
 use crate::{layout::LayoutMode, state::AppState};
+use crate::theme::Theme;
 
 pub struct FengShuiScreenWidget<'a> {
     app: &'a AppState,
@@ -21,12 +22,22 @@ impl<'a> FengShuiScreenWidget<'a> {
 
 impl Widget for FengShuiScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let shell = Layout::vertical([Constraint::Length(1), Constraint::Min(1)]).split(area);
+        Paragraph::new(Line::from(vec![
+            Span::styled(
+                "▶ FengShui",
+                Theme::accent_warn().add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(" · Tứ mệnh, hướng và đại vận", Theme::text_dim()),
+        ]))
+        .render(shell[0], buf);
+
         let Some(bundle) = &self.app.bundle else {
-            Paragraph::new("Chưa có dữ liệu.").render(area, buf);
+            Paragraph::new("Chưa có dữ liệu.").render(shell[1], buf);
             return;
         };
         let Some(insight) = &bundle.insight else {
-            Paragraph::new("Chưa có dữ liệu insight.").render(area, buf);
+            Paragraph::new("Chưa có dữ liệu insight.").render(shell[1], buf);
             return;
         };
 
@@ -36,7 +47,7 @@ impl Widget for FengShuiScreenWidget<'_> {
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::DarkGray));
             let text = "Chưa cấu hình hồ sơ cá nhân.\n\nCần birth year + gender để tính Tứ Mệnh và Đại Vận.";
-            Paragraph::new(text).block(block).render(area, buf);
+            Paragraph::new(text).block(block).render(shell[1], buf);
             return;
         }
 
@@ -46,7 +57,7 @@ impl Widget for FengShuiScreenWidget<'_> {
                     Constraint::Percentage(50),
                     Constraint::Percentage(50),
                 ])
-                .split(area);
+                .split(shell[1]);
                 let top = Layout::horizontal([
                     Constraint::Percentage(50),
                     Constraint::Percentage(50),
@@ -69,7 +80,7 @@ impl Widget for FengShuiScreenWidget<'_> {
                     Constraint::Min(10),
                     Constraint::Min(14),
                 ])
-                .split(area);
+                .split(shell[1]);
                 render_kua(insight, rows[0], buf);
                 render_directions(insight, rows[1], buf);
                 render_dai_van(insight, rows[2], buf);

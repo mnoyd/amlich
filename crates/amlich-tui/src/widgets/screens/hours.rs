@@ -7,6 +7,7 @@ use ratatui::{
 };
 
 use crate::{layout::LayoutMode, state::AppState};
+use crate::theme::Theme;
 
 pub struct HoursScreenWidget<'a> {
     app: &'a AppState,
@@ -21,19 +22,29 @@ impl<'a> HoursScreenWidget<'a> {
 
 impl Widget for HoursScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let shell = Layout::vertical([Constraint::Length(1), Constraint::Min(1)]).split(area);
+        Paragraph::new(Line::from(vec![
+            Span::styled(
+                "▶ Hours",
+                Theme::accent_warn().add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(" · Nhịp giờ hoàng đạo trong ngày", Theme::text_dim()),
+        ]))
+        .render(shell[0], buf);
+
         let Some(bundle) = &self.app.bundle else {
-            Paragraph::new("Chưa có dữ liệu.").render(area, buf);
+            Paragraph::new("Chưa có dữ liệu.").render(shell[1], buf);
             return;
         };
         let Some(gio) = &bundle.gio_hoang_dao else {
-            Paragraph::new("Chưa có dữ liệu giờ hoàng đạo.").render(area, buf);
+            Paragraph::new("Chưa có dữ liệu giờ hoàng đạo.").render(shell[1], buf);
             return;
         };
 
         let rows = Layout::vertical([
             Constraint::Length(7),
             Constraint::Min(10),
-        ]).split(area);
+        ]).split(shell[1]);
 
         // Top: Timeline overview
         {
@@ -140,4 +151,33 @@ fn render_hour_list(
     }
 
     Paragraph::new(lines).render(inner, buf);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::NaiveDate;
+    use ratatui::{buffer::Buffer, layout::Rect};
+
+    #[test]
+    fn hours_screen_renders_visual_header_marker() {
+        let app = AppState::new(NaiveDate::from_ymd_opt(2026, 3, 18));
+        let area = Rect::new(0, 0, 120, 32);
+        let mut buf = Buffer::empty(area);
+
+        HoursScreenWidget::new(&app, LayoutMode::Large).render(area, &mut buf);
+
+        let rendered = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(rendered.contains("▶ Hours"));
+    }
 }

@@ -2,13 +2,14 @@ use chrono::{Datelike, Local, NaiveDate};
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::{Color, Modifier, Style},
+    style::Modifier,
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
 use crate::layout::LayoutMode;
 use crate::state::AppState;
+use crate::theme::Theme;
 
 const WEEKDAY_LABELS: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
@@ -33,13 +34,13 @@ impl Widget for CalendarViewWidget<'_> {
         let block = Block::default()
             .title(" Chọn Ngày ")
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::Yellow));
+            .border_style(Theme::border_primary());
         let inner = block.inner(area);
         block.render(area, buf);
 
         if inner.width < 42 || inner.height < 18 {
             Paragraph::new("Phóng to cửa sổ để xem bộ chọn lịch.")
-                .style(Style::default().fg(Color::DarkGray))
+                .style(Theme::text_dim())
                 .render(inner, buf);
             return;
         }
@@ -48,9 +49,7 @@ impl Widget for CalendarViewWidget<'_> {
         let mut lines = vec![
             Line::from(Span::styled(
                 format!("Tháng {} năm {}", month, year),
-                Style::default()
-                    .fg(Color::White)
-                    .add_modifier(Modifier::BOLD),
+                Theme::text_primary().add_modifier(Modifier::BOLD),
             )),
             Line::from(""),
         ];
@@ -61,11 +60,9 @@ impl Widget for CalendarViewWidget<'_> {
                 .enumerate()
                 .map(|(i, label)| {
                     let style = if i == 6 {
-                        Style::default().fg(Color::Red).add_modifier(Modifier::BOLD)
+                        Theme::accent_bad().add_modifier(Modifier::BOLD)
                     } else {
-                        Style::default()
-                            .fg(Color::DarkGray)
-                            .add_modifier(Modifier::BOLD)
+                        Theme::text_dim().add_modifier(Modifier::BOLD)
                     };
                     Span::styled(format!("{:^width$}", label, width = cell_width), style)
                 })
@@ -100,9 +97,9 @@ impl Widget for CalendarViewWidget<'_> {
                 let is_today = current == today;
                 let is_sunday = col == 6;
 
-                let mut style = Style::default().fg(Color::White);
+                let mut style = Theme::text_primary();
                 if is_sunday {
-                    style = style.fg(Color::Red);
+                    style = style.fg(Theme::BAD);
                 }
                 if is_today {
                     style = style.add_modifier(Modifier::BOLD);
@@ -112,8 +109,8 @@ impl Widget for CalendarViewWidget<'_> {
                 }
                 if is_cursor {
                     style = style
-                        .bg(Color::Cyan)
-                        .fg(Color::Black)
+                        .bg(Theme::INFO)
+                        .fg(Theme::SURFACE_BG)
                         .add_modifier(Modifier::BOLD);
                 }
 
@@ -121,7 +118,7 @@ impl Widget for CalendarViewWidget<'_> {
                 let lunar_style = if is_cursor {
                     style
                 } else {
-                    style.fg(Color::DarkGray)
+                    style.fg(Theme::TEXT_DIM)
                 };
 
                 solar_row.push(Span::styled(
@@ -141,11 +138,11 @@ impl Widget for CalendarViewWidget<'_> {
         lines.push(Line::from(""));
         lines.push(Line::from(Span::styled(
             "h/l, j/k: di chuyển",
-            Style::default().fg(Color::DarkGray),
+            Theme::text_dim(),
         )));
         lines.push(Line::from(Span::styled(
             "[ ]: đổi tháng | Enter: chọn | m/Esc: đóng | t: hôm nay",
-            Style::default().fg(Color::DarkGray),
+            Theme::text_dim(),
         )));
 
         Paragraph::new(lines).render(inner, buf);

@@ -7,6 +7,7 @@ use ratatui::{
 };
 
 use crate::{layout::LayoutMode, state::AppState};
+use crate::theme::Theme;
 
 pub struct ElementsScreenWidget<'a> {
     app: &'a AppState,
@@ -21,8 +22,18 @@ impl<'a> ElementsScreenWidget<'a> {
 
 impl Widget for ElementsScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let shell = Layout::vertical([Constraint::Length(1), Constraint::Min(1)]).split(area);
+        Paragraph::new(Line::from(vec![
+            Span::styled(
+                "▶ Elements",
+                Theme::accent_warn().add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(" · Bản đồ can chi và ngũ hành", Theme::text_dim()),
+        ]))
+        .render(shell[0], buf);
+
         let Some(bundle) = &self.app.bundle else {
-            Paragraph::new("Chưa có dữ liệu.").render(area, buf);
+            Paragraph::new("Chưa có dữ liệu.").render(shell[1], buf);
             return;
         };
 
@@ -31,7 +42,7 @@ impl Widget for ElementsScreenWidget<'_> {
                 let rows = Layout::vertical([
                     Constraint::Percentage(50),
                     Constraint::Percentage(50),
-                ]).split(area);
+                ]).split(shell[1]);
                 let top = Layout::horizontal([
                     Constraint::Percentage(34), Constraint::Percentage(33), Constraint::Percentage(33),
                 ]).split(rows[0]);
@@ -49,7 +60,7 @@ impl Widget for ElementsScreenWidget<'_> {
             LayoutMode::Medium => {
                 let rows = Layout::vertical([
                     Constraint::Percentage(34), Constraint::Percentage(33), Constraint::Percentage(33),
-                ]).split(area);
+                ]).split(shell[1]);
                 let r0 = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(rows[0]);
                 let r1 = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(rows[1]);
                 let r2 = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(rows[2]);
@@ -65,7 +76,7 @@ impl Widget for ElementsScreenWidget<'_> {
                 let rows = Layout::vertical([
                     Constraint::Min(8), Constraint::Min(10), Constraint::Min(8),
                     Constraint::Min(8), Constraint::Min(8), Constraint::Min(8),
-                ]).split(area);
+                ]).split(shell[1]);
                 render_tang_can(bundle, rows[0], buf);
                 render_ten_gods(bundle, rows[1], buf);
                 render_xung_hop(bundle, rows[2], buf);
@@ -314,5 +325,34 @@ fn element_relation(a: &str, b: &str) -> &'static str {
         ("Mộc", "Kim") | ("Thổ", "Mộc") | ("Thủy", "Thổ") | ("Hỏa", "Thủy") | ("Kim", "Hỏa") => "bị khắc",
         _ if a == b => "tỷ hòa",
         _ => "\u{2014}",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::NaiveDate;
+    use ratatui::{buffer::Buffer, layout::Rect};
+
+    #[test]
+    fn elements_screen_renders_visual_header_marker() {
+        let app = AppState::new(NaiveDate::from_ymd_opt(2026, 3, 18));
+        let area = Rect::new(0, 0, 140, 36);
+        let mut buf = Buffer::empty(area);
+
+        ElementsScreenWidget::new(&app, LayoutMode::Large).render(area, &mut buf);
+
+        let rendered = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(rendered.contains("▶ Elements"));
     }
 }
