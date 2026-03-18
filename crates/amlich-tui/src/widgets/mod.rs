@@ -12,6 +12,7 @@ pub mod help;
 pub mod hero;
 pub mod inspection;
 pub mod mini_calendar;
+pub mod modal_shell;
 pub mod naam_panel;
 pub mod page;
 pub mod ribbon;

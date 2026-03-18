@@ -6,6 +6,7 @@ use ratatui::{
 
 use crate::layout::LayoutMode;
 use crate::state::AppState;
+use crate::widgets::modal_shell::{centered_modal, ModalPreset};
 use crate::widgets::explorer::ExplorerWidget;
 
 pub struct ContextModalWidget<'a> {
@@ -25,13 +26,7 @@ impl Widget for ContextModalWidget<'_> {
             return;
         }
 
-        let popup_width = 60;
-        let popup_height = 20;
-
-        let x = area.x + (area.width.saturating_sub(popup_width)) / 2;
-        let y = area.y + (area.height.saturating_sub(popup_height)) / 2;
-
-        let popup_area = Rect::new(x, y, popup_width, popup_height);
+        let popup_area = centered_modal(area, self.mode, ModalPreset::Context);
 
         Clear.render(popup_area, buf);
 

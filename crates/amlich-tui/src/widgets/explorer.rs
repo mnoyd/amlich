@@ -1,7 +1,7 @@
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::{Color, Modifier, Style},
+    style::Modifier,
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget},
 };
@@ -9,6 +9,7 @@ use ratatui::{
 use crate::{
     layout::LayoutMode,
     state::{AppState, ExplorerAction, ExplorerField},
+    theme::Theme,
 };
 
 pub struct ExplorerWidget<'a> {
@@ -27,7 +28,7 @@ impl Widget for ExplorerWidget<'_> {
         let block = Block::default()
             .title(" Điều Khiển Nhanh ")
             .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::DarkGray));
+            .border_style(Theme::border_secondary());
         let inner = block.inner(area);
         block.render(area, buf);
 
@@ -62,7 +63,7 @@ impl Widget for ExplorerWidget<'_> {
         for row in self.app.pack_status_rows() {
             lines.push(Line::from(Span::styled(
                 format!("  {row}"),
-                Style::default().fg(Color::White),
+                Theme::text_primary(),
             )));
         }
 
@@ -72,7 +73,7 @@ impl Widget for ExplorerWidget<'_> {
                 self.app
                     .ruleset_brief_label(self.app.applied_selection.ruleset_id.as_deref())
             ),
-            Style::default().fg(Color::Gray),
+            Theme::text_muted(),
         )]));
         lines.push(Line::from(vec![
             label(self.app, ExplorerField::Actions, "Áp dụng"),
@@ -88,7 +89,7 @@ impl Widget for ExplorerWidget<'_> {
                     .event_kind_label(self.app.applied_selection.event_kind.as_deref()),
                 self.app.active_pack_summary(&self.app.applied_selection)
             ),
-            Style::default().fg(Color::Gray),
+            Theme::text_muted(),
         )));
         if self.app.explorer_has_staged_changes() {
             lines.push(Line::from(Span::styled(
@@ -99,7 +100,7 @@ impl Widget for ExplorerWidget<'_> {
                         .event_kind_label(self.app.staged_selection.event_kind.as_deref()),
                     self.app.active_pack_summary(&self.app.staged_selection)
                 ),
-                Style::default().fg(Color::Yellow),
+                Theme::accent_warn(),
             )));
         }
 
@@ -109,11 +110,9 @@ impl Widget for ExplorerWidget<'_> {
 
 fn label(app: &AppState, field: ExplorerField, text: &str) -> Span<'static> {
     let style = if app.explorer_focus == field {
-        Style::default()
-            .fg(Color::Cyan)
-            .add_modifier(Modifier::BOLD)
+        Theme::accent_info().add_modifier(Modifier::BOLD)
     } else {
-        Style::default().fg(Color::White)
+        Theme::text_primary()
     };
     Span::styled(text.to_string(), style)
 }
@@ -121,12 +120,11 @@ fn label(app: &AppState, field: ExplorerField, text: &str) -> Span<'static> {
 fn action_chip(app: &AppState, action: ExplorerAction, text: &str) -> Span<'static> {
     let selected = app.explorer_focus == ExplorerField::Actions && app.explorer_action == action;
     let style = if selected {
-        Style::default()
-            .fg(Color::Black)
-            .bg(Color::Cyan)
+        Theme::accent_info()
+            .bg(Theme::SURFACE_BG)
             .add_modifier(Modifier::BOLD)
     } else {
-        Style::default().fg(Color::White)
+        Theme::text_primary()
     };
     Span::styled(text.to_string(), style)
 }

@@ -1,13 +1,15 @@
 use ratatui::{
     buffer::Buffer,
     layout::Rect,
-    style::{Color, Style},
+    style::Modifier,
     text::{Line, Span},
-    widgets::{Block, Borders, Clear, Paragraph, Widget},
+    widgets::{Clear, Paragraph, Widget},
 };
 
 use crate::layout::LayoutMode;
 use crate::state::AppState;
+use crate::theme::Theme;
+use crate::widgets::modal_shell::{centered_modal, modal_block, ModalPreset};
 
 pub struct SearchOverlayWidget<'a> {
     app: &'a AppState,
@@ -26,32 +28,57 @@ impl Widget for SearchOverlayWidget<'_> {
             return;
         }
 
-        let popup_width = 40;
-        let popup_height = 5;
-
-        let x = area.x + (area.width.saturating_sub(popup_width)) / 2;
-        let y = area.y + (area.height.saturating_sub(popup_height)) / 2;
-
-        let popup_area = Rect::new(x, y, popup_width, popup_height);
+        let popup_area = centered_modal(area, self._mode, ModalPreset::Search);
 
         Clear.render(popup_area, buf);
 
-        let block = Block::default()
-            .title(" Đến Ngày (Tìm kiếm) ")
-            .title_alignment(ratatui::layout::Alignment::Center)
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::Cyan));
+        let block = modal_block(" Tìm kiếm ngày ");
 
         let input_display = format!("> {}{}", self.app.search_input, "█");
 
         let lines = vec![
-            Line::from(" Nhập ngày (YYYY-MM-DD hoặc DD/MM/YYYY):"),
+            Line::from(Span::styled(
+                " Nhập ngày (YYYY-MM-DD hoặc DD/MM/YYYY):",
+                Theme::text_muted(),
+            )),
             Line::from(Span::styled(
                 input_display,
-                Style::default().fg(Color::Yellow),
+                Theme::accent_warn().add_modifier(Modifier::BOLD),
             )),
+            Line::from(Span::styled(" Enter: đi tới  Esc: đóng", Theme::text_dim())),
         ];
 
         Paragraph::new(lines).block(block).render(popup_area, buf);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::state::AppMode;
+    use chrono::NaiveDate;
+    use ratatui::{buffer::Buffer, layout::Rect};
+
+    #[test]
+    fn search_modal_uses_shared_shell_title_format() {
+        let mut app = AppState::new(NaiveDate::from_ymd_opt(2026, 3, 18));
+        app.app_mode = AppMode::SearchModal;
+        let area = Rect::new(0, 0, 120, 30);
+        let mut buf = Buffer::empty(area);
+
+        SearchOverlayWidget::new(&app, LayoutMode::Large).render(area, &mut buf);
+
+        let rendered = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(rendered.contains("Esc: đóng"));
     }
 }
