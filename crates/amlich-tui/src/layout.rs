@@ -6,7 +6,7 @@ use ratatui::{
 use crate::state::AppState;
 use crate::widgets::{
     context::ContextModalWidget, help::HelpModalWidget, page::PageWidget, ribbon::RibbonWidget,
-    search::SearchOverlayWidget,
+    search::SearchOverlayWidget, status_strip::StatusStripWidget,
 };
 
 const MIN_TERM_W: u16 = 40;
@@ -45,18 +45,12 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
         return;
     }
 
-    // Main vertical layout: Page area (scrollable) + Ribbon area (fixed bottom)
-    let main_layout = Layout::vertical([
-        Constraint::Min(10),   // Main scrolling page
-        Constraint::Length(2), // Fixed bottom ribbon (includes top padding line)
-    ])
-    .split(size);
-
-    let page_area = main_layout[0];
-    let ribbon_area = main_layout[1];
+    let (status_area, page_area, ribbon_area) = shell_areas(size);
 
     // Determine the layout constraints based on mode
     let mode = layout_mode(size.width);
+
+    frame.render_widget(StatusStripWidget::new(app, mode), status_area);
 
     let content_area = page_content_area(page_area, mode);
     let page_render_area = if app.is_calendar_view() {
@@ -84,6 +78,17 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
         }
         _ => {}
     }
+}
+
+fn shell_areas(area: ratatui::layout::Rect) -> (ratatui::layout::Rect, ratatui::layout::Rect, ratatui::layout::Rect) {
+    let chunks = Layout::vertical([
+        Constraint::Length(1), // top status strip
+        Constraint::Min(10),   // main scrolling page
+        Constraint::Length(2), // bottom ribbon area
+    ])
+    .split(area);
+
+    (chunks[0], chunks[1], chunks[2])
 }
 
 fn page_content_area(page_area: ratatui::layout::Rect, mode: LayoutMode) -> ratatui::layout::Rect {
@@ -236,5 +241,17 @@ mod tests {
 
         assert_eq!(content.width, 120);
         assert_eq!(content.x, 20);
+    }
+
+    #[test]
+    fn layout_renders_top_status_strip_and_bottom_ribbon() {
+        let rect = ratatui::layout::Rect::new(0, 0, 120, 40);
+        let (status_area, page_area, ribbon_area) = shell_areas(rect);
+
+        assert_eq!(status_area.height, 1);
+        assert_eq!(ribbon_area.height, 2);
+        assert!(page_area.height >= 10);
+        assert_eq!(status_area.y, rect.y);
+        assert_eq!(ribbon_area.y + ribbon_area.height, rect.y + rect.height);
     }
 }

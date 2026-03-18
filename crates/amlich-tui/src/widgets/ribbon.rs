@@ -1,13 +1,14 @@
 use ratatui::{
     buffer::Buffer,
     layout::{Alignment, Rect},
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Paragraph, Widget},
 };
 
 use crate::layout::LayoutMode;
-use crate::state::AppState;
+use crate::state::{AppMode, AppState};
+use crate::theme::Theme;
 #[cfg(test)]
 use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
 use chrono::Datelike;
@@ -32,17 +33,17 @@ impl Widget for RibbonWidget<'_> {
                 Span::styled(
                     " [Lịch] ",
                     Style::default()
-                        .fg(Color::Yellow)
+                        .fg(Theme::WARN)
                         .add_modifier(Modifier::BOLD),
                 ),
                 Span::styled(
                     "h/l, j/k: di chuyển  ",
-                    Style::default().fg(Color::DarkGray),
+                    Theme::text_dim(),
                 ),
-                Span::styled("[ ]: đổi tháng  ", Style::default().fg(Color::DarkGray)),
+                Span::styled("[ ]: đổi tháng  ", Theme::text_dim()),
                 Span::styled(
                     "Enter: chọn  m/Esc: đóng",
-                    Style::default().fg(Color::DarkGray),
+                    Theme::text_dim(),
                 ),
             ]);
 
@@ -84,19 +85,17 @@ impl Widget for RibbonWidget<'_> {
             };
 
             let style = if v == &self.app.active_view {
-                Style::default()
-                    .fg(Color::Yellow)
-                    .add_modifier(Modifier::BOLD)
+                Theme::accent_warn().add_modifier(Modifier::BOLD)
             } else {
-                Style::default().fg(Color::DarkGray)
+                Theme::text_dim()
             };
             view_spans.push(Span::styled(label, style));
         }
 
         let mut all_spans = view_spans;
         all_spans.push(Span::styled(
-            "| Tab: màn  1-8: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp",
-            Style::default().fg(Color::DarkGray),
+            format!("| {}", shortcuts_for_mode(&self.app.app_mode)),
+            Theme::text_dim(),
         ));
 
         let dow0 = self.app.date.weekday().num_days_from_monday() as usize;
@@ -121,13 +120,13 @@ impl Widget for RibbonWidget<'_> {
                 spans.push(Span::styled(
                     format!("[{}] ", name),
                     Style::default()
-                        .fg(Color::White)
+                        .fg(Theme::TEXT_PRIMARY)
                         .add_modifier(Modifier::BOLD),
                 ));
             } else {
                 spans.push(Span::styled(
                     format!("{} ", name),
-                    Style::default().fg(Color::DarkGray),
+                    Theme::text_dim(),
                 ));
             }
         }
@@ -141,6 +140,17 @@ impl Widget for RibbonWidget<'_> {
             height: 1,
         };
         p.render(bottom_line, buf);
+    }
+}
+
+fn shortcuts_for_mode(mode: &AppMode) -> &'static str {
+    match mode {
+        AppMode::Normal => "Tab: màn  1-8: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp",
+        AppMode::SearchModal => "Enter: đi tới  Backspace: xóa  Esc: đóng",
+        AppMode::ContextModal => {
+            "Tab/hjkl: đổi trường  ↑/↓: đổi giá trị  Space: chọn  Enter: áp dụng"
+        }
+        AppMode::HelpModal => "Esc/?: đóng trợ giúp",
     }
 }
 
@@ -245,5 +255,17 @@ mod tests {
         assert!(weekday_line.contains("[T5]"));
         assert!(weekday_line.contains("T2"));
         assert!(weekday_line.contains("CN"));
+    }
+
+    #[test]
+    fn ribbon_uses_mode_specific_search_shortcuts() {
+        let mut app = sample_app_state();
+        app.app_mode = crate::state::AppMode::SearchModal;
+
+        let lines = render_lines(&app);
+        let hotkey_line = &lines[0];
+
+        assert!(hotkey_line.contains("Enter: đi tới"));
+        assert!(!hotkey_line.contains("Tab: màn"));
     }
 }

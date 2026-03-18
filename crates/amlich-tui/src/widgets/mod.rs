@@ -18,6 +18,7 @@ pub mod risk;
 pub mod scholarly;
 pub mod screens;
 pub mod search;
+pub mod status_strip;
 pub mod stars_panel;
 pub mod tietkhi;
 pub mod timeline;
