@@ -1577,7 +1577,8 @@ mod tests {
                 ],
             }),
             contextual_recommendations: None,
-            insight: None, upcoming_events: vec![],
+            insight: None,
+            upcoming_events: vec![],
         }
     }
 

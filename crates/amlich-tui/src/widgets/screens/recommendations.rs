@@ -6,9 +6,9 @@ use ratatui::{
     widgets::{Paragraph, Widget},
 };
 
+use crate::theme::Theme;
 use crate::widgets::guidance::GuidanceWidget;
 use crate::{layout::LayoutMode, state::AppState};
-use crate::theme::Theme;
 
 pub struct RecommendationsScreenWidget<'a> {
     app: &'a AppState,

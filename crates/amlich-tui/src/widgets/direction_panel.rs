@@ -39,10 +39,7 @@ impl Widget for DirectionPanelWidget<'_> {
         if let Some(travel) = &insight.travel {
             lines.push(Line::from(vec![
                 Span::raw("  Xuất hành: "),
-                Span::styled(
-                    &travel.xuat_hanh_huong,
-                    Style::default().fg(Color::Green),
-                ),
+                Span::styled(&travel.xuat_hanh_huong, Style::default().fg(Color::Green)),
             ]));
             lines.push(Line::from(vec![
                 Span::raw("  Hỷ Thần: "),

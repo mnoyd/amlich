@@ -6,8 +6,8 @@ use ratatui::{
 
 use crate::layout::LayoutMode;
 use crate::state::AppState;
-use crate::widgets::modal_shell::{centered_modal, ModalPreset};
 use crate::widgets::explorer::ExplorerWidget;
+use crate::widgets::modal_shell::{centered_modal, ModalPreset};
 
 pub struct ContextModalWidget<'a> {
     app: &'a AppState,

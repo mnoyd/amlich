@@ -138,8 +138,7 @@ mod tests {
     use super::InspectionWidget;
     use crate::layout::LayoutMode;
     use crate::state::{
-        AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
-        PageSection,
+        AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
@@ -254,7 +253,8 @@ mod tests {
             day_fortune: None,
             daily_recommendations: Some(recommendations),
             contextual_recommendations: None,
-            insight: None, upcoming_events: vec![],
+            insight: None,
+            upcoming_events: vec![],
         });
 
         assert_eq!(app.active_bundle_packs_summary(), "pack.nhi_thap_bat_tu.v1");
@@ -335,7 +335,8 @@ mod tests {
             day_fortune: None,
             daily_recommendations: Some(baseline),
             contextual_recommendations: Some(contextual),
-            insight: None, upcoming_events: vec![],
+            insight: None,
+            upcoming_events: vec![],
         });
 
         let text = render_text(&app);
@@ -395,7 +396,8 @@ mod tests {
             day_fortune: None,
             daily_recommendations: Some(recommendations),
             contextual_recommendations: None,
-            insight: None, upcoming_events: vec![],
+            insight: None,
+            upcoming_events: vec![],
         });
         app.show_evidence = true;
 

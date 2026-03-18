@@ -7,12 +7,12 @@ use ratatui::{
     widgets::Widget,
 };
 
+use crate::theme::Theme;
 use crate::widgets::{
     action_board::ActionBoardWidget, almanac::AlmanacGridWidget, event_summary::EventSummaryWidget,
     hero::HeroWidget, mini_calendar::MiniCalendarWidget, timeline::TimelineWidget,
 };
 use crate::{layout::LayoutMode, state::AppState};
-use crate::theme::Theme;
 
 pub struct DashboardScreenWidget<'a> {
     app: &'a AppState,

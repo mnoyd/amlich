@@ -6,8 +6,8 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-use crate::{layout::LayoutMode, state::AppState};
 use crate::theme::Theme;
+use crate::{layout::LayoutMode, state::AppState};
 
 pub struct HoursScreenWidget<'a> {
     app: &'a AppState,
@@ -24,10 +24,7 @@ impl Widget for HoursScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let shell = Layout::vertical([Constraint::Length(1), Constraint::Min(1)]).split(area);
         Paragraph::new(Line::from(vec![
-            Span::styled(
-                "▶ Hours",
-                Theme::accent_warn().add_modifier(Modifier::BOLD),
-            ),
+            Span::styled("▶ Hours", Theme::accent_warn().add_modifier(Modifier::BOLD)),
             Span::styled(" · Nhịp giờ hoàng đạo trong ngày", Theme::text_dim()),
         ]))
         .render(shell[0], buf);
@@ -41,15 +38,15 @@ impl Widget for HoursScreenWidget<'_> {
             return;
         };
 
-        let rows = Layout::vertical([
-            Constraint::Length(7),
-            Constraint::Min(10),
-        ]).split(shell[1]);
+        let rows = Layout::vertical([Constraint::Length(7), Constraint::Min(10)]).split(shell[1]);
 
         // Top: Timeline overview
         {
             let block = Block::default()
-                .title(format!(" Tổng Quan 12 Giờ — {} giờ tốt ", gio.good_hour_count))
+                .title(format!(
+                    " Tổng Quan 12 Giờ — {} giờ tốt ",
+                    gio.good_hour_count
+                ))
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::DarkGray));
             let inner = block.inner(rows[0]);
@@ -66,12 +63,21 @@ impl Widget for HoursScreenWidget<'_> {
                 } else {
                     Style::default().fg(Color::DarkGray)
                 };
-                chi_spans.push(Span::styled(format!("{:^w$}", h.hour_chi, w = col_w), style));
-                let m = if h.is_good { "\u{2605} Tốt" } else { "  Xấu" };
+                chi_spans.push(Span::styled(
+                    format!("{:^w$}", h.hour_chi, w = col_w),
+                    style,
+                ));
+                let m = if h.is_good {
+                    "\u{2605} Tốt"
+                } else {
+                    "  Xấu"
+                };
                 marker_spans.push(Span::styled(
                     format!("{:^w$}", m, w = col_w),
                     if h.is_good {
-                        Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
+                        Style::default()
+                            .fg(Color::Green)
+                            .add_modifier(Modifier::BOLD)
                     } else {
                         Style::default().fg(Color::Red)
                     },
@@ -83,24 +89,23 @@ impl Widget for HoursScreenWidget<'_> {
                 Line::from(chi_spans),
                 Line::from(marker_spans),
                 Line::from(star_spans),
-            ]).render(inner, buf);
+            ])
+            .render(inner, buf);
         }
 
         // Bottom: Detail columns
         match self.mode {
             LayoutMode::Large | LayoutMode::Medium => {
-                let cols = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ]).split(rows[1]);
+                let cols =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[1]);
                 render_hour_list(&gio.all_hours, true, cols[0], buf);
                 render_hour_list(&gio.all_hours, false, cols[1], buf);
             }
             LayoutMode::Small => {
-                let detail = Layout::vertical([
-                    Constraint::Percentage(60),
-                    Constraint::Percentage(40),
-                ]).split(rows[1]);
+                let detail =
+                    Layout::vertical([Constraint::Percentage(60), Constraint::Percentage(40)])
+                        .split(rows[1]);
                 render_hour_list(&gio.all_hours, true, detail[0], buf);
                 render_hour_list(&gio.all_hours, false, detail[1], buf);
             }
@@ -114,7 +119,11 @@ fn render_hour_list(
     area: Rect,
     buf: &mut Buffer,
 ) {
-    let title = if show_good { " \u{2605} Giờ Hoàng Đạo " } else { " Giờ Hắc Đạo " };
+    let title = if show_good {
+        " \u{2605} Giờ Hoàng Đạo "
+    } else {
+        " Giờ Hắc Đạo "
+    };
     let block = Block::default()
         .title(title)
         .borders(Borders::ALL)
@@ -123,7 +132,10 @@ fn render_hour_list(
     block.render(area, buf);
 
     let mut lines: Vec<Line<'_>> = vec![];
-    let filtered: Vec<_> = all_hours.iter().filter(|h| h.is_good == show_good).collect();
+    let filtered: Vec<_> = all_hours
+        .iter()
+        .filter(|h| h.is_good == show_good)
+        .collect();
 
     for h in &filtered {
         let (marker, color) = if show_good {
@@ -137,7 +149,10 @@ fn render_hour_list(
                 format!("{:<6}", h.hour_chi),
                 Style::default().fg(color).add_modifier(Modifier::BOLD),
             ),
-            Span::styled(format!("({}) ", h.time_range), Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                format!("({}) ", h.time_range),
+                Style::default().fg(Color::DarkGray),
+            ),
             Span::raw(format!("\u{2014} {}", h.star)),
         ]));
     }

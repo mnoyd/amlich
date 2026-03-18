@@ -6,8 +6,8 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-use crate::{layout::LayoutMode, state::AppState};
 use crate::theme::Theme;
+use crate::{layout::LayoutMode, state::AppState};
 
 pub struct FengShuiScreenWidget<'a> {
     app: &'a AppState,
@@ -53,21 +53,15 @@ impl Widget for FengShuiScreenWidget<'_> {
 
         match self.mode {
             LayoutMode::Large | LayoutMode::Medium => {
-                let rows = Layout::vertical([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(shell[1]);
-                let top = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(rows[0]);
-                let bottom = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(rows[1]);
+                let rows =
+                    Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(shell[1]);
+                let top =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[0]);
+                let bottom =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[1]);
 
                 render_kua(insight, top[0], buf);
                 render_directions(insight, top[1], buf);
@@ -237,11 +231,7 @@ fn render_compass(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buf
     block.render(area, buf);
 
     let Some(tm) = &insight.tu_menh else { return };
-    let good: Vec<&str> = tm
-        .favorable_directions
-        .iter()
-        .map(|s| s.as_str())
-        .collect();
+    let good: Vec<&str> = tm.favorable_directions.iter().map(|s| s.as_str()).collect();
     let bad: Vec<&str> = tm
         .unfavorable_directions
         .iter()

@@ -80,7 +80,13 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
     }
 }
 
-fn shell_areas(area: ratatui::layout::Rect) -> (ratatui::layout::Rect, ratatui::layout::Rect, ratatui::layout::Rect) {
+fn shell_areas(
+    area: ratatui::layout::Rect,
+) -> (
+    ratatui::layout::Rect,
+    ratatui::layout::Rect,
+    ratatui::layout::Rect,
+) {
     let chunks = Layout::vertical([
         Constraint::Length(1), // top status strip
         Constraint::Min(10),   // main scrolling page
@@ -187,7 +193,8 @@ mod tests {
                 day_fortune: None,
                 daily_recommendations: None,
                 contextual_recommendations: None,
-                insight: None, upcoming_events: vec![],
+                insight: None,
+                upcoming_events: vec![],
             }),
             is_loading: false,
             error_msg: None,

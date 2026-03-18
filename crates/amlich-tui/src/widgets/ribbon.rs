@@ -36,15 +36,9 @@ impl Widget for RibbonWidget<'_> {
                         .fg(Theme::WARN)
                         .add_modifier(Modifier::BOLD),
                 ),
-                Span::styled(
-                    "h/l, j/k: di chuyển  ",
-                    Theme::text_dim(),
-                ),
+                Span::styled("h/l, j/k: di chuyển  ", Theme::text_dim()),
                 Span::styled("[ ]: đổi tháng  ", Theme::text_dim()),
-                Span::styled(
-                    "Enter: chọn  m/Esc: đóng",
-                    Theme::text_dim(),
-                ),
+                Span::styled("Enter: chọn  m/Esc: đóng", Theme::text_dim()),
             ]);
 
             let p = Paragraph::new(line).alignment(Alignment::Center);
@@ -124,10 +118,7 @@ impl Widget for RibbonWidget<'_> {
                         .add_modifier(Modifier::BOLD),
                 ));
             } else {
-                spans.push(Span::styled(
-                    format!("{} ", name),
-                    Theme::text_dim(),
-                ));
+                spans.push(Span::styled(format!("{} ", name), Theme::text_dim()));
             }
         }
         spans.push(Span::raw(">"));

@@ -6,8 +6,8 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-use crate::{layout::LayoutMode, state::AppState};
 use crate::theme::Theme;
+use crate::{layout::LayoutMode, state::AppState};
 
 pub struct ElementsScreenWidget<'a> {
     app: &'a AppState,
@@ -39,16 +39,21 @@ impl Widget for ElementsScreenWidget<'_> {
 
         match self.mode {
             LayoutMode::Large => {
-                let rows = Layout::vertical([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ]).split(shell[1]);
+                let rows =
+                    Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(shell[1]);
                 let top = Layout::horizontal([
-                    Constraint::Percentage(34), Constraint::Percentage(33), Constraint::Percentage(33),
-                ]).split(rows[0]);
+                    Constraint::Percentage(34),
+                    Constraint::Percentage(33),
+                    Constraint::Percentage(33),
+                ])
+                .split(rows[0]);
                 let bottom = Layout::horizontal([
-                    Constraint::Percentage(34), Constraint::Percentage(33), Constraint::Percentage(33),
-                ]).split(rows[1]);
+                    Constraint::Percentage(34),
+                    Constraint::Percentage(33),
+                    Constraint::Percentage(33),
+                ])
+                .split(rows[1]);
 
                 render_tang_can(bundle, top[0], buf);
                 render_ten_gods(bundle, top[1], buf);
@@ -59,11 +64,20 @@ impl Widget for ElementsScreenWidget<'_> {
             }
             LayoutMode::Medium => {
                 let rows = Layout::vertical([
-                    Constraint::Percentage(34), Constraint::Percentage(33), Constraint::Percentage(33),
-                ]).split(shell[1]);
-                let r0 = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(rows[0]);
-                let r1 = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(rows[1]);
-                let r2 = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(rows[2]);
+                    Constraint::Percentage(34),
+                    Constraint::Percentage(33),
+                    Constraint::Percentage(33),
+                ])
+                .split(shell[1]);
+                let r0 =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[0]);
+                let r1 =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[1]);
+                let r2 =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[2]);
 
                 render_tang_can(bundle, r0[0], buf);
                 render_ten_gods(bundle, r0[1], buf);
@@ -74,9 +88,14 @@ impl Widget for ElementsScreenWidget<'_> {
             }
             LayoutMode::Small => {
                 let rows = Layout::vertical([
-                    Constraint::Min(8), Constraint::Min(10), Constraint::Min(8),
-                    Constraint::Min(8), Constraint::Min(8), Constraint::Min(8),
-                ]).split(shell[1]);
+                    Constraint::Min(8),
+                    Constraint::Min(10),
+                    Constraint::Min(8),
+                    Constraint::Min(8),
+                    Constraint::Min(8),
+                    Constraint::Min(8),
+                ])
+                .split(shell[1]);
                 render_tang_can(bundle, rows[0], buf);
                 render_ten_gods(bundle, rows[1], buf);
                 render_xung_hop(bundle, rows[2], buf);
@@ -89,12 +108,16 @@ impl Widget for ElementsScreenWidget<'_> {
 }
 
 fn render_tang_can(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
-    let block = Block::default().title(" Tàng Can ").borders(Borders::ALL)
+    let block = Block::default()
+        .title(" Tàng Can ")
+        .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
 
-    let Some(insight) = &bundle.insight else { return };
+    let Some(insight) = &bundle.insight else {
+        return;
+    };
     let Some(tc) = &insight.tang_can else {
         Paragraph::new("  Chưa có dữ liệu").render(inner, buf);
         return;
@@ -119,7 +142,9 @@ fn render_tang_can(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
             Span::raw(format!("  {label}: ")),
             Span::styled(
                 value.to_string(),
-                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::raw(format!(" {bar} {s}%")),
         ]));
@@ -129,12 +154,16 @@ fn render_tang_can(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
 }
 
 fn render_ten_gods(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
-    let block = Block::default().title(" Thập Thần ").borders(Borders::ALL)
+    let block = Block::default()
+        .title(" Thập Thần ")
+        .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
 
-    let Some(insight) = &bundle.insight else { return };
+    let Some(insight) = &bundle.insight else {
+        return;
+    };
     let Some(tg) = &insight.ten_gods else {
         Paragraph::new("  Chưa có dữ liệu").render(inner, buf);
         return;
@@ -142,31 +171,47 @@ fn render_ten_gods(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
     let mut lines: Vec<Line<'_>> = vec![];
 
     if let Some(e) = &tg.to_year_stem {
-        lines.push(Line::from(Span::styled("  Với năm sinh:", Style::default().fg(Color::DarkGray))));
+        lines.push(Line::from(Span::styled(
+            "  Với năm sinh:",
+            Style::default().fg(Color::DarkGray),
+        )));
         lines.push(Line::from(vec![
             Span::raw("   "),
             Span::styled(&e.label, Style::default().fg(Color::Yellow)),
             Span::raw(format!(": {}", e.name.vi)),
         ]));
         lines.push(Line::from(format!("   Nghĩa: {}", e.meaning.vi)));
-        lines.push(Line::from(format!("   Quan hệ: {} ({})",
+        lines.push(Line::from(format!(
+            "   Quan hệ: {} ({})",
             e.relation,
-            if e.same_polarity { "đồng cực" } else { "khác cực" },
+            if e.same_polarity {
+                "đồng cực"
+            } else {
+                "khác cực"
+            },
         )));
         lines.push(Line::from(""));
     }
 
     if let Some(e) = &tg.to_self {
-        lines.push(Line::from(Span::styled("  Với bản thân:", Style::default().fg(Color::DarkGray))));
+        lines.push(Line::from(Span::styled(
+            "  Với bản thân:",
+            Style::default().fg(Color::DarkGray),
+        )));
         lines.push(Line::from(vec![
             Span::raw("   "),
             Span::styled(&e.label, Style::default().fg(Color::Yellow)),
             Span::raw(format!(": {}", e.name.vi)),
         ]));
         lines.push(Line::from(format!("   Nghĩa: {}", e.meaning.vi)));
-        lines.push(Line::from(format!("   Quan hệ: {} ({})",
+        lines.push(Line::from(format!(
+            "   Quan hệ: {} ({})",
             e.relation,
-            if e.same_polarity { "đồng cực" } else { "khác cực" },
+            if e.same_polarity {
+                "đồng cực"
+            } else {
+                "khác cực"
+            },
         )));
     }
 
@@ -174,12 +219,16 @@ fn render_ten_gods(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
 }
 
 fn render_xung_hop(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
-    let block = Block::default().title(" Xung Hợp ").borders(Borders::ALL)
+    let block = Block::default()
+        .title(" Xung Hợp ")
+        .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
 
-    let Some(insight) = &bundle.insight else { return };
+    let Some(insight) = &bundle.insight else {
+        return;
+    };
     let Some(xh) = &insight.xung_hop else {
         Paragraph::new("  Chưa có dữ liệu").render(inner, buf);
         return;
@@ -193,7 +242,10 @@ fn render_xung_hop(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
     if !xh.tam_hop.is_empty() {
         lines.push(Line::from(vec![
             Span::raw("  Tam hợp: "),
-            Span::styled(xh.tam_hop.join(" \u{2014} "), Style::default().fg(Color::Green)),
+            Span::styled(
+                xh.tam_hop.join(" \u{2014} "),
+                Style::default().fg(Color::Green),
+            ),
         ]));
     }
     if let Some(lh) = &xh.liu_he {
@@ -213,7 +265,9 @@ fn render_xung_hop(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
 }
 
 fn render_element_relations(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
-    let block = Block::default().title(" Ngũ Hành Tương Quan ").borders(Borders::ALL)
+    let block = Block::default()
+        .title(" Ngũ Hành Tương Quan ")
+        .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
@@ -226,26 +280,43 @@ fn render_element_relations(bundle: &amlich_api::v2::DayBundleDto, area: Rect, b
 
     lines.push(Line::from(vec![
         Span::raw("  Can ngày: "),
-        Span::styled(format!("{} ({})", canchi.day.can, can_e), Style::default().fg(Color::Cyan)),
+        Span::styled(
+            format!("{} ({})", canchi.day.can, can_e),
+            Style::default().fg(Color::Cyan),
+        ),
     ]));
     lines.push(Line::from(vec![
         Span::raw("  Chi ngày: "),
-        Span::styled(format!("{} ({})", canchi.day.chi, chi_e), Style::default().fg(Color::Cyan)),
+        Span::styled(
+            format!("{} ({})", canchi.day.chi, chi_e),
+            Style::default().fg(Color::Cyan),
+        ),
     ]));
 
     let rel = element_relation(can_e, chi_e);
-    let rel_color = if rel.contains("sinh") { Color::Green } else if rel.contains("khắc") { Color::Red } else { Color::Yellow };
+    let rel_color = if rel.contains("sinh") {
+        Color::Green
+    } else if rel.contains("khắc") {
+        Color::Red
+    } else {
+        Color::Yellow
+    };
     lines.push(Line::from(""));
     lines.push(Line::from(vec![
         Span::raw("  Quan hệ: "),
-        Span::styled(format!("{can_e} {rel} {chi_e}"), Style::default().fg(rel_color)),
+        Span::styled(
+            format!("{can_e} {rel} {chi_e}"),
+            Style::default().fg(rel_color),
+        ),
     ]));
 
     Paragraph::new(lines).render(inner, buf);
 }
 
 fn render_pillars(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
-    let block = Block::default().title(" Can Chi 3 Trụ ").borders(Borders::ALL)
+    let block = Block::default()
+        .title(" Can Chi 3 Trụ ")
+        .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
@@ -255,14 +326,26 @@ fn render_pillars(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut B
 
     lines.push(Line::from(vec![
         Span::raw("            "),
-        Span::styled("Can    Chi    Hành", Style::default().fg(Color::DarkGray).add_modifier(Modifier::BOLD)),
+        Span::styled(
+            "Can    Chi    Hành",
+            Style::default()
+                .fg(Color::DarkGray)
+                .add_modifier(Modifier::BOLD),
+        ),
     ]));
-    for (label, p) in [("Năm:  ", &canchi.year), ("Tháng:", &canchi.month), ("Ngày: ", &canchi.day)] {
+    for (label, p) in [
+        ("Năm:  ", &canchi.year),
+        ("Tháng:", &canchi.month),
+        ("Ngày: ", &canchi.day),
+    ] {
         lines.push(Line::from(vec![
             Span::raw(format!("  {label} ")),
             Span::styled(format!("{:<6}", p.can), Style::default().fg(Color::Cyan)),
             Span::styled(format!("{:<6}", p.chi), Style::default().fg(Color::Cyan)),
-            Span::styled(format!("{}/{}", p.ngu_hanh.can, p.ngu_hanh.chi), Style::default().fg(Color::Yellow)),
+            Span::styled(
+                format!("{}/{}", p.ngu_hanh.can, p.ngu_hanh.chi),
+                Style::default().fg(Color::Yellow),
+            ),
         ]));
     }
 
@@ -270,7 +353,10 @@ fn render_pillars(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut B
         lines.push(Line::from(""));
         lines.push(Line::from(vec![
             Span::raw("  Nạp âm: "),
-            Span::styled(&fortune.day_element.na_am, Style::default().fg(Color::Yellow)),
+            Span::styled(
+                &fortune.day_element.na_am,
+                Style::default().fg(Color::Yellow),
+            ),
         ]));
     }
 
@@ -278,7 +364,9 @@ fn render_pillars(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut B
 }
 
 fn render_element_chart(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
-    let block = Block::default().title(" Ngũ Hành Tổng Hợp ").borders(Borders::ALL)
+    let block = Block::default()
+        .title(" Ngũ Hành Tổng Hợp ")
+        .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
@@ -287,21 +375,36 @@ fn render_element_chart(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: 
     let mut lines: Vec<Line<'_>> = vec![];
 
     let elements = [
-        &canchi.year.ngu_hanh.can, &canchi.year.ngu_hanh.chi,
-        &canchi.month.ngu_hanh.can, &canchi.month.ngu_hanh.chi,
-        &canchi.day.ngu_hanh.can, &canchi.day.ngu_hanh.chi,
+        &canchi.year.ngu_hanh.can,
+        &canchi.year.ngu_hanh.chi,
+        &canchi.month.ngu_hanh.can,
+        &canchi.month.ngu_hanh.chi,
+        &canchi.day.ngu_hanh.can,
+        &canchi.day.ngu_hanh.chi,
     ];
 
     let names = ["Kim", "Mộc", "Thủy", "Hỏa", "Thổ"];
-    let colors = [Color::White, Color::Green, Color::Blue, Color::Red, Color::Yellow];
+    let colors = [
+        Color::White,
+        Color::Green,
+        Color::Blue,
+        Color::Red,
+        Color::Yellow,
+    ];
     let mut dominant = ("", 0usize);
 
     for (i, name) in names.iter().enumerate() {
         let count = elements.iter().filter(|e| e.as_str() == *name).count();
-        if count > dominant.1 { dominant = (name, count); }
-        let bar = "\u{2588}".repeat(count * 3) + &"\u{2591}".repeat(18usize.saturating_sub(count * 3));
+        if count > dominant.1 {
+            dominant = (name, count);
+        }
+        let bar =
+            "\u{2588}".repeat(count * 3) + &"\u{2591}".repeat(18usize.saturating_sub(count * 3));
         lines.push(Line::from(vec![
-            Span::styled(format!("  {name:<4} "), Style::default().fg(colors[i]).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                format!("  {name:<4} "),
+                Style::default().fg(colors[i]).add_modifier(Modifier::BOLD),
+            ),
             Span::raw(format!("{bar} {count}/6")),
         ]));
     }
@@ -310,7 +413,12 @@ fn render_element_chart(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: 
         lines.push(Line::from(""));
         lines.push(Line::from(vec![
             Span::raw("  Hành vượng: "),
-            Span::styled(dominant.0, Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)),
+            Span::styled(
+                dominant.0,
+                Style::default()
+                    .fg(Color::Cyan)
+                    .add_modifier(Modifier::BOLD),
+            ),
         ]));
     }
 
@@ -319,10 +427,18 @@ fn render_element_chart(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: 
 
 fn element_relation(a: &str, b: &str) -> &'static str {
     match (a, b) {
-        ("Kim", "Thủy") | ("Thủy", "Mộc") | ("Mộc", "Hỏa") | ("Hỏa", "Thổ") | ("Thổ", "Kim") => "sinh",
-        ("Thủy", "Kim") | ("Mộc", "Thủy") | ("Hỏa", "Mộc") | ("Thổ", "Hỏa") | ("Kim", "Thổ") => "được sinh",
-        ("Kim", "Mộc") | ("Mộc", "Thổ") | ("Thổ", "Thủy") | ("Thủy", "Hỏa") | ("Hỏa", "Kim") => "khắc",
-        ("Mộc", "Kim") | ("Thổ", "Mộc") | ("Thủy", "Thổ") | ("Hỏa", "Thủy") | ("Kim", "Hỏa") => "bị khắc",
+        ("Kim", "Thủy") | ("Thủy", "Mộc") | ("Mộc", "Hỏa") | ("Hỏa", "Thổ") | ("Thổ", "Kim") => {
+            "sinh"
+        }
+        ("Thủy", "Kim") | ("Mộc", "Thủy") | ("Hỏa", "Mộc") | ("Thổ", "Hỏa") | ("Kim", "Thổ") => {
+            "được sinh"
+        }
+        ("Kim", "Mộc") | ("Mộc", "Thổ") | ("Thổ", "Thủy") | ("Thủy", "Hỏa") | ("Hỏa", "Kim") => {
+            "khắc"
+        }
+        ("Mộc", "Kim") | ("Thổ", "Mộc") | ("Thủy", "Thổ") | ("Hỏa", "Thủy") | ("Kim", "Hỏa") => {
+            "bị khắc"
+        }
         _ if a == b => "tỷ hòa",
         _ => "\u{2014}",
     }

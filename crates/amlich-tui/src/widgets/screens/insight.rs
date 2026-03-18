@@ -7,13 +7,13 @@ use ratatui::{
     widgets::Widget,
 };
 
+use crate::theme::Theme;
 use crate::widgets::{
     direction_panel::DirectionPanelWidget, guidance_panel::GuidancePanelWidget,
     naam_panel::NaAmPanelWidget, risk::RiskWidget, scholarly::ScholarlyWidget,
     stars_panel::StarsPanelWidget,
 };
 use crate::{layout::LayoutMode, state::AppState};
-use crate::theme::Theme;
 
 pub struct InsightScreenWidget<'a> {
     app: &'a AppState,
@@ -40,11 +40,9 @@ impl Widget for InsightScreenWidget<'_> {
 
         match self.mode {
             LayoutMode::Large => {
-                let rows = Layout::vertical([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(shell[1]);
+                let rows =
+                    Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(shell[1]);
                 let top = Layout::horizontal([
                     Constraint::Percentage(34),
                     Constraint::Percentage(33),
@@ -72,21 +70,15 @@ impl Widget for InsightScreenWidget<'_> {
                     Constraint::Percentage(33),
                 ])
                 .split(shell[1]);
-                let r0 = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(rows[0]);
-                let r1 = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(rows[1]);
-                let r2 = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(rows[2]);
+                let r0 =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[0]);
+                let r1 =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[1]);
+                let r2 =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[2]);
 
                 ScholarlyWidget::new(self.app, self.mode).render(r0[0], buf);
                 StarsPanelWidget::new(self.app, self.mode).render(r0[1], buf);

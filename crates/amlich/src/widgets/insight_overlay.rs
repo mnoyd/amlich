@@ -759,20 +759,14 @@ impl<'a> InsightOverlay<'a> {
                     pick_text(lang, "  Tài Thần: ", "  Wealth God: "),
                     Style::default().fg(theme::SECONDARY_FG),
                 ),
-                Span::styled(
-                    &travel.tai_than,
-                    Style::default().fg(theme::ACCENT_FG),
-                ),
+                Span::styled(&travel.tai_than, Style::default().fg(theme::ACCENT_FG)),
             ]));
             lines.push(Line::from(vec![
                 Span::styled(
                     pick_text(lang, "  Hỷ Thần: ", "  Joy God: "),
                     Style::default().fg(theme::SECONDARY_FG),
                 ),
-                Span::styled(
-                    &travel.hy_than,
-                    Style::default().fg(theme::GOOD_HOUR_FG),
-                ),
+                Span::styled(&travel.hy_than, Style::default().fg(theme::GOOD_HOUR_FG)),
             ]));
             lines.push(Line::from(""));
         }
@@ -1028,10 +1022,7 @@ impl<'a> InsightOverlay<'a> {
             )));
             lines.push(Line::from(vec![
                 Span::raw("  Can: "),
-                Span::styled(
-                    &canchi.can.name,
-                    Style::default().fg(theme::ACCENT_FG),
-                ),
+                Span::styled(&canchi.can.name, Style::default().fg(theme::ACCENT_FG)),
                 Span::raw(format!(
                     " ({}) — {}",
                     canchi.can.element,
@@ -1040,10 +1031,7 @@ impl<'a> InsightOverlay<'a> {
             ]));
             lines.push(Line::from(vec![
                 Span::raw("  Chi: "),
-                Span::styled(
-                    &canchi.chi.name,
-                    Style::default().fg(theme::ACCENT_FG),
-                ),
+                Span::styled(&canchi.chi.name, Style::default().fg(theme::ACCENT_FG)),
                 Span::raw(format!(
                     " ({}) — {}",
                     canchi.chi.element,
@@ -1113,10 +1101,7 @@ impl<'a> InsightOverlay<'a> {
                 };
                 lines.push(Line::from(vec![
                     Span::raw(pick_text(lang, "  Với năm: ", "  To year: ")),
-                    Span::styled(
-                        &entry.label,
-                        Style::default().fg(theme::ACCENT_FG),
-                    ),
+                    Span::styled(&entry.label, Style::default().fg(theme::ACCENT_FG)),
                     Span::raw(format!(
                         " — {} ({}, {})",
                         pick_text(lang, &entry.meaning.vi, &entry.meaning.en),
@@ -1133,10 +1118,7 @@ impl<'a> InsightOverlay<'a> {
                 };
                 lines.push(Line::from(vec![
                     Span::raw(pick_text(lang, "  Với mình: ", "  To self: ")),
-                    Span::styled(
-                        &entry.label,
-                        Style::default().fg(theme::ACCENT_FG),
-                    ),
+                    Span::styled(&entry.label, Style::default().fg(theme::ACCENT_FG)),
                     Span::raw(format!(
                         " — {} ({}, {})",
                         pick_text(lang, &entry.meaning.vi, &entry.meaning.en),
@@ -1201,9 +1183,10 @@ impl<'a> InsightOverlay<'a> {
                     .fg(theme::ACCENT_FG)
                     .add_modifier(Modifier::BOLD),
             )));
-            lines.push(Line::from(vec![
-                Span::raw(format!("  {} ({})", na_am.na_am, na_am.element)),
-            ]));
+            lines.push(Line::from(vec![Span::raw(format!(
+                "  {} ({})",
+                na_am.na_am, na_am.element
+            ))]));
             lines.push(Line::from(pick_text(
                 lang,
                 &na_am.meaning.vi,
@@ -1349,10 +1332,7 @@ impl<'a> InsightOverlay<'a> {
 
             lines.push(Line::from(vec![
                 Span::raw("           "),
-                Span::styled(
-                    format!("{} {bac}", marker("Bắc")),
-                    dir_style("Bắc"),
-                ),
+                Span::styled(format!("{} {bac}", marker("Bắc")), dir_style("Bắc")),
             ]));
             lines.push(Line::from(vec![
                 Span::raw("      "),
@@ -1362,31 +1342,19 @@ impl<'a> InsightOverlay<'a> {
             ]));
             lines.push(Line::from(vec![
                 Span::raw("     "),
-                Span::styled(
-                    format!("{} {tay}", marker("Tây")),
-                    dir_style("Tây"),
-                ),
+                Span::styled(format!("{} {tay}", marker("Tây")), dir_style("Tây")),
                 Span::raw(" ——●—— "),
-                Span::styled(
-                    format!("{dong} {}", marker("Đông")),
-                    dir_style("Đông"),
-                ),
+                Span::styled(format!("{dong} {}", marker("Đông")), dir_style("Đông")),
             ]));
             lines.push(Line::from(vec![
                 Span::raw("      "),
                 Span::styled(format!("{} TN", marker("Tây Nam")), dir_style("Tây Nam")),
                 Span::raw("   |   "),
-                Span::styled(
-                    format!("ĐN {}", marker("Đông Nam")),
-                    dir_style("Đông Nam"),
-                ),
+                Span::styled(format!("ĐN {}", marker("Đông Nam")), dir_style("Đông Nam")),
             ]));
             lines.push(Line::from(vec![
                 Span::raw("           "),
-                Span::styled(
-                    format!("{} {nam}", marker("Nam")),
-                    dir_style("Nam"),
-                ),
+                Span::styled(format!("{} {nam}", marker("Nam")), dir_style("Nam")),
             ]));
             lines.push(Line::from(""));
             lines.push(Line::from(vec![
@@ -1432,8 +1400,7 @@ impl<'a> InsightOverlay<'a> {
                     ),
                     Span::raw(format!(
                         "({}-{}) ",
-                        pillar.start_age as u32,
-                        pillar.end_age as u32
+                        pillar.start_age as u32, pillar.end_age as u32
                     )),
                     Span::styled(&pillar.element, Style::default().fg(theme::ACCENT_FG)),
                 ]));
