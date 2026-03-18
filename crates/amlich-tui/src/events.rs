@@ -50,50 +50,53 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         return false;
     }
 
-    // Global view switching
-    match code {
-        KeyCode::Tab => {
-            app.next_view();
-            return false;
+    let can_use_global_screen_shortcuts =
+        app.app_mode == crate::state::AppMode::Normal && !app.is_calendar_view();
+    if can_use_global_screen_shortcuts {
+        match code {
+            KeyCode::Tab => {
+                app.next_view();
+                return false;
+            }
+            KeyCode::BackTab => {
+                app.prev_view();
+                return false;
+            }
+            KeyCode::Char('1') => {
+                app.go_to_view(crate::state::ActiveView::Dashboard);
+                return false;
+            }
+            KeyCode::Char('2') => {
+                app.go_to_view(crate::state::ActiveView::Scholar);
+                return false;
+            }
+            KeyCode::Char('3') => {
+                app.go_to_view(crate::state::ActiveView::Hours);
+                return false;
+            }
+            KeyCode::Char('4') => {
+                app.go_to_view(crate::state::ActiveView::Elements);
+                return false;
+            }
+            KeyCode::Char('5') => {
+                app.go_to_view(crate::state::ActiveView::FengShui);
+                return false;
+            }
+            KeyCode::Char('6') => {
+                app.go_to_view(crate::state::ActiveView::SolarTerms);
+                return false;
+            }
+            KeyCode::Char('7') => {
+                app.go_to_view(crate::state::ActiveView::Planning);
+                return false;
+            }
+            KeyCode::Char('8') => {
+                app.go_to_view(crate::state::ActiveView::Calendar);
+                app.calendar_cursor = app.date;
+                return false;
+            }
+            _ => {}
         }
-        KeyCode::BackTab => {
-            app.prev_view();
-            return false;
-        }
-        KeyCode::Char('1') => {
-            app.go_to_view(crate::state::ActiveView::Dashboard);
-            return false;
-        }
-        KeyCode::Char('2') => {
-            app.go_to_view(crate::state::ActiveView::Scholar);
-            return false;
-        }
-        KeyCode::Char('3') => {
-            app.go_to_view(crate::state::ActiveView::Hours);
-            return false;
-        }
-        KeyCode::Char('4') => {
-            app.go_to_view(crate::state::ActiveView::Elements);
-            return false;
-        }
-        KeyCode::Char('5') => {
-            app.go_to_view(crate::state::ActiveView::FengShui);
-            return false;
-        }
-        KeyCode::Char('6') => {
-            app.go_to_view(crate::state::ActiveView::SolarTerms);
-            return false;
-        }
-        KeyCode::Char('7') => {
-            app.go_to_view(crate::state::ActiveView::Planning);
-            return false;
-        }
-        KeyCode::Char('8') => {
-            app.go_to_view(crate::state::ActiveView::Calendar);
-            app.calendar_cursor = app.date;
-            return false;
-        }
-        _ => {}
     }
 
     if app.is_calendar_view() {
@@ -468,5 +471,31 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Char('?'), KeyModifiers::NONE);
         assert_eq!(app.app_mode, AppMode::Normal);
+    }
+
+    #[test]
+    fn context_modal_tab_cycles_fields_without_switching_view() {
+        let mut app = sample_app_state();
+        app.app_mode = AppMode::ContextModal;
+        app.explorer_focus = ExplorerField::EventKind;
+        let active_before = app.active_view;
+
+        dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+
+        assert_eq!(app.active_view, active_before);
+        assert_eq!(app.explorer_focus, ExplorerField::RecommendationPacks);
+    }
+
+    #[test]
+    fn calendar_view_blocks_global_shortcut_switching() {
+        let mut app = sample_app_state();
+        app.open_calendar_view();
+        let active_before = app.active_view;
+
+        dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+        dispatch_key(&mut app, KeyCode::Char('2'), KeyModifiers::NONE);
+
+        assert!(app.is_calendar_view());
+        assert_eq!(app.active_view, active_before);
     }
 }
