@@ -1,9 +1,8 @@
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
-    style::{Color, Style},
-    text::{Line, Span},
-    widgets::{Paragraph, Widget},
+    text::Line,
+    widgets::Widget,
 };
 
 use crate::layout::LayoutMode;
@@ -11,6 +10,7 @@ use crate::state::{AppState, PageSection};
 
 use super::{
     calendar::CalendarViewWidget,
+    card_shell::render_status_card,
     screens::{
         dashboard::DashboardScreenWidget,
         elements::ElementsScreenWidget,
@@ -37,46 +37,43 @@ impl<'a> PageWidget<'a> {
 impl Widget for PageWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         if self.app.is_loading {
-            shell_message(
+            render_status_card(
+                area,
+                buf,
+                "ĐANG TẢI",
                 vec![
-                    Line::from(vec![Span::styled(
-                        "Amlich Explorer",
-                        Style::default().fg(Color::Cyan),
-                    )]),
-                    Line::from(""),
                     Line::from("Đang tải dữ liệu cho giao diện khám phá..."),
                     Line::from("Luồng chính: chọn cấu hình -> xem ngày."),
                     Line::from("Nhấn q để thoát."),
                 ],
-                area,
-                buf,
             );
             return;
         }
 
         if let Some(err) = &self.app.error_msg {
-            shell_message(
+            render_status_card(
+                area,
+                buf,
+                "LỖI TẢI DỮ LIỆU",
                 vec![
-                    Line::from(vec![Span::styled(
-                        "Amlich Explorer",
-                        Style::default().fg(Color::Cyan),
-                    )]),
-                    Line::from(""),
-                    Line::from(vec![Span::styled(
-                        format!("Lỗi tải dữ liệu: {err}"),
-                        Style::default().fg(Color::Red),
-                    )]),
+                    Line::from(format!("Lỗi tải dữ liệu: {err}")),
                     Line::from("Giữ ngữ cảnh shell để thử lại hoặc quay lại explorer."),
                     Line::from("Phím: r = retry · Tab/Shift+Tab = back · q = quit"),
                 ],
-                area,
-                buf,
             );
             return;
         }
 
         if self.app.bundle.is_none() {
-            Paragraph::new("Không có dữ liệu.").render(area, buf);
+            render_status_card(
+                area,
+                buf,
+                "KHÔNG CÓ DỮ LIỆU",
+                vec![
+                    Line::from("Không có dữ liệu cho cấu hình hiện tại."),
+                    Line::from("Nhấn o để điều chỉnh context và Enter để áp dụng."),
+                ],
+            );
             return;
         }
 
@@ -124,10 +121,6 @@ impl Widget for PageWidget<'_> {
             }
         }
     }
-}
-
-fn shell_message(lines: Vec<Line<'static>>, area: Rect, buf: &mut Buffer) {
-    Paragraph::new(lines).render(area, buf);
 }
 
 #[allow(dead_code)]
@@ -302,5 +295,15 @@ mod tests {
         app.active_view = ActiveView::Calendar;
 
         let _text = render_text(&app);
+    }
+
+    #[test]
+    fn loading_state_uses_status_card() {
+        let mut app = sample_app_state();
+        app.is_loading = true;
+
+        let text = render_text(&app);
+
+        assert!(text.contains("ĐANG TẢI"));
     }
 }

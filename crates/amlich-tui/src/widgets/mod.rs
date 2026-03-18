@@ -2,6 +2,7 @@ pub mod action_board;
 pub mod almanac;
 pub mod battu;
 pub mod calendar;
+pub mod card_shell;
 pub mod context;
 pub mod direction_panel;
 pub mod explorer;
