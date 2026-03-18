@@ -1,6 +1,9 @@
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
+    style::Modifier,
+    text::{Line, Span},
+    widgets::Paragraph,
     widgets::Widget,
 };
 
@@ -10,6 +13,7 @@ use crate::widgets::{
     stars_panel::StarsPanelWidget,
 };
 use crate::{layout::LayoutMode, state::AppState};
+use crate::theme::Theme;
 
 pub struct InsightScreenWidget<'a> {
     app: &'a AppState,
@@ -24,13 +28,23 @@ impl<'a> InsightScreenWidget<'a> {
 
 impl Widget for InsightScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
+        let shell = Layout::vertical([Constraint::Length(1), Constraint::Min(1)]).split(area);
+        Paragraph::new(Line::from(vec![
+            Span::styled(
+                "▶ Scholar",
+                Theme::accent_warn().add_modifier(Modifier::BOLD),
+            ),
+            Span::styled(" · Chứng cứ truyền thống và diễn giải", Theme::text_dim()),
+        ]))
+        .render(shell[0], buf);
+
         match self.mode {
             LayoutMode::Large => {
                 let rows = Layout::vertical([
                     Constraint::Percentage(50),
                     Constraint::Percentage(50),
                 ])
-                .split(area);
+                .split(shell[1]);
                 let top = Layout::horizontal([
                     Constraint::Percentage(34),
                     Constraint::Percentage(33),
@@ -57,7 +71,7 @@ impl Widget for InsightScreenWidget<'_> {
                     Constraint::Percentage(33),
                     Constraint::Percentage(33),
                 ])
-                .split(area);
+                .split(shell[1]);
                 let r0 = Layout::horizontal([
                     Constraint::Percentage(50),
                     Constraint::Percentage(50),
@@ -90,7 +104,7 @@ impl Widget for InsightScreenWidget<'_> {
                     Constraint::Min(8),
                     Constraint::Min(10),
                 ])
-                .split(area);
+                .split(shell[1]);
 
                 ScholarlyWidget::new(self.app, self.mode).render(rows[0], buf);
                 StarsPanelWidget::new(self.app, self.mode).render(rows[1], buf);
