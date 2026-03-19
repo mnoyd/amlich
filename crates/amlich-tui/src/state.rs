@@ -243,6 +243,27 @@ pub struct RiskSummaryVm {
     pub items: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScholarTimingSummaryVm {
+    pub summary: String,
+    pub windows: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScholarRiskBoardVm {
+    pub headline: Option<String>,
+    pub critical_items: Vec<String>,
+    pub caution_items: Vec<String>,
+    pub conflict_items: Vec<String>,
+    pub notice: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScholarVerdictSupportVm {
+    pub support_line: String,
+    pub layer_note: Option<String>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RecommendationLayerKind {
     Baseline,
@@ -1004,6 +1025,65 @@ impl AppState {
         })
     }
 
+    pub fn scholar_timing_summary(&self) -> Option<ScholarTimingSummaryVm> {
+        let bundle = self.bundle.as_ref()?;
+        let gio = bundle.gio_hoang_dao.as_ref();
+        let insight_hours = bundle
+            .insight
+            .as_ref()
+            .and_then(|insight| insight.hours.as_ref());
+
+        if gio.is_none() && insight_hours.is_none() {
+            return None;
+        }
+
+        let summary = gio
+            .and_then(|hours| {
+                let summary = hours.summary.trim();
+                (!summary.is_empty()).then_some(summary.to_string())
+            })
+            .or_else(|| {
+                insight_hours
+                    .map(|hours| format_good_hour_count_summary(hours.good_hour_count))
+            })
+            .or_else(|| gio.map(|hours| format_good_hour_count_summary(hours.good_hour_count)))?;
+
+        let mut windows = Vec::new();
+        let mut seen = BTreeSet::new();
+
+        if let Some(hours) = insight_hours {
+            for hour in hours.good_hours.iter().take(3) {
+                let dedupe_key = format!("{}|{}", hour.chi, hour.time_range);
+                if seen.insert(dedupe_key) {
+                    windows.push(format_hour_window(
+                        &hour.chi,
+                        &hour.time_range,
+                        Some(hour.star.as_str()),
+                    ));
+                }
+            }
+        }
+
+        if let Some(hours) = gio {
+            for hour in &hours.good_hours {
+                if windows.len() >= 3 {
+                    break;
+                }
+
+                let dedupe_key = format!("{}|{}", hour.hour_chi, hour.time_range);
+                if seen.insert(dedupe_key) {
+                    windows.push(format_hour_window(
+                        &hour.hour_chi,
+                        &hour.time_range,
+                        Some(hour.star.as_str()),
+                    ));
+                }
+            }
+        }
+
+        Some(ScholarTimingSummaryVm { summary, windows })
+    }
+
     pub fn risk_summary(&self) -> RiskSummaryVm {
         let mut items = Vec::new();
         for row in self.top_recommendation_rows() {
@@ -1025,6 +1105,145 @@ impl AppState {
         }
 
         RiskSummaryVm { items }
+    }
+
+    pub fn scholar_risk_board(&self) -> ScholarRiskBoardVm {
+        let flat_summary = self.risk_summary();
+        let mut critical_items = Vec::new();
+        let mut caution_items = Vec::new();
+        let mut conflict_items = Vec::new();
+
+        for row in self.top_recommendation_rows() {
+            match row.bucket {
+                RecommendationBucketDto::KyManh => {
+                    push_unique(
+                        &mut critical_items,
+                        format!("Kỵ mạnh: {}", row.label),
+                    );
+                }
+                RecommendationBucketDto::Tranh => {
+                    let label = row
+                        .reason_chip
+                        .as_ref()
+                        .map(|chip| format!("Tránh: {} · {}", row.label, chip))
+                        .unwrap_or_else(|| format!("Tránh: {}", row.label));
+                    push_unique(&mut caution_items, label);
+                }
+                _ => {}
+            }
+        }
+
+        if let Some(fortune) = self
+            .bundle
+            .as_ref()
+            .and_then(|bundle| bundle.day_fortune.as_ref())
+        {
+            for taboo in &fortune.taboos {
+                let item = if taboo.reason.trim().is_empty() {
+                    format!("Kiêng kỵ: {}", taboo.name)
+                } else {
+                    format!("Kiêng kỵ: {} · {}", taboo.name, taboo.reason)
+                };
+
+                if taboo.severity.eq_ignore_ascii_case("high") {
+                    push_unique(&mut critical_items, item);
+                } else {
+                    push_unique(&mut caution_items, item);
+                }
+            }
+
+            if !fortune.conflict.tuoi_xung.is_empty() {
+                push_unique(
+                    &mut conflict_items,
+                    format!("Tuổi xung: {}", fortune.conflict.tuoi_xung.join(", ")),
+                );
+            }
+            if !fortune.xung_hop.luc_xung.trim().is_empty() {
+                push_unique(
+                    &mut conflict_items,
+                    format!("Lục xung: {}", fortune.xung_hop.luc_xung),
+                );
+            }
+            if !fortune.conflict.sat_huong.trim().is_empty() {
+                push_unique(
+                    &mut conflict_items,
+                    format!("Sát hướng: {}", fortune.conflict.sat_huong),
+                );
+            }
+        }
+
+        let headline = critical_items
+            .first()
+            .cloned()
+            .or_else(|| caution_items.first().cloned())
+            .or_else(|| flat_summary.items.first().cloned())
+            .or_else(|| conflict_items.first().cloned());
+
+        ScholarRiskBoardVm {
+            headline,
+            critical_items,
+            caution_items,
+            conflict_items,
+            notice: self.sensitive_domain_notice(),
+        }
+    }
+
+    pub fn scholar_verdict_support(&self) -> Option<ScholarVerdictSupportVm> {
+        let bundle = self.bundle.as_ref()?;
+        let mut segments = Vec::new();
+
+        if let Some(canchi) = bundle
+            .canchi
+            .as_ref()
+            .map(|canchi| canchi.full.trim())
+            .filter(|full| !full.is_empty())
+        {
+            segments.push(canchi.to_string());
+        }
+
+        if let Some(truc) = bundle.day_fortune.as_ref().map(|fortune| fortune.truc.name.trim()) {
+            if !truc.is_empty() {
+                segments.push(format!("Trực {truc}"));
+            }
+        }
+
+        if let Some(star_summary) = bundle.day_fortune.as_ref().and_then(primary_star_summary) {
+            segments.push(star_summary);
+        }
+
+        if let Some(primary_risk) = self
+            .risk_summary()
+            .items
+            .into_iter()
+            .find(|item| item.starts_with("Kiêng kỵ:") || item.starts_with("Kỵ mạnh:"))
+        {
+            segments.push(primary_risk);
+        }
+
+        if segments.is_empty() {
+            let verdict = self.hero_verdict()?;
+            if let Some(positive) = verdict.strongest_positive {
+                segments.push(format!("Nên: {positive}"));
+            }
+            if let Some(negative) = verdict.strongest_negative {
+                segments.push(format!("Tránh: {negative}"));
+            }
+        }
+
+        if segments.is_empty() {
+            return None;
+        }
+
+        let layer_note = self
+            .recommendation_layers()
+            .first()
+            .filter(|layer| layer.kind == RecommendationLayerKind::Contextual)
+            .map(|layer| format!("Ngữ cảnh ưu tiên: {}", layer.summary));
+
+        Some(ScholarVerdictSupportVm {
+            support_line: segments.join(" · "),
+            layer_note,
+        })
     }
 
     pub fn sensitive_domain_notice(&self) -> Option<String> {
@@ -1213,6 +1432,49 @@ fn recommendation_scope_label(scope: amlich_api::RecommendationScopeDto) -> &'st
     }
 }
 
+fn format_good_hour_count_summary(good_hour_count: usize) -> String {
+    match good_hour_count {
+        0 => "Không thấy khung giờ đẹp nổi bật.".to_string(),
+        1 => "Có 1 khung giờ thuận để hành sự.".to_string(),
+        count => format!("Có {count} khung giờ thuận để hành sự."),
+    }
+}
+
+fn format_hour_window(chi: &str, time_range: &str, star: Option<&str>) -> String {
+    match star.map(str::trim).filter(|star| !star.is_empty()) {
+        Some(star) => format!("{chi} {time_range} · {star}"),
+        None => format!("{chi} {time_range}"),
+    }
+}
+
+fn push_unique(items: &mut Vec<String>, value: String) {
+    if !items.iter().any(|item| item == &value) {
+        items.push(value);
+    }
+}
+
+fn primary_star_summary(fortune: &amlich_api::DayFortuneDto) -> Option<String> {
+    fortune
+        .stars
+        .day_star
+        .as_ref()
+        .map(|star| format!("Sao ngày {}", star.name))
+        .or_else(|| {
+            fortune
+                .stars
+                .cat_tinh
+                .first()
+                .map(|star| format!("Cát tinh {star}"))
+        })
+        .or_else(|| {
+            fortune
+                .stars
+                .sat_tinh
+                .first()
+                .map(|star| format!("Hung tinh {star}"))
+        })
+}
+
 fn days_in_month(year: i32, month: u32) -> u32 {
     let (next_year, next_month) = if month == 12 {
         (year + 1, 1)
@@ -1279,11 +1541,12 @@ mod tests {
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, CanChiDto, CanChiInfoDto, DailyRecommendationsDto, DayConflictDto,
-        DayElementDto, DayFortuneDto, DayStarsDto, DayTabooDto, GioHoangDaoDto, HourInfoDto,
-        LunarDto, NguHanhDto, RecommendationBucketDto, RecommendationEvidenceDto,
-        RecommendationEvidenceSourceDto, RecommendationReasonDto, RecommendationScopeDto,
-        RecommendationSeverityDto, RuleEvidenceDto, SolarDto, SynthesizedRecommendationDto,
-        TietKhiDto, TravelDirectionDto, TrucDto, XungHopDto,
+        DayElementDto, DayFortuneDto, DayInsightDto, DayStarsDto, DayTabooDto, GioHoangDaoDto,
+        HourInfoDto, HourInsightEntryDto, HoursInsightDto, LunarDto, NguHanhDto,
+        RecommendationBucketDto, RecommendationEvidenceDto, RecommendationEvidenceSourceDto,
+        RecommendationReasonDto, RecommendationScopeDto, RecommendationSeverityDto,
+        RuleEvidenceDto, SolarDto, SynthesizedRecommendationDto, TietKhiDto,
+        TravelDirectionDto, TrucDto, XungHopDto,
     };
 
     fn sample_app_state() -> AppState {
@@ -1577,7 +1840,55 @@ mod tests {
                 ],
             }),
             contextual_recommendations: None,
-            insight: None, upcoming_events: vec![],
+            insight: Some(DayInsightDto {
+                solar: SolarDto {
+                    day: 12,
+                    month: 3,
+                    year: 2026,
+                    day_of_week: 4,
+                    day_of_week_name: "Thứ Năm".to_string(),
+                    date_string: "2026-03-12".to_string(),
+                },
+                lunar: LunarDto {
+                    day: 4,
+                    month: 2,
+                    year: 2026,
+                    is_leap_month: false,
+                    date_string: "Mùng 4 tháng Hai".to_string(),
+                },
+                festival: None,
+                holiday: None,
+                canchi: None,
+                day_guidance: None,
+                tiet_khi: None,
+                na_am: None,
+                truc: None,
+                day_deity: None,
+                stars: None,
+                taboos: None,
+                travel: None,
+                xung_hop: None,
+                tang_can: None,
+                ten_gods: None,
+                hours: Some(HoursInsightDto {
+                    good_hour_count: 2,
+                    good_hours: vec![
+                        HourInsightEntryDto {
+                            chi: "Mão".to_string(),
+                            time_range: "05:00 - 07:00".to_string(),
+                            star: "Minh Đường".to_string(),
+                        },
+                        HourInsightEntryDto {
+                            chi: "Tỵ".to_string(),
+                            time_range: "09:00 - 11:00".to_string(),
+                            star: "Kim Quỹ".to_string(),
+                        },
+                    ],
+                }),
+                tu_menh: None,
+                dai_van: None,
+            }),
+            upcoming_events: vec![],
         }
     }
 
@@ -1706,6 +2017,76 @@ mod tests {
                 .iter()
                 .any(|item| item.contains("Lục xung: Tý")),
             "expected luc xung entry in risk summary"
+        );
+    }
+
+    #[test]
+    fn scholar_timing_summary_prefers_curated_windows_and_existing_gio_summary() {
+        let app = sample_app_state_with_bundle();
+
+        let timing = app.scholar_timing_summary().expect("timing summary");
+
+        assert_eq!(timing.summary, "Giờ đẹp đầu ngày");
+        assert_eq!(
+            timing.windows,
+            vec![
+                "Mão 05:00 - 07:00 · Minh Đường",
+                "Tỵ 09:00 - 11:00 · Kim Quỹ",
+                "Tý 23:00 - 01:00 · Thanh Long",
+            ]
+        );
+    }
+
+    #[test]
+    fn scholar_risk_board_groups_critical_caution_and_conflict_rows() {
+        let app = sample_app_state_with_bundle();
+
+        let risk_board = app.scholar_risk_board();
+
+        assert_eq!(risk_board.headline.as_deref(), Some("Kỵ mạnh: Động thổ"));
+        assert!(risk_board.critical_items.iter().any(|item| item == "Kỵ mạnh: Động thổ"));
+        assert!(risk_board
+            .critical_items
+            .iter()
+            .any(|item| item == "Kiêng kỵ: Tam Nương · Không hợp việc lớn"));
+        assert!(risk_board
+            .caution_items
+            .iter()
+            .any(|item| item == "Tránh: Ký kết · primary • xung-hợp"));
+        assert!(risk_board
+            .conflict_items
+            .iter()
+            .any(|item| item == "Tuổi xung: Canh Tý"));
+        assert!(risk_board
+            .conflict_items
+            .iter()
+            .any(|item| item == "Sát hướng: Bắc"));
+    }
+
+    #[test]
+    fn scholar_verdict_support_combines_traditional_evidence_and_active_layer_note() {
+        let mut app = sample_app_state_with_bundle();
+        if let Some(bundle) = app.bundle.as_mut() {
+            let mut contextual = bundle
+                .daily_recommendations
+                .clone()
+                .expect("baseline recommendations");
+            contextual.profile = "contract_signing".to_string();
+            contextual.summary_vi = "Ưu tiên ngữ cảnh ký kết".to_string();
+            bundle.contextual_recommendations = Some(contextual);
+        }
+
+        let support = app
+            .scholar_verdict_support()
+            .expect("scholar verdict support");
+
+        assert_eq!(
+            support.support_line,
+            "Bính Ngọ · Trực Khai · Cát tinh Thiên Đức · Kỵ mạnh: Động thổ"
+        );
+        assert_eq!(
+            support.layer_note.as_deref(),
+            Some("Ngữ cảnh ưu tiên: Ưu tiên ngữ cảnh ký kết")
         );
     }
 
