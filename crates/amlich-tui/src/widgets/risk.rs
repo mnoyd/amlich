@@ -31,13 +31,12 @@ impl Widget for RiskWidget<'_> {
         block.render(area, buf);
         let mut lines = vec![];
 
-        let has_fortune = self
-            .app
-            .bundle
-            .as_ref()
-            .and_then(|bundle| bundle.day_fortune.as_ref())
-            .is_some();
-        if !has_fortune {
+        let risk_board = self.app.scholar_risk_board();
+        if risk_board.headline.is_none()
+            && risk_board.critical_items.is_empty()
+            && risk_board.caution_items.is_empty()
+            && risk_board.conflict_items.is_empty()
+        {
             lines.push(Line::from(vec![
                 Span::raw("   "),
                 Span::styled("Chưa có dữ liệu rủi ro.", Style::default().fg(Color::Gray)),
@@ -46,27 +45,36 @@ impl Widget for RiskWidget<'_> {
             return;
         }
 
-        let risk_summary = self.app.risk_summary();
-        if risk_summary.items.is_empty() {
+        if let Some(headline) = risk_board.headline {
             lines.push(Line::from(vec![
                 Span::raw("   "),
-                Span::styled("Chưa có dữ liệu rủi ro.", Style::default().fg(Color::Gray)),
+                Span::styled(headline, Style::default().fg(Color::Yellow)),
             ]));
-            Paragraph::new(lines).render(inner, buf);
-            return;
         }
 
-        for item in risk_summary.items.iter().take(4) {
+        for item in risk_board.critical_items.iter().take(2) {
             lines.push(Line::from(vec![
-                Span::raw("   "),
+                Span::styled("   ! ", Style::default().fg(Color::Red)),
                 Span::styled(item.clone(), Style::default().fg(Color::White)),
             ]));
         }
-
-        if let Some(note) = self.app.sensitive_domain_notice() {
+        for item in risk_board.caution_items.iter().take(2) {
+            lines.push(Line::from(vec![
+                Span::styled("   • ", Style::default().fg(Color::Yellow)),
+                Span::styled(item.clone(), Style::default().fg(Color::White)),
+            ]));
+        }
+        if let Some(note) = risk_board.notice {
+            lines.push(Line::from(""));
             lines.push(Line::from(vec![
                 Span::raw("   "),
                 Span::styled(note, Style::default().fg(Color::Yellow)),
+            ]));
+        }
+        for item in risk_board.conflict_items.iter().take(2) {
+            lines.push(Line::from(vec![
+                Span::styled("   ↳ ", Style::default().fg(Color::DarkGray)),
+                Span::styled(item.clone(), Style::default().fg(Color::DarkGray)),
             ]));
         }
 
@@ -249,7 +257,8 @@ mod tests {
                     activities,
                 }),
                 contextual_recommendations: None,
-                insight: None, upcoming_events: vec![],
+                insight: None,
+                upcoming_events: vec![],
             }),
             is_loading: false,
             error_msg: None,
@@ -311,10 +320,10 @@ mod tests {
     }
 
     #[test]
-    fn widgets_render_empty_state_when_fortune_data_is_missing() {
+    fn widget_uses_recommendation_risks_when_fortune_data_is_missing() {
         let app = sample_app_state(false, false);
         let text = render_text(&app);
 
-        assert!(text.contains("Chưa có dữ liệu rủi ro."));
+        assert!(text.contains("Kỵ mạnh: Động thổ"));
     }
 }

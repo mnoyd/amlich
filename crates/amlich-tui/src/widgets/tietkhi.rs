@@ -116,9 +116,7 @@ impl Widget for TietKhiWidget<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{
-        ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
-    };
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection};
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, DailyRecommendationsDto, LunarDto, RecommendationBucketDto,
@@ -232,7 +230,8 @@ mod tests {
                     }],
                 }),
                 contextual_recommendations: None,
-                insight: None, upcoming_events: vec![],
+                insight: None,
+                upcoming_events: vec![],
             }),
             is_loading: false,
             error_msg: None,
@@ -274,7 +273,6 @@ mod tests {
             .collect::<Vec<_>>()
             .join("\n")
     }
-
 
     #[test]
     fn tietkhi_widget_collapses_to_summary_and_expands_details() {

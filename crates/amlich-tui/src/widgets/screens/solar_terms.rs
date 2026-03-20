@@ -1,12 +1,12 @@
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-use crate::{layout::LayoutMode, state::AppState};
+use crate::{layout::LayoutMode, state::AppState, widgets::tietkhi::TietKhiWidget};
 
 pub struct SolarTermsScreenWidget<'a> {
     app: &'a AppState,
@@ -29,87 +29,75 @@ impl Widget for SolarTermsScreenWidget<'_> {
         match self.mode {
             LayoutMode::Large | LayoutMode::Medium => {
                 let rows = Layout::vertical([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
+                    Constraint::Length(7),
+                    Constraint::Length(9),
+                    Constraint::Min(10),
                 ])
                 .split(area);
-                let top = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(rows[0]);
-                let bottom = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(rows[1]);
+                render_seasonal_verdict(self.app, rows[0], buf);
+                TietKhiWidget::new(self.app, self.mode).render(rows[1], buf);
 
-                render_current(bundle, top[0], buf);
-                render_astronomy(bundle, top[1], buf);
-                render_agriculture(bundle, bottom[0], buf);
-                render_health(bundle, bottom[1], buf);
+                let bottom = Layout::horizontal([
+                    Constraint::Percentage(34),
+                    Constraint::Percentage(33),
+                    Constraint::Percentage(33),
+                ])
+                .split(rows[2]);
+                render_astronomy(bundle, bottom[0], buf);
+                render_agriculture(bundle, bottom[1], buf);
+                render_health(bundle, bottom[2], buf);
             }
             LayoutMode::Small => {
                 let rows = Layout::vertical([
-                    Constraint::Min(10),
+                    Constraint::Length(7),
+                    Constraint::Min(9),
                     Constraint::Min(8),
                     Constraint::Min(8),
                     Constraint::Min(8),
                 ])
                 .split(area);
-                render_current(bundle, rows[0], buf);
-                render_astronomy(bundle, rows[1], buf);
-                render_agriculture(bundle, rows[2], buf);
-                render_health(bundle, rows[3], buf);
+                render_seasonal_verdict(self.app, rows[0], buf);
+                TietKhiWidget::new(self.app, self.mode).render(rows[1], buf);
+                render_astronomy(bundle, rows[2], buf);
+                render_agriculture(bundle, rows[3], buf);
+                render_health(bundle, rows[4], buf);
             }
         }
     }
 }
 
-fn render_current(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
+fn render_seasonal_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Tiết Khí Hiện Tại ")
+        .title(" Nhận Định Theo Mùa ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
 
-    let mut lines: Vec<Line<'_>> = vec![];
-
-    if let Some(tk) = &bundle.tiet_khi {
+    let mut lines = Vec::new();
+    if let Some(verdict) = app.seasonal_verdict() {
         lines.push(Line::from(vec![
-            Span::raw("  Tiết khí: "),
-            Span::styled(
-                &tk.name,
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD),
-            ),
+            Span::raw("  "),
+            Span::styled(verdict.headline, Style::default().fg(Color::Cyan)),
         ]));
         lines.push(Line::from(vec![
-            Span::raw("  Kinh độ: "),
-            Span::styled(
-                format!("{}°", tk.longitude),
-                Style::default().fg(Color::Yellow),
-            ),
+            Span::raw("  "),
+            Span::styled(verdict.implication, Style::default().fg(Color::Yellow)),
         ]));
-        lines.push(Line::from(vec![
-            Span::raw("  Mùa: "),
-            Span::styled(&tk.season, Style::default().fg(Color::Green)),
-        ]));
-        lines.push(Line::from(""));
-        lines.push(Line::from(format!("  {}", tk.description)));
-    }
-
-    if let Some(insight) = &bundle.insight {
-        if let Some(tki) = &insight.tiet_khi {
-            lines.push(Line::from(""));
-            lines.push(Line::from(Span::styled(
-                "  Ý nghĩa:",
-                Style::default().fg(Color::DarkGray),
-            )));
-            lines.push(Line::from(format!("  {}", tki.meaning.vi)));
+        for line in verdict.application_lines.iter().take(2) {
+            lines.push(Line::from(vec![
+                Span::raw("  • "),
+                Span::styled(line.clone(), Style::default().fg(Color::White)),
+            ]));
         }
+    } else {
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(
+                "Chưa có dữ liệu tiết khí.",
+                Style::default().fg(Color::Gray),
+            ),
+        ]));
     }
 
     Paragraph::new(lines).render(inner, buf);
@@ -117,7 +105,7 @@ fn render_current(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut B
 
 fn render_astronomy(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Thiên Văn & Thời Tiết ")
+        .title(" Thiên Văn / Thời Khí ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
@@ -126,41 +114,44 @@ fn render_astronomy(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut
     let Some(insight) = &bundle.insight else {
         return;
     };
-    let Some(tki) = &insight.tiet_khi else {
+    let Some(tiet_khi) = &insight.tiet_khi else {
         return;
     };
-    let mut lines: Vec<Line<'_>> = vec![];
+    let mut lines: Vec<Line<'_>> = vec![
+        Line::from(vec![
+            Span::raw("  Thiên văn: "),
+            Span::styled(
+                tiet_khi.astronomy.vi.clone(),
+                Style::default().fg(Color::White),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::raw("  Thời tiết: "),
+            Span::styled(
+                tiet_khi.weather.vi.clone(),
+                Style::default().fg(Color::White),
+            ),
+        ]),
+    ];
 
-    lines.push(Line::from(Span::styled(
-        "  Thiên văn:",
-        Style::default().fg(Color::DarkGray),
-    )));
-    lines.push(Line::from(format!("  {}", tki.astronomy.vi)));
-
-    if let Some(tk) = &bundle.tiet_khi {
+    if let Some(current) = &bundle.tiet_khi {
         lines.push(Line::from(""));
         lines.push(Line::from(vec![
             Span::raw("  Kinh độ hiện tại: "),
             Span::styled(
-                format!("{:.1}°", tk.current_longitude),
+                format!("{:.1}°", current.current_longitude),
                 Style::default().fg(Color::Yellow),
             ),
         ]));
     }
-
-    lines.push(Line::from(""));
-    lines.push(Line::from(Span::styled(
-        "  Thời tiết:",
-        Style::default().fg(Color::DarkGray),
-    )));
-    lines.push(Line::from(format!("  {}", tki.weather.vi)));
 
     Paragraph::new(lines).render(inner, buf);
 }
 
 fn render_agriculture(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Nông Nghiệp ")
+        .title(" Ứng Dụng Theo Mùa ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
@@ -169,25 +160,22 @@ fn render_agriculture(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &m
     let Some(insight) = &bundle.insight else {
         return;
     };
-    let Some(tki) = &insight.tiet_khi else {
+    let Some(tiet_khi) = &insight.tiet_khi else {
         return;
     };
     let mut lines: Vec<Line<'_>> = vec![];
-
-    lines.push(Line::from(Span::styled(
-        "  Hoạt động nông vụ:",
-        Style::default().fg(Color::Green),
-    )));
-    for item in &tki.agriculture.vi {
-        lines.push(Line::from(format!("   \u{251C} {item}")));
+    for item in tiet_khi.agriculture.vi.iter().take(4) {
+        lines.push(Line::from(vec![
+            Span::raw("  • "),
+            Span::styled(item.clone(), Style::default().fg(Color::Green)),
+        ]));
     }
-
     Paragraph::new(lines).render(inner, buf);
 }
 
 fn render_health(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Sức Khỏe ")
+        .title(" Dưỡng Sinh / Sức Khỏe ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
@@ -196,18 +184,15 @@ fn render_health(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Bu
     let Some(insight) = &bundle.insight else {
         return;
     };
-    let Some(tki) = &insight.tiet_khi else {
+    let Some(tiet_khi) = &insight.tiet_khi else {
         return;
     };
     let mut lines: Vec<Line<'_>> = vec![];
-
-    lines.push(Line::from(Span::styled(
-        "  Lời khuyên sức khỏe:",
-        Style::default().fg(Color::Cyan),
-    )));
-    for item in &tki.health.vi {
-        lines.push(Line::from(format!("   \u{251C} {item}")));
+    for item in tiet_khi.health.vi.iter().take(4) {
+        lines.push(Line::from(vec![
+            Span::raw("  • "),
+            Span::styled(item.clone(), Style::default().fg(Color::Cyan)),
+        ]));
     }
-
     Paragraph::new(lines).render(inner, buf);
 }

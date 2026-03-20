@@ -28,72 +28,43 @@ impl Widget for StarsPanelWidget<'_> {
         let inner = block.inner(area);
         block.render(area, buf);
 
-        let Some(bundle) = &self.app.bundle else {
-            return;
-        };
-        let Some(insight) = &bundle.insight else {
+        let Some(summary) = self.app.traditional_evidence_summary() else {
             return;
         };
         let mut lines: Vec<Line<'_>> = vec![];
 
-        if let Some(truc) = &insight.truc {
+        if let Some(headline) = summary.headline {
             lines.push(Line::from(vec![
-                Span::raw("  Trực: "),
-                Span::styled(&truc.name, Style::default().fg(Color::Cyan)),
-                Span::raw(" ("),
-                Span::raw(&truc.quality),
-                Span::raw(")"),
+                Span::raw("  "),
+                Span::styled(headline, Style::default().fg(Color::Cyan)),
             ]));
-            lines.push(Line::from(format!("  {}", truc.meaning.vi)));
-            lines.push(Line::from(""));
         }
 
-        if let Some(stars) = &insight.stars {
-            if let Some(day_star) = &stars.day_star {
-                let q = stars.day_star_quality.as_deref().unwrap_or("");
+        for signal in summary.positive_signals.iter().take(3) {
+            lines.push(Line::from(vec![
+                Span::styled("  ★ ", Style::default().fg(Color::Green)),
+                Span::raw(signal.clone()),
+            ]));
+        }
+        for signal in summary.caution_signals.iter().take(3) {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::styled("  ! ", Style::default().fg(Color::Red)),
+                Span::raw(signal.clone()),
+            ]));
+        }
+
+        if self.app.show_evidence && !summary.provenance.is_empty() {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled("Căn cứ:", Style::default().fg(Color::DarkGray)),
+            ]));
+            for item in summary.provenance.iter().take(4) {
                 lines.push(Line::from(vec![
-                    Span::raw("  Sao ngày: "),
-                    Span::styled(day_star.as_str(), Style::default().fg(Color::Yellow)),
-                    Span::raw(format!(" ({q})")),
+                    Span::raw("   ↳ "),
+                    Span::styled(item.clone(), Style::default().fg(Color::DarkGray)),
                 ]));
-                lines.push(Line::from(""));
-            }
-
-            let cat = stars.cat_tinh.join(", ");
-            lines.push(Line::from(vec![
-                Span::raw("  Cát tinh: "),
-                Span::styled(
-                    if stars.cat_tinh.is_empty() {
-                        "Không".to_string()
-                    } else {
-                        cat
-                    },
-                    Style::default().fg(Color::Green),
-                ),
-            ]));
-            let sat = stars.sat_tinh.join(", ");
-            lines.push(Line::from(vec![
-                Span::raw("  Sát tinh: "),
-                Span::styled(
-                    if stars.sat_tinh.is_empty() {
-                        "Không".to_string()
-                    } else {
-                        sat
-                    },
-                    Style::default().fg(Color::Red),
-                ),
-            ]));
-        }
-
-        if let Some(deity) = &insight.day_deity {
-            lines.push(Line::from(""));
-            lines.push(Line::from(vec![
-                Span::raw("  Thần sát: "),
-                Span::styled(&deity.name, Style::default().fg(Color::Yellow)),
-                Span::raw(format!(" ({})", deity.classification)),
-            ]));
-            if let Some(m) = &deity.deity_meaning {
-                lines.push(Line::from(format!("   {}", m.vi)));
             }
         }
 

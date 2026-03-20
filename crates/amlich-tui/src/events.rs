@@ -249,7 +249,8 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
 mod tests {
     use super::*;
     use crate::state::{
-        ActiveView, AppMode, PageSection, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
+        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
+        PageSection,
     };
     use amlich_api::{
         RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,

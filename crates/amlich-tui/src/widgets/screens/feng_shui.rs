@@ -6,7 +6,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget},
 };
 
-use crate::{layout::LayoutMode, state::AppState};
+use crate::{layout::LayoutMode, state::AppState, widgets::direction_panel::DirectionPanelWidget};
 
 pub struct FengShuiScreenWidget<'a> {
     app: &'a AppState,
@@ -30,63 +30,128 @@ impl Widget for FengShuiScreenWidget<'_> {
             return;
         };
 
-        if insight.tu_menh.is_none() && insight.dai_van.is_none() {
-            let block = Block::default()
-                .title(" Phong Thủy ")
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::DarkGray));
-            let text = "Chưa cấu hình hồ sơ cá nhân.\n\nCần birth year + gender để tính Tứ Mệnh và Đại Vận.";
-            Paragraph::new(text).block(block).render(area, buf);
-            return;
-        }
+        let profile = self
+            .app
+            .profile_availability_summary()
+            .expect("bundle exists for feng shui");
 
-        match self.mode {
-            LayoutMode::Large | LayoutMode::Medium => {
-                let rows = Layout::vertical([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(area);
-                let top = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(rows[0]);
-                let bottom = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ])
-                .split(rows[1]);
+        if profile.has_personal_overlay {
+            let rows = Layout::vertical([
+                Constraint::Length(6),
+                Constraint::Length(9),
+                Constraint::Min(12),
+            ])
+            .split(area);
+            render_profile_verdict(self.app, rows[0], buf);
 
-                render_kua(insight, top[0], buf);
-                render_directions(insight, top[1], buf);
-                render_dai_van(insight, bottom[0], buf);
-                render_compass(insight, bottom[1], buf);
+            let middle =
+                Layout::horizontal([Constraint::Percentage(45), Constraint::Percentage(55)])
+                    .split(rows[1]);
+            DirectionPanelWidget::new(self.app, self.mode).render(middle[0], buf);
+            render_kua(insight, middle[1], buf);
+
+            match self.mode {
+                LayoutMode::Large | LayoutMode::Medium => {
+                    let bottom = Layout::horizontal([
+                        Constraint::Percentage(50),
+                        Constraint::Percentage(50),
+                    ])
+                    .split(rows[2]);
+                    render_directions(insight, bottom[0], buf);
+                    render_dai_van(insight, bottom[1], buf);
+                }
+                LayoutMode::Small => {
+                    let bottom =
+                        Layout::vertical([Constraint::Percentage(45), Constraint::Percentage(55)])
+                            .split(rows[2]);
+                    render_directions(insight, bottom[0], buf);
+                    render_dai_van(insight, bottom[1], buf);
+                }
             }
-            LayoutMode::Small => {
-                let rows = Layout::vertical([
-                    Constraint::Min(9),
-                    Constraint::Min(10),
-                    Constraint::Min(14),
-                ])
-                .split(area);
-                render_kua(insight, rows[0], buf);
-                render_directions(insight, rows[1], buf);
-                render_dai_van(insight, rows[2], buf);
-            }
+        } else {
+            let rows = Layout::vertical([
+                Constraint::Length(6),
+                Constraint::Min(9),
+                Constraint::Min(6),
+            ])
+            .split(area);
+            render_profile_verdict(self.app, rows[0], buf);
+            DirectionPanelWidget::new(self.app, self.mode).render(rows[1], buf);
+            render_scope_note(&profile.note, rows[2], buf);
         }
     }
 }
 
-fn render_kua(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
+fn render_profile_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Tứ Mệnh / Kua ")
+        .title(" Nhận Định ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
 
-    let Some(tm) = &insight.tu_menh else { return };
+    let profile = app
+        .profile_availability_summary()
+        .expect("bundle exists for profile verdict");
+    let direction = app.direction_verdict();
+
+    let mut lines = Vec::new();
+    let verdict = if profile.has_personal_overlay {
+        "Màn hình này đang ghép hướng theo ngày với lớp cá nhân hóa."
+    } else {
+        "Hiện chỉ có hướng theo ngày; chưa đủ dữ liệu để luận phong thủy bản mệnh."
+    };
+    lines.push(Line::from(vec![
+        Span::raw("  "),
+        Span::styled(verdict, Style::default().fg(Color::Yellow)),
+    ]));
+    if let Some(direction) = direction {
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(direction.summary, Style::default().fg(Color::Cyan)),
+        ]));
+    }
+
+    Paragraph::new(lines).render(inner, buf);
+}
+
+fn render_scope_note(note: &str, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Giới Hạn Diễn Giải ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    Paragraph::new(vec![
+        Line::from(vec![
+            Span::raw("  "),
+            Span::styled(note, Style::default().fg(Color::White)),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::raw("  "),
+            Span::styled(
+                "Cần birth year + gender để mở Tứ Mệnh và Đại Vận.",
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]),
+    ])
+    .render(inner, buf);
+}
+
+fn render_kua(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Lớp Cá Nhân ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(tm) = &insight.tu_menh else {
+        Paragraph::new("  Chưa có dữ liệu Tứ Mệnh.").render(inner, buf);
+        return;
+    };
     let lines = vec![
         Line::from(vec![
             Span::raw("  Quẻ số: "),
@@ -105,36 +170,39 @@ fn render_kua(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer)
             Span::raw("  Nhóm: "),
             Span::styled(&tm.group, Style::default().fg(Color::Green)),
         ]),
-        Line::from(format!("   \u{2514} {}", tm.group_meaning.vi)),
+        Line::from(format!("  {}", tm.group_meaning.vi)),
         Line::from(""),
         Line::from(vec![
             Span::raw("  Hướng mệnh: "),
             Span::styled(&tm.direction.vi, Style::default().fg(Color::Yellow)),
         ]),
-        Line::from(format!("   \u{2514} {}", tm.meaning.vi)),
+        Line::from(format!("  {}", tm.meaning.vi)),
     ];
     Paragraph::new(lines).render(inner, buf);
 }
 
 fn render_directions(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Hướng Tốt / Xấu ")
+        .title(" Hướng Tốt / Xấu Theo Mệnh ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
 
-    let Some(tm) = &insight.tu_menh else { return };
-    let mut lines: Vec<Line<'_>> = vec![];
+    let Some(tm) = &insight.tu_menh else {
+        Paragraph::new("  Chưa có dữ liệu hướng cá nhân.").render(inner, buf);
+        return;
+    };
 
+    let mut lines: Vec<Line<'_>> = vec![];
     lines.push(Line::from(Span::styled(
         "  Hướng tốt:",
         Style::default().fg(Color::Green),
     )));
-    for d in &tm.favorable_directions {
+    for direction in &tm.favorable_directions {
         lines.push(Line::from(vec![
-            Span::styled("   \u{2605} ", Style::default().fg(Color::Green)),
-            Span::raw(d.as_str()),
+            Span::styled("   ★ ", Style::default().fg(Color::Green)),
+            Span::raw(direction.as_str()),
         ]));
     }
     lines.push(Line::from(""));
@@ -142,10 +210,10 @@ fn render_directions(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut 
         "  Hướng xấu:",
         Style::default().fg(Color::Red),
     )));
-    for d in &tm.unfavorable_directions {
+    for direction in &tm.unfavorable_directions {
         lines.push(Line::from(vec![
-            Span::styled("   \u{2716} ", Style::default().fg(Color::Red)),
-            Span::raw(d.as_str()),
+            Span::styled("   ✖ ", Style::default().fg(Color::Red)),
+            Span::raw(direction.as_str()),
         ]));
     }
 
@@ -154,145 +222,40 @@ fn render_directions(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut 
 
 fn render_dai_van(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Đại Vận ")
+        .title(" Chu Kỳ / Đại Vận ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
 
-    let Some(dv) = &insight.dai_van else { return };
-    let mut lines: Vec<Line<'_>> = vec![];
+    let Some(dv) = &insight.dai_van else {
+        Paragraph::new("  Chưa có dữ liệu Đại Vận.").render(inner, buf);
+        return;
+    };
 
+    let mut lines: Vec<Line<'_>> = vec![];
     lines.push(Line::from(vec![
         Span::raw("  Hướng vận: "),
         Span::styled(&dv.direction, Style::default().fg(Color::Yellow)),
     ]));
-    lines.push(Line::from(format!(
-        "   \u{2514} {}",
-        dv.direction_meaning.vi
-    )));
+    lines.push(Line::from(format!("  {}", dv.direction_meaning.vi)));
 
-    if let Some(cur) = &dv.current_pillar {
+    if let Some(current) = &dv.current_pillar {
         lines.push(Line::from(""));
         lines.push(Line::from(vec![
+            Span::raw("  Hiện tại: "),
             Span::styled(
-                format!("  \u{25B6} {} ", cur.can_chi),
+                format!(
+                    "{} · {}-{} tuổi",
+                    current.can_chi, current.start_age, current.end_age
+                ),
                 Style::default()
                     .fg(Color::Cyan)
                     .add_modifier(Modifier::BOLD),
             ),
-            Span::raw(format!(
-                "({}-{} tuổi) ",
-                cur.start_age as u32, cur.end_age as u32
-            )),
-            Span::styled(&cur.element, Style::default().fg(Color::Yellow)),
         ]));
-        lines.push(Line::from(format!("    {}", cur.element_meaning.vi)));
+        lines.push(Line::from(format!("  {}", current.element_meaning.vi)));
     }
 
-    lines.push(Line::from(""));
-    for p in &dv.all_pillars {
-        let is_cur = dv
-            .current_pillar
-            .as_ref()
-            .map(|c| c.index == p.index)
-            .unwrap_or(false);
-        let marker = if is_cur { "\u{25C4}" } else { " " };
-        let style = if is_cur {
-            Style::default()
-                .fg(Color::Cyan)
-                .add_modifier(Modifier::BOLD)
-        } else {
-            Style::default().fg(Color::DarkGray)
-        };
-        lines.push(Line::from(Span::styled(
-            format!(
-                "  {}. {:<10} ({:>2}-{:>2}) {:>4} {marker}",
-                p.index, p.can_chi, p.start_age as u32, p.end_age as u32, p.element
-            ),
-            style,
-        )));
-    }
-
-    Paragraph::new(lines).render(inner, buf);
-}
-
-fn render_compass(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
-    let block = Block::default()
-        .title(" La Bàn Hướng ")
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::DarkGray));
-    let inner = block.inner(area);
-    block.render(area, buf);
-
-    let Some(tm) = &insight.tu_menh else { return };
-    let good: Vec<&str> = tm
-        .favorable_directions
-        .iter()
-        .map(|s| s.as_str())
-        .collect();
-    let bad: Vec<&str> = tm
-        .unfavorable_directions
-        .iter()
-        .map(|s| s.as_str())
-        .collect();
-
-    let ds = |name: &str| -> Style {
-        if good.iter().any(|d| d.contains(name)) {
-            Style::default()
-                .fg(Color::Green)
-                .add_modifier(Modifier::BOLD)
-        } else if bad.iter().any(|d| d.contains(name)) {
-            Style::default().fg(Color::Red)
-        } else {
-            Style::default().fg(Color::DarkGray)
-        }
-    };
-    let mk = |name: &str| -> &str {
-        if good.iter().any(|d| d.contains(name)) {
-            "\u{2605}"
-        } else if bad.iter().any(|d| d.contains(name)) {
-            "\u{2716}"
-        } else {
-            "\u{00B7}"
-        }
-    };
-
-    let lines = vec![
-        Line::from(""),
-        Line::from(vec![
-            Span::raw("          "),
-            Span::styled(format!("{} Bắc", mk("Bắc")), ds("Bắc")),
-        ]),
-        Line::from(vec![
-            Span::raw("     "),
-            Span::styled(format!("{} TB", mk("Tây Bắc")), ds("Tây Bắc")),
-            Span::raw("    |    "),
-            Span::styled(format!("ĐB {}", mk("Đông Bắc")), ds("Đông Bắc")),
-        ]),
-        Line::from("             |"),
-        Line::from(vec![
-            Span::raw("    "),
-            Span::styled(format!("{} Tây", mk("Tây")), ds("Tây")),
-            Span::raw(" \u{2014}\u{2014}\u{25CF}\u{2014}\u{2014} "),
-            Span::styled(format!("Đông {}", mk("Đông")), ds("Đông")),
-        ]),
-        Line::from("             |"),
-        Line::from(vec![
-            Span::raw("     "),
-            Span::styled(format!("{} TN", mk("Tây Nam")), ds("Tây Nam")),
-            Span::raw("    |    "),
-            Span::styled(format!("ĐN {}", mk("Đông Nam")), ds("Đông Nam")),
-        ]),
-        Line::from(vec![
-            Span::raw("          "),
-            Span::styled(format!("{} Nam", mk("Nam")), ds("Nam")),
-        ]),
-        Line::from(""),
-        Line::from(vec![
-            Span::styled(" \u{2605} Tốt ", Style::default().fg(Color::Green)),
-            Span::styled(" \u{2716} Xấu", Style::default().fg(Color::Red)),
-        ]),
-    ];
     Paragraph::new(lines).render(inner, buf);
 }

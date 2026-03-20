@@ -31,70 +31,159 @@ impl Widget for HoursScreenWidget<'_> {
         };
 
         let rows = Layout::vertical([
+            Constraint::Length(6),
+            Constraint::Length(8),
             Constraint::Length(7),
             Constraint::Min(10),
-        ]).split(area);
+        ])
+        .split(area);
 
-        // Top: Timeline overview
-        {
-            let block = Block::default()
-                .title(format!(" Tổng Quan 12 Giờ — {} giờ tốt ", gio.good_hour_count))
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::DarkGray));
-            let inner = block.inner(rows[0]);
-            block.render(rows[0], buf);
+        render_hours_verdict(self.app, rows[0], buf);
+        render_top_windows(self.app, rows[1], buf);
+        render_timeline(gio, rows[2], buf);
 
-            let mut chi_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
-            let mut marker_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
-            let mut star_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
-
-            let col_w = 10;
-            for h in &gio.all_hours {
-                let style = if h.is_good {
-                    Style::default().fg(Color::Green)
-                } else {
-                    Style::default().fg(Color::DarkGray)
-                };
-                chi_spans.push(Span::styled(format!("{:^w$}", h.hour_chi, w = col_w), style));
-                let m = if h.is_good { "\u{2605} Tốt" } else { "  Xấu" };
-                marker_spans.push(Span::styled(
-                    format!("{:^w$}", m, w = col_w),
-                    if h.is_good {
-                        Style::default().fg(Color::Green).add_modifier(Modifier::BOLD)
-                    } else {
-                        Style::default().fg(Color::Red)
-                    },
-                ));
-                star_spans.push(Span::styled(format!("{:^w$}", h.star, w = col_w), style));
-            }
-
-            Paragraph::new(vec![
-                Line::from(chi_spans),
-                Line::from(marker_spans),
-                Line::from(star_spans),
-            ]).render(inner, buf);
-        }
-
-        // Bottom: Detail columns
         match self.mode {
             LayoutMode::Large | LayoutMode::Medium => {
-                let cols = Layout::horizontal([
-                    Constraint::Percentage(50),
-                    Constraint::Percentage(50),
-                ]).split(rows[1]);
+                let cols =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[3]);
                 render_hour_list(&gio.all_hours, true, cols[0], buf);
                 render_hour_list(&gio.all_hours, false, cols[1], buf);
             }
             LayoutMode::Small => {
-                let detail = Layout::vertical([
-                    Constraint::Percentage(60),
-                    Constraint::Percentage(40),
-                ]).split(rows[1]);
+                let detail =
+                    Layout::vertical([Constraint::Percentage(58), Constraint::Percentage(42)])
+                        .split(rows[3]);
                 render_hour_list(&gio.all_hours, true, detail[0], buf);
                 render_hour_list(&gio.all_hours, false, detail[1], buf);
             }
         }
     }
+}
+
+fn render_hours_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Nhận Định ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+    if let Some(verdict) = app.hours_verdict() {
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(verdict.summary, Style::default().fg(Color::Green)),
+        ]));
+        if let Some(caution) = verdict.caution {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled(caution, Style::default().fg(Color::Yellow)),
+            ]));
+        }
+    } else {
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(
+                "Chưa có đủ dữ liệu để luận giờ tốt.",
+                Style::default().fg(Color::Gray),
+            ),
+        ]));
+    }
+
+    Paragraph::new(lines).render(inner, buf);
+}
+
+fn render_top_windows(app: &AppState, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Khung Giờ Tốt Nhất ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+    if let Some(verdict) = app.hours_verdict() {
+        for window in verdict.top_windows.iter().take(3) {
+            lines.push(Line::from(vec![
+                Span::styled("  ★ ", Style::default().fg(Color::Green)),
+                Span::styled(window.clone(), Style::default().fg(Color::White)),
+            ]));
+        }
+
+        if !verdict.bad_windows.is_empty() {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled("Giờ nên tránh:", Style::default().fg(Color::Red)),
+            ]));
+            for window in verdict.bad_windows.iter().take(2) {
+                lines.push(Line::from(vec![
+                    Span::styled("   · ", Style::default().fg(Color::Red)),
+                    Span::styled(window.clone(), Style::default().fg(Color::DarkGray)),
+                ]));
+            }
+        }
+    } else {
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(
+                "Không có khung giờ nổi bật.",
+                Style::default().fg(Color::Gray),
+            ),
+        ]));
+    }
+
+    Paragraph::new(lines).render(inner, buf);
+}
+
+fn render_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(format!(
+            " Dòng Thời Gian 12 Giờ — {} giờ tốt ",
+            gio.good_hour_count
+        ))
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut chi_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
+    let mut marker_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
+    let mut star_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
+
+    let col_w = 10;
+    for hour in &gio.all_hours {
+        let style = if hour.is_good {
+            Style::default().fg(Color::Green)
+        } else {
+            Style::default().fg(Color::DarkGray)
+        };
+        chi_spans.push(Span::styled(
+            format!("{:^w$}", hour.hour_chi, w = col_w),
+            style,
+        ));
+        let marker = if hour.is_good { "★ Tốt" } else { "Xấu" };
+        marker_spans.push(Span::styled(
+            format!("{:^w$}", marker, w = col_w),
+            if hour.is_good {
+                Style::default()
+                    .fg(Color::Green)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::Red)
+            },
+        ));
+        star_spans.push(Span::styled(format!("{:^w$}", hour.star, w = col_w), style));
+    }
+
+    Paragraph::new(vec![
+        Line::from(chi_spans),
+        Line::from(marker_spans),
+        Line::from(star_spans),
+    ])
+    .render(inner, buf);
 }
 
 fn render_hour_list(
@@ -103,7 +192,11 @@ fn render_hour_list(
     area: Rect,
     buf: &mut Buffer,
 ) {
-    let title = if show_good { " \u{2605} Giờ Hoàng Đạo " } else { " Giờ Hắc Đạo " };
+    let title = if show_good {
+        " Cửa Sổ Nên Dùng "
+    } else {
+        " Cửa Sổ Nên Tránh "
+    };
     let block = Block::default()
         .title(title)
         .borders(Borders::ALL)
@@ -112,29 +205,35 @@ fn render_hour_list(
     block.render(area, buf);
 
     let mut lines: Vec<Line<'_>> = vec![];
-    let filtered: Vec<_> = all_hours.iter().filter(|h| h.is_good == show_good).collect();
+    let filtered: Vec<_> = all_hours
+        .iter()
+        .filter(|hour| hour.is_good == show_good)
+        .collect();
 
-    for h in &filtered {
+    for hour in &filtered {
         let (marker, color) = if show_good {
-            ("\u{2605}", Color::Green)
+            ("★", Color::Green)
         } else {
-            ("\u{00B7}", Color::Red)
+            ("·", Color::Red)
         };
         lines.push(Line::from(vec![
             Span::styled(format!("  {marker} "), Style::default().fg(color)),
             Span::styled(
-                format!("{:<6}", h.hour_chi),
+                format!("{:<6}", hour.hour_chi),
                 Style::default().fg(color).add_modifier(Modifier::BOLD),
             ),
-            Span::styled(format!("({}) ", h.time_range), Style::default().fg(Color::DarkGray)),
-            Span::raw(format!("\u{2014} {}", h.star)),
+            Span::styled(
+                format!("({}) ", hour.time_range),
+                Style::default().fg(Color::DarkGray),
+            ),
+            Span::raw(format!("· {}", hour.star)),
         ]));
     }
 
     if show_good {
         lines.push(Line::from(""));
         lines.push(Line::from(Span::styled(
-            format!("  Tổng: {}/{} giờ tốt", filtered.len(), all_hours.len()),
+            format!("  Tổng: {}/{} giờ thuận", filtered.len(), all_hours.len()),
             Style::default().fg(Color::DarkGray),
         )));
     }

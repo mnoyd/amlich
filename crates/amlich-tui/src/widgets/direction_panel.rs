@@ -22,54 +22,40 @@ impl<'a> DirectionPanelWidget<'a> {
 impl Widget for DirectionPanelWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let block = Block::default()
-            .title(" Hướng & Thần ")
+            .title(" Hướng Hành Sự ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
         let inner = block.inner(area);
         block.render(area, buf);
 
-        let Some(bundle) = &self.app.bundle else {
-            return;
-        };
-        let Some(insight) = &bundle.insight else {
+        let Some(direction) = self.app.direction_verdict() else {
             return;
         };
         let mut lines: Vec<Line<'_>> = vec![];
 
-        if let Some(travel) = &insight.travel {
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(direction.summary, Style::default().fg(Color::Green)),
+        ]));
+
+        for item in direction.directions.iter().take(3) {
+            lines.push(Line::from(vec![Span::raw("  • "), Span::raw(item.clone())]));
+        }
+
+        if let Some(deity_context) = direction.deity_context {
+            lines.push(Line::from(""));
             lines.push(Line::from(vec![
-                Span::raw("  Xuất hành: "),
-                Span::styled(
-                    &travel.xuat_hanh_huong,
-                    Style::default().fg(Color::Green),
-                ),
-            ]));
-            lines.push(Line::from(vec![
-                Span::raw("  Hỷ Thần: "),
-                Span::styled(&travel.hy_than, Style::default().fg(Color::Green)),
-            ]));
-            lines.push(Line::from(vec![
-                Span::raw("  Tài Thần: "),
-                Span::styled(&travel.tai_than, Style::default().fg(Color::Yellow)),
+                Span::raw("  "),
+                Span::styled(deity_context, Style::default().fg(Color::Yellow)),
             ]));
         }
 
-        if let Some(deity) = &insight.day_deity {
+        if let Some(note) = direction.note {
             lines.push(Line::from(""));
             lines.push(Line::from(vec![
-                Span::raw("  Thần sát: "),
-                Span::styled(&deity.name, Style::default().fg(Color::Yellow)),
+                Span::raw("  "),
+                Span::styled(note, Style::default().fg(Color::DarkGray)),
             ]));
-            lines.push(Line::from(vec![
-                Span::raw("  Phân loại: "),
-                Span::styled(
-                    &deity.classification_meaning.vi,
-                    Style::default().fg(Color::Cyan),
-                ),
-            ]));
-            if let Some(meaning) = &deity.deity_meaning {
-                lines.push(Line::from(format!("  {}", meaning.vi)));
-            }
         }
 
         Paragraph::new(lines).render(inner, buf);

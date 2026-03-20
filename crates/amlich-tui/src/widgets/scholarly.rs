@@ -32,118 +32,59 @@ impl Widget for ScholarlyWidget<'_> {
 
 impl<'a> ScholarlyWidget<'a> {
     fn render_evidence(&self, area: Rect, buf: &mut Buffer, bundle: &DayBundleDto) {
-        let mut lines: Vec<Line<'_>> = vec![];
-
         let block = Block::default()
-            .title(" Can Chi · Ngũ Hành · Sao ")
+            .title(" Khí Ngày ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
 
         let inner = block.inner(area);
         block.render(area, buf);
 
-        let can_chi_day = bundle
-            .canchi
-            .as_ref()
-            .map(|canchi| canchi.day.full.clone())
-            .unwrap_or_else(|| "chưa có dữ liệu".to_string());
+        let mut lines: Vec<Line<'_>> = vec![];
+
+        let Some(summary) = self.app.day_identity_summary() else {
+            lines.push(Line::from(vec![
+                Span::raw("   "),
+                Span::styled(
+                    "Chưa có dữ liệu khí ngày.",
+                    Style::default().fg(Color::Gray),
+                ),
+            ]));
+            Paragraph::new(lines).render(inner, buf);
+            return;
+        };
+
         lines.push(Line::from(vec![
-            Span::raw("   Can Chi ngày: "),
-            Span::styled(can_chi_day, Style::default().fg(Color::Cyan)),
+            Span::raw("   "),
+            Span::styled(summary.headline, Style::default().fg(Color::Cyan)),
         ]));
 
-        // CanChi insight detail
-        if let Some(insight) = &bundle.insight {
-            if let Some(ci) = &insight.canchi {
-                lines.push(Line::from(vec![
-                    Span::raw("    \u{251C} Can: "),
-                    Span::styled(&ci.can.name, Style::default().fg(Color::Cyan)),
-                    Span::raw(" \u{2014} "),
-                    Span::raw(&ci.can.meaning.vi),
-                ]));
-                lines.push(Line::from(vec![
-                    Span::raw("    \u{2514} Chi: "),
-                    Span::styled(&ci.chi.name, Style::default().fg(Color::Cyan)),
-                    Span::raw(" \u{2014} "),
-                    Span::raw(&ci.chi.meaning.vi),
-                    Span::raw(format!(" ({})", ci.chi.animal.vi)),
-                ]));
-            }
-        }
-
-        // Month and year Can Chi
-        if let Some(canchi) = &bundle.canchi {
+        for detail in summary.detail_lines.iter().take(3) {
             lines.push(Line::from(vec![
-                Span::raw("   Can Chi tháng: "),
-                Span::styled(&canchi.month.full, Style::default().fg(Color::Cyan)),
-            ]));
-            lines.push(Line::from(vec![
-                Span::raw("   Can Chi năm: "),
-                Span::styled(&canchi.year.full, Style::default().fg(Color::Cyan)),
+                Span::raw("   • "),
+                Span::raw(detail.clone()),
             ]));
         }
 
-        let ngu_hanh_naam = bundle
-            .day_fortune
-            .as_ref()
-            .map(|fortune| {
-                format!(
-                    "{} · {}",
-                    fortune.day_element.element, fortune.day_element.na_am
-                )
-            })
-            .unwrap_or_else(|| "chưa có dữ liệu".to_string());
-        lines.push(Line::from(vec![
-            Span::raw("   Ngũ hành/Nạp âm: "),
-            Span::styled(ngu_hanh_naam, Style::default().fg(Color::Yellow)),
-        ]));
+        if let Some(note) = summary.application_note {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::raw("   "),
+                Span::styled(note, Style::default().fg(Color::Yellow)),
+            ]));
+        }
 
-        if let Some(insight) = &bundle.insight {
-            if let Some(truc) = &insight.truc {
+        if self.app.show_evidence {
+            if let Some(canchi) = &bundle.canchi {
+                lines.push(Line::from(""));
                 lines.push(Line::from(vec![
-                    Span::raw("   Trực: "),
-                    Span::styled(&truc.name, Style::default().fg(Color::Cyan)),
-                    Span::raw(" ("),
-                    Span::raw(&truc.quality),
-                    Span::raw(")"),
+                    Span::raw("   "),
+                    Span::styled(
+                        format!("Tháng {} · Năm {}", canchi.month.full, canchi.year.full),
+                        Style::default().fg(Color::DarkGray),
+                    ),
                 ]));
             }
-
-            if let Some(stars) = &insight.stars {
-                let cat_tinh = stars.cat_tinh.join(", ");
-                let cat_str = if stars.cat_tinh.is_empty() {
-                    "Không"
-                } else {
-                    &cat_tinh
-                };
-                lines.push(Line::from(vec![
-                    Span::raw("   Cát tinh: "),
-                    Span::styled(cat_str.to_string(), Style::default().fg(Color::Green)),
-                ]));
-
-                let sat_tinh = stars.sat_tinh.join(", ");
-                let sat_str = if stars.sat_tinh.is_empty() {
-                    "Không"
-                } else {
-                    &sat_tinh
-                };
-                lines.push(Line::from(vec![
-                    Span::raw("   Sát tinh: "),
-                    Span::styled(sat_str.to_string(), Style::default().fg(Color::Red)),
-                ]));
-            }
-
-            if let Some(deity) = &insight.day_deity {
-                lines.push(Line::from(vec![
-                    Span::raw("   Thần sát: "),
-                    Span::styled(&deity.name, Style::default().fg(Color::Yellow)),
-                    Span::raw(" ("),
-                    Span::raw(&deity.classification),
-                    Span::raw(")"),
-                ]));
-            }
-        } else {
-            lines.push(Line::from("   Chưa có dữ liệu chứng cứ truyền thống."));
         }
 
         Paragraph::new(lines).render(inner, buf);
@@ -254,7 +195,8 @@ mod tests {
                         }],
                     }],
                 }),
-                contextual_recommendations: None, upcoming_events: vec![],
+                contextual_recommendations: None,
+                upcoming_events: vec![],
                 insight: Some(DayInsightDto {
                     solar: SolarDto {
                         day: 12,
@@ -360,16 +302,12 @@ mod tests {
     }
 
     #[test]
-    fn scholarly_widget_groups_truc_stars_and_deity_as_evidence() {
+    fn scholarly_widget_renders_day_identity_section() {
         let app = sample_app_state();
         let text = render_text(&app);
 
-        assert!(text.contains("Can Chi · Ngũ Hành · Sao"));
-        assert!(text.contains("Can Chi ngày:"));
-        assert!(text.contains("Ngũ hành/Nạp âm:"));
-        assert!(text.contains("Trực:"));
-        assert!(text.contains("Cát tinh:"));
-        assert!(text.contains("Thần sát:"));
+        assert!(text.contains("Khí Ngày"));
+        assert!(text.contains("Khí ngày chưa đủ dữ liệu để luận"));
         assert!(!text.contains("Metadata:"));
     }
 }

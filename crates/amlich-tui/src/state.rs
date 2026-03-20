@@ -264,6 +264,50 @@ pub struct ScholarVerdictSupportVm {
     pub layer_note: Option<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DirectionVerdictVm {
+    pub summary: String,
+    pub directions: Vec<String>,
+    pub deity_context: Option<String>,
+    pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct HoursVerdictVm {
+    pub summary: String,
+    pub top_windows: Vec<String>,
+    pub caution: Option<String>,
+    pub bad_windows: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct DayIdentitySummaryVm {
+    pub headline: String,
+    pub detail_lines: Vec<String>,
+    pub application_note: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TraditionalEvidenceSummaryVm {
+    pub headline: Option<String>,
+    pub positive_signals: Vec<String>,
+    pub caution_signals: Vec<String>,
+    pub provenance: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SeasonalVerdictVm {
+    pub headline: String,
+    pub implication: String,
+    pub application_lines: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProfileAvailabilityVm {
+    pub has_personal_overlay: bool,
+    pub note: String,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RecommendationLayerKind {
     Baseline,
@@ -1043,8 +1087,7 @@ impl AppState {
                 (!summary.is_empty()).then_some(summary.to_string())
             })
             .or_else(|| {
-                insight_hours
-                    .map(|hours| format_good_hour_count_summary(hours.good_hour_count))
+                insight_hours.map(|hours| format_good_hour_count_summary(hours.good_hour_count))
             })
             .or_else(|| gio.map(|hours| format_good_hour_count_summary(hours.good_hour_count)))?;
 
@@ -1084,6 +1127,39 @@ impl AppState {
         Some(ScholarTimingSummaryVm { summary, windows })
     }
 
+    pub fn hours_verdict(&self) -> Option<HoursVerdictVm> {
+        let bundle = self.bundle.as_ref()?;
+        let timing = self.scholar_timing_summary()?;
+        let mut bad_windows = Vec::new();
+
+        if let Some(gio) = &bundle.gio_hoang_dao {
+            for hour in gio.all_hours.iter().filter(|hour| !hour.is_good).take(3) {
+                bad_windows.push(format_hour_window(
+                    &hour.hour_chi,
+                    &hour.time_range,
+                    Some(hour.star.as_str()),
+                ));
+            }
+        }
+
+        let caution = self.hero_verdict().and_then(|verdict| {
+            if timing.windows.is_empty() {
+                return None;
+            }
+
+            verdict.strongest_negative.map(|negative| {
+                format!("Có giờ đẹp để xoay xở, nhưng tổng thể ngày vẫn cần dè chừng: {negative}.")
+            })
+        });
+
+        Some(HoursVerdictVm {
+            summary: timing.summary,
+            top_windows: timing.windows,
+            caution,
+            bad_windows,
+        })
+    }
+
     pub fn risk_summary(&self) -> RiskSummaryVm {
         let mut items = Vec::new();
         for row in self.top_recommendation_rows() {
@@ -1116,10 +1192,7 @@ impl AppState {
         for row in self.top_recommendation_rows() {
             match row.bucket {
                 RecommendationBucketDto::KyManh => {
-                    push_unique(
-                        &mut critical_items,
-                        format!("Kỵ mạnh: {}", row.label),
-                    );
+                    push_unique(&mut critical_items, format!("Kỵ mạnh: {}", row.label));
                 }
                 RecommendationBucketDto::Tranh => {
                     let label = row
@@ -1201,7 +1274,11 @@ impl AppState {
             segments.push(canchi.to_string());
         }
 
-        if let Some(truc) = bundle.day_fortune.as_ref().map(|fortune| fortune.truc.name.trim()) {
+        if let Some(truc) = bundle
+            .day_fortune
+            .as_ref()
+            .map(|fortune| fortune.truc.name.trim())
+        {
             if !truc.is_empty() {
                 segments.push(format!("Trực {truc}"));
             }
@@ -1243,6 +1320,314 @@ impl AppState {
         Some(ScholarVerdictSupportVm {
             support_line: segments.join(" · "),
             layer_note,
+        })
+    }
+
+    pub fn direction_verdict(&self) -> Option<DirectionVerdictVm> {
+        let bundle = self.bundle.as_ref()?;
+
+        let xuat_hanh = bundle
+            .insight
+            .as_ref()
+            .and_then(|insight| insight.travel.as_ref())
+            .map(|travel| travel.xuat_hanh_huong.as_str())
+            .or_else(|| {
+                bundle
+                    .day_fortune
+                    .as_ref()
+                    .map(|fortune| fortune.travel.xuat_hanh_huong.as_str())
+            });
+        let hy_than = bundle
+            .insight
+            .as_ref()
+            .and_then(|insight| insight.travel.as_ref())
+            .map(|travel| travel.hy_than.as_str())
+            .or_else(|| {
+                bundle
+                    .day_fortune
+                    .as_ref()
+                    .map(|fortune| fortune.travel.hy_than.as_str())
+            });
+        let tai_than = bundle
+            .insight
+            .as_ref()
+            .and_then(|insight| insight.travel.as_ref())
+            .map(|travel| travel.tai_than.as_str())
+            .or_else(|| {
+                bundle
+                    .day_fortune
+                    .as_ref()
+                    .map(|fortune| fortune.travel.tai_than.as_str())
+            });
+
+        if xuat_hanh.is_none() && hy_than.is_none() && tai_than.is_none() {
+            return None;
+        }
+
+        let summary = match xuat_hanh {
+            Some(direction) if !direction.trim().is_empty() => {
+                format!("Nếu cần hành sự, ưu tiên dịch chuyển về {direction}.")
+            }
+            _ => "Nên lấy hướng và thần vị làm điểm neo khi xuất hành.".to_string(),
+        };
+
+        let mut directions = Vec::new();
+        if let Some(direction) = xuat_hanh.filter(|value| !value.trim().is_empty()) {
+            directions.push(format!("Xuất hành: {direction}"));
+        }
+        if let Some(direction) = hy_than.filter(|value| !value.trim().is_empty()) {
+            directions.push(format!("Hỷ Thần: {direction}"));
+        }
+        if let Some(direction) = tai_than.filter(|value| !value.trim().is_empty()) {
+            directions.push(format!("Tài Thần: {direction}"));
+        }
+
+        let deity_context = bundle
+            .insight
+            .as_ref()
+            .and_then(|insight| insight.day_deity.as_ref())
+            .map(|deity| {
+                let mut segments = vec![format!(
+                    "{} · {}",
+                    deity.name, deity.classification_meaning.vi
+                )];
+                if let Some(meaning) = deity
+                    .deity_meaning
+                    .as_ref()
+                    .map(|meaning| take_first_sentence(&meaning.vi))
+                    .filter(|meaning| !meaning.is_empty())
+                {
+                    segments.push(meaning);
+                }
+                segments.join(" · ")
+            });
+
+        let note = self
+            .recommendation_layers()
+            .first()
+            .filter(|layer| layer.kind == RecommendationLayerKind::Contextual)
+            .map(|layer| format!("Ngữ cảnh đang ưu tiên: {}", layer.profile));
+
+        Some(DirectionVerdictVm {
+            summary,
+            directions,
+            deity_context,
+            note,
+        })
+    }
+
+    pub fn day_identity_summary(&self) -> Option<DayIdentitySummaryVm> {
+        let bundle = self.bundle.as_ref()?;
+        let canchi = bundle.canchi.as_ref();
+        let fortune = bundle.day_fortune.as_ref();
+        let insight = bundle.insight.as_ref();
+
+        if canchi.is_none() && fortune.is_none() && insight.is_none() {
+            return None;
+        }
+
+        let mut headline_parts = Vec::new();
+        if let Some(canchi) = canchi {
+            headline_parts.push(canchi.day.full.clone());
+        }
+        if let Some(fortune) = fortune {
+            headline_parts.push(format!(
+                "{} · {}",
+                fortune.day_element.element, fortune.day_element.na_am
+            ));
+        }
+        let headline = if headline_parts.is_empty() {
+            "Khí ngày chưa đủ dữ liệu để luận".to_string()
+        } else {
+            headline_parts.join(" · ")
+        };
+
+        let mut detail_lines = Vec::new();
+        if let Some(canchi) = canchi {
+            push_unique(
+                &mut detail_lines,
+                format!(
+                    "Can chi ngày: {} {} · con giáp {}",
+                    canchi.day.can, canchi.day.chi, canchi.day.con_giap
+                ),
+            );
+        }
+        if let Some(fortune) = fortune {
+            push_unique(
+                &mut detail_lines,
+                format!(
+                    "Ngũ hành ngày: {} · can {} / chi {}",
+                    fortune.day_element.element,
+                    fortune.day_element.can_element,
+                    fortune.day_element.chi_element
+                ),
+            );
+        }
+        if let Some(can_chi_insight) = insight.and_then(|insight| insight.canchi.as_ref()) {
+            let element_tone = can_chi_insight
+                .element
+                .as_ref()
+                .map(|element| take_first_sentence(&element.nature.vi))
+                .filter(|value| !value.is_empty());
+            let can_tone = take_first_sentence(&can_chi_insight.can.nature.vi);
+            let chi_tone = take_first_sentence(&can_chi_insight.chi.meaning.vi);
+            let mut parts = vec![
+                format!("Can {}: {}", can_chi_insight.can.name, can_tone),
+                format!("Chi {}: {}", can_chi_insight.chi.name, chi_tone),
+            ];
+            if let Some(element_tone) = element_tone {
+                parts.push(format!("Khí hành: {element_tone}"));
+            }
+            push_unique(&mut detail_lines, parts.join(" · "));
+        }
+        if let Some(na_am) = insight.and_then(|insight| insight.na_am.as_ref()) {
+            push_unique(
+                &mut detail_lines,
+                format!(
+                    "Nạp âm {}: {}",
+                    na_am.na_am,
+                    take_first_sentence(&na_am.meaning.vi)
+                ),
+            );
+        }
+
+        let application_note = insight
+            .and_then(|insight| insight.day_guidance.as_ref())
+            .and_then(|guidance| guidance.good_for.vi.first())
+            .map(|value| format!("Ứng dụng: hợp để {value}."))
+            .or_else(|| {
+                insight
+                    .and_then(|insight| insight.truc.as_ref())
+                    .and_then(|truc| truc.good_for.vi.first())
+                    .map(|value| format!("Ứng dụng: trực này thuận cho {value}."))
+            });
+
+        Some(DayIdentitySummaryVm {
+            headline,
+            detail_lines,
+            application_note,
+        })
+    }
+
+    pub fn traditional_evidence_summary(&self) -> Option<TraditionalEvidenceSummaryVm> {
+        let bundle = self.bundle.as_ref()?;
+        let mut headline_parts = Vec::new();
+        let mut positive_signals = Vec::new();
+        let mut caution_signals = Vec::new();
+        let mut provenance = Vec::new();
+
+        if let Some(truc) = bundle
+            .insight
+            .as_ref()
+            .and_then(|insight| insight.truc.as_ref())
+        {
+            headline_parts.push(format!("Trực {} ({})", truc.name, truc.quality));
+            let meaning = take_first_sentence(&truc.meaning.vi);
+            if !meaning.is_empty() {
+                push_unique(&mut positive_signals, format!("Luận trực: {meaning}"));
+            }
+        } else if let Some(fortune) = &bundle.day_fortune {
+            headline_parts.push(format!(
+                "Trực {} ({})",
+                fortune.truc.name, fortune.truc.quality
+            ));
+        }
+
+        if let Some(stars) = bundle
+            .insight
+            .as_ref()
+            .and_then(|insight| insight.stars.as_ref())
+        {
+            if let Some(day_star) = &stars.day_star {
+                let quality = stars.day_star_quality.as_deref().unwrap_or("không rõ");
+                headline_parts.push(format!("Sao ngày {day_star} ({quality})"));
+            }
+
+            for star in stars.cat_tinh.iter().take(3) {
+                push_unique(&mut positive_signals, format!("Cát tinh: {star}"));
+            }
+            for star in stars.sat_tinh.iter().take(3) {
+                push_unique(&mut caution_signals, format!("Hung tinh: {star}"));
+            }
+        }
+
+        if let Some(fortune) = &bundle.day_fortune {
+            for rule in fortune.stars.matched_rules.iter().take(4) {
+                push_unique(
+                    &mut provenance,
+                    format!("{} · {} · {}", rule.name, rule.quality, rule.category),
+                );
+            }
+        }
+
+        if headline_parts.is_empty()
+            && positive_signals.is_empty()
+            && caution_signals.is_empty()
+            && provenance.is_empty()
+        {
+            return None;
+        }
+
+        Some(TraditionalEvidenceSummaryVm {
+            headline: (!headline_parts.is_empty()).then_some(headline_parts.join(" · ")),
+            positive_signals,
+            caution_signals,
+            provenance,
+        })
+    }
+
+    pub fn seasonal_verdict(&self) -> Option<SeasonalVerdictVm> {
+        let bundle = self.bundle.as_ref()?;
+        let tiet_khi = bundle.tiet_khi.as_ref()?;
+        let insight = bundle
+            .insight
+            .as_ref()
+            .and_then(|insight| insight.tiet_khi.as_ref());
+
+        let headline = format!("{} · mùa {}", tiet_khi.name, tiet_khi.season);
+        let implication = insight
+            .map(|insight| take_first_sentence(&insight.meaning.vi))
+            .filter(|value| !value.is_empty())
+            .unwrap_or_else(|| take_first_sentence(&tiet_khi.description));
+
+        let mut application_lines = Vec::new();
+        if let Some(insight) = insight {
+            let weather = take_first_sentence(&insight.weather.vi);
+            if !weather.is_empty() {
+                push_unique(&mut application_lines, format!("Thời khí: {weather}"));
+            }
+            if let Some(item) = insight.agriculture.vi.first() {
+                push_unique(&mut application_lines, format!("Nhịp việc mùa này: {item}"));
+            }
+            if let Some(item) = insight.health.vi.first() {
+                push_unique(&mut application_lines, format!("Chăm sóc cơ thể: {item}"));
+            }
+        }
+
+        Some(SeasonalVerdictVm {
+            headline,
+            implication,
+            application_lines,
+        })
+    }
+
+    pub fn profile_availability_summary(&self) -> Option<ProfileAvailabilityVm> {
+        let bundle = self.bundle.as_ref()?;
+        let has_personal_overlay = bundle
+            .insight
+            .as_ref()
+            .map(|insight| insight.tu_menh.is_some() || insight.dai_van.is_some())
+            .unwrap_or(false);
+
+        let note = if has_personal_overlay {
+            "Đã có lớp cá nhân hóa; tách riêng phần ngày chung và phần mệnh cá nhân.".to_string()
+        } else {
+            "Chưa có hồ sơ cá nhân; màn hình này chỉ nên đọc như hướng theo ngày, không phải phong thủy bản mệnh.".to_string()
+        };
+
+        Some(ProfileAvailabilityVm {
+            has_personal_overlay,
+            note,
         })
     }
 
@@ -1447,6 +1832,20 @@ fn format_hour_window(chi: &str, time_range: &str, star: Option<&str>) -> String
     }
 }
 
+fn take_first_sentence(text: &str) -> String {
+    let trimmed = text.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    trimmed
+        .split_terminator(['.', '!', '?', '\n'])
+        .next()
+        .unwrap_or(trimmed)
+        .trim()
+        .to_string()
+}
+
 fn push_unique(items: &mut Vec<String>, value: String) {
     if !items.iter().any(|item| item == &value) {
         items.push(value);
@@ -1541,12 +1940,13 @@ mod tests {
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActivityLabelDto, CanChiDto, CanChiInfoDto, DailyRecommendationsDto, DayConflictDto,
-        DayElementDto, DayFortuneDto, DayInsightDto, DayStarsDto, DayTabooDto, GioHoangDaoDto,
-        HourInfoDto, HourInsightEntryDto, HoursInsightDto, LunarDto, NguHanhDto,
-        RecommendationBucketDto, RecommendationEvidenceDto, RecommendationEvidenceSourceDto,
-        RecommendationReasonDto, RecommendationScopeDto, RecommendationSeverityDto,
-        RuleEvidenceDto, SolarDto, SynthesizedRecommendationDto, TietKhiDto,
-        TravelDirectionDto, TrucDto, XungHopDto,
+        DayElementDto, DayFortuneDto, DayGuidanceDto, DayInsightDto, DayStarsDto, DayTabooDto,
+        GioHoangDaoDto, HourInfoDto, HourInsightEntryDto, HoursInsightDto, LocalizedListDto,
+        LocalizedTextDto, LunarDto, NaAmInsightDto, NguHanhDto, RecommendationBucketDto,
+        RecommendationEvidenceDto, RecommendationEvidenceSourceDto, RecommendationReasonDto,
+        RecommendationScopeDto, RecommendationSeverityDto, RuleEvidenceDto, SolarDto,
+        SynthesizedRecommendationDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto,
+        TravelInsightDto, TrucDto, TuMenhInsightDto, XungHopDto,
     };
 
     fn sample_app_state() -> AppState {
@@ -2044,7 +2444,10 @@ mod tests {
         let risk_board = app.scholar_risk_board();
 
         assert_eq!(risk_board.headline.as_deref(), Some("Kỵ mạnh: Động thổ"));
-        assert!(risk_board.critical_items.iter().any(|item| item == "Kỵ mạnh: Động thổ"));
+        assert!(risk_board
+            .critical_items
+            .iter()
+            .any(|item| item == "Kỵ mạnh: Động thổ"));
         assert!(risk_board
             .critical_items
             .iter()
@@ -2088,6 +2491,175 @@ mod tests {
             support.layer_note.as_deref(),
             Some("Ngữ cảnh ưu tiên: Ưu tiên ngữ cảnh ký kết")
         );
+    }
+
+    #[test]
+    fn direction_verdict_uses_day_level_travel_and_deity_context() {
+        let mut app = sample_app_state_with_bundle();
+        let insight = app
+            .bundle
+            .as_mut()
+            .and_then(|bundle| bundle.insight.as_mut())
+            .expect("insight");
+        insight.travel = Some(TravelInsightDto {
+            xuat_hanh_huong: "Nam".to_string(),
+            tai_than: "Tây Nam".to_string(),
+            hy_than: "Đông".to_string(),
+        });
+        insight.day_deity = Some(amlich_api::DayDeityInsightDto {
+            name: "Kim Quỹ".to_string(),
+            classification: "hoang_dao".to_string(),
+            classification_meaning: LocalizedTextDto {
+                vi: "Cát thần".to_string(),
+                en: "Good deity".to_string(),
+            },
+            deity_meaning: Some(LocalizedTextDto {
+                vi: "Hợp cho việc cần sự bảo chứng.".to_string(),
+                en: "Good for protected actions.".to_string(),
+            }),
+        });
+
+        let verdict = app.direction_verdict().expect("direction verdict");
+        assert!(verdict.summary.contains("Nam"));
+        assert!(verdict
+            .directions
+            .iter()
+            .any(|item| item.contains("Hỷ Thần")));
+        assert!(verdict
+            .deity_context
+            .as_deref()
+            .unwrap_or_default()
+            .contains("Kim Quỹ"));
+    }
+
+    #[test]
+    fn day_identity_summary_combines_canchi_element_and_guidance() {
+        let mut app = sample_app_state_with_bundle();
+        let insight = app
+            .bundle
+            .as_mut()
+            .and_then(|bundle| bundle.insight.as_mut())
+            .expect("insight");
+        insight.na_am = Some(NaAmInsightDto {
+            na_am: "Thiên Hà Thủy".to_string(),
+            element: "Thủy".to_string(),
+            meaning: LocalizedTextDto {
+                vi: "Dòng nước trời cao, thiên về thanh lọc.".to_string(),
+                en: "High celestial water.".to_string(),
+            },
+        });
+        insight.day_guidance = Some(DayGuidanceDto {
+            good_for: LocalizedListDto {
+                vi: vec!["khởi sự nhẹ".to_string()],
+                en: vec!["light beginnings".to_string()],
+            },
+            avoid_for: LocalizedListDto {
+                vi: vec![],
+                en: vec![],
+            },
+        });
+
+        let summary = app.day_identity_summary().expect("day identity");
+        assert!(summary.headline.contains("Bính Ngọ"));
+        assert!(summary.headline.contains("Thiên Hà Thủy"));
+        assert!(summary
+            .application_note
+            .as_deref()
+            .unwrap_or_default()
+            .contains("khởi sự nhẹ"));
+    }
+
+    #[test]
+    fn seasonal_verdict_uses_insight_meaning_weather_and_health() {
+        let mut app = sample_app_state_with_bundle();
+        let insight = app
+            .bundle
+            .as_mut()
+            .and_then(|bundle| bundle.insight.as_mut())
+            .expect("insight");
+        insight.tiet_khi = Some(TietKhiInsightDto {
+            id: "kinh_trap".to_string(),
+            name: LocalizedTextDto {
+                vi: "Kinh Trập".to_string(),
+                en: "Awakening of Insects".to_string(),
+            },
+            longitude: 345,
+            meaning: LocalizedTextDto {
+                vi: "Thời khí chuyển động, hợp sắp việc theo nhịp mới.".to_string(),
+                en: "A moving seasonal phase.".to_string(),
+            },
+            astronomy: LocalizedTextDto {
+                vi: "Kinh độ xuân tăng dần.".to_string(),
+                en: "Spring longitude increases.".to_string(),
+            },
+            agriculture: LocalizedListDto {
+                vi: vec!["Sắp việc ngoài trời theo nhịp ấm lên".to_string()],
+                en: vec![],
+            },
+            health: LocalizedListDto {
+                vi: vec!["Giữ nhịp ngủ nghỉ ổn định".to_string()],
+                en: vec![],
+            },
+            weather: LocalizedTextDto {
+                vi: "Không khí ấm và linh hoạt hơn.".to_string(),
+                en: "Weather becomes milder.".to_string(),
+            },
+        });
+
+        let verdict = app.seasonal_verdict().expect("seasonal verdict");
+        assert!(verdict.headline.contains("Kinh Trập"));
+        assert!(verdict.implication.contains("Thời khí chuyển động"));
+        assert!(verdict
+            .application_lines
+            .iter()
+            .any(|line| line.contains("Thời khí")));
+        assert!(verdict
+            .application_lines
+            .iter()
+            .any(|line| line.contains("Giữ nhịp")));
+    }
+
+    #[test]
+    fn profile_availability_summary_distinguishes_general_and_personal_modes() {
+        let mut app = sample_app_state_with_bundle();
+        let without_profile = app
+            .profile_availability_summary()
+            .expect("profile availability");
+        assert!(!without_profile.has_personal_overlay);
+
+        let insight = app
+            .bundle
+            .as_mut()
+            .and_then(|bundle| bundle.insight.as_mut())
+            .expect("insight");
+        insight.tu_menh = Some(TuMenhInsightDto {
+            kua: 3,
+            group: "Đông tứ mệnh".to_string(),
+            trigram: LocalizedTextDto {
+                vi: "Chấn".to_string(),
+                en: "Zhen".to_string(),
+            },
+            direction: LocalizedTextDto {
+                vi: "Đông".to_string(),
+                en: "East".to_string(),
+            },
+            meaning: LocalizedTextDto {
+                vi: "Hợp hướng mở lối và khởi động.".to_string(),
+                en: "Favors opening movement.".to_string(),
+            },
+            group_meaning: LocalizedTextDto {
+                vi: "Nhóm hướng tăng trưởng".to_string(),
+                en: "Growth group".to_string(),
+            },
+            favorable_directions: vec!["Đông".to_string()],
+            unfavorable_directions: vec!["Tây".to_string()],
+        });
+
+        let with_profile = app
+            .profile_availability_summary()
+            .expect("profile availability");
+        assert!(with_profile.has_personal_overlay);
+        assert!(with_profile.note.contains("cá nhân hóa"));
     }
 
     #[test]

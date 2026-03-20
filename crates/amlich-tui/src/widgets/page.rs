@@ -12,13 +12,9 @@ use crate::state::{AppState, PageSection};
 use super::{
     calendar::CalendarViewWidget,
     screens::{
-        dashboard::DashboardScreenWidget,
-        elements::ElementsScreenWidget,
-        feng_shui::FengShuiScreenWidget,
-        hours::HoursScreenWidget,
-        insight::InsightScreenWidget,
-        recommendations::RecommendationsScreenWidget,
-        solar_terms::SolarTermsScreenWidget,
+        dashboard::DashboardScreenWidget, elements::ElementsScreenWidget,
+        feng_shui::FengShuiScreenWidget, hours::HoursScreenWidget, insight::InsightScreenWidget,
+        recommendations::RecommendationsScreenWidget, solar_terms::SolarTermsScreenWidget,
     },
     week_strip::WeekStripWidget,
 };
@@ -244,7 +240,8 @@ mod tests {
             day_fortune: None,
             daily_recommendations: None,
             contextual_recommendations: None,
-            insight: None, upcoming_events: vec![],
+            insight: None,
+            upcoming_events: vec![],
         }
     }
 

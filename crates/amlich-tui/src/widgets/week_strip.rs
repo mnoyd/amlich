@@ -133,8 +133,7 @@ fn day_labels(app: &AppState, date: NaiveDate) -> (String, Option<String>) {
 mod tests {
     use super::*;
     use crate::state::{
-        AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
-        PageSection,
+        AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
     };
     use amlich_api::{
         LunarDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
@@ -201,7 +200,8 @@ mod tests {
                 day_fortune: None,
                 daily_recommendations: None,
                 contextual_recommendations: None,
-                insight: None, upcoming_events: vec![],
+                insight: None,
+                upcoming_events: vec![],
             }),
             is_loading: false,
             error_msg: None,
