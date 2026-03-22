@@ -5,6 +5,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
+use chrono::Timelike;
 
 use crate::{layout::LayoutMode, state::AppState};
 
@@ -30,17 +31,25 @@ impl Widget for HoursScreenWidget<'_> {
             return;
         };
 
+        let timeline_height = match self.mode {
+            LayoutMode::Small => Constraint::Length(0), // Hide horizontal timeline completely on thin screens
+            _ => Constraint::Length(6),
+        };
+
         let rows = Layout::vertical([
             Constraint::Length(6),
             Constraint::Length(8),
-            Constraint::Length(7),
+            timeline_height,
             Constraint::Min(10),
         ])
         .split(area);
 
         render_hours_verdict(self.app, rows[0], buf);
         render_top_windows(self.app, rows[1], buf);
-        render_timeline(gio, rows[2], buf);
+        
+        if !matches!(self.mode, LayoutMode::Small) {
+            render_timeline(gio, rows[2], buf);
+        }
 
         match self.mode {
             LayoutMode::Large | LayoutMode::Medium => {
@@ -51,11 +60,7 @@ impl Widget for HoursScreenWidget<'_> {
                 render_hour_list(&gio.all_hours, false, cols[1], buf);
             }
             LayoutMode::Small => {
-                let detail =
-                    Layout::vertical([Constraint::Percentage(58), Constraint::Percentage(42)])
-                        .split(rows[3]);
-                render_hour_list(&gio.all_hours, true, detail[0], buf);
-                render_hour_list(&gio.all_hours, false, detail[1], buf);
+                render_combined_hour_list(&gio.all_hours, rows[3], buf);
             }
         }
     }
@@ -152,91 +157,57 @@ fn render_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffe
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
-    let col_w = 10usize;
-    let required_width = 1 + (col_w * gio.all_hours.len());
-    if inner.width as usize <= required_width {
-        render_compact_timeline(gio, inner, buf);
-        return;
-    }
-
-    let mut chi_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
-    let mut marker_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
-    let mut star_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
-
-    for hour in &gio.all_hours {
-        let style = if hour.is_good {
-            Style::default().fg(Color::Green)
-        } else {
-            Style::default().fg(Color::DarkGray)
-        };
-        chi_spans.push(Span::styled(
-            format!("{:^w$}", hour.hour_chi, w = col_w),
-            style,
-        ));
-        let marker = if hour.is_good { "★ Tốt" } else { "Xấu" };
-        marker_spans.push(Span::styled(
-            format!("{:^w$}", marker, w = col_w),
-            if hour.is_good {
-                Style::default()
-                    .fg(Color::Green)
-                    .add_modifier(Modifier::BOLD)
-            } else {
-                Style::default().fg(Color::Red)
-            },
-        ));
-        star_spans.push(Span::styled(format!("{:^w$}", hour.star, w = col_w), style));
-    }
-
-    Paragraph::new(vec![
-        Line::from(chi_spans),
-        Line::from(marker_spans),
-        Line::from(star_spans),
-    ])
-    .render(inner, buf);
+    
+    render_block_timeline(gio, inner, buf);
 }
 
-fn render_compact_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffer) {
-    let good_windows = gio
-        .all_hours
-        .iter()
-        .filter(|hour| hour.is_good)
-        .map(|hour| format!("{} ({})", hour.hour_chi, hour.time_range))
-        .collect::<Vec<_>>()
-        .join(", ");
-    let bad_windows = gio
-        .all_hours
-        .iter()
-        .filter(|hour| !hour.is_good)
-        .map(|hour| format!("{} ({})", hour.hour_chi, hour.time_range))
-        .collect::<Vec<_>>()
-        .join(", ");
+fn render_block_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffer) {
+    let current_hour = chrono::Local::now().hour();
+    let current_idx = ((current_hour + 1) % 24) / 2;
 
-    let lines = vec![
-        Line::from(vec![
-            Span::styled("  Giờ tốt: ", Style::default().fg(Color::Green)),
-            Span::raw(good_windows),
-        ]),
-        Line::from(vec![
-            Span::styled("  Giờ xấu: ", Style::default().fg(Color::Red)),
-            Span::raw(bad_windows),
-        ]),
-        Line::from(""),
-        Line::from(vec![
-            Span::raw("  "),
-            Span::styled(
-                format!(
-                    "Tổng: {}/{} giờ thuận",
-                    gio.good_hour_count,
-                    gio.all_hours.len()
-                ),
-                Style::default().fg(Color::DarkGray),
-            ),
-        ]),
-    ];
+    let hour_chunks = Layout::horizontal(
+        std::iter::repeat(Constraint::Ratio(1, 12)).take(12)
+    )
+    .split(area);
 
-    Paragraph::new(lines)
-        .wrap(Wrap { trim: true })
-        .render(area, buf);
+    for (i, hour) in gio.all_hours.iter().enumerate() {
+        let is_current = i as u32 == current_idx;
+        let is_past = (i as u32) < current_idx;
+
+        let base_color = if hour.is_good { Color::Green } else { Color::Red };
+        let mut style = Style::default().fg(base_color);
+        if is_past && !is_current {
+            style = style.fg(Color::DarkGray);
+        }
+
+        let chi = Span::styled(
+            hour.hour_chi.clone(),
+            if is_current { Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::Gray) }
+        );
+
+        let width = hour_chunks[i].width as usize;
+        let block_char = if hour.is_good { "█" } else { "▄" };
+        let bar_text = block_char.repeat(width.max(1));
+        let bar = Span::styled(bar_text, style);
+
+        let indicator = if is_current {
+            Span::styled("▲", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
+        } else {
+            Span::raw(" ")
+        };
+
+        let chunk_layout = Layout::vertical([
+            Constraint::Length(1), // Chi
+            Constraint::Length(1), // Bar
+            Constraint::Length(1), // Indicator
+            Constraint::Min(0),
+        ]).split(hour_chunks[i]);
+
+        use ratatui::layout::Alignment;
+        Paragraph::new(chi).alignment(Alignment::Center).render(chunk_layout[0], buf);
+        Paragraph::new(bar).alignment(Alignment::Center).render(chunk_layout[1], buf);
+        Paragraph::new(indicator).alignment(Alignment::Center).render(chunk_layout[2], buf);
+    }
 }
 
 fn render_hour_list(
@@ -289,6 +260,79 @@ fn render_hour_list(
             format!("  Tổng: {}/{} giờ thuận", filtered.len(), all_hours.len()),
             Style::default().fg(Color::DarkGray),
         )));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_combined_hour_list(
+    all_hours: &[amlich_api::HourInfoDto],
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Chi Tiết Các Giờ ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let current_hour = chrono::Local::now().hour();
+    let current_idx = ((current_hour + 1) % 24) / 2;
+
+    let mut lines: Vec<Line<'_>> = vec![];
+
+    for (i, hour) in all_hours.iter().enumerate() {
+        let is_current = i as u32 == current_idx;
+        let is_past = (i as u32) < current_idx;
+
+        let (marker, base_color) = if hour.is_good {
+            ("★", Color::Green)
+        } else {
+            ("·", Color::Red)
+        };
+
+        // Construct prefix
+        let prefix = if is_current {
+            Span::styled(">> ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
+        } else {
+            Span::raw("   ")
+        };
+
+        let marker_span = if is_past {
+            Span::styled(format!("{marker} "), Style::default().fg(Color::DarkGray))
+        } else {
+            Span::styled(format!("{marker} "), Style::default().fg(base_color))
+        };
+
+        let chi_span = if is_current {
+            Span::styled(format!("{:<6}", hour.hour_chi), Style::default().fg(Color::White).add_modifier(Modifier::BOLD))
+        } else if is_past {
+            Span::styled(format!("{:<6}", hour.hour_chi), Style::default().fg(Color::DarkGray))
+        } else {
+            Span::styled(format!("{:<6}", hour.hour_chi), Style::default().fg(Color::White))
+        };
+
+        let time_span = Span::styled(
+            format!("({}) ", hour.time_range),
+            if is_current { Style::default().fg(Color::Gray) } else { Style::default().fg(Color::DarkGray) }
+        );
+
+        let star_span = if is_past {
+            Span::styled(format!("· {}", hour.star), Style::default().fg(Color::DarkGray))
+        } else {
+            Span::styled(format!("· {}", hour.star), Style::default().fg(Color::Gray))
+        };
+
+        lines.push(Line::from(vec![
+            prefix,
+            marker_span,
+            chi_span,
+            time_span,
+            star_span,
+        ]));
     }
 
     Paragraph::new(lines)
