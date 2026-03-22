@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::layout::LayoutMode;
@@ -41,7 +41,9 @@ impl Widget for RiskWidget<'_> {
                 Span::raw("   "),
                 Span::styled("Chưa có dữ liệu rủi ro.", Style::default().fg(Color::Gray)),
             ]));
-            Paragraph::new(lines).render(inner, buf);
+            Paragraph::new(lines)
+                .wrap(Wrap { trim: true })
+                .render(inner, buf);
             return;
         }
 
@@ -78,7 +80,9 @@ impl Widget for RiskWidget<'_> {
             ]));
         }
 
-        Paragraph::new(lines).render(inner, buf);
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: true })
+            .render(inner, buf);
     }
 }
 

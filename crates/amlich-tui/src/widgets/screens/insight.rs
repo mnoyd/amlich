@@ -3,7 +3,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::widgets::{
@@ -138,7 +138,9 @@ fn render_scholar_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
         }
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_timing_summary(app: &AppState, area: Rect, target: Rect, buf: &mut Buffer) {
@@ -180,7 +182,9 @@ fn render_timing_summary(app: &AppState, area: Rect, target: Rect, buf: &mut Buf
         ]));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 
     let _ = area;
 }
@@ -219,5 +223,7 @@ fn render_layer_context(app: &AppState, area: Rect, buf: &mut Buffer) {
         ]));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }

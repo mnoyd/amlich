@@ -3,7 +3,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::{
@@ -130,7 +130,9 @@ fn render_tang_can(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
         lines.push(Line::from("  Chưa có dữ liệu"));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_xung_hop(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
@@ -184,7 +186,9 @@ fn render_xung_hop(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
         lines.push(Line::from("  Chưa có dữ liệu"));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_ten_gods(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
@@ -225,7 +229,9 @@ fn render_ten_gods(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
         lines.push(Line::from("  Chưa có dữ liệu"));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_element_relations(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
@@ -287,7 +293,9 @@ fn render_element_relations(bundle: &amlich_api::v2::DayBundleDto, area: Rect, b
         ]));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn element_relation(a: &str, b: &str) -> &'static str {

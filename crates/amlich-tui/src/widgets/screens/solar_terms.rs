@@ -3,7 +3,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::{layout::LayoutMode, state::AppState, widgets::tietkhi::TietKhiWidget};
@@ -100,7 +100,9 @@ fn render_seasonal_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
         ]));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_astronomy(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
@@ -146,7 +148,9 @@ fn render_astronomy(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut
         ]));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_agriculture(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
@@ -170,7 +174,9 @@ fn render_agriculture(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &m
             Span::styled(item.clone(), Style::default().fg(Color::Green)),
         ]));
     }
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_health(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
@@ -194,5 +200,7 @@ fn render_health(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Bu
             Span::styled(item.clone(), Style::default().fg(Color::Cyan)),
         ]));
     }
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }

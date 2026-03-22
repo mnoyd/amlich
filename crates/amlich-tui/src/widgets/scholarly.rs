@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::layout::LayoutMode;
@@ -50,7 +50,9 @@ impl<'a> ScholarlyWidget<'a> {
                     Style::default().fg(Color::Gray),
                 ),
             ]));
-            Paragraph::new(lines).render(inner, buf);
+            Paragraph::new(lines)
+                .wrap(Wrap { trim: true })
+                .render(inner, buf);
             return;
         };
 
@@ -87,7 +89,9 @@ impl<'a> ScholarlyWidget<'a> {
             }
         }
 
-        Paragraph::new(lines).render(inner, buf);
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: true })
+            .render(inner, buf);
     }
 }
 

@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::layout::LayoutMode;
@@ -45,7 +45,9 @@ impl Widget for TravelWidget<'_> {
                     Style::default().fg(Color::Gray),
                 ),
             ]));
-            Paragraph::new(lines).render(inner, buf);
+            Paragraph::new(lines)
+                .wrap(Wrap { trim: true })
+                .render(inner, buf);
             return;
         };
 
@@ -74,7 +76,9 @@ impl Widget for TravelWidget<'_> {
             ]));
         }
 
-        Paragraph::new(lines).render(inner, buf);
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: true })
+            .render(inner, buf);
     }
 }
 

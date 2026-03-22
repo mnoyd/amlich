@@ -3,7 +3,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::layout::LayoutMode;
@@ -130,7 +130,11 @@ impl Widget for ActionBoardWidget<'_> {
             }
         }
 
-        Paragraph::new(nen_lines).render(chunks[0], buf);
-        Paragraph::new(tranh_lines).render(chunks[1], buf);
+        Paragraph::new(nen_lines)
+            .wrap(Wrap { trim: true })
+            .render(chunks[0], buf);
+        Paragraph::new(tranh_lines)
+            .wrap(Wrap { trim: true })
+            .render(chunks[1], buf);
     }
 }

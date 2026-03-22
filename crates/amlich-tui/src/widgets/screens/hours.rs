@@ -3,7 +3,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::{layout::LayoutMode, state::AppState};
@@ -92,7 +92,9 @@ fn render_hours_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
         ]));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_top_windows(app: &AppState, area: Rect, buf: &mut Buffer) {
@@ -135,7 +137,9 @@ fn render_top_windows(app: &AppState, area: Rect, buf: &mut Buffer) {
         ]));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffer) {
@@ -238,5 +242,7 @@ fn render_hour_list(
         )));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }

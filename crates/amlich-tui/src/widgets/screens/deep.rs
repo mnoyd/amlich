@@ -3,7 +3,7 @@ use ratatui::{
     layout::Rect,
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::{layout::LayoutMode, state::AppState};
@@ -91,6 +91,8 @@ impl Widget for DeepScreenWidget<'_> {
             lines.push(Line::from("Chưa đủ dữ liệu để mở lớp phân tích sâu."));
         }
 
-        Paragraph::new(lines).render(inner, buf);
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: true })
+            .render(inner, buf);
     }
 }

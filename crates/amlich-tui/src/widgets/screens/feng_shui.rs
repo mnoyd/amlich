@@ -3,7 +3,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::{layout::LayoutMode, state::AppState, widgets::direction_panel::DirectionPanelWidget};
@@ -112,7 +112,9 @@ fn render_profile_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
         ]));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_scope_note(note: &str, area: Rect, buf: &mut Buffer) {
@@ -137,6 +139,7 @@ fn render_scope_note(note: &str, area: Rect, buf: &mut Buffer) {
             ),
         ]),
     ])
+    .wrap(Wrap { trim: true })
     .render(inner, buf);
 }
 
@@ -178,7 +181,9 @@ fn render_kua(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer)
         ]),
         Line::from(format!("  {}", tm.meaning.vi)),
     ];
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_directions(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
@@ -217,7 +222,9 @@ fn render_directions(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut 
         ]));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_dai_van(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
@@ -257,5 +264,7 @@ fn render_dai_van(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buf
         lines.push(Line::from(format!("  {}", current.element_meaning.vi)));
     }
 
-    Paragraph::new(lines).render(inner, buf);
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
