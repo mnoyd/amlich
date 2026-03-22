@@ -152,12 +152,17 @@ fn render_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffe
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
+    let col_w = 10usize;
+    let required_width = 1 + (col_w * gio.all_hours.len());
+    if inner.width as usize <= required_width {
+        render_compact_timeline(gio, inner, buf);
+        return;
+    }
 
     let mut chi_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
     let mut marker_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
     let mut star_spans: Vec<Span<'_>> = vec![Span::raw(" ")];
 
-    let col_w = 10;
     for hour in &gio.all_hours {
         let style = if hour.is_good {
             Style::default().fg(Color::Green)
@@ -188,6 +193,50 @@ fn render_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffe
         Line::from(star_spans),
     ])
     .render(inner, buf);
+}
+
+fn render_compact_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffer) {
+    let good_windows = gio
+        .all_hours
+        .iter()
+        .filter(|hour| hour.is_good)
+        .map(|hour| format!("{} ({})", hour.hour_chi, hour.time_range))
+        .collect::<Vec<_>>()
+        .join(", ");
+    let bad_windows = gio
+        .all_hours
+        .iter()
+        .filter(|hour| !hour.is_good)
+        .map(|hour| format!("{} ({})", hour.hour_chi, hour.time_range))
+        .collect::<Vec<_>>()
+        .join(", ");
+
+    let lines = vec![
+        Line::from(vec![
+            Span::styled("  Giờ tốt: ", Style::default().fg(Color::Green)),
+            Span::raw(good_windows),
+        ]),
+        Line::from(vec![
+            Span::styled("  Giờ xấu: ", Style::default().fg(Color::Red)),
+            Span::raw(bad_windows),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::raw("  "),
+            Span::styled(
+                format!(
+                    "Tổng: {}/{} giờ thuận",
+                    gio.good_hour_count,
+                    gio.all_hours.len()
+                ),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]),
+    ];
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(area, buf);
 }
 
 fn render_hour_list(
