@@ -153,13 +153,15 @@ fn render_timeline(
     area: Rect,
     buf: &mut Buffer,
 ) {
+    let context = hour_timeline_context(selected_date);
     let block = Block::default()
         .title(format!(
-            " Dòng Thời Gian 12 Giờ — {} giờ tốt ",
-            gio.good_hour_count
+            " Dòng Thời Gian 12 Giờ — {} giờ tốt · {} ",
+            gio.good_hour_count,
+            context.label()
         ))
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::DarkGray));
+        .border_style(Style::default().fg(context.border_color()));
     let inner = block.inner(area);
     block.render(area, buf);
 
@@ -302,10 +304,11 @@ fn render_combined_hour_list(
     area: Rect,
     buf: &mut Buffer,
 ) {
+    let context = hour_timeline_context(selected_date);
     let block = Block::default()
-        .title(" Chi Tiết Các Giờ ")
+        .title(format!(" Chi Tiết Các Giờ · {} ", context.label()))
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::DarkGray));
+        .border_style(Style::default().fg(context.border_color()));
     let inner = block.inner(area);
     block.render(area, buf);
 
@@ -397,6 +400,11 @@ fn current_hour_block_index(selected_date: NaiveDate) -> Option<u32> {
     current_hour_block_index_at(selected_date, now.naive_local().date(), now.hour())
 }
 
+fn hour_timeline_context(selected_date: NaiveDate) -> HourTimelineContext {
+    let today = Local::now().naive_local().date();
+    hour_timeline_context_at(selected_date, today)
+}
+
 fn current_hour_block_index_at(
     selected_date: NaiveDate,
     today: NaiveDate,
@@ -405,9 +413,39 @@ fn current_hour_block_index_at(
     (selected_date == today).then_some(((current_hour + 1) % 24) / 2)
 }
 
+fn hour_timeline_context_at(selected_date: NaiveDate, today: NaiveDate) -> HourTimelineContext {
+    if selected_date == today {
+        HourTimelineContext::Today
+    } else {
+        HourTimelineContext::OtherDay
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum HourTimelineContext {
+    Today,
+    OtherDay,
+}
+
+impl HourTimelineContext {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Today => "Hôm Nay",
+            Self::OtherDay => "Ngày Khác",
+        }
+    }
+
+    fn border_color(self) -> Color {
+        match self {
+            Self::Today => Color::Cyan,
+            Self::OtherDay => Color::DarkGray,
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::current_hour_block_index_at;
+    use super::{current_hour_block_index_at, hour_timeline_context_at, HourTimelineContext};
     use chrono::NaiveDate;
 
     #[test]
@@ -426,5 +464,20 @@ mod tests {
 
         assert_eq!(current_hour_block_index_at(future, today, 9), None);
         assert_eq!(current_hour_block_index_at(past, today, 9), None);
+    }
+
+    #[test]
+    fn distinguishes_today_from_other_days_for_chrome() {
+        let today = NaiveDate::from_ymd_opt(2026, 3, 23).expect("valid date");
+        let other_day = NaiveDate::from_ymd_opt(2026, 3, 25).expect("valid date");
+
+        assert_eq!(
+            hour_timeline_context_at(today, today),
+            HourTimelineContext::Today
+        );
+        assert_eq!(
+            hour_timeline_context_at(other_day, today),
+            HourTimelineContext::OtherDay
+        );
     }
 }
