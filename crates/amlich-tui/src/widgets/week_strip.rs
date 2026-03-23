@@ -30,72 +30,87 @@ impl<'a> WeekStripWidget<'a> {
     }
 }
 
+const WEEKDAY_NAMES: [&str; 7] = [
+    "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật",
+];
+
 impl Widget for WeekStripWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        if area.width < 14 || area.height < 2 {
+        if area.width < 32 || area.height < 2 {
             return;
         }
 
         let cells = build_week_strip_cells(self.app);
-        let chunks = Layout::horizontal([Constraint::Ratio(1, 7); 7]).split(area);
+        
+        let selected_idx = cells.iter().position(|c| c.is_selected).unwrap_or(0);
+        let mut constraints = vec![Constraint::Length(6); 7];
+        // The selected day absorbs all remaining horizontal space
+        constraints[selected_idx] = Constraint::Min(20);
+        
+        let chunks = Layout::horizontal(constraints).split(area);
 
         for (cell, chunk) in cells.into_iter().zip(chunks.iter().copied()) {
-            let weekday = WEEKDAY_LABELS[cell.date.weekday().num_days_from_monday() as usize];
+            let weekday_abbrev = WEEKDAY_LABELS[cell.date.weekday().num_days_from_monday() as usize];
             
-            let mut block_style = Style::default();
-            let mut weekday_style = Style::default().fg(Color::DarkGray);
-            let mut solar_style = Style::default().fg(Color::Gray).add_modifier(Modifier::BOLD);
-            let mut lunar_style = Style::default().fg(Color::DarkGray);
-
-            if cell.is_today {
-                solar_style = solar_style.add_modifier(Modifier::UNDERLINED);
-            }
-
             if cell.is_selected {
-                block_style = block_style.bg(Color::DarkGray);
-                weekday_style = weekday_style.fg(Color::Cyan).add_modifier(Modifier::BOLD);
-                solar_style = solar_style.fg(Color::White).add_modifier(Modifier::BOLD);
-                lunar_style = lunar_style.fg(Color::White);
-            }
+                let full_weekday = WEEKDAY_NAMES[cell.date.weekday().num_days_from_monday() as usize];
+                
+                let block = Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(ratatui::widgets::BorderType::Rounded)
+                    .border_style(Style::default().fg(Color::Cyan));
+                    
+                let inner = block.inner(chunk);
+                block.render(chunk, buf);
 
-            let mut lunar_line = cell.lunar_label;
-            if let Some(badge) = cell.quality_badge {
-                lunar_line.push(' ');
-                lunar_line.push_str(&badge);
-            }
+                let line1 = Line::from(Span::styled(
+                    format!("{}, Ngày {}", full_weekday, cell.solar_label),
+                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+                ));
+                
+                let mut lunar_details = format!("ÂL: {}", cell.lunar_label);
+                if let Some(badge) = cell.quality_badge {
+                    lunar_details.push_str(&format!(" ({})", badge));
+                }
+                
+                let line2 = Line::from(Span::styled(lunar_details, Style::default().fg(Color::Gray)));
 
-            let block = Block::default().style(block_style);
-            let inner = block.inner(chunk);
-            block.render(chunk, buf);
+                let y_offset = if inner.height > 2 { (inner.height - 2) / 2 } else { 0 };
+                let text_area = Rect {
+                    x: inner.x,
+                    y: inner.y + y_offset,
+                    width: inner.width,
+                    height: inner.height.saturating_sub(y_offset),
+                };
 
-            // Center contents vertically if we have extra height
-            let y_offset = if inner.height > 3 { (inner.height - 3) / 2 } else { 0 };
-            let text_area = Rect {
-                x: inner.x,
-                y: inner.y + y_offset,
-                width: inner.width,
-                height: inner.height.saturating_sub(y_offset),
-            };
-
-            let lines = if text_area.height >= 3 {
-                vec![
-                    Line::from(Span::styled(weekday.to_string(), weekday_style)),
-                    Line::from(Span::styled(cell.solar_label, solar_style)),
-                    Line::from(Span::styled(lunar_line, lunar_style)),
-                ]
+                Paragraph::new(vec![line1, line2])
+                    .alignment(Alignment::Center)
+                    .render(text_area, buf);
             } else {
-                vec![
-                    Line::from(Span::styled(weekday.to_string(), weekday_style)),
-                    Line::from(vec![
-                        Span::styled(format!("{} ", cell.solar_label), solar_style),
-                        Span::styled(lunar_line, lunar_style),
-                    ]),
-                ]
-            };
+                let weekday_style = Style::default().fg(Color::DarkGray);
+                let mut solar_style = Style::default().fg(Color::Gray).add_modifier(Modifier::BOLD);
 
-            Paragraph::new(lines)
-                .alignment(Alignment::Center)
-                .render(text_area, buf);
+                if cell.is_today {
+                    solar_style = solar_style.add_modifier(Modifier::UNDERLINED).fg(Color::White);
+                }
+
+                let y_offset = if chunk.height > 2 { (chunk.height - 2) / 2 } else { 0 };
+                let text_area = Rect {
+                    x: chunk.x,
+                    y: chunk.y + y_offset,
+                    width: chunk.width,
+                    height: chunk.height.saturating_sub(y_offset),
+                };
+
+                let lines = vec![
+                    Line::from(Span::styled(weekday_abbrev.to_string(), weekday_style)),
+                    Line::from(Span::styled(cell.solar_label, solar_style)),
+                ];
+
+                Paragraph::new(lines)
+                    .alignment(Alignment::Center)
+                    .render(text_area, buf);
+            }
         }
     }
 }
