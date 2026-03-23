@@ -32,35 +32,49 @@ impl<'a> WeekStripWidget<'a> {
 
 impl Widget for WeekStripWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        if area.width < 14 || area.height < 2 {
+        if area.width < 14 || area.height < 3 {
             return;
         }
 
-        let cells = build_week_strip_cells(self.app);
-        let chunks = Layout::horizontal([Constraint::Ratio(1, 7); 7]).split(area);
+        let outer_block = Block::default()
+            .borders(Borders::ALL)
+            .border_type(ratatui::widgets::BorderType::Rounded)
+            .border_style(Style::default().fg(Color::DarkGray));
+            
+        let inner_area = outer_block.inner(area);
+        outer_block.render(area, buf);
 
-        for (cell, chunk) in cells.into_iter().zip(chunks.iter().copied()) {
+        let cells = build_week_strip_cells(self.app);
+        let chunks = Layout::horizontal([Constraint::Ratio(1, 7); 7]).split(inner_area);
+
+        for (i, (cell, chunk)) in cells.into_iter().zip(chunks.iter().copied()).enumerate() {
             let weekday = WEEKDAY_LABELS[cell.date.weekday().num_days_from_monday() as usize];
             
+            let cell_borders = if i < 6 { Borders::RIGHT } else { Borders::NONE };
+            
+            let mut cell_bg = Color::Reset;
             let mut weekday_style = Style::default().fg(Color::DarkGray);
             let mut solar_style = Style::default().fg(Color::Gray).add_modifier(Modifier::BOLD);
             let mut lunar_style = Style::default().fg(Color::DarkGray);
-            
-            let mut block = Block::default();
 
             if cell.is_today {
                 solar_style = solar_style.add_modifier(Modifier::UNDERLINED);
             }
 
             if cell.is_selected {
+                cell_bg = Color::DarkGray;
                 weekday_style = weekday_style.fg(Color::Cyan).add_modifier(Modifier::BOLD);
-                solar_style = solar_style.fg(Color::White).add_modifier(Modifier::BOLD);
-                lunar_style = lunar_style.fg(Color::White);
-                
-                block = block
-                    .borders(Borders::TOP)
-                    .border_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD));
+                solar_style = solar_style.fg(Color::Cyan).add_modifier(Modifier::BOLD);
+                lunar_style = lunar_style.fg(Color::Gray);
             }
+
+            let block = Block::default()
+                .borders(cell_borders)
+                .border_style(Style::default().fg(Color::DarkGray))
+                .style(Style::default().bg(cell_bg));
+
+            let inner = block.inner(chunk);
+            block.render(chunk, buf);
 
             let mut lunar_line = cell.lunar_label;
             if let Some(badge) = cell.quality_badge {
@@ -68,19 +82,7 @@ impl Widget for WeekStripWidget<'_> {
                 lunar_line.push_str(&badge);
             }
 
-            let inner = block.inner(chunk);
-            block.render(chunk, buf);
-
-            // Center contents vertically if we have extra height
-            let y_offset = if inner.height > 3 { (inner.height - 3) / 2 } else { 0 };
-            let text_area = Rect {
-                x: inner.x,
-                y: inner.y + y_offset,
-                width: inner.width,
-                height: inner.height.saturating_sub(y_offset),
-            };
-
-            let lines = if text_area.height >= 3 {
+            let lines = if inner.height >= 3 {
                 vec![
                     Line::from(Span::styled(weekday.to_string(), weekday_style)),
                     Line::from(Span::styled(cell.solar_label, solar_style)),
@@ -94,6 +96,14 @@ impl Widget for WeekStripWidget<'_> {
                         Span::styled(lunar_line, lunar_style),
                     ]),
                 ]
+            };
+
+            let y_offset = if inner.height > 3 { (inner.height - 3) / 2 } else { 0 };
+            let text_area = Rect {
+                x: inner.x,
+                y: inner.y + y_offset,
+                width: inner.width,
+                height: inner.height.saturating_sub(y_offset),
             };
 
             Paragraph::new(lines)
