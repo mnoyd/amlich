@@ -55,25 +55,34 @@ impl Widget for WeekStripWidget<'_> {
             if cell.is_selected {
                 let full_weekday = WEEKDAY_NAMES[cell.date.weekday().num_days_from_monday() as usize];
                 
+                let block_style = Style::default().bg(Color::Cyan).fg(Color::Black);
                 let block = Block::default()
                     .borders(Borders::ALL)
                     .border_type(ratatui::widgets::BorderType::Rounded)
-                    .border_style(Style::default().fg(Color::Cyan));
+                    .border_style(block_style)
+                    .style(block_style);
                     
                 let inner = block.inner(chunk);
                 block.render(chunk, buf);
 
-                let line1 = Line::from(Span::styled(
-                    format!("{}, Ngày {}", full_weekday, cell.solar_label),
-                    Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
-                ));
+                let date_str = format!("{}/{}", cell.date.day(), cell.date.month());
                 
-                let mut lunar_details = format!("ÂL: {}", cell.lunar_label);
+                let mut title_spans = vec![
+                    Span::styled(format!("📅 {}, {} ", full_weekday, date_str), Style::default().add_modifier(Modifier::BOLD)),
+                ];
+                
+                if cell.is_today {
+                    title_spans.push(Span::styled("[Hôm nay]", Style::default().bg(Color::Yellow).fg(Color::Black).add_modifier(Modifier::BOLD)));
+                }
+
+                let line1 = Line::from(title_spans);
+                
+                let mut lunar_details = format!("🌙 ÂL: {}", cell.lunar_label);
                 if let Some(badge) = cell.quality_badge {
                     lunar_details.push_str(&format!(" ({})", badge));
                 }
                 
-                let line2 = Line::from(Span::styled(lunar_details, Style::default().fg(Color::Gray)));
+                let line2 = Line::from(Span::raw(lunar_details));
 
                 let y_offset = if inner.height > 2 { (inner.height - 2) / 2 } else { 0 };
                 let text_area = Rect {
@@ -87,11 +96,14 @@ impl Widget for WeekStripWidget<'_> {
                     .alignment(Alignment::Center)
                     .render(text_area, buf);
             } else {
-                let weekday_style = Style::default().fg(Color::DarkGray);
-                let mut solar_style = Style::default().fg(Color::Gray).add_modifier(Modifier::BOLD);
+                let mut weekday_style = Style::default().fg(Color::DarkGray);
+                let mut solar_style = Style::default().fg(Color::Gray);
 
                 if cell.is_today {
-                    solar_style = solar_style.add_modifier(Modifier::UNDERLINED).fg(Color::White);
+                    weekday_style = weekday_style.fg(Color::Yellow).add_modifier(Modifier::BOLD);
+                    solar_style = solar_style.fg(Color::Yellow).add_modifier(Modifier::BOLD);
+                } else {
+                    solar_style = solar_style.add_modifier(Modifier::BOLD);
                 }
 
                 let y_offset = if chunk.height > 2 { (chunk.height - 2) / 2 } else { 0 };
