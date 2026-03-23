@@ -1,7 +1,7 @@
 use chrono::{Datelike, Local, NaiveDate};
 use ratatui::{
     buffer::Buffer,
-    layout::Rect,
+    layout::{Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget},
@@ -44,7 +44,14 @@ impl Widget for CalendarViewWidget<'_> {
             return;
         }
 
-        let cell_width = (inner.width as usize / 7).max(6);
+        let (calendar_area, events_area) = if inner.width >= 60 {
+            let chunks = Layout::horizontal([Constraint::Length(45), Constraint::Min(15)]).split(inner);
+            (chunks[0], Some(chunks[1]))
+        } else {
+            (inner, None)
+        };
+
+        let cell_width = (calendar_area.width as usize / 7).max(6);
         let mut lines = vec![
             Line::from(Span::styled(
                 format!("Tháng {} năm {}", month, year),
@@ -77,6 +84,7 @@ impl Widget for CalendarViewWidget<'_> {
         let days_in_month = days_in_month(year, month);
 
         let mut day = 1u32;
+        let mut month_events: Vec<(u32, Vec<String>)> = Vec::new();
         for row in 0..6 {
             let mut solar_row = Vec::with_capacity(7);
             let mut lunar_row = Vec::with_capacity(7);
@@ -105,20 +113,23 @@ impl Widget for CalendarViewWidget<'_> {
                     style = style.fg(Color::Red);
                 }
                 if is_today {
-                    style = style.add_modifier(Modifier::BOLD);
-                }
-                if is_active && !is_cursor {
+                    if is_cursor {
+                        style = style.bg(Color::Cyan).fg(Color::Black).add_modifier(Modifier::BOLD);
+                    } else {
+                        style = style.bg(Color::Green).fg(Color::Black).add_modifier(Modifier::BOLD);
+                    }
+                } else if is_cursor {
+                    style = style.bg(Color::Cyan).fg(Color::Black).add_modifier(Modifier::BOLD);
+                } else if is_active {
                     style = style.add_modifier(Modifier::UNDERLINED);
                 }
-                if is_cursor {
-                    style = style
-                        .bg(Color::Cyan)
-                        .fg(Color::Black)
-                        .add_modifier(Modifier::BOLD);
+
+                let (lunar_label, events_today) = lunar_info_and_events(self.app, current);
+                if !events_today.is_empty() {
+                    month_events.push((day, events_today));
                 }
 
-                let lunar_label = lunar_label_for_date(self.app, current);
-                let lunar_style = if is_cursor {
+                let lunar_style = if is_cursor || is_today {
                     style
                 } else {
                     style.fg(Color::DarkGray)
@@ -148,17 +159,45 @@ impl Widget for CalendarViewWidget<'_> {
             Style::default().fg(Color::DarkGray),
         )));
 
-        Paragraph::new(lines).render(inner, buf);
+        Paragraph::new(lines).render(calendar_area, buf);
+
+        if let Some(area) = events_area {
+            let mut event_lines = vec![
+                Line::from(Span::styled(
+                    "Sự kiện trong tháng",
+                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+                )),
+                Line::from(""),
+            ];
+
+            if month_events.is_empty() {
+                event_lines.push(Line::from(Span::styled("Không có sự kiện", Style::default().fg(Color::DarkGray))));
+            } else {
+                for (d, evts) in month_events {
+                    event_lines.push(Line::from(vec![
+                        Span::styled(format!("Ngày {:02}: ", d), Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
+                        Span::styled(evts.join(", "), Style::default().fg(Color::Gray)),
+                    ]));
+                    event_lines.push(Line::from(""));
+                }
+            }
+
+            Paragraph::new(event_lines)
+                .wrap(ratatui::widgets::Wrap { trim: false })
+                .render(
+                    ratatui::layout::Rect {
+                        x: area.x + 2,
+                        y: area.y,
+                        width: area.width.saturating_sub(2),
+                        height: area.height,
+                    },
+                    buf,
+                );
+        }
     }
 }
 
-fn lunar_label_for_date(app: &AppState, date: NaiveDate) -> String {
-    if date == app.date {
-        if let Some(bundle) = app.bundle.as_ref() {
-            return format!("{}/{}", bundle.lunar.day, bundle.lunar.month);
-        }
-    }
-
+fn lunar_info_and_events(app: &AppState, date: NaiveDate) -> (String, Vec<String>) {
     let query = amlich_api::DateQuery {
         day: date.day() as i32,
         month: date.month() as i32,
@@ -169,9 +208,31 @@ fn lunar_label_for_date(app: &AppState, date: NaiveDate) -> String {
         enabled_pack_ids: Vec::new(),
     };
 
-    amlich_api::v2::convert_solar_to_lunar(&query)
-        .map(|lunar| format!("{}/{}", lunar.day, lunar.month))
-        .unwrap_or_else(|_| "--/--".to_string())
+    let mut events = Vec::new();
+    let label = if let Ok(insight) = amlich_api::v2::get_insight(&query) {
+        if insight.lunar.day == 1 || insight.lunar.day == 15 {
+            events.push(format!("Mùng {} âm lịch", insight.lunar.day));
+        }
+        if let Some(fest) = insight.festival {
+            events.extend(fest.names.vi);
+        }
+        if let Some(hol) = insight.holiday {
+            events.extend(hol.names.vi);
+        }
+        format!("{}/{}", insight.lunar.day, insight.lunar.month)
+    } else {
+        amlich_api::v2::convert_solar_to_lunar(&query)
+            .map(|lunar| format!("{}/{}", lunar.day, lunar.month))
+            .unwrap_or_else(|_| "--/--".to_string())
+    };
+
+    if date == app.date {
+        if let Some(bundle) = app.bundle.as_ref() {
+            return (format!("{}/{}", bundle.lunar.day, bundle.lunar.month), events);
+        }
+    }
+
+    (label, events)
 }
 
 fn days_in_month(year: i32, month: u32) -> u32 {
