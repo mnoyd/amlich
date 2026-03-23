@@ -44,8 +44,8 @@ impl Widget for CalendarViewWidget<'_> {
             return;
         }
 
-        let (calendar_area, events_area) = if inner.width >= 60 {
-            let chunks = Layout::horizontal([Constraint::Length(45), Constraint::Min(15)]).split(inner);
+        let (calendar_area, events_area) = if inner.height >= 26 {
+            let chunks = Layout::vertical([Constraint::Length(18), Constraint::Min(8)]).split(inner);
             (chunks[0], Some(chunks[1]))
         } else {
             (inner, None)
@@ -163,6 +163,7 @@ impl Widget for CalendarViewWidget<'_> {
 
         if let Some(area) = events_area {
             let mut event_lines = vec![
+                Line::from(""),
                 Line::from(Span::styled(
                     "Sự kiện trong tháng",
                     Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
@@ -171,10 +172,11 @@ impl Widget for CalendarViewWidget<'_> {
             ];
 
             if month_events.is_empty() {
-                event_lines.push(Line::from(Span::styled("Không có sự kiện", Style::default().fg(Color::DarkGray))));
+                event_lines.push(Line::from(Span::styled(" Không có sự kiện", Style::default().fg(Color::DarkGray))));
             } else {
                 for (d, evts) in month_events {
                     event_lines.push(Line::from(vec![
+                        Span::raw(" "),
                         Span::styled(format!("Ngày {:02}: ", d), Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
                         Span::styled(evts.join(", "), Style::default().fg(Color::Gray)),
                     ]));
@@ -184,15 +186,7 @@ impl Widget for CalendarViewWidget<'_> {
 
             Paragraph::new(event_lines)
                 .wrap(ratatui::widgets::Wrap { trim: false })
-                .render(
-                    ratatui::layout::Rect {
-                        x: area.x + 2,
-                        y: area.y,
-                        width: area.width.saturating_sub(2),
-                        height: area.height,
-                    },
-                    buf,
-                );
+                .render(area, buf);
         }
     }
 }
