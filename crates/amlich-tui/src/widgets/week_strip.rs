@@ -4,7 +4,7 @@ use ratatui::{
     layout::{Alignment, Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, BorderType, Borders, Paragraph, Widget},
 };
 
 use crate::state::AppState;
@@ -38,7 +38,7 @@ impl Widget for WeekStripWidget<'_> {
 
         let outer_block = Block::default()
             .borders(Borders::ALL)
-            .border_type(ratatui::widgets::BorderType::Rounded)
+            .border_type(BorderType::Rounded)
             .border_style(Style::default().fg(Color::DarkGray));
 
         let inner_area = outer_block.inner(area);
@@ -53,49 +53,76 @@ impl Widget for WeekStripWidget<'_> {
             let cell_borders = if i < 6 { Borders::RIGHT } else { Borders::NONE };
 
             let mut cell_bg = Color::Reset;
+            let mut cell_border_style = Style::default().fg(Color::DarkGray);
             let mut weekday_style = Style::default().fg(Color::DarkGray);
             let mut solar_style = Style::default()
-                .fg(Color::Gray)
+                .fg(Color::White)
                 .add_modifier(Modifier::BOLD);
-            let mut lunar_style = Style::default().fg(Color::DarkGray);
+            let mut lunar_style = Style::default().fg(Color::Gray);
 
             if cell.is_today {
                 solar_style = solar_style.add_modifier(Modifier::UNDERLINED);
             }
 
+            if cell.is_today {
+                weekday_style = weekday_style.fg(Color::Yellow).add_modifier(Modifier::BOLD);
+                lunar_style = lunar_style.fg(Color::White);
+            }
+
             if cell.is_selected {
-                cell_bg = Color::DarkGray;
+                cell_bg = Color::Rgb(32, 40, 52);
+                cell_border_style = Style::default().fg(Color::Cyan);
                 weekday_style = weekday_style.fg(Color::Cyan).add_modifier(Modifier::BOLD);
                 solar_style = solar_style.fg(Color::Cyan).add_modifier(Modifier::BOLD);
-                lunar_style = lunar_style.fg(Color::Gray);
+                lunar_style = lunar_style.fg(Color::White);
             }
 
             let block = Block::default()
                 .borders(cell_borders)
-                .border_style(Style::default().fg(Color::DarkGray))
+                .border_style(cell_border_style)
                 .style(Style::default().bg(cell_bg));
 
             let inner = block.inner(chunk);
             block.render(chunk, buf);
 
-            let mut lunar_line = cell.lunar_label;
-            if let Some(badge) = cell.quality_badge {
-                lunar_line.push(' ');
-                lunar_line.push_str(&badge);
-            }
+            let WeekStripCell {
+                solar_label,
+                lunar_label,
+                quality_badge,
+                is_selected,
+                ..
+            } = cell;
+
+            let weekday_line = Line::from(Span::styled(format!("• {weekday}"), weekday_style));
+
+            let solar_line = Line::from(Span::styled(solar_label.clone(), solar_style));
+
+            let lunar_line = match quality_badge {
+                Some(badge) => Line::from(vec![
+                    Span::styled(lunar_label.clone(), lunar_style),
+                    Span::raw(" "),
+                    Span::styled(
+                        badge,
+                        Style::default()
+                            .fg(if is_selected { Color::Cyan } else { Color::Yellow })
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                ]),
+                None => Line::from(Span::styled(lunar_label.clone(), lunar_style)),
+            };
 
             let lines = if inner.height >= 3 {
                 vec![
-                    Line::from(Span::styled(weekday.to_string(), weekday_style)),
-                    Line::from(Span::styled(cell.solar_label, solar_style)),
-                    Line::from(Span::styled(lunar_line, lunar_style)),
+                    weekday_line,
+                    solar_line,
+                    lunar_line,
                 ]
             } else {
                 vec![
-                    Line::from(Span::styled(weekday.to_string(), weekday_style)),
+                    weekday_line,
                     Line::from(vec![
-                        Span::styled(format!("{} ", cell.solar_label), solar_style),
-                        Span::styled(lunar_line, lunar_style),
+                        Span::styled(format!("{} · ", solar_label), solar_style),
+                        Span::styled(lunar_label, lunar_style),
                     ]),
                 ]
             };
