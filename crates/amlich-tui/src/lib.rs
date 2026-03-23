@@ -2,6 +2,7 @@ pub mod events;
 pub mod layout;
 pub mod state;
 pub mod theme;
+pub mod view_models;
 pub mod widgets;
 
 use chrono::NaiveDate;

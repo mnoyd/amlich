@@ -1,7 +1,9 @@
 pub mod action_board;
 pub mod almanac;
 pub mod battu;
+pub mod blocks;
 pub mod calendar;
+pub mod chrome;
 pub mod context;
 pub mod direction_panel;
 pub mod event_summary;
