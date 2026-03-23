@@ -12,6 +12,13 @@ use crate::state::AppState;
 
 const WEEKDAY_LABELS: [&str; 7] = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum EventCategory {
+    Holiday,
+    Festival,
+    Lunar,
+}
+
 pub struct CalendarViewWidget<'a> {
     app: &'a AppState,
     _mode: LayoutMode,
@@ -44,7 +51,10 @@ impl Widget for CalendarViewWidget<'_> {
             return;
         }
 
-        let (calendar_area, events_area) = if inner.height >= 26 {
+        let (calendar_area, events_area) = if inner.width >= 80 {
+            let chunks = Layout::horizontal([Constraint::Length(56), Constraint::Min(24)]).split(inner);
+            (chunks[0], Some(chunks[1]))
+        } else if inner.height >= 26 {
             let chunks = Layout::vertical([Constraint::Length(18), Constraint::Min(8)]).split(inner);
             (chunks[0], Some(chunks[1]))
         } else {
@@ -84,7 +94,9 @@ impl Widget for CalendarViewWidget<'_> {
         let days_in_month = days_in_month(year, month);
 
         let mut day = 1u32;
-        let mut month_events: Vec<(u32, Vec<String>)> = Vec::new();
+        let mut month_events: Vec<(u32, Vec<(EventCategory, String)>)> = Vec::new();
+        let mut cursor_events: Vec<(EventCategory, String)> = Vec::new();
+
         for row in 0..6 {
             let mut solar_row = Vec::with_capacity(7);
             let mut lunar_row = Vec::with_capacity(7);
@@ -125,9 +137,16 @@ impl Widget for CalendarViewWidget<'_> {
                 }
 
                 let (lunar_label, events_today) = lunar_info_and_events(self.app, current);
-                if !events_today.is_empty() {
-                    month_events.push((day, events_today));
+                if current == self.app.calendar_cursor {
+                    cursor_events = events_today.clone();
                 }
+
+                let display_lunar_label = if !events_today.is_empty() {
+                    month_events.push((day, events_today));
+                    format!("{} •", lunar_label)
+                } else {
+                    lunar_label
+                };
 
                 let lunar_style = if is_cursor || is_today {
                     style
@@ -140,7 +159,7 @@ impl Widget for CalendarViewWidget<'_> {
                     style,
                 ));
                 lunar_row.push(Span::styled(
-                    format!("{:^width$}", lunar_label, width = cell_width),
+                    format!("{:^width$}", display_lunar_label, width = cell_width),
                     lunar_style,
                 ));
                 day += 1;
@@ -163,22 +182,57 @@ impl Widget for CalendarViewWidget<'_> {
 
         if let Some(area) = events_area {
             let mut event_lines = vec![
-                Line::from(""),
-                Line::from(Span::styled(
-                    "Sự kiện trong tháng",
-                    Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
-                )),
-                Line::from(""),
+                Line::from(vec![
+                    Span::styled("📌 ", Style::default()),
+                    Span::styled(
+                        format!("Chi tiết Ngày {}", self.app.calendar_cursor.day()),
+                        Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD),
+                    ),
+                ])
             ];
+
+            if cursor_events.is_empty() {
+                event_lines.push(Line::from(Span::styled("  Không có sự kiện.", Style::default().fg(Color::DarkGray))));
+            } else {
+                for (cat, name) in &cursor_events {
+                    let (icon, color) = match cat {
+                        EventCategory::Holiday => ("🔴", Color::Red),
+                        EventCategory::Festival => ("🎉", Color::Magenta),
+                        EventCategory::Lunar => ("🌕", Color::Yellow),
+                    };
+                    event_lines.push(Line::from(vec![
+                        Span::raw("  "),
+                        Span::styled(*icon, Style::default().fg(color)),
+                        Span::raw(" "),
+                        Span::styled(name.clone(), Style::default().fg(Color::White)),
+                    ]));
+                }
+            }
+
+            event_lines.push(Line::from(""));
+            event_lines.push(Line::from(Span::styled(
+                "Sự kiện trong tháng",
+                Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD),
+            )));
+            event_lines.push(Line::from(""));
 
             if month_events.is_empty() {
                 event_lines.push(Line::from(Span::styled(" Không có sự kiện", Style::default().fg(Color::DarkGray))));
             } else {
                 for (d, evts) in month_events {
+                    let mut evt_texts = Vec::new();
+                    for (cat, name) in evts {
+                        let icon = match cat {
+                            EventCategory::Holiday => "🔴",
+                            EventCategory::Festival => "🎉",
+                            EventCategory::Lunar => "🌕",
+                        };
+                        evt_texts.push(format!("{} {}", icon, name));
+                    }
                     event_lines.push(Line::from(vec![
                         Span::raw(" "),
                         Span::styled(format!("Ngày {:02}: ", d), Style::default().fg(Color::White).add_modifier(Modifier::BOLD)),
-                        Span::styled(evts.join(", "), Style::default().fg(Color::Gray)),
+                        Span::styled(evt_texts.join(", "), Style::default().fg(Color::Gray)),
                     ]));
                     event_lines.push(Line::from(""));
                 }
@@ -186,12 +240,20 @@ impl Widget for CalendarViewWidget<'_> {
 
             Paragraph::new(event_lines)
                 .wrap(ratatui::widgets::Wrap { trim: false })
-                .render(area, buf);
+                .render(
+                    ratatui::layout::Rect {
+                        x: area.x + 2,
+                        y: area.y,
+                        width: area.width.saturating_sub(2),
+                        height: area.height,
+                    },
+                    buf,
+                );
         }
     }
 }
 
-fn lunar_info_and_events(app: &AppState, date: NaiveDate) -> (String, Vec<String>) {
+fn lunar_info_and_events(app: &AppState, date: NaiveDate) -> (String, Vec<(EventCategory, String)>) {
     let query = amlich_api::DateQuery {
         day: date.day() as i32,
         month: date.month() as i32,
@@ -205,13 +267,17 @@ fn lunar_info_and_events(app: &AppState, date: NaiveDate) -> (String, Vec<String
     let mut events = Vec::new();
     let label = if let Ok(insight) = amlich_api::v2::get_insight(&query) {
         if insight.lunar.day == 1 || insight.lunar.day == 15 {
-            events.push(format!("Mùng {} âm lịch", insight.lunar.day));
+            events.push((EventCategory::Lunar, format!("Mùng {} âm lịch", insight.lunar.day)));
         }
         if let Some(fest) = insight.festival {
-            events.extend(fest.names.vi);
+            for name in fest.names.vi {
+                events.push((EventCategory::Festival, name));
+            }
         }
         if let Some(hol) = insight.holiday {
-            events.extend(hol.names.vi);
+            for name in hol.names.vi {
+                events.push((EventCategory::Holiday, name));
+            }
         }
         format!("{}/{}", insight.lunar.day, insight.lunar.month)
     } else {
