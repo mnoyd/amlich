@@ -30,99 +30,75 @@ impl<'a> WeekStripWidget<'a> {
     }
 }
 
-const WEEKDAY_NAMES: [&str; 7] = [
-    "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy", "Chủ Nhật",
-];
-
 impl Widget for WeekStripWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        if area.width < 32 || area.height < 2 {
+        if area.width < 14 || area.height < 2 {
             return;
         }
 
         let cells = build_week_strip_cells(self.app);
-        
-        let selected_idx = cells.iter().position(|c| c.is_selected).unwrap_or(0);
-        let mut constraints = vec![Constraint::Length(6); 7];
-        // The selected day absorbs all remaining horizontal space
-        constraints[selected_idx] = Constraint::Min(20);
-        
-        let chunks = Layout::horizontal(constraints).split(area);
+        let chunks = Layout::horizontal([Constraint::Ratio(1, 7); 7]).split(area);
 
         for (cell, chunk) in cells.into_iter().zip(chunks.iter().copied()) {
-            let weekday_abbrev = WEEKDAY_LABELS[cell.date.weekday().num_days_from_monday() as usize];
+            let weekday = WEEKDAY_LABELS[cell.date.weekday().num_days_from_monday() as usize];
             
-            if cell.is_selected {
-                let full_weekday = WEEKDAY_NAMES[cell.date.weekday().num_days_from_monday() as usize];
-                
-                let block_style = Style::default().bg(Color::Cyan).fg(Color::Black);
-                let block = Block::default()
-                    .borders(Borders::ALL)
-                    .border_type(ratatui::widgets::BorderType::Rounded)
-                    .border_style(block_style)
-                    .style(block_style);
-                    
-                let inner = block.inner(chunk);
-                block.render(chunk, buf);
+            let mut weekday_style = Style::default().fg(Color::DarkGray);
+            let mut solar_style = Style::default().fg(Color::Gray).add_modifier(Modifier::BOLD);
+            let mut lunar_style = Style::default().fg(Color::DarkGray);
+            
+            let mut block = Block::default();
 
-                let date_str = format!("{}/{}", cell.date.day(), cell.date.month());
-                
-                let mut title_spans = vec![
-                    Span::styled(format!("📅 {}, {} ", full_weekday, date_str), Style::default().add_modifier(Modifier::BOLD)),
-                ];
-                
-                if cell.is_today {
-                    title_spans.push(Span::styled("[Hôm nay]", Style::default().bg(Color::Yellow).fg(Color::Black).add_modifier(Modifier::BOLD)));
-                }
-
-                let line1 = Line::from(title_spans);
-                
-                let mut lunar_details = format!("🌙 ÂL: {}", cell.lunar_label);
-                if let Some(badge) = cell.quality_badge {
-                    lunar_details.push_str(&format!(" ({})", badge));
-                }
-                
-                let line2 = Line::from(Span::raw(lunar_details));
-
-                let y_offset = if inner.height > 2 { (inner.height - 2) / 2 } else { 0 };
-                let text_area = Rect {
-                    x: inner.x,
-                    y: inner.y + y_offset,
-                    width: inner.width,
-                    height: inner.height.saturating_sub(y_offset),
-                };
-
-                Paragraph::new(vec![line1, line2])
-                    .alignment(Alignment::Center)
-                    .render(text_area, buf);
-            } else {
-                let mut weekday_style = Style::default().fg(Color::DarkGray);
-                let mut solar_style = Style::default().fg(Color::Gray);
-
-                if cell.is_today {
-                    weekday_style = weekday_style.fg(Color::Yellow).add_modifier(Modifier::BOLD);
-                    solar_style = solar_style.fg(Color::Yellow).add_modifier(Modifier::BOLD);
-                } else {
-                    solar_style = solar_style.add_modifier(Modifier::BOLD);
-                }
-
-                let y_offset = if chunk.height > 2 { (chunk.height - 2) / 2 } else { 0 };
-                let text_area = Rect {
-                    x: chunk.x,
-                    y: chunk.y + y_offset,
-                    width: chunk.width,
-                    height: chunk.height.saturating_sub(y_offset),
-                };
-
-                let lines = vec![
-                    Line::from(Span::styled(weekday_abbrev.to_string(), weekday_style)),
-                    Line::from(Span::styled(cell.solar_label, solar_style)),
-                ];
-
-                Paragraph::new(lines)
-                    .alignment(Alignment::Center)
-                    .render(text_area, buf);
+            if cell.is_today {
+                solar_style = solar_style.add_modifier(Modifier::UNDERLINED);
             }
+
+            if cell.is_selected {
+                weekday_style = weekday_style.fg(Color::Cyan).add_modifier(Modifier::BOLD);
+                solar_style = solar_style.fg(Color::White).add_modifier(Modifier::BOLD);
+                lunar_style = lunar_style.fg(Color::White);
+                
+                block = block
+                    .borders(Borders::TOP)
+                    .border_style(Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD));
+            }
+
+            let mut lunar_line = cell.lunar_label;
+            if let Some(badge) = cell.quality_badge {
+                lunar_line.push(' ');
+                lunar_line.push_str(&badge);
+            }
+
+            let inner = block.inner(chunk);
+            block.render(chunk, buf);
+
+            // Center contents vertically if we have extra height
+            let y_offset = if inner.height > 3 { (inner.height - 3) / 2 } else { 0 };
+            let text_area = Rect {
+                x: inner.x,
+                y: inner.y + y_offset,
+                width: inner.width,
+                height: inner.height.saturating_sub(y_offset),
+            };
+
+            let lines = if text_area.height >= 3 {
+                vec![
+                    Line::from(Span::styled(weekday.to_string(), weekday_style)),
+                    Line::from(Span::styled(cell.solar_label, solar_style)),
+                    Line::from(Span::styled(lunar_line, lunar_style)),
+                ]
+            } else {
+                vec![
+                    Line::from(Span::styled(weekday.to_string(), weekday_style)),
+                    Line::from(vec![
+                        Span::styled(format!("{} ", cell.solar_label), solar_style),
+                        Span::styled(lunar_line, lunar_style),
+                    ]),
+                ]
+            };
+
+            Paragraph::new(lines)
+                .alignment(Alignment::Center)
+                .render(text_area, buf);
         }
     }
 }
