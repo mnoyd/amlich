@@ -32,7 +32,7 @@ impl<'a> WeekStripWidget<'a> {
 
 impl Widget for WeekStripWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        if area.width < 28 || area.height < 4 {
+        if area.width < 14 || area.height < 2 {
             return;
         }
 
@@ -41,15 +41,21 @@ impl Widget for WeekStripWidget<'_> {
 
         for (cell, chunk) in cells.into_iter().zip(chunks.iter().copied()) {
             let weekday = WEEKDAY_LABELS[cell.date.weekday().num_days_from_monday() as usize];
-            let mut block_style = Style::default().fg(Color::DarkGray);
+            
+            let mut block_style = Style::default();
+            let mut weekday_style = Style::default().fg(Color::DarkGray);
+            let mut solar_style = Style::default().fg(Color::Gray).add_modifier(Modifier::BOLD);
+            let mut lunar_style = Style::default().fg(Color::DarkGray);
+
             if cell.is_today {
-                block_style = block_style.add_modifier(Modifier::UNDERLINED);
+                solar_style = solar_style.add_modifier(Modifier::UNDERLINED);
             }
+
             if cell.is_selected {
-                block_style = block_style
-                    .bg(Color::Cyan)
-                    .fg(Color::Black)
-                    .add_modifier(Modifier::BOLD);
+                block_style = block_style.bg(Color::DarkGray);
+                weekday_style = weekday_style.fg(Color::Cyan).add_modifier(Modifier::BOLD);
+                solar_style = solar_style.fg(Color::White).add_modifier(Modifier::BOLD);
+                lunar_style = lunar_style.fg(Color::White);
             }
 
             let mut lunar_line = cell.lunar_label;
@@ -58,16 +64,38 @@ impl Widget for WeekStripWidget<'_> {
                 lunar_line.push_str(&badge);
             }
 
-            let block = Block::default().borders(Borders::ALL).style(block_style);
+            let block = Block::default().style(block_style);
             let inner = block.inner(chunk);
             block.render(chunk, buf);
-            Paragraph::new(vec![
-                Line::from(Span::raw(weekday.to_string())),
-                Line::from(Span::raw(format!("{} {}", cell.solar_label, lunar_line))),
-            ])
-            .alignment(Alignment::Center)
-            .style(block_style)
-            .render(inner, buf);
+
+            // Center contents vertically if we have extra height
+            let y_offset = if inner.height > 3 { (inner.height - 3) / 2 } else { 0 };
+            let text_area = Rect {
+                x: inner.x,
+                y: inner.y + y_offset,
+                width: inner.width,
+                height: inner.height.saturating_sub(y_offset),
+            };
+
+            let lines = if text_area.height >= 3 {
+                vec![
+                    Line::from(Span::styled(weekday.to_string(), weekday_style)),
+                    Line::from(Span::styled(cell.solar_label, solar_style)),
+                    Line::from(Span::styled(lunar_line, lunar_style)),
+                ]
+            } else {
+                vec![
+                    Line::from(Span::styled(weekday.to_string(), weekday_style)),
+                    Line::from(vec![
+                        Span::styled(format!("{} ", cell.solar_label), solar_style),
+                        Span::styled(lunar_line, lunar_style),
+                    ]),
+                ]
+            };
+
+            Paragraph::new(lines)
+                .alignment(Alignment::Center)
+                .render(text_area, buf);
         }
     }
 }
