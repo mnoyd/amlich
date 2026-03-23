@@ -11,7 +11,7 @@ use crate::widgets::{
     guidance_panel::GuidancePanelWidget, inspection::InspectionWidget, risk::RiskWidget,
     scholarly::ScholarlyWidget, stars_panel::StarsPanelWidget,
 };
-use crate::{layout::LayoutMode, state::AppState};
+use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}};
 
 pub struct InsightScreenWidget<'a> {
     app: &'a AppState,
@@ -26,8 +26,8 @@ impl<'a> InsightScreenWidget<'a> {
 
 impl Widget for InsightScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        match self.mode {
-            LayoutMode::Large | LayoutMode::Medium => {
+        match (self.mode, self.app.active_verbosity()) {
+            (LayoutMode::Large | LayoutMode::Medium, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
                     Constraint::Length(7),
                     Constraint::Percentage(25),
@@ -61,7 +61,7 @@ impl Widget for InsightScreenWidget<'_> {
                 InspectionWidget::new(self.app, self.mode).render(rows[6], buf);
                 render_layer_context(self.app, rows[7], buf);
             }
-            LayoutMode::Small => {
+            (LayoutMode::Small, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
                     Constraint::Length(8),
                     Constraint::Min(12),
@@ -84,6 +84,44 @@ impl Widget for InsightScreenWidget<'_> {
                 ScholarlyWidget::new(self.app, self.mode).render(rows[6], buf);
                 StarsPanelWidget::new(self.app, self.mode).render(rows[7], buf);
                 InspectionWidget::new(self.app, self.mode).render(rows[8], buf);
+            }
+            (LayoutMode::Small, VerbosityMode::Compact) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(8),
+                    Constraint::Min(12),
+                    Constraint::Min(8),
+                    Constraint::Min(8),
+                    Constraint::Min(8),
+                ])
+                .split(area);
+
+                render_scholar_verdict(self.app, rows[0], buf);
+                GuidanceWidget::new(self.app, self.mode).render(rows[1], buf);
+                RiskWidget::new(self.app, self.mode).render(rows[2], buf);
+                render_timing_summary(self.app, rows[3], rows[3], buf);
+                DirectionPanelWidget::new(self.app, self.mode).render(rows[4], buf);
+            }
+            (_, VerbosityMode::Compact) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(7),
+                    Constraint::Percentage(30),
+                    Constraint::Percentage(18),
+                    Constraint::Length(9),
+                    Constraint::Min(10),
+                ])
+                .split(area);
+
+                render_scholar_verdict(self.app, rows[0], buf);
+                GuidanceWidget::new(self.app, self.mode).render(rows[1], buf);
+                RiskWidget::new(self.app, self.mode).render(rows[2], buf);
+
+                let application =
+                    Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+                        .split(rows[3]);
+                DirectionPanelWidget::new(self.app, self.mode).render(application[0], buf);
+                render_timing_summary(self.app, rows[3], application[1], buf);
+
+                GuidancePanelWidget::new(self.app, self.mode).render(rows[4], buf);
             }
         }
     }
