@@ -196,9 +196,9 @@ impl Widget for CalendarViewWidget<'_> {
             } else {
                 for (cat, name) in &cursor_events {
                     let (icon, color) = match cat {
-                        EventCategory::Holiday => ("🔴", Color::Red),
-                        EventCategory::Festival => ("🎉", Color::Magenta),
-                        EventCategory::Lunar => ("🌕", Color::Yellow),
+                        EventCategory::Holiday => ("✨", Color::Green),
+                        EventCategory::Festival => ("🏮", Color::LightMagenta),
+                        EventCategory::Lunar => ("🌙", Color::Cyan),
                     };
                     event_lines.push(Line::from(vec![
                         Span::raw("  "),
@@ -223,9 +223,9 @@ impl Widget for CalendarViewWidget<'_> {
                     let mut evt_texts = Vec::new();
                     for (cat, name) in evts {
                         let icon = match cat {
-                            EventCategory::Holiday => "🔴",
-                            EventCategory::Festival => "🎉",
-                            EventCategory::Lunar => "🌕",
+                            EventCategory::Holiday => "✨",
+                            EventCategory::Festival => "🏮",
+                            EventCategory::Lunar => "🌙",
                         };
                         evt_texts.push(format!("{} {}", icon, name));
                     }
