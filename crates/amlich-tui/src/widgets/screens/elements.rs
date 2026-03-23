@@ -8,7 +8,7 @@ use ratatui::{
 
 use crate::{
     layout::LayoutMode,
-    state::AppState,
+    state::{ui_prefs::VerbosityMode, AppState},
     widgets::{
         guidance_panel::GuidancePanelWidget, naam_panel::NaAmPanelWidget,
         scholarly::ScholarlyWidget,
@@ -33,8 +33,21 @@ impl Widget for ElementsScreenWidget<'_> {
             return;
         };
 
-        match self.mode {
-            LayoutMode::Large | LayoutMode::Medium => {
+        match (self.mode, self.app.active_verbosity()) {
+            (_, VerbosityMode::Compact) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(8),
+                    Constraint::Min(10),
+                    Constraint::Min(8),
+                    Constraint::Min(8),
+                ])
+                .split(area);
+                ScholarlyWidget::new(self.app, self.mode).render(rows[0], buf);
+                render_element_relations(bundle, rows[1], buf);
+                render_compact_element_notes(bundle, rows[2], buf);
+                GuidancePanelWidget::new(self.app, self.mode).render(rows[3], buf);
+            }
+            (LayoutMode::Large | LayoutMode::Medium, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
                     Constraint::Length(8),
                     Constraint::Length(10),
@@ -63,7 +76,7 @@ impl Widget for ElementsScreenWidget<'_> {
                 render_ten_gods(bundle, bottom[1], buf);
                 render_xung_hop(bundle, bottom[2], buf);
             }
-            LayoutMode::Small => {
+            (LayoutMode::Small, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
                     Constraint::Min(8),
                     Constraint::Min(10),
@@ -82,6 +95,60 @@ impl Widget for ElementsScreenWidget<'_> {
             }
         }
     }
+}
+
+fn render_compact_element_notes(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Điểm Chính / Ứng Dụng ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(insight) = &bundle.insight else {
+        Paragraph::new("  Chưa có dữ liệu").render(inner, buf);
+        return;
+    };
+
+    let mut lines: Vec<Line<'_>> = vec![];
+    if let Some(tg) = &insight.ten_gods {
+        if let Some(entry) = &tg.to_self {
+            lines.push(Line::from(vec![
+                Span::styled("  • Nhật chủ: ", Style::default().fg(Color::Cyan)),
+                Span::styled(entry.name.vi.clone(), Style::default().fg(Color::Yellow)),
+                Span::raw(format!(" · {}", entry.meaning.vi)),
+            ]));
+        }
+    }
+
+    if let Some(xh) = &insight.xung_hop {
+        lines.push(Line::from(vec![
+            Span::styled("  • Lục xung: ", Style::default().fg(Color::Red)),
+            Span::styled(xh.luc_xung.clone(), Style::default().fg(Color::White)),
+        ]));
+        if !xh.tam_hop.is_empty() {
+            lines.push(Line::from(vec![
+                Span::styled("  • Tam hợp: ", Style::default().fg(Color::Green)),
+                Span::styled(xh.tam_hop.join(" · "), Style::default().fg(Color::White)),
+            ]));
+        }
+    }
+
+    if let Some(note) = self_application_note(bundle) {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(note, Style::default().fg(Color::Yellow)),
+        ]));
+    }
+
+    if lines.is_empty() {
+        lines.push(Line::from("  Chưa có dữ liệu"));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_tang_can(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {

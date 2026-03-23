@@ -6,7 +6,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
-use crate::{layout::LayoutMode, state::AppState, widgets::tietkhi::TietKhiWidget};
+use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}, widgets::tietkhi::TietKhiWidget};
 
 pub struct SolarTermsScreenWidget<'a> {
     app: &'a AppState,
@@ -26,8 +26,19 @@ impl Widget for SolarTermsScreenWidget<'_> {
             return;
         };
 
-        match self.mode {
-            LayoutMode::Large | LayoutMode::Medium => {
+        match (self.mode, self.app.active_verbosity()) {
+            (_, VerbosityMode::Compact) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(7),
+                    Constraint::Length(9),
+                    Constraint::Min(14),
+                ])
+                .split(area);
+                render_seasonal_verdict(self.app, rows[0], buf);
+                TietKhiWidget::new(self.app, self.mode).render(rows[1], buf);
+                render_compact_seasonal_actions(bundle, rows[2], buf);
+            }
+            (LayoutMode::Large | LayoutMode::Medium, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
                     Constraint::Length(7),
                     Constraint::Length(9),
@@ -47,7 +58,7 @@ impl Widget for SolarTermsScreenWidget<'_> {
                 render_agriculture(bundle, bottom[1], buf);
                 render_health(bundle, bottom[2], buf);
             }
-            LayoutMode::Small => {
+            (LayoutMode::Small, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
                     Constraint::Length(7),
                     Constraint::Min(9),
@@ -64,6 +75,60 @@ impl Widget for SolarTermsScreenWidget<'_> {
             }
         }
     }
+}
+
+fn render_compact_seasonal_actions(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Nhịp Mùa / Ứng Dụng Nhanh ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(insight) = &bundle.insight else {
+        Paragraph::new("  Chưa có dữ liệu tiết khí.").render(inner, buf);
+        return;
+    };
+    let Some(tiet_khi) = &insight.tiet_khi else {
+        Paragraph::new("  Chưa có dữ liệu tiết khí.").render(inner, buf);
+        return;
+    };
+
+    let mut lines: Vec<Line<'_>> = vec![];
+    if let Some(current) = &bundle.tiet_khi {
+        lines.push(Line::from(vec![
+            Span::raw("  Kinh độ: "),
+            Span::styled(
+                format!("{:.1}°", current.current_longitude),
+                Style::default().fg(Color::Yellow),
+            ),
+        ]));
+    }
+
+    if let Some(item) = tiet_khi.agriculture.vi.first() {
+        lines.push(Line::from(vec![
+            Span::styled("  • Việc mùa: ", Style::default().fg(Color::Green)),
+            Span::styled(item.clone(), Style::default().fg(Color::White)),
+        ]));
+    }
+    if let Some(item) = tiet_khi.health.vi.first() {
+        lines.push(Line::from(vec![
+            Span::styled("  • Dưỡng sinh: ", Style::default().fg(Color::Cyan)),
+            Span::styled(item.clone(), Style::default().fg(Color::White)),
+        ]));
+    }
+    let weather = tiet_khi.weather.vi.trim();
+    if !weather.is_empty() {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![
+            Span::styled("  Thời khí: ", Style::default().fg(Color::Gray)),
+            Span::styled(weather.to_string(), Style::default().fg(Color::White)),
+        ]));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_seasonal_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
