@@ -68,6 +68,20 @@ impl Widget for StarsPanelWidget<'_> {
             }
         }
 
+        if self.app.show_evidence && !summary.source_notes.is_empty() {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled("Nguồn nền:", Style::default().fg(Color::DarkGray)),
+            ]));
+            for item in summary.source_notes.iter().take(3) {
+                lines.push(Line::from(vec![
+                    Span::raw("   ↳ "),
+                    Span::styled(item.clone(), Style::default().fg(Color::DarkGray)),
+                ]));
+            }
+        }
+
         Paragraph::new(lines)
             .wrap(Wrap { trim: true })
             .render(inner, buf);

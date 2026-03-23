@@ -113,6 +113,20 @@ impl Widget for InspectionWidget<'_> {
                 )),
             ]));
 
+            if let Some(ruleset) = self.app.ruleset_catalog.iter().find(|ruleset| {
+                ruleset.id == bundle.ruleset_id || ruleset.canonical_id == bundle.ruleset_id
+            }) {
+                for note in ruleset.source_notes.iter().take(3) {
+                    lines.push(Line::from(vec![
+                        Span::raw("  • "),
+                        Span::raw(format!(
+                            "source_note family={} · source={} · {}",
+                            note.family, note.source_id, note.note
+                        )),
+                    ]));
+                }
+            }
+
             for pack in active_packs {
                 lines.push(Line::from(vec![
                     Span::raw("  • "),

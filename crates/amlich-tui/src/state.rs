@@ -293,6 +293,7 @@ pub struct TraditionalEvidenceSummaryVm {
     pub positive_signals: Vec<String>,
     pub caution_signals: Vec<String>,
     pub provenance: Vec<String>,
+    pub source_notes: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1515,6 +1516,7 @@ impl AppState {
         let mut positive_signals = Vec::new();
         let mut caution_signals = Vec::new();
         let mut provenance = Vec::new();
+        let mut source_notes = Vec::new();
 
         if let Some(truc) = bundle
             .insight
@@ -1560,10 +1562,22 @@ impl AppState {
             }
         }
 
+        if let Some(ruleset) = self.ruleset_catalog.iter().find(|ruleset| {
+            bundle.ruleset_id == ruleset.id || bundle.ruleset_id == ruleset.canonical_id
+        }) {
+            for note in &ruleset.source_notes {
+                push_unique(
+                    &mut source_notes,
+                    format!("{} · {} · {}", note.family, note.source_id, note.note),
+                );
+            }
+        }
+
         if headline_parts.is_empty()
             && positive_signals.is_empty()
             && caution_signals.is_empty()
             && provenance.is_empty()
+            && source_notes.is_empty()
         {
             return None;
         }
@@ -1573,6 +1587,7 @@ impl AppState {
             positive_signals,
             caution_signals,
             provenance,
+            source_notes,
         })
     }
 

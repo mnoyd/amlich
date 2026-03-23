@@ -1,6 +1,10 @@
-use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
+use ratatui::{
+    buffer::Buffer,
+    layout::{Constraint, Layout, Rect},
+    widgets::Widget,
+};
 
-use crate::widgets::guidance::GuidanceWidget;
+use crate::widgets::{guidance::GuidanceWidget, guidance_panel::GuidancePanelWidget};
 use crate::{layout::LayoutMode, state::AppState};
 
 pub struct RecommendationsScreenWidget<'a> {
@@ -16,8 +20,9 @@ impl<'a> RecommendationsScreenWidget<'a> {
 
 impl Widget for RecommendationsScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        // Delegate fully to GuidanceWidget, but tell app to always expand
-        // actually we don't need to mutate app, we can just use GuidanceWidget
-        GuidanceWidget::new(self.app, self.mode).render(area, buf);
+        let rows =
+            Layout::vertical([Constraint::Percentage(70), Constraint::Percentage(30)]).split(area);
+        GuidanceWidget::new(self.app, self.mode).render(rows[0], buf);
+        GuidancePanelWidget::new(self.app, self.mode).render(rows[1], buf);
     }
 }

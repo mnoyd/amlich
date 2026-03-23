@@ -7,8 +7,9 @@ use ratatui::{
 };
 
 use crate::widgets::{
-    direction_panel::DirectionPanelWidget, guidance::GuidanceWidget, inspection::InspectionWidget,
-    risk::RiskWidget, scholarly::ScholarlyWidget, stars_panel::StarsPanelWidget,
+    direction_panel::DirectionPanelWidget, guidance::GuidanceWidget,
+    guidance_panel::GuidancePanelWidget, inspection::InspectionWidget, risk::RiskWidget,
+    scholarly::ScholarlyWidget, stars_panel::StarsPanelWidget,
 };
 use crate::{layout::LayoutMode, state::AppState};
 
@@ -32,8 +33,9 @@ impl Widget for InsightScreenWidget<'_> {
                     Constraint::Percentage(25),
                     Constraint::Percentage(15),
                     Constraint::Length(9),
-                    Constraint::Percentage(18),
-                    Constraint::Percentage(17),
+                    Constraint::Length(9),
+                    Constraint::Percentage(16),
+                    Constraint::Percentage(14),
                     Constraint::Min(7),
                 ])
                 .split(area);
@@ -48,14 +50,16 @@ impl Widget for InsightScreenWidget<'_> {
                 DirectionPanelWidget::new(self.app, self.mode).render(application[0], buf);
                 render_timing_summary(self.app, rows[3], application[1], buf);
 
+                GuidancePanelWidget::new(self.app, self.mode).render(rows[4], buf);
+
                 let interpretation =
                     Layout::horizontal([Constraint::Percentage(52), Constraint::Percentage(48)])
-                        .split(rows[4]);
+                        .split(rows[5]);
                 ScholarlyWidget::new(self.app, self.mode).render(interpretation[0], buf);
                 StarsPanelWidget::new(self.app, self.mode).render(interpretation[1], buf);
 
-                InspectionWidget::new(self.app, self.mode).render(rows[5], buf);
-                render_layer_context(self.app, rows[6], buf);
+                InspectionWidget::new(self.app, self.mode).render(rows[6], buf);
+                render_layer_context(self.app, rows[7], buf);
             }
             LayoutMode::Small => {
                 let rows = Layout::vertical([
@@ -66,6 +70,7 @@ impl Widget for InsightScreenWidget<'_> {
                     Constraint::Min(8),
                     Constraint::Min(9),
                     Constraint::Min(8),
+                    Constraint::Min(8),
                     Constraint::Min(7),
                 ])
                 .split(area);
@@ -75,9 +80,10 @@ impl Widget for InsightScreenWidget<'_> {
                 RiskWidget::new(self.app, self.mode).render(rows[2], buf);
                 DirectionPanelWidget::new(self.app, self.mode).render(rows[3], buf);
                 render_timing_summary(self.app, rows[4], rows[4], buf);
-                ScholarlyWidget::new(self.app, self.mode).render(rows[5], buf);
-                StarsPanelWidget::new(self.app, self.mode).render(rows[6], buf);
-                InspectionWidget::new(self.app, self.mode).render(rows[7], buf);
+                GuidancePanelWidget::new(self.app, self.mode).render(rows[5], buf);
+                ScholarlyWidget::new(self.app, self.mode).render(rows[6], buf);
+                StarsPanelWidget::new(self.app, self.mode).render(rows[7], buf);
+                InspectionWidget::new(self.app, self.mode).render(rows[8], buf);
             }
         }
     }
