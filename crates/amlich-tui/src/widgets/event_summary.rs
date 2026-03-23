@@ -139,6 +139,15 @@ impl Widget for EventSummaryWidget<'_> {
                             .add_modifier(Modifier::BOLD),
                     ),
                 ]));
+                for event in bundle.upcoming_events.iter().skip(1).take(2) {
+                    lines.push(Line::from(vec![
+                        Span::styled("  • ", Style::default().fg(Color::DarkGray)),
+                        Span::styled(
+                            format!("{} ngày nữa: {}", event.days_left, event.name),
+                            Style::default().fg(Color::Gray),
+                        ),
+                    ]));
+                }
             } else {
                 lines.push(Line::from(Span::styled(
                     "Không có sự kiện đặc biệt hôm nay.",

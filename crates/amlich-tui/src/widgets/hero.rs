@@ -68,6 +68,7 @@ impl Widget for HeroWidget<'_> {
             let events_str = bundle
                 .upcoming_events
                 .iter()
+                .take(3)
                 .map(|e| format!("[{} ngày] {}", e.days_left, e.name))
                 .collect::<Vec<_>>()
                 .join(" • ");

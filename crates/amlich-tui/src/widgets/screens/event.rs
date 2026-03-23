@@ -43,6 +43,18 @@ impl Widget for EventScreenWidget<'_> {
                     festival.names.vi.join(" / "),
                     Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
                 )]));
+                lines.push(Line::from(vec![
+                    Span::styled("Phân loại: ", Style::default().fg(Color::Yellow)),
+                    Span::raw(format!(
+                        "{}{}",
+                        festival.category,
+                        if festival.is_major {
+                            " · lễ lớn"
+                        } else {
+                            ""
+                        }
+                    )),
+                ]));
                 lines.push(Line::from(""));
 
                 if let Some(origin) = &festival.origin {
@@ -65,6 +77,20 @@ impl Widget for EventScreenWidget<'_> {
                     lines.push(Line::from(""));
                 }
 
+                if !festival.food.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        "Ẩm thực / Lễ vật:",
+                        Style::default().fg(Color::Yellow),
+                    )));
+                    for food in festival.food.iter().take(3) {
+                        lines.push(Line::from(format!(
+                            "• {}: {}",
+                            food.name.vi, food.description.vi
+                        )));
+                    }
+                    lines.push(Line::from(""));
+                }
+
                 if !festival.taboos.is_empty() {
                     lines.push(Line::from(Span::styled(
                         "Kiêng kỵ:",
@@ -78,12 +104,46 @@ impl Widget for EventScreenWidget<'_> {
                     }
                     lines.push(Line::from(""));
                 }
+
+                if !festival.proverbs.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        "Câu truyền tụng:",
+                        Style::default().fg(Color::Cyan),
+                    )));
+                    for proverb in festival.proverbs.iter().take(2) {
+                        lines.push(Line::from(format!("• {}", proverb.text)));
+                        lines.push(Line::from(format!("  {}", proverb.meaning.vi)));
+                    }
+                    lines.push(Line::from(""));
+                }
+
+                if let Some(regions) = &festival.regions {
+                    lines.push(Line::from(Span::styled(
+                        "Sắc thái vùng miền:",
+                        Style::default().fg(Color::Magenta),
+                    )));
+                    lines.push(Line::from(format!("• Bắc: {}", regions.north.vi)));
+                    lines.push(Line::from(format!("• Trung: {}", regions.central.vi)));
+                    lines.push(Line::from(format!("• Nam: {}", regions.south.vi)));
+                }
             } else if let Some(holiday) = &insight.holiday {
                 has_event = true;
                 lines.push(Line::from(vec![Span::styled(
                     holiday.names.vi.join(" / "),
                     Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
                 )]));
+                lines.push(Line::from(vec![
+                    Span::styled("Phân loại: ", Style::default().fg(Color::Yellow)),
+                    Span::raw(format!(
+                        "{}{}",
+                        holiday.category,
+                        if holiday.is_major {
+                            " · ngày lớn"
+                        } else {
+                            ""
+                        }
+                    )),
+                ]));
                 lines.push(Line::from(""));
 
                 if let Some(origin) = &holiday.origin {
@@ -92,6 +152,15 @@ impl Widget for EventScreenWidget<'_> {
                         Style::default().fg(Color::Cyan),
                     )));
                     lines.push(Line::from(origin.vi.clone()));
+                    lines.push(Line::from(""));
+                }
+
+                if let Some(significance) = &holiday.significance {
+                    lines.push(Line::from(Span::styled(
+                        "Ý nghĩa xã hội:",
+                        Style::default().fg(Color::Cyan),
+                    )));
+                    lines.push(Line::from(significance.vi.clone()));
                     lines.push(Line::from(""));
                 }
 
@@ -104,6 +173,67 @@ impl Widget for EventScreenWidget<'_> {
                         lines.push(Line::from(format!("• {}", act)));
                     }
                     lines.push(Line::from(""));
+                }
+
+                if let Some(traditions) = &holiday.traditions {
+                    lines.push(Line::from(Span::styled(
+                        "Tập tục / Truyền thống:",
+                        Style::default().fg(Color::Yellow),
+                    )));
+                    for item in traditions.vi.iter().take(4) {
+                        lines.push(Line::from(format!("• {}", item)));
+                    }
+                    lines.push(Line::from(""));
+                }
+
+                if !holiday.food.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        "Ẩm thực / Biểu trưng:",
+                        Style::default().fg(Color::Yellow),
+                    )));
+                    for food in holiday.food.iter().take(3) {
+                        lines.push(Line::from(format!(
+                            "• {}: {}",
+                            food.name.vi, food.description.vi
+                        )));
+                    }
+                    lines.push(Line::from(""));
+                }
+
+                if !holiday.taboos.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        "Điều nên kiêng:",
+                        Style::default().fg(Color::LightRed),
+                    )));
+                    for taboo in holiday.taboos.iter().take(3) {
+                        lines.push(Line::from(format!(
+                            "• {}: {}",
+                            taboo.action.vi, taboo.reason.vi
+                        )));
+                    }
+                    lines.push(Line::from(""));
+                }
+
+                if !holiday.proverbs.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        "Câu truyền tụng:",
+                        Style::default().fg(Color::Cyan),
+                    )));
+                    for proverb in holiday.proverbs.iter().take(2) {
+                        lines.push(Line::from(format!("• {}", proverb.text)));
+                        lines.push(Line::from(format!("  {}", proverb.meaning.vi)));
+                    }
+                    lines.push(Line::from(""));
+                }
+
+                if let Some(regions) = &holiday.regions {
+                    lines.push(Line::from(Span::styled(
+                        "Khác biệt vùng miền:",
+                        Style::default().fg(Color::Magenta),
+                    )));
+                    lines.push(Line::from(format!("• Bắc: {}", regions.north.vi)));
+                    lines.push(Line::from(format!("• Trung: {}", regions.central.vi)));
+                    lines.push(Line::from(format!("• Nam: {}", regions.south.vi)));
                 }
             }
         }

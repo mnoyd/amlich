@@ -40,7 +40,7 @@ impl Widget for WeekStripWidget<'_> {
             .borders(Borders::ALL)
             .border_type(ratatui::widgets::BorderType::Rounded)
             .border_style(Style::default().fg(Color::DarkGray));
-            
+
         let inner_area = outer_block.inner(area);
         outer_block.render(area, buf);
 
@@ -49,12 +49,14 @@ impl Widget for WeekStripWidget<'_> {
 
         for (i, (cell, chunk)) in cells.into_iter().zip(chunks.iter().copied()).enumerate() {
             let weekday = WEEKDAY_LABELS[cell.date.weekday().num_days_from_monday() as usize];
-            
+
             let cell_borders = if i < 6 { Borders::RIGHT } else { Borders::NONE };
-            
+
             let mut cell_bg = Color::Reset;
             let mut weekday_style = Style::default().fg(Color::DarkGray);
-            let mut solar_style = Style::default().fg(Color::Gray).add_modifier(Modifier::BOLD);
+            let mut solar_style = Style::default()
+                .fg(Color::Gray)
+                .add_modifier(Modifier::BOLD);
             let mut lunar_style = Style::default().fg(Color::DarkGray);
 
             if cell.is_today {
@@ -98,7 +100,11 @@ impl Widget for WeekStripWidget<'_> {
                 ]
             };
 
-            let y_offset = if inner.height > 3 { (inner.height - 3) / 2 } else { 0 };
+            let y_offset = if inner.height > 3 {
+                (inner.height - 3) / 2
+            } else {
+                0
+            };
             let text_area = Rect {
                 x: inner.x,
                 y: inner.y + y_offset,
