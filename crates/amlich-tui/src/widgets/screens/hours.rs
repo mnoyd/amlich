@@ -1,3 +1,4 @@
+use chrono::{Local, NaiveDate, Timelike};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -5,7 +6,6 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
-use chrono::Timelike;
 
 use crate::{layout::LayoutMode, state::AppState};
 
@@ -46,9 +46,9 @@ impl Widget for HoursScreenWidget<'_> {
 
         render_hours_verdict(self.app, rows[0], buf);
         render_top_windows(self.app, rows[1], buf);
-        
+
         if !matches!(self.mode, LayoutMode::Small) {
-            render_timeline(gio, rows[2], buf);
+            render_timeline(gio, self.app.date, rows[2], buf);
         }
 
         match self.mode {
@@ -60,7 +60,7 @@ impl Widget for HoursScreenWidget<'_> {
                 render_hour_list(&gio.all_hours, false, cols[1], buf);
             }
             LayoutMode::Small => {
-                render_combined_hour_list(&gio.all_hours, rows[3], buf);
+                render_combined_hour_list(&gio.all_hours, self.app.date, rows[3], buf);
             }
         }
     }
@@ -147,7 +147,12 @@ fn render_top_windows(app: &AppState, area: Rect, buf: &mut Buffer) {
         .render(inner, buf);
 }
 
-fn render_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffer) {
+fn render_timeline(
+    gio: &amlich_api::GioHoangDaoDto,
+    selected_date: NaiveDate,
+    area: Rect,
+    buf: &mut Buffer,
+) {
     let block = Block::default()
         .title(format!(
             " Dòng Thời Gian 12 Giờ — {} giờ tốt ",
@@ -157,24 +162,30 @@ fn render_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffe
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
     block.render(area, buf);
-    
-    render_block_timeline(gio, inner, buf);
+
+    render_block_timeline(gio, selected_date, inner, buf);
 }
 
-fn render_block_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut Buffer) {
-    let current_hour = chrono::Local::now().hour();
-    let current_idx = ((current_hour + 1) % 24) / 2;
+fn render_block_timeline(
+    gio: &amlich_api::GioHoangDaoDto,
+    selected_date: NaiveDate,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let current_idx = current_hour_block_index(selected_date);
 
-    let hour_chunks = Layout::horizontal(
-        std::iter::repeat(Constraint::Ratio(1, 12)).take(12)
-    )
-    .split(area);
+    let hour_chunks =
+        Layout::horizontal(std::iter::repeat(Constraint::Ratio(1, 12)).take(12)).split(area);
 
     for (i, hour) in gio.all_hours.iter().enumerate() {
-        let is_current = i as u32 == current_idx;
-        let is_past = (i as u32) < current_idx;
+        let is_current = current_idx == Some(i as u32);
+        let is_past = current_idx.is_some_and(|idx| (i as u32) < idx);
 
-        let base_color = if hour.is_good { Color::Green } else { Color::Red };
+        let base_color = if hour.is_good {
+            Color::Green
+        } else {
+            Color::Red
+        };
         let mut style = Style::default().fg(base_color);
         if is_past && !is_current {
             style = style.fg(Color::DarkGray);
@@ -182,7 +193,13 @@ fn render_block_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut
 
         let chi = Span::styled(
             hour.hour_chi.clone(),
-            if is_current { Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD) } else { Style::default().fg(Color::Gray) }
+            if is_current {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::Gray)
+            },
         );
 
         let width = hour_chunks[i].width as usize;
@@ -191,7 +208,12 @@ fn render_block_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut
         let bar = Span::styled(bar_text, style);
 
         let indicator = if is_current {
-            Span::styled("▲", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
+            Span::styled(
+                "▲",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )
         } else {
             Span::raw(" ")
         };
@@ -201,12 +223,19 @@ fn render_block_timeline(gio: &amlich_api::GioHoangDaoDto, area: Rect, buf: &mut
             Constraint::Length(1), // Bar
             Constraint::Length(1), // Indicator
             Constraint::Min(0),
-        ]).split(hour_chunks[i]);
+        ])
+        .split(hour_chunks[i]);
 
         use ratatui::layout::Alignment;
-        Paragraph::new(chi).alignment(Alignment::Center).render(chunk_layout[0], buf);
-        Paragraph::new(bar).alignment(Alignment::Center).render(chunk_layout[1], buf);
-        Paragraph::new(indicator).alignment(Alignment::Center).render(chunk_layout[2], buf);
+        Paragraph::new(chi)
+            .alignment(Alignment::Center)
+            .render(chunk_layout[0], buf);
+        Paragraph::new(bar)
+            .alignment(Alignment::Center)
+            .render(chunk_layout[1], buf);
+        Paragraph::new(indicator)
+            .alignment(Alignment::Center)
+            .render(chunk_layout[2], buf);
     }
 }
 
@@ -269,6 +298,7 @@ fn render_hour_list(
 
 fn render_combined_hour_list(
     all_hours: &[amlich_api::HourInfoDto],
+    selected_date: NaiveDate,
     area: Rect,
     buf: &mut Buffer,
 ) {
@@ -279,14 +309,13 @@ fn render_combined_hour_list(
     let inner = block.inner(area);
     block.render(area, buf);
 
-    let current_hour = chrono::Local::now().hour();
-    let current_idx = ((current_hour + 1) % 24) / 2;
+    let current_idx = current_hour_block_index(selected_date);
 
     let mut lines: Vec<Line<'_>> = vec![];
 
     for (i, hour) in all_hours.iter().enumerate() {
-        let is_current = i as u32 == current_idx;
-        let is_past = (i as u32) < current_idx;
+        let is_current = current_idx == Some(i as u32);
+        let is_past = current_idx.is_some_and(|idx| (i as u32) < idx);
 
         let (marker, base_color) = if hour.is_good {
             ("★", Color::Green)
@@ -296,7 +325,12 @@ fn render_combined_hour_list(
 
         // Construct prefix
         let prefix = if is_current {
-            Span::styled(">> ", Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))
+            Span::styled(
+                ">> ",
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            )
         } else {
             Span::raw("   ")
         };
@@ -308,20 +342,38 @@ fn render_combined_hour_list(
         };
 
         let chi_span = if is_current {
-            Span::styled(format!("{:<6}", hour.hour_chi), Style::default().fg(Color::White).add_modifier(Modifier::BOLD))
+            Span::styled(
+                format!("{:<6}", hour.hour_chi),
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            )
         } else if is_past {
-            Span::styled(format!("{:<6}", hour.hour_chi), Style::default().fg(Color::DarkGray))
+            Span::styled(
+                format!("{:<6}", hour.hour_chi),
+                Style::default().fg(Color::DarkGray),
+            )
         } else {
-            Span::styled(format!("{:<6}", hour.hour_chi), Style::default().fg(Color::White))
+            Span::styled(
+                format!("{:<6}", hour.hour_chi),
+                Style::default().fg(Color::White),
+            )
         };
 
         let time_span = Span::styled(
             format!("({}) ", hour.time_range),
-            if is_current { Style::default().fg(Color::Gray) } else { Style::default().fg(Color::DarkGray) }
+            if is_current {
+                Style::default().fg(Color::Gray)
+            } else {
+                Style::default().fg(Color::DarkGray)
+            },
         );
 
         let star_span = if is_past {
-            Span::styled(format!("· {}", hour.star), Style::default().fg(Color::DarkGray))
+            Span::styled(
+                format!("· {}", hour.star),
+                Style::default().fg(Color::DarkGray),
+            )
         } else {
             Span::styled(format!("· {}", hour.star), Style::default().fg(Color::Gray))
         };
@@ -338,4 +390,41 @@ fn render_combined_hour_list(
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })
         .render(inner, buf);
+}
+
+fn current_hour_block_index(selected_date: NaiveDate) -> Option<u32> {
+    let now = Local::now();
+    current_hour_block_index_at(selected_date, now.naive_local().date(), now.hour())
+}
+
+fn current_hour_block_index_at(
+    selected_date: NaiveDate,
+    today: NaiveDate,
+    current_hour: u32,
+) -> Option<u32> {
+    (selected_date == today).then_some(((current_hour + 1) % 24) / 2)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::current_hour_block_index_at;
+    use chrono::NaiveDate;
+
+    #[test]
+    fn returns_current_block_for_today_only() {
+        let today = NaiveDate::from_ymd_opt(2026, 3, 23).expect("valid date");
+
+        assert_eq!(current_hour_block_index_at(today, today, 9), Some(5));
+        assert_eq!(current_hour_block_index_at(today, today, 23), Some(0));
+    }
+
+    #[test]
+    fn suppresses_current_block_for_non_today_dates() {
+        let today = NaiveDate::from_ymd_opt(2026, 3, 23).expect("valid date");
+        let future = NaiveDate::from_ymd_opt(2026, 3, 25).expect("valid date");
+        let past = NaiveDate::from_ymd_opt(2026, 3, 21).expect("valid date");
+
+        assert_eq!(current_hour_block_index_at(future, today, 9), None);
+        assert_eq!(current_hour_block_index_at(past, today, 9), None);
+    }
 }
