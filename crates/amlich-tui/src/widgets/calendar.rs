@@ -202,7 +202,7 @@ impl Widget for CalendarViewWidget<'_> {
                     };
                     event_lines.push(Line::from(vec![
                         Span::raw("  "),
-                        Span::styled(*icon, Style::default().fg(color)),
+                        Span::styled(icon, Style::default().fg(color)),
                         Span::raw(" "),
                         Span::styled(name.clone(), Style::default().fg(Color::White)),
                     ]));
