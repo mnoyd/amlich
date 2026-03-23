@@ -6,7 +6,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
-use crate::{layout::LayoutMode, state::AppState};
+use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}};
 
 pub struct EventScreenWidget<'a> {
     app: &'a AppState,
@@ -33,6 +33,7 @@ impl Widget for EventScreenWidget<'_> {
         block.render(area, buf);
 
         let mut lines = vec![];
+        let compact = matches!(self.app.active_verbosity(), VerbosityMode::Compact);
 
         let mut has_event = false;
 
@@ -58,26 +59,36 @@ impl Widget for EventScreenWidget<'_> {
                 lines.push(Line::from(""));
 
                 if let Some(origin) = &festival.origin {
+                    if compact {
+                        lines.push(Line::from(Span::styled(
+                            "Ý nghĩa:",
+                            Style::default().fg(Color::Cyan),
+                        )));
+                        lines.push(Line::from(first_sentence(&origin.vi)));
+                        lines.push(Line::from(""));
+                    } else {
                     lines.push(Line::from(Span::styled(
                         "Nguồn gốc & Ý nghĩa:",
                         Style::default().fg(Color::Cyan),
                     )));
                     lines.push(Line::from(origin.vi.clone()));
                     lines.push(Line::from(""));
+                    }
                 }
 
                 if let Some(activities) = &festival.activities {
+                    let limit = if compact { 2 } else { activities.vi.len() };
                     lines.push(Line::from(Span::styled(
                         "Nên làm:",
                         Style::default().fg(Color::Green),
                     )));
-                    for act in &activities.vi {
+                    for act in activities.vi.iter().take(limit) {
                         lines.push(Line::from(format!("• {}", act)));
                     }
                     lines.push(Line::from(""));
                 }
 
-                if !festival.food.is_empty() {
+                if !compact && !festival.food.is_empty() {
                     lines.push(Line::from(Span::styled(
                         "Ẩm thực / Lễ vật:",
                         Style::default().fg(Color::Yellow),
@@ -92,11 +103,12 @@ impl Widget for EventScreenWidget<'_> {
                 }
 
                 if !festival.taboos.is_empty() {
+                    let limit = if compact { 2 } else { festival.taboos.len() };
                     lines.push(Line::from(Span::styled(
                         "Kiêng kỵ:",
                         Style::default().fg(Color::LightRed),
                     )));
-                    for taboo in &festival.taboos {
+                    for taboo in festival.taboos.iter().take(limit) {
                         lines.push(Line::from(format!(
                             "• {}: {}",
                             taboo.action.vi, taboo.reason.vi
@@ -105,7 +117,7 @@ impl Widget for EventScreenWidget<'_> {
                     lines.push(Line::from(""));
                 }
 
-                if !festival.proverbs.is_empty() {
+                if !compact && !festival.proverbs.is_empty() {
                     lines.push(Line::from(Span::styled(
                         "Câu truyền tụng:",
                         Style::default().fg(Color::Cyan),
@@ -117,6 +129,7 @@ impl Widget for EventScreenWidget<'_> {
                     lines.push(Line::from(""));
                 }
 
+                if !compact {
                 if let Some(regions) = &festival.regions {
                     lines.push(Line::from(Span::styled(
                         "Sắc thái vùng miền:",
@@ -125,6 +138,7 @@ impl Widget for EventScreenWidget<'_> {
                     lines.push(Line::from(format!("• Bắc: {}", regions.north.vi)));
                     lines.push(Line::from(format!("• Trung: {}", regions.central.vi)));
                     lines.push(Line::from(format!("• Nam: {}", regions.south.vi)));
+                }
                 }
             } else if let Some(holiday) = &insight.holiday {
                 has_event = true;
@@ -147,14 +161,24 @@ impl Widget for EventScreenWidget<'_> {
                 lines.push(Line::from(""));
 
                 if let Some(origin) = &holiday.origin {
+                    if compact {
+                        lines.push(Line::from(Span::styled(
+                            "Ý nghĩa:",
+                            Style::default().fg(Color::Cyan),
+                        )));
+                        lines.push(Line::from(first_sentence(&origin.vi)));
+                        lines.push(Line::from(""));
+                    } else {
                     lines.push(Line::from(Span::styled(
                         "Nguồn gốc & Ý nghĩa:",
                         Style::default().fg(Color::Cyan),
                     )));
                     lines.push(Line::from(origin.vi.clone()));
                     lines.push(Line::from(""));
+                    }
                 }
 
+                if !compact {
                 if let Some(significance) = &holiday.significance {
                     lines.push(Line::from(Span::styled(
                         "Ý nghĩa xã hội:",
@@ -163,18 +187,21 @@ impl Widget for EventScreenWidget<'_> {
                     lines.push(Line::from(significance.vi.clone()));
                     lines.push(Line::from(""));
                 }
+                }
 
                 if let Some(activities) = &holiday.activities {
+                    let limit = if compact { 2 } else { activities.vi.len() };
                     lines.push(Line::from(Span::styled(
                         "Nên làm:",
                         Style::default().fg(Color::Green),
                     )));
-                    for act in &activities.vi {
+                    for act in activities.vi.iter().take(limit) {
                         lines.push(Line::from(format!("• {}", act)));
                     }
                     lines.push(Line::from(""));
                 }
 
+                if !compact {
                 if let Some(traditions) = &holiday.traditions {
                     lines.push(Line::from(Span::styled(
                         "Tập tục / Truyền thống:",
@@ -185,8 +212,9 @@ impl Widget for EventScreenWidget<'_> {
                     }
                     lines.push(Line::from(""));
                 }
+                }
 
-                if !holiday.food.is_empty() {
+                if !compact && !holiday.food.is_empty() {
                     lines.push(Line::from(Span::styled(
                         "Ẩm thực / Biểu trưng:",
                         Style::default().fg(Color::Yellow),
@@ -201,11 +229,12 @@ impl Widget for EventScreenWidget<'_> {
                 }
 
                 if !holiday.taboos.is_empty() {
+                    let limit = if compact { 2 } else { holiday.taboos.len() };
                     lines.push(Line::from(Span::styled(
                         "Điều nên kiêng:",
                         Style::default().fg(Color::LightRed),
                     )));
-                    for taboo in holiday.taboos.iter().take(3) {
+                    for taboo in holiday.taboos.iter().take(limit) {
                         lines.push(Line::from(format!(
                             "• {}: {}",
                             taboo.action.vi, taboo.reason.vi
@@ -214,7 +243,7 @@ impl Widget for EventScreenWidget<'_> {
                     lines.push(Line::from(""));
                 }
 
-                if !holiday.proverbs.is_empty() {
+                if !compact && !holiday.proverbs.is_empty() {
                     lines.push(Line::from(Span::styled(
                         "Câu truyền tụng:",
                         Style::default().fg(Color::Cyan),
@@ -226,6 +255,7 @@ impl Widget for EventScreenWidget<'_> {
                     lines.push(Line::from(""));
                 }
 
+                if !compact {
                 if let Some(regions) = &holiday.regions {
                     lines.push(Line::from(Span::styled(
                         "Khác biệt vùng miền:",
@@ -234,6 +264,7 @@ impl Widget for EventScreenWidget<'_> {
                     lines.push(Line::from(format!("• Bắc: {}", regions.north.vi)));
                     lines.push(Line::from(format!("• Trung: {}", regions.central.vi)));
                     lines.push(Line::from(format!("• Nam: {}", regions.south.vi)));
+                }
                 }
             }
         }
@@ -270,4 +301,12 @@ impl Widget for EventScreenWidget<'_> {
             .wrap(Wrap { trim: true })
             .render(inner, buf);
     }
+}
+
+fn first_sentence(text: &str) -> String {
+    text.split_terminator(['.', '!', '?', '\n'])
+        .next()
+        .unwrap_or(text)
+        .trim()
+        .to_string()
 }

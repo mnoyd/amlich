@@ -6,7 +6,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
-use crate::{layout::LayoutMode, state::AppState, widgets::direction_panel::DirectionPanelWidget};
+use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}, widgets::direction_panel::DirectionPanelWidget};
 
 pub struct FengShuiScreenWidget<'a> {
     app: &'a AppState,
@@ -35,7 +35,34 @@ impl Widget for FengShuiScreenWidget<'_> {
             .profile_availability_summary()
             .expect("bundle exists for feng shui");
 
-        if profile.has_personal_overlay {
+        match (profile.has_personal_overlay, self.app.active_verbosity(), self.mode) {
+            (true, VerbosityMode::Compact, LayoutMode::Small) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(6),
+                    Constraint::Length(9),
+                    Constraint::Min(10),
+                ])
+                .split(area);
+                render_profile_verdict(self.app, rows[0], buf);
+                render_kua(insight, rows[1], buf);
+                render_directions(insight, rows[2], buf);
+            }
+            (true, VerbosityMode::Compact, _) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(6),
+                    Constraint::Length(9),
+                    Constraint::Min(10),
+                ])
+                .split(area);
+                render_profile_verdict(self.app, rows[0], buf);
+                let middle =
+                    Layout::horizontal([Constraint::Percentage(45), Constraint::Percentage(55)])
+                        .split(rows[1]);
+                DirectionPanelWidget::new(self.app, self.mode).render(middle[0], buf);
+                render_kua(insight, middle[1], buf);
+                render_directions(insight, rows[2], buf);
+            }
+            (true, VerbosityMode::Verbose, _) => {
             let rows = Layout::vertical([
                 Constraint::Length(6),
                 Constraint::Length(9),
@@ -74,7 +101,8 @@ impl Widget for FengShuiScreenWidget<'_> {
                     render_dai_van_timeline(insight, bottom[2], buf);
                 }
             }
-        } else {
+            }
+            (false, _, _) => {
             let rows = Layout::vertical([
                 Constraint::Length(6),
                 Constraint::Min(9),
@@ -84,6 +112,7 @@ impl Widget for FengShuiScreenWidget<'_> {
             render_profile_verdict(self.app, rows[0], buf);
             DirectionPanelWidget::new(self.app, self.mode).render(rows[1], buf);
             render_scope_note(&profile.note, rows[2], buf);
+            }
         }
     }
 }
