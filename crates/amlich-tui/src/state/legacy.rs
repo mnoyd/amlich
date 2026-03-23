@@ -4,6 +4,8 @@ use amlich_api::v2::{DayBundleDto, Include};
 use amlich_api::{RecommendationBucketDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto};
 use chrono::{Datelike, Local, NaiveDate};
 
+use super::ui_prefs::VerbosityMode;
+
 const DEFAULT_EVENT_KIND: &str = "default";
 const EVENT_KIND_OPTIONS: [&str; 4] = [
     DEFAULT_EVENT_KIND,
@@ -355,6 +357,7 @@ pub struct AppState {
     pub show_tietkhi_details: bool,
     pub show_evidence: bool,
     pub show_week_strip: bool,
+    pub verbosity: VerbosityMode,
     pub active_view: ActiveView,
     pub view_history: Vec<ActiveView>,
     pub app_mode: AppMode,
@@ -393,6 +396,7 @@ impl AppState {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            verbosity: VerbosityMode::Compact,
             active_view: ActiveView::Dashboard,
             view_history: Vec::new(),
             app_mode: AppMode::Normal,
@@ -1214,6 +1218,7 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             active_view: ActiveView::Dashboard,
             view_history: Vec::new(),
             app_mode: AppMode::Normal,

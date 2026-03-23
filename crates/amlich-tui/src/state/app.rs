@@ -5,3 +5,15 @@ pub use super::legacy::{
     RecommendationRowVm, RiskSummaryVm, ScholarRiskBoardVm, ScholarTimingSummaryVm,
     ScholarVerdictSupportVm, SeasonalVerdictVm, TraditionalEvidenceSummaryVm,
 };
+
+use super::ui_prefs::VerbosityMode;
+
+impl AppState {
+    pub fn active_verbosity(&self) -> VerbosityMode {
+        self.verbosity
+    }
+
+    pub fn toggle_verbosity(&mut self) {
+        self.verbosity = self.verbosity.toggle();
+    }
+}

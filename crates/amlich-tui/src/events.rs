@@ -231,6 +231,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             }
         }
         KeyCode::Char('e') => app.toggle_evidence(),
+        KeyCode::Char('v') => app.toggle_verbosity(),
         KeyCode::Char('m') => app.open_calendar_view(),
         KeyCode::Char('w') => app.toggle_week_strip(),
         KeyCode::Char('o') => app.toggle_context_modal(),
@@ -303,6 +304,7 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             focused_section: PageSection::Explorer,
             zoomed_section: None,
             expanded_sections: Default::default(),

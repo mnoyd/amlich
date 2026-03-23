@@ -9,7 +9,7 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
-use crate::{layout::LayoutMode, state::AppState};
+use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}};
 
 pub struct HoursScreenWidget<'a> {
     app: &'a AppState,
@@ -33,39 +33,65 @@ impl Widget for HoursScreenWidget<'_> {
             return;
         };
 
-        let timeline_height = match self.mode {
-            LayoutMode::Small => Constraint::Length(0), // Hide horizontal timeline completely on thin screens
-            _ => Constraint::Length(6),
-        };
+        match (self.mode, self.app.active_verbosity()) {
+            (LayoutMode::Small, VerbosityMode::Compact) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(6),
+                    Constraint::Length(8),
+                    Constraint::Min(10),
+                ])
+                .split(area);
 
-        let rows = Layout::vertical([
-            Constraint::Length(6),
-            Constraint::Length(8),
-            timeline_height,
-            Constraint::Length(8),
-            Constraint::Min(10),
-        ])
-        .split(area);
+                render_hours_verdict(self.app, rows[0], buf);
+                render_top_windows(self.app, rows[1], buf);
+                render_combined_hour_list(&gio.all_hours, self.app.date, rows[2], buf);
+            }
+            (LayoutMode::Small, VerbosityMode::Verbose) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(6),
+                    Constraint::Length(8),
+                    Constraint::Length(8),
+                    Constraint::Min(10),
+                ])
+                .split(area);
 
-        render_hours_verdict(self.app, rows[0], buf);
-        render_top_windows(self.app, rows[1], buf);
+                render_hours_verdict(self.app, rows[0], buf);
+                render_top_windows(self.app, rows[1], buf);
+                render_hour_pillar_detail(self.app, rows[2], buf);
+                render_combined_hour_list(&gio.all_hours, self.app.date, rows[3], buf);
+            }
+            (_, VerbosityMode::Compact) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(6),
+                    Constraint::Length(8),
+                    Constraint::Min(10),
+                ])
+                .split(area);
 
-        if !matches!(self.mode, LayoutMode::Small) {
-            render_timeline(gio, self.app.date, rows[2], buf);
-        }
+                render_hours_verdict(self.app, rows[0], buf);
+                render_top_windows(self.app, rows[1], buf);
+                render_combined_hour_list(&gio.all_hours, self.app.date, rows[2], buf);
+            }
+            (_, VerbosityMode::Verbose) => {
+                let rows = Layout::vertical([
+                    Constraint::Length(6),
+                    Constraint::Length(8),
+                    Constraint::Length(6),
+                    Constraint::Length(8),
+                    Constraint::Min(10),
+                ])
+                .split(area);
 
-        render_hour_pillar_detail(self.app, rows[3], buf);
+                render_hours_verdict(self.app, rows[0], buf);
+                render_top_windows(self.app, rows[1], buf);
+                render_timeline(gio, self.app.date, rows[2], buf);
+                render_hour_pillar_detail(self.app, rows[3], buf);
 
-        match self.mode {
-            LayoutMode::Large | LayoutMode::Medium => {
                 let cols =
                     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                         .split(rows[4]);
                 render_hour_list(&gio.all_hours, true, cols[0], buf);
                 render_hour_list(&gio.all_hours, false, cols[1], buf);
-            }
-            LayoutMode::Small => {
-                render_combined_hour_list(&gio.all_hours, self.app.date, rows[4], buf);
             }
         }
     }

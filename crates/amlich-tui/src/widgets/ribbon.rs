@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::layout::LayoutMode;
-use crate::state::AppState;
+use crate::state::{ui_prefs::VerbosityMode, AppState};
 #[cfg(test)]
 use amlich_api::{RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto};
 use chrono::Datelike;
@@ -94,8 +94,14 @@ impl Widget for RibbonWidget<'_> {
         }
 
         let mut all_spans = view_spans;
+        let verbosity_label = match self.app.active_verbosity() {
+            VerbosityMode::Compact => "Compact",
+            VerbosityMode::Verbose => "Verbose",
+        };
         all_spans.push(Span::styled(
-            "| Tab: màn  1-8: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp",
+            format!(
+                "| v: {verbosity_label}  Tab: màn  1-8: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp"
+            ),
             Style::default().fg(Color::DarkGray),
         ));
 
@@ -195,6 +201,7 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             focused_section: PageSection::Recommendations,
             zoomed_section: None,
             expanded_sections: Default::default(),

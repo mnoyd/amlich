@@ -277,6 +277,7 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             focused_section: PageSection::Risks,
             zoomed_section: None,
             expanded_sections: Default::default(),
