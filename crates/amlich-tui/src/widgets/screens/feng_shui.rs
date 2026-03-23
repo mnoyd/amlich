@@ -39,7 +39,7 @@ impl Widget for FengShuiScreenWidget<'_> {
             let rows = Layout::vertical([
                 Constraint::Length(6),
                 Constraint::Length(9),
-                Constraint::Min(12),
+                Constraint::Min(16),
             ])
             .split(area);
             render_profile_verdict(self.app, rows[0], buf);
@@ -53,19 +53,25 @@ impl Widget for FengShuiScreenWidget<'_> {
             match self.mode {
                 LayoutMode::Large | LayoutMode::Medium => {
                     let bottom = Layout::horizontal([
-                        Constraint::Percentage(50),
-                        Constraint::Percentage(50),
+                        Constraint::Percentage(34),
+                        Constraint::Percentage(33),
+                        Constraint::Percentage(33),
                     ])
                     .split(rows[2]);
                     render_directions(insight, bottom[0], buf);
                     render_dai_van(insight, bottom[1], buf);
+                    render_dai_van_timeline(insight, bottom[2], buf);
                 }
                 LayoutMode::Small => {
-                    let bottom =
-                        Layout::vertical([Constraint::Percentage(45), Constraint::Percentage(55)])
-                            .split(rows[2]);
+                    let bottom = Layout::vertical([
+                        Constraint::Percentage(30),
+                        Constraint::Percentage(35),
+                        Constraint::Percentage(35),
+                    ])
+                    .split(rows[2]);
                     render_directions(insight, bottom[0], buf);
                     render_dai_van(insight, bottom[1], buf);
+                    render_dai_van_timeline(insight, bottom[2], buf);
                 }
             }
         } else {
@@ -246,6 +252,11 @@ fn render_dai_van(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buf
         Span::styled(&dv.direction, Style::default().fg(Color::Yellow)),
     ]));
     lines.push(Line::from(format!("  {}", dv.direction_meaning.vi)));
+    lines.push(Line::from(vec![
+        Span::raw("  Khởi vận: "),
+        Span::styled(&dv.start_age, Style::default().fg(Color::Cyan)),
+    ]));
+    lines.push(Line::from(format!("  {}", dv.phases_meaning.vi)));
 
     if let Some(current) = &dv.current_pillar {
         lines.push(Line::from(""));
@@ -262,6 +273,45 @@ fn render_dai_van(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buf
             ),
         ]));
         lines.push(Line::from(format!("  {}", current.element_meaning.vi)));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_dai_van_timeline(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Các Vận Kế Tiếp ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(dv) = &insight.dai_van else {
+        Paragraph::new("  Chưa có timeline đại vận.").render(inner, buf);
+        return;
+    };
+
+    let mut lines: Vec<Line<'_>> = vec![];
+    for pillar in dv.all_pillars.iter().take(4) {
+        lines.push(Line::from(vec![
+            Span::styled("  • ", Style::default().fg(Color::Yellow)),
+            Span::styled(
+                format!("{}", pillar.can_chi),
+                Style::default()
+                    .fg(Color::White)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(format!(" · {}-{} tuổi", pillar.start_age, pillar.end_age)),
+        ]));
+        lines.push(Line::from(vec![
+            Span::raw("    "),
+            Span::styled(
+                format!("{} · {}", pillar.element, pillar.element_meaning.vi),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]));
     }
 
     Paragraph::new(lines)

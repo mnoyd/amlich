@@ -9,7 +9,10 @@ use ratatui::{
 use crate::{
     layout::LayoutMode,
     state::AppState,
-    widgets::{naam_panel::NaAmPanelWidget, scholarly::ScholarlyWidget},
+    widgets::{
+        guidance_panel::GuidancePanelWidget, naam_panel::NaAmPanelWidget,
+        scholarly::ScholarlyWidget,
+    },
 };
 
 pub struct ElementsScreenWidget<'a> {
@@ -35,6 +38,7 @@ impl Widget for ElementsScreenWidget<'_> {
                 let rows = Layout::vertical([
                     Constraint::Length(8),
                     Constraint::Length(10),
+                    Constraint::Length(9),
                     Constraint::Min(12),
                 ])
                 .split(area);
@@ -47,12 +51,14 @@ impl Widget for ElementsScreenWidget<'_> {
                 NaAmPanelWidget::new(self.app, self.mode).render(middle[0], buf);
                 render_element_relations(bundle, middle[1], buf);
 
+                GuidancePanelWidget::new(self.app, self.mode).render(rows[2], buf);
+
                 let bottom = Layout::horizontal([
                     Constraint::Percentage(34),
                     Constraint::Percentage(33),
                     Constraint::Percentage(33),
                 ])
-                .split(rows[2]);
+                .split(rows[3]);
                 render_tang_can(bundle, bottom[0], buf);
                 render_ten_gods(bundle, bottom[1], buf);
                 render_xung_hop(bundle, bottom[2], buf);
@@ -64,13 +70,15 @@ impl Widget for ElementsScreenWidget<'_> {
                     Constraint::Min(8),
                     Constraint::Min(8),
                     Constraint::Min(8),
+                    Constraint::Min(8),
                 ])
                 .split(area);
                 ScholarlyWidget::new(self.app, self.mode).render(rows[0], buf);
                 NaAmPanelWidget::new(self.app, self.mode).render(rows[1], buf);
                 render_element_relations(bundle, rows[2], buf);
-                render_tang_can(bundle, rows[3], buf);
-                render_xung_hop(bundle, rows[4], buf);
+                GuidancePanelWidget::new(self.app, self.mode).render(rows[3], buf);
+                render_tang_can(bundle, rows[4], buf);
+                render_xung_hop(bundle, rows[5], buf);
             }
         }
     }
@@ -114,14 +122,18 @@ fn render_tang_can(bundle: &amlich_api::v2::DayBundleDto, area: Rect, buf: &mut 
             lines.push(Line::from(vec![
                 Span::raw("  Bản thân: "),
                 Span::styled(&entry.name.vi, Style::default().fg(Color::Cyan)),
-                Span::raw(format!(" · {}", entry.meaning.vi)),
+                Span::raw(format!(" · {} · {}", entry.relation, entry.meaning.vi)),
             ]));
+            lines.push(Line::from(format!(
+                "  Đồng cực tính: {}",
+                if entry.same_polarity { "có" } else { "không" }
+            )));
         }
         if let Some(entry) = &tg.to_year_stem {
             lines.push(Line::from(vec![
                 Span::raw("  Với năm sinh: "),
                 Span::styled(&entry.name.vi, Style::default().fg(Color::Cyan)),
-                Span::raw(format!(" · {}", entry.meaning.vi)),
+                Span::raw(format!(" · {} · {}", entry.relation, entry.meaning.vi)),
             ]));
         }
     }
@@ -282,6 +294,47 @@ fn render_element_relations(bundle: &amlich_api::v2::DayBundleDto, area: Rect, b
             ),
         ]),
     ];
+
+    if let Some(insight) = &bundle.insight {
+        if let Some(canchi_insight) = &insight.canchi {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::raw("  Nghĩa can: "),
+                Span::styled(
+                    &canchi_insight.can.meaning.vi,
+                    Style::default().fg(Color::White),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("  Tính chất can: "),
+                Span::styled(
+                    &canchi_insight.can.nature.vi,
+                    Style::default().fg(Color::Gray),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("  Nghĩa chi: "),
+                Span::styled(
+                    &canchi_insight.chi.meaning.vi,
+                    Style::default().fg(Color::White),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("  Giờ ứng chi: "),
+                Span::styled(
+                    &canchi_insight.chi.hours,
+                    Style::default().fg(Color::DarkGray),
+                ),
+            ]));
+            if let Some(element) = &canchi_insight.element {
+                lines.push(Line::from(vec![
+                    Span::raw("  Khí hành: "),
+                    Span::styled(&element.name.vi, Style::default().fg(Color::Yellow)),
+                    Span::raw(format!(" · {}", element.nature.vi)),
+                ]));
+            }
+        }
+    }
 
     if let Some(fortune) = &bundle.day_fortune {
         lines.push(Line::from(vec![

@@ -1,3 +1,5 @@
+use amlich_core::almanac::hour_pillar::compute_hour_pillar;
+use amlich_core::HeavenlyStem;
 use chrono::{Local, NaiveDate, Timelike};
 use ratatui::{
     buffer::Buffer,
@@ -40,6 +42,7 @@ impl Widget for HoursScreenWidget<'_> {
             Constraint::Length(6),
             Constraint::Length(8),
             timeline_height,
+            Constraint::Length(8),
             Constraint::Min(10),
         ])
         .split(area);
@@ -51,16 +54,18 @@ impl Widget for HoursScreenWidget<'_> {
             render_timeline(gio, self.app.date, rows[2], buf);
         }
 
+        render_hour_pillar_detail(self.app, rows[3], buf);
+
         match self.mode {
             LayoutMode::Large | LayoutMode::Medium => {
                 let cols =
                     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
-                        .split(rows[3]);
+                        .split(rows[4]);
                 render_hour_list(&gio.all_hours, true, cols[0], buf);
                 render_hour_list(&gio.all_hours, false, cols[1], buf);
             }
             LayoutMode::Small => {
-                render_combined_hour_list(&gio.all_hours, self.app.date, rows[3], buf);
+                render_combined_hour_list(&gio.all_hours, self.app.date, rows[4], buf);
             }
         }
     }
@@ -145,6 +150,112 @@ fn render_top_windows(app: &AppState, area: Rect, buf: &mut Buffer) {
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })
         .render(inner, buf);
+}
+
+fn render_hour_pillar_detail(app: &AppState, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Trụ Giờ / Luận Chi Tiết ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+    let Some(bundle) = &app.bundle else {
+        Paragraph::new("Chưa có dữ liệu.").render(inner, buf);
+        return;
+    };
+
+    let now = Local::now();
+    let use_current_time = app.date == now.naive_local().date();
+    let (focus_hour, focus_minute, focus_label) = if use_current_time {
+        (
+            now.hour() as u8,
+            now.minute() as u8,
+            "Giờ hiện tại".to_string(),
+        )
+    } else {
+        let hour = focus_hour_for_best_window(bundle).unwrap_or(11);
+        (hour, 0, format!("Giờ tham chiếu cho ngày {}", app.date))
+    };
+
+    if let Some(canchi) = &bundle.canchi {
+        if let Ok(day_stem) = HeavenlyStem::try_from(canchi.day.can.as_str()) {
+            if let Some(result) = compute_hour_pillar(day_stem, focus_hour, focus_minute) {
+                lines.push(Line::from(vec![
+                    Span::raw("  "),
+                    Span::styled(focus_label, Style::default().fg(Color::Cyan)),
+                ]));
+                lines.push(Line::from(vec![
+                    Span::raw("  Trụ giờ: "),
+                    Span::styled(result.can_chi.full, Style::default().fg(Color::Yellow)),
+                ]));
+                lines.push(Line::from(vec![
+                    Span::raw("  Khung giờ: "),
+                    Span::styled(result.slot.time_range, Style::default().fg(Color::Cyan)),
+                    Span::raw(format!(" · Chi {}", result.slot.branch)),
+                ]));
+                lines.push(Line::from(vec![
+                    Span::raw("  Cách tính: "),
+                    Span::styled(
+                        format!(
+                            "{} / {} / {}",
+                            result.evidence.source_id,
+                            result.evidence.method,
+                            result.evidence.profile
+                        ),
+                        Style::default().fg(Color::DarkGray),
+                    ),
+                ]));
+            }
+        }
+    }
+
+    if let Some(verdict) = app.hours_verdict() {
+        if let Some(window) = verdict.top_windows.first() {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::raw("  Giờ đáng ưu tiên: "),
+                Span::styled(window.clone(), Style::default().fg(Color::Green)),
+            ]));
+        }
+        if let Some(window) = verdict.bad_windows.first() {
+            lines.push(Line::from(vec![
+                Span::raw("  Giờ nên dè chừng: "),
+                Span::styled(window.clone(), Style::default().fg(Color::Red)),
+            ]));
+        }
+    }
+
+    if lines.is_empty() {
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(
+                "Chưa có đủ dữ liệu để luận trụ giờ.",
+                Style::default().fg(Color::Gray),
+            ),
+        ]));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn focus_hour_for_best_window(bundle: &amlich_api::v2::DayBundleDto) -> Option<u8> {
+    bundle
+        .gio_hoang_dao
+        .as_ref()?
+        .good_hours
+        .first()
+        .and_then(|hour| parse_start_hour(&hour.time_range))
+        .map(|hour| hour as u8)
+}
+
+fn parse_start_hour(time_range: &str) -> Option<u32> {
+    let (start, _) = time_range.split_once(" - ")?;
+    let (hour, _) = start.split_once(':')?;
+    hour.parse().ok()
 }
 
 fn render_timeline(
