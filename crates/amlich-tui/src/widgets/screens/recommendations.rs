@@ -4,7 +4,10 @@ use ratatui::{
     widgets::Widget,
 };
 
-use crate::widgets::{guidance::GuidanceWidget, guidance_panel::GuidancePanelWidget};
+use crate::widgets::{
+    action_board::ActionBoardWidget, guidance::GuidanceWidget, guidance_panel::GuidancePanelWidget,
+    risk::RiskWidget, travel::TravelWidget,
+};
 use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}};
 
 pub struct RecommendationsScreenWidget<'a> {
@@ -22,7 +25,15 @@ impl Widget for RecommendationsScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         match (self.mode, self.app.active_verbosity()) {
             (LayoutMode::Small, VerbosityMode::Compact) => {
-                GuidanceWidget::new(self.app, self.mode).render(area, buf);
+                let rows = Layout::vertical([
+                    Constraint::Percentage(48),
+                    Constraint::Length(8),
+                    Constraint::Min(8),
+                ])
+                .split(area);
+                GuidanceWidget::new(self.app, self.mode).render(rows[0], buf);
+                TravelWidget::new(self.app, self.mode).render(rows[1], buf);
+                RiskWidget::new(self.app, self.mode).render(rows[2], buf);
             }
             (LayoutMode::Small, VerbosityMode::Verbose) => {
                 let rows =
@@ -31,10 +42,17 @@ impl Widget for RecommendationsScreenWidget<'_> {
                 GuidancePanelWidget::new(self.app, self.mode).render(rows[1], buf);
             }
             (_, VerbosityMode::Compact) => {
-                let rows =
-                    Layout::vertical([Constraint::Percentage(78), Constraint::Percentage(22)]).split(area);
+                let rows = Layout::vertical([
+                    Constraint::Percentage(46),
+                    Constraint::Length(8),
+                    Constraint::Length(9),
+                    Constraint::Min(9),
+                ])
+                .split(area);
                 GuidanceWidget::new(self.app, self.mode).render(rows[0], buf);
-                GuidancePanelWidget::new(self.app, self.mode).render(rows[1], buf);
+                TravelWidget::new(self.app, self.mode).render(rows[1], buf);
+                ActionBoardWidget::new(self.app, self.mode).render(rows[2], buf);
+                RiskWidget::new(self.app, self.mode).render(rows[3], buf);
             }
             (_, VerbosityMode::Verbose) => {
                 let rows =
