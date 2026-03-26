@@ -13,9 +13,9 @@ name = "amlich"
 path = "src/main.rs"
 
 [dependencies]
-amlich-api = { path = "../amlich-api", version = "0.1.2" }
-amlich-core = { path = "../amlich-core", version = "0.1.2" }
-amlich-tui = { path = "../amlich-tui", version = "0.1.0" }
+amlich-api = { path = "../amlich-api", version = "0.1.4" }
+amlich-core = { path = "../amlich-core", version = "0.1.4" }
+amlich-tui = { path = "../amlich-tui", version = "0.1.4" }
 clap = { version = "4.5", features = ["derive"] }
 chrono = { workspace = true }
 crossterm = "0.29"

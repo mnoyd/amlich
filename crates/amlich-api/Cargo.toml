@@ -9,7 +9,7 @@ homepage.workspace = true
 description = "Vietnamese Lunar Calendar - Stable API facade and DTO contract"
 
 [dependencies]
-amlich-core = { path = "../amlich-core", version = "0.1.2" }
+amlich-core = { path = "../amlich-core", version = "0.1.4" }
 chrono = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
