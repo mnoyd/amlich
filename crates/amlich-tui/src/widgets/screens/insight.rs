@@ -30,12 +30,12 @@ impl Widget for InsightScreenWidget<'_> {
             (LayoutMode::Large | LayoutMode::Medium, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
                     Constraint::Length(7),
-                    Constraint::Percentage(25),
-                    Constraint::Percentage(15),
+                    Constraint::Length(10),
+                    Constraint::Length(8),
                     Constraint::Length(9),
                     Constraint::Length(9),
-                    Constraint::Percentage(16),
-                    Constraint::Percentage(14),
+                    Constraint::Length(9),
+                    Constraint::Length(8),
                     Constraint::Min(7),
                 ])
                 .split(area);
@@ -64,13 +64,13 @@ impl Widget for InsightScreenWidget<'_> {
             (LayoutMode::Small, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
                     Constraint::Length(8),
-                    Constraint::Min(12),
-                    Constraint::Min(8),
-                    Constraint::Min(8),
-                    Constraint::Min(8),
-                    Constraint::Min(9),
-                    Constraint::Min(8),
-                    Constraint::Min(8),
+                    Constraint::Length(12),
+                    Constraint::Length(8),
+                    Constraint::Length(8),
+                    Constraint::Length(8),
+                    Constraint::Length(9),
+                    Constraint::Length(8),
+                    Constraint::Length(8),
                     Constraint::Min(7),
                 ])
                 .split(area);
@@ -88,9 +88,9 @@ impl Widget for InsightScreenWidget<'_> {
             (LayoutMode::Small, VerbosityMode::Compact) => {
                 let rows = Layout::vertical([
                     Constraint::Length(8),
-                    Constraint::Min(12),
-                    Constraint::Min(8),
-                    Constraint::Min(8),
+                    Constraint::Length(12),
+                    Constraint::Length(8),
+                    Constraint::Length(8),
                     Constraint::Min(8),
                 ])
                 .split(area);
@@ -104,8 +104,8 @@ impl Widget for InsightScreenWidget<'_> {
             (_, VerbosityMode::Compact) => {
                 let rows = Layout::vertical([
                     Constraint::Length(7),
-                    Constraint::Percentage(30),
-                    Constraint::Percentage(18),
+                    Constraint::Length(10),
+                    Constraint::Length(8),
                     Constraint::Length(9),
                     Constraint::Min(10),
                 ])

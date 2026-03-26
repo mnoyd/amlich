@@ -37,8 +37,8 @@ impl Widget for ElementsScreenWidget<'_> {
             (_, VerbosityMode::Compact) => {
                 let rows = Layout::vertical([
                     Constraint::Length(8),
-                    Constraint::Min(10),
-                    Constraint::Min(8),
+                    Constraint::Length(10),
+                    Constraint::Length(8),
                     Constraint::Min(8),
                 ])
                 .split(area);
@@ -78,11 +78,11 @@ impl Widget for ElementsScreenWidget<'_> {
             }
             (LayoutMode::Small, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
-                    Constraint::Min(8),
-                    Constraint::Min(10),
-                    Constraint::Min(8),
-                    Constraint::Min(8),
-                    Constraint::Min(8),
+                    Constraint::Length(8),
+                    Constraint::Length(10),
+                    Constraint::Length(8),
+                    Constraint::Length(8),
+                    Constraint::Length(8),
                     Constraint::Min(8),
                 ])
                 .split(area);

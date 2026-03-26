@@ -4,7 +4,7 @@ use amlich_api::v2::{DayBundleDto, Include};
 use amlich_api::{RecommendationBucketDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto};
 use chrono::{Datelike, Local, NaiveDate};
 
-use super::ui_prefs::VerbosityMode;
+use super::ui_prefs::{VerbosityMode, default_verbosity_for_size};
 
 const DEFAULT_EVENT_KIND: &str = "default";
 const EVENT_KIND_OPTIONS: [&str; 4] = [
@@ -339,6 +339,8 @@ pub struct AppState {
     pub date: NaiveDate,
     pub lens: FocusLens,
     pub scroll_offset: u16,
+    pub content_height: u16,
+    pub viewport_height: u16,
 
     // Data cache for the current date
     pub bundle: Option<DayBundleDto>,
@@ -370,18 +372,24 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(initial_date: Option<NaiveDate>) -> Self {
+    pub fn new(initial_date: Option<NaiveDate>, terminal_size: Option<(u16, u16)>) -> Self {
         let date = initial_date.unwrap_or_else(|| Local::now().naive_local().date());
         let ruleset_catalog = amlich_api::get_ruleset_catalog();
         let recommendation_pack_catalog = amlich_api::get_recommendation_pack_catalog();
         let default_selection = ExplorerSelection::defaults(date, &ruleset_catalog)
             .normalized(&ruleset_catalog, &recommendation_pack_catalog);
 
+        let verbosity = terminal_size
+            .map(|(width, height)| default_verbosity_for_size(width, height))
+            .unwrap_or(VerbosityMode::Compact);
+
         let mut app = Self {
             running: true,
             date,
             lens: FocusLens::General,
             scroll_offset: 0,
+            content_height: 0,
+            viewport_height: 0,
             bundle: None,
             is_loading: false,
             error_msg: None,
@@ -396,7 +404,7 @@ impl AppState {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
-            verbosity: VerbosityMode::Compact,
+            verbosity,
             active_view: ActiveView::Dashboard,
             view_history: Vec::new(),
             app_mode: AppMode::Normal,
@@ -968,14 +976,6 @@ impl AppState {
         self.set_section_expanded(section, true);
     }
 
-    fn selected_recommendations(&self) -> Option<&amlich_api::DailyRecommendationsDto> {
-        let bundle = self.bundle.as_ref()?;
-        bundle
-            .contextual_recommendations
-            .as_ref()
-            .or(bundle.daily_recommendations.as_ref())
-    }
-
     pub fn recommendation_layers(&self) -> Vec<RecommendationLayerVm> {
         crate::view_models::shared::recommendation_layers(self)
     }
@@ -1064,16 +1064,21 @@ impl AppState {
 
     pub fn scroll_down(&mut self) {
         self.scroll_offset = self.scroll_offset.saturating_add(1);
+        self.clamp_scroll();
     }
 
-    // We can add page up/down later by exposing the viewport height to the state,
-    // or passing the step amount from the event handler
     pub fn scroll_down_by(&mut self, lines: u16) {
         self.scroll_offset = self.scroll_offset.saturating_add(lines);
+        self.clamp_scroll();
     }
 
     pub fn scroll_up_by(&mut self, lines: u16) {
         self.scroll_offset = self.scroll_offset.saturating_sub(lines);
+    }
+
+    pub fn clamp_scroll(&mut self) {
+        let max = self.content_height.saturating_sub(self.viewport_height);
+        self.scroll_offset = self.scroll_offset.min(max);
     }
 
     fn set_section_expanded(&mut self, section: PageSection, expanded: bool) {
@@ -1204,6 +1209,8 @@ mod tests {
             date,
             lens: FocusLens::General,
             scroll_offset: 0,
+            content_height: 0,
+            viewport_height: 0,
             bundle: None,
             is_loading: false,
             error_msg: None,

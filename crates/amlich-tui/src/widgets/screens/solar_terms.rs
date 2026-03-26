@@ -61,9 +61,9 @@ impl Widget for SolarTermsScreenWidget<'_> {
             (LayoutMode::Small, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
                     Constraint::Length(7),
-                    Constraint::Min(9),
-                    Constraint::Min(8),
-                    Constraint::Min(8),
+                    Constraint::Length(9),
+                    Constraint::Length(8),
+                    Constraint::Length(8),
                     Constraint::Min(8),
                 ])
                 .split(area);

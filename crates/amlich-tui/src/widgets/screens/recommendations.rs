@@ -26,7 +26,7 @@ impl Widget for RecommendationsScreenWidget<'_> {
         match (self.mode, self.app.active_verbosity()) {
             (LayoutMode::Small, VerbosityMode::Compact) => {
                 let rows = Layout::vertical([
-                    Constraint::Percentage(48),
+                    Constraint::Length(12),
                     Constraint::Length(8),
                     Constraint::Min(8),
                 ])
@@ -37,13 +37,13 @@ impl Widget for RecommendationsScreenWidget<'_> {
             }
             (LayoutMode::Small, VerbosityMode::Verbose) => {
                 let rows =
-                    Layout::vertical([Constraint::Percentage(72), Constraint::Percentage(28)]).split(area);
+                    Layout::vertical([Constraint::Length(16), Constraint::Min(10)]).split(area);
                 GuidanceWidget::new(self.app, self.mode).render(rows[0], buf);
                 GuidancePanelWidget::new(self.app, self.mode).render(rows[1], buf);
             }
             (_, VerbosityMode::Compact) => {
                 let rows = Layout::vertical([
-                    Constraint::Percentage(46),
+                    Constraint::Length(12),
                     Constraint::Length(8),
                     Constraint::Length(9),
                     Constraint::Min(9),
@@ -56,7 +56,7 @@ impl Widget for RecommendationsScreenWidget<'_> {
             }
             (_, VerbosityMode::Verbose) => {
                 let rows =
-                    Layout::vertical([Constraint::Percentage(70), Constraint::Percentage(30)]).split(area);
+                    Layout::vertical([Constraint::Length(16), Constraint::Min(10)]).split(area);
                 GuidanceWidget::new(self.app, self.mode).render(rows[0], buf);
                 GuidancePanelWidget::new(self.app, self.mode).render(rows[1], buf);
             }

@@ -405,6 +405,8 @@ mod tests {
             lens: FocusLens::General,
 
             scroll_offset: 0,
+            content_height: 0,
+            viewport_height: 0,
             bundle: None,
             is_loading: false,
             error_msg: None,

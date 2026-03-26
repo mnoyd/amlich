@@ -35,8 +35,9 @@ pub fn run_tui(initial_date: Option<NaiveDate>) -> io::Result<()> {
     let _cleanup_guard = TerminalCleanupGuard;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
+    let size = terminal.size()?;
 
-    let app = AppState::new(initial_date);
+    let app = AppState::new(initial_date, Some((size.width, size.height)));
     let result = run(&mut terminal, app);
 
     let _ = terminal.show_cursor();
@@ -46,7 +47,7 @@ pub fn run_tui(initial_date: Option<NaiveDate>) -> io::Result<()> {
 
 fn run(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, mut app: AppState) -> io::Result<()> {
     while app.running {
-        terminal.draw(|frame| draw(frame, &app))?;
+        terminal.draw(|frame| draw(frame, &mut app))?;
         match handle_events(&mut app) {
             Ok(true) => {
                 app.running = false; // Ctrl+C

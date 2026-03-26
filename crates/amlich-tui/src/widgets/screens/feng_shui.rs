@@ -91,9 +91,9 @@ impl Widget for FengShuiScreenWidget<'_> {
                 }
                 LayoutMode::Small => {
                     let bottom = Layout::vertical([
-                        Constraint::Percentage(30),
-                        Constraint::Percentage(35),
-                        Constraint::Percentage(35),
+                        Constraint::Length(8),
+                        Constraint::Length(10),
+                        Constraint::Min(10),
                     ])
                     .split(rows[2]);
                     render_directions(insight, bottom[0], buf);

@@ -167,6 +167,8 @@ mod tests {
             lens: FocusLens::General,
 
             scroll_offset: 0,
+            content_height: 0,
+            viewport_height: 0,
             bundle: Some(DayBundleDto {
                 schema_version: "amlich.engine/v1".to_string(),
                 ruleset_id: "test".to_string(),
