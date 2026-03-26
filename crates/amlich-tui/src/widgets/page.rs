@@ -19,6 +19,106 @@ use super::{
     week_strip::WeekStripWidget,
 };
 
+/// Return the natural (ideal) height for the current screen based on its layout constraints.
+/// Each value is the sum of Length/Min values from that screen's vertical layout.
+pub fn screen_natural_height(app: &AppState, mode: LayoutMode, area_width: u16) -> u16 {
+    use crate::state::ui_prefs::VerbosityMode;
+
+    if app.active_view == crate::state::ActiveView::Event {
+        return super::screens::event::event_natural_height(app, area_width);
+    }
+
+    if app.active_view == crate::state::ActiveView::FengShui {
+        return feng_shui_natural_height(app, mode);
+    }
+
+    match (app.active_view, mode, app.active_verbosity()) {
+        // Dashboard
+        (crate::state::ActiveView::Dashboard, LayoutMode::Small, VerbosityMode::Compact) => 25, // 10+7+8
+        (crate::state::ActiveView::Dashboard, LayoutMode::Small, VerbosityMode::Verbose) => 39, // 10+7+9+8+5
+        (crate::state::ActiveView::Dashboard, _, VerbosityMode::Compact) => 27, // 10+12+5
+        (crate::state::ActiveView::Dashboard, _, VerbosityMode::Verbose) => 25, // 20+5
+
+        // Scholar (Insight)
+        (crate::state::ActiveView::Scholar, LayoutMode::Small, VerbosityMode::Compact) => 44, // 8+12+8+8+8
+        (crate::state::ActiveView::Scholar, LayoutMode::Small, VerbosityMode::Verbose) => 76, // 8+12+8+8+8+9+8+8+7
+        (crate::state::ActiveView::Scholar, _, VerbosityMode::Compact) => 44, // 7+10+8+9+10
+        (crate::state::ActiveView::Scholar, _, VerbosityMode::Verbose) => 67, // 7+10+8+9+9+9+8+7
+
+        // Hours
+        (crate::state::ActiveView::Hours, LayoutMode::Small, VerbosityMode::Compact) => 24, // 6+8+10
+        (crate::state::ActiveView::Hours, LayoutMode::Small, VerbosityMode::Verbose) => 32, // 6+8+8+10
+        (crate::state::ActiveView::Hours, _, VerbosityMode::Compact) => 24, // 6+8+10
+        (crate::state::ActiveView::Hours, _, VerbosityMode::Verbose) => 38, // 6+8+6+8+10
+
+        // Elements
+        (crate::state::ActiveView::Elements, LayoutMode::Small, VerbosityMode::Verbose) => 50, // 8+10+8+8+8+8
+        (crate::state::ActiveView::Elements, _, VerbosityMode::Compact) => 34, // 8+10+8+8
+        (crate::state::ActiveView::Elements, _, VerbosityMode::Verbose) => 39, // 8+10+9+12
+
+        // SolarTerms
+        (crate::state::ActiveView::SolarTerms, LayoutMode::Small, VerbosityMode::Verbose) => 40, // 7+9+8+8+8
+        (crate::state::ActiveView::SolarTerms, _, VerbosityMode::Compact) => 30, // 7+9+14
+        (crate::state::ActiveView::SolarTerms, _, VerbosityMode::Verbose) => 26, // 7+9+10
+
+        // Planning (Recommendations)
+        (crate::state::ActiveView::Planning, LayoutMode::Small, VerbosityMode::Compact) => 28, // 12+8+8
+        (crate::state::ActiveView::Planning, LayoutMode::Small, VerbosityMode::Verbose) => 26, // 16+10
+        (crate::state::ActiveView::Planning, _, VerbosityMode::Compact) => 38, // 12+8+9+9
+        (crate::state::ActiveView::Planning, _, VerbosityMode::Verbose) => 26, // 16+10
+
+        // Calendar — not scrolled, but provide a fallback
+        (crate::state::ActiveView::Calendar, _, _) => 40,
+        (crate::state::ActiveView::FengShui, _, _) | (crate::state::ActiveView::Event, _, _) => {
+            unreachable!("handled above")
+        }
+    }
+}
+
+fn feng_shui_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
+    use crate::state::ui_prefs::VerbosityMode;
+
+    let has_personal_overlay = app
+        .profile_availability_summary()
+        .map(|profile| profile.has_personal_overlay)
+        .unwrap_or(false);
+
+    match (has_personal_overlay, app.active_verbosity(), mode) {
+        (true, VerbosityMode::Verbose, LayoutMode::Small) => 43, // 6+9+8+10+10
+        (true, VerbosityMode::Verbose, _) => 31,                 // 6+9+16
+        (true, _, _) => 25,                                      // 6+9+10
+        (false, _, _) => 21,                                     // 6+9+6
+    }
+}
+
+/// Render just the active screen content (no week strip) into the given buffer area.
+/// Used by the scroll viewport in layout::draw.
+pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: &mut Buffer) {
+    match app.active_view {
+        crate::state::ActiveView::Dashboard => {
+            DashboardScreenWidget::new(app, mode).render(area, buf)
+        }
+        crate::state::ActiveView::Event => {
+            super::screens::event::EventScreenWidget::new(app, mode).render(area, buf)
+        }
+        crate::state::ActiveView::Scholar => InsightScreenWidget::new(app, mode).render(area, buf),
+        crate::state::ActiveView::Hours => HoursScreenWidget::new(app, mode).render(area, buf),
+        crate::state::ActiveView::Elements => {
+            ElementsScreenWidget::new(app, mode).render(area, buf)
+        }
+        crate::state::ActiveView::FengShui => {
+            FengShuiScreenWidget::new(app, mode).render(area, buf)
+        }
+        crate::state::ActiveView::SolarTerms => {
+            SolarTermsScreenWidget::new(app, mode).render(area, buf)
+        }
+        crate::state::ActiveView::Planning => {
+            RecommendationsScreenWidget::new(app, mode).render(area, buf)
+        }
+        crate::state::ActiveView::Calendar => CalendarViewWidget::new(app, mode).render(area, buf),
+    }
+}
+
 pub struct PageWidget<'a> {
     app: &'a AppState,
     mode: LayoutMode,
@@ -147,10 +247,10 @@ mod tests {
         ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
         PageSection,
     };
-    use amlich_api::v2::DayBundleDto;
+    use amlich_api::v2::{get_day_bundle_for_date, DayBundleDto, Include};
     use amlich_api::{
-        LunarDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
-        SolarDto,
+        DayInsightDto, LocalizedTextDto, LunarDto, RecommendationPackCatalogEntryDto,
+        RulesetCatalogEntryDto, RulesetDefaultsDto, SolarDto, TuMenhInsightDto,
     };
     use chrono::NaiveDate;
     use ratatui::{buffer::Buffer, layout::Rect};
@@ -185,6 +285,8 @@ mod tests {
             date,
             lens: FocusLens::General,
             scroll_offset: 0,
+            content_height: 0,
+            viewport_height: 0,
             bundle: None,
             is_loading: false,
             error_msg: None,
@@ -246,6 +348,13 @@ mod tests {
         }
     }
 
+    fn localized(vi: &str, en: &str) -> LocalizedTextDto {
+        LocalizedTextDto {
+            vi: vi.to_string(),
+            en: en.to_string(),
+        }
+    }
+
     fn render_text(app: &AppState) -> String {
         let area = Rect::new(0, 0, 120, 40);
         let mut buf = Buffer::empty(area);
@@ -300,5 +409,60 @@ mod tests {
         app.active_view = ActiveView::Calendar;
 
         let _text = render_text(&app);
+    }
+
+    #[test]
+    fn event_natural_height_grows_for_wrapped_verbose_content() {
+        let mut app = sample_app_state();
+        app.active_view = ActiveView::Event;
+        app.verbosity = crate::state::ui_prefs::VerbosityMode::Verbose;
+        app.bundle = Some(
+            get_day_bundle_for_date(10, 2, 2024, &[Include::Insight], None)
+                .expect("bundle with tet festival insight"),
+        );
+
+        assert!(screen_natural_height(&app, LayoutMode::Small, 24) > 30);
+    }
+
+    #[test]
+    fn feng_shui_small_verbose_overlay_reports_full_min_height() {
+        let mut app = sample_app_state();
+        app.active_view = ActiveView::FengShui;
+        app.verbosity = crate::state::ui_prefs::VerbosityMode::Verbose;
+
+        let mut bundle = sample_bundle();
+        bundle.insight = Some(DayInsightDto {
+            solar: bundle.solar.clone(),
+            lunar: bundle.lunar.clone(),
+            festival: None,
+            holiday: None,
+            canchi: None,
+            day_guidance: None,
+            tiet_khi: None,
+            na_am: None,
+            truc: None,
+            day_deity: None,
+            stars: None,
+            taboos: None,
+            travel: None,
+            xung_hop: None,
+            tang_can: None,
+            ten_gods: None,
+            hours: None,
+            tu_menh: Some(TuMenhInsightDto {
+                kua: 3,
+                group: "Đông tứ mệnh".to_string(),
+                trigram: localized("Chấn", "Zhen"),
+                direction: localized("Đông", "East"),
+                meaning: localized("Hợp hướng mở lối.", "Favors opening movement."),
+                group_meaning: localized("Nhóm hướng tăng trưởng.", "Growth group."),
+                favorable_directions: vec!["Đông".to_string()],
+                unfavorable_directions: vec!["Tây".to_string()],
+            }),
+            dai_van: None,
+        });
+        app.bundle = Some(bundle);
+
+        assert_eq!(screen_natural_height(&app, LayoutMode::Small, 48), 43);
     }
 }

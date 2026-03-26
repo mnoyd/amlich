@@ -1,12 +1,15 @@
 use ratatui::{
-    layout::{Constraint, Layout},
+    buffer::Buffer,
+    layout::{Constraint, Layout, Position, Rect},
+    widgets::{Scrollbar, ScrollbarOrientation, ScrollbarState, StatefulWidget},
     Frame,
 };
 
 use crate::state::AppState;
 use crate::widgets::{
-    context::ContextModalWidget, help::HelpModalWidget, page::PageWidget, ribbon::RibbonWidget,
-    search::SearchOverlayWidget,
+    context::ContextModalWidget, help::HelpModalWidget, page::render_screen_content,
+    page::screen_natural_height, page::PageWidget, ribbon::RibbonWidget,
+    search::SearchOverlayWidget, week_strip::WeekStripWidget,
 };
 
 const MIN_TERM_W: u16 = 40;
@@ -29,7 +32,7 @@ pub fn layout_mode(width: u16) -> LayoutMode {
     }
 }
 
-pub fn draw(frame: &mut Frame, app: &AppState) {
+pub fn draw(frame: &mut Frame, app: &mut AppState) {
     let size = frame.area();
 
     // Enforce minimum terminal size
@@ -55,18 +58,85 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
     let page_area = main_layout[0];
     let ribbon_area = main_layout[1];
 
-    // Determine the layout constraints based on mode
     let mode = layout_mode(size.width);
-
     let content_area = page_content_area(page_area, mode);
-    let page_render_area = if app.is_calendar_view() {
-        page_area
-    } else {
-        content_area
-    };
 
-    // Render the main page widget within the centered content area or fullscreen calendar overlay.
-    frame.render_widget(PageWidget::new(app, mode), page_render_area);
+    // Non-scrollable views: loading, error, no data, calendar
+    let needs_scroll = app.bundle.is_some()
+        && !app.is_loading
+        && app.error_msg.is_none()
+        && !app.is_calendar_view();
+
+    if needs_scroll {
+        // --- Scrollable content path ---
+
+        // 1. Render week strip directly to frame (fixed, not scrolled)
+        let screen_area = if app.show_week_strip {
+            let chunks =
+                Layout::vertical([Constraint::Length(4), Constraint::Min(1)]).split(content_area);
+            frame.render_widget(WeekStripWidget::new(app), chunks[0]);
+            chunks[1]
+        } else {
+            content_area
+        };
+
+        // 2. Create virtual buffer sized to the screen's natural content height
+        let viewport_h = screen_area.height;
+        let natural_h = screen_natural_height(app, mode, screen_area.width);
+        let virtual_h = viewport_h.max(natural_h);
+        let virtual_rect = Rect::new(0, 0, screen_area.width, virtual_h);
+        let mut virtual_buf = Buffer::empty(virtual_rect);
+
+        // 3. Render screen content into the virtual buffer
+        render_screen_content(app, mode, virtual_rect, &mut virtual_buf);
+
+        // 4. Detect actual content height and clamp scroll
+        let content_h = detect_content_height(&virtual_buf, virtual_rect);
+        app.content_height = content_h;
+        app.viewport_height = viewport_h;
+        app.clamp_scroll();
+
+        // 5. Blit visible rows from virtual buffer to frame
+        let scroll = app.scroll_offset;
+        let frame_buf = frame.buffer_mut();
+        for y in 0..viewport_h {
+            let src_y = y + scroll;
+            if src_y >= virtual_h {
+                break;
+            }
+            for x in 0..screen_area.width {
+                let src_cell = &virtual_buf[(x, src_y)];
+                if let Some(target) =
+                    frame_buf.cell_mut(Position::new(screen_area.x + x, screen_area.y + y))
+                {
+                    target
+                        .set_symbol(src_cell.symbol())
+                        .set_style(src_cell.style());
+                    if src_cell.skip {
+                        target.set_skip(true);
+                    }
+                }
+            }
+        }
+
+        // 6. Render scrollbar if content overflows
+        if content_h > viewport_h {
+            let mut scrollbar_state = vertical_scrollbar_state(content_h, viewport_h, scroll);
+            Scrollbar::new(ScrollbarOrientation::VerticalRight).render(
+                screen_area,
+                frame.buffer_mut(),
+                &mut scrollbar_state,
+            );
+        }
+    } else {
+        // --- Non-scrollable path (loading / error / calendar) ---
+        let page_render_area = if app.is_calendar_view() {
+            page_area
+        } else {
+            content_area
+        };
+        frame.render_widget(PageWidget::new(app, mode), page_render_area);
+    }
 
     // Render the fixed ribbon at the bottom
     frame.render_widget(RibbonWidget::new(app, mode), ribbon_area);
@@ -84,6 +154,24 @@ pub fn draw(frame: &mut Frame, app: &AppState) {
         }
         _ => {}
     }
+}
+
+/// Scan from the bottom of the virtual buffer to find the last row with non-empty content.
+fn detect_content_height(buf: &Buffer, area: Rect) -> u16 {
+    for y in (0..area.height).rev() {
+        for x in 0..area.width {
+            if buf[(x, y)].symbol() != " " {
+                return y + 1;
+            }
+        }
+    }
+    0
+}
+
+fn vertical_scrollbar_state(content_h: u16, viewport_h: u16, scroll: u16) -> ScrollbarState {
+    ScrollbarState::new(content_h as usize)
+        .viewport_content_length(viewport_h as usize)
+        .position(scroll as usize)
 }
 
 fn page_content_area(page_area: ratatui::layout::Rect, mode: LayoutMode) -> ratatui::layout::Rect {
@@ -154,6 +242,8 @@ mod tests {
             lens: FocusLens::General,
 
             scroll_offset: 0,
+            content_height: 0,
+            viewport_height: 0,
             bundle: Some(DayBundleDto {
                 schema_version: "amlich.engine/v1".to_string(),
                 ruleset_id: "test".to_string(),
@@ -238,5 +328,15 @@ mod tests {
 
         assert_eq!(content.width, 120);
         assert_eq!(content.x, 20);
+    }
+
+    #[test]
+    fn scrollbar_state_uses_total_content_and_viewport_length() {
+        let state = vertical_scrollbar_state(25, 20, 3);
+
+        assert_eq!(
+            format!("{state:?}"),
+            "ScrollbarState { content_length: 25, position: 3, viewport_content_length: 20 }"
+        );
     }
 }
