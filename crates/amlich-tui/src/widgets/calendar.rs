@@ -494,7 +494,7 @@ fn days_in_month(year: i32, month: u32) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection};
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, PageSection};
     use amlich_api::{
         RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
     };
@@ -528,7 +528,6 @@ mod tests {
         AppState {
             running: true,
             date,
-            lens: FocusLens::General,
 
             scroll_offset: 0,
             content_height: 0,

@@ -1,6 +1,6 @@
-pub use super::legacy::{
+pub use super::app_state::{
     ActivePackVm, ActiveView, AppMode, AppState, DayIdentitySummaryVm, DirectionVerdictVm,
-    ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, HeroVerdictVm, HoursVerdictVm,
+    ExplorerAction, ExplorerField, ExplorerSelection, HeroVerdictVm, HoursVerdictVm,
     PageSection, ProfileAvailabilityVm, RecommendationLayerKind, RecommendationLayerVm,
     RecommendationRowVm, RiskSummaryVm, DayDetailRiskBoardVm, DayDetailTimingSummaryVm,
     DayDetailVerdictSupportVm, SeasonalVerdictVm, TraditionalEvidenceSummaryVm,

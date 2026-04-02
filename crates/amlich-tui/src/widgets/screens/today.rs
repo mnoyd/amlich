@@ -14,7 +14,6 @@ use crate::widgets::{
 use crate::{
     layout::LayoutMode,
     state::{ui_prefs::VerbosityMode, AppState},
-    widgets::screens::event::event_lines,
 };
 
 pub struct TodayScreenWidget<'a> {
@@ -118,6 +117,28 @@ fn render_standard_verbose(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
     TimelineWidget::new(app, mode).render(chunks[2], buf);
 }
 
+fn event_headline(app: &AppState) -> Option<Line<'static>> {
+    let bundle = app.bundle.as_ref()?;
+
+    if let Some(insight) = &bundle.insight {
+        if let Some(festival) = &insight.festival {
+            return Some(Line::from(vec![
+                Span::styled("  Sự kiện: ", Style::default().fg(Color::Yellow)),
+                Span::raw(festival.names.vi.join(" / ")),
+            ]));
+        }
+
+        if let Some(holiday) = &insight.holiday {
+            return Some(Line::from(vec![
+                Span::styled("  Sự kiện: ", Style::default().fg(Color::Yellow)),
+                Span::raw(holiday.names.vi.join(" / ")),
+            ]));
+        }
+    }
+
+    None
+}
+
 fn render_today_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
         .title(" Hôm Nay ")
@@ -164,11 +185,9 @@ fn render_today_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
         ]));
     }
 
-    if app.has_event_today() {
-        if let Some(event_line) = event_lines(app).into_iter().next() {
-            lines.push(Line::from(""));
-            lines.push(event_line);
-        }
+    if let Some(event_line) = event_headline(app) {
+        lines.push(Line::from(""));
+        lines.push(event_line);
     }
 
     Paragraph::new(lines)

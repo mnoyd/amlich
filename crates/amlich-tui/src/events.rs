@@ -237,7 +237,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
 mod tests {
     use super::*;
     use crate::state::{
-        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
+        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection,
         PageSection,
     };
     use amlich_api::{
@@ -274,7 +274,6 @@ mod tests {
             running: true,
             app_mode: AppMode::Normal,
             date,
-            lens: FocusLens::General,
 
             scroll_offset: 0,
             content_height: 0,

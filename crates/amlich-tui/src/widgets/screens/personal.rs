@@ -33,7 +33,7 @@ impl Widget for PersonalScreenWidget<'_> {
         let profile = self
             .app
             .profile_availability_summary()
-            .expect("bundle exists for feng shui");
+            .expect("bundle exists for personal screen");
 
         match (profile.has_personal_overlay, self.app.active_verbosity(), self.mode) {
             (true, VerbosityMode::Compact, LayoutMode::Small) => {
@@ -127,7 +127,7 @@ fn render_profile_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
 
     let profile = app
         .profile_availability_summary()
-        .expect("bundle exists for profile verdict");
+        .expect("bundle exists for personal profile verdict");
     let direction = app.direction_verdict();
 
     let mut lines = Vec::new();

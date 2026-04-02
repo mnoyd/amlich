@@ -154,7 +154,7 @@ mod tests {
     use super::InspectionWidget;
     use crate::layout::LayoutMode;
     use crate::state::{
-        AppState, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
+        AppState, ExplorerAction, ExplorerField, ExplorerSelection, PageSection,
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
@@ -192,7 +192,6 @@ mod tests {
         AppState {
             running: true,
             date,
-            lens: FocusLens::General,
 
             scroll_offset: 0,
             content_height: 0,

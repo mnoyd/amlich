@@ -37,11 +37,11 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
         (crate::state::ActiveView::Hours, _, VerbosityMode::Verbose) => 38, // 6+8+6+8+10
 
         (crate::state::ActiveView::Calendar, _, _) => 40,
-        (crate::state::ActiveView::Personal, _, _) => feng_shui_natural_height(app, mode),
+        (crate::state::ActiveView::Personal, _, _) => personal_natural_height(app, mode),
     }
 }
 
-fn feng_shui_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
+fn personal_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
     use crate::state::ui_prefs::VerbosityMode;
 
     let has_personal_overlay = app
@@ -186,7 +186,7 @@ pub(crate) fn home_section_order(_app: &AppState) -> Vec<PageSection> {
 mod tests {
     use super::*;
     use crate::state::{
-        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
+        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection,
         PageSection,
     };
     use amlich_api::v2::DayBundleDto;
@@ -225,7 +225,6 @@ mod tests {
         AppState {
             running: true,
             date,
-            lens: FocusLens::General,
             scroll_offset: 0,
             content_height: 0,
             viewport_height: 0,
@@ -333,7 +332,7 @@ mod tests {
     }
 
     #[test]
-    fn page_routes_to_general_screen_widget() {
+    fn page_routes_to_today_screen_widget() {
         let mut app = sample_app_state();
         app.bundle = Some(sample_bundle());
         app.active_view = ActiveView::Today;
@@ -344,17 +343,16 @@ mod tests {
     }
 
     #[test]
-    fn page_routes_to_deep_screen_widget() {
+    fn page_routes_to_calendar_screen_widget() {
         let mut app = sample_app_state();
         app.bundle = Some(sample_bundle());
-        // For now, mapping calendar or just removing this test
         app.active_view = ActiveView::Calendar;
 
         let _text = render_text(&app);
     }
 
     #[test]
-    fn feng_shui_small_verbose_overlay_reports_full_min_height() {
+    fn personal_small_verbose_overlay_reports_full_min_height() {
         let mut app = sample_app_state();
         app.active_view = ActiveView::Personal;
         app.verbosity = crate::state::ui_prefs::VerbosityMode::Verbose;

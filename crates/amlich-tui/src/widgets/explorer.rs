@@ -136,7 +136,7 @@ fn action_chip(app: &AppState, action: ExplorerAction, text: &str) -> Span<'stat
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{ExplorerSelection, FocusLens, PageSection};
+    use crate::state::{ExplorerSelection, PageSection};
     use amlich_api::{
         RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
     };
@@ -170,7 +170,6 @@ mod tests {
         AppState {
             running: true,
             date,
-            lens: FocusLens::General,
 
             scroll_offset: 0,
             content_height: 0,

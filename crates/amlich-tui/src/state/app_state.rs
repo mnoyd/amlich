@@ -325,7 +325,6 @@ pub struct ActivePackVm {
 pub struct AppState {
     pub running: bool,
     pub date: NaiveDate,
-    pub lens: FocusLens,
     pub scroll_offset: u16,
     pub content_height: u16,
     pub viewport_height: u16,
@@ -374,7 +373,6 @@ impl AppState {
         let mut app = Self {
             running: true,
             date,
-            lens: FocusLens::General,
             scroll_offset: 0,
             content_height: 0,
             viewport_height: 0,
@@ -1179,7 +1177,6 @@ mod tests {
         AppState {
             running: true,
             date,
-            lens: FocusLens::General,
             scroll_offset: 0,
             content_height: 0,
             viewport_height: 0,

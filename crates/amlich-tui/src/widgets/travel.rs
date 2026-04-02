@@ -85,7 +85,7 @@ impl Widget for TravelWidget<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection};
+    use crate::state::{ExplorerAction, ExplorerField, ExplorerSelection, PageSection};
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         DailyRecommendationsDto, DayConflictDto, DayElementDto, DayFortuneDto, DayStarsDto,
@@ -124,7 +124,6 @@ mod tests {
         AppState {
             running: true,
             date,
-            lens: FocusLens::General,
 
             scroll_offset: 0,
             content_height: 0,

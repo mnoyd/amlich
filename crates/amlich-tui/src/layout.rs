@@ -202,7 +202,7 @@ fn page_content_area(page_area: ratatui::layout::Rect, mode: LayoutMode) -> rata
 mod tests {
     use super::*;
     use crate::state::{
-        AppMode, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens, PageSection,
+        AppMode, ExplorerAction, ExplorerField, ExplorerSelection, PageSection,
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
@@ -239,7 +239,6 @@ mod tests {
             running: true,
             app_mode: AppMode::Normal,
             date,
-            lens: FocusLens::General,
 
             scroll_offset: 0,
             content_height: 0,
