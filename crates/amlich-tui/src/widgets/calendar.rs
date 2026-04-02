@@ -4,7 +4,7 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Widget},
+    widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
 use crate::layout::LayoutMode;
@@ -17,6 +17,23 @@ pub enum EventCategory {
     Holiday,
     Festival,
     Lunar,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum DayMarker {
+    Good,
+    Caution,
+    Event,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct CalendarDayInfo {
+    lunar_label: String,
+    events: Vec<(EventCategory, String)>,
+    marker: Option<DayMarker>,
+    summary: Option<String>,
+    recommendation: Option<String>,
+    canchi_label: Option<String>,
 }
 
 pub struct CalendarViewWidget<'a> {
@@ -97,7 +114,14 @@ impl Widget for CalendarViewWidget<'_> {
 
         let mut day = 1u32;
         let mut month_events: Vec<(u32, Vec<(EventCategory, String)>)> = Vec::new();
-        let mut cursor_events: Vec<(EventCategory, String)> = Vec::new();
+        let mut cursor_info = CalendarDayInfo {
+            lunar_label: "--/--".to_string(),
+            events: Vec::new(),
+            marker: None,
+            summary: None,
+            recommendation: None,
+            canchi_label: None,
+        };
 
         for row in 0..6 {
             let mut solar_row = Vec::with_capacity(7);
@@ -147,16 +171,25 @@ impl Widget for CalendarViewWidget<'_> {
                     style = style.add_modifier(Modifier::UNDERLINED);
                 }
 
-                let (lunar_label, events_today) = lunar_info_and_events(self.app, current);
+                let day_info = day_info(self.app, current);
                 if current == self.app.calendar_cursor {
-                    cursor_events = events_today.clone();
+                    cursor_info = day_info.clone();
                 }
 
-                let display_lunar_label = if !events_today.is_empty() {
-                    month_events.push((day, events_today));
-                    format!("{} •", lunar_label)
+                if !day_info.events.is_empty() {
+                    month_events.push((day, day_info.events.clone()));
+                }
+
+                let marker_glyph = match day_info.marker {
+                    Some(DayMarker::Good) => "+",
+                    Some(DayMarker::Caution) => "!",
+                    Some(DayMarker::Event) => "*",
+                    None => "",
+                };
+                let display_lunar_label = if marker_glyph.is_empty() {
+                    day_info.lunar_label.clone()
                 } else {
-                    lunar_label
+                    format!("{} {}", day_info.lunar_label, marker_glyph)
                 };
 
                 let lunar_style = if is_cursor || is_today {
@@ -202,13 +235,37 @@ impl Widget for CalendarViewWidget<'_> {
                 ),
             ])];
 
-            if cursor_events.is_empty() {
+            event_lines.push(Line::from(vec![
+                Span::raw("  Âm lịch: "),
+                Span::styled(cursor_info.lunar_label.clone(), Style::default().fg(Color::Yellow)),
+            ]));
+            if let Some(canchi) = &cursor_info.canchi_label {
+                event_lines.push(Line::from(vec![
+                    Span::raw("  Can chi: "),
+                    Span::styled(canchi.clone(), Style::default().fg(Color::Cyan)),
+                ]));
+            }
+            if let Some(summary) = &cursor_info.summary {
+                event_lines.push(Line::from(vec![
+                    Span::raw("  Tổng quan: "),
+                    Span::styled(summary.clone(), Style::default().fg(Color::White)),
+                ]));
+            }
+            if let Some(rec) = &cursor_info.recommendation {
+                event_lines.push(Line::from(vec![
+                    Span::raw("  Gợi ý: "),
+                    Span::styled(rec.clone(), Style::default().fg(Color::Green)),
+                ]));
+            }
+            event_lines.push(Line::from(""));
+
+            if cursor_info.events.is_empty() {
                 event_lines.push(Line::from(Span::styled(
                     "  Không có sự kiện.",
                     Style::default().fg(Color::DarkGray),
                 )));
             } else {
-                for (cat, name) in &cursor_events {
+                for (cat, name) in &cursor_info.events {
                     let (icon, color) = match cat {
                         EventCategory::Holiday => ("✨", Color::Green),
                         EventCategory::Festival => ("🏮", Color::LightMagenta),
@@ -289,7 +346,7 @@ impl Widget for CalendarViewWidget<'_> {
             }
 
             Paragraph::new(event_lines)
-                .wrap(ratatui::widgets::Wrap { trim: false })
+                .wrap(Wrap { trim: false })
                 .render(
                     ratatui::layout::Rect {
                         x: area.x + 2,
@@ -303,10 +360,7 @@ impl Widget for CalendarViewWidget<'_> {
     }
 }
 
-fn lunar_info_and_events(
-    app: &AppState,
-    date: NaiveDate,
-) -> (String, Vec<(EventCategory, String)>) {
+fn day_info(app: &AppState, date: NaiveDate) -> CalendarDayInfo {
     let query = amlich_api::DateQuery {
         day: date.day() as i32,
         month: date.month() as i32,
@@ -318,7 +372,68 @@ fn lunar_info_and_events(
     };
 
     let mut events = Vec::new();
-    let label = if let Ok(insight) = amlich_api::v2::get_insight(&query) {
+    let mut marker = None;
+    let mut summary = None;
+    let mut recommendation = None;
+    let mut canchi_label = None;
+    let label = if let Ok(bundle) = amlich_api::v2::get_day_bundle(
+        &query,
+        &[amlich_api::v2::Include::CanChi, amlich_api::v2::Include::Fortune],
+    ) {
+        if let Some(canchi) = &bundle.canchi {
+            canchi_label = Some(canchi.day.full.clone());
+        }
+        if let Some(recs) = &bundle.daily_recommendations {
+            summary = Some(recs.summary_vi.clone());
+            recommendation = recs
+                .activities
+                .iter()
+                .find(|activity| {
+                    matches!(
+                        activity.bucket,
+                        amlich_api::RecommendationBucketDto::Nen
+                            | amlich_api::RecommendationBucketDto::CoThe
+                    )
+                })
+                .map(|activity| activity.label.vi.clone());
+            marker = if recs.activities.iter().any(|activity| {
+                matches!(
+                    activity.bucket,
+                    amlich_api::RecommendationBucketDto::KyManh
+                        | amlich_api::RecommendationBucketDto::Tranh
+                )
+            }) {
+                Some(DayMarker::Caution)
+            } else if recommendation.is_some() {
+                Some(DayMarker::Good)
+            } else {
+                None
+            };
+        }
+        let insight = amlich_api::v2::get_insight(&query).ok();
+        if let Some(insight) = insight {
+            if insight.lunar.day == 1 || insight.lunar.day == 15 {
+                events.push((
+                    EventCategory::Lunar,
+                    format!("Mùng {} âm lịch", insight.lunar.day),
+                ));
+            }
+            if let Some(fest) = insight.festival {
+                for name in fest.names.vi {
+                    events.push((EventCategory::Festival, name));
+                }
+            }
+            if let Some(hol) = insight.holiday {
+                for name in hol.names.vi {
+                    events.push((EventCategory::Holiday, name));
+                }
+            }
+            if !events.is_empty() {
+                marker = Some(DayMarker::Event);
+            }
+        }
+        format!("{}/{}", bundle.lunar.day, bundle.lunar.month)
+    } else if let Ok(insight) = amlich_api::v2::get_insight(&query) {
         if insight.lunar.day == 1 || insight.lunar.day == 15 {
             events.push((
                 EventCategory::Lunar,
@@ -344,14 +459,25 @@ fn lunar_info_and_events(
 
     if date == app.date {
         if let Some(bundle) = app.bundle.as_ref() {
-            return (
-                format!("{}/{}", bundle.lunar.day, bundle.lunar.month),
+            return CalendarDayInfo {
+                lunar_label: format!("{}/{}", bundle.lunar.day, bundle.lunar.month),
                 events,
-            );
+                marker,
+                summary,
+                recommendation,
+                canchi_label,
+            };
         }
     }
 
-    (label, events)
+    CalendarDayInfo {
+        lunar_label: label,
+        events,
+        marker,
+        summary,
+        recommendation,
+        canchi_label,
+    }
 }
 
 fn days_in_month(year: i32, month: u32) -> u32 {

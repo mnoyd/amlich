@@ -549,17 +549,13 @@ impl AppState {
     }
 
     pub fn available_views(&self) -> Vec<ActiveView> {
-        let mut views = vec![ActiveView::Today];
-        if self.has_event_today() {
-            views.push(ActiveView::Event);
-        }
-        views.extend(vec![
+        vec![
+            ActiveView::Today,
             ActiveView::DayDetail,
             ActiveView::Hours,
             ActiveView::Calendar,
             ActiveView::Personal,
-        ]);
-        views
+        ]
     }
 
     pub fn next_view(&mut self) {

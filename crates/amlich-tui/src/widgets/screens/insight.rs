@@ -13,18 +13,18 @@ use crate::widgets::{
 };
 use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}, widgets::travel::TravelWidget};
 
-pub struct InsightScreenWidget<'a> {
+pub struct DayDetailScreenWidget<'a> {
     app: &'a AppState,
     mode: LayoutMode,
 }
 
-impl<'a> InsightScreenWidget<'a> {
+impl<'a> DayDetailScreenWidget<'a> {
     pub fn new(app: &'a AppState, mode: LayoutMode) -> Self {
         Self { app, mode }
     }
 }
 
-impl Widget for InsightScreenWidget<'_> {
+impl Widget for DayDetailScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         match (self.mode, self.app.active_verbosity()) {
             (LayoutMode::Large | LayoutMode::Medium, VerbosityMode::Verbose) => {

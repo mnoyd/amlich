@@ -8,18 +8,18 @@ use ratatui::{
 
 use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}, widgets::direction_panel::DirectionPanelWidget};
 
-pub struct FengShuiScreenWidget<'a> {
+pub struct PersonalScreenWidget<'a> {
     app: &'a AppState,
     mode: LayoutMode,
 }
 
-impl<'a> FengShuiScreenWidget<'a> {
+impl<'a> PersonalScreenWidget<'a> {
     pub fn new(app: &'a AppState, mode: LayoutMode) -> Self {
         Self { app, mode }
     }
 }
 
-impl Widget for FengShuiScreenWidget<'_> {
+impl Widget for PersonalScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let Some(bundle) = &self.app.bundle else {
             Paragraph::new("Chưa có dữ liệu.").render(area, buf);

@@ -11,21 +11,14 @@ use crate::state::{AppState, PageSection};
 
 use super::{
     calendar::CalendarViewWidget,
-    screens::{
-        dashboard::DashboardScreenWidget, event::EventScreenWidget, hours::HoursScreenWidget,
-        insight::InsightScreenWidget,
-    },
+    screens::{dashboard::TodayScreenWidget, hours::HoursScreenWidget, insight::DayDetailScreenWidget},
     week_strip::WeekStripWidget,
 };
 
 /// Return the natural (ideal) height for the current screen based on its layout constraints.
 /// Each value is the sum of Length/Min values from that screen's vertical layout.
-pub fn screen_natural_height(app: &AppState, mode: LayoutMode, area_width: u16) -> u16 {
+pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16) -> u16 {
     use crate::state::ui_prefs::VerbosityMode;
-
-    if app.active_view == crate::state::ActiveView::Event {
-        return super::screens::event::event_natural_height(app, area_width);
-    }
 
     match (app.active_view, mode, app.active_verbosity()) {
         (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Compact) => 31,
@@ -45,7 +38,7 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, area_width: u16) 
 
         (crate::state::ActiveView::Calendar, _, _) => 40,
         (crate::state::ActiveView::Personal, _, _) => feng_shui_natural_height(app, mode),
-        (crate::state::ActiveView::Event, _, _) => 20,
+        (crate::state::ActiveView::Event, _, _) => 36,
     }
 }
 
@@ -70,14 +63,16 @@ fn feng_shui_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
 pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: &mut Buffer) {
     match app.active_view {
         crate::state::ActiveView::Today => {
-            DashboardScreenWidget::new(app, mode).render(area, buf)
+            TodayScreenWidget::new(app, mode).render(area, buf)
         }
-        crate::state::ActiveView::Event => EventScreenWidget::new(app, mode).render(area, buf),
-        crate::state::ActiveView::DayDetail => InsightScreenWidget::new(app, mode).render(area, buf),
+        crate::state::ActiveView::Event => {
+            TodayScreenWidget::new(app, mode).render(area, buf)
+        }
+        crate::state::ActiveView::DayDetail => DayDetailScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Hours => HoursScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Calendar => CalendarViewWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Personal => {
-            crate::widgets::screens::feng_shui::FengShuiScreenWidget::new(app, mode).render(area, buf)
+            crate::widgets::screens::feng_shui::PersonalScreenWidget::new(app, mode).render(area, buf)
         }
     }
 }
@@ -154,13 +149,13 @@ impl Widget for PageWidget<'_> {
 
         match self.app.active_view {
             crate::state::ActiveView::Today => {
-                DashboardScreenWidget::new(self.app, self.mode).render(content_area, buf)
+                TodayScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
             crate::state::ActiveView::Event => {
-                EventScreenWidget::new(self.app, self.mode).render(content_area, buf)
+                TodayScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
             crate::state::ActiveView::DayDetail => {
-                InsightScreenWidget::new(self.app, self.mode).render(content_area, buf)
+                DayDetailScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
             crate::state::ActiveView::Hours => {
                 HoursScreenWidget::new(self.app, self.mode).render(content_area, buf)
@@ -169,7 +164,7 @@ impl Widget for PageWidget<'_> {
                 CalendarViewWidget::new(self.app, self.mode).render(area, buf)
             }
             crate::state::ActiveView::Personal => {
-                crate::widgets::screens::feng_shui::FengShuiScreenWidget::new(self.app, self.mode)
+                crate::widgets::screens::feng_shui::PersonalScreenWidget::new(self.app, self.mode)
                     .render(content_area, buf)
             }
         }
@@ -201,7 +196,7 @@ mod tests {
         ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection, FocusLens,
         PageSection,
     };
-    use amlich_api::v2::{get_day_bundle_for_date, DayBundleDto, Include};
+    use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         DayInsightDto, LocalizedTextDto, LunarDto, RecommendationPackCatalogEntryDto,
         RulesetCatalogEntryDto, RulesetDefaultsDto, SolarDto, TuMenhInsightDto,
@@ -363,19 +358,6 @@ mod tests {
         app.active_view = ActiveView::Calendar;
 
         let _text = render_text(&app);
-    }
-
-    #[test]
-    fn event_natural_height_grows_for_wrapped_verbose_content() {
-        let mut app = sample_app_state();
-        app.active_view = ActiveView::Event;
-        app.verbosity = crate::state::ui_prefs::VerbosityMode::Verbose;
-        app.bundle = Some(
-            get_day_bundle_for_date(10, 2, 2024, &[Include::Insight], None)
-                .expect("bundle with tet festival insight"),
-        );
-
-        assert!(screen_natural_height(&app, LayoutMode::Small, 24) > 30);
     }
 
     #[test]

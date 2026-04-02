@@ -11,20 +11,24 @@ use crate::widgets::{
     action_board::ActionBoardWidget, almanac::AlmanacGridWidget, event_summary::EventSummaryWidget,
     hero::HeroWidget, mini_calendar::MiniCalendarWidget, timeline::TimelineWidget,
 };
-use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}};
+use crate::{
+    layout::LayoutMode,
+    state::{ui_prefs::VerbosityMode, AppState},
+    widgets::screens::event::event_lines,
+};
 
-pub struct DashboardScreenWidget<'a> {
+pub struct TodayScreenWidget<'a> {
     app: &'a AppState,
     mode: LayoutMode,
 }
 
-impl<'a> DashboardScreenWidget<'a> {
+impl<'a> TodayScreenWidget<'a> {
     pub fn new(app: &'a AppState, mode: LayoutMode) -> Self {
         Self { app, mode }
     }
 }
 
-impl Widget for DashboardScreenWidget<'_> {
+impl Widget for TodayScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         match (self.mode, self.app.active_verbosity()) {
             (LayoutMode::Small, VerbosityMode::Compact) => render_small_compact(self.app, area, buf),
@@ -158,6 +162,13 @@ fn render_today_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
             Span::styled("  Tiết khí: ", Style::default().fg(Color::Cyan)),
             Span::raw(seasonal.headline),
         ]));
+    }
+
+    if app.has_event_today() {
+        if let Some(event_line) = event_lines(app).into_iter().next() {
+            lines.push(Line::from(""));
+            lines.push(event_line);
+        }
     }
 
     Paragraph::new(lines)

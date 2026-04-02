@@ -52,7 +52,7 @@ pub fn event_natural_height(app: &AppState, area_width: u16) -> u16 {
     u16::try_from(content_height.saturating_add(block_height)).unwrap_or(u16::MAX)
 }
 
-fn event_lines(app: &AppState) -> Vec<Line<'static>> {
+pub fn event_lines(app: &AppState) -> Vec<Line<'static>> {
     let Some(bundle) = &app.bundle else {
         return Vec::new();
     };

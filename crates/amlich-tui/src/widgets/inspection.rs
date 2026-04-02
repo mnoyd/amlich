@@ -29,7 +29,7 @@ impl Widget for InspectionWidget<'_> {
         };
 
         let block = Block::default()
-            .title(" Nguồn Dữ Liệu & Ngữ Cảnh ")
+            .title(" Cách Luận / Nguồn Dữ Liệu ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
         let inner = block.inner(area);
@@ -41,7 +41,7 @@ impl Widget for InspectionWidget<'_> {
         let mut lines = vec![
             Line::from(vec![
                 Span::styled(
-                    "Engine đang áp dụng: ",
+                    "Bộ quy tắc đang dùng: ",
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),
@@ -53,7 +53,7 @@ impl Widget for InspectionWidget<'_> {
             ]),
             Line::from(vec![
                 Span::styled(
-                    "Kích hoạt ngữ cảnh: ",
+                    "Ngữ cảnh xem ngày: ",
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),
@@ -62,7 +62,7 @@ impl Widget for InspectionWidget<'_> {
             ]),
             Line::from(vec![
                 Span::styled(
-                    "Pack đang hoạt động: ",
+                    "Gói tăng cường: ",
                     Style::default()
                         .fg(Color::Cyan)
                         .add_modifier(Modifier::BOLD),
@@ -73,8 +73,8 @@ impl Widget for InspectionWidget<'_> {
 
         for layer in recommendation_layers.iter().take(2) {
             let layer_label = match layer.kind {
-                RecommendationLayerKind::Contextual => "Lớp ngữ cảnh",
-                RecommendationLayerKind::Baseline => "Lớp nền",
+                RecommendationLayerKind::Contextual => "Luận theo mục đích",
+                RecommendationLayerKind::Baseline => "Luận nền",
             };
             let pack_label = if layer.active_pack_ids.is_empty() {
                 "packs=none".to_string()
@@ -94,12 +94,12 @@ impl Widget for InspectionWidget<'_> {
             lines.push(Line::from(""));
             lines.push(Line::from(vec![
                 Span::styled(
-                    "Runtime provenance: ",
+                    "Chứng cứ kỹ thuật: ",
                     Style::default()
                         .fg(Color::Yellow)
                         .add_modifier(Modifier::BOLD),
                 ),
-                Span::raw("chi tiết nguồn tổng hợp"),
+                Span::raw("chi tiết tổng hợp phía sau màn hình"),
             ]));
             lines.push(Line::from(vec![
                 Span::raw("  • "),
@@ -138,7 +138,7 @@ impl Widget for InspectionWidget<'_> {
             }
         } else {
             lines.push(Line::from(vec![Span::styled(
-                "Nhấn e để xem chứng cứ và metadata chi tiết.",
+                "Nhấn e để xem bộ quy tắc, nguồn và metadata chi tiết.",
                 Style::default().fg(Color::DarkGray),
             )]));
         }
@@ -360,8 +360,8 @@ mod tests {
 
         let text = render_text(&app);
 
-        assert!(text.contains("Engine đang áp dụng:"));
-        assert!(text.contains("Kích hoạt ngữ cảnh:"));
+        assert!(text.contains("Bộ quy tắc đang dùng:"));
+        assert!(text.contains("Ngữ cảnh xem ngày:"));
         assert!(text.contains("pack.contract.v1"));
         assert!(text.contains("Ngày nền ổn định"));
         assert!(!text.contains("schema_version="));
@@ -422,7 +422,7 @@ mod tests {
 
         let text = render_text(&app);
 
-        assert!(text.contains("Runtime provenance:"));
+        assert!(text.contains("Chứng cứ kỹ thuật:"));
         assert!(text.contains("family=traditional"));
         assert!(text.contains("mode=advisory"));
     }

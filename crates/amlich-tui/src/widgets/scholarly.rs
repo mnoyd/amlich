@@ -33,7 +33,7 @@ impl Widget for ScholarlyWidget<'_> {
 impl<'a> ScholarlyWidget<'a> {
     fn render_evidence(&self, area: Rect, buf: &mut Buffer, bundle: &DayBundleDto) {
         let block = Block::default()
-            .title(" Khí Ngày ")
+            .title(" Nền Ngày ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
 
@@ -59,6 +59,14 @@ impl<'a> ScholarlyWidget<'a> {
         lines.push(Line::from(vec![
             Span::raw("   "),
             Span::styled(summary.headline, Style::default().fg(Color::Cyan)),
+        ]));
+
+        lines.push(Line::from(vec![
+            Span::raw("   "),
+            Span::styled(
+                "Các dấu hiệu dưới đây giúp giải thích vì sao ngày này thuận hay kỵ.",
+                Style::default().fg(Color::DarkGray),
+            ),
         ]));
 
         for detail in summary.detail_lines.iter().take(3) {
@@ -313,7 +321,7 @@ mod tests {
         let app = sample_app_state();
         let text = render_text(&app);
 
-        assert!(text.contains("Khí Ngày"));
+        assert!(text.contains("Nền Ngày"));
         assert!(text.contains("Khí ngày chưa đủ dữ liệu để luận"));
         assert!(!text.contains("Metadata:"));
     }

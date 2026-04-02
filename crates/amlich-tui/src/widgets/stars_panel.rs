@@ -22,7 +22,7 @@ impl<'a> StarsPanelWidget<'a> {
 impl Widget for StarsPanelWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let block = Block::default()
-            .title(" Sao & Trực ")
+            .title(" Dấu Hiệu Truyền Thống ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
         let inner = block.inner(area);
@@ -40,14 +40,29 @@ impl Widget for StarsPanelWidget<'_> {
             ]));
         }
 
+        if !summary.positive_signals.is_empty() {
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled("Điểm thuận:", Style::default().fg(Color::Green)),
+            ]));
+        }
+
         for signal in summary.positive_signals.iter().take(3) {
             lines.push(Line::from(vec![
                 Span::styled("  ★ ", Style::default().fg(Color::Green)),
                 Span::raw(signal.clone()),
             ]));
         }
-        for signal in summary.caution_signals.iter().take(3) {
+
+        if !summary.caution_signals.is_empty() {
             lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled("Điểm cần lưu ý:", Style::default().fg(Color::Red)),
+            ]));
+        }
+
+        for signal in summary.caution_signals.iter().take(3) {
             lines.push(Line::from(vec![
                 Span::styled("  ! ", Style::default().fg(Color::Red)),
                 Span::raw(signal.clone()),
