@@ -36,7 +36,6 @@ impl FocusLens {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActiveView {
     Today,
-    Event,
     DayDetail,
     Hours,
     Calendar,
@@ -47,7 +46,6 @@ impl ActiveView {
     pub fn label(self) -> &'static str {
         match self {
             Self::Today => "Hôm Nay",
-            Self::Event => "Event",
             Self::DayDetail => "Chi Tiết Ngày",
             Self::Hours => "Giờ Tốt",
             Self::Calendar => "Lịch",
@@ -58,7 +56,6 @@ impl ActiveView {
     pub fn short_label(self) -> &'static str {
         match self {
             Self::Today => "Today",
-            Self::Event => "Evt",
             Self::DayDetail => "Ngày",
             Self::Hours => "Giờ",
             Self::Calendar => "Lịch",
@@ -234,13 +231,13 @@ pub struct RiskSummaryVm {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ScholarTimingSummaryVm {
+pub struct DayDetailTimingSummaryVm {
     pub summary: String,
     pub windows: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ScholarRiskBoardVm {
+pub struct DayDetailRiskBoardVm {
     pub headline: Option<String>,
     pub critical_items: Vec<String>,
     pub caution_items: Vec<String>,
@@ -249,7 +246,7 @@ pub struct ScholarRiskBoardVm {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ScholarVerdictSupportVm {
+pub struct DayDetailVerdictSupportVm {
     pub support_line: String,
     pub layer_note: Option<String>,
 }
@@ -965,15 +962,15 @@ impl AppState {
     }
 
     pub fn top_recommendation_rows(&self) -> Vec<RecommendationRowVm> {
-        crate::view_models::dashboard::top_rows(self)
+        crate::view_models::today::top_rows(self)
     }
 
     pub fn hero_verdict(&self) -> Option<HeroVerdictVm> {
-        crate::view_models::dashboard::hero_verdict(self)
+        crate::view_models::today::hero_verdict(self)
     }
 
-    pub fn scholar_timing_summary(&self) -> Option<ScholarTimingSummaryVm> {
-        crate::view_models::hours::scholar_timing_summary(self)
+    pub fn day_detail_timing_summary(&self) -> Option<DayDetailTimingSummaryVm> {
+        crate::view_models::hours::day_detail_timing_summary(self)
     }
 
     pub fn hours_verdict(&self) -> Option<HoursVerdictVm> {
@@ -981,27 +978,27 @@ impl AppState {
     }
 
     pub fn risk_summary(&self) -> RiskSummaryVm {
-        crate::view_models::dashboard::risk_summary(self)
+        crate::view_models::today::risk_summary(self)
     }
 
-    pub fn scholar_risk_board(&self) -> ScholarRiskBoardVm {
-        crate::view_models::insight::scholar_risk_board(self)
+    pub fn day_detail_risk_board(&self) -> DayDetailRiskBoardVm {
+        crate::view_models::day_detail::day_detail_risk_board(self)
     }
 
-    pub fn scholar_verdict_support(&self) -> Option<ScholarVerdictSupportVm> {
-        crate::view_models::insight::scholar_verdict_support(self)
+    pub fn day_detail_verdict_support(&self) -> Option<DayDetailVerdictSupportVm> {
+        crate::view_models::day_detail::day_detail_verdict_support(self)
     }
 
     pub fn direction_verdict(&self) -> Option<DirectionVerdictVm> {
-        crate::view_models::insight::direction_verdict(self)
+        crate::view_models::day_detail::direction_verdict(self)
     }
 
     pub fn day_identity_summary(&self) -> Option<DayIdentitySummaryVm> {
-        crate::view_models::dashboard::day_identity_summary(self)
+        crate::view_models::today::day_identity_summary(self)
     }
 
     pub fn traditional_evidence_summary(&self) -> Option<TraditionalEvidenceSummaryVm> {
-        crate::view_models::dashboard::traditional_evidence_summary(self)
+        crate::view_models::today::traditional_evidence_summary(self)
     }
 
     pub fn seasonal_verdict(&self) -> Option<SeasonalVerdictVm> {
@@ -1638,10 +1635,10 @@ mod tests {
     }
 
     #[test]
-    fn scholar_timing_summary_prefers_curated_windows_and_existing_gio_summary() {
+    fn day_detail_timing_summary_prefers_curated_windows_and_existing_gio_summary() {
         let app = sample_app_state_with_bundle();
 
-        let timing = app.scholar_timing_summary().expect("timing summary");
+        let timing = app.day_detail_timing_summary().expect("timing summary");
 
         assert_eq!(timing.summary, "Giờ đẹp đầu ngày");
         assert_eq!(
@@ -1655,10 +1652,10 @@ mod tests {
     }
 
     #[test]
-    fn scholar_risk_board_groups_critical_caution_and_conflict_rows() {
+    fn day_detail_risk_board_groups_critical_caution_and_conflict_rows() {
         let app = sample_app_state_with_bundle();
 
-        let risk_board = app.scholar_risk_board();
+        let risk_board = app.day_detail_risk_board();
 
         assert_eq!(risk_board.headline.as_deref(), Some("Kỵ mạnh: Động thổ"));
         assert!(risk_board
@@ -1684,7 +1681,7 @@ mod tests {
     }
 
     #[test]
-    fn scholar_verdict_support_combines_traditional_evidence_and_active_layer_note() {
+    fn day_detail_verdict_support_combines_traditional_evidence_and_active_layer_note() {
         let mut app = sample_app_state_with_bundle();
         if let Some(bundle) = app.bundle.as_mut() {
             let mut contextual = bundle
@@ -1697,7 +1694,7 @@ mod tests {
         }
 
         let support = app
-            .scholar_verdict_support()
+            .day_detail_verdict_support()
             .expect("scholar verdict support");
 
         assert_eq!(

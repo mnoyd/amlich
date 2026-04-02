@@ -1,10 +1,10 @@
 use std::collections::BTreeSet;
 
-use crate::state::{AppState, HoursVerdictVm, ScholarTimingSummaryVm};
+use crate::state::{AppState, HoursVerdictVm, DayDetailTimingSummaryVm};
 
-use super::{dashboard::hero_verdict, shared::format_good_hour_count_summary, shared::format_hour_window};
+use super::{today::hero_verdict, shared::format_good_hour_count_summary, shared::format_hour_window};
 
-pub fn scholar_timing_summary(app: &AppState) -> Option<ScholarTimingSummaryVm> {
+pub fn day_detail_timing_summary(app: &AppState) -> Option<DayDetailTimingSummaryVm> {
     let bundle = app.bundle.as_ref()?;
     let gio = bundle.gio_hoang_dao.as_ref();
     let insight_hours = bundle
@@ -59,12 +59,12 @@ pub fn scholar_timing_summary(app: &AppState) -> Option<ScholarTimingSummaryVm> 
         }
     }
 
-    Some(ScholarTimingSummaryVm { summary, windows })
+    Some(DayDetailTimingSummaryVm { summary, windows })
 }
 
 pub fn hours_verdict(app: &AppState) -> Option<HoursVerdictVm> {
     let bundle = app.bundle.as_ref()?;
-    let timing = scholar_timing_summary(app)?;
+    let timing = day_detail_timing_summary(app)?;
     let mut bad_windows = Vec::new();
 
     if let Some(gio) = &bundle.gio_hoang_dao {

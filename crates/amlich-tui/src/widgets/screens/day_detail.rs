@@ -168,7 +168,7 @@ fn render_scholar_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
         ]));
     }
 
-    if let Some(support) = app.scholar_verdict_support() {
+    if let Some(support) = app.day_detail_verdict_support() {
         lines.push(Line::from(""));
         lines.push(Line::from(vec![
             Span::raw("  "),

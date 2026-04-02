@@ -1,5 +1,5 @@
-pub mod dashboard;
+pub mod today;
 pub mod event;
-pub mod feng_shui;
+pub mod personal;
 pub mod hours;
-pub mod insight;
+pub mod day_detail;

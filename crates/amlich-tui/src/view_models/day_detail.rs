@@ -1,13 +1,13 @@
 use crate::state::{
-    AppState, DirectionVerdictVm, ScholarRiskBoardVm, ScholarVerdictSupportVm,
+    AppState, DirectionVerdictVm, DayDetailRiskBoardVm, DayDetailVerdictSupportVm,
 };
 
 use super::{
-    dashboard::{hero_verdict, risk_summary},
+    today::{hero_verdict, risk_summary},
     shared::recommendation_layers,
 };
 
-pub fn scholar_risk_board(app: &AppState) -> ScholarRiskBoardVm {
+pub fn day_detail_risk_board(app: &AppState) -> DayDetailRiskBoardVm {
     let flat_summary = risk_summary(app);
     let mut critical_items = Vec::new();
     let mut caution_items = Vec::new();
@@ -76,7 +76,7 @@ pub fn scholar_risk_board(app: &AppState) -> ScholarRiskBoardVm {
         .or_else(|| flat_summary.items.first().cloned())
         .or_else(|| conflict_items.first().cloned());
 
-    ScholarRiskBoardVm {
+    DayDetailRiskBoardVm {
         headline,
         critical_items,
         caution_items,
@@ -85,7 +85,7 @@ pub fn scholar_risk_board(app: &AppState) -> ScholarRiskBoardVm {
     }
 }
 
-pub fn scholar_verdict_support(app: &AppState) -> Option<ScholarVerdictSupportVm> {
+pub fn day_detail_verdict_support(app: &AppState) -> Option<DayDetailVerdictSupportVm> {
     let bundle = app.bundle.as_ref()?;
     let mut segments = Vec::new();
 
@@ -139,7 +139,7 @@ pub fn scholar_verdict_support(app: &AppState) -> Option<ScholarVerdictSupportVm
         .filter(|layer| layer.kind == crate::state::RecommendationLayerKind::Contextual)
         .map(|layer| format!("Ngữ cảnh ưu tiên: {}", layer.summary));
 
-    Some(ScholarVerdictSupportVm {
+    Some(DayDetailVerdictSupportVm {
         support_line: segments.join(" · "),
         layer_note,
     })

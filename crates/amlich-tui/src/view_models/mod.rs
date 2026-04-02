@@ -1,5 +1,5 @@
-pub mod dashboard;
+pub mod today;
 pub mod hours;
-pub mod insight;
+pub mod day_detail;
 pub mod seasonal;
 pub mod shared;

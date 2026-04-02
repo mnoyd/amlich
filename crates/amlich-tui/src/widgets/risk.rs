@@ -31,7 +31,7 @@ impl Widget for RiskWidget<'_> {
         block.render(area, buf);
         let mut lines = vec![];
 
-        let risk_board = self.app.scholar_risk_board();
+        let risk_board = self.app.day_detail_risk_board();
         if risk_board.headline.is_none()
             && risk_board.critical_items.is_empty()
             && risk_board.caution_items.is_empty()

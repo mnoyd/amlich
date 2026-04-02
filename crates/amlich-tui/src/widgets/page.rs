@@ -11,7 +11,7 @@ use crate::state::{AppState, PageSection};
 
 use super::{
     calendar::CalendarViewWidget,
-    screens::{dashboard::TodayScreenWidget, hours::HoursScreenWidget, insight::DayDetailScreenWidget},
+    screens::{today::TodayScreenWidget, hours::HoursScreenWidget, day_detail::DayDetailScreenWidget},
     week_strip::WeekStripWidget,
 };
 
@@ -38,7 +38,6 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
 
         (crate::state::ActiveView::Calendar, _, _) => 40,
         (crate::state::ActiveView::Personal, _, _) => feng_shui_natural_height(app, mode),
-        (crate::state::ActiveView::Event, _, _) => 36,
     }
 }
 
@@ -65,14 +64,11 @@ pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: 
         crate::state::ActiveView::Today => {
             TodayScreenWidget::new(app, mode).render(area, buf)
         }
-        crate::state::ActiveView::Event => {
-            TodayScreenWidget::new(app, mode).render(area, buf)
-        }
         crate::state::ActiveView::DayDetail => DayDetailScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Hours => HoursScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Calendar => CalendarViewWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Personal => {
-            crate::widgets::screens::feng_shui::PersonalScreenWidget::new(app, mode).render(area, buf)
+            crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode).render(area, buf)
         }
     }
 }
@@ -151,9 +147,6 @@ impl Widget for PageWidget<'_> {
             crate::state::ActiveView::Today => {
                 TodayScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
-            crate::state::ActiveView::Event => {
-                TodayScreenWidget::new(self.app, self.mode).render(content_area, buf)
-            }
             crate::state::ActiveView::DayDetail => {
                 DayDetailScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
@@ -164,7 +157,7 @@ impl Widget for PageWidget<'_> {
                 CalendarViewWidget::new(self.app, self.mode).render(area, buf)
             }
             crate::state::ActiveView::Personal => {
-                crate::widgets::screens::feng_shui::PersonalScreenWidget::new(self.app, self.mode)
+                crate::widgets::screens::personal::PersonalScreenWidget::new(self.app, self.mode)
                     .render(content_area, buf)
             }
         }
