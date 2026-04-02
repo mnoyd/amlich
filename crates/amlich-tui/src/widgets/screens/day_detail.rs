@@ -9,7 +9,7 @@ use ratatui::{
 use crate::widgets::{
     direction_panel::DirectionPanelWidget, guidance::GuidanceWidget,
     guidance_panel::GuidancePanelWidget, inspection::InspectionWidget, risk::RiskWidget,
-    scholarly::ScholarlyWidget, stars_panel::StarsPanelWidget, tietkhi::TietKhiWidget,
+    day_foundation::DayFoundationWidget, stars_panel::StarsPanelWidget, tietkhi::TietKhiWidget,
 };
 use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}, widgets::travel::TravelWidget};
 
@@ -40,7 +40,7 @@ impl Widget for DayDetailScreenWidget<'_> {
                 ])
                 .split(area);
 
-                render_scholar_verdict(self.app, rows[0], buf);
+                render_day_detail_verdict(self.app, rows[0], buf);
                 GuidanceWidget::new(self.app, self.mode).render(rows[1], buf);
                 RiskWidget::new(self.app, self.mode).render(rows[2], buf);
 
@@ -55,7 +55,7 @@ impl Widget for DayDetailScreenWidget<'_> {
                 let interpretation =
                     Layout::horizontal([Constraint::Percentage(52), Constraint::Percentage(48)])
                         .split(rows[5]);
-                ScholarlyWidget::new(self.app, self.mode).render(interpretation[0], buf);
+                DayFoundationWidget::new(self.app, self.mode).render(interpretation[0], buf);
                 StarsPanelWidget::new(self.app, self.mode).render(interpretation[1], buf);
 
                 InspectionWidget::new(self.app, self.mode).render(rows[6], buf);
@@ -75,13 +75,13 @@ impl Widget for DayDetailScreenWidget<'_> {
                 ])
                 .split(area);
 
-                render_scholar_verdict(self.app, rows[0], buf);
+                render_day_detail_verdict(self.app, rows[0], buf);
                 GuidanceWidget::new(self.app, self.mode).render(rows[1], buf);
                 RiskWidget::new(self.app, self.mode).render(rows[2], buf);
                 DirectionPanelWidget::new(self.app, self.mode).render(rows[3], buf);
                 TravelWidget::new(self.app, self.mode).render(rows[4], buf);
                 GuidancePanelWidget::new(self.app, self.mode).render(rows[5], buf);
-                ScholarlyWidget::new(self.app, self.mode).render(rows[6], buf);
+                DayFoundationWidget::new(self.app, self.mode).render(rows[6], buf);
                 StarsPanelWidget::new(self.app, self.mode).render(rows[7], buf);
                 InspectionWidget::new(self.app, self.mode).render(rows[8], buf);
             }
@@ -95,7 +95,7 @@ impl Widget for DayDetailScreenWidget<'_> {
                 ])
                 .split(area);
 
-                render_scholar_verdict(self.app, rows[0], buf);
+                render_day_detail_verdict(self.app, rows[0], buf);
                 GuidanceWidget::new(self.app, self.mode).render(rows[1], buf);
                 RiskWidget::new(self.app, self.mode).render(rows[2], buf);
                 DirectionPanelWidget::new(self.app, self.mode).render(rows[3], buf);
@@ -111,7 +111,7 @@ impl Widget for DayDetailScreenWidget<'_> {
                 ])
                 .split(area);
 
-                render_scholar_verdict(self.app, rows[0], buf);
+                render_day_detail_verdict(self.app, rows[0], buf);
                 GuidanceWidget::new(self.app, self.mode).render(rows[1], buf);
                 RiskWidget::new(self.app, self.mode).render(rows[2], buf);
 
@@ -127,7 +127,7 @@ impl Widget for DayDetailScreenWidget<'_> {
     }
 }
 
-fn render_scholar_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
+fn render_day_detail_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
         .title(" Chi Tiết Ngày ")
         .borders(Borders::ALL)

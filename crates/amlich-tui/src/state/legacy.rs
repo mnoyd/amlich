@@ -18,7 +18,7 @@ const EVENT_KIND_OPTIONS: [&str; 4] = [
 pub enum FocusLens {
     General,
     Planning,
-    Scholarly,
+    DayDetail,
     Personal,
 }
 
@@ -26,8 +26,8 @@ impl FocusLens {
     pub fn next(&self) -> Self {
         match self {
             Self::General => Self::Planning,
-            Self::Planning => Self::Scholarly,
-            Self::Scholarly => Self::Personal,
+            Self::Planning => Self::DayDetail,
+            Self::DayDetail => Self::Personal,
             Self::Personal => Self::General,
         }
     }
@@ -528,11 +528,6 @@ impl AppState {
         self.show_week_strip = !self.show_week_strip;
     }
 
-    pub fn next_lens(&mut self) {
-        self.lens = self.lens.next();
-        self.scroll_offset = 0; // Reset scroll on lens change
-    }
-
     pub fn has_event_today(&self) -> bool {
         let Some(bundle) = &self.bundle else {
             return false;
@@ -612,10 +607,6 @@ impl AppState {
     pub fn focus_section(&mut self, section: PageSection) {
         self.focused_section = section;
         self.scroll_offset = 0;
-    }
-
-    pub fn toggle_calendar(&mut self) {
-        self.toggle_calendar_view();
     }
 
     pub fn is_calendar_view(&self) -> bool {
@@ -1695,7 +1686,7 @@ mod tests {
 
         let support = app
             .day_detail_verdict_support()
-            .expect("scholar verdict support");
+            .expect("day detail verdict support");
 
         assert_eq!(
             support.support_line,

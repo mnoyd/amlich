@@ -10,18 +10,18 @@ use crate::layout::LayoutMode;
 use crate::state::AppState;
 use amlich_api::v2::DayBundleDto;
 
-pub struct ScholarlyWidget<'a> {
+pub struct DayFoundationWidget<'a> {
     app: &'a AppState,
     _mode: LayoutMode,
 }
 
-impl<'a> ScholarlyWidget<'a> {
+impl<'a> DayFoundationWidget<'a> {
     pub fn new(app: &'a AppState, mode: LayoutMode) -> Self {
         Self { app, _mode: mode }
     }
 }
 
-impl Widget for ScholarlyWidget<'_> {
+impl Widget for DayFoundationWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let Some(bundle) = &self.app.bundle else {
             return;
@@ -30,7 +30,7 @@ impl Widget for ScholarlyWidget<'_> {
     }
 }
 
-impl<'a> ScholarlyWidget<'a> {
+impl<'a> DayFoundationWidget<'a> {
     fn render_evidence(&self, area: Rect, buf: &mut Buffer, bundle: &DayBundleDto) {
         let block = Block::default()
             .title(" Nền Ngày ")
@@ -303,7 +303,7 @@ mod tests {
     fn render_text(app: &AppState) -> String {
         let area = Rect::new(0, 0, 90, 8);
         let mut buf = Buffer::empty(area);
-        ScholarlyWidget::new(app, LayoutMode::Large).render(area, &mut buf);
+        DayFoundationWidget::new(app, LayoutMode::Large).render(area, &mut buf);
         (0..area.height)
             .map(|y| {
                 (0..area.width)
@@ -317,7 +317,7 @@ mod tests {
     }
 
     #[test]
-    fn scholarly_widget_renders_day_identity_section() {
+    fn day_foundation_widget_renders_day_identity_section() {
         let app = sample_app_state();
         let text = render_text(&app);
 

@@ -1,9 +1,9 @@
 use crate::state::{
-    AppState, DayIdentitySummaryVm, HeroVerdictVm, RecommendationLayerKind, RecommendationRowVm,
+    AppState, DayIdentitySummaryVm, HeroVerdictVm, RecommendationRowVm,
     RiskSummaryVm, TraditionalEvidenceSummaryVm,
 };
 
-use super::shared::{recommendation_layers, selected_recommendations, top_recommendation_rows};
+use super::shared::{selected_recommendations, top_recommendation_rows};
 
 pub fn top_rows(app: &AppState) -> Vec<RecommendationRowVm> {
     top_recommendation_rows(app)
@@ -241,13 +241,6 @@ pub fn traditional_evidence_summary(app: &AppState) -> Option<TraditionalEvidenc
         provenance,
         source_notes,
     })
-}
-
-pub fn contextual_layer_note(app: &AppState) -> Option<String> {
-    recommendation_layers(app)
-        .first()
-        .filter(|layer| layer.kind == RecommendationLayerKind::Contextual)
-        .map(|layer| format!("Ngữ cảnh ưu tiên: {}", layer.summary))
 }
 
 fn take_first_sentence(text: &str) -> String {
