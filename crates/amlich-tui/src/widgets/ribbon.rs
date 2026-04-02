@@ -100,7 +100,7 @@ impl Widget for RibbonWidget<'_> {
         };
         all_spans.push(Span::styled(
             format!(
-                "| v: {verbosity_label}  Tab: màn  1-8: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp"
+                "| v: {verbosity_label}  Tab: màn  1-5: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp"
             ),
             Style::default().fg(Color::DarkGray),
         ));
@@ -211,7 +211,7 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_view: crate::state::ActiveView::Dashboard,
+            active_view: crate::state::ActiveView::Today,
             view_history: Vec::new(),
         }
     }
@@ -238,9 +238,9 @@ mod tests {
         let hotkey_line = &lines[0];
         let weekday_line = &lines[1];
 
-        assert!(hotkey_line.contains("[Dashboard]"));
+        assert!(hotkey_line.contains("[Hôm Nay]"));
         assert!(hotkey_line.contains("Tab: màn"));
-        assert!(hotkey_line.contains("1-8: chọn"));
+        assert!(hotkey_line.contains("1-5: chọn"));
         assert!(!weekday_line.contains("Tab:"));
         assert!(!weekday_line.contains("màn"));
     }

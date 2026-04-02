@@ -25,7 +25,7 @@ impl Widget for EventSummaryWidget<'_> {
         };
 
         let block = Block::default()
-            .title(" Lưu Ý Quan Trọng ")
+            .title(" Sự Kiện / Nhắc Nhở ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Yellow));
         let inner = block.inner(area);

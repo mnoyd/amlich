@@ -296,7 +296,7 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_view: crate::state::ActiveView::Dashboard,
+            active_view: crate::state::ActiveView::Today,
             view_history: Vec::new(),
         }
     }

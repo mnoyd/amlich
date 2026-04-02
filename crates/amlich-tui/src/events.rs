@@ -53,11 +53,11 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             return false;
         }
         KeyCode::Char('1') => {
-            app.go_to_view(crate::state::ActiveView::Dashboard);
+            app.go_to_view(crate::state::ActiveView::Today);
             return false;
         }
         KeyCode::Char('2') => {
-            app.go_to_view(crate::state::ActiveView::Scholar);
+            app.go_to_view(crate::state::ActiveView::DayDetail);
             return false;
         }
         KeyCode::Char('3') => {
@@ -65,24 +65,11 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             return false;
         }
         KeyCode::Char('4') => {
-            app.go_to_view(crate::state::ActiveView::Elements);
+            app.go_to_view(crate::state::ActiveView::Calendar);
             return false;
         }
         KeyCode::Char('5') => {
-            app.go_to_view(crate::state::ActiveView::FengShui);
-            return false;
-        }
-        KeyCode::Char('6') => {
-            app.go_to_view(crate::state::ActiveView::SolarTerms);
-            return false;
-        }
-        KeyCode::Char('7') => {
-            app.go_to_view(crate::state::ActiveView::Planning);
-            return false;
-        }
-        KeyCode::Char('8') => {
-            app.go_to_view(crate::state::ActiveView::Calendar);
-            app.calendar_cursor = app.date;
+            app.go_to_view(crate::state::ActiveView::Personal);
             return false;
         }
         _ => {}
@@ -314,7 +301,7 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_view: crate::state::ActiveView::Dashboard,
+            active_view: crate::state::ActiveView::Today,
             view_history: Vec::new(),
         }
     }
@@ -326,7 +313,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_view, ActiveView::Scholar);
+        assert_eq!(app.active_view, ActiveView::DayDetail);
     }
 
     #[test]
@@ -336,7 +323,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::BackTab, KeyModifiers::SHIFT);
 
-        assert_eq!(app.active_view, ActiveView::Calendar);
+        assert_eq!(app.active_view, ActiveView::Personal);
     }
 
     #[test]

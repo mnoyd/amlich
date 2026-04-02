@@ -9,9 +9,9 @@ use ratatui::{
 use crate::widgets::{
     direction_panel::DirectionPanelWidget, guidance::GuidanceWidget,
     guidance_panel::GuidancePanelWidget, inspection::InspectionWidget, risk::RiskWidget,
-    scholarly::ScholarlyWidget, stars_panel::StarsPanelWidget,
+    scholarly::ScholarlyWidget, stars_panel::StarsPanelWidget, tietkhi::TietKhiWidget,
 };
-use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}};
+use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}, widgets::travel::TravelWidget};
 
 pub struct InsightScreenWidget<'a> {
     app: &'a AppState,
@@ -48,7 +48,7 @@ impl Widget for InsightScreenWidget<'_> {
                     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                         .split(rows[3]);
                 DirectionPanelWidget::new(self.app, self.mode).render(application[0], buf);
-                render_timing_summary(self.app, rows[3], application[1], buf);
+                TravelWidget::new(self.app, self.mode).render(application[1], buf);
 
                 GuidancePanelWidget::new(self.app, self.mode).render(rows[4], buf);
 
@@ -59,7 +59,7 @@ impl Widget for InsightScreenWidget<'_> {
                 StarsPanelWidget::new(self.app, self.mode).render(interpretation[1], buf);
 
                 InspectionWidget::new(self.app, self.mode).render(rows[6], buf);
-                render_layer_context(self.app, rows[7], buf);
+                render_detail_footer(self.app, rows[7], buf);
             }
             (LayoutMode::Small, VerbosityMode::Verbose) => {
                 let rows = Layout::vertical([
@@ -79,7 +79,7 @@ impl Widget for InsightScreenWidget<'_> {
                 GuidanceWidget::new(self.app, self.mode).render(rows[1], buf);
                 RiskWidget::new(self.app, self.mode).render(rows[2], buf);
                 DirectionPanelWidget::new(self.app, self.mode).render(rows[3], buf);
-                render_timing_summary(self.app, rows[4], rows[4], buf);
+                TravelWidget::new(self.app, self.mode).render(rows[4], buf);
                 GuidancePanelWidget::new(self.app, self.mode).render(rows[5], buf);
                 ScholarlyWidget::new(self.app, self.mode).render(rows[6], buf);
                 StarsPanelWidget::new(self.app, self.mode).render(rows[7], buf);
@@ -98,8 +98,8 @@ impl Widget for InsightScreenWidget<'_> {
                 render_scholar_verdict(self.app, rows[0], buf);
                 GuidanceWidget::new(self.app, self.mode).render(rows[1], buf);
                 RiskWidget::new(self.app, self.mode).render(rows[2], buf);
-                render_timing_summary(self.app, rows[3], rows[3], buf);
-                DirectionPanelWidget::new(self.app, self.mode).render(rows[4], buf);
+                DirectionPanelWidget::new(self.app, self.mode).render(rows[3], buf);
+                TravelWidget::new(self.app, self.mode).render(rows[4], buf);
             }
             (_, VerbosityMode::Compact) => {
                 let rows = Layout::vertical([
@@ -119,7 +119,7 @@ impl Widget for InsightScreenWidget<'_> {
                     Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                         .split(rows[3]);
                 DirectionPanelWidget::new(self.app, self.mode).render(application[0], buf);
-                render_timing_summary(self.app, rows[3], application[1], buf);
+                TravelWidget::new(self.app, self.mode).render(application[1], buf);
 
                 GuidancePanelWidget::new(self.app, self.mode).render(rows[4], buf);
             }
@@ -129,7 +129,7 @@ impl Widget for InsightScreenWidget<'_> {
 
 fn render_scholar_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Tổng Luận Hôm Nay ")
+        .title(" Chi Tiết Ngày ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
@@ -182,46 +182,13 @@ fn render_scholar_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
         }
     }
 
-    Paragraph::new(lines)
-        .wrap(Wrap { trim: true })
-        .render(inner, buf);
-}
-
-fn render_timing_summary(app: &AppState, area: Rect, target: Rect, buf: &mut Buffer) {
-    let block = Block::default()
-        .title(" Giờ / Khung Hành Động ")
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::DarkGray));
-    let inner = block.inner(target);
-    block.render(target, buf);
-
-    let mut lines = Vec::new();
-    if let Some(timing) = app.hours_verdict() {
-        lines.push(Line::from(vec![
-            Span::raw("  "),
-            Span::styled(timing.summary, Style::default().fg(Color::Green)),
-        ]));
-
-        for window in timing.top_windows.iter().take(3) {
-            lines.push(Line::from(vec![
-                Span::styled("  ★ ", Style::default().fg(Color::Green)),
-                Span::raw(window.clone()),
-            ]));
-        }
-
-        if let Some(caution) = timing.caution {
-            lines.push(Line::from(""));
-            lines.push(Line::from(vec![
-                Span::raw("  "),
-                Span::styled(caution, Style::default().fg(Color::Yellow)),
-            ]));
-        }
-    } else {
+    if let Some(seasonal) = app.seasonal_verdict() {
+        lines.push(Line::from(""));
         lines.push(Line::from(vec![
             Span::raw("  "),
             Span::styled(
-                "Chưa có dữ liệu giờ tốt để tóm tắt.",
-                Style::default().fg(Color::Gray),
+                format!("Ảnh hưởng mùa: {}", seasonal.implication),
+                Style::default().fg(Color::Yellow),
             ),
         ]));
     }
@@ -229,8 +196,19 @@ fn render_timing_summary(app: &AppState, area: Rect, target: Rect, buf: &mut Buf
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })
         .render(inner, buf);
+}
 
-    let _ = area;
+fn render_detail_footer(app: &AppState, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Tầng Dữ Liệu / Tiết Khí ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let columns = Layout::horizontal([Constraint::Percentage(45), Constraint::Percentage(55)]).split(inner);
+    TietKhiWidget::new(app, LayoutMode::Small).render(columns[0], buf);
+    render_layer_context(app, columns[1], buf);
 }
 
 fn render_layer_context(app: &AppState, area: Rect, buf: &mut Buffer) {
@@ -243,6 +221,20 @@ fn render_layer_context(app: &AppState, area: Rect, buf: &mut Buffer) {
 
     let layers = app.recommendation_layers();
     let mut lines = Vec::new();
+    if let Some(seasonal) = app.seasonal_verdict() {
+        lines.push(Line::from(vec![
+            Span::raw("  Mùa: "),
+            Span::styled(seasonal.headline, Style::default().fg(Color::Cyan)),
+        ]));
+        for line in seasonal.application_lines.iter().take(1) {
+            lines.push(Line::from(vec![
+                Span::raw("  • "),
+                Span::styled(line.clone(), Style::default().fg(Color::White)),
+            ]));
+        }
+        lines.push(Line::from(""));
+    }
+
     if layers.is_empty() {
         lines.push(Line::from(vec![
             Span::raw("  "),

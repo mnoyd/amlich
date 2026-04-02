@@ -35,43 +35,34 @@ impl FocusLens {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActiveView {
-    Dashboard,
+    Today,
     Event,
-    Scholar,
+    DayDetail,
     Hours,
-    Elements,
-    FengShui,
-    SolarTerms,
-    Planning,
     Calendar,
+    Personal,
 }
 
 impl ActiveView {
     pub fn label(self) -> &'static str {
         match self {
-            Self::Dashboard => "Dashboard",
+            Self::Today => "Hôm Nay",
             Self::Event => "Event",
-            Self::Scholar => "Scholar",
+            Self::DayDetail => "Chi Tiết Ngày",
             Self::Hours => "Giờ Tốt",
-            Self::Elements => "Ngũ Hành",
-            Self::FengShui => "Phong Thủy",
-            Self::SolarTerms => "Tiết Khí",
-            Self::Planning => "Planning",
-            Self::Calendar => "Calendar",
+            Self::Calendar => "Lịch",
+            Self::Personal => "Cá Nhân",
         }
     }
 
     pub fn short_label(self) -> &'static str {
         match self {
-            Self::Dashboard => "Dash",
+            Self::Today => "Today",
             Self::Event => "Evt",
-            Self::Scholar => "Sch",
+            Self::DayDetail => "Ngày",
             Self::Hours => "Giờ",
-            Self::Elements => "NHành",
-            Self::FengShui => "PThủy",
-            Self::SolarTerms => "TKhí",
-            Self::Planning => "Plan",
-            Self::Calendar => "Cal",
+            Self::Calendar => "Lịch",
+            Self::Personal => "Nhân",
         }
     }
 }
@@ -405,7 +396,7 @@ impl AppState {
             show_evidence: false,
             show_week_strip: true,
             verbosity,
-            active_view: ActiveView::Dashboard,
+            active_view: ActiveView::Today,
             view_history: Vec::new(),
             app_mode: AppMode::Normal,
             focused_section: PageSection::Explorer,
@@ -558,18 +549,15 @@ impl AppState {
     }
 
     pub fn available_views(&self) -> Vec<ActiveView> {
-        let mut views = vec![ActiveView::Dashboard];
+        let mut views = vec![ActiveView::Today];
         if self.has_event_today() {
             views.push(ActiveView::Event);
         }
         views.extend(vec![
-            ActiveView::Scholar,
+            ActiveView::DayDetail,
             ActiveView::Hours,
-            ActiveView::Elements,
-            ActiveView::FengShui,
-            ActiveView::SolarTerms,
-            ActiveView::Planning,
             ActiveView::Calendar,
+            ActiveView::Personal,
         ]);
         views
     }
@@ -659,7 +647,7 @@ impl AppState {
             if let Some(prev) = self.view_history.pop() {
                 self.active_view = prev;
             } else {
-                self.active_view = ActiveView::Dashboard;
+                self.active_view = ActiveView::Today;
             }
         }
     }
@@ -1226,7 +1214,7 @@ mod tests {
             show_evidence: false,
             show_week_strip: true,
             verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
-            active_view: ActiveView::Dashboard,
+            active_view: ActiveView::Today,
             view_history: Vec::new(),
             app_mode: AppMode::Normal,
             focused_section: PageSection::Hero,

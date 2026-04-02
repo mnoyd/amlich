@@ -50,10 +50,11 @@ impl Widget for HelpModalWidget<'_> {
                     .add_modifier(Modifier::BOLD)
                     .fg(Theme::GOLD),
             )),
-            Line::from("  [1] Bảng điều khiển (Dashboard)"),
-            Line::from("  [2] Chuyên gia (Scholar)"),
-            Line::from("  [3] Kế hoạch (Planning)"),
-            Line::from("  [4] hoặc [c] Lịch tháng (Calendar)"),
+            Line::from("  [1] Hôm Nay"),
+            Line::from("  [2] Chi Tiết Ngày"),
+            Line::from("  [3] Giờ Tốt"),
+            Line::from("  [4] hoặc [c] Lịch"),
+            Line::from("  [5] Cá Nhân"),
             Line::from(""),
             Line::from(Span::styled(
                 "Điều hướng thời gian:",

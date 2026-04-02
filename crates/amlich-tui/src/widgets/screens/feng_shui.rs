@@ -119,7 +119,7 @@ impl Widget for FengShuiScreenWidget<'_> {
 
 fn render_profile_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Nhận Định ")
+        .title(" Hồ Sơ Cá Nhân ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
@@ -132,9 +132,9 @@ fn render_profile_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
 
     let mut lines = Vec::new();
     let verdict = if profile.has_personal_overlay {
-        "Màn hình này đang ghép hướng theo ngày với lớp cá nhân hóa."
+        "Đang xem lớp cá nhân hóa nhẹ dựa trên hồ sơ của bạn."
     } else {
-        "Hiện chỉ có hướng theo ngày; chưa đủ dữ liệu để luận phong thủy bản mệnh."
+        "Chưa có đủ hồ sơ cá nhân; hiện chỉ hiển thị dữ liệu theo ngày."
     };
     lines.push(Line::from(vec![
         Span::raw("  "),
@@ -154,7 +154,7 @@ fn render_profile_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
 
 fn render_scope_note(note: &str, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Giới Hạn Diễn Giải ")
+        .title(" Thiếu Hồ Sơ Cá Nhân ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
@@ -169,7 +169,7 @@ fn render_scope_note(note: &str, area: Rect, buf: &mut Buffer) {
         Line::from(vec![
             Span::raw("  "),
             Span::styled(
-                "Cần birth year + gender để mở Tứ Mệnh và Đại Vận.",
+                "Cần năm sinh + giới tính để mở Tứ Mệnh, hướng hợp và Đại Vận.",
                 Style::default().fg(Color::DarkGray),
             ),
         ]),
@@ -215,6 +215,11 @@ fn render_kua(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer)
             Span::styled(&tm.direction.vi, Style::default().fg(Color::Yellow)),
         ]),
         Line::from(format!("  {}", tm.meaning.vi)),
+        Line::from(""),
+        Line::from(vec![
+            Span::raw("  Trạng thái: "),
+            Span::styled("đã bật lớp cá nhân hóa", Style::default().fg(Color::Green)),
+        ]),
     ];
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })

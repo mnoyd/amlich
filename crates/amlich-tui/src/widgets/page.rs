@@ -12,9 +12,8 @@ use crate::state::{AppState, PageSection};
 use super::{
     calendar::CalendarViewWidget,
     screens::{
-        dashboard::DashboardScreenWidget, elements::ElementsScreenWidget,
-        feng_shui::FengShuiScreenWidget, hours::HoursScreenWidget, insight::InsightScreenWidget,
-        recommendations::RecommendationsScreenWidget, solar_terms::SolarTermsScreenWidget,
+        dashboard::DashboardScreenWidget, event::EventScreenWidget, hours::HoursScreenWidget,
+        insight::InsightScreenWidget,
     },
     week_strip::WeekStripWidget,
 };
@@ -28,50 +27,25 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, area_width: u16) 
         return super::screens::event::event_natural_height(app, area_width);
     }
 
-    if app.active_view == crate::state::ActiveView::FengShui {
-        return feng_shui_natural_height(app, mode);
-    }
-
     match (app.active_view, mode, app.active_verbosity()) {
-        // Dashboard
-        (crate::state::ActiveView::Dashboard, LayoutMode::Small, VerbosityMode::Compact) => 25, // 10+7+8
-        (crate::state::ActiveView::Dashboard, LayoutMode::Small, VerbosityMode::Verbose) => 39, // 10+7+9+8+5
-        (crate::state::ActiveView::Dashboard, _, VerbosityMode::Compact) => 27, // 10+12+5
-        (crate::state::ActiveView::Dashboard, _, VerbosityMode::Verbose) => 25, // 20+5
+        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Compact) => 31,
+        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Verbose) => 43,
+        (crate::state::ActiveView::Today, _, VerbosityMode::Compact) => 35,
+        (crate::state::ActiveView::Today, _, VerbosityMode::Verbose) => 36,
 
-        // Scholar (Insight)
-        (crate::state::ActiveView::Scholar, LayoutMode::Small, VerbosityMode::Compact) => 44, // 8+12+8+8+8
-        (crate::state::ActiveView::Scholar, LayoutMode::Small, VerbosityMode::Verbose) => 76, // 8+12+8+8+8+9+8+8+7
-        (crate::state::ActiveView::Scholar, _, VerbosityMode::Compact) => 44, // 7+10+8+9+10
-        (crate::state::ActiveView::Scholar, _, VerbosityMode::Verbose) => 67, // 7+10+8+9+9+9+8+7
+        (crate::state::ActiveView::DayDetail, LayoutMode::Small, VerbosityMode::Compact) => 44,
+        (crate::state::ActiveView::DayDetail, LayoutMode::Small, VerbosityMode::Verbose) => 76,
+        (crate::state::ActiveView::DayDetail, _, VerbosityMode::Compact) => 44,
+        (crate::state::ActiveView::DayDetail, _, VerbosityMode::Verbose) => 67,
 
-        // Hours
         (crate::state::ActiveView::Hours, LayoutMode::Small, VerbosityMode::Compact) => 24, // 6+8+10
         (crate::state::ActiveView::Hours, LayoutMode::Small, VerbosityMode::Verbose) => 32, // 6+8+8+10
         (crate::state::ActiveView::Hours, _, VerbosityMode::Compact) => 24, // 6+8+10
         (crate::state::ActiveView::Hours, _, VerbosityMode::Verbose) => 38, // 6+8+6+8+10
 
-        // Elements
-        (crate::state::ActiveView::Elements, LayoutMode::Small, VerbosityMode::Verbose) => 50, // 8+10+8+8+8+8
-        (crate::state::ActiveView::Elements, _, VerbosityMode::Compact) => 34, // 8+10+8+8
-        (crate::state::ActiveView::Elements, _, VerbosityMode::Verbose) => 39, // 8+10+9+12
-
-        // SolarTerms
-        (crate::state::ActiveView::SolarTerms, LayoutMode::Small, VerbosityMode::Verbose) => 40, // 7+9+8+8+8
-        (crate::state::ActiveView::SolarTerms, _, VerbosityMode::Compact) => 30, // 7+9+14
-        (crate::state::ActiveView::SolarTerms, _, VerbosityMode::Verbose) => 26, // 7+9+10
-
-        // Planning (Recommendations)
-        (crate::state::ActiveView::Planning, LayoutMode::Small, VerbosityMode::Compact) => 28, // 12+8+8
-        (crate::state::ActiveView::Planning, LayoutMode::Small, VerbosityMode::Verbose) => 26, // 16+10
-        (crate::state::ActiveView::Planning, _, VerbosityMode::Compact) => 38, // 12+8+9+9
-        (crate::state::ActiveView::Planning, _, VerbosityMode::Verbose) => 26, // 16+10
-
-        // Calendar — not scrolled, but provide a fallback
         (crate::state::ActiveView::Calendar, _, _) => 40,
-        (crate::state::ActiveView::FengShui, _, _) | (crate::state::ActiveView::Event, _, _) => {
-            unreachable!("handled above")
-        }
+        (crate::state::ActiveView::Personal, _, _) => feng_shui_natural_height(app, mode),
+        (crate::state::ActiveView::Event, _, _) => 20,
     }
 }
 
@@ -95,27 +69,16 @@ fn feng_shui_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
 /// Used by the scroll viewport in layout::draw.
 pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: &mut Buffer) {
     match app.active_view {
-        crate::state::ActiveView::Dashboard => {
+        crate::state::ActiveView::Today => {
             DashboardScreenWidget::new(app, mode).render(area, buf)
         }
-        crate::state::ActiveView::Event => {
-            super::screens::event::EventScreenWidget::new(app, mode).render(area, buf)
-        }
-        crate::state::ActiveView::Scholar => InsightScreenWidget::new(app, mode).render(area, buf),
+        crate::state::ActiveView::Event => EventScreenWidget::new(app, mode).render(area, buf),
+        crate::state::ActiveView::DayDetail => InsightScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Hours => HoursScreenWidget::new(app, mode).render(area, buf),
-        crate::state::ActiveView::Elements => {
-            ElementsScreenWidget::new(app, mode).render(area, buf)
-        }
-        crate::state::ActiveView::FengShui => {
-            FengShuiScreenWidget::new(app, mode).render(area, buf)
-        }
-        crate::state::ActiveView::SolarTerms => {
-            SolarTermsScreenWidget::new(app, mode).render(area, buf)
-        }
-        crate::state::ActiveView::Planning => {
-            RecommendationsScreenWidget::new(app, mode).render(area, buf)
-        }
         crate::state::ActiveView::Calendar => CalendarViewWidget::new(app, mode).render(area, buf),
+        crate::state::ActiveView::Personal => {
+            crate::widgets::screens::feng_shui::FengShuiScreenWidget::new(app, mode).render(area, buf)
+        }
     }
 }
 
@@ -140,8 +103,8 @@ impl Widget for PageWidget<'_> {
                         Style::default().fg(Color::Cyan),
                     )]),
                     Line::from(""),
-                    Line::from("Đang tải dữ liệu cho giao diện khám phá..."),
-                    Line::from("Luồng chính: chọn cấu hình -> xem ngày."),
+                    Line::from("Đang tải dữ liệu cho giao diện âm lịch..."),
+                    Line::from("Luồng chính: Hôm Nay -> Chi Tiết Ngày -> Giờ Tốt -> Lịch."),
                     Line::from("Nhấn q để thoát."),
                 ],
                 area,
@@ -162,7 +125,7 @@ impl Widget for PageWidget<'_> {
                         format!("Lỗi tải dữ liệu: {err}"),
                         Style::default().fg(Color::Red),
                     )]),
-                    Line::from("Giữ ngữ cảnh shell để thử lại hoặc quay lại explorer."),
+                    Line::from("Giữ ngữ cảnh shell để thử lại hoặc quay lại màn trước."),
                     Line::from("Phím: r = retry · Tab/Shift+Tab = back · q = quit"),
                 ],
                 area,
@@ -190,33 +153,24 @@ impl Widget for PageWidget<'_> {
         };
 
         match self.app.active_view {
-            crate::state::ActiveView::Dashboard => {
+            crate::state::ActiveView::Today => {
                 DashboardScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
             crate::state::ActiveView::Event => {
-                super::screens::event::EventScreenWidget::new(self.app, self.mode)
-                    .render(content_area, buf)
+                EventScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
-            crate::state::ActiveView::Scholar => {
+            crate::state::ActiveView::DayDetail => {
                 InsightScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
             crate::state::ActiveView::Hours => {
                 HoursScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
-            crate::state::ActiveView::Elements => {
-                ElementsScreenWidget::new(self.app, self.mode).render(content_area, buf)
-            }
-            crate::state::ActiveView::FengShui => {
-                FengShuiScreenWidget::new(self.app, self.mode).render(content_area, buf)
-            }
-            crate::state::ActiveView::SolarTerms => {
-                SolarTermsScreenWidget::new(self.app, self.mode).render(content_area, buf)
-            }
-            crate::state::ActiveView::Planning => {
-                RecommendationsScreenWidget::new(self.app, self.mode).render(content_area, buf)
-            }
             crate::state::ActiveView::Calendar => {
                 CalendarViewWidget::new(self.app, self.mode).render(area, buf)
+            }
+            crate::state::ActiveView::Personal => {
+                crate::widgets::screens::feng_shui::FengShuiScreenWidget::new(self.app, self.mode)
+                    .render(content_area, buf)
             }
         }
     }
@@ -308,7 +262,7 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_view: crate::state::ActiveView::Dashboard,
+            active_view: crate::state::ActiveView::Today,
             view_history: Vec::new(),
             app_mode: AppMode::Normal,
         }
@@ -394,7 +348,7 @@ mod tests {
     fn page_routes_to_general_screen_widget() {
         let mut app = sample_app_state();
         app.bundle = Some(sample_bundle());
-        app.active_view = ActiveView::Dashboard;
+        app.active_view = ActiveView::Today;
 
         let text = render_text(&app);
 
@@ -427,7 +381,7 @@ mod tests {
     #[test]
     fn feng_shui_small_verbose_overlay_reports_full_min_height() {
         let mut app = sample_app_state();
-        app.active_view = ActiveView::FengShui;
+        app.active_view = ActiveView::Personal;
         app.verbosity = crate::state::ui_prefs::VerbosityMode::Verbose;
 
         let mut bundle = sample_bundle();

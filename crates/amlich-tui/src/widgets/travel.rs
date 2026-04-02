@@ -24,7 +24,7 @@ impl Widget for TravelWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let body_style = Style::default().fg(Color::White);
         let block = Block::default()
-            .title(" Xuất Hành Và Hướng ")
+            .title(" Hướng / Xuất Hành ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::DarkGray));
 
@@ -243,7 +243,7 @@ mod tests {
             search_input: String::new(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
-            active_view: crate::state::ActiveView::Dashboard,
+            active_view: crate::state::ActiveView::Today,
             view_history: Vec::new(),
         }
     }
