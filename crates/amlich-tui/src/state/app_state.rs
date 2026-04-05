@@ -215,13 +215,17 @@ impl ExplorerSelection {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PersonalField {
     BirthYear,
+    BirthMonth,
+    BirthDay,
     Gender,
 }
 
 impl PersonalField {
     pub fn next(self) -> Self {
         match self {
-            Self::BirthYear => Self::Gender,
+            Self::BirthYear => Self::BirthMonth,
+            Self::BirthMonth => Self::BirthDay,
+            Self::BirthDay => Self::Gender,
             Self::Gender => Self::BirthYear,
         }
     }
@@ -234,6 +238,8 @@ impl PersonalField {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PersonalDraft {
     pub birth_year: String,
+    pub birth_month: String,
+    pub birth_day: String,
     pub gender: Option<amlich_core::almanac::tu_menh::Gender>,
 }
 
@@ -241,6 +247,8 @@ impl PersonalDraft {
     fn empty() -> Self {
         Self {
             birth_year: String::new(),
+            birth_month: String::new(),
+            birth_day: String::new(),
             gender: None,
         }
     }
@@ -1074,20 +1082,40 @@ impl AppState {
             return;
         }
 
-        self.personal_draft = PersonalDraft::empty();
+        if let Some(insight) = self.bundle.as_ref().and_then(|bundle| bundle.insight.as_ref()) {
+            self.personal_draft = PersonalDraft {
+                birth_year: self.personal_draft.birth_year.clone(),
+                birth_month: self.personal_draft.birth_month.clone(),
+                birth_day: self.personal_draft.birth_day.clone(),
+                gender: self.personal_draft.gender,
+            };
+            if insight.tu_menh.is_some() || insight.dai_van.is_some() {
+                if self.personal_draft.birth_year.is_empty() {
+                    self.personal_draft.birth_year = self.date.year().to_string();
+                }
+            }
+        } else {
+            self.personal_draft = PersonalDraft::empty();
+        }
         self.personal_focus = PersonalField::BirthYear;
         self.app_mode = AppMode::PersonalProfileModal;
     }
 
     pub fn personal_insert_char(&mut self, ch: char) {
-        if self.personal_focus == PersonalField::BirthYear && ch.is_ascii_digit() && self.personal_draft.birth_year.len() < 4 {
-            self.personal_draft.birth_year.push(ch);
+        match self.personal_focus {
+            PersonalField::BirthYear if ch.is_ascii_digit() && self.personal_draft.birth_year.len() < 4 => self.personal_draft.birth_year.push(ch),
+            PersonalField::BirthMonth if ch.is_ascii_digit() && self.personal_draft.birth_month.len() < 2 => self.personal_draft.birth_month.push(ch),
+            PersonalField::BirthDay if ch.is_ascii_digit() && self.personal_draft.birth_day.len() < 2 => self.personal_draft.birth_day.push(ch),
+            _ => {}
         }
     }
 
     pub fn personal_backspace(&mut self) {
-        if self.personal_focus == PersonalField::BirthYear {
-            self.personal_draft.birth_year.pop();
+        match self.personal_focus {
+            PersonalField::BirthYear => { self.personal_draft.birth_year.pop(); }
+            PersonalField::BirthMonth => { self.personal_draft.birth_month.pop(); }
+            PersonalField::BirthDay => { self.personal_draft.birth_day.pop(); }
+            PersonalField::Gender => {}
         }
     }
 
@@ -1120,6 +1148,9 @@ impl AppState {
             self.app_mode = AppMode::Normal;
             return;
         };
+        let birth_month = self.personal_draft.birth_month.parse::<i32>().ok();
+        let birth_day = self.personal_draft.birth_day.parse::<i32>().ok();
+
         let Some(gender) = self.personal_draft.gender else {
             self.error_msg = Some("Hãy chọn giới tính để mở lớp cá nhân hóa.".to_string());
             self.app_mode = AppMode::Normal;
@@ -1136,7 +1167,7 @@ impl AppState {
             enabled_pack_ids: self.applied_selection.enabled_pack_ids.clone(),
         };
 
-        match amlich_api::v2::get_insight_with_profile(&query, Some(birth_year), None, None, Some(gender)) {
+        match amlich_api::v2::get_insight_with_profile(&query, Some(birth_year), birth_month, birth_day, Some(gender)) {
             Ok(insight) => {
                 if let Some(bundle) = self.bundle.as_mut() {
                     bundle.insight = Some(insight);

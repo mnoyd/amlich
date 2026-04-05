@@ -26,9 +26,9 @@ impl Widget for PersonalProfileModalWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let popup = Rect::new(
             area.x + (area.width.saturating_sub(64)) / 2,
-            area.y + (area.height.saturating_sub(14)) / 2,
+            area.y + (area.height.saturating_sub(17)) / 2,
             64,
-            14,
+            17,
         );
 
         Clear.render(popup, buf);
@@ -41,6 +41,16 @@ impl Widget for PersonalProfileModalWidget<'_> {
         block.render(popup, buf);
 
         let year_style = if self.app.personal_focus == PersonalField::BirthYear {
+            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+        let month_style = if self.app.personal_focus == PersonalField::BirthMonth {
+            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+        let day_style = if self.app.personal_focus == PersonalField::BirthDay {
             Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(Color::White)
@@ -69,11 +79,20 @@ impl Widget for PersonalProfileModalWidget<'_> {
                 }),
             ]),
             Line::from(vec![
+                Span::styled("Tháng sinh: ", month_style),
+                Span::raw(if self.app.personal_draft.birth_month.is_empty() { "__".to_string() } else { self.app.personal_draft.birth_month.clone() }),
+            ]),
+            Line::from(vec![
+                Span::styled("Ngày sinh: ", day_style),
+                Span::raw(if self.app.personal_draft.birth_day.is_empty() { "__".to_string() } else { self.app.personal_draft.birth_day.clone() }),
+            ]),
+            Line::from(vec![
                 Span::styled("Giới tính: ", gender_style),
                 Span::raw(gender_label),
             ]),
             Line::from(""),
             Line::from("Tab/h/l: đổi trường · j/k: đổi giới tính"),
+            Line::from("Tháng/ngày có thể để trống nếu chỉ cần Tứ Mệnh cơ bản."),
             Line::from("Enter: áp dụng · Esc: hủy"),
         ];
 
