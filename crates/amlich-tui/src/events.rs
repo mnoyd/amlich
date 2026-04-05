@@ -96,6 +96,39 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         return false;
     }
 
+    if app.app_mode == crate::state::AppMode::PersonalProfileModal {
+        match code {
+            KeyCode::Esc => app.toggle_personal_profile_modal(),
+            KeyCode::Enter => app.apply_personal_profile(),
+            KeyCode::Tab | KeyCode::Right | KeyCode::Char('l') => app.personal_next_field(),
+            KeyCode::BackTab | KeyCode::Left | KeyCode::Char('h') => app.personal_previous_field(),
+            KeyCode::Up | KeyCode::Char('k') => {
+                if app.personal_focus == crate::state::PersonalField::Gender {
+                    app.personal_cycle_gender(-1);
+                }
+            }
+            KeyCode::Down | KeyCode::Char('j') => {
+                if app.personal_focus == crate::state::PersonalField::Gender {
+                    app.personal_cycle_gender(1);
+                }
+            }
+            KeyCode::Backspace => app.personal_backspace(),
+            KeyCode::Char(c) => {
+                if app.personal_focus == crate::state::PersonalField::Gender {
+                    match c {
+                        'm' | 'M' => app.personal_cycle_gender(-1),
+                        'f' | 'F' => app.personal_cycle_gender(1),
+                        _ => app.personal_insert_char(c),
+                    }
+                } else {
+                    app.personal_insert_char(c);
+                }
+            }
+            _ => {}
+        }
+        return false;
+    }
+
     if app.app_mode == crate::state::AppMode::ContextModal {
         match code {
             KeyCode::Esc | KeyCode::Char('o') => app.toggle_context_modal(),
@@ -222,6 +255,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::Char('m') => app.open_calendar_view(),
         KeyCode::Char('w') => app.toggle_week_strip(),
         KeyCode::Char('o') => app.toggle_context_modal(),
+        KeyCode::Char('p') if app.active_view == crate::state::ActiveView::Personal => app.toggle_personal_profile_modal(),
         KeyCode::Char('?') => app.toggle_help_modal(),
         KeyCode::Char('g') => app.toggle_search(),
         KeyCode::Char('u') => app.undo_navigation(),
@@ -298,6 +332,8 @@ mod tests {
             expanded_sections: Default::default(),
 
             search_input: String::new(),
+            personal_focus: crate::state::PersonalField::BirthYear,
+            personal_draft: crate::state::PersonalDraft { birth_year: String::new(), gender: None },
             calendar_cursor: date,
             navigation_history: Vec::new(),
             active_view: crate::state::ActiveView::Today,

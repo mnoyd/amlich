@@ -169,6 +169,13 @@ fn render_scope_note(note: &str, area: Rect, buf: &mut Buffer) {
         Line::from(vec![
             Span::raw("  "),
             Span::styled(
+                "Nhấn [p] để nhập hồ sơ cá nhân ngay trong TUI.",
+                Style::default().fg(Color::Cyan),
+            ),
+        ]),
+        Line::from(vec![
+            Span::raw("  "),
+            Span::styled(
                 "Cần năm sinh + giới tính để mở Tứ Mệnh, hướng hợp và Đại Vận.",
                 Style::default().fg(Color::DarkGray),
             ),

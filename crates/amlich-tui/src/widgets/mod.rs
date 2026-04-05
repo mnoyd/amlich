@@ -14,6 +14,7 @@ pub mod hero;
 pub mod inspection;
 pub mod mini_calendar;
 pub mod page;
+pub mod personal_profile;
 pub mod ribbon;
 pub mod risk;
 pub mod day_foundation;

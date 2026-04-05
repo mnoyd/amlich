@@ -149,6 +149,9 @@ pub fn draw(frame: &mut Frame, app: &mut AppState) {
         crate::state::AppMode::ContextModal => {
             frame.render_widget(ContextModalWidget::new(app, mode), size);
         }
+        crate::state::AppMode::PersonalProfileModal => {
+            frame.render_widget(crate::widgets::personal_profile::PersonalProfileModalWidget::new(app, mode), size);
+        }
         crate::state::AppMode::HelpModal => {
             frame.render_widget(HelpModalWidget::new(app, mode), size);
         }
@@ -293,6 +296,8 @@ mod tests {
             expanded_sections: Default::default(),
 
             search_input: String::new(),
+            personal_focus: crate::state::PersonalField::BirthYear,
+            personal_draft: crate::state::PersonalDraft { birth_year: String::new(), gender: None },
             calendar_cursor: date,
             navigation_history: Vec::new(),
             active_view: crate::state::ActiveView::Today,

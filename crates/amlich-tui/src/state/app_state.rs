@@ -70,6 +70,7 @@ pub enum AppMode {
     SearchModal,
     ContextModal,
     HelpModal,
+    PersonalProfileModal,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -206,6 +207,41 @@ impl ExplorerSelection {
             ruleset_id,
             event_kind: None,
             enabled_pack_ids: Vec::new(),
+        }
+    }
+}
+
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum PersonalField {
+    BirthYear,
+    Gender,
+}
+
+impl PersonalField {
+    pub fn next(self) -> Self {
+        match self {
+            Self::BirthYear => Self::Gender,
+            Self::Gender => Self::BirthYear,
+        }
+    }
+
+    pub fn previous(self) -> Self {
+        self.next()
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PersonalDraft {
+    pub birth_year: String,
+    pub gender: Option<amlich_core::almanac::tu_menh::Gender>,
+}
+
+impl PersonalDraft {
+    fn empty() -> Self {
+        Self {
+            birth_year: String::new(),
+            gender: None,
         }
     }
 }
@@ -354,6 +390,8 @@ pub struct AppState {
     pub zoomed_section: Option<PageSection>,
     pub expanded_sections: BTreeSet<PageSection>,
     pub search_input: String,
+    pub personal_focus: PersonalField,
+    pub personal_draft: PersonalDraft,
     pub calendar_cursor: NaiveDate,
     pub(crate) navigation_history: Vec<NaiveDate>,
 }
@@ -398,6 +436,8 @@ impl AppState {
             zoomed_section: None,
             expanded_sections: BTreeSet::new(),
             search_input: String::new(),
+            personal_focus: PersonalField::BirthYear,
+            personal_draft: PersonalDraft::empty(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
         };
@@ -1028,6 +1068,89 @@ impl AppState {
         }
     }
 
+    pub fn toggle_personal_profile_modal(&mut self) {
+        if self.app_mode == AppMode::PersonalProfileModal {
+            self.app_mode = AppMode::Normal;
+            return;
+        }
+
+        self.personal_draft = PersonalDraft::empty();
+        self.personal_focus = PersonalField::BirthYear;
+        self.app_mode = AppMode::PersonalProfileModal;
+    }
+
+    pub fn personal_insert_char(&mut self, ch: char) {
+        if self.personal_focus == PersonalField::BirthYear && ch.is_ascii_digit() && self.personal_draft.birth_year.len() < 4 {
+            self.personal_draft.birth_year.push(ch);
+        }
+    }
+
+    pub fn personal_backspace(&mut self) {
+        if self.personal_focus == PersonalField::BirthYear {
+            self.personal_draft.birth_year.pop();
+        }
+    }
+
+    pub fn personal_next_field(&mut self) {
+        self.personal_focus = self.personal_focus.next();
+    }
+
+    pub fn personal_previous_field(&mut self) {
+        self.personal_focus = self.personal_focus.previous();
+    }
+
+    pub fn personal_cycle_gender(&mut self, step: i32) {
+        use amlich_core::almanac::tu_menh::Gender;
+
+        let current = match self.personal_draft.gender {
+            None => if step >= 0 { 0 } else { 1 },
+            Some(Gender::Male) => if step >= 0 { 1 } else { 0 },
+            Some(Gender::Female) => if step >= 0 { 0 } else { 1 },
+        };
+
+        self.personal_draft.gender = Some(match current {
+            0 => Gender::Male,
+            _ => Gender::Female,
+        });
+    }
+
+    pub fn apply_personal_profile(&mut self) {
+        let Ok(birth_year) = self.personal_draft.birth_year.parse::<i32>() else {
+            self.error_msg = Some("Năm sinh không hợp lệ. Hãy nhập 4 chữ số.".to_string());
+            self.app_mode = AppMode::Normal;
+            return;
+        };
+        let Some(gender) = self.personal_draft.gender else {
+            self.error_msg = Some("Hãy chọn giới tính để mở lớp cá nhân hóa.".to_string());
+            self.app_mode = AppMode::Normal;
+            return;
+        };
+
+        let query = amlich_api::DateQuery {
+            day: self.date.day() as i32,
+            month: self.date.month() as i32,
+            year: self.date.year(),
+            timezone: None,
+            ruleset_id: self.applied_selection.ruleset_id.clone(),
+            event_kind: self.applied_selection.event_kind.clone(),
+            enabled_pack_ids: self.applied_selection.enabled_pack_ids.clone(),
+        };
+
+        match amlich_api::v2::get_insight_with_profile(&query, Some(birth_year), None, None, Some(gender)) {
+            Ok(insight) => {
+                if let Some(bundle) = self.bundle.as_mut() {
+                    bundle.insight = Some(insight);
+                }
+                self.error_msg = None;
+            }
+            Err(err) => {
+                self.error_msg = Some(err);
+            }
+        }
+
+        self.app_mode = AppMode::Normal;
+    }
+
     pub fn scroll_up(&mut self) {
         self.scroll_offset = self.scroll_offset.saturating_sub(1);
     }
@@ -1202,6 +1325,8 @@ mod tests {
             zoomed_section: None,
             expanded_sections: Default::default(),
             search_input: String::new(),
+            personal_focus: PersonalField::BirthYear,
+            personal_draft: PersonalDraft::empty(),
             calendar_cursor: date,
             navigation_history: Vec::new(),
         }
