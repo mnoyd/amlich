@@ -7,6 +7,7 @@
 // - Giờ Hoàng Đạo (Auspicious Hours)
 // - Vietnamese holidays and festivals
 
+pub mod advisory;
 pub mod almanac;
 pub mod canchi;
 pub mod gio_hoang_dao;
@@ -20,6 +21,13 @@ pub mod tietkhi;
 pub mod types;
 
 // Re-export main types
+pub use crate::advisory::{
+    AdvisoryScoring, BirthInput, ConsultationIntent, EvidenceEnvelope,
+    DateRangeInput, PersonalizedDaySelection, RankedDateCandidate, RankedHourCandidate,
+    ScoredAdvice, build_personalized_day_selection, build_recommendation_context,
+    compute_day_context_from_birth, rank_dates_for_intent, rank_hours_for_intent,
+    score_day_selection, synthesize_advisory_recommendations,
+};
 pub use crate::almanac::thap_than::get_thap_than;
 pub use crate::almanac::tu_menh::{compute_kua, Gender, KuaGroup, KuaResult};
 pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
