@@ -17,6 +17,52 @@ use amlich_core::insight_data::{
 pub use dto::*;
 pub use dto::{NaAmErrorDto, NaAmLookupResultDto, NaAmResponseDto};
 
+fn parse_bazi_gender(value: Option<&str>) -> Result<Option<amlich_core::Gender>, String> {
+    match value.map(str::trim).filter(|value| !value.is_empty()) {
+        None => Ok(None),
+        Some("male" | "nam" | "Male" | "Nam") => Ok(Some(amlich_core::Gender::Male)),
+        Some("female" | "nu" | "nữ" | "Female" | "Nu" | "Nữ") => {
+            Ok(Some(amlich_core::Gender::Female))
+        }
+        Some(other) => Err(format!(
+            "unsupported gender: {other}. supported values: male, female"
+        )),
+    }
+}
+
+fn to_bazi_input(query: &BaziQuery) -> Result<amlich_core::BaziInput, String> {
+    if !(1..=12).contains(&query.month) {
+        return Err("month must be 1-12".to_string());
+    }
+    if !(1..=31).contains(&query.day) {
+        return Err("day must be 1-31".to_string());
+    }
+    if query.hour > 23 {
+        return Err("hour must be 0-23".to_string());
+    }
+    if query.minute > 59 {
+        return Err("minute must be 0-59".to_string());
+    }
+
+    Ok(amlich_core::BaziInput {
+        day: query.day,
+        month: query.month,
+        year: query.year,
+        hour: query.hour,
+        minute: query.minute,
+        timezone: query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
+        longitude: query.longitude,
+        use_solar_time: query.use_solar_time,
+        gender: parse_bazi_gender(query.gender.as_deref())?,
+    })
+}
+
+fn require_bazi_gender(query: &BaziQuery) -> Result<amlich_core::Gender, String> {
+    parse_bazi_gender(query.gender.as_deref())?.ok_or_else(|| {
+        "gender is required for bazi timing/advisory. supported values: male, female".to_string()
+    })
+}
+
 /// Convert snake_case to PascalCase (e.g. "ty_kien" -> "TyKien")
 fn snake_to_pascal(s: &str) -> String {
     s.split('_')
@@ -56,6 +102,63 @@ pub fn get_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
         &enabled_pack_ids,
     )?;
     Ok(DayInfoDto::from(&snapshot))
+}
+
+pub fn get_bazi_chart(query: &BaziQuery) -> Result<BaziChartDto, String> {
+    let input = to_bazi_input(query)?;
+    let chart = amlich_core::build_bazi_chart(input)?;
+    let response = amlich_core::to_bazi_chart_response(&chart);
+    Ok(BaziChartDto::from((query, &response)))
+}
+
+pub fn get_bazi_analysis(query: &BaziQuery) -> Result<BaziAnalysisDto, String> {
+    let input = to_bazi_input(query)?;
+    let chart = amlich_core::build_bazi_chart(input)?;
+    let analysis = amlich_core::analyze_bazi_chart(&chart);
+    let response = amlich_core::to_bazi_analysis_response(&analysis);
+    Ok(BaziAnalysisDto::from(&response))
+}
+
+pub fn get_bazi_timing(
+    query: &BaziQuery,
+    timing: &BaziTimingQuery,
+) -> Result<BaziTimingDto, String> {
+    let input = to_bazi_input(query)?;
+    let gender = require_bazi_gender(query)?;
+    let chart = amlich_core::build_bazi_chart(input)?;
+    let report = amlich_core::build_bazi_timing_report(
+        &chart,
+        gender,
+        timing.current_age,
+        timing.target_year,
+        &timing.months,
+    )?;
+    let response = amlich_core::to_bazi_timing_response(&report);
+    Ok(BaziTimingDto::from(&response))
+}
+
+pub fn get_bazi_advisory(
+    query: &BaziQuery,
+    timing: Option<&BaziTimingQuery>,
+) -> Result<BaziAdvisoryDto, String> {
+    let input = to_bazi_input(query)?;
+    let chart = amlich_core::build_bazi_chart(input)?;
+    let timing_report = match timing {
+        Some(timing) => {
+            let gender = require_bazi_gender(query)?;
+            Some(amlich_core::build_bazi_timing_report(
+                &chart,
+                gender,
+                timing.current_age,
+                timing.target_year,
+                &timing.months,
+            )?)
+        }
+        None => None,
+    };
+    let advisory = amlich_core::build_bazi_advisory(&chart, timing_report.as_ref());
+    let response = amlich_core::to_bazi_advisory_response(&advisory);
+    Ok(BaziAdvisoryDto::from(&response))
 }
 
 fn normalize_ruleset_id(ruleset_id: Option<&str>) -> Result<Option<String>, String> {

@@ -13,6 +13,20 @@ pub struct DateQuery {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziQuery {
+    pub day: i32,
+    pub month: i32,
+    pub year: i32,
+    pub hour: u8,
+    pub minute: u8,
+    pub timezone: Option<f64>,
+    pub longitude: Option<f64>,
+    #[serde(default)]
+    pub use_solar_time: bool,
+    pub gender: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SolarDto {
     pub day: i32,
     pub month: i32,
@@ -315,6 +329,175 @@ pub struct ActiveRecommendationPackDto {
     pub version: String,
     pub source_family: String,
     pub mode: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziCanChiDto {
+    pub can: String,
+    pub chi: String,
+    pub full: String,
+    pub can_index: usize,
+    pub chi_index: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziLunarDateDto {
+    pub day: i32,
+    pub month: i32,
+    pub year: i32,
+    pub is_leap: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HiddenStemEntryDto {
+    pub stem_symbol: String,
+    pub stem_name: Option<String>,
+    pub strength: u8,
+    pub ten_god_to_day_master: Option<ThapThanResultDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziPillarDto {
+    pub kind: String,
+    pub can_chi: BaziCanChiDto,
+    pub hidden_stems: Vec<HiddenStemEntryDto>,
+    pub na_am: Option<String>,
+    pub stem_relation_to_day_master: Option<ThapThanResultDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziChartMetadataDto {
+    pub timezone: f64,
+    pub use_solar_time: bool,
+    pub year_basis: String,
+    pub month_basis: String,
+    pub day_basis: String,
+    pub hour_basis: String,
+    pub hour_evidence: Option<RuleEvidenceDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziChartDto {
+    pub input: BaziQuery,
+    pub lunar_date: BaziLunarDateDto,
+    pub day_master: BaziCanChiDto,
+    pub pillars: Vec<BaziPillarDto>,
+    pub metadata: BaziChartMetadataDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ElementDistributionDto {
+    pub moc: u16,
+    pub hoa: u16,
+    pub tho: u16,
+    pub kim: u16,
+    pub thuy: u16,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DayMasterStrengthDto {
+    pub score: i32,
+    pub label: String,
+    pub reasons: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ChartInteractionDto {
+    pub kind: String,
+    pub participants: Vec<String>,
+    pub summary_vi: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TenGodDistributionDto {
+    pub ty_kien: u8,
+    pub kiep_tai: u8,
+    pub thuc_than: u8,
+    pub thuong_quan: u8,
+    pub chinh_tai: u8,
+    pub thien_tai: u8,
+    pub chinh_quan: u8,
+    pub that_sat: u8,
+    pub chinh_an: u8,
+    pub thien_an: u8,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziAnalysisDto {
+    pub element_distribution: ElementDistributionDto,
+    pub day_master_strength: DayMasterStrengthDto,
+    pub interactions: Vec<ChartInteractionDto>,
+    pub ten_god_distribution: TenGodDistributionDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziTimingQuery {
+    pub current_age: f64,
+    pub target_year: i32,
+    pub months: Vec<i32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziLuckPillarDto {
+    pub index: usize,
+    pub can_chi: String,
+    pub start_age: f64,
+    pub end_age: f64,
+    pub ten_god_to_day_master: Option<ThapThanResultDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AnnualPillarDto {
+    pub year: i32,
+    pub can_chi: String,
+    pub branch: String,
+    pub ten_god_to_day_master: Option<ThapThanResultDto>,
+    pub interactions: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MonthlyPillarDto {
+    pub year: i32,
+    pub month: i32,
+    pub can_chi: String,
+    pub branch: String,
+    pub ten_god_to_day_master: Option<ThapThanResultDto>,
+    pub interactions: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziTimingDto {
+    pub dai_van: Vec<BaziLuckPillarDto>,
+    pub active_dai_van: Option<BaziLuckPillarDto>,
+    pub annual: AnnualPillarDto,
+    pub monthly: Vec<MonthlyPillarDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct UsefulGodDto {
+    pub favorable_elements: Vec<String>,
+    pub unfavorable_elements: Vec<String>,
+    pub tentative_yong_shen: Option<String>,
+    pub tentative_xi_shen: Option<String>,
+    pub confidence: String,
+    pub reasons: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziAdvisoryDomainsDto {
+    pub career: Vec<String>,
+    pub wealth: Vec<String>,
+    pub relationship: Vec<String>,
+    pub health: Vec<String>,
+    pub timing: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziAdvisoryDto {
+    pub useful_god_analysis: UsefulGodDto,
+    pub summary_vi: String,
+    pub warnings: Vec<String>,
+    pub domains: BaziAdvisoryDomainsDto,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
