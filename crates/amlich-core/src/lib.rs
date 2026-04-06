@@ -9,6 +9,7 @@
 
 pub mod advisory;
 pub mod almanac;
+pub mod bazi;
 pub mod canchi;
 pub mod gio_hoang_dao;
 pub mod holiday_data;
@@ -27,6 +28,17 @@ pub use crate::advisory::{
     ScoredAdvice, build_personalized_day_selection, build_recommendation_context,
     compute_day_context_from_birth, rank_dates_for_intent, rank_hours_for_intent,
     score_day_selection, synthesize_advisory_recommendations,
+};
+pub use crate::bazi::{
+    BaziAdvisoryDomains, BaziAdvisoryReport, BaziAnalysisReport, ChartInteraction,
+    ChartInteractionKind, DayMasterStrength, DayMasterStrengthLabel, ElementDistribution,
+    TenGodDistribution, UsefulGodAnalysis, analyze_bazi_chart, AnnualPillar, BaziChart,
+    BaziChartMetadata, BaziInput, BaziLuckPillar, BaziPillar, BaziTimingReport,
+    HiddenStemEntry, MonthlyPillar, PillarKind, StemRelationSet, build_annual_pillar,
+    build_bazi_advisory, build_bazi_chart, build_bazi_timing_report, build_monthly_pillar,
+    compute_element_distribution,
+    compute_ten_god_distribution, detect_chart_interactions, evaluate_day_master_strength,
+    infer_useful_gods,
 };
 pub use crate::almanac::thap_than::get_thap_than;
 pub use crate::almanac::tu_menh::{compute_kua, Gender, KuaGroup, KuaResult};
