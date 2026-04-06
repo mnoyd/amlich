@@ -1,6 +1,7 @@
 pub mod advisory;
 pub mod analysis;
 pub mod chart;
+pub mod contracts;
 pub mod timing;
 pub mod types;
 
@@ -12,6 +13,13 @@ pub use analysis::{
     evaluate_day_master_strength,
 };
 pub use chart::build_bazi_chart;
+pub use contracts::{
+    AnnualPillarResponse, BaziAdvisoryResponse, BaziAnalysisResponse, BaziCanChiResponse,
+    BaziChartMetadataResponse, BaziChartResponse, BaziLuckPillarResponse, BaziLunarDateResponse,
+    BaziPillarResponse, BaziTimingResponse, ChartInteractionResponse, DayMasterStrengthResponse,
+    MonthlyPillarResponse, UsefulGodResponse, to_bazi_advisory_response,
+    to_bazi_analysis_response, to_bazi_chart_response, to_bazi_timing_response,
+};
 pub use timing::{
     AnnualPillar, BaziLuckPillar, BaziTimingReport, MonthlyPillar, build_annual_pillar,
     build_bazi_timing_report, build_monthly_pillar,
