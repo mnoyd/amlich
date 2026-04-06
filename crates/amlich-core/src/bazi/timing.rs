@@ -22,6 +22,7 @@ pub struct BaziLuckPillar {
 pub struct AnnualPillar {
     pub year: i32,
     pub can_chi: String,
+    pub branch: String,
     pub ten_god_to_day_master: Option<ThapThanResult>,
     pub interactions: Vec<String>,
 }
@@ -31,6 +32,7 @@ pub struct MonthlyPillar {
     pub year: i32,
     pub month: i32,
     pub can_chi: String,
+    pub branch: String,
     pub ten_god_to_day_master: Option<ThapThanResult>,
     pub interactions: Vec<String>,
 }
@@ -112,6 +114,7 @@ pub fn build_annual_pillar(
     Ok(AnnualPillar {
         year: target_year,
         can_chi: can_chi.full.clone(),
+        branch: can_chi.chi.clone(),
         ten_god_to_day_master,
         interactions: branch_interactions_with_chart(chart, &can_chi.chi),
     })
@@ -136,6 +139,7 @@ pub fn build_monthly_pillar(
         year: target_year,
         month: target_month,
         can_chi: can_chi.full.clone(),
+        branch: can_chi.chi.clone(),
         ten_god_to_day_master,
         interactions: branch_interactions_with_chart(chart, &can_chi.chi),
     })

@@ -182,6 +182,22 @@ fn derive_domain_advice(
             timing_notes.push(format!("Đang ở đại vận {}.", active.can_chi));
         }
         timing_notes.push(format!("Lưu niên hiện xét: {}.", timing.annual.can_chi));
+        if !timing.annual.interactions.is_empty() {
+            timing_notes.push("Lưu niên hiện có tương tác trực tiếp với mệnh cục.".to_string());
+        }
+
+        let active_months = timing
+            .monthly
+            .iter()
+            .filter(|month| !month.interactions.is_empty())
+            .map(|month| format!("tháng {} ({})", month.month, month.can_chi))
+            .collect::<Vec<_>>();
+        if !active_months.is_empty() {
+            timing_notes.push(format!(
+                "Các lưu nguyệt nổi bật: {}.",
+                active_months.join(", ")
+            ));
+        }
     }
 
     BaziAdvisoryDomains {
@@ -311,5 +327,19 @@ mod tests {
         assert!(!advisory.summary_vi.is_empty());
         assert!(!advisory.domains.timing.is_empty());
         assert!(!advisory.warnings.is_empty());
+    }
+
+    #[test]
+    fn timing_domain_mentions_active_transits_when_present() {
+        let chart = sample_chart();
+        let timing =
+            build_bazi_timing_report(&chart, Gender::Male, 15.0, 2027, &[1, 2, 3]).expect("timing");
+        let advisory = build_bazi_advisory(&chart, Some(&timing));
+
+        assert!(advisory
+            .domains
+            .timing
+            .iter()
+            .any(|note| note.contains("Đại vận") || note.contains("Lưu niên") || note.contains("lưu nguyệt") || note.contains("Lưu nguyệt")));
     }
 }
