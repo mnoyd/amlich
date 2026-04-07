@@ -3,13 +3,13 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     almanac::recommendation::{
-        ActivityId, DailyRecommendations, RecommendationPackLookupError,
-        RecommendationSynthesisContext, synthesize_daily_recommendations_with_layers,
+        synthesize_daily_recommendations_with_layers, ActivityId, DailyRecommendations,
+        RecommendationPackLookupError, RecommendationSynthesisContext,
     },
     almanac::tu_menh::compute_kua,
     canchi::get_year_canchi,
     julian::jd_from_date,
-    lunar::{LunarDate, convert_solar_to_lunar},
+    lunar::{convert_solar_to_lunar, LunarDate},
     tietkhi::get_tiet_khi,
     types::{CanChi, VIETNAM_TIMEZONE},
     CanChiSet, DayContext, DaySnapshot, SolarDate,
@@ -177,7 +177,13 @@ pub fn build_personalized_day_selection(
         .contextual_recommendations
         .clone()
         .unwrap_or_else(|| snapshot.daily_recommendations.clone());
-    let advisory = score_day_selection(&snapshot.context, &snapshot, recommendations, intent, birth.as_ref());
+    let advisory = score_day_selection(
+        &snapshot.context,
+        &snapshot,
+        recommendations,
+        intent,
+        birth.as_ref(),
+    );
 
     Ok(PersonalizedDaySelection {
         intent,
@@ -243,7 +249,8 @@ pub fn score_day_selection(
             snapshot,
         );
     } else {
-        warnings.push("Chưa có dữ liệu sinh nên chưa cá nhân hóa đầy đủ theo tuổi/mệnh.".to_string());
+        warnings
+            .push("Chưa có dữ liệu sinh nên chưa cá nhân hóa đầy đủ theo tuổi/mệnh.".to_string());
     }
 
     let verdict = if score >= 75 {
@@ -322,8 +329,7 @@ fn apply_birth_compatibility(
     } else if snapshot.day_fortune.xung_hop.liu_he.as_deref() == Some(birth_year.chi.as_str()) {
         *score += 8;
         reasons.push(format!("Ngày có lục hợp với tuổi {}.", birth_year.full));
-    } else if snapshot.day_fortune.xung_hop.xiang_hai.as_deref() == Some(birth_year.chi.as_str())
-    {
+    } else if snapshot.day_fortune.xung_hop.xiang_hai.as_deref() == Some(birth_year.chi.as_str()) {
         *score -= 8;
         warnings.push(format!("Ngày có tương hại với tuổi {}.", birth_year.full));
     } else {
@@ -593,9 +599,10 @@ mod tests {
         )
         .expect("recommendations");
 
-        assert!(recommendations.activities.iter().any(|activity| {
-            activity.activity_id == ActivityId::ContractAgreement
-        }));
+        assert!(recommendations
+            .activities
+            .iter()
+            .any(|activity| { activity.activity_id == ActivityId::ContractAgreement }));
     }
 
     #[test]
@@ -631,15 +638,9 @@ mod tests {
 
     #[test]
     fn birth_compatibility_affects_selection_score() {
-        let without_birth = build_personalized_day_selection(
-            10,
-            2,
-            2024,
-            ConsultationIntent::Travel,
-            None,
-            &[],
-        )
-        .expect("baseline");
+        let without_birth =
+            build_personalized_day_selection(10, 2, 2024, ConsultationIntent::Travel, None, &[])
+                .expect("baseline");
         let with_birth = build_personalized_day_selection(
             10,
             2,

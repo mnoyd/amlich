@@ -11,7 +11,9 @@ use crate::state::{AppState, PageSection};
 
 use super::{
     calendar::CalendarViewWidget,
-    screens::{today::TodayScreenWidget, hours::HoursScreenWidget, day_detail::DayDetailScreenWidget},
+    screens::{
+        day_detail::DayDetailScreenWidget, hours::HoursScreenWidget, today::TodayScreenWidget,
+    },
     week_strip::WeekStripWidget,
 };
 
@@ -61,14 +63,15 @@ fn personal_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
 /// Used by the scroll viewport in layout::draw.
 pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: &mut Buffer) {
     match app.active_view {
-        crate::state::ActiveView::Today => {
-            TodayScreenWidget::new(app, mode).render(area, buf)
+        crate::state::ActiveView::Today => TodayScreenWidget::new(app, mode).render(area, buf),
+        crate::state::ActiveView::DayDetail => {
+            DayDetailScreenWidget::new(app, mode).render(area, buf)
         }
-        crate::state::ActiveView::DayDetail => DayDetailScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Hours => HoursScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Calendar => CalendarViewWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Personal => {
-            crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode).render(area, buf)
+            crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode)
+                .render(area, buf)
         }
     }
 }
@@ -186,8 +189,7 @@ pub(crate) fn home_section_order(_app: &AppState) -> Vec<PageSection> {
 mod tests {
     use super::*;
     use crate::state::{
-        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection,
-        PageSection,
+        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection, PageSection,
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
@@ -248,7 +250,12 @@ mod tests {
             expanded_sections: Default::default(),
             search_input: String::new(),
             personal_focus: crate::state::PersonalField::BirthYear,
-            personal_draft: crate::state::PersonalDraft { birth_year: String::new(), birth_month: String::new(), birth_day: String::new(), gender: None },
+            personal_draft: crate::state::PersonalDraft {
+                birth_year: String::new(),
+                birth_month: String::new(),
+                birth_day: String::new(),
+                gender: None,
+            },
             calendar_cursor: date,
             navigation_history: Vec::new(),
             active_view: crate::state::ActiveView::Today,

@@ -116,7 +116,8 @@ pub fn compute_element_distribution(chart: &BaziChart) -> ElementDistribution {
     };
 
     for pillar in &chart.pillars {
-        if let Ok(stem) = crate::almanac::types::HeavenlyStem::try_from(pillar.can_chi.can.as_str()) {
+        if let Ok(stem) = crate::almanac::types::HeavenlyStem::try_from(pillar.can_chi.can.as_str())
+        {
             distribution.add(stem.element(), 100);
         }
 
@@ -199,7 +200,8 @@ pub fn evaluate_day_master_strength(
     ten_gods: &TenGodDistribution,
 ) -> DayMasterStrength {
     let day_master_stem =
-        crate::almanac::types::HeavenlyStem::try_from(chart.day_master.can.as_str()).expect("day master stem");
+        crate::almanac::types::HeavenlyStem::try_from(chart.day_master.can.as_str())
+            .expect("day master stem");
     let same_element = element_total(elements, day_master_stem.element()) as i32;
     let supportive = match day_master_stem.element() {
         FiveElement::Moc => elements.thuy as i32,
@@ -288,7 +290,7 @@ fn detect_branch_relationship(left: &str, right: &str) -> Option<ChartInteractio
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{bazi::build_bazi_chart, BaziInput, types::VIETNAM_TIMEZONE};
+    use crate::{bazi::build_bazi_chart, types::VIETNAM_TIMEZONE, BaziInput};
 
     fn sample_chart() -> BaziChart {
         build_bazi_chart(BaziInput {
@@ -347,6 +349,8 @@ mod tests {
         let chart = sample_chart();
         let interactions = detect_chart_interactions(&chart);
 
-        assert!(interactions.iter().all(|interaction| !interaction.summary_vi.is_empty()));
+        assert!(interactions
+            .iter()
+            .all(|interaction| !interaction.summary_vi.is_empty()));
     }
 }

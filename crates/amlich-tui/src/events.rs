@@ -255,7 +255,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::Char('m') => app.open_calendar_view(),
         KeyCode::Char('w') => app.toggle_week_strip(),
         KeyCode::Char('o') => app.toggle_context_modal(),
-        KeyCode::Char('p') if app.active_view == crate::state::ActiveView::Personal => app.toggle_personal_profile_modal(),
+        KeyCode::Char('p') if app.active_view == crate::state::ActiveView::Personal => {
+            app.toggle_personal_profile_modal()
+        }
         KeyCode::Char('?') => app.toggle_help_modal(),
         KeyCode::Char('g') => app.toggle_search(),
         KeyCode::Char('u') => app.undo_navigation(),
@@ -271,8 +273,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
 mod tests {
     use super::*;
     use crate::state::{
-        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection,
-        PageSection,
+        ActiveView, AppMode, ExplorerAction, ExplorerField, ExplorerSelection, PageSection,
     };
     use amlich_api::{
         RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
@@ -333,7 +334,12 @@ mod tests {
 
             search_input: String::new(),
             personal_focus: crate::state::PersonalField::BirthYear,
-            personal_draft: crate::state::PersonalDraft { birth_year: String::new(), birth_month: String::new(), birth_day: String::new(), gender: None },
+            personal_draft: crate::state::PersonalDraft {
+                birth_year: String::new(),
+                birth_month: String::new(),
+                birth_day: String::new(),
+                gender: None,
+            },
             calendar_cursor: date,
             navigation_history: Vec::new(),
             active_view: crate::state::ActiveView::Today,

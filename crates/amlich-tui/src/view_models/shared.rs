@@ -1,6 +1,4 @@
-use crate::state::{
-    AppState, RecommendationLayerKind, RecommendationLayerVm, RecommendationRowVm,
-};
+use crate::state::{AppState, RecommendationLayerKind, RecommendationLayerVm, RecommendationRowVm};
 use amlich_api::{
     DailyRecommendationsDto, RecommendationBucketDto, RecommendationEvidenceSourceDto,
     RecommendationSeverityDto,

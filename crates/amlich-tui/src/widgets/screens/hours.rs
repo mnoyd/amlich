@@ -9,7 +9,10 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Widget, Wrap},
 };
 
-use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}};
+use crate::{
+    layout::LayoutMode,
+    state::{ui_prefs::VerbosityMode, AppState},
+};
 
 pub struct HoursScreenWidget<'a> {
     app: &'a AppState,

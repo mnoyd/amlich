@@ -2,8 +2,8 @@ use crate::{
     almanac::{
         dai_van::{calculate_dai_van_with_timezone, get_pillar_at_age},
         thap_than::get_thap_than,
-        types::{HeavenlyStem, ThapThanResult},
         tu_menh::Gender,
+        types::{HeavenlyStem, ThapThanResult},
     },
     bazi::{analysis::detect_chart_interactions, types::BaziChart},
     canchi::{get_month_canchi, get_year_canchi},
@@ -76,15 +76,16 @@ pub fn build_bazi_timing_report(
         })
         .collect::<Vec<_>>();
 
-    let active_dai_van = get_pillar_at_age(&dai_van_result, current_age).map(|pillar| BaziLuckPillar {
-        index: pillar.index,
-        can_chi: pillar.can_chi.full.clone(),
-        start_age: pillar.start_age,
-        end_age: pillar.end_age,
-        ten_god_to_day_master: HeavenlyStem::try_from(pillar.can_chi.can.as_str())
-            .ok()
-            .map(|stem| get_thap_than(day_master, stem)),
-    });
+    let active_dai_van =
+        get_pillar_at_age(&dai_van_result, current_age).map(|pillar| BaziLuckPillar {
+            index: pillar.index,
+            can_chi: pillar.can_chi.full.clone(),
+            start_age: pillar.start_age,
+            end_age: pillar.end_age,
+            ten_god_to_day_master: HeavenlyStem::try_from(pillar.can_chi.can.as_str())
+                .ok()
+                .map(|stem| get_thap_than(day_master, stem)),
+        });
 
     let annual = build_annual_pillar(chart, target_year, day_master)?;
     let monthly = months
@@ -163,7 +164,12 @@ fn branch_interactions_with_chart(chart: &BaziChart, transient_branch: &str) -> 
 
     detect_chart_interactions(&simulated)
         .into_iter()
-        .filter(|interaction| interaction.participants.iter().any(|chi| chi == transient_branch))
+        .filter(|interaction| {
+            interaction
+                .participants
+                .iter()
+                .any(|chi| chi == transient_branch)
+        })
         .map(|interaction| interaction.summary_vi)
         .collect()
 }
@@ -171,7 +177,7 @@ fn branch_interactions_with_chart(chart: &BaziChart, transient_branch: &str) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{bazi::build_bazi_chart, BaziInput, types::VIETNAM_TIMEZONE};
+    use crate::{bazi::build_bazi_chart, types::VIETNAM_TIMEZONE, BaziInput};
 
     fn sample_chart() -> BaziChart {
         build_bazi_chart(BaziInput {
@@ -191,8 +197,8 @@ mod tests {
     #[test]
     fn builds_bazi_timing_report_with_dai_van_and_transits() {
         let chart = sample_chart();
-        let report = build_bazi_timing_report(&chart, Gender::Male, 15.0, 2027, &[1, 2, 3])
-            .expect("timing");
+        let report =
+            build_bazi_timing_report(&chart, Gender::Male, 15.0, 2027, &[1, 2, 3]).expect("timing");
 
         assert!(!report.dai_van.is_empty());
         assert!(report.active_dai_van.is_some());
@@ -203,8 +209,7 @@ mod tests {
     #[test]
     fn annual_pillar_carries_ten_god_relation() {
         let chart = sample_chart();
-        let day_master =
-            HeavenlyStem::try_from(chart.day_master.can.as_str()).expect("day master");
+        let day_master = HeavenlyStem::try_from(chart.day_master.can.as_str()).expect("day master");
         let annual = build_annual_pillar(&chart, 2027, day_master).expect("annual");
 
         assert!(!annual.can_chi.is_empty());
@@ -214,8 +219,7 @@ mod tests {
     #[test]
     fn monthly_pillar_rejects_invalid_month() {
         let chart = sample_chart();
-        let day_master =
-            HeavenlyStem::try_from(chart.day_master.can.as_str()).expect("day master");
+        let day_master = HeavenlyStem::try_from(chart.day_master.can.as_str()).expect("day master");
 
         let err = build_monthly_pillar(&chart, 2027, 13, day_master).expect_err("invalid month");
         assert_eq!(err, "target month must be in 1..=12");

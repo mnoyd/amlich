@@ -150,7 +150,10 @@ pub fn draw(frame: &mut Frame, app: &mut AppState) {
             frame.render_widget(ContextModalWidget::new(app, mode), size);
         }
         crate::state::AppMode::PersonalProfileModal => {
-            frame.render_widget(crate::widgets::personal_profile::PersonalProfileModalWidget::new(app, mode), size);
+            frame.render_widget(
+                crate::widgets::personal_profile::PersonalProfileModalWidget::new(app, mode),
+                size,
+            );
         }
         crate::state::AppMode::HelpModal => {
             frame.render_widget(HelpModalWidget::new(app, mode), size);
@@ -204,9 +207,7 @@ fn page_content_area(page_area: ratatui::layout::Rect, mode: LayoutMode) -> rata
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{
-        AppMode, ExplorerAction, ExplorerField, ExplorerSelection, PageSection,
-    };
+    use crate::state::{AppMode, ExplorerAction, ExplorerField, ExplorerSelection, PageSection};
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
@@ -297,7 +298,12 @@ mod tests {
 
             search_input: String::new(),
             personal_focus: crate::state::PersonalField::BirthYear,
-            personal_draft: crate::state::PersonalDraft { birth_year: String::new(), birth_month: String::new(), birth_day: String::new(), gender: None },
+            personal_draft: crate::state::PersonalDraft {
+                birth_year: String::new(),
+                birth_month: String::new(),
+                birth_day: String::new(),
+                gender: None,
+            },
             calendar_cursor: date,
             navigation_history: Vec::new(),
             active_view: crate::state::ActiveView::Today,

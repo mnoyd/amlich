@@ -1,10 +1,8 @@
-use crate::state::{
-    AppState, DirectionVerdictVm, DayDetailRiskBoardVm, DayDetailVerdictSupportVm,
-};
+use crate::state::{AppState, DayDetailRiskBoardVm, DayDetailVerdictSupportVm, DirectionVerdictVm};
 
 use super::{
-    today::{hero_verdict, risk_summary},
     shared::recommendation_layers,
+    today::{hero_verdict, risk_summary},
 };
 
 pub fn day_detail_risk_board(app: &AppState) -> DayDetailRiskBoardVm {
@@ -261,7 +259,7 @@ fn primary_star_summary(fortune: &amlich_api::DayFortuneDto) -> Option<String> {
             fortune
                 .stars
                 .matched_rules
-        .first()
+                .first()
                 .map(|rule| format!("{} · {}", rule.name, rule.quality))
         })
 }

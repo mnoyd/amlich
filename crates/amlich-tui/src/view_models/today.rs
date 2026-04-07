@@ -1,6 +1,6 @@
 use crate::state::{
-    AppState, DayIdentitySummaryVm, HeroVerdictVm, RecommendationRowVm,
-    RiskSummaryVm, TraditionalEvidenceSummaryVm,
+    AppState, DayIdentitySummaryVm, HeroVerdictVm, RecommendationRowVm, RiskSummaryVm,
+    TraditionalEvidenceSummaryVm,
 };
 
 use super::shared::{selected_recommendations, top_recommendation_rows};

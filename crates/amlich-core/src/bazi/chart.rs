@@ -1,10 +1,7 @@
 use crate::{
     almanac::{
-        hour_pillar::compute_hour_pillar,
-        na_am::get_na_am_by_pair,
-        tang_can::get_tang_can,
-        thap_than::get_thap_than,
-        types::HeavenlyStem,
+        hour_pillar::compute_hour_pillar, na_am::get_na_am_by_pair, tang_can::get_tang_can,
+        thap_than::get_thap_than, types::HeavenlyStem,
     },
     bazi::types::{
         BaziChart, BaziChartMetadata, BaziInput, BaziPillar, HiddenStemEntry, PillarKind,
@@ -19,7 +16,8 @@ pub fn build_bazi_chart(input: BaziInput) -> Result<BaziChart, String> {
     let year_pillar = get_year_canchi(lunar_date.year);
     let month_pillar = get_month_canchi(lunar_date.month, lunar_date.year, lunar_date.is_leap);
     let day_pillar = get_day_canchi(jd_from_date(input.day, input.month, input.year));
-    let day_master = HeavenlyStem::try_from(day_pillar.can.as_str()).map_err(|err| err.to_string())?;
+    let day_master =
+        HeavenlyStem::try_from(day_pillar.can.as_str()).map_err(|err| err.to_string())?;
     let hour_pillar = compute_hour_pillar(day_master, input.hour, input.minute)
         .ok_or_else(|| "invalid birth hour/minute for hour pillar".to_string())?;
 
@@ -44,7 +42,11 @@ pub fn build_bazi_chart(input: BaziInput) -> Result<BaziChart, String> {
     })
 }
 
-fn build_pillar(kind: PillarKind, can_chi: &crate::types::CanChi, day_master: HeavenlyStem) -> BaziPillar {
+fn build_pillar(
+    kind: PillarKind,
+    can_chi: &crate::types::CanChi,
+    day_master: HeavenlyStem,
+) -> BaziPillar {
     let hidden_stems = hidden_stem_entries(&can_chi.chi, day_master);
     let stem_relation_to_day_master = HeavenlyStem::try_from(can_chi.can.as_str())
         .ok()

@@ -7,11 +7,15 @@ use ratatui::{
 };
 
 use crate::widgets::{
-    direction_panel::DirectionPanelWidget, guidance::GuidanceWidget,
-    guidance_panel::GuidancePanelWidget, inspection::InspectionWidget, risk::RiskWidget,
-    day_foundation::DayFoundationWidget, stars_panel::StarsPanelWidget, tietkhi::TietKhiWidget,
+    day_foundation::DayFoundationWidget, direction_panel::DirectionPanelWidget,
+    guidance::GuidanceWidget, guidance_panel::GuidancePanelWidget, inspection::InspectionWidget,
+    risk::RiskWidget, stars_panel::StarsPanelWidget, tietkhi::TietKhiWidget,
 };
-use crate::{layout::LayoutMode, state::{ui_prefs::VerbosityMode, AppState}, widgets::travel::TravelWidget};
+use crate::{
+    layout::LayoutMode,
+    state::{ui_prefs::VerbosityMode, AppState},
+    widgets::travel::TravelWidget,
+};
 
 pub struct DayDetailScreenWidget<'a> {
     app: &'a AppState,
@@ -206,7 +210,8 @@ fn render_detail_footer(app: &AppState, area: Rect, buf: &mut Buffer) {
     let inner = block.inner(area);
     block.render(area, buf);
 
-    let columns = Layout::horizontal([Constraint::Percentage(45), Constraint::Percentage(55)]).split(inner);
+    let columns =
+        Layout::horizontal([Constraint::Percentage(45), Constraint::Percentage(55)]).split(inner);
     TietKhiWidget::new(app, LayoutMode::Small).render(columns[0], buf);
     render_layer_context(app, columns[1], buf);
 }

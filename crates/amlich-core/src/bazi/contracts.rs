@@ -229,7 +229,11 @@ pub fn to_bazi_timing_response(report: &BaziTimingReport) -> BaziTimingResponse 
         dai_van: report.dai_van.iter().map(to_luck_pillar_response).collect(),
         active_dai_van: report.active_dai_van.as_ref().map(to_luck_pillar_response),
         annual: to_annual_pillar_response(&report.annual),
-        monthly: report.monthly.iter().map(to_monthly_pillar_response).collect(),
+        monthly: report
+            .monthly
+            .iter()
+            .map(to_monthly_pillar_response)
+            .collect(),
     }
 }
 

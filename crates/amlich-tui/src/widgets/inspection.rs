@@ -153,9 +153,7 @@ impl Widget for InspectionWidget<'_> {
 mod tests {
     use super::InspectionWidget;
     use crate::layout::LayoutMode;
-    use crate::state::{
-        AppState, ExplorerAction, ExplorerField, ExplorerSelection, PageSection,
-    };
+    use crate::state::{AppState, ExplorerAction, ExplorerField, ExplorerSelection, PageSection};
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         ActiveRecommendationPackDto, DailyRecommendationsDto, RecommendationPackCatalogEntryDto,
@@ -217,7 +215,12 @@ mod tests {
             app_mode: crate::state::AppMode::Normal,
             search_input: String::new(),
             personal_focus: crate::state::PersonalField::BirthYear,
-            personal_draft: crate::state::PersonalDraft { birth_year: String::new(), birth_month: String::new(), birth_day: String::new(), gender: None },
+            personal_draft: crate::state::PersonalDraft {
+                birth_year: String::new(),
+                birth_month: String::new(),
+                birth_day: String::new(),
+                gender: None,
+            },
             calendar_cursor: date,
             navigation_history: Vec::new(),
             active_view: crate::state::ActiveView::Today,

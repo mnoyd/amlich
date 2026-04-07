@@ -3,8 +3,8 @@ use ratatui::{
     layout::{Constraint, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph, Wrap},
     widgets::Widget,
+    widgets::{Block, Borders, Paragraph, Wrap},
 };
 
 use crate::widgets::{
@@ -30,8 +30,12 @@ impl<'a> TodayScreenWidget<'a> {
 impl Widget for TodayScreenWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         match (self.mode, self.app.active_verbosity()) {
-            (LayoutMode::Small, VerbosityMode::Compact) => render_small_compact(self.app, area, buf),
-            (LayoutMode::Small, VerbosityMode::Verbose) => render_small_verbose(self.app, area, buf),
+            (LayoutMode::Small, VerbosityMode::Compact) => {
+                render_small_compact(self.app, area, buf)
+            }
+            (LayoutMode::Small, VerbosityMode::Verbose) => {
+                render_small_verbose(self.app, area, buf)
+            }
             (_, VerbosityMode::Compact) => render_standard_compact(self.app, self.mode, area, buf),
             (_, VerbosityMode::Verbose) => render_standard_verbose(self.app, self.mode, area, buf),
         }
@@ -84,7 +88,8 @@ fn render_standard_compact(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
     HeroWidget::new(app, mode).render(rows[0], buf);
     render_today_verdict(app, rows[1], buf);
 
-    let middle = Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)]).split(rows[2]);
+    let middle =
+        Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)]).split(rows[2]);
     ActionBoardWidget::new(app, mode).render(middle[0], buf);
     EventSummaryWidget::new(app, mode).render(middle[1], buf);
 
@@ -101,11 +106,18 @@ fn render_standard_verbose(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
 
     render_today_verdict(app, chunks[0], buf);
 
-    let top_chunks = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)]).split(chunks[1]);
+    let top_chunks = Layout::horizontal([Constraint::Percentage(60), Constraint::Percentage(40)])
+        .split(chunks[1]);
 
-    let left_chunks = Layout::vertical([Constraint::Length(10), Constraint::Min(8)]).split(top_chunks[0]);
+    let left_chunks =
+        Layout::vertical([Constraint::Length(10), Constraint::Min(8)]).split(top_chunks[0]);
 
-    let right_chunks = Layout::vertical([Constraint::Length(9), Constraint::Length(4), Constraint::Min(4)]).split(top_chunks[1]);
+    let right_chunks = Layout::vertical([
+        Constraint::Length(9),
+        Constraint::Length(4),
+        Constraint::Min(4),
+    ])
+    .split(top_chunks[1]);
 
     HeroWidget::new(app, mode).render(left_chunks[0], buf);
     AlmanacGridWidget::new(app, mode).render(left_chunks[1], buf);

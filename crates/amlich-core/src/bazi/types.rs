@@ -3,8 +3,8 @@ use serde::{Deserialize, Serialize};
 use crate::{
     almanac::{
         hour_pillar::HourPillarResult,
-        types::{RuleEvidence, ThapThanResult},
         tu_menh::Gender,
+        types::{RuleEvidence, ThapThanResult},
     },
     lunar::LunarDate,
     types::CanChi,

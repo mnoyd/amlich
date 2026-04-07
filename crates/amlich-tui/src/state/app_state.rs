@@ -1,10 +1,12 @@
 use std::collections::BTreeSet;
 
 use amlich_api::v2::{DayBundleDto, Include};
-use amlich_api::{RecommendationBucketDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto};
+use amlich_api::{
+    RecommendationBucketDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto,
+};
 use chrono::{Datelike, Local, NaiveDate};
 
-use super::ui_prefs::{VerbosityMode, default_verbosity_for_size};
+use super::ui_prefs::{default_verbosity_for_size, VerbosityMode};
 
 const DEFAULT_EVENT_KIND: &str = "default";
 const EVENT_KIND_OPTIONS: [&str; 4] = [
@@ -210,7 +212,6 @@ impl ExplorerSelection {
         }
     }
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PersonalField {
@@ -1082,7 +1083,11 @@ impl AppState {
             return;
         }
 
-        if let Some(insight) = self.bundle.as_ref().and_then(|bundle| bundle.insight.as_ref()) {
+        if let Some(insight) = self
+            .bundle
+            .as_ref()
+            .and_then(|bundle| bundle.insight.as_ref())
+        {
             self.personal_draft = PersonalDraft {
                 birth_year: self.personal_draft.birth_year.clone(),
                 birth_month: self.personal_draft.birth_month.clone(),
@@ -1103,18 +1108,36 @@ impl AppState {
 
     pub fn personal_insert_char(&mut self, ch: char) {
         match self.personal_focus {
-            PersonalField::BirthYear if ch.is_ascii_digit() && self.personal_draft.birth_year.len() < 4 => self.personal_draft.birth_year.push(ch),
-            PersonalField::BirthMonth if ch.is_ascii_digit() && self.personal_draft.birth_month.len() < 2 => self.personal_draft.birth_month.push(ch),
-            PersonalField::BirthDay if ch.is_ascii_digit() && self.personal_draft.birth_day.len() < 2 => self.personal_draft.birth_day.push(ch),
+            PersonalField::BirthYear
+                if ch.is_ascii_digit() && self.personal_draft.birth_year.len() < 4 =>
+            {
+                self.personal_draft.birth_year.push(ch)
+            }
+            PersonalField::BirthMonth
+                if ch.is_ascii_digit() && self.personal_draft.birth_month.len() < 2 =>
+            {
+                self.personal_draft.birth_month.push(ch)
+            }
+            PersonalField::BirthDay
+                if ch.is_ascii_digit() && self.personal_draft.birth_day.len() < 2 =>
+            {
+                self.personal_draft.birth_day.push(ch)
+            }
             _ => {}
         }
     }
 
     pub fn personal_backspace(&mut self) {
         match self.personal_focus {
-            PersonalField::BirthYear => { self.personal_draft.birth_year.pop(); }
-            PersonalField::BirthMonth => { self.personal_draft.birth_month.pop(); }
-            PersonalField::BirthDay => { self.personal_draft.birth_day.pop(); }
+            PersonalField::BirthYear => {
+                self.personal_draft.birth_year.pop();
+            }
+            PersonalField::BirthMonth => {
+                self.personal_draft.birth_month.pop();
+            }
+            PersonalField::BirthDay => {
+                self.personal_draft.birth_day.pop();
+            }
             PersonalField::Gender => {}
         }
     }
@@ -1131,9 +1154,27 @@ impl AppState {
         use amlich_core::almanac::tu_menh::Gender;
 
         let current = match self.personal_draft.gender {
-            None => if step >= 0 { 0 } else { 1 },
-            Some(Gender::Male) => if step >= 0 { 1 } else { 0 },
-            Some(Gender::Female) => if step >= 0 { 0 } else { 1 },
+            None => {
+                if step >= 0 {
+                    0
+                } else {
+                    1
+                }
+            }
+            Some(Gender::Male) => {
+                if step >= 0 {
+                    1
+                } else {
+                    0
+                }
+            }
+            Some(Gender::Female) => {
+                if step >= 0 {
+                    0
+                } else {
+                    1
+                }
+            }
         };
 
         self.personal_draft.gender = Some(match current {
@@ -1167,7 +1208,13 @@ impl AppState {
             enabled_pack_ids: self.applied_selection.enabled_pack_ids.clone(),
         };
 
-        match amlich_api::v2::get_insight_with_profile(&query, Some(birth_year), birth_month, birth_day, Some(gender)) {
+        match amlich_api::v2::get_insight_with_profile(
+            &query,
+            Some(birth_year),
+            birth_month,
+            birth_day,
+            Some(gender),
+        ) {
             Ok(insight) => {
                 if let Some(bundle) = self.bundle.as_mut() {
                     bundle.insight = Some(insight);

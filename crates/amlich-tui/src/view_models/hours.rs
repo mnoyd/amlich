@@ -1,8 +1,10 @@
 use std::collections::BTreeSet;
 
-use crate::state::{AppState, HoursVerdictVm, DayDetailTimingSummaryVm};
+use crate::state::{AppState, DayDetailTimingSummaryVm, HoursVerdictVm};
 
-use super::{today::hero_verdict, shared::format_good_hour_count_summary, shared::format_hour_window};
+use super::{
+    shared::format_good_hour_count_summary, shared::format_hour_window, today::hero_verdict,
+};
 
 pub fn day_detail_timing_summary(app: &AppState) -> Option<DayDetailTimingSummaryVm> {
     let bundle = app.bundle.as_ref()?;

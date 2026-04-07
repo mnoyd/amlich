@@ -41,22 +41,30 @@ impl Widget for PersonalProfileModalWidget<'_> {
         block.render(popup, buf);
 
         let year_style = if self.app.personal_focus == PersonalField::BirthYear {
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(Color::White)
         };
         let month_style = if self.app.personal_focus == PersonalField::BirthMonth {
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(Color::White)
         };
         let day_style = if self.app.personal_focus == PersonalField::BirthDay {
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(Color::White)
         };
         let gender_style = if self.app.personal_focus == PersonalField::Gender {
-            Style::default().fg(Color::Cyan).add_modifier(Modifier::BOLD)
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
         } else {
             Style::default().fg(Color::White)
         };
@@ -80,11 +88,19 @@ impl Widget for PersonalProfileModalWidget<'_> {
             ]),
             Line::from(vec![
                 Span::styled("Tháng sinh: ", month_style),
-                Span::raw(if self.app.personal_draft.birth_month.is_empty() { "__".to_string() } else { self.app.personal_draft.birth_month.clone() }),
+                Span::raw(if self.app.personal_draft.birth_month.is_empty() {
+                    "__".to_string()
+                } else {
+                    self.app.personal_draft.birth_month.clone()
+                }),
             ]),
             Line::from(vec![
                 Span::styled("Ngày sinh: ", day_style),
-                Span::raw(if self.app.personal_draft.birth_day.is_empty() { "__".to_string() } else { self.app.personal_draft.birth_day.clone() }),
+                Span::raw(if self.app.personal_draft.birth_day.is_empty() {
+                    "__".to_string()
+                } else {
+                    self.app.personal_draft.birth_day.clone()
+                }),
             ]),
             Line::from(vec![
                 Span::styled("Giới tính: ", gender_style),
@@ -96,6 +112,8 @@ impl Widget for PersonalProfileModalWidget<'_> {
             Line::from("Enter: áp dụng · Esc: hủy"),
         ];
 
-        Paragraph::new(lines).wrap(Wrap { trim: true }).render(inner, buf);
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: true })
+            .render(inner, buf);
     }
 }
