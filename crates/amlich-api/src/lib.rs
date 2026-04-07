@@ -185,6 +185,26 @@ pub fn get_bazi_metrics(
     Ok(BaziComputedMetricsDto::from(&report.computed_metrics))
 }
 
+pub fn get_bazi_report(
+    query: &BaziQuery,
+    timing: Option<&BaziTimingQuery>,
+) -> Result<BaziReportDto, String> {
+    let input = to_bazi_input(query)?;
+    let timing_input = match timing {
+        Some(timing) => {
+            require_bazi_gender(query)?;
+            Some(amlich_core::BaziTimingInput {
+                current_age: timing.current_age,
+                target_year: timing.target_year,
+                months: timing.months.clone(),
+            })
+        }
+        None => None,
+    };
+    let report = amlich_core::build_bazi_report(input, timing_input)?;
+    Ok(BaziReportDto::from((query, &report)))
+}
+
 fn normalize_ruleset_id(ruleset_id: Option<&str>) -> Result<Option<String>, String> {
     let Some(ruleset_id) = ruleset_id.map(str::trim).filter(|id| !id.is_empty()) else {
         return Ok(None);

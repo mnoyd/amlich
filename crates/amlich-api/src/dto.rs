@@ -576,6 +576,16 @@ pub struct BaziComputedMetricsDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziReportDto {
+    pub chart: BaziChartDto,
+    pub analysis: BaziAnalysisDto,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timing: Option<BaziTimingDto>,
+    pub computed_metrics: BaziComputedMetricsDto,
+    pub advisory: BaziAdvisoryDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RulesetDefaultsDto {
     pub tz_offset: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]

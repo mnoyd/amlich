@@ -369,6 +369,7 @@ fn empty_domain_score() -> BaziDomainScore {
         score: 50,
         label: "mixed".to_string(),
         confidence: 0.5,
+        evidence_level: "low".to_string(),
         contributors: vec![],
     }
 }

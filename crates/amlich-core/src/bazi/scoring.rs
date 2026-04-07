@@ -182,6 +182,7 @@ pub struct BaziDomainScore {
     pub score: u8,
     pub label: String,
     pub confidence: f32,
+    pub evidence_level: String,
     #[serde(default)]
     pub contributors: Vec<BaziScoreContributor>,
 }
@@ -207,6 +208,7 @@ pub struct BaziTimingWindowScore {
     pub month: i32,
     pub score: f32,
     pub label: String,
+    pub confidence: f32,
 }
 
 impl Default for BaziScoringMatrixSet {
@@ -558,9 +560,7 @@ fn compute_structure_metrics(
         .iter()
         .map(|item| item.impact)
         .sum::<f32>();
-    let confidence = ((element_balance_score / 100.0) * 0.5
-        + (1.0 - (analysis.interactions.len() as f32 * 0.08)).clamp(0.2, 1.0) * 0.5)
-        .clamp(0.0, 1.0);
+    let confidence = structure_confidence(analysis, element_balance_score);
 
     BaziStructureMetrics {
         dominant_elements,
@@ -575,42 +575,42 @@ fn compute_structure_metrics(
 fn compute_domain_scores(
     analysis: &BaziAnalysisReport,
     matrix: &BaziScoringMatrixSet,
-    confidence: f32,
+    base_confidence: f32,
 ) -> BaziDomainScores {
     BaziDomainScores {
         career: compute_domain_score(
             analysis,
             &matrix.domain_mapping.career,
             &matrix.ten_god_context,
-            confidence,
+            domain_confidence(base_confidence, analysis, "career"),
             "career",
         ),
         wealth: compute_domain_score(
             analysis,
             &matrix.domain_mapping.wealth,
             &matrix.ten_god_context,
-            confidence,
+            domain_confidence(base_confidence, analysis, "wealth"),
             "wealth",
         ),
         relationship: compute_domain_score(
             analysis,
             &matrix.domain_mapping.relationship,
             &matrix.ten_god_context,
-            confidence,
+            domain_confidence(base_confidence, analysis, "relationship"),
             "relationship",
         ),
         health: compute_domain_score(
             analysis,
             &matrix.domain_mapping.health,
             &matrix.ten_god_context,
-            confidence,
+            domain_confidence(base_confidence, analysis, "health"),
             "health",
         ),
         timing: compute_domain_score(
             analysis,
             &matrix.domain_mapping.timing,
             &matrix.ten_god_context,
-            confidence,
+            domain_confidence(base_confidence, analysis, "timing"),
             "timing",
         ),
     }
@@ -658,6 +658,7 @@ fn compute_timing_metrics(
                 month: month.month,
                 score,
                 label: normalized_label(score),
+                confidence: timing_confidence(score, analysis),
             }
         })
         .collect::<Vec<_>>();
@@ -700,7 +701,7 @@ fn compute_domain_score(
     let imbalance_penalty =
         (100.0 - compute_element_balance_score(&analysis.element_distribution)) / 100.0;
 
-    let contributors = vec![
+    let mut contributors = vec![
         contributor(
             "ty_kien",
             analysis.ten_god_distribution.ty_kien as f32,
@@ -781,18 +782,22 @@ fn compute_domain_score(
     .into_iter()
     .filter(|item| item.delta.abs() > 0.01)
     .collect::<Vec<_>>();
+    contributors.sort_by(|left, right| right.delta.abs().total_cmp(&left.delta.abs()));
+    let top_signal_count = contributors.iter().take(3).count();
+    contributors.push(BaziScoreContributor {
+        signal: "domain_signal_count".to_string(),
+        delta: top_signal_count as f32,
+    });
 
     let raw = 50.0 + contributors.iter().map(|item| item.delta).sum::<f32>();
     let score = raw.clamp(0.0, 100.0) as u8;
+    let label_key = normalized_label(score as f32 / 100.0);
 
     BaziDomainScore {
         score,
-        label: format!(
-            "{}_{}",
-            label_namespace,
-            normalized_label(score as f32 / 100.0)
-        ),
+        label: format!("{}_{}", label_namespace, label_key),
         confidence,
+        evidence_level: evidence_level(confidence, contributors.len()),
         contributors,
     }
 }
@@ -1024,14 +1029,54 @@ fn ten_god_name(label: ThapThanLabel) -> &'static str {
 }
 
 fn normalized_label(score: f32) -> String {
-    if score >= 0.75 {
+    if score >= 0.78 {
         "supportive".to_string()
-    } else if score >= 0.55 {
+    } else if score >= 0.58 {
         "developing".to_string()
-    } else if score >= 0.4 {
+    } else if score >= 0.38 {
         "mixed".to_string()
     } else {
         "watchlist".to_string()
+    }
+}
+
+fn structure_confidence(analysis: &BaziAnalysisReport, element_balance_score: f32) -> f32 {
+    ((element_balance_score / 100.0) * 0.45
+        + (1.0 - (analysis.interactions.len() as f32 * 0.08)).clamp(0.25, 1.0) * 0.35
+        + if analysis.day_master_strength.reasons.len() >= 4 {
+            0.2
+        } else {
+            0.1
+        })
+    .clamp(0.0, 1.0)
+}
+
+fn domain_confidence(base_confidence: f32, analysis: &BaziAnalysisReport, domain: &str) -> f32 {
+    let interaction_penalty = match domain {
+        "relationship" => analysis.interactions.len() as f32 * 0.04,
+        "timing" => analysis.interactions.len() as f32 * 0.03,
+        _ => analysis.interactions.len() as f32 * 0.02,
+    };
+    let ten_god_signal_bonus = (ordered_ten_gods(&analysis.ten_god_distribution)
+        .iter()
+        .take(3)
+        .filter(|(_, count)| *count > 0)
+        .count() as f32)
+        * 0.03;
+    (base_confidence + ten_god_signal_bonus - interaction_penalty).clamp(0.0, 1.0)
+}
+
+fn timing_confidence(score: f32, analysis: &BaziAnalysisReport) -> f32 {
+    (0.45 + score * 0.35 - analysis.interactions.len() as f32 * 0.03).clamp(0.0, 1.0)
+}
+
+fn evidence_level(confidence: f32, contributor_count: usize) -> String {
+    if confidence >= 0.75 && contributor_count >= 4 {
+        "high".to_string()
+    } else if confidence >= 0.5 && contributor_count >= 2 {
+        "medium".to_string()
+    } else {
+        "low".to_string()
     }
 }
 

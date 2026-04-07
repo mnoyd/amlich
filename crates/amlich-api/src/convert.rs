@@ -3,21 +3,21 @@ use crate::dto::{
     BaziAdvisoryDto, BaziAnalysisDto, BaziCanChiDto, BaziChartDto, BaziChartMetadataDto,
     BaziComputedMetricsDto, BaziCoreMetricsDto, BaziDomainScoreDto, BaziDomainScoresDto,
     BaziInteractionMetricDto, BaziLuckPillarDto, BaziLunarDateDto, BaziPillarDto, BaziQuery,
-    BaziScoreContributorDto, BaziStructureMetricsDto, BaziTimingDto, BaziTimingMetricsDto,
-    BaziTimingWindowScoreDto, CanChiDto, CanChiInfoDto, CanInsightDto, ChartInteractionDto,
-    ChiInsightDto, ConventionMetadataDto, DailyRecommendationsDto, DayConflictDto, DayDeityDto,
-    DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayMasterStrengthDto, DayStarDto,
-    DayStarsDto, DayTabooDto, DayTenGodsDto, ElementDistributionDto, ElementInsightDto,
-    FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HiddenStemEntryDto, HolidayDto,
-    HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto, LocalizedTextDto, LunarDto,
-    MonthlyPillarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto, ProverbInsightDto,
-    RecommendationBucketDto, RecommendationEvidenceDto, RecommendationEvidenceSourceDto,
-    RecommendationPackCatalogEntryDto, RecommendationReasonDto, RecommendationScopeDto,
-    RecommendationSeverityDto, RegionsInsightDto, RuleEvidenceDto, RulesetCatalogEntryDto,
-    RulesetDefaultsDto, RulesetSourceNoteDto, SolarDto, StarRuleEvidenceDto,
-    SynthesizedRecommendationDto, TabooInsightDto, TangCanDto, TenGodDistributionDto,
-    ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, UsefulGodDto,
-    XungHopDto,
+    BaziReportDto, BaziScoreContributorDto, BaziStructureMetricsDto, BaziTimingDto,
+    BaziTimingMetricsDto, BaziTimingWindowScoreDto, CanChiDto, CanChiInfoDto, CanInsightDto,
+    ChartInteractionDto, ChiInsightDto, ConventionMetadataDto, DailyRecommendationsDto,
+    DayConflictDto, DayDeityDto, DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto,
+    DayMasterStrengthDto, DayStarDto, DayStarsDto, DayTabooDto, DayTenGodsDto,
+    ElementDistributionDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto,
+    HiddenStemEntryDto, HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto,
+    LocalizedTextDto, LunarDto, MonthlyPillarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto,
+    ProverbInsightDto, RecommendationBucketDto, RecommendationEvidenceDto,
+    RecommendationEvidenceSourceDto, RecommendationPackCatalogEntryDto, RecommendationReasonDto,
+    RecommendationScopeDto, RecommendationSeverityDto, RegionsInsightDto, RuleEvidenceDto,
+    RulesetCatalogEntryDto, RulesetDefaultsDto, RulesetSourceNoteDto, SolarDto,
+    StarRuleEvidenceDto, SynthesizedRecommendationDto, TabooInsightDto, TangCanDto,
+    TenGodDistributionDto, ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto,
+    TrucDto, UsefulGodDto, XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -404,6 +404,34 @@ impl From<&amlich_core::BaziComputedMetrics> for BaziComputedMetricsDto {
             structure_metrics: BaziStructureMetricsDto::from(&value.structure_metrics),
             domain_scores: BaziDomainScoresDto::from(&value.domain_scores),
             timing_metrics: BaziTimingMetricsDto::from(&value.timing_metrics),
+        }
+    }
+}
+
+impl From<(&BaziQuery, &amlich_core::BaziReport)> for BaziReportDto {
+    fn from((query, value): (&BaziQuery, &amlich_core::BaziReport)) -> Self {
+        Self {
+            chart: BaziChartDto::from((
+                query,
+                value
+                    .chart_response
+                    .as_ref()
+                    .expect("chart response present"),
+            )),
+            analysis: BaziAnalysisDto::from(
+                value
+                    .analysis_response
+                    .as_ref()
+                    .expect("analysis response present"),
+            ),
+            timing: value.timing_response.as_ref().map(BaziTimingDto::from),
+            computed_metrics: BaziComputedMetricsDto::from(&value.computed_metrics),
+            advisory: BaziAdvisoryDto::from(
+                value
+                    .advisory_response
+                    .as_ref()
+                    .expect("advisory response present"),
+            ),
         }
     }
 }
