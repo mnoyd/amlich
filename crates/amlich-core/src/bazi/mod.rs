@@ -26,8 +26,8 @@ pub use contracts::{
     DayMasterStrengthResponse, MonthlyPillarResponse, UsefulGodResponse,
 };
 pub use report::{
-    build_bazi_report, build_bazi_report_with_options, BaziReport, BaziReportOptions,
-    BaziTimingInput,
+    build_bazi_report, build_bazi_report_with_options, BaziAnalysisEnvelope, BaziReport,
+    BaziReportFacts, BaziReportOptions, BaziTimingInput,
 };
 pub use scoring::{
     build_metrics_from_analysis, compute_bazi_metrics, compute_bazi_metrics_with_matrix,

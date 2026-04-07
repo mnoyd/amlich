@@ -9,6 +9,7 @@
 
 pub mod advisory;
 pub mod almanac;
+pub mod analysis_envelope;
 pub mod bazi;
 pub mod canchi;
 pub mod gio_hoang_dao;
@@ -32,6 +33,7 @@ pub use crate::advisory::{
 pub use crate::almanac::thap_than::get_thap_than;
 pub use crate::almanac::tu_menh::{compute_kua, Gender, KuaGroup, KuaResult};
 pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
+pub use crate::analysis_envelope::AnalysisEnvelope;
 pub use crate::bazi::{
     analyze_bazi_chart, build_annual_pillar, build_bazi_advisory, build_bazi_chart,
     build_bazi_report, build_bazi_report_with_options, build_bazi_timing_report,
@@ -40,13 +42,13 @@ pub use crate::bazi::{
     default_bazi_scoring_matrix_set, detect_chart_interactions, evaluate_day_master_strength,
     infer_useful_gods, to_bazi_advisory_response, to_bazi_analysis_response,
     to_bazi_chart_response, to_bazi_timing_response, AnnualPillar, AnnualPillarResponse,
-    BaziAdvisoryDomains, BaziAdvisoryReport, BaziAdvisoryResponse, BaziAnalysisReport,
-    BaziAnalysisResponse, BaziCanChiResponse, BaziChart, BaziChartMetadata,
+    BaziAdvisoryDomains, BaziAdvisoryReport, BaziAdvisoryResponse, BaziAnalysisEnvelope,
+    BaziAnalysisReport, BaziAnalysisResponse, BaziCanChiResponse, BaziChart, BaziChartMetadata,
     BaziChartMetadataResponse, BaziChartResponse, BaziComputedMetrics, BaziCoreMetrics,
     BaziDomainScore, BaziDomainScores, BaziInput, BaziInteractionMetric, BaziLuckPillar,
     BaziLuckPillarResponse, BaziLunarDateResponse, BaziPillar, BaziPillarResponse, BaziReport,
-    BaziReportOptions, BaziScoreContributor, BaziScoringMatrixSet, BaziStructureMetrics,
-    BaziTimingInput, BaziTimingMetrics, BaziTimingReport, BaziTimingResponse,
+    BaziReportFacts, BaziReportOptions, BaziScoreContributor, BaziScoringMatrixSet,
+    BaziStructureMetrics, BaziTimingInput, BaziTimingMetrics, BaziTimingReport, BaziTimingResponse,
     BaziTimingWindowScore, BranchStrengthProfile, ChartInteraction, ChartInteractionKind,
     ChartInteractionResponse, DayMasterStrength, DayMasterStrengthLabel, DayMasterStrengthResponse,
     DomainMappingMatrix, DomainWeightProfile, ElementDistribution, ElementRelationMatrix,

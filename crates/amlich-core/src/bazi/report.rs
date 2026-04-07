@@ -1,5 +1,6 @@
 use crate::{
     almanac::tu_menh::Gender,
+    analysis_envelope::AnalysisEnvelope,
     bazi::{
         advisory::{build_bazi_advisory_from_metrics, BaziAdvisoryReport},
         analysis::{analyze_bazi_chart, BaziAnalysisReport},
@@ -52,6 +53,32 @@ pub struct BaziReport {
     pub analysis_response: Option<BaziAnalysisResponse>,
     pub timing_response: Option<BaziTimingResponse>,
     pub advisory_response: Option<BaziAdvisoryResponse>,
+}
+
+pub type BaziAnalysisEnvelope =
+    AnalysisEnvelope<BaziReportFacts, BaziComputedMetrics, BaziAdvisoryReport>;
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct BaziReportFacts {
+    pub chart: crate::bazi::types::BaziChart,
+    pub analysis: BaziAnalysisReport,
+    pub timing: Option<BaziTimingReport>,
+}
+
+impl BaziReport {
+    pub fn as_analysis_envelope(&self) -> BaziAnalysisEnvelope {
+        AnalysisEnvelope::new(
+            BaziReportFacts {
+                chart: self.chart.clone(),
+                analysis: self.analysis.clone(),
+                timing: self.timing.clone(),
+            },
+            self.computed_metrics.clone(),
+            self.advisory.clone(),
+            self.computed_metrics.structure_metrics.confidence,
+            self.advisory.warnings.clone(),
+        )
+    }
 }
 
 pub fn build_bazi_report(
@@ -201,5 +228,15 @@ mod tests {
         .expect_err("gender required");
 
         assert_eq!(err, "gender is required for bazi timing/report");
+    }
+
+    #[test]
+    fn report_can_project_to_analysis_envelope() {
+        let report = build_bazi_report(sample_input(), None).expect("report");
+        let envelope = report.as_analysis_envelope();
+
+        assert_eq!(envelope.facts.chart.pillars.len(), 4);
+        assert!(!envelope.advisory.summary_vi.is_empty());
+        assert!(envelope.confidence >= 0.0);
     }
 }
