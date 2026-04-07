@@ -1,21 +1,23 @@
 use crate::dto::{
-    AnnualPillarDto,
-    ActiveRecommendationPackDto, ActivityLabelDto, CanChiDto, CanChiInfoDto, CanInsightDto,
-    BaziAdvisoryDomainsDto, BaziAdvisoryDto, BaziAnalysisDto, BaziCanChiDto, BaziChartDto,
-    BaziChartMetadataDto, BaziLuckPillarDto, BaziLunarDateDto, BaziPillarDto, BaziQuery,
-    BaziTimingDto, ChartInteractionDto, DayMasterStrengthDto, ElementDistributionDto,
+    ActiveRecommendationPackDto, ActivityLabelDto, AnnualPillarDto, BaziAdvisoryDomainsDto,
+    BaziAdvisoryDto, BaziAnalysisDto, BaziCanChiDto, BaziChartDto, BaziChartMetadataDto,
+    BaziComputedMetricsDto, BaziCoreMetricsDto, BaziDomainScoreDto, BaziDomainScoresDto,
+    BaziInteractionMetricDto, BaziLuckPillarDto, BaziLunarDateDto, BaziPillarDto, BaziQuery,
+    BaziScoreContributorDto, BaziStructureMetricsDto, BaziTimingDto, BaziTimingMetricsDto,
+    BaziTimingWindowScoreDto, CanChiDto, CanChiInfoDto, CanInsightDto, ChartInteractionDto,
     ChiInsightDto, ConventionMetadataDto, DailyRecommendationsDto, DayConflictDto, DayDeityDto,
-    DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayStarDto, DayStarsDto, DayTabooDto,
-    DayTenGodsDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto,
-    HiddenStemEntryDto, HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto, LocalizedTextDto,
-    MonthlyPillarDto, TenGodDistributionDto, UsefulGodDto,
-    LunarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto, ProverbInsightDto,
+    DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto, DayMasterStrengthDto, DayStarDto,
+    DayStarsDto, DayTabooDto, DayTenGodsDto, ElementDistributionDto, ElementInsightDto,
+    FestivalInsightDto, FoodInsightDto, GioHoangDaoDto, HiddenStemEntryDto, HolidayDto,
+    HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto, LocalizedTextDto, LunarDto,
+    MonthlyPillarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto, ProverbInsightDto,
     RecommendationBucketDto, RecommendationEvidenceDto, RecommendationEvidenceSourceDto,
     RecommendationPackCatalogEntryDto, RecommendationReasonDto, RecommendationScopeDto,
     RecommendationSeverityDto, RegionsInsightDto, RuleEvidenceDto, RulesetCatalogEntryDto,
     RulesetDefaultsDto, RulesetSourceNoteDto, SolarDto, StarRuleEvidenceDto,
-    SynthesizedRecommendationDto, TabooInsightDto, TangCanDto, ThapThanResultDto, TietKhiDto,
-    TietKhiInsightDto, TravelDirectionDto, TrucDto, XungHopDto,
+    SynthesizedRecommendationDto, TabooInsightDto, TangCanDto, TenGodDistributionDto,
+    ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto, TrucDto, UsefulGodDto,
+    XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -56,7 +58,10 @@ impl From<&amlich_core::HiddenStemEntry> for HiddenStemEntryDto {
             stem_symbol: value.stem_symbol.clone(),
             stem_name: value.stem_name.clone(),
             strength: value.strength,
-            ten_god_to_day_master: value.ten_god_to_day_master.as_ref().map(ThapThanResultDto::from),
+            ten_god_to_day_master: value
+                .ten_god_to_day_master
+                .as_ref()
+                .map(ThapThanResultDto::from),
         }
     }
 }
@@ -72,7 +77,11 @@ impl From<&amlich_core::BaziPillarResponse> for BaziPillarDto {
             }
             .to_string(),
             can_chi: BaziCanChiDto::from(&value.can_chi),
-            hidden_stems: value.hidden_stems.iter().map(HiddenStemEntryDto::from).collect(),
+            hidden_stems: value
+                .hidden_stems
+                .iter()
+                .map(HiddenStemEntryDto::from)
+                .collect(),
             na_am: value.na_am.clone(),
             stem_relation_to_day_master: value
                 .stem_relation_to_day_master
@@ -162,7 +171,11 @@ impl From<&amlich_core::BaziAnalysisResponse> for BaziAnalysisDto {
         Self {
             element_distribution: ElementDistributionDto::from(&value.element_distribution),
             day_master_strength: DayMasterStrengthDto::from(&value.day_master_strength),
-            interactions: value.interactions.iter().map(ChartInteractionDto::from).collect(),
+            interactions: value
+                .interactions
+                .iter()
+                .map(ChartInteractionDto::from)
+                .collect(),
             ten_god_distribution: TenGodDistributionDto::from(&value.ten_god_distribution),
         }
     }
@@ -175,7 +188,10 @@ impl From<&amlich_core::BaziLuckPillarResponse> for BaziLuckPillarDto {
             can_chi: value.can_chi.clone(),
             start_age: value.start_age,
             end_age: value.end_age,
-            ten_god_to_day_master: value.ten_god_to_day_master.as_ref().map(ThapThanResultDto::from),
+            ten_god_to_day_master: value
+                .ten_god_to_day_master
+                .as_ref()
+                .map(ThapThanResultDto::from),
         }
     }
 }
@@ -186,7 +202,10 @@ impl From<&amlich_core::AnnualPillarResponse> for AnnualPillarDto {
             year: value.year,
             can_chi: value.can_chi.clone(),
             branch: value.branch.clone(),
-            ten_god_to_day_master: value.ten_god_to_day_master.as_ref().map(ThapThanResultDto::from),
+            ten_god_to_day_master: value
+                .ten_god_to_day_master
+                .as_ref()
+                .map(ThapThanResultDto::from),
             interactions: value.interactions.clone(),
         }
     }
@@ -199,7 +218,10 @@ impl From<&amlich_core::MonthlyPillarResponse> for MonthlyPillarDto {
             month: value.month,
             can_chi: value.can_chi.clone(),
             branch: value.branch.clone(),
-            ten_god_to_day_master: value.ten_god_to_day_master.as_ref().map(ThapThanResultDto::from),
+            ten_god_to_day_master: value
+                .ten_god_to_day_master
+                .as_ref()
+                .map(ThapThanResultDto::from),
             interactions: value.interactions.clone(),
         }
     }
@@ -229,8 +251,12 @@ impl From<&amlich_core::UsefulGodResponse> for UsefulGodDto {
                 .iter()
                 .map(|element| format!("{:?}", element))
                 .collect(),
-            tentative_yong_shen: value.tentative_yong_shen.map(|element| format!("{:?}", element)),
-            tentative_xi_shen: value.tentative_xi_shen.map(|element| format!("{:?}", element)),
+            tentative_yong_shen: value
+                .tentative_yong_shen
+                .map(|element| format!("{:?}", element)),
+            tentative_xi_shen: value
+                .tentative_xi_shen
+                .map(|element| format!("{:?}", element)),
             confidence: value.confidence.clone(),
             reasons: value.reasons.clone(),
         }
@@ -256,6 +282,128 @@ impl From<&amlich_core::BaziAdvisoryResponse> for BaziAdvisoryDto {
             summary_vi: value.summary_vi.clone(),
             warnings: value.warnings.clone(),
             domains: BaziAdvisoryDomainsDto::from(&value.domains),
+        }
+    }
+}
+
+impl From<&amlich_core::BaziInteractionMetric> for BaziInteractionMetricDto {
+    fn from(value: &amlich_core::BaziInteractionMetric) -> Self {
+        Self {
+            kind: value.kind.clone(),
+            participants: value.participants.clone(),
+            impact: value.impact,
+        }
+    }
+}
+
+impl From<&amlich_core::BaziScoreContributor> for BaziScoreContributorDto {
+    fn from(value: &amlich_core::BaziScoreContributor) -> Self {
+        Self {
+            signal: value.signal.clone(),
+            delta: value.delta,
+        }
+    }
+}
+
+impl From<&amlich_core::BaziDomainScore> for BaziDomainScoreDto {
+    fn from(value: &amlich_core::BaziDomainScore) -> Self {
+        Self {
+            score: value.score,
+            label: value.label.clone(),
+            confidence: value.confidence,
+            contributors: value
+                .contributors
+                .iter()
+                .map(BaziScoreContributorDto::from)
+                .collect(),
+        }
+    }
+}
+
+impl From<&amlich_core::BaziDomainScores> for BaziDomainScoresDto {
+    fn from(value: &amlich_core::BaziDomainScores) -> Self {
+        Self {
+            career: BaziDomainScoreDto::from(&value.career),
+            wealth: BaziDomainScoreDto::from(&value.wealth),
+            relationship: BaziDomainScoreDto::from(&value.relationship),
+            health: BaziDomainScoreDto::from(&value.health),
+            timing: BaziDomainScoreDto::from(&value.timing),
+        }
+    }
+}
+
+impl From<&amlich_core::BaziTimingWindowScore> for BaziTimingWindowScoreDto {
+    fn from(value: &amlich_core::BaziTimingWindowScore) -> Self {
+        Self {
+            month: value.month,
+            score: value.score,
+            label: value.label.clone(),
+        }
+    }
+}
+
+impl From<&amlich_core::BaziTimingMetrics> for BaziTimingMetricsDto {
+    fn from(value: &amlich_core::BaziTimingMetrics) -> Self {
+        Self {
+            current_dai_van_alignment: value.current_dai_van_alignment,
+            annual_alignment: value.annual_alignment,
+            monthly_windows: value
+                .monthly_windows
+                .iter()
+                .map(BaziTimingWindowScoreDto::from)
+                .collect(),
+            activation_summary: value.activation_summary.clone(),
+        }
+    }
+}
+
+impl From<&amlich_core::BaziCoreMetrics> for BaziCoreMetricsDto {
+    fn from(value: &amlich_core::BaziCoreMetrics) -> Self {
+        Self {
+            day_master_strength_score: value.day_master_strength_score,
+            day_master_strength_label: value.day_master_strength_label.clone(),
+            season_support_score: value.season_support_score,
+            same_element_score: value.same_element_score,
+            resource_support_score: value.resource_support_score,
+            drain_pressure_score: value.drain_pressure_score,
+            control_pressure_score: value.control_pressure_score,
+            element_balance_score: value.element_balance_score,
+        }
+    }
+}
+
+impl From<&amlich_core::BaziStructureMetrics> for BaziStructureMetricsDto {
+    fn from(value: &amlich_core::BaziStructureMetrics) -> Self {
+        Self {
+            dominant_elements: value
+                .dominant_elements
+                .iter()
+                .map(|element| format!("{:?}", element))
+                .collect(),
+            weak_elements: value
+                .weak_elements
+                .iter()
+                .map(|element| format!("{:?}", element))
+                .collect(),
+            dominant_ten_gods: value.dominant_ten_gods.clone(),
+            interaction_score: value.interaction_score,
+            notable_interactions: value
+                .notable_interactions
+                .iter()
+                .map(BaziInteractionMetricDto::from)
+                .collect(),
+            confidence: value.confidence,
+        }
+    }
+}
+
+impl From<&amlich_core::BaziComputedMetrics> for BaziComputedMetricsDto {
+    fn from(value: &amlich_core::BaziComputedMetrics) -> Self {
+        Self {
+            core_metrics: BaziCoreMetricsDto::from(&value.core_metrics),
+            structure_metrics: BaziStructureMetricsDto::from(&value.structure_metrics),
+            domain_scores: BaziDomainScoresDto::from(&value.domain_scores),
+            timing_metrics: BaziTimingMetricsDto::from(&value.timing_metrics),
         }
     }
 }

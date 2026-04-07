@@ -501,6 +501,81 @@ pub struct BaziAdvisoryDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziInteractionMetricDto {
+    pub kind: String,
+    pub participants: Vec<String>,
+    pub impact: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziScoreContributorDto {
+    pub signal: String,
+    pub delta: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziDomainScoreDto {
+    pub score: u8,
+    pub label: String,
+    pub confidence: f32,
+    pub contributors: Vec<BaziScoreContributorDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziDomainScoresDto {
+    pub career: BaziDomainScoreDto,
+    pub wealth: BaziDomainScoreDto,
+    pub relationship: BaziDomainScoreDto,
+    pub health: BaziDomainScoreDto,
+    pub timing: BaziDomainScoreDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziTimingWindowScoreDto {
+    pub month: i32,
+    pub score: f32,
+    pub label: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziTimingMetricsDto {
+    pub current_dai_van_alignment: Option<f32>,
+    pub annual_alignment: Option<f32>,
+    pub monthly_windows: Vec<BaziTimingWindowScoreDto>,
+    pub activation_summary: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziCoreMetricsDto {
+    pub day_master_strength_score: i32,
+    pub day_master_strength_label: String,
+    pub season_support_score: f32,
+    pub same_element_score: u16,
+    pub resource_support_score: u16,
+    pub drain_pressure_score: u16,
+    pub control_pressure_score: u16,
+    pub element_balance_score: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziStructureMetricsDto {
+    pub dominant_elements: Vec<String>,
+    pub weak_elements: Vec<String>,
+    pub dominant_ten_gods: Vec<String>,
+    pub interaction_score: f32,
+    pub notable_interactions: Vec<BaziInteractionMetricDto>,
+    pub confidence: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziComputedMetricsDto {
+    pub core_metrics: BaziCoreMetricsDto,
+    pub structure_metrics: BaziStructureMetricsDto,
+    pub domain_scores: BaziDomainScoresDto,
+    pub timing_metrics: BaziTimingMetricsDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RulesetDefaultsDto {
     pub tz_offset: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]

@@ -1,6 +1,6 @@
 use amlich_api::{
-    get_bazi_advisory, get_bazi_analysis, get_bazi_chart, get_bazi_timing, BaziQuery,
-    BaziTimingQuery,
+    get_bazi_advisory, get_bazi_analysis, get_bazi_chart, get_bazi_metrics, get_bazi_timing,
+    BaziQuery, BaziTimingQuery,
 };
 
 fn sample_query() -> BaziQuery {
@@ -72,6 +72,23 @@ fn bazi_advisory_can_include_timing_context() {
 
     assert!(!advisory.summary_vi.is_empty());
     assert!(!advisory.domains.timing.is_empty());
+}
+
+#[test]
+fn bazi_metrics_expose_domain_scores_and_timing_windows() {
+    let metrics = get_bazi_metrics(
+        &sample_query(),
+        Some(&BaziTimingQuery {
+            current_age: 15.0,
+            target_year: 2027,
+            months: vec![1, 2],
+        }),
+    )
+    .expect("metrics");
+
+    assert!(metrics.core_metrics.day_master_strength_score > 0);
+    assert!(metrics.domain_scores.career.score <= 100);
+    assert_eq!(metrics.timing_metrics.monthly_windows.len(), 2);
 }
 
 #[test]
