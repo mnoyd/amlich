@@ -106,16 +106,19 @@ pub fn get_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
 
 pub fn get_bazi_chart(query: &BaziQuery) -> Result<BaziChartDto, String> {
     let input = to_bazi_input(query)?;
-    let chart = amlich_core::build_bazi_chart(input)?;
-    let response = amlich_core::to_bazi_chart_response(&chart);
+    let report = amlich_core::build_bazi_report(input, None)?;
+    let response = report
+        .chart_response
+        .ok_or_else(|| "missing bazi chart response".to_string())?;
     Ok(BaziChartDto::from((query, &response)))
 }
 
 pub fn get_bazi_analysis(query: &BaziQuery) -> Result<BaziAnalysisDto, String> {
     let input = to_bazi_input(query)?;
-    let chart = amlich_core::build_bazi_chart(input)?;
-    let analysis = amlich_core::analyze_bazi_chart(&chart);
-    let response = amlich_core::to_bazi_analysis_response(&analysis);
+    let report = amlich_core::build_bazi_report(input, None)?;
+    let response = report
+        .analysis_response
+        .ok_or_else(|| "missing bazi analysis response".to_string())?;
     Ok(BaziAnalysisDto::from(&response))
 }
 
@@ -124,16 +127,18 @@ pub fn get_bazi_timing(
     timing: &BaziTimingQuery,
 ) -> Result<BaziTimingDto, String> {
     let input = to_bazi_input(query)?;
-    let gender = require_bazi_gender(query)?;
-    let chart = amlich_core::build_bazi_chart(input)?;
-    let report = amlich_core::build_bazi_timing_report(
-        &chart,
-        gender,
-        timing.current_age,
-        timing.target_year,
-        &timing.months,
+    require_bazi_gender(query)?;
+    let report = amlich_core::build_bazi_report(
+        input,
+        Some(amlich_core::BaziTimingInput {
+            current_age: timing.current_age,
+            target_year: timing.target_year,
+            months: timing.months.clone(),
+        }),
     )?;
-    let response = amlich_core::to_bazi_timing_response(&report);
+    let response = report
+        .timing_response
+        .ok_or_else(|| "missing bazi timing response".to_string())?;
     Ok(BaziTimingDto::from(&response))
 }
 
@@ -142,22 +147,21 @@ pub fn get_bazi_advisory(
     timing: Option<&BaziTimingQuery>,
 ) -> Result<BaziAdvisoryDto, String> {
     let input = to_bazi_input(query)?;
-    let chart = amlich_core::build_bazi_chart(input)?;
-    let timing_report = match timing {
+    let timing_input = match timing {
         Some(timing) => {
-            let gender = require_bazi_gender(query)?;
-            Some(amlich_core::build_bazi_timing_report(
-                &chart,
-                gender,
-                timing.current_age,
-                timing.target_year,
-                &timing.months,
-            )?)
+            require_bazi_gender(query)?;
+            Some(amlich_core::BaziTimingInput {
+                current_age: timing.current_age,
+                target_year: timing.target_year,
+                months: timing.months.clone(),
+            })
         }
         None => None,
     };
-    let advisory = amlich_core::build_bazi_advisory(&chart, timing_report.as_ref());
-    let response = amlich_core::to_bazi_advisory_response(&advisory);
+    let report = amlich_core::build_bazi_report(input, timing_input)?;
+    let response = report
+        .advisory_response
+        .ok_or_else(|| "missing bazi advisory response".to_string())?;
     Ok(BaziAdvisoryDto::from(&response))
 }
 

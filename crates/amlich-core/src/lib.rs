@@ -23,31 +23,37 @@ pub mod types;
 
 // Re-export main types
 pub use crate::advisory::{
-    AdvisoryScoring, BirthInput, ConsultationIntent, EvidenceEnvelope,
-    DateRangeInput, PersonalizedDaySelection, RankedDateCandidate, RankedHourCandidate,
-    ScoredAdvice, build_personalized_day_selection, build_recommendation_context,
-    compute_day_context_from_birth, rank_dates_for_intent, rank_hours_for_intent,
-    score_day_selection, synthesize_advisory_recommendations,
-};
-pub use crate::bazi::{
-    AnnualPillar, AnnualPillarResponse, BaziAdvisoryDomains, BaziAdvisoryReport,
-    BaziAdvisoryResponse, BaziAnalysisReport, BaziAnalysisResponse, BaziCanChiResponse,
-    BaziChart, BaziChartMetadata, BaziChartMetadataResponse, BaziChartResponse, BaziInput,
-    BaziLuckPillar, BaziLuckPillarResponse, BaziLunarDateResponse, BaziPillar,
-    BaziPillarResponse, BaziTimingReport, BaziTimingResponse, ChartInteraction,
-    ChartInteractionKind, ChartInteractionResponse, DayMasterStrength,
-    DayMasterStrengthLabel, DayMasterStrengthResponse, ElementDistribution, HiddenStemEntry,
-    MonthlyPillar, MonthlyPillarResponse, PillarKind, StemRelationSet, TenGodDistribution,
-    UsefulGodAnalysis, UsefulGodResponse, analyze_bazi_chart, build_annual_pillar,
-    build_bazi_advisory, build_bazi_chart, build_bazi_timing_report, build_monthly_pillar,
-    compute_element_distribution,
-    compute_ten_god_distribution, detect_chart_interactions, evaluate_day_master_strength,
-    infer_useful_gods, to_bazi_advisory_response, to_bazi_analysis_response,
-    to_bazi_chart_response, to_bazi_timing_response,
+    build_personalized_day_selection, build_recommendation_context, compute_day_context_from_birth,
+    rank_dates_for_intent, rank_hours_for_intent, score_day_selection,
+    synthesize_advisory_recommendations, AdvisoryScoring, BirthInput, ConsultationIntent,
+    DateRangeInput, EvidenceEnvelope, PersonalizedDaySelection, RankedDateCandidate,
+    RankedHourCandidate, ScoredAdvice,
 };
 pub use crate::almanac::thap_than::get_thap_than;
 pub use crate::almanac::tu_menh::{compute_kua, Gender, KuaGroup, KuaResult};
 pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
+pub use crate::bazi::{
+    analyze_bazi_chart, build_annual_pillar, build_bazi_advisory, build_bazi_chart,
+    build_bazi_report, build_bazi_report_with_options, build_bazi_timing_report,
+    build_metrics_from_analysis, build_monthly_pillar, compute_bazi_metrics,
+    compute_bazi_metrics_with_matrix, compute_element_distribution, compute_ten_god_distribution,
+    default_bazi_scoring_matrix_set, detect_chart_interactions, evaluate_day_master_strength,
+    infer_useful_gods, to_bazi_advisory_response, to_bazi_analysis_response,
+    to_bazi_chart_response, to_bazi_timing_response, AnnualPillar, AnnualPillarResponse,
+    BaziAdvisoryDomains, BaziAdvisoryReport, BaziAdvisoryResponse, BaziAnalysisReport,
+    BaziAnalysisResponse, BaziCanChiResponse, BaziChart, BaziChartMetadata,
+    BaziChartMetadataResponse, BaziChartResponse, BaziComputedMetrics, BaziCoreMetrics,
+    BaziDomainScore, BaziDomainScores, BaziInput, BaziInteractionMetric, BaziLuckPillar,
+    BaziLuckPillarResponse, BaziLunarDateResponse, BaziPillar, BaziPillarResponse, BaziReport,
+    BaziReportOptions, BaziScoreContributor, BaziScoringMatrixSet, BaziStructureMetrics,
+    BaziTimingInput, BaziTimingMetrics, BaziTimingReport, BaziTimingResponse,
+    BaziTimingWindowScore, BranchStrengthProfile, ChartInteraction, ChartInteractionKind,
+    ChartInteractionResponse, DayMasterStrength, DayMasterStrengthLabel, DayMasterStrengthResponse,
+    DomainMappingMatrix, DomainWeightProfile, ElementDistribution, ElementRelationMatrix,
+    ElementRelationVector, HiddenStemEntry, InteractionImpactMatrix, MonthlyPillar,
+    MonthlyPillarResponse, PillarKind, SeasonStrengthMatrix, StemRelationSet, TenGodContextMatrix,
+    TenGodDistribution, TenGodWeightProfile, UsefulGodAnalysis, UsefulGodResponse,
+};
 pub use types::*;
 
 use crate::almanac::calc::calculate_day_fortune;
