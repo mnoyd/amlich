@@ -627,6 +627,154 @@ pub fn get_day_insight_for_date_with_profile(
     )
 }
 
+fn profile_gender_label(
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Option<String> {
+    gender.map(|value| match value {
+        amlich_core::almanac::tu_menh::Gender::Male => "male".to_string(),
+        amlich_core::almanac::tu_menh::Gender::Female => "female".to_string(),
+    })
+}
+
+fn personal_day_query(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> PersonalDayQueryDto {
+    PersonalDayQueryDto {
+        date: query.clone(),
+        birth_year,
+        birth_month,
+        birth_day,
+        gender: profile_gender_label(gender),
+    }
+}
+
+pub fn get_personal_day_chart(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<PersonalDayChartDto, String> {
+    let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
+    Ok(PersonalDayChartDto {
+        input: personal_day_query(query, birth_year, birth_month, birth_day, gender),
+        solar: insight.solar,
+        lunar: insight.lunar,
+        canchi: insight.canchi,
+        tiet_khi: insight.tiet_khi,
+    })
+}
+
+pub fn get_personal_day_analysis(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<PersonalDayAnalysisDto, String> {
+    let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
+    Ok(PersonalDayAnalysisDto {
+        ten_gods: insight.ten_gods,
+        xung_hop: insight.xung_hop,
+        tang_can: insight.tang_can,
+        tu_menh: insight.tu_menh,
+        dai_van: insight.dai_van,
+    })
+}
+
+pub fn get_personal_day_metrics(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<PersonalDayMetricsDto, String> {
+    let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
+    let mut available_sections = Vec::new();
+    if insight.ten_gods.is_some() {
+        available_sections.push("ten_gods".to_string());
+    }
+    if insight.xung_hop.is_some() {
+        available_sections.push("xung_hop".to_string());
+    }
+    if insight.tang_can.is_some() {
+        available_sections.push("tang_can".to_string());
+    }
+    if insight.tu_menh.is_some() {
+        available_sections.push("tu_menh".to_string());
+    }
+    if insight.dai_van.is_some() {
+        available_sections.push("dai_van".to_string());
+    }
+
+    let profile_completeness = [
+        birth_year.is_some(),
+        birth_month.is_some(),
+        birth_day.is_some(),
+        gender.is_some(),
+    ]
+    .into_iter()
+    .filter(|value| *value)
+    .count() as u8;
+
+    Ok(PersonalDayMetricsDto {
+        profile_completeness,
+        has_personal_recommendations: insight.tu_menh.is_some() || insight.dai_van.is_some(),
+        available_sections,
+    })
+}
+
+pub fn get_personal_day_advisory(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<PersonalDayAdvisoryDto, String> {
+    let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
+    let mut highlights = Vec::new();
+    let mut cautions = Vec::new();
+
+    if let Some(tu_menh) = &insight.tu_menh {
+        highlights.push(format!("kua {} {}", tu_menh.kua, tu_menh.group));
+    } else {
+        cautions.push("missing kua profile context".to_string());
+    }
+
+    if let Some(dai_van) = &insight.dai_van {
+        highlights.push(format!("dai_van {}", dai_van.direction));
+    } else {
+        cautions.push("missing dai van timing context".to_string());
+    }
+
+    if insight.ten_gods.is_none() {
+        cautions.push("ten gods analysis unavailable".to_string());
+    }
+
+    Ok(PersonalDayAdvisoryDto { highlights, cautions })
+}
+
+pub fn get_personal_day_report(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<PersonalDayReportDto, String> {
+    Ok(PersonalDayReportDto {
+        chart: get_personal_day_chart(query, birth_year, birth_month, birth_day, gender)?,
+        analysis: get_personal_day_analysis(query, birth_year, birth_month, birth_day, gender)?,
+        computed_metrics: get_personal_day_metrics(
+            query, birth_year, birth_month, birth_day, gender,
+        )?,
+        advisory: get_personal_day_advisory(query, birth_year, birth_month, birth_day, gender)?,
+    })
+}
+
 /// Lookup Na Am by 1-based cycle index (1-60)
 ///
 /// # Arguments

@@ -24,7 +24,7 @@ use std::ffi::OsString;
 use std::io::{stdin, stdout, IsTerminal};
 
 use amlich_api::v2::Include;
-use amlich_api::{DateQuery, DayInsightDto};
+use amlich_api::{DateQuery, DayInsightDto, InsightSurface};
 use chrono::{Datelike, Local, NaiveDate};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 
@@ -382,18 +382,32 @@ enum LookupCommand {
     TenGods(LookupTenGodsArgs),
     Kua(LookupKuaArgs),
     Bazi(BaziArgs),
+    PersonalDay(PersonalDayArgs),
     Rulesets(LookupCatalogArgs),
     RecommendationPacks(LookupCatalogArgs),
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
-enum BaziSurfaceArg {
+enum InsightSurfaceArg {
     Chart,
     Analysis,
     Timing,
     Advisory,
     Metrics,
     Report,
+}
+
+impl From<InsightSurfaceArg> for InsightSurface {
+    fn from(value: InsightSurfaceArg) -> Self {
+        match value {
+            InsightSurfaceArg::Chart => InsightSurface::Chart,
+            InsightSurfaceArg::Analysis => InsightSurface::Analysis,
+            InsightSurfaceArg::Timing => InsightSurface::Timing,
+            InsightSurfaceArg::Advisory => InsightSurface::Advisory,
+            InsightSurfaceArg::Metrics => InsightSurface::Metrics,
+            InsightSurfaceArg::Report => InsightSurface::Report,
+        }
+    }
 }
 
 #[derive(Args, Debug)]
@@ -428,8 +442,35 @@ struct BaziArgs {
     #[arg(long, value_delimiter = ',')]
     months: Vec<i32>,
 
-    #[arg(long, value_enum, default_value_t = BaziSurfaceArg::Report)]
-    surface: BaziSurfaceArg,
+    #[arg(long, value_enum, default_value_t = InsightSurfaceArg::Report)]
+    surface: InsightSurfaceArg,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
+struct PersonalDayArgs {
+    #[arg(value_name = "DATE")]
+    date: String,
+
+    #[arg(long)]
+    birth_year: Option<i32>,
+
+    #[arg(long)]
+    birth_month: Option<i32>,
+
+    #[arg(long)]
+    birth_day: Option<i32>,
+
+    #[arg(long, value_enum)]
+    gender: Option<GenderArg>,
+
+    #[arg(long, value_enum, default_value_t = InsightSurfaceArg::Report)]
+    surface: InsightSurfaceArg,
 
     #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
     format: StructuredFormatArg,
@@ -1055,6 +1096,7 @@ fn run_lookup(args: LookupArgs) -> Result<(), String> {
         LookupCommand::TenGods(a) => run_lookup_ten_gods(a),
         LookupCommand::Kua(a) => run_lookup_kua(a),
         LookupCommand::Bazi(a) => run_lookup_bazi(a),
+        LookupCommand::PersonalDay(a) => run_lookup_personal_day(a),
         LookupCommand::Rulesets(a) => run_lookup_rulesets(a),
         LookupCommand::RecommendationPacks(a) => run_lookup_recommendation_packs(a),
     }
@@ -1191,7 +1233,9 @@ fn run_lookup_bazi(args: BaziArgs) -> Result<(), String> {
             months: args.months.clone(),
         }),
         (None, None) => None,
-        (Some(_), None) | (None, Some(_)) if matches!(args.surface, BaziSurfaceArg::Timing) => {
+        (Some(_), None) | (None, Some(_))
+            if matches!(InsightSurface::from(args.surface), InsightSurface::Timing) =>
+        {
             return Err(
                 "timing requires both --current-age and --target-year, or a profile birth year plus --target-year"
                     .to_string(),
@@ -1200,32 +1244,96 @@ fn run_lookup_bazi(args: BaziArgs) -> Result<(), String> {
         _ => None,
     };
 
-    match args.surface {
-        BaziSurfaceArg::Chart => render_structured(&amlich_api::get_bazi_chart(&query)?, args.format, args.pretty),
-        BaziSurfaceArg::Analysis => {
+    match InsightSurface::from(args.surface) {
+        InsightSurface::Chart => {
+            render_structured(&amlich_api::get_bazi_chart(&query)?, args.format, args.pretty)
+        }
+        InsightSurface::Analysis => {
             render_structured(&amlich_api::get_bazi_analysis(&query)?, args.format, args.pretty)
         }
-        BaziSurfaceArg::Timing => {
+        InsightSurface::Timing => {
             let timing = timing
                 .as_ref()
                 .ok_or_else(|| "timing surface requires timing inputs".to_string())?;
             render_structured(&amlich_api::get_bazi_timing(&query, timing)?, args.format, args.pretty)
         }
-        BaziSurfaceArg::Advisory => render_structured(
+        InsightSurface::Advisory => render_structured(
             &amlich_api::get_bazi_advisory(&query, timing.as_ref())?,
             args.format,
             args.pretty,
         ),
-        BaziSurfaceArg::Metrics => render_structured(
+        InsightSurface::Metrics => render_structured(
             &amlich_api::get_bazi_metrics(&query, timing.as_ref())?,
             args.format,
             args.pretty,
         ),
-        BaziSurfaceArg::Report => render_structured(
+        InsightSurface::Report => render_structured(
             &amlich_api::get_bazi_report(&query, timing.as_ref())?,
             args.format,
             args.pretty,
         ),
+    }
+}
+
+fn run_lookup_personal_day(args: PersonalDayArgs) -> Result<(), String> {
+    let date = parse_date(&args.date)?;
+    let profile = crate::profile::load_profile();
+    let birth_year = args.birth_year.or(profile.birth_year);
+    let birth_month = args.birth_month.or(profile.birth_month);
+    let birth_day = args.birth_day.or(profile.birth_day);
+    let gender = args.gender.map(|g| match g {
+        GenderArg::Male => amlich_core::almanac::tu_menh::Gender::Male,
+        GenderArg::Female => amlich_core::almanac::tu_menh::Gender::Female,
+    }).or_else(|| profile.gender.map(|g| match g {
+        crate::profile::ProfileGender::Male => amlich_core::almanac::tu_menh::Gender::Male,
+        crate::profile::ProfileGender::Female => amlich_core::almanac::tu_menh::Gender::Female,
+    }));
+
+    let query = DateQuery {
+        day: date.day() as i32,
+        month: date.month() as i32,
+        year: date.year(),
+        timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
+    };
+
+    match InsightSurface::from(args.surface) {
+        InsightSurface::Chart => render_structured(
+            &amlich_api::get_personal_day_chart(&query, birth_year, birth_month, birth_day, gender)?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Analysis => render_structured(
+            &amlich_api::get_personal_day_analysis(
+                &query, birth_year, birth_month, birth_day, gender,
+            )?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Metrics => render_structured(
+            &amlich_api::get_personal_day_metrics(
+                &query, birth_year, birth_month, birth_day, gender,
+            )?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Advisory => render_structured(
+            &amlich_api::get_personal_day_advisory(
+                &query, birth_year, birth_month, birth_day, gender,
+            )?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Report => render_structured(
+            &amlich_api::get_personal_day_report(
+                &query, birth_year, birth_month, birth_day, gender,
+            )?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Timing => Err("timing surface is not supported for personal-day yet".to_string()),
     }
 }
 

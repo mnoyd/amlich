@@ -1161,6 +1161,37 @@ fn lookup_bazi_timing_can_use_profile_birth_year_and_gender() {
 }
 
 #[test]
+fn lookup_personal_day_report_outputs_machine_readable_payload() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "personal-day",
+            "2024-02-10",
+            "--birth-year",
+            "1990",
+            "--gender",
+            "male",
+            "--surface",
+            "report",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert!(json.get("chart").is_some());
+    assert!(json.get("analysis").is_some());
+    assert!(json.get("computed_metrics").is_some());
+    assert!(json.get("advisory").is_some());
+}
+
+#[test]
 fn config_profile_show_succeeds() {
     let home = temp_home();
     let output = run(&home, &["config", "profile", "show"]);

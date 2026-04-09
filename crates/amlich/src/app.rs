@@ -488,6 +488,22 @@ impl App {
         self.selected_bazi_cache.as_ref()
     }
 
+    pub fn personal_profile(
+        &self,
+    ) -> (
+        Option<i32>,
+        Option<i32>,
+        Option<i32>,
+        Option<amlich_core::almanac::tu_menh::Gender>,
+    ) {
+        (
+            self.profile_birth_year,
+            self.profile_birth_month,
+            self.profile_birth_day,
+            self.profile_gender,
+        )
+    }
+
     fn refresh_selected_insight_cache(&mut self) {
         let key = (self.view_year, self.view_month, self.selected_day);
         self.selected_insight_cache_key = Some(key);

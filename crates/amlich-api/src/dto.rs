@@ -585,6 +585,17 @@ pub struct BaziReportDto {
     pub advisory: BaziAdvisoryDto,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum InsightSurface {
+    Chart,
+    Analysis,
+    Timing,
+    Advisory,
+    Metrics,
+    Report,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RulesetDefaultsDto {
     pub tz_offset: f64,
@@ -953,6 +964,65 @@ pub struct DayInsightDto {
     pub tu_menh: Option<TuMenhInsightDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dai_van: Option<DaiVanInsightDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalDayQueryDto {
+    pub date: DateQuery,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub birth_year: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub birth_month: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub birth_day: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub gender: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalDayChartDto {
+    pub input: PersonalDayQueryDto,
+    pub solar: SolarDto,
+    pub lunar: LunarDto,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub canchi: Option<CanChiInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tiet_khi: Option<TietKhiInsightDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalDayAnalysisDto {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ten_gods: Option<TenGodsInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub xung_hop: Option<XungHopInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tang_can: Option<TangCanInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub tu_menh: Option<TuMenhInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dai_van: Option<DaiVanInsightDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalDayMetricsDto {
+    pub profile_completeness: u8,
+    pub available_sections: Vec<String>,
+    pub has_personal_recommendations: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalDayAdvisoryDto {
+    pub highlights: Vec<String>,
+    pub cautions: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalDayReportDto {
+    pub chart: PersonalDayChartDto,
+    pub analysis: PersonalDayAnalysisDto,
+    pub computed_metrics: PersonalDayMetricsDto,
+    pub advisory: PersonalDayAdvisoryDto,
 }
 
 /// Na Am lookup result with cycle index and evidence metadata

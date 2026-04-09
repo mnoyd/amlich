@@ -787,8 +787,27 @@ impl<'a> InsightOverlay<'a> {
     fn render_personal_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
         let mut lines = Vec::new();
         let lang = self.app.insight_lang;
+        let (birth_year, birth_month, birth_day, gender) = self.app.personal_profile();
+        let personal_report = self.app.selected_info().and_then(|info| {
+            amlich_api::get_personal_day_report(
+                &amlich_api::DateQuery {
+                    day: info.solar.day,
+                    month: info.solar.month,
+                    year: info.solar.year,
+                    timezone: Some(amlich_core::VIETNAM_TIMEZONE),
+                    ruleset_id: None,
+                    event_kind: None,
+                    enabled_pack_ids: vec![],
+                },
+                birth_year,
+                birth_month,
+                birth_day,
+                gender,
+            )
+            .ok()
+        });
 
-        if insight.tu_menh.is_none() && insight.dai_van.is_none() {
+        if personal_report.is_none() && insight.tu_menh.is_none() && insight.dai_van.is_none() {
             lines.push(Line::from(Span::styled(
                 pick_text(
                     lang,
@@ -807,6 +826,49 @@ impl<'a> InsightOverlay<'a> {
                 Style::default().fg(theme::ACCENT_FG),
             )));
             return lines;
+        }
+
+        if let Some(report) = &personal_report {
+            lines.push(Line::from(Span::styled(
+                pick_text(lang, "Tổng quan cá nhân hóa:", "Personalized overview:"),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
+            )));
+            lines.push(Line::from(format!(
+                "  {} / 4 hồ sơ • {}",
+                report.computed_metrics.profile_completeness,
+                if report.computed_metrics.has_personal_recommendations {
+                    pick_text(lang, "đủ dữ liệu cá nhân", "personal context available")
+                } else {
+                    pick_text(lang, "thiếu ngữ cảnh cá nhân", "personal context missing")
+                }
+            )));
+            if !report.computed_metrics.available_sections.is_empty() {
+                lines.push(Line::from(format!(
+                    "  {}",
+                    report.computed_metrics.available_sections.join(", ")
+                )));
+            }
+            lines.push(Line::from(""));
+
+            if !report.advisory.highlights.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Điểm nổi bật:", "Highlights:"),
+                    Style::default().fg(theme::GOOD_HOUR_FG),
+                )));
+                push_bulleted(&mut lines, &report.advisory.highlights, "•", 4);
+                lines.push(Line::from(""));
+            }
+
+            if !report.advisory.cautions.is_empty() {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Lưu ý:", "Cautions:"),
+                    Style::default().fg(theme::WEEKEND_FG),
+                )));
+                push_bulleted(&mut lines, &report.advisory.cautions, "•", 4);
+                lines.push(Line::from(""));
+            }
         }
 
         if let Some(tu_menh) = &insight.tu_menh {
