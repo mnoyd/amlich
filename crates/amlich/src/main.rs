@@ -383,6 +383,7 @@ enum LookupCommand {
     Kua(LookupKuaArgs),
     Bazi(BaziArgs),
     PersonalDay(PersonalDayArgs),
+    HourSelection(HourSelectionArgs),
     Rulesets(LookupCatalogArgs),
     RecommendationPacks(LookupCatalogArgs),
 }
@@ -468,6 +469,21 @@ struct PersonalDayArgs {
 
     #[arg(long, value_enum)]
     gender: Option<GenderArg>,
+
+    #[arg(long, value_enum, default_value_t = InsightSurfaceArg::Report)]
+    surface: InsightSurfaceArg,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
+struct HourSelectionArgs {
+    #[arg(value_name = "DATE")]
+    date: String,
 
     #[arg(long, value_enum, default_value_t = InsightSurfaceArg::Report)]
     surface: InsightSurfaceArg,
@@ -1097,6 +1113,7 @@ fn run_lookup(args: LookupArgs) -> Result<(), String> {
         LookupCommand::Kua(a) => run_lookup_kua(a),
         LookupCommand::Bazi(a) => run_lookup_bazi(a),
         LookupCommand::PersonalDay(a) => run_lookup_personal_day(a),
+        LookupCommand::HourSelection(a) => run_lookup_hour_selection(a),
         LookupCommand::Rulesets(a) => run_lookup_rulesets(a),
         LookupCommand::RecommendationPacks(a) => run_lookup_recommendation_packs(a),
     }
@@ -1334,6 +1351,46 @@ fn run_lookup_personal_day(args: PersonalDayArgs) -> Result<(), String> {
             args.pretty,
         ),
         InsightSurface::Timing => Err("timing surface is not supported for personal-day yet".to_string()),
+    }
+}
+
+fn run_lookup_hour_selection(args: HourSelectionArgs) -> Result<(), String> {
+    let date = parse_date(&args.date)?;
+    let query = DateQuery {
+        day: date.day() as i32,
+        month: date.month() as i32,
+        year: date.year(),
+        timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
+    };
+
+    match InsightSurface::from(args.surface) {
+        InsightSurface::Chart => {
+            render_structured(&amlich_api::get_hour_selection_chart(&query)?, args.format, args.pretty)
+        }
+        InsightSurface::Analysis => render_structured(
+            &amlich_api::get_hour_selection_analysis(&query)?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Metrics => render_structured(
+            &amlich_api::get_hour_selection_metrics(&query)?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Advisory => render_structured(
+            &amlich_api::get_hour_selection_advisory(&query)?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Report => render_structured(
+            &amlich_api::get_hour_selection_report(&query)?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Timing => Err("timing surface is not supported for hour-selection yet".to_string()),
     }
 }
 

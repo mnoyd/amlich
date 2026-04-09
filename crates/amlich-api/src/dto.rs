@@ -1025,6 +1025,47 @@ pub struct PersonalDayReportDto {
     pub advisory: PersonalDayAdvisoryDto,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HourSelectionQueryDto {
+    pub date: DateQuery,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HourSelectionChartDto {
+    pub input: HourSelectionQueryDto,
+    pub solar: SolarDto,
+    pub lunar: LunarDto,
+    pub gio_hoang_dao: GioHoangDaoDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HourSelectionAnalysisDto {
+    pub good_hours: Vec<HourInfoDto>,
+    pub bad_hours: Vec<HourInfoDto>,
+    pub summary: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HourSelectionMetricsDto {
+    pub good_hour_count: usize,
+    pub bad_hour_count: usize,
+    pub good_hour_ratio: f32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HourSelectionAdvisoryDto {
+    pub best_windows: Vec<String>,
+    pub caution_windows: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HourSelectionReportDto {
+    pub chart: HourSelectionChartDto,
+    pub analysis: HourSelectionAnalysisDto,
+    pub computed_metrics: HourSelectionMetricsDto,
+    pub advisory: HourSelectionAdvisoryDto,
+}
+
 /// Na Am lookup result with cycle index and evidence metadata
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NaAmLookupResultDto {

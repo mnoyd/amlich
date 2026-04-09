@@ -775,6 +775,81 @@ pub fn get_personal_day_report(
     })
 }
 
+fn get_hour_selection_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
+    get_day_info(query)
+}
+
+pub fn get_hour_selection_chart(query: &DateQuery) -> Result<HourSelectionChartDto, String> {
+    let info = get_hour_selection_day_info(query)?;
+    Ok(HourSelectionChartDto {
+        input: HourSelectionQueryDto {
+            date: query.clone(),
+        },
+        solar: info.solar,
+        lunar: info.lunar,
+        gio_hoang_dao: info.gio_hoang_dao,
+    })
+}
+
+pub fn get_hour_selection_analysis(query: &DateQuery) -> Result<HourSelectionAnalysisDto, String> {
+    let info = get_hour_selection_day_info(query)?;
+    let bad_hours = info
+        .gio_hoang_dao
+        .all_hours
+        .iter()
+        .filter(|hour| !hour.is_good)
+        .cloned()
+        .collect();
+    Ok(HourSelectionAnalysisDto {
+        good_hours: info.gio_hoang_dao.good_hours.clone(),
+        bad_hours,
+        summary: info.gio_hoang_dao.summary,
+    })
+}
+
+pub fn get_hour_selection_metrics(query: &DateQuery) -> Result<HourSelectionMetricsDto, String> {
+    let info = get_hour_selection_day_info(query)?;
+    let total = info.gio_hoang_dao.all_hours.len();
+    let good = info.gio_hoang_dao.good_hour_count;
+    Ok(HourSelectionMetricsDto {
+        good_hour_count: good,
+        bad_hour_count: total.saturating_sub(good),
+        good_hour_ratio: if total == 0 {
+            0.0
+        } else {
+            good as f32 / total as f32
+        },
+    })
+}
+
+pub fn get_hour_selection_advisory(query: &DateQuery) -> Result<HourSelectionAdvisoryDto, String> {
+    let info = get_hour_selection_day_info(query)?;
+    Ok(HourSelectionAdvisoryDto {
+        best_windows: info
+            .gio_hoang_dao
+            .good_hours
+            .iter()
+            .map(|hour| format!("{} {}", hour.hour_chi, hour.time_range))
+            .collect(),
+        caution_windows: info
+            .gio_hoang_dao
+            .all_hours
+            .iter()
+            .filter(|hour| !hour.is_good)
+            .map(|hour| format!("{} {}", hour.hour_chi, hour.time_range))
+            .collect(),
+    })
+}
+
+pub fn get_hour_selection_report(query: &DateQuery) -> Result<HourSelectionReportDto, String> {
+    Ok(HourSelectionReportDto {
+        chart: get_hour_selection_chart(query)?,
+        analysis: get_hour_selection_analysis(query)?,
+        computed_metrics: get_hour_selection_metrics(query)?,
+        advisory: get_hour_selection_advisory(query)?,
+    })
+}
+
 /// Lookup Na Am by 1-based cycle index (1-60)
 ///
 /// # Arguments
