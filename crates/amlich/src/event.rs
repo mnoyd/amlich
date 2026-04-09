@@ -1,7 +1,7 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyModifiers};
 use std::time::Duration;
 
-use crate::app::{AlmanacTab, App, InsightTab};
+use crate::app::{AlmanacTab, App, BaziSubview, InsightTab};
 
 // Bookmarks overlay mode handling
 fn handle_bookmarks_mode(app: &mut App, key: KeyEvent) -> bool {
@@ -116,6 +116,25 @@ fn handle_key(app: &mut App, key: KeyEvent) {
             KeyCode::Char('7') => app.set_insight_tab(InsightTab::FengShui),
             KeyCode::Char('8') => app.set_insight_tab(InsightTab::Advanced),
             KeyCode::Char('9') => app.set_insight_tab(InsightTab::Personal),
+            KeyCode::Char('0') => app.set_insight_tab(InsightTab::Bazi),
+            KeyCode::Char('[') if app.insight_tab == InsightTab::Bazi => app.prev_bazi_subview(),
+            KeyCode::Char(']') if app.insight_tab == InsightTab::Bazi => app.next_bazi_subview(),
+            KeyCode::Char('o') if app.insight_tab == InsightTab::Bazi => {
+                app.bazi_subview = BaziSubview::Overview;
+                app.insight_scroll = 0;
+            }
+            KeyCode::Char('t') if app.insight_tab == InsightTab::Bazi => {
+                app.bazi_subview = BaziSubview::Timing;
+                app.insight_scroll = 0;
+            }
+            KeyCode::Char('a') if app.insight_tab == InsightTab::Bazi => {
+                app.bazi_subview = BaziSubview::Advisory;
+                app.insight_scroll = 0;
+            }
+            KeyCode::Char('m') if app.insight_tab == InsightTab::Bazi => {
+                app.bazi_subview = BaziSubview::Metrics;
+                app.insight_scroll = 0;
+            }
             KeyCode::Char('n') => app.next_insight_tab(),
             KeyCode::Char('L') => app.toggle_insight_lang(),
             _ => {}
@@ -246,7 +265,7 @@ fn handle_key(app: &mut App, key: KeyEvent) {
 mod tests {
     use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
-    use crate::app::{AlmanacTab, App};
+    use crate::app::{AlmanacTab, App, BaziSubview, InsightTab};
 
     use super::handle_key;
 
@@ -301,4 +320,30 @@ mod tests {
         handle_key(&mut app, key(KeyCode::Char('r')));
         assert!(!app.almanac_evidence_raw);
     }
+
+    #[test]
+    fn bazi_mode_hotkeys_switch_subviews() {
+        let mut app = App::new_with_date(None);
+        app.show_insight = true;
+        app.insight_tab = InsightTab::Bazi;
+
+        handle_key(&mut app, key(KeyCode::Char('t')));
+        assert_eq!(app.bazi_subview, BaziSubview::Timing);
+
+        handle_key(&mut app, key(KeyCode::Char('a')));
+        assert_eq!(app.bazi_subview, BaziSubview::Advisory);
+
+        handle_key(&mut app, key(KeyCode::Char('m')));
+        assert_eq!(app.bazi_subview, BaziSubview::Metrics);
+
+        handle_key(&mut app, key(KeyCode::Char('o')));
+        assert_eq!(app.bazi_subview, BaziSubview::Overview);
+
+        handle_key(&mut app, key(KeyCode::Char(']')));
+        assert_eq!(app.bazi_subview, BaziSubview::Timing);
+
+        handle_key(&mut app, key(KeyCode::Char('[')));
+        assert_eq!(app.bazi_subview, BaziSubview::Overview);
+    }
 }
+

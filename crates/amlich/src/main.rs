@@ -381,8 +381,61 @@ enum LookupCommand {
     NaAm(LookupNaAmArgs),
     TenGods(LookupTenGodsArgs),
     Kua(LookupKuaArgs),
+    Bazi(BaziArgs),
     Rulesets(LookupCatalogArgs),
     RecommendationPacks(LookupCatalogArgs),
+}
+
+#[derive(Clone, Copy, Debug, ValueEnum)]
+enum BaziSurfaceArg {
+    Chart,
+    Analysis,
+    Timing,
+    Advisory,
+    Metrics,
+    Report,
+}
+
+#[derive(Args, Debug)]
+struct BaziArgs {
+    #[arg(value_name = "DATE")]
+    date: String,
+
+    #[arg(long, value_name = "HOUR")]
+    hour: u8,
+
+    #[arg(long, default_value_t = 0)]
+    minute: u8,
+
+    #[arg(long, value_name = "TZ")]
+    timezone: Option<f64>,
+
+    #[arg(long, value_name = "LONGITUDE")]
+    longitude: Option<f64>,
+
+    #[arg(long, default_value_t = false)]
+    use_solar_time: bool,
+
+    #[arg(long, value_enum)]
+    gender: Option<GenderArg>,
+
+    #[arg(long)]
+    current_age: Option<f64>,
+
+    #[arg(long)]
+    target_year: Option<i32>,
+
+    #[arg(long, value_delimiter = ',')]
+    months: Vec<i32>,
+
+    #[arg(long, value_enum, default_value_t = BaziSurfaceArg::Report)]
+    surface: BaziSurfaceArg,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
 }
 
 #[derive(Args, Debug)]
@@ -1001,6 +1054,7 @@ fn run_lookup(args: LookupArgs) -> Result<(), String> {
         LookupCommand::NaAm(a) => run_lookup_na_am(a),
         LookupCommand::TenGods(a) => run_lookup_ten_gods(a),
         LookupCommand::Kua(a) => run_lookup_kua(a),
+        LookupCommand::Bazi(a) => run_lookup_bazi(a),
         LookupCommand::Rulesets(a) => run_lookup_rulesets(a),
         LookupCommand::RecommendationPacks(a) => run_lookup_recommendation_packs(a),
     }
@@ -1103,6 +1157,106 @@ fn run_lookup_kua(args: LookupKuaArgs) -> Result<(), String> {
         }
     }
     Ok(())
+}
+
+fn run_lookup_bazi(args: BaziArgs) -> Result<(), String> {
+    let date = parse_date(&args.date)?;
+    let profile = crate::profile::load_profile();
+    let gender = args
+        .gender
+        .map(gender_arg_to_str)
+        .or_else(|| profile.gender.map(profile_gender_to_str));
+
+    let query = amlich_api::BaziQuery {
+        day: date.day() as i32,
+        month: date.month() as i32,
+        year: date.year(),
+        hour: args.hour,
+        minute: args.minute,
+        timezone: args.timezone,
+        longitude: args.longitude,
+        use_solar_time: args.use_solar_time,
+        gender: gender.map(str::to_string),
+    };
+
+    let timing = match (
+        args.current_age.or_else(|| profile.birth_year.map(|birth_year| {
+            (date.year() - birth_year) as f64
+        })),
+        args.target_year,
+    ) {
+        (Some(current_age), Some(target_year)) => Some(amlich_api::BaziTimingQuery {
+            current_age,
+            target_year,
+            months: args.months.clone(),
+        }),
+        (None, None) => None,
+        (Some(_), None) | (None, Some(_)) if matches!(args.surface, BaziSurfaceArg::Timing) => {
+            return Err(
+                "timing requires both --current-age and --target-year, or a profile birth year plus --target-year"
+                    .to_string(),
+            )
+        }
+        _ => None,
+    };
+
+    match args.surface {
+        BaziSurfaceArg::Chart => render_structured(&amlich_api::get_bazi_chart(&query)?, args.format, args.pretty),
+        BaziSurfaceArg::Analysis => {
+            render_structured(&amlich_api::get_bazi_analysis(&query)?, args.format, args.pretty)
+        }
+        BaziSurfaceArg::Timing => {
+            let timing = timing
+                .as_ref()
+                .ok_or_else(|| "timing surface requires timing inputs".to_string())?;
+            render_structured(&amlich_api::get_bazi_timing(&query, timing)?, args.format, args.pretty)
+        }
+        BaziSurfaceArg::Advisory => render_structured(
+            &amlich_api::get_bazi_advisory(&query, timing.as_ref())?,
+            args.format,
+            args.pretty,
+        ),
+        BaziSurfaceArg::Metrics => render_structured(
+            &amlich_api::get_bazi_metrics(&query, timing.as_ref())?,
+            args.format,
+            args.pretty,
+        ),
+        BaziSurfaceArg::Report => render_structured(
+            &amlich_api::get_bazi_report(&query, timing.as_ref())?,
+            args.format,
+            args.pretty,
+        ),
+    }
+}
+
+fn render_structured<T: serde::Serialize>(
+    value: &T,
+    format: StructuredFormatArg,
+    pretty: bool,
+) -> Result<(), String> {
+    match format {
+        StructuredFormatArg::Json => print_json(value, pretty),
+        StructuredFormatArg::Text => {
+            let output = serde_json::to_string_pretty(value)
+                .map_err(|e| format!("failed to render text output: {e}"))?;
+            println!("{output}");
+            Ok(())
+        }
+    }
+}
+
+fn gender_arg_to_str(value: GenderArg) -> &'static str {
+    match value {
+        GenderArg::Male => "male",
+        GenderArg::Female => "female",
+    }
+}
+
+fn profile_gender_to_str(value: crate::profile::ProfileGender) -> &'static str {
+    match value {
+        crate::profile::ProfileGender::Male => "male",
+        crate::profile::ProfileGender::Female => "female",
+    }
 }
 
 fn run_query(args: QueryArgs) -> Result<(), String> {

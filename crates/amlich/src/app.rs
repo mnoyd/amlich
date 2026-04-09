@@ -1,4 +1,7 @@
-use amlich_api::{get_day_insight_for_date_with_profile, DayInfoDto, DayInsightDto, HolidayDto};
+use amlich_api::{
+    get_bazi_report, get_day_insight_for_date_with_profile, BaziQuery, BaziReportDto,
+    BaziTimingQuery, DayInfoDto, DayInsightDto, HolidayDto,
+};
 use chrono::{Datelike, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 
@@ -26,6 +29,37 @@ pub enum InsightTab {
     FengShui,
     Advanced,
     Personal,
+    Bazi,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub enum BaziSubview {
+    #[default]
+    Overview,
+    Timing,
+    Advisory,
+    Metrics,
+}
+
+impl BaziSubview {
+    pub fn next(self) -> Self {
+        match self {
+            BaziSubview::Overview => BaziSubview::Timing,
+            BaziSubview::Timing => BaziSubview::Advisory,
+            BaziSubview::Advisory => BaziSubview::Metrics,
+            BaziSubview::Metrics => BaziSubview::Overview,
+        }
+    }
+
+    pub fn prev(self) -> Self {
+        match self {
+            BaziSubview::Overview => BaziSubview::Metrics,
+            BaziSubview::Timing => BaziSubview::Overview,
+            BaziSubview::Advisory => BaziSubview::Timing,
+            BaziSubview::Metrics => BaziSubview::Advisory,
+        }
+    }
+
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -82,7 +116,8 @@ impl InsightTab {
             InsightTab::Elements => InsightTab::FengShui,
             InsightTab::FengShui => InsightTab::Advanced,
             InsightTab::Advanced => InsightTab::Personal,
-            InsightTab::Personal => InsightTab::Festival,
+            InsightTab::Personal => InsightTab::Bazi,
+            InsightTab::Bazi => InsightTab::Festival,
         }
     }
 
@@ -97,6 +132,7 @@ impl InsightTab {
             InsightTab::FengShui => InsightTab::Elements,
             InsightTab::Advanced => InsightTab::FengShui,
             InsightTab::Personal => InsightTab::Advanced,
+            InsightTab::Bazi => InsightTab::Personal,
         }
     }
 
@@ -120,6 +156,8 @@ impl InsightTab {
             (InsightTab::Advanced, InsightLang::En) => "Advanced",
             (InsightTab::Personal, InsightLang::Vi) => "Cá nhân",
             (InsightTab::Personal, InsightLang::En) => "Personal",
+            (InsightTab::Bazi, InsightLang::Vi) => "Bát tự",
+            (InsightTab::Bazi, InsightLang::En) => "Bazi",
         }
     }
 }
@@ -145,6 +183,7 @@ pub struct App {
     pub show_insight: bool,
     pub insight_lang: InsightLang,
     pub insight_tab: InsightTab,
+    pub bazi_subview: BaziSubview,
     pub insight_scroll: u16,
     pub show_almanac: bool,
     pub almanac_tab: AlmanacTab,
@@ -153,6 +192,8 @@ pub struct App {
     // Insight cache avoids recomputing expensive day insight every redraw tick.
     selected_insight_cache_key: Option<(i32, u32, u32)>,
     selected_insight_cache: Option<DayInsightDto>,
+    selected_bazi_cache_key: Option<(i32, u32, u32)>,
+    selected_bazi_cache: Option<BaziReportDto>,
 
     // User profile for birth-dependent insight
     profile_birth_year: Option<i32>,
@@ -206,6 +247,7 @@ impl App {
             show_insight: false,
             insight_lang: InsightLang::Vi,
             insight_tab: InsightTab::default(),
+            bazi_subview: BaziSubview::default(),
             insight_scroll: 0,
             show_almanac: false,
             almanac_tab: AlmanacTab::default(),
@@ -213,6 +255,8 @@ impl App {
             almanac_evidence_raw: false,
             selected_insight_cache_key: None,
             selected_insight_cache: None,
+            selected_bazi_cache_key: None,
+            selected_bazi_cache: None,
             profile_birth_year: profile.birth_year,
             profile_birth_month: profile.birth_month,
             profile_birth_day: profile.birth_day,
@@ -276,6 +320,7 @@ impl App {
             .collect();
 
         self.refresh_selected_insight_cache();
+        self.refresh_selected_bazi_cache();
     }
 
     pub fn selected_info(&self) -> Option<&DayInfoDto> {
@@ -299,6 +344,7 @@ impl App {
     fn set_selected_day(&mut self, day: u32) {
         self.selected_day = day;
         self.refresh_selected_insight_cache();
+        self.refresh_selected_bazi_cache();
     }
 
     pub fn next_day(&mut self) {
@@ -401,6 +447,16 @@ impl App {
         self.insight_scroll = 0;
     }
 
+    pub fn next_bazi_subview(&mut self) {
+        self.bazi_subview = self.bazi_subview.next();
+        self.insight_scroll = 0;
+    }
+
+    pub fn prev_bazi_subview(&mut self) {
+        self.bazi_subview = self.bazi_subview.prev();
+        self.insight_scroll = 0;
+    }
+
     #[allow(dead_code)]
     pub fn prev_insight_tab(&mut self) {
         self.insight_tab = self.insight_tab.prev();
@@ -428,6 +484,10 @@ impl App {
         self.selected_insight_cache.as_ref()
     }
 
+    pub fn selected_bazi(&self) -> Option<&BaziReportDto> {
+        self.selected_bazi_cache.as_ref()
+    }
+
     fn refresh_selected_insight_cache(&mut self) {
         let key = (self.view_year, self.view_month, self.selected_day);
         self.selected_insight_cache_key = Some(key);
@@ -441,6 +501,42 @@ impl App {
             self.profile_gender,
         )
         .ok();
+    }
+
+    fn refresh_selected_bazi_cache(&mut self) {
+        let key = (self.view_year, self.view_month, self.selected_day);
+        self.selected_bazi_cache_key = Some(key);
+
+        let Some(gender) = self.profile_gender else {
+            self.selected_bazi_cache = None;
+            return;
+        };
+
+        let birth_year = self.profile_birth_year.unwrap_or(key.0);
+        let current_age = (key.0 - birth_year) as f64;
+        let gender = match gender {
+            amlich_core::almanac::tu_menh::Gender::Male => "male",
+            amlich_core::almanac::tu_menh::Gender::Female => "female",
+        };
+
+        let query = BaziQuery {
+            day: key.2 as i32,
+            month: key.1 as i32,
+            year: key.0,
+            hour: 12,
+            minute: 0,
+            timezone: Some(amlich_core::VIETNAM_TIMEZONE),
+            longitude: None,
+            use_solar_time: false,
+            gender: Some(gender.to_string()),
+        };
+        let timing = BaziTimingQuery {
+            current_age,
+            target_year: key.0,
+            months: vec![key.1 as i32],
+        };
+
+        self.selected_bazi_cache = get_bazi_report(&query, Some(&timing)).ok();
     }
 
     #[cfg(test)]

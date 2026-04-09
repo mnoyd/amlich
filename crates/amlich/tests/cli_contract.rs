@@ -1085,6 +1085,82 @@ fn lookup_commands_return_expected_shapes() {
 }
 
 #[test]
+fn lookup_bazi_report_outputs_machine_readable_payload() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "bazi",
+            "2024-02-10",
+            "--hour",
+            "9",
+            "--gender",
+            "male",
+            "--surface",
+            "report",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert!(json.get("chart").is_some());
+    assert!(json.get("analysis").is_some());
+    assert!(json.get("computed_metrics").is_some());
+    assert!(json.get("advisory").is_some());
+}
+
+#[test]
+fn lookup_bazi_timing_can_use_profile_birth_year_and_gender() {
+    let home = temp_home();
+    let set = run(
+        &home,
+        &[
+            "config",
+            "profile",
+            "set",
+            "--birth-year",
+            "1990",
+            "--gender",
+            "male",
+        ],
+    );
+    assert!(set.status.success());
+
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "bazi",
+            "2024-02-10",
+            "--hour",
+            "9",
+            "--target-year",
+            "2027",
+            "--months",
+            "1,2",
+            "--surface",
+            "timing",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert!(json.get("annual").is_some());
+    assert_eq!(json["monthly"].as_array().map(Vec::len), Some(2));
+}
+
+#[test]
 fn config_profile_show_succeeds() {
     let home = temp_home();
     let output = run(&home, &["config", "profile", "show"]);

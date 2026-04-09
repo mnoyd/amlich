@@ -6,7 +6,7 @@ use ratatui::{
     widgets::{Block, Borders, Clear, Paragraph, Widget, Wrap},
 };
 
-use crate::app::{App, InsightLang, InsightTab};
+use crate::app::{App, BaziSubview, InsightLang, InsightTab};
 use crate::theme;
 
 fn pick_text(lang: InsightLang, vi: &str, en: &str) -> String {
@@ -557,7 +557,7 @@ impl<'a> InsightOverlay<'a> {
         lines
     }
 
-    fn render_almanac_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+    fn render_almanac_tab<'b>(&self, insight: &'b amlich_api::DayInsightDto) -> Vec<Line<'b>> {
         let mut lines = Vec::new();
         let lang = self.app.insight_lang;
 
@@ -732,7 +732,7 @@ impl<'a> InsightOverlay<'a> {
         lines
     }
 
-    fn render_advanced_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+    fn render_advanced_tab<'b>(&self, insight: &'b amlich_api::DayInsightDto) -> Vec<Line<'b>> {
         let mut lines = Vec::new();
         let lang = self.app.insight_lang;
 
@@ -1008,7 +1008,7 @@ impl<'a> InsightOverlay<'a> {
         lines
     }
 
-    fn render_elements_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+    fn render_elements_tab<'b>(&self, insight: &'b amlich_api::DayInsightDto) -> Vec<Line<'b>> {
         let mut lines = Vec::new();
         let lang = self.app.insight_lang;
 
@@ -1077,8 +1077,8 @@ impl<'a> InsightOverlay<'a> {
                             .fg(theme::ACCENT_FG)
                             .add_modifier(Modifier::BOLD),
                     ),
-                    Span::styled(&bar_full, Style::default().fg(theme::GOOD_HOUR_FG)),
-                    Span::styled(&bar_empty, Style::default().fg(theme::SECONDARY_FG)),
+                    Span::styled(bar_full, Style::default().fg(theme::GOOD_HOUR_FG)),
+                    Span::styled(bar_empty, Style::default().fg(theme::SECONDARY_FG)),
                     Span::raw(format!(" {s}%")),
                 ]));
             }
@@ -1204,7 +1204,245 @@ impl<'a> InsightOverlay<'a> {
         lines
     }
 
-    fn render_feng_shui_tab(&self, insight: &amlich_api::DayInsightDto) -> Vec<Line<'_>> {
+    fn render_bazi_tab(&self) -> Vec<Line<'_>> {
+        let lang = self.app.insight_lang;
+        let Some(report) = self.app.selected_bazi() else {
+            return vec![
+                Line::from(Span::styled(
+                    pick_text(
+                        lang,
+                        "Cần hồ sơ có giới tính để bật Bát Tự trong TUI.",
+                        "A profile with gender is required to enable Bazi in the TUI.",
+                    ),
+                    Style::default().fg(theme::SECONDARY_FG),
+                )),
+                Line::from(""),
+                Line::from(Span::styled(
+                    pick_text(
+                        lang,
+                        "Dùng: amlich config profile set --birth-year XXXX --gender male/female",
+                        "Use: amlich config profile set --birth-year XXXX --gender male/female",
+                    ),
+                    Style::default().fg(theme::ACCENT_FG),
+                )),
+            ];
+        };
+
+        let mut lines = Vec::new();
+        let current = self.app.bazi_subview;
+        let confidence = report.computed_metrics.structure_metrics.confidence.clamp(0.0, 1.0);
+        let score_chip = |score: u8| {
+            if score >= 70 {
+                Style::default().fg(theme::GOOD_HOUR_FG).add_modifier(Modifier::BOLD)
+            } else if score >= 40 {
+                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(theme::WEEKEND_FG).add_modifier(Modifier::BOLD)
+            }
+        };
+
+        let subviews = [
+            (BaziSubview::Overview, "o"),
+            (BaziSubview::Timing, "t"),
+            (BaziSubview::Advisory, "a"),
+            (BaziSubview::Metrics, "m"),
+        ];
+        let mut subview_spans = vec![Span::styled("  Bazi ", theme::section_style())];
+        for (subview, key) in subviews {
+            let style = if subview == current {
+                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(theme::SECONDARY_FG)
+            };
+            let label = match (subview, lang) {
+                (BaziSubview::Overview, InsightLang::Vi) => "Tổng quan",
+                (BaziSubview::Overview, InsightLang::En) => "Overview",
+                (BaziSubview::Timing, InsightLang::Vi) => "Vận",
+                (BaziSubview::Timing, InsightLang::En) => "Timing",
+                (BaziSubview::Advisory, InsightLang::Vi) => "Luận",
+                (BaziSubview::Advisory, InsightLang::En) => "Advisory",
+                (BaziSubview::Metrics, InsightLang::Vi) => "Điểm",
+                (BaziSubview::Metrics, InsightLang::En) => "Metrics",
+            };
+            subview_spans.push(Span::styled(format!("[{key}]{} ", label), style));
+        }
+        lines.push(Line::from(subview_spans));
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled(
+                report.chart.day_master.full.as_str(),
+                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(" · "),
+            Span::styled(
+                report.analysis.day_master_strength.label.as_str(),
+                Style::default().fg(theme::GOOD_HOUR_FG).add_modifier(Modifier::BOLD),
+            ),
+            Span::raw(" · "),
+            Span::styled(
+                format!("{:.0}%", confidence * 100.0),
+                Style::default().fg(theme::SECONDARY_FG),
+            ),
+        ]));
+        lines.push(Line::from(""));
+
+        match current {
+            BaziSubview::Overview => {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Snapshot", "Snapshot"),
+                    theme::section_style(),
+                )));
+                let confidence_fill = (confidence * 12.0).round() as usize;
+                lines.push(Line::from(vec![
+                    Span::raw("  Confidence "),
+                    Span::styled("█".repeat(confidence_fill), Style::default().fg(theme::GOOD_HOUR_FG)),
+                    Span::styled("░".repeat(12 - confidence_fill), Style::default().fg(theme::SECONDARY_FG)),
+                ]));
+                lines.push(Line::from(""));
+
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Tứ trụ", "Four Pillars"),
+                    theme::section_style(),
+                )));
+                for pillar in &report.chart.pillars {
+                    lines.push(Line::from(vec![
+                        Span::raw("  "),
+                        Span::styled(format!("{:<5}", pillar.kind), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::raw("│ "),
+                        Span::styled(pillar.can_chi.full.as_str(), Style::default().fg(theme::ACCENT_FG)),
+                    ]));
+                }
+                lines.push(Line::from(""));
+
+                let e = &report.analysis.element_distribution;
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Ngũ hành", "Elements"),
+                    theme::section_style(),
+                )));
+                for (label, value, style) in [
+                    ("Mộc", e.moc, Style::default().fg(theme::GOOD_HOUR_FG)),
+                    ("Hỏa", e.hoa, Style::default().fg(theme::WEEKEND_FG)),
+                    ("Thổ", e.tho, Style::default().fg(theme::ACCENT_FG)),
+                    ("Kim", e.kim, Style::default().fg(theme::SECONDARY_FG)),
+                    ("Thủy", e.thuy, Style::default().fg(theme::ACCENT_FG)),
+                ] {
+                    let width = ((value as f32 / 120.0).clamp(0.0, 8.0)).round() as usize;
+                    lines.push(Line::from(vec![
+                        Span::raw("  "),
+                        Span::styled(format!("{label:<4}"), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::raw("│"),
+                        Span::styled("■".repeat(width), style),
+                        Span::styled("·".repeat(8 - width), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::raw(format!(" {:>3}", value)),
+                    ]));
+                }
+            }
+            BaziSubview::Timing => {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Timing board", "Timing board"),
+                    theme::section_style(),
+                )));
+                if let Some(timing) = &report.timing {
+                    if let Some(active) = &timing.active_dai_van {
+                        lines.push(Line::from(vec![
+                            Span::raw("  Đại vận │ "),
+                            Span::styled(active.can_chi.as_str(), Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD)),
+                            Span::raw(format!("  {}-{}", active.start_age, active.end_age)),
+                        ]));
+                    }
+                    lines.push(Line::from(vec![
+                        Span::raw("  Lưu niên │ "),
+                        Span::styled(timing.annual.can_chi.as_str(), Style::default().fg(theme::GOOD_HOUR_FG)),
+                    ]));
+                    for month in timing.monthly.iter().take(3) {
+                        lines.push(Line::from(vec![
+                            Span::raw("  Lưu nguyệt│ "),
+                            Span::styled(format!("T{:02}", month.month), Style::default().fg(theme::SECONDARY_FG)),
+                            Span::raw(" "),
+                            Span::raw(month.can_chi.as_str()),
+                        ]));
+                    }
+                    if !report.computed_metrics.timing_metrics.activation_summary.is_empty() {
+                        lines.push(Line::from(""));
+                        for summary in report.computed_metrics.timing_metrics.activation_summary.iter().take(3) {
+                            lines.push(Line::from(vec![
+                                Span::styled("  • ", Style::default().fg(theme::GOOD_HOUR_FG)),
+                                Span::raw(summary.as_str()),
+                            ]));
+                        }
+                    }
+                } else {
+                    lines.push(Line::from(Span::styled(
+                        pick_text(lang, "Không có dữ liệu vận", "No timing data"),
+                        Style::default().fg(theme::SECONDARY_FG),
+                    )));
+                }
+            }
+            BaziSubview::Advisory => {
+                let useful = &report.advisory.useful_god_analysis;
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Advisory board", "Advisory board"),
+                    theme::section_style(),
+                )));
+                if !useful.favorable_elements.is_empty() {
+                    lines.push(Line::from(vec![
+                        Span::styled("  + ", Style::default().fg(theme::GOOD_HOUR_FG)),
+                        Span::raw(format!("{} {}", pick_text(lang, "Hành lợi", "Favorable"), useful.favorable_elements.join(", "))),
+                    ]));
+                }
+                if !useful.unfavorable_elements.is_empty() {
+                    lines.push(Line::from(vec![
+                        Span::styled("  - ", Style::default().fg(theme::WEEKEND_FG)),
+                        Span::raw(format!("{} {}", pick_text(lang, "Hành kỵ", "Avoid"), useful.unfavorable_elements.join(", "))),
+                    ]));
+                }
+                for warning in report.advisory.warnings.iter().take(3) {
+                    lines.push(Line::from(vec![
+                        Span::styled("  ! ", Style::default().fg(theme::WEEKEND_FG)),
+                        Span::raw(warning.as_str()),
+                    ]));
+                }
+                lines.push(Line::from(""));
+                lines.push(Line::from(report.advisory.summary_vi.clone()));
+            }
+            BaziSubview::Metrics => {
+                lines.push(Line::from(Span::styled(
+                    pick_text(lang, "Metrics board", "Metrics board"),
+                    theme::section_style(),
+                )));
+                for (label_vi, label_en, score) in [
+                    ("Công việc", "Career", &report.computed_metrics.domain_scores.career),
+                    ("Tài lộc", "Wealth", &report.computed_metrics.domain_scores.wealth),
+                    ("Quan hệ", "Relation", &report.computed_metrics.domain_scores.relationship),
+                    ("Sức khỏe", "Health", &report.computed_metrics.domain_scores.health),
+                    ("Vận thời", "Timing", &report.computed_metrics.domain_scores.timing),
+                ] {
+                    let width = (score.score as usize) / 10;
+                    lines.push(Line::from(vec![
+                        Span::raw("  "),
+                        Span::styled(format!("{:<9}", pick_text(lang, label_vi, label_en)), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::styled("■".repeat(width), score_chip(score.score)),
+                        Span::styled("·".repeat(10 - width), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::raw(format!(" {:>3}", score.score)),
+                    ]));
+                }
+                lines.push(Line::from(""));
+                lines.push(Line::from(vec![
+                    Span::raw("  Core │ "),
+                    Span::raw(format!(
+                        "DM {} · season {:.1} · balance {:.1}",
+                        report.computed_metrics.core_metrics.day_master_strength_score,
+                        report.computed_metrics.core_metrics.season_support_score,
+                        report.computed_metrics.core_metrics.element_balance_score,
+                    )),
+                ]));
+            }
+        }
+
+        lines
+    }
+
+    fn render_feng_shui_tab<'b>(&self, insight: &'b amlich_api::DayInsightDto) -> Vec<Line<'b>> {
         let mut lines = Vec::new();
         let lang = self.app.insight_lang;
 
@@ -1475,6 +1713,7 @@ impl<'a> InsightOverlay<'a> {
             InsightTab::FengShui => self.render_feng_shui_tab(insight),
             InsightTab::Advanced => self.render_advanced_tab(insight),
             InsightTab::Personal => self.render_personal_tab(insight),
+            InsightTab::Bazi => self.render_bazi_tab(),
         }
     }
 
@@ -1491,6 +1730,7 @@ impl<'a> InsightOverlay<'a> {
             (InsightTab::FengShui, "7"),
             (InsightTab::Advanced, "8"),
             (InsightTab::Personal, "9"),
+            (InsightTab::Bazi, "0"),
         ];
 
         let mut spans = Vec::new();
@@ -1541,8 +1781,8 @@ impl Widget for InsightOverlay<'_> {
         };
 
         let tab_help = match self.app.insight_lang {
-            InsightLang::Vi => " 1-9 tab ",
-            InsightLang::En => " 1-9 tabs ",
+            InsightLang::Vi => " 0-9 tab · []/o/t/a/m đổi mục Bát Tự ",
+            InsightLang::En => " 0-9 tabs · []/o/t/a/m switch Bazi view ",
         };
 
         let block = Block::default()
