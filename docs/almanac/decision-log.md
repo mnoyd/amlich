@@ -209,6 +209,15 @@ Policy reference:
 - Impact: New composite struct aggregating 5 independent checks; each check independently calculated and sourced; summary includes "hạn chồng hạn" (stacking) detection.
 - Follow-up: Individual component implementations first, then composite aggregator.
 
+## DEC-0022
+
+- Status: accepted
+- Date: 2026-04-11
+- Decision: Birth data uses 3 tiers for graceful degradation: Tier 0 (anonymous — no birth data, day almanac only), Tier 1 (date — year + month + day + gender, no birth hour), Tier 2 (full — date + hour + minute). The "year-only" tier is intentionally omitted; users who configure birth data must provide at least full date + gender. Birth hour/minute is the only optional personal field.
+- Why: Most people know their birth date but many do not know their birth hour. Requiring at least full date simplifies the tier logic to a single binary question (has hour or not) while still enabling 3-pillar Bazi, Nhật Chủ, Thai Nguyên, Không Vong, Thần Sát, Kua, Yearly Hạn, and partial interaction matrices. Omitting a "year-only" tier reduces API surface and avoids edge cases with incomplete Bazi charts.
+- Impact: `BaziChart.hour_pillar` becomes `Option<BaziPillar>`; all consumers (interaction matrices, derived computations, scoring, API DTOs) handle `None` gracefully. Response includes `tier` field ("anonymous" / "date" / "datetime") and `unavailable` sections explaining what is missing and why. Features requiring birth hour: Mệnh Cung, Thân Cung, PersonalHourMatrix, full element distribution (~25% from hour pillar).
+- Follow-up: Refactor BaziChart to optional hour pillar; update interaction matrices and derived modules; add tier resolver; unified response wrapper with available/unavailable metadata.
+
 ---
 
 ## Supersession Rules
