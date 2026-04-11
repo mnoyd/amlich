@@ -30,9 +30,19 @@ pub use crate::advisory::{
     DateRangeInput, EvidenceEnvelope, PersonalizedDaySelection, RankedDateCandidate,
     RankedHourCandidate, ScoredAdvice,
 };
+pub use crate::almanac::cuu_dieu::{compute_cuu_dieu, CuuDieuQuality, CuuDieuResult};
+pub use crate::almanac::hoang_oc::{compute_hoang_oc, HoangOcResult};
+pub use crate::almanac::kim_lau::{compute_kim_lau, KimLauCategory, KimLauResult};
+pub use crate::almanac::phuc_than::{get_phuc_than, PhucThanResult};
+pub use crate::almanac::sat_phuong::{get_sat_phuong, SatPhuongResult};
+pub use crate::almanac::tam_tai::{compute_tam_tai, TamTaiResult, TamTaiSeverity};
 pub use crate::almanac::thap_than::get_thap_than;
+pub use crate::almanac::thai_tue::{compute_thai_tue, ThaiTueConflictKind, ThaiTueResult};
 pub use crate::almanac::tu_menh::{compute_kua, Gender, KuaGroup, KuaResult};
 pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
+pub use crate::almanac::yearly_han::{
+    compute_yearly_han, HanSeverity, YearlyHanAssessment, YearlyHanInput,
+};
 pub use crate::analysis_envelope::AnalysisEnvelope;
 pub use crate::bazi::{
     analyze_bazi_chart, build_annual_pillar, build_bazi_advisory, build_bazi_chart,

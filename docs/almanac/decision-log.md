@@ -146,6 +146,69 @@ Policy reference:
 - Impact: Recommendation-layer plumbing must not allow arbitrary extension hits to escalate to `Kỵ mạnh` without an explicit policy gate, and tests must cover both allowed and disallowed hard-stop producers.
 - Follow-up: `aml-ig4.5`, `aml-ig4.7`.
 
+## DEC-0015
+
+- Status: accepted
+- Date: 2026-04-11
+- Decision: Include Kim Lâu (金樓) and Hoàng Ốc (荒屋) in the personal taboo system despite not being in KHCBPPT. Use distinct source_ids (`ngoc-hap-ky` for Kim Lâu, `vn-folk` for Hoàng Ốc) to separate provenance from KHCBPPT-sourced rule families.
+- Why: Both are deeply embedded in Vietnamese almanac practice (especially for house construction and marriage). Excluding them would make the system feel incomplete to Vietnamese users. Explicit source_id separation preserves audit integrity.
+- Impact: New source_ids in baseline data; personal taboo checks gain two new rule families; evidence metadata must distinguish KHCBPPT vs non-KHCBPPT provenance.
+- Follow-up: Reference docs, baseline data, resolver implementation.
+
+## DEC-0016
+
+- Status: accepted
+- Date: 2026-04-11
+- Decision: Include Cửu Diệu (九曜) nine-star personal fortune system with source_id `cuu-dieu` (Buddhist/Indian astronomical tradition, not KHCBPPT).
+- Why: Cửu Diệu is the primary "sao chiếu mệnh" system in Vietnamese practice and is a core component of yearly hạn assessment. Gender-differentiated lookup tables are well-documented with HIGH confidence.
+- Impact: New module in almanac/personal; gender-aware calculation (male forward, female specific mapping); 9-star quality classification (3 cát, 3 trung, 3 hung).
+- Follow-up: Reference doc, implementation, integration with yearly hạn composite.
+
+## DEC-0017
+
+- Status: accepted
+- Date: 2026-04-11
+- Decision: Freeze Tý hour boundary at 23:00 = start of new day (整子時 / "whole Tý" convention) for v1. Document the 早子時/夜子時 split variant as a known alternative but do not implement it in default profile.
+- Why: Vietnamese practice predominantly follows 23:00 convention. The split-Tý method creates 13 possible hour pillars per day and significant implementation complexity. Can be added as a variant profile later.
+- Impact: Hour pillar calculation uses next day's stem when hour >= 23:00; Bazi chart metadata should note which convention is active.
+- Follow-up: Confirm against existing `compute_hour_pillar` implementation; add convention field to BaziChartMetadata.
+
+## DEC-0018
+
+- Status: accepted
+- Date: 2026-04-11
+- Decision: Keep KHCBPPT Tài Thần variant as default; folk variant (甲乙東北是財神...) available as optional direction pack. Add Phúc Thần (福神) and Sát Phương (煞方) to the direction family as new KHCBPPT-sourced entries.
+- Why: Tài Thần has 2 known variants disagreeing on 3/10 stems (Ất, Bính, Đinh). KHCBPPT variant is already verified in project. Phúc Thần and Sát Phương are HIGH confidence KHCBPPT data that fill gaps in direction coverage.
+- Impact: Direction family gains 2 new lookup tables; folk Tài Thần variant as optional pack; Sát Phương is branch-based (unlike other stem-based directions).
+- Follow-up: Reference docs, baseline data extension, direction merge matrix.
+
+## DEC-0019
+
+- Status: accepted
+- Date: 2026-04-11
+- Decision: Use the KHCBPPT 37 Dân dụng (民用三十七事) activity list as the v1 baseline for event/activity classification. Map to existing activity IDs where possible; add new IDs for unmatched activities.
+- Why: The 67 Ngự dụng list includes imperial-specific activities (promulgating edicts, granting amnesties) irrelevant to civilian users. The 37 Dân dụng list covers all practical activities and is the basis for modern Vietnamese almanacs.
+- Impact: Activity registry expansion; existing activity IDs validated against KHCBPPT canonical list; new activities may need recommendation rules.
+- Follow-up: Activity mapping table, recommendation rule expansion.
+
+## DEC-0020
+
+- Status: accepted
+- Date: 2026-04-11
+- Decision: Keep the existing numeric scoring system for recommendations but add a KHCBPPT-sourced qualitative validation layer based on the 3-tier precedence rule (吉足勝凶 / 吉凶相抵 / 吉不足勝凶). Major inauspicious spirits (Tuế Phá, Nguyệt Phá) are absolute hard-stops that no auspicious indicator can override.
+- Why: The numeric scoring is already functional and tested. The KHCBPPT precedence rule provides a principled validation check that can flag when numeric scores diverge from traditional qualitative assessment. Absolute hard-stops from major spirits align with DEC-0014.
+- Impact: New validation layer post-scoring; hard-stop list for major inauspicious spirits; divergence logging when quantitative and qualitative assessments disagree.
+- Follow-up: Hard-stop spirit list, validation implementation, test coverage.
+
+## DEC-0021
+
+- Status: accepted
+- Date: 2026-04-11
+- Decision: "Yearly Hạn" is implemented as a composite assessment aggregating Cửu Diệu (sao hạn), Tam Tai, Kim Lâu, Hoàng Ốc, and Thái Tuế — not as a single unified system. Each component retains its own source_id and calculation. The composite provides a summary view.
+- Why: Research confirms "hạn" is an umbrella term for multiple independent checks. Implementing as composite preserves provenance clarity and allows users/consumers to inspect individual components.
+- Impact: New composite struct aggregating 5 independent checks; each check independently calculated and sourced; summary includes "hạn chồng hạn" (stacking) detection.
+- Follow-up: Individual component implementations first, then composite aggregator.
+
 ---
 
 ## Supersession Rules
