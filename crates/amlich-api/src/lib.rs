@@ -205,6 +205,43 @@ pub fn get_bazi_report(
     Ok(BaziReportDto::from((query, &report)))
 }
 
+/// Compute derived Bazi data: Thai Nguyên, Mệnh/Thân Cung, Không Vong, Thần Sát.
+///
+/// These are chart-level (not day-dependent) computations that enrich a Bazi
+/// reading beyond the four core pillars.
+pub fn get_bazi_derived_report(query: &BaziQuery) -> Result<BaziDerivedReportDto, String> {
+    let input = to_bazi_input(query)?;
+    let report = amlich_core::build_bazi_report(input, None)?;
+    let chart = &report.chart;
+
+    // Thai Nguyên: month pillar + 1 stem, + 3 branch
+    let thai_nguyen = amlich_core::bazi::compute_thai_nguyen(
+        chart.month_pillar.can_chi.can_index,
+        chart.month_pillar.can_chi.chi_index,
+    );
+
+    // Mệnh Cung + Thân Cung: lunar month, hour branch, year stem
+    let menh_cung = amlich_core::bazi::compute_menh_than_cung(
+        chart.lunar_date.month as i32,
+        chart.hour_pillar.can_chi.chi_index,
+        chart.year_pillar.can_chi.can_index,
+    );
+
+    // Không Vong: per-pillar void branches with cross-reference
+    let khong_vong = amlich_core::bazi::compute_khong_vong(chart);
+
+    // Thần Sát: 12 auxiliary stars
+    let than_sat = amlich_core::bazi::compute_than_sat(chart);
+
+    Ok(BaziDerivedReportDto {
+        input: query.clone(),
+        thai_nguyen: ThaiNguyenDto::from(&thai_nguyen),
+        menh_cung: MenhCungDto::from(&menh_cung),
+        khong_vong: KhongVongAnalysisDto::from(&khong_vong),
+        than_sat: ThanSatResultDto::from(&than_sat),
+    })
+}
+
 fn normalize_ruleset_id(ruleset_id: Option<&str>) -> Result<Option<String>, String> {
     let Some(ruleset_id) = ruleset_id.map(str::trim).filter(|id| !id.is_empty()) else {
         return Ok(None);

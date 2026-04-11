@@ -18,6 +18,9 @@ use crate::dto::{
     StarRuleEvidenceDto, SynthesizedRecommendationDto, TabooInsightDto, TangCanDto,
     TenGodDistributionDto, ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto,
     TrucDto, UsefulGodDto, XungHopDto,
+    // Bazi Derived Report DTOs
+    KhongVongAnalysisDto, KhongVongPairDto, KhongVongPillarEntryDto,
+    MenhCungDto, ThaiNguyenDto, ThanSatEntryDto, ThanSatResultDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -1353,6 +1356,102 @@ impl From<&amlich_core::almanac::data::NaAmEntry> for NaAmLookupResultDto {
             source_id: meta.source_id.clone(),
             method: meta.method.clone(),
             profile: ruleset.profile.clone(),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Bazi Derived Report conversions
+// ---------------------------------------------------------------------------
+
+impl From<&amlich_core::types::CanChi> for BaziCanChiDto {
+    fn from(value: &amlich_core::types::CanChi) -> Self {
+        Self {
+            can: value.can.clone(),
+            chi: value.chi.clone(),
+            full: value.full.clone(),
+            can_index: value.can_index,
+            chi_index: value.chi_index,
+        }
+    }
+}
+
+impl From<&amlich_core::bazi::types::ThaiNguyenResult> for ThaiNguyenDto {
+    fn from(value: &amlich_core::bazi::types::ThaiNguyenResult) -> Self {
+        Self {
+            can_chi: BaziCanChiDto::from(&value.can_chi),
+            evidence: RuleEvidenceDto::from(&value.evidence),
+        }
+    }
+}
+
+impl From<&amlich_core::bazi::types::MenhCungResult> for MenhCungDto {
+    fn from(value: &amlich_core::bazi::types::MenhCungResult) -> Self {
+        Self {
+            menh_cung: BaziCanChiDto::from(&value.menh_cung),
+            than_cung: BaziCanChiDto::from(&value.than_cung),
+            evidence: RuleEvidenceDto::from(&value.evidence),
+        }
+    }
+}
+
+fn pillar_kind_to_string(kind: amlich_core::bazi::PillarKind) -> String {
+    match kind {
+        amlich_core::bazi::PillarKind::Year => "year".to_string(),
+        amlich_core::bazi::PillarKind::Month => "month".to_string(),
+        amlich_core::bazi::PillarKind::Day => "day".to_string(),
+        amlich_core::bazi::PillarKind::Hour => "hour".to_string(),
+    }
+}
+
+impl From<&amlich_core::bazi::types::KhongVongAnalysis> for KhongVongAnalysisDto {
+    fn from(value: &amlich_core::bazi::types::KhongVongAnalysis) -> Self {
+        Self {
+            entries: value
+                .entries
+                .iter()
+                .map(|e| KhongVongPillarEntryDto {
+                    pillar: pillar_kind_to_string(e.pillar),
+                    void_pair: KhongVongPairDto {
+                        branch_indices: e.void_pair.branch_indices,
+                        branch_names: e.void_pair.branch_names.clone(),
+                    },
+                    hits: e.hits.iter().map(|k| pillar_kind_to_string(*k)).collect(),
+                })
+                .collect(),
+            evidence: RuleEvidenceDto::from(&value.evidence),
+        }
+    }
+}
+
+fn than_sat_source_to_string(source: &amlich_core::bazi::ThanSatSource) -> String {
+    match source {
+        amlich_core::bazi::ThanSatSource::DayStem => "day_stem".to_string(),
+        amlich_core::bazi::ThanSatSource::YearBranch => "year_branch".to_string(),
+        amlich_core::bazi::ThanSatSource::DayBranch => "day_branch".to_string(),
+        amlich_core::bazi::ThanSatSource::MonthBranch => "month_branch".to_string(),
+    }
+}
+
+impl From<&amlich_core::bazi::types::ThanSatResult> for ThanSatResultDto {
+    fn from(value: &amlich_core::bazi::types::ThanSatResult) -> Self {
+        Self {
+            stars: value
+                .stars
+                .iter()
+                .map(|s| ThanSatEntryDto {
+                    name: s.name.clone(),
+                    source: than_sat_source_to_string(&s.source),
+                    target_branch: s.target_branch,
+                    target_branch_name: s.target_branch_name.clone(),
+                    present_in: s
+                        .present_in
+                        .iter()
+                        .map(|k| pillar_kind_to_string(*k))
+                        .collect(),
+                })
+                .collect(),
+            evidence: RuleEvidenceDto::from(&value.evidence),
         }
     }
 }

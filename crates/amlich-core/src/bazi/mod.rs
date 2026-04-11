@@ -2,8 +2,11 @@ pub mod advisory;
 pub mod analysis;
 pub mod chart;
 pub mod contracts;
+pub mod derived;
+pub mod khong_vong;
 pub mod report;
 pub mod scoring;
+pub mod than_sat;
 pub mod timing;
 pub mod types;
 
@@ -41,7 +44,11 @@ pub use timing::{
     build_annual_pillar, build_bazi_timing_report, build_monthly_pillar, AnnualPillar,
     BaziLuckPillar, BaziTimingReport, MonthlyPillar,
 };
+pub use derived::{compute_menh_than_cung, compute_thai_nguyen};
+pub use khong_vong::compute_khong_vong;
+pub use than_sat::compute_than_sat;
 pub use types::{
-    BaziChart, BaziChartMetadata, BaziInput, BaziPillar, HiddenStemEntry, PillarKind,
-    StemRelationSet,
+    BaziChart, BaziChartMetadata, BaziDerivedReport, BaziInput, BaziPillar, HiddenStemEntry,
+    KhongVongAnalysis, KhongVongPair, KhongVongPillarEntry, MenhCungResult, PillarKind,
+    StemRelationSet, ThaiNguyenResult, ThanSatEntry, ThanSatResult, ThanSatSource,
 };

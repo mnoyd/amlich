@@ -1199,6 +1199,66 @@ pub enum NaAmResponseDto {
     Error(NaAmErrorDto),
 }
 
+// ---------------------------------------------------------------------------
+// Bazi Derived Report DTOs (Thai Nguyên, Mệnh Cung, Không Vong, Thần Sát)
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThaiNguyenDto {
+    pub can_chi: BaziCanChiDto,
+    pub evidence: RuleEvidenceDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MenhCungDto {
+    pub menh_cung: BaziCanChiDto,
+    pub than_cung: BaziCanChiDto,
+    pub evidence: RuleEvidenceDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KhongVongPairDto {
+    pub branch_indices: [usize; 2],
+    pub branch_names: [String; 2],
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KhongVongPillarEntryDto {
+    pub pillar: String,
+    pub void_pair: KhongVongPairDto,
+    pub hits: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KhongVongAnalysisDto {
+    pub entries: Vec<KhongVongPillarEntryDto>,
+    pub evidence: RuleEvidenceDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThanSatEntryDto {
+    pub name: String,
+    pub source: String,
+    pub target_branch: usize,
+    pub target_branch_name: String,
+    pub present_in: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThanSatResultDto {
+    pub stars: Vec<ThanSatEntryDto>,
+    pub evidence: RuleEvidenceDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BaziDerivedReportDto {
+    pub input: BaziQuery,
+    pub thai_nguyen: ThaiNguyenDto,
+    pub menh_cung: MenhCungDto,
+    pub khong_vong: KhongVongAnalysisDto,
+    pub than_sat: ThanSatResultDto,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1267,6 +1327,80 @@ mod tests {
     #[test]
     fn personal_day_matrix_report_dto_exists() {
         let _ = std::mem::size_of::<PersonalDayMatrixReportDto>();
+    }
+
+    #[test]
+    fn bazi_derived_report_dto_serializes() {
+        let report = BaziDerivedReportDto {
+            input: BaziQuery {
+                year: 1990,
+                month: 6,
+                day: 15,
+                hour: 10,
+                minute: 30,
+                timezone: Some(7.0),
+                longitude: None,
+                use_solar_time: false,
+                gender: Some("male".to_string()),
+            },
+            thai_nguyen: ThaiNguyenDto {
+                can_chi: BaziCanChiDto {
+                    can: "Ất".into(),
+                    chi: "Tỵ".into(),
+                    full: "Ất Tỵ".into(),
+                    can_index: 1,
+                    chi_index: 5,
+                },
+                evidence: RuleEvidenceDto {
+                    source_id: "bazi-classical".into(),
+                    method: "thai-nguyen-month-plus-3".into(),
+                    profile: "baseline".into(),
+                },
+            },
+            menh_cung: MenhCungDto {
+                menh_cung: BaziCanChiDto {
+                    can: "Bính".into(),
+                    chi: "Dần".into(),
+                    full: "Bính Dần".into(),
+                    can_index: 2,
+                    chi_index: 2,
+                },
+                than_cung: BaziCanChiDto {
+                    can: "Canh".into(),
+                    chi: "Ngọ".into(),
+                    full: "Canh Ngọ".into(),
+                    can_index: 6,
+                    chi_index: 6,
+                },
+                evidence: RuleEvidenceDto {
+                    source_id: "bazi-classical".into(),
+                    method: "menh-cung-month-hour-counter".into(),
+                    profile: "baseline".into(),
+                },
+            },
+            khong_vong: KhongVongAnalysisDto {
+                entries: vec![],
+                evidence: RuleEvidenceDto {
+                    source_id: "bazi-classical".into(),
+                    method: "khong-vong-tuan-lookup".into(),
+                    profile: "baseline".into(),
+                },
+            },
+            than_sat: ThanSatResultDto {
+                stars: vec![],
+                evidence: RuleEvidenceDto {
+                    source_id: "bazi-classical".into(),
+                    method: "than-sat-lookup-tables".into(),
+                    profile: "baseline".into(),
+                },
+            },
+        };
+
+        let json = serde_json::to_string(&report).expect("serialize");
+        assert!(json.contains("\"thai_nguyen\""));
+        assert!(json.contains("\"menh_cung\""));
+        assert!(json.contains("\"khong_vong\""));
+        assert!(json.contains("\"than_sat\""));
     }
 
     #[test]
