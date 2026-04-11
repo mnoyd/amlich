@@ -10,6 +10,16 @@ pub enum FiveElement {
     Thuy,
 }
 
+impl FiveElement {
+    pub const ALL: [FiveElement; 5] = [
+        FiveElement::Moc,
+        FiveElement::Hoa,
+        FiveElement::Tho,
+        FiveElement::Kim,
+        FiveElement::Thuy,
+    ];
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Polarity {

@@ -1089,7 +1089,7 @@ pub fn get_personal_day_matrix_report(
 
     // Matrix 4b: Domain-Day Boost (requires computed metrics)
     let domain_day_boost = {
-        let han_count = 0u8; // TODO: wire yearly_han when birth year + gender available
+        let han_count = compute_han_count(chart, &day_ctx);
         Some(compute_domain_day_boost(
             &day_fortune,
             &report.computed_metrics.domain_scores,
@@ -1108,4 +1108,32 @@ pub fn get_personal_day_matrix_report(
         direction_merge,
         domain_day_boost,
     })
+}
+
+/// Compute yearly hạn count from birth chart and current day context.
+/// Returns 0 if gender is unavailable (required for Cửu Diệu).
+fn compute_han_count(
+    chart: &amlich_core::bazi::types::BaziChart,
+    day_ctx: &amlich_core::DayContext,
+) -> u8 {
+    use amlich_core::almanac::yearly_han::{compute_yearly_han, YearlyHanInput};
+
+    let gender = match chart.input.gender {
+        Some(g) => g,
+        None => return 0,
+    };
+
+    let birth_lunar_year = chart.lunar_date.year;
+    let current_lunar_year = day_ctx.lunar.year;
+    let birth_chi_index = chart.year_pillar.can_chi.chi_index;
+    let current_year_chi_index = day_ctx.canchi.year.chi_index;
+
+    let input = YearlyHanInput {
+        birth_lunar_year,
+        current_lunar_year,
+        gender,
+    };
+
+    let assessment = compute_yearly_han(&input, birth_chi_index, current_year_chi_index);
+    assessment.han_count
 }

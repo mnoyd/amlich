@@ -130,16 +130,6 @@ fn element_score(dist: &ElementDistribution, element: FiveElement) -> u16 {
     }
 }
 
-impl FiveElement {
-    pub const ALL: [FiveElement; 5] = [
-        FiveElement::Moc,
-        FiveElement::Hoa,
-        FiveElement::Tho,
-        FiveElement::Kim,
-        FiveElement::Thuy,
-    ];
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
