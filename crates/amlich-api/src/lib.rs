@@ -566,6 +566,67 @@ pub fn get_day_insight_with_profile(
         _ => None,
     };
 
+    // Birth-dependent: Yearly Han (composite assessment)
+    let yearly_han = match (birth_year, gender) {
+        (Some(by), Some(g)) => {
+            use amlich_core::almanac::yearly_han::{compute_yearly_han, YearlyHanInput};
+            let current_year = query.year;
+            // Derive chi indices: (year - 4) % 12 aligns with canchi convention
+            let birth_chi = ((by - 4).rem_euclid(12)) as usize;
+            let year_chi = ((current_year - 4).rem_euclid(12)) as usize;
+            let input = YearlyHanInput {
+                birth_lunar_year: by,
+                current_lunar_year: current_year,
+                gender: g,
+            };
+            let han = compute_yearly_han(&input, birth_chi, year_chi);
+            Some(YearlyHanInsightDto {
+                sao_han: CuuDieuInsightDto {
+                    star_index: han.sao_han.star_index,
+                    star_name: han.sao_han.star_name,
+                    quality: format!("{:?}", han.sao_han.quality).to_lowercase(),
+                    is_han: han.sao_han.is_han,
+                    element: han.sao_han.element,
+                },
+                tam_tai: TamTaiInsightDto {
+                    in_tam_tai: han.tam_tai.in_tam_tai,
+                    year_position: han.tam_tai.year_position,
+                    severity: han.tam_tai.severity.map(|s| format!("{:?}", s).to_lowercase()),
+                    tam_hop_group: han.tam_tai.tam_hop_group,
+                    tai_years: han.tam_tai.tai_years,
+                },
+                kim_lau: KimLauInsightDto {
+                    in_kim_lau: han.kim_lau.in_kim_lau,
+                    category: han.kim_lau.category.map(|c| format!("{:?}", c).to_lowercase()),
+                    remainder: han.kim_lau.remainder,
+                    tuoi_mu: han.kim_lau.tuoi_mu,
+                },
+                hoang_oc: HoangOcInsightDto {
+                    position: han.hoang_oc.position,
+                    position_name: han.hoang_oc.position_name,
+                    is_good: han.hoang_oc.is_good,
+                    tuoi_mu: han.hoang_oc.tuoi_mu,
+                },
+                thai_tue: ThaiTueInsightDto {
+                    conflicts: han
+                        .thai_tue
+                        .conflicts
+                        .iter()
+                        .map(|c| ThaiTueConflictDto {
+                            kind: format!("{:?}", c.kind).to_lowercase(),
+                            description: c.description.clone(),
+                        })
+                        .collect(),
+                    has_conflict: han.thai_tue.has_conflict,
+                },
+                han_count: han.han_count,
+                is_chong_han: han.is_chong_han,
+                severity: format!("{:?}", han.severity).to_lowercase(),
+            })
+        }
+        _ => None,
+    };
+
     Ok(DayInsightDto {
         solar: day_info.solar,
         lunar: day_info.lunar,
@@ -586,6 +647,7 @@ pub fn get_day_insight_with_profile(
         hours,
         tu_menh,
         dai_van,
+        yearly_han,
     })
 }
 
@@ -683,6 +745,7 @@ pub fn get_personal_day_analysis(
         tang_can: insight.tang_can,
         tu_menh: insight.tu_menh,
         dai_van: insight.dai_van,
+        yearly_han: insight.yearly_han,
     })
 }
 
@@ -710,6 +773,9 @@ pub fn get_personal_day_metrics(
     if insight.dai_van.is_some() {
         available_sections.push("dai_van".to_string());
     }
+    if insight.yearly_han.is_some() {
+        available_sections.push("yearly_han".to_string());
+    }
 
     let profile_completeness = [
         birth_year.is_some(),
@@ -723,7 +789,9 @@ pub fn get_personal_day_metrics(
 
     Ok(PersonalDayMetricsDto {
         profile_completeness,
-        has_personal_recommendations: insight.tu_menh.is_some() || insight.dai_van.is_some(),
+        has_personal_recommendations: insight.tu_menh.is_some()
+            || insight.dai_van.is_some()
+            || insight.yearly_han.is_some(),
         available_sections,
     })
 }
@@ -753,6 +821,34 @@ pub fn get_personal_day_advisory(
 
     if insight.ten_gods.is_none() {
         cautions.push("ten gods analysis unavailable".to_string());
+    }
+
+    if let Some(han) = &insight.yearly_han {
+        if han.han_count == 0 {
+            highlights.push("no yearly han active".to_string());
+        } else {
+            if han.sao_han.is_han {
+                cautions.push(format!("sao han: {} ({})", han.sao_han.star_name, han.sao_han.quality));
+            }
+            if han.tam_tai.in_tam_tai {
+                let sev = han.tam_tai.severity.as_deref().unwrap_or("unknown");
+                cautions.push(format!("tam tai year {} ({})", han.tam_tai.year_position.unwrap_or(0), sev));
+            }
+            if han.kim_lau.in_kim_lau {
+                let cat = han.kim_lau.category.as_deref().unwrap_or("unknown");
+                cautions.push(format!("kim lau: {}", cat));
+            }
+            if !han.hoang_oc.is_good {
+                cautions.push(format!("hoang oc: {}", han.hoang_oc.position_name));
+            }
+            if han.thai_tue.has_conflict {
+                let kinds: Vec<&str> = han.thai_tue.conflicts.iter().map(|c| c.kind.as_str()).collect();
+                cautions.push(format!("thai tue: {}", kinds.join(", ")));
+            }
+            if han.is_chong_han {
+                cautions.push(format!("han chong han: {} active ({})", han.han_count, han.severity));
+            }
+        }
     }
 
     Ok(PersonalDayAdvisoryDto { highlights, cautions })

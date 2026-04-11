@@ -40,6 +40,38 @@ fn personal_day_analysis_exposes_profile_sections() {
     )
     .expect("analysis");
     assert!(analysis.tu_menh.is_some());
+    assert!(analysis.yearly_han.is_some());
+}
+
+#[test]
+fn personal_day_analysis_yearly_han_has_all_components() {
+    let analysis = get_personal_day_analysis(
+        &sample_query(),
+        Some(1990),
+        Some(1),
+        Some(1),
+        Some(sample_gender()),
+    )
+    .expect("analysis");
+    let han = analysis.yearly_han.expect("yearly_han should be present");
+    assert!(!han.sao_han.star_name.is_empty());
+    assert!(!han.tam_tai.tam_hop_group.is_empty());
+    assert!(han.kim_lau.tuoi_mu > 0);
+    assert!(han.hoang_oc.tuoi_mu > 0);
+    assert!(!han.severity.is_empty());
+}
+
+#[test]
+fn personal_day_analysis_yearly_han_absent_without_birth_year() {
+    let analysis = get_personal_day_analysis(
+        &sample_query(),
+        None,
+        None,
+        None,
+        None,
+    )
+    .expect("analysis");
+    assert!(analysis.yearly_han.is_none());
 }
 
 #[test]
@@ -54,6 +86,7 @@ fn personal_day_metrics_expose_available_sections() {
     .expect("metrics");
     assert!(metrics.profile_completeness >= 2);
     assert!(!metrics.available_sections.is_empty());
+    assert!(metrics.available_sections.contains(&"yearly_han".to_string()));
 }
 
 #[test]

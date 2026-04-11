@@ -9,7 +9,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::cuu_dieu::{compute_cuu_dieu, CuuDieuQuality, CuuDieuResult};
+use super::cuu_dieu::compute_cuu_dieu;
 use super::hoang_oc::{compute_hoang_oc, HoangOcResult};
 use super::kim_lau::{compute_kim_lau, KimLauResult};
 use super::tam_tai::{compute_tam_tai, TamTaiResult};

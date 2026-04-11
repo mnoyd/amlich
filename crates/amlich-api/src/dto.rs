@@ -964,6 +964,69 @@ pub struct DayInsightDto {
     pub tu_menh: Option<TuMenhInsightDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dai_van: Option<DaiVanInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub yearly_han: Option<YearlyHanInsightDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TamTaiInsightDto {
+    pub in_tam_tai: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub year_position: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub severity: Option<String>,
+    pub tam_hop_group: Vec<String>,
+    pub tai_years: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KimLauInsightDto {
+    pub in_kim_lau: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub category: Option<String>,
+    pub remainder: u8,
+    pub tuoi_mu: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HoangOcInsightDto {
+    pub position: u8,
+    pub position_name: String,
+    pub is_good: bool,
+    pub tuoi_mu: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CuuDieuInsightDto {
+    pub star_index: u8,
+    pub star_name: String,
+    pub quality: String,
+    pub is_han: bool,
+    pub element: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThaiTueConflictDto {
+    pub kind: String,
+    pub description: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ThaiTueInsightDto {
+    pub conflicts: Vec<ThaiTueConflictDto>,
+    pub has_conflict: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct YearlyHanInsightDto {
+    pub sao_han: CuuDieuInsightDto,
+    pub tam_tai: TamTaiInsightDto,
+    pub kim_lau: KimLauInsightDto,
+    pub hoang_oc: HoangOcInsightDto,
+    pub thai_tue: ThaiTueInsightDto,
+    pub han_count: u8,
+    pub is_chong_han: bool,
+    pub severity: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1002,6 +1065,8 @@ pub struct PersonalDayAnalysisDto {
     pub tu_menh: Option<TuMenhInsightDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub dai_van: Option<DaiVanInsightDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub yearly_han: Option<YearlyHanInsightDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
