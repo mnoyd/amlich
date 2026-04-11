@@ -11,6 +11,7 @@ pub mod advisory;
 pub mod almanac;
 pub mod analysis_envelope;
 pub mod bazi;
+pub mod interaction;
 pub mod canchi;
 pub mod gio_hoang_dao;
 pub mod holiday_data;

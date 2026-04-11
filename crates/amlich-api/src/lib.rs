@@ -1027,3 +1027,85 @@ pub fn get_na_am_by_pair(can: &str, chi: &str) -> NaAmResponseDto {
         Err(error) => NaAmResponseDto::Error(NaAmErrorDto::from(error)),
     }
 }
+
+/// Compute all interaction matrices for a person on a given day.
+///
+/// Requires full birth datetime (for Bazi chart) + target date.
+/// Matrices 4a (direction merge) and 4b (domain-day boost) are optional —
+/// they require Kua result and computed metrics which need gender.
+pub fn get_personal_day_matrix_report(
+    birth: &BaziQuery,
+    date: &DateQuery,
+) -> Result<PersonalDayMatrixReportDto, String> {
+    use amlich_core::bazi::analysis::analyze_bazi_chart;
+    use amlich_core::interaction::{
+        day_person::compute_day_person_matrix,
+        direction_merge::compute_direction_merge,
+        domain_day_boost::compute_domain_day_boost,
+        element_resonance::compute_element_resonance,
+        personal_hour::compute_personal_hour_matrix,
+    };
+
+    let bazi_input = to_bazi_input(birth)?;
+    let report = amlich_core::build_bazi_report(bazi_input, None)?;
+    let chart = &report.chart;
+    let analysis = analyze_bazi_chart(chart);
+
+    let tz = date.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE);
+    let day_ctx = amlich_core::compute_day_context(date.day, date.month, date.year, tz);
+    let day_canchi = &day_ctx.canchi.day;
+    let month_chi = &day_ctx.canchi.month.chi;
+
+    // Compute day fortune for Matrix 4b
+    let day_fortune = amlich_core::almanac::calc::calculate_day_fortune(
+        amlich_core::julian::jd_from_date(date.day, date.month, date.year),
+        day_canchi,
+        day_ctx.lunar.day,
+        day_ctx.lunar.month,
+        &day_ctx.canchi.year.can,
+        &day_ctx.tiet_khi.name,
+    );
+
+    // Matrix 1: Day-Person
+    let day_person = compute_day_person_matrix(day_canchi, chart);
+
+    // Matrix 2: Element Resonance
+    let element_resonance =
+        compute_element_resonance(day_canchi, month_chi, &analysis.element_distribution);
+
+    // Matrix 3: Personal Hours
+    let personal_hours =
+        compute_personal_hour_matrix(day_canchi, chart, &analysis.element_distribution);
+
+    // Matrix 4a: Direction Merge (requires Kua = requires gender)
+    let direction_merge = day_fortune.tu_menh.as_ref().map(|kua| {
+        compute_direction_merge(
+            day_canchi,
+            &day_fortune.travel.tai_than,
+            &day_fortune.travel.hy_than,
+            kua,
+        )
+    });
+
+    // Matrix 4b: Domain-Day Boost (requires computed metrics)
+    let domain_day_boost = {
+        let han_count = 0u8; // TODO: wire yearly_han when birth year + gender available
+        Some(compute_domain_day_boost(
+            &day_fortune,
+            &report.computed_metrics.domain_scores,
+            han_count,
+        ))
+    };
+
+    Ok(PersonalDayMatrixReportDto {
+        input: PersonalDayMatrixQueryDto {
+            birth: birth.clone(),
+            date: date.clone(),
+        },
+        day_person,
+        element_resonance,
+        personal_hours,
+        direction_merge,
+        domain_day_boost,
+    })
+}

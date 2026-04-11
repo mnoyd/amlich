@@ -1090,6 +1090,37 @@ pub struct PersonalDayReportDto {
     pub advisory: PersonalDayAdvisoryDto,
 }
 
+/// Query for the personal day matrix report.
+/// Requires full birth datetime (for Bazi chart) + target date.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalDayMatrixQueryDto {
+    /// Birth data (full datetime required for Bazi chart).
+    pub birth: BaziQuery,
+    /// Target date to evaluate.
+    pub date: DateQuery,
+}
+
+/// Unified report containing all interaction matrices.
+///
+/// Cross-references a day's almanac data with personal Bazi data
+/// to produce interconnected personal matrices.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalDayMatrixReportDto {
+    pub input: PersonalDayMatrixQueryDto,
+    /// Matrix 1: how today's Can Chi interacts with each personal pillar.
+    pub day_person: amlich_core::interaction::types::DayPersonMatrix,
+    /// Matrix 2: element resonance between today and person's element distribution.
+    pub element_resonance: amlich_core::interaction::types::ElementResonanceMatrix,
+    /// Matrix 3: personal ranking of each of 12 traditional hours.
+    pub personal_hours: amlich_core::interaction::types::PersonalHourMatrix,
+    /// Matrix 4a: unified direction scores from Kua + day deities.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub direction_merge: Option<amlich_core::interaction::types::DirectionMergeMatrix>,
+    /// Matrix 4b: domain scores boosted by day-level signals.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub domain_day_boost: Option<amlich_core::interaction::types::DomainDayBoostMatrix>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HourSelectionQueryDto {
     pub date: DateQuery,
@@ -1231,6 +1262,11 @@ mod tests {
         // Verify fields exist and are optional
         let _ = dto.ten_gods;
         let _ = dto.tu_menh;
+    }
+
+    #[test]
+    fn personal_day_matrix_report_dto_exists() {
+        let _ = std::mem::size_of::<PersonalDayMatrixReportDto>();
     }
 
     #[test]
