@@ -1692,6 +1692,7 @@ mod tests {
                 }),
                 tu_menh: None,
                 dai_van: None,
+                yearly_han: None,
             }),
             upcoming_events: vec![],
         }

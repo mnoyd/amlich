@@ -396,6 +396,7 @@ mod tests {
                 unfavorable_directions: vec!["Tây".to_string()],
             }),
             dai_van: None,
+            yearly_han: None,
         });
         app.bundle = Some(bundle);
 
