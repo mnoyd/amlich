@@ -1262,17 +1262,25 @@ fn run_lookup_bazi(args: BaziArgs) -> Result<(), String> {
     };
 
     match InsightSurface::from(args.surface) {
-        InsightSurface::Chart => {
-            render_structured(&amlich_api::get_bazi_chart(&query)?, args.format, args.pretty)
-        }
-        InsightSurface::Analysis => {
-            render_structured(&amlich_api::get_bazi_analysis(&query)?, args.format, args.pretty)
-        }
+        InsightSurface::Chart => render_structured(
+            &amlich_api::get_bazi_chart(&query)?,
+            args.format,
+            args.pretty,
+        ),
+        InsightSurface::Analysis => render_structured(
+            &amlich_api::get_bazi_analysis(&query)?,
+            args.format,
+            args.pretty,
+        ),
         InsightSurface::Timing => {
             let timing = timing
                 .as_ref()
                 .ok_or_else(|| "timing surface requires timing inputs".to_string())?;
-            render_structured(&amlich_api::get_bazi_timing(&query, timing)?, args.format, args.pretty)
+            render_structured(
+                &amlich_api::get_bazi_timing(&query, timing)?,
+                args.format,
+                args.pretty,
+            )
         }
         InsightSurface::Advisory => render_structured(
             &amlich_api::get_bazi_advisory(&query, timing.as_ref())?,
@@ -1298,13 +1306,20 @@ fn run_lookup_personal_day(args: PersonalDayArgs) -> Result<(), String> {
     let birth_year = args.birth_year.or(profile.birth_year);
     let birth_month = args.birth_month.or(profile.birth_month);
     let birth_day = args.birth_day.or(profile.birth_day);
-    let gender = args.gender.map(|g| match g {
-        GenderArg::Male => amlich_core::almanac::tu_menh::Gender::Male,
-        GenderArg::Female => amlich_core::almanac::tu_menh::Gender::Female,
-    }).or_else(|| profile.gender.map(|g| match g {
-        crate::profile::ProfileGender::Male => amlich_core::almanac::tu_menh::Gender::Male,
-        crate::profile::ProfileGender::Female => amlich_core::almanac::tu_menh::Gender::Female,
-    }));
+    let gender = args
+        .gender
+        .map(|g| match g {
+            GenderArg::Male => amlich_core::almanac::tu_menh::Gender::Male,
+            GenderArg::Female => amlich_core::almanac::tu_menh::Gender::Female,
+        })
+        .or_else(|| {
+            profile.gender.map(|g| match g {
+                crate::profile::ProfileGender::Male => amlich_core::almanac::tu_menh::Gender::Male,
+                crate::profile::ProfileGender::Female => {
+                    amlich_core::almanac::tu_menh::Gender::Female
+                }
+            })
+        });
 
     let query = DateQuery {
         day: date.day() as i32,
@@ -1318,39 +1333,63 @@ fn run_lookup_personal_day(args: PersonalDayArgs) -> Result<(), String> {
 
     match InsightSurface::from(args.surface) {
         InsightSurface::Chart => render_structured(
-            &amlich_api::get_personal_day_chart(&query, birth_year, birth_month, birth_day, gender)?,
+            &amlich_api::get_personal_day_chart(
+                &query,
+                birth_year,
+                birth_month,
+                birth_day,
+                gender,
+            )?,
             args.format,
             args.pretty,
         ),
         InsightSurface::Analysis => render_structured(
             &amlich_api::get_personal_day_analysis(
-                &query, birth_year, birth_month, birth_day, gender,
+                &query,
+                birth_year,
+                birth_month,
+                birth_day,
+                gender,
             )?,
             args.format,
             args.pretty,
         ),
         InsightSurface::Metrics => render_structured(
             &amlich_api::get_personal_day_metrics(
-                &query, birth_year, birth_month, birth_day, gender,
+                &query,
+                birth_year,
+                birth_month,
+                birth_day,
+                gender,
             )?,
             args.format,
             args.pretty,
         ),
         InsightSurface::Advisory => render_structured(
             &amlich_api::get_personal_day_advisory(
-                &query, birth_year, birth_month, birth_day, gender,
+                &query,
+                birth_year,
+                birth_month,
+                birth_day,
+                gender,
             )?,
             args.format,
             args.pretty,
         ),
         InsightSurface::Report => render_structured(
             &amlich_api::get_personal_day_report(
-                &query, birth_year, birth_month, birth_day, gender,
+                &query,
+                birth_year,
+                birth_month,
+                birth_day,
+                gender,
             )?,
             args.format,
             args.pretty,
         ),
-        InsightSurface::Timing => Err("timing surface is not supported for personal-day yet".to_string()),
+        InsightSurface::Timing => {
+            Err("timing surface is not supported for personal-day yet".to_string())
+        }
     }
 }
 
@@ -1367,9 +1406,11 @@ fn run_lookup_hour_selection(args: HourSelectionArgs) -> Result<(), String> {
     };
 
     match InsightSurface::from(args.surface) {
-        InsightSurface::Chart => {
-            render_structured(&amlich_api::get_hour_selection_chart(&query)?, args.format, args.pretty)
-        }
+        InsightSurface::Chart => render_structured(
+            &amlich_api::get_hour_selection_chart(&query)?,
+            args.format,
+            args.pretty,
+        ),
         InsightSurface::Analysis => render_structured(
             &amlich_api::get_hour_selection_analysis(&query)?,
             args.format,
@@ -1390,7 +1431,9 @@ fn run_lookup_hour_selection(args: HourSelectionArgs) -> Result<(), String> {
             args.format,
             args.pretty,
         ),
-        InsightSurface::Timing => Err("timing surface is not supported for hour-selection yet".to_string()),
+        InsightSurface::Timing => {
+            Err("timing surface is not supported for hour-selection yet".to_string())
+        }
     }
 }
 
@@ -1405,6 +1448,48 @@ fn render_structured<T: serde::Serialize>(
             let output = serde_json::to_string_pretty(value)
                 .map_err(|e| format!("failed to render text output: {e}"))?;
             println!("{output}");
+            if let Ok(json) = serde_json::to_value(value) {
+                let tier = json
+                    .get("tier")
+                    .and_then(|value| value.as_str())
+                    .or_else(|| {
+                        json.get("chart")
+                            .and_then(|chart| chart.get("tier"))
+                            .and_then(|value| value.as_str())
+                    });
+                if let Some(tier) = tier {
+                    eprintln!("Note: birth data tier = {tier}");
+                }
+                let unavailable_items = json
+                    .get("unavailable_sections")
+                    .and_then(|value| value.as_array())
+                    .or_else(|| {
+                        json.get("analysis")
+                            .and_then(|analysis| analysis.get("unavailable_sections"))
+                            .and_then(|value| value.as_array())
+                    })
+                    .or_else(|| {
+                        json.get("computed_metrics")
+                            .and_then(|metrics| metrics.get("unavailable_sections"))
+                            .and_then(|value| value.as_array())
+                    });
+                if let Some(items) = unavailable_items {
+                    if !items.is_empty() {
+                        eprintln!("Unavailable sections:");
+                        for item in items {
+                            let section = item
+                                .get("section")
+                                .and_then(|value| value.as_str())
+                                .unwrap_or("unknown");
+                            let reason = item
+                                .get("reason")
+                                .and_then(|value| value.as_str())
+                                .unwrap_or("missing context");
+                            eprintln!("  - {section}: {reason}");
+                        }
+                    }
+                }
+            }
             Ok(())
         }
     }

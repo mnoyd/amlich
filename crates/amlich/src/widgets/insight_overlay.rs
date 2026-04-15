@@ -1292,14 +1292,24 @@ impl<'a> InsightOverlay<'a> {
 
         let mut lines = Vec::new();
         let current = self.app.bazi_subview;
-        let confidence = report.computed_metrics.structure_metrics.confidence.clamp(0.0, 1.0);
+        let confidence = report
+            .computed_metrics
+            .structure_metrics
+            .confidence
+            .clamp(0.0, 1.0);
         let score_chip = |score: u8| {
             if score >= 70 {
-                Style::default().fg(theme::GOOD_HOUR_FG).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(theme::GOOD_HOUR_FG)
+                    .add_modifier(Modifier::BOLD)
             } else if score >= 40 {
-                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD)
             } else {
-                Style::default().fg(theme::WEEKEND_FG).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(theme::WEEKEND_FG)
+                    .add_modifier(Modifier::BOLD)
             }
         };
 
@@ -1312,7 +1322,9 @@ impl<'a> InsightOverlay<'a> {
         let mut subview_spans = vec![Span::styled("  Bazi ", theme::section_style())];
         for (subview, key) in subviews {
             let style = if subview == current {
-                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD)
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD)
             } else {
                 Style::default().fg(theme::SECONDARY_FG)
             };
@@ -1333,12 +1345,16 @@ impl<'a> InsightOverlay<'a> {
             Span::raw("  "),
             Span::styled(
                 report.chart.day_master.full.as_str(),
-                Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme::ACCENT_FG)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::raw(" · "),
             Span::styled(
                 report.analysis.day_master_strength.label.as_str(),
-                Style::default().fg(theme::GOOD_HOUR_FG).add_modifier(Modifier::BOLD),
+                Style::default()
+                    .fg(theme::GOOD_HOUR_FG)
+                    .add_modifier(Modifier::BOLD),
             ),
             Span::raw(" · "),
             Span::styled(
@@ -1357,8 +1373,14 @@ impl<'a> InsightOverlay<'a> {
                 let confidence_fill = (confidence * 12.0).round() as usize;
                 lines.push(Line::from(vec![
                     Span::raw("  Confidence "),
-                    Span::styled("█".repeat(confidence_fill), Style::default().fg(theme::GOOD_HOUR_FG)),
-                    Span::styled("░".repeat(12 - confidence_fill), Style::default().fg(theme::SECONDARY_FG)),
+                    Span::styled(
+                        "█".repeat(confidence_fill),
+                        Style::default().fg(theme::GOOD_HOUR_FG),
+                    ),
+                    Span::styled(
+                        "░".repeat(12 - confidence_fill),
+                        Style::default().fg(theme::SECONDARY_FG),
+                    ),
                 ]));
                 lines.push(Line::from(""));
 
@@ -1369,9 +1391,15 @@ impl<'a> InsightOverlay<'a> {
                 for pillar in &report.chart.pillars {
                     lines.push(Line::from(vec![
                         Span::raw("  "),
-                        Span::styled(format!("{:<5}", pillar.kind), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::styled(
+                            format!("{:<5}", pillar.kind),
+                            Style::default().fg(theme::SECONDARY_FG),
+                        ),
                         Span::raw("│ "),
-                        Span::styled(pillar.can_chi.full.as_str(), Style::default().fg(theme::ACCENT_FG)),
+                        Span::styled(
+                            pillar.can_chi.full.as_str(),
+                            Style::default().fg(theme::ACCENT_FG),
+                        ),
                     ]));
                 }
                 lines.push(Line::from(""));
@@ -1391,10 +1419,16 @@ impl<'a> InsightOverlay<'a> {
                     let width = ((value as f32 / 120.0).clamp(0.0, 8.0)).round() as usize;
                     lines.push(Line::from(vec![
                         Span::raw("  "),
-                        Span::styled(format!("{label:<4}"), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::styled(
+                            format!("{label:<4}"),
+                            Style::default().fg(theme::SECONDARY_FG),
+                        ),
                         Span::raw("│"),
                         Span::styled("■".repeat(width), style),
-                        Span::styled("·".repeat(8 - width), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::styled(
+                            "·".repeat(8 - width),
+                            Style::default().fg(theme::SECONDARY_FG),
+                        ),
                         Span::raw(format!(" {:>3}", value)),
                     ]));
                 }
@@ -1408,25 +1442,47 @@ impl<'a> InsightOverlay<'a> {
                     if let Some(active) = &timing.active_dai_van {
                         lines.push(Line::from(vec![
                             Span::raw("  Đại vận │ "),
-                            Span::styled(active.can_chi.as_str(), Style::default().fg(theme::ACCENT_FG).add_modifier(Modifier::BOLD)),
+                            Span::styled(
+                                active.can_chi.as_str(),
+                                Style::default()
+                                    .fg(theme::ACCENT_FG)
+                                    .add_modifier(Modifier::BOLD),
+                            ),
                             Span::raw(format!("  {}-{}", active.start_age, active.end_age)),
                         ]));
                     }
                     lines.push(Line::from(vec![
                         Span::raw("  Lưu niên │ "),
-                        Span::styled(timing.annual.can_chi.as_str(), Style::default().fg(theme::GOOD_HOUR_FG)),
+                        Span::styled(
+                            timing.annual.can_chi.as_str(),
+                            Style::default().fg(theme::GOOD_HOUR_FG),
+                        ),
                     ]));
                     for month in timing.monthly.iter().take(3) {
                         lines.push(Line::from(vec![
                             Span::raw("  Lưu nguyệt│ "),
-                            Span::styled(format!("T{:02}", month.month), Style::default().fg(theme::SECONDARY_FG)),
+                            Span::styled(
+                                format!("T{:02}", month.month),
+                                Style::default().fg(theme::SECONDARY_FG),
+                            ),
                             Span::raw(" "),
                             Span::raw(month.can_chi.as_str()),
                         ]));
                     }
-                    if !report.computed_metrics.timing_metrics.activation_summary.is_empty() {
+                    if !report
+                        .computed_metrics
+                        .timing_metrics
+                        .activation_summary
+                        .is_empty()
+                    {
                         lines.push(Line::from(""));
-                        for summary in report.computed_metrics.timing_metrics.activation_summary.iter().take(3) {
+                        for summary in report
+                            .computed_metrics
+                            .timing_metrics
+                            .activation_summary
+                            .iter()
+                            .take(3)
+                        {
                             lines.push(Line::from(vec![
                                 Span::styled("  • ", Style::default().fg(theme::GOOD_HOUR_FG)),
                                 Span::raw(summary.as_str()),
@@ -1449,13 +1505,21 @@ impl<'a> InsightOverlay<'a> {
                 if !useful.favorable_elements.is_empty() {
                     lines.push(Line::from(vec![
                         Span::styled("  + ", Style::default().fg(theme::GOOD_HOUR_FG)),
-                        Span::raw(format!("{} {}", pick_text(lang, "Hành lợi", "Favorable"), useful.favorable_elements.join(", "))),
+                        Span::raw(format!(
+                            "{} {}",
+                            pick_text(lang, "Hành lợi", "Favorable"),
+                            useful.favorable_elements.join(", ")
+                        )),
                     ]));
                 }
                 if !useful.unfavorable_elements.is_empty() {
                     lines.push(Line::from(vec![
                         Span::styled("  - ", Style::default().fg(theme::WEEKEND_FG)),
-                        Span::raw(format!("{} {}", pick_text(lang, "Hành kỵ", "Avoid"), useful.unfavorable_elements.join(", "))),
+                        Span::raw(format!(
+                            "{} {}",
+                            pick_text(lang, "Hành kỵ", "Avoid"),
+                            useful.unfavorable_elements.join(", ")
+                        )),
                     ]));
                 }
                 for warning in report.advisory.warnings.iter().take(3) {
@@ -1473,18 +1537,44 @@ impl<'a> InsightOverlay<'a> {
                     theme::section_style(),
                 )));
                 for (label_vi, label_en, score) in [
-                    ("Công việc", "Career", &report.computed_metrics.domain_scores.career),
-                    ("Tài lộc", "Wealth", &report.computed_metrics.domain_scores.wealth),
-                    ("Quan hệ", "Relation", &report.computed_metrics.domain_scores.relationship),
-                    ("Sức khỏe", "Health", &report.computed_metrics.domain_scores.health),
-                    ("Vận thời", "Timing", &report.computed_metrics.domain_scores.timing),
+                    (
+                        "Công việc",
+                        "Career",
+                        &report.computed_metrics.domain_scores.career,
+                    ),
+                    (
+                        "Tài lộc",
+                        "Wealth",
+                        &report.computed_metrics.domain_scores.wealth,
+                    ),
+                    (
+                        "Quan hệ",
+                        "Relation",
+                        &report.computed_metrics.domain_scores.relationship,
+                    ),
+                    (
+                        "Sức khỏe",
+                        "Health",
+                        &report.computed_metrics.domain_scores.health,
+                    ),
+                    (
+                        "Vận thời",
+                        "Timing",
+                        &report.computed_metrics.domain_scores.timing,
+                    ),
                 ] {
                     let width = (score.score as usize) / 10;
                     lines.push(Line::from(vec![
                         Span::raw("  "),
-                        Span::styled(format!("{:<9}", pick_text(lang, label_vi, label_en)), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::styled(
+                            format!("{:<9}", pick_text(lang, label_vi, label_en)),
+                            Style::default().fg(theme::SECONDARY_FG),
+                        ),
                         Span::styled("■".repeat(width), score_chip(score.score)),
-                        Span::styled("·".repeat(10 - width), Style::default().fg(theme::SECONDARY_FG)),
+                        Span::styled(
+                            "·".repeat(10 - width),
+                            Style::default().fg(theme::SECONDARY_FG),
+                        ),
                         Span::raw(format!(" {:>3}", score.score)),
                     ]));
                 }
@@ -1493,7 +1583,10 @@ impl<'a> InsightOverlay<'a> {
                     Span::raw("  Core │ "),
                     Span::raw(format!(
                         "DM {} · season {:.1} · balance {:.1}",
-                        report.computed_metrics.core_metrics.day_master_strength_score,
+                        report
+                            .computed_metrics
+                            .core_metrics
+                            .day_master_strength_score,
                         report.computed_metrics.core_metrics.season_support_score,
                         report.computed_metrics.core_metrics.element_balance_score,
                     )),

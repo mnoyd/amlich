@@ -1113,6 +1113,65 @@ fn lookup_bazi_report_outputs_machine_readable_payload() {
     assert!(json.get("analysis").is_some());
     assert!(json.get("computed_metrics").is_some());
     assert!(json.get("advisory").is_some());
+    assert_eq!(json["chart"]["tier"].as_str(), Some("datetime"));
+    assert_eq!(json["analysis"]["tier"].as_str(), Some("datetime"));
+    assert_eq!(json["computed_metrics"]["tier"].as_str(), Some("datetime"));
+    assert!(json["analysis"]["unavailable_sections"]
+        .as_array()
+        .is_none());
+}
+
+#[test]
+fn lookup_bazi_report_date_only_exposes_unavailable_metadata() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "bazi",
+            "2024-02-10",
+            "--hour",
+            "0",
+            "--surface",
+            "report",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert_eq!(json["chart"]["tier"].as_str(), Some("date"));
+    assert_eq!(json["analysis"]["tier"].as_str(), Some("date"));
+    assert_eq!(json["computed_metrics"]["tier"].as_str(), Some("date"));
+    assert!(json["analysis"]["unavailable_sections"].is_array());
+    assert!(json["computed_metrics"]["unavailable_sections"].is_array());
+}
+
+#[test]
+fn lookup_bazi_report_text_surfaces_tier_and_unavailable_sections_on_stderr() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "bazi",
+            "2024-02-10",
+            "--hour",
+            "0",
+            "--surface",
+            "report",
+            "--format",
+            "text",
+        ],
+    );
+    assert!(output.status.success());
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("\"tier\": \"date\""));
+    assert!(stdout.contains("\"unavailable_sections\""));
 }
 
 #[test]

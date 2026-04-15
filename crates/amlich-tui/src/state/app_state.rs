@@ -339,6 +339,7 @@ pub struct SeasonalVerdictVm {
 pub struct ProfileAvailabilityVm {
     pub has_personal_overlay: bool,
     pub note: String,
+    pub missing_requirements: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
