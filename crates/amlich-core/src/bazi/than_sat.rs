@@ -24,16 +24,16 @@ const EVIDENCE_PROFILE: &str = "baseline";
 /// Mậu→Sửu/Mùi, Kỷ→Tý/Thân, Canh→Sửu/Mùi, Tân→Dần/Ngọ,
 /// Nhâm→Mão/Tỵ, Quý→Mão/Tỵ
 const QUY_NHAN: [[usize; 2]; 10] = [
-    [1, 7],   // Giáp  → Sửu, Mùi
-    [0, 8],   // Ất    → Tý, Thân
-    [11, 9],  // Bính  → Hợi, Dậu
-    [11, 9],  // Đinh  → Hợi, Dậu
-    [1, 7],   // Mậu   → Sửu, Mùi
-    [0, 8],   // Kỷ    → Tý, Thân
-    [1, 7],   // Canh  → Sửu, Mùi
-    [2, 6],   // Tân   → Dần, Ngọ
-    [3, 5],   // Nhâm  → Mão, Tỵ
-    [3, 5],   // Quý   → Mão, Tỵ
+    [1, 7],  // Giáp  → Sửu, Mùi
+    [0, 8],  // Ất    → Tý, Thân
+    [11, 9], // Bính  → Hợi, Dậu
+    [11, 9], // Đinh  → Hợi, Dậu
+    [1, 7],  // Mậu   → Sửu, Mùi
+    [0, 8],  // Kỷ    → Tý, Thân
+    [1, 7],  // Canh  → Sửu, Mùi
+    [2, 6],  // Tân   → Dần, Ngọ
+    [3, 5],  // Nhâm  → Mão, Tỵ
+    [3, 5],  // Quý   → Mão, Tỵ
 ];
 
 /// Văn Xương (文昌 — Academic Star)
@@ -143,19 +143,20 @@ const NGUYET_DUC_STEM: [usize; 12] = [
 /// Returns a flat list of entries; each entry identifies the star, its
 /// derivation source, target branch, and which chart pillars contain it.
 pub fn compute_than_sat(chart: &BaziChart) -> ThanSatResult {
-    let pillar_branches = [
+    let mut pillar_branches = vec![
         (PillarKind::Year, chart.year_pillar.can_chi.chi_index),
         (PillarKind::Month, chart.month_pillar.can_chi.chi_index),
         (PillarKind::Day, chart.day_pillar.can_chi.chi_index),
-        (PillarKind::Hour, chart.hour_pillar.can_chi.chi_index),
     ];
-
-    let pillar_stems = [
+    let mut pillar_stems = vec![
         (PillarKind::Year, chart.year_pillar.can_chi.can_index),
         (PillarKind::Month, chart.month_pillar.can_chi.can_index),
         (PillarKind::Day, chart.day_pillar.can_chi.can_index),
-        (PillarKind::Hour, chart.hour_pillar.can_chi.can_index),
     ];
+    if let Some(hour) = &chart.hour_pillar {
+        pillar_branches.push((PillarKind::Hour, hour.can_chi.chi_index));
+        pillar_stems.push((PillarKind::Hour, hour.can_chi.can_index));
+    }
 
     let day_stem = chart.day_pillar.can_chi.can_index;
     let year_branch = chart.year_pillar.can_chi.chi_index;
@@ -320,9 +321,7 @@ pub fn compute_than_sat(chart: &BaziChart) -> ThanSatResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bazi::types::{
-        BaziChartMetadata, BaziInput, BaziPillar, PillarKind,
-    };
+    use crate::bazi::types::{BaziChartMetadata, BaziInput, BaziPillar, PillarKind};
     use crate::lunar::LunarDate;
     use crate::types::CanChi;
 
@@ -370,7 +369,7 @@ mod tests {
             year_pillar: yp,
             month_pillar: mp,
             day_pillar: dp,
-            hour_pillar: hp,
+            hour_pillar: Some(hp),
             day_master,
             pillars,
             metadata: BaziChartMetadata {

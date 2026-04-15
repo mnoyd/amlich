@@ -9,25 +9,25 @@
 
 use crate::almanac::types::RuleEvidence;
 
-use super::types::{
-    BaziChart, KhongVongAnalysis, KhongVongPair, KhongVongPillarEntry, PillarKind,
-};
+use super::types::{BaziChart, KhongVongAnalysis, KhongVongPair, KhongVongPillarEntry, PillarKind};
 
 const EVIDENCE_SOURCE: &str = "bazi-classical";
 const EVIDENCE_PROFILE: &str = "baseline";
 
-/// Compute Không Vong for all 4 pillars and cross-reference hits.
+/// Compute Không Vong for all available pillars and cross-reference hits.
 ///
 /// For each pillar, the two void branches are determined from that pillar's
 /// sexagenary index.  Then every *other* pillar's branch is checked against
 /// the void pair; if it matches, that pillar is recorded as a "hit".
 pub fn compute_khong_vong(chart: &BaziChart) -> KhongVongAnalysis {
-    let pillars = [
+    let mut pillars = vec![
         (PillarKind::Year, &chart.year_pillar),
         (PillarKind::Month, &chart.month_pillar),
         (PillarKind::Day, &chart.day_pillar),
-        (PillarKind::Hour, &chart.hour_pillar),
     ];
+    if let Some(hour) = &chart.hour_pillar {
+        pillars.push((PillarKind::Hour, hour));
+    }
 
     let entries: Vec<KhongVongPillarEntry> = pillars
         .iter()
@@ -66,9 +66,7 @@ pub fn compute_khong_vong(chart: &BaziChart) -> KhongVongAnalysis {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::bazi::types::{
-        BaziChartMetadata, BaziInput, BaziPillar, HiddenStemEntry, PillarKind,
-    };
+    use crate::bazi::types::{BaziChartMetadata, BaziInput, BaziPillar, PillarKind};
     use crate::lunar::LunarDate;
     use crate::types::CanChi;
 
@@ -116,7 +114,7 @@ mod tests {
             year_pillar: yp,
             month_pillar: mp,
             day_pillar: dp,
-            hour_pillar: hp,
+            hour_pillar: Some(hp),
             day_master,
             pillars,
             metadata: BaziChartMetadata {
@@ -183,7 +181,10 @@ mod tests {
                 seen[idx] = true;
             }
         }
-        assert!(seen.iter().all(|&v| v), "All 12 branches should appear as void across 6 Tuần");
+        assert!(
+            seen.iter().all(|&v| v),
+            "All 12 branches should appear as void across 6 Tuần"
+        );
     }
 
     #[test]
@@ -222,5 +223,19 @@ mod tests {
         let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
         let result = compute_khong_vong(&chart);
         assert_eq!(result.entries.len(), 4);
+    }
+
+    #[test]
+    fn analysis_omits_hour_entry_when_hour_pillar_missing() {
+        let mut chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
+        chart.hour_pillar = None;
+        chart.pillars.pop();
+
+        let result = compute_khong_vong(&chart);
+        assert_eq!(result.entries.len(), 3);
+        assert!(result
+            .entries
+            .iter()
+            .all(|entry| entry.pillar != PillarKind::Hour));
     }
 }

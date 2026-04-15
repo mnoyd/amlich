@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     almanac::{
-        hour_pillar::HourPillarResult,
         tu_menh::Gender,
         types::{RuleEvidence, ThapThanResult},
     },
@@ -220,14 +219,14 @@ pub struct BaziChart {
     pub year_pillar: BaziPillar,
     pub month_pillar: BaziPillar,
     pub day_pillar: BaziPillar,
-    pub hour_pillar: BaziPillar,
+    pub hour_pillar: Option<BaziPillar>,
     pub day_master: CanChi,
     pub pillars: Vec<BaziPillar>,
     pub metadata: BaziChartMetadata,
 }
 
 impl BaziChartMetadata {
-    pub fn new(input: &BaziInput, hour_pillar: &HourPillarResult) -> Self {
+    pub fn new(input: &BaziInput, hour_evidence: Option<RuleEvidence>) -> Self {
         Self {
             timezone: input.timezone,
             use_solar_time: input.use_solar_time,
@@ -235,7 +234,7 @@ impl BaziChartMetadata {
             month_basis: "lunar_month_with_year_stem_mapping".to_string(),
             day_basis: "julian_day_cycle".to_string(),
             hour_basis: "day_stem_seed_table".to_string(),
-            hour_evidence: Some(hour_pillar.evidence.clone()),
+            hour_evidence,
         }
     }
 }

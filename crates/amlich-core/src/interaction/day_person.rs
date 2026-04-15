@@ -10,22 +10,18 @@ use super::types::{BranchRelation, DayPersonMatrix, ElementInteraction, PillarIn
 ///
 /// Cross-references the day's Can Chi against each of the person's 4 Bazi pillars,
 /// producing Thập Thần (stem-to-stem), Xung/Hợp (branch-to-branch), and element
-/// interaction data for each pillar.
+/// interaction data for each available pillar.
 pub fn compute_day_person_matrix(day_canchi: &CanChi, chart: &BaziChart) -> DayPersonMatrix {
     let day_stem = HeavenlyStem::ALL[day_canchi.can_index];
     let day_master_stem = HeavenlyStem::ALL[chart.day_master.can_index];
 
     let day_to_day_master = get_thap_than(day_stem, day_master_stem);
 
-    let pillars = [
-        &chart.year_pillar,
-        &chart.month_pillar,
-        &chart.day_pillar,
-        &chart.hour_pillar,
-    ]
-    .iter()
-    .map(|pillar| compute_pillar_interaction(day_canchi, day_stem, pillar))
-    .collect();
+    let pillars = chart
+        .pillars
+        .iter()
+        .map(|pillar| compute_pillar_interaction(day_canchi, day_stem, pillar))
+        .collect();
 
     DayPersonMatrix {
         day_canchi: day_canchi.full.clone(),
@@ -152,7 +148,7 @@ mod tests {
             year_pillar,
             month_pillar,
             day_pillar,
-            hour_pillar,
+            hour_pillar: Some(hour_pillar),
             day_master,
             pillars,
             metadata: BaziChartMetadata {
@@ -178,6 +174,21 @@ mod tests {
         assert_eq!(matrix.pillars[1].pillar, PillarKind::Month);
         assert_eq!(matrix.pillars[2].pillar, PillarKind::Day);
         assert_eq!(matrix.pillars[3].pillar, PillarKind::Hour);
+    }
+
+    #[test]
+    fn matrix_omits_hour_row_when_hour_pillar_missing() {
+        let day = CanChi::new(0, 0);
+        let mut chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
+        chart.hour_pillar = None;
+        chart.pillars.pop();
+
+        let matrix = compute_day_person_matrix(&day, &chart);
+        assert_eq!(matrix.pillars.len(), 3);
+        assert!(matrix
+            .pillars
+            .iter()
+            .all(|pillar| pillar.pillar != PillarKind::Hour));
     }
 
     #[test]
@@ -324,9 +335,6 @@ mod tests {
         let day = CanChi::new(0, 0);
         let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
         let matrix = compute_day_person_matrix(&day, &chart);
-        assert_eq!(
-            matrix.day_to_day_master.label,
-            ThapThanLabel::ThienTai
-        );
+        assert_eq!(matrix.day_to_day_master.label, ThapThanLabel::ThienTai);
     }
 }
