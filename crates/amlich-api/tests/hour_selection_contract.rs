@@ -45,6 +45,9 @@ fn hour_selection_advisory_exposes_windows() {
 #[test]
 fn hour_selection_report_exposes_unified_surface() {
     let report = get_hour_selection_report(&sample_query()).expect("report");
-    assert_eq!(report.chart.gio_hoang_dao.good_hour_count, report.computed_metrics.good_hour_count);
+    assert_eq!(
+        report.chart.gio_hoang_dao.good_hour_count,
+        report.computed_metrics.good_hour_count
+    );
     assert!(!report.advisory.best_windows.is_empty());
 }

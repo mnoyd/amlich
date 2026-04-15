@@ -21,10 +21,16 @@ fn sample_gender() -> amlich_core::almanac::tu_menh::Gender {
 
 #[test]
 fn personal_day_chart_exposes_contract_shape() {
-    let chart =
-        get_personal_day_chart(&sample_query(), Some(1990), Some(1), Some(1), Some(sample_gender()))
-            .expect("chart");
+    let chart = get_personal_day_chart(
+        &sample_query(),
+        Some(1990),
+        Some(1),
+        Some(1),
+        Some(sample_gender()),
+    )
+    .expect("chart");
     assert_eq!(chart.input.birth_year, Some(1990));
+    assert_eq!(chart.tier, amlich_api::BirthDataTierDto::Date);
     assert_eq!(chart.solar.day, 10);
     assert!(chart.canchi.is_some());
 }
@@ -39,8 +45,10 @@ fn personal_day_analysis_exposes_profile_sections() {
         Some(sample_gender()),
     )
     .expect("analysis");
+    assert_eq!(analysis.tier, amlich_api::BirthDataTierDto::Date);
     assert!(analysis.tu_menh.is_some());
     assert!(analysis.yearly_han.is_some());
+    assert!(analysis.unavailable_sections.is_empty());
 }
 
 #[test]
@@ -63,15 +71,15 @@ fn personal_day_analysis_yearly_han_has_all_components() {
 
 #[test]
 fn personal_day_analysis_yearly_han_absent_without_birth_year() {
-    let analysis = get_personal_day_analysis(
-        &sample_query(),
-        None,
-        None,
-        None,
-        None,
-    )
-    .expect("analysis");
+    let analysis =
+        get_personal_day_analysis(&sample_query(), None, None, None, None).expect("analysis");
     assert!(analysis.yearly_han.is_none());
+    assert_eq!(analysis.tier, amlich_api::BirthDataTierDto::Anonymous);
+    assert!(!analysis.unavailable_sections.is_empty());
+    assert!(analysis
+        .unavailable_sections
+        .iter()
+        .any(|section| section.section == "yearly_han"));
 }
 
 #[test]
@@ -85,8 +93,12 @@ fn personal_day_metrics_expose_available_sections() {
     )
     .expect("metrics");
     assert!(metrics.profile_completeness >= 2);
+    assert_eq!(metrics.tier, amlich_api::BirthDataTierDto::Date);
     assert!(!metrics.available_sections.is_empty());
-    assert!(metrics.available_sections.contains(&"yearly_han".to_string()));
+    assert!(metrics
+        .available_sections
+        .contains(&"yearly_han".to_string()));
+    assert!(metrics.unavailable_sections.is_empty());
 }
 
 #[test]
@@ -99,6 +111,15 @@ fn personal_day_advisory_exposes_highlights_or_cautions() {
         Some(sample_gender()),
     )
     .expect("advisory");
+    assert!(!advisory.summary.is_empty());
+    assert!(matches!(
+        advisory.severity.as_str(),
+        "low" | "medium" | "high"
+    ));
+    assert!(!advisory.top_signals.is_empty());
+    assert!(!advisory.why_this_matters.is_empty());
+    assert!(!advisory.recommended_actions.is_empty());
+    assert!(!advisory.priority_order.is_empty());
     assert!(!advisory.highlights.is_empty() || !advisory.cautions.is_empty());
 }
 
@@ -112,6 +133,13 @@ fn personal_day_report_exposes_unified_surface() {
         Some(sample_gender()),
     )
     .expect("report");
+    assert!(!report.summary.is_empty());
+    assert!(matches!(
+        report.severity.as_str(),
+        "low" | "medium" | "high"
+    ));
+    assert!(!report.top_signals.is_empty());
+    assert_eq!(report.chart.tier, amlich_api::BirthDataTierDto::Date);
     assert!(report.chart.canchi.is_some());
     assert!(!report.computed_metrics.available_sections.is_empty());
 }
