@@ -1,6 +1,7 @@
 use amlich_core::{
-    BirthInput, ConsultationIntent, calculate_day_snapshot,
-    reasoning::{ActionId, PersonalReasoningInput, build_fact_graph},
+    calculate_day_snapshot,
+    reasoning::{build_fact_graph, ActionId, PersonalReasoningInput},
+    BirthInput, ConsultationIntent,
 };
 
 #[test]
@@ -8,7 +9,10 @@ fn fact_graph_omits_personal_nodes_when_birth_input_is_missing() {
     let snapshot = calculate_day_snapshot(10, 2, 2024);
     let graph = build_fact_graph(ActionId::InitiationOpening, &snapshot, None).expect("graph");
 
-    assert!(!graph.nodes.iter().any(|n| n.id.starts_with("fact.personal.")));
+    assert!(!graph
+        .nodes
+        .iter()
+        .any(|n| n.id.starts_with("fact.personal.")));
 }
 
 #[test]
@@ -28,7 +32,8 @@ fn fact_graph_adds_personal_nodes_when_birth_input_is_present() {
         ConsultationIntent::OpeningBusiness,
     );
 
-    let graph = build_fact_graph(ActionId::InitiationOpening, &snapshot, Some(&input)).expect("graph");
+    let graph =
+        build_fact_graph(ActionId::InitiationOpening, &snapshot, Some(&input)).expect("graph");
 
     assert!(graph
         .nodes

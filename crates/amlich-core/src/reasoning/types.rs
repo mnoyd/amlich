@@ -116,7 +116,11 @@ pub struct ReasoningEdge {
 }
 
 impl ReasoningEdge {
-    pub fn new(from_node_id: impl Into<String>, to_node_id: impl Into<String>, effect: EdgeEffect) -> Self {
+    pub fn new(
+        from_node_id: impl Into<String>,
+        to_node_id: impl Into<String>,
+        effect: EdgeEffect,
+    ) -> Self {
         Self {
             from_node_id: from_node_id.into(),
             to_node_id: to_node_id.into(),

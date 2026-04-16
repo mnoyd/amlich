@@ -12,7 +12,7 @@ pub use personal::PersonalReasoningInput;
 pub use signals::derive_interpreted_signals;
 pub use synthesis::build_initiation_opening_decision;
 pub use types::{
-    ActionId, DecisionConfidence, EdgeEffect, InitiationOpeningDecision, InterpretedAxis,
-    NodeKind, ReasoningEdge, ReasoningGraph, ReasoningNode, RecommendationBucket,
+    ActionId, DecisionConfidence, EdgeEffect, InitiationOpeningDecision, InterpretedAxis, NodeKind,
+    ReasoningEdge, ReasoningGraph, ReasoningNode, RecommendationBucket,
 };
 pub use vector::assemble_action_vector;

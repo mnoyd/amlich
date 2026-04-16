@@ -11,12 +11,12 @@ pub mod advisory;
 pub mod almanac;
 pub mod analysis_envelope;
 pub mod bazi;
-pub mod interaction;
 pub mod canchi;
 pub mod gio_hoang_dao;
 pub mod holiday_data;
 pub mod holidays;
 pub mod insight_data;
+pub mod interaction;
 pub mod julian;
 pub mod lunar;
 pub mod reasoning;
@@ -38,8 +38,8 @@ pub use crate::almanac::kim_lau::{compute_kim_lau, KimLauCategory, KimLauResult}
 pub use crate::almanac::phuc_than::{get_phuc_than, PhucThanResult};
 pub use crate::almanac::sat_phuong::{get_sat_phuong, SatPhuongResult};
 pub use crate::almanac::tam_tai::{compute_tam_tai, TamTaiResult, TamTaiSeverity};
-pub use crate::almanac::thap_than::get_thap_than;
 pub use crate::almanac::thai_tue::{compute_thai_tue, ThaiTueConflictKind, ThaiTueResult};
+pub use crate::almanac::thap_than::get_thap_than;
 pub use crate::almanac::tu_menh::{compute_kua, Gender, KuaGroup, KuaResult};
 pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
 pub use crate::almanac::yearly_han::{
@@ -70,8 +70,7 @@ pub use crate::bazi::{
 };
 pub use crate::reasoning::{
     ActionId, DecisionConfidence, EdgeEffect, InitiationOpeningDecision, InitiationOpeningVector,
-    InterpretedAxis, NodeKind, ReasoningEdge, ReasoningGraph, ReasoningNode,
-    RecommendationBucket,
+    InterpretedAxis, NodeKind, ReasoningEdge, ReasoningGraph, ReasoningNode, RecommendationBucket,
 };
 pub use types::*;
 

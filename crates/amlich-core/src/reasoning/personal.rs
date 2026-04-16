@@ -1,11 +1,11 @@
 use crate::{
-    BirthInput, ConsultationIntent, DaySnapshot,
     almanac::tu_menh::compute_kua,
-    bazi::{BaziInput, build_bazi_chart, compute_bazi_metrics, compute_element_distribution},
+    bazi::{build_bazi_chart, compute_bazi_metrics, compute_element_distribution, BaziInput},
     interaction::{
         day_person::compute_day_person_matrix, direction_merge::compute_direction_merge,
         personal_hour::compute_personal_hour_matrix,
     },
+    BirthInput, ConsultationIntent, DaySnapshot,
 };
 
 use super::{NodeKind, ReasoningNode};
@@ -36,7 +36,9 @@ impl PersonalReasoningInput {
             evidence: vec!["interaction.day_person.compute_day_person_matrix".to_string()],
         }];
 
-        if let Some(personal_hour) = compute_personal_hour_matrix(&snapshot.context.canchi.day, &chart, &analysis) {
+        if let Some(personal_hour) =
+            compute_personal_hour_matrix(&snapshot.context.canchi.day, &chart, &analysis)
+        {
             nodes.push(ReasoningNode {
                 id: "fact.personal.personal_hour_matrix".to_string(),
                 kind: NodeKind::Fact,
@@ -171,7 +173,9 @@ fn summarize_day_person_matrix(matrix: &crate::interaction::types::DayPersonMatr
     )
 }
 
-fn summarize_personal_hour_matrix(matrix: &crate::interaction::types::PersonalHourMatrix) -> String {
+fn summarize_personal_hour_matrix(
+    matrix: &crate::interaction::types::PersonalHourMatrix,
+) -> String {
     let best_hour = matrix.hours.iter().max_by_key(|hour| hour.score);
 
     match best_hour {

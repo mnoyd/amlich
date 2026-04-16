@@ -6,7 +6,6 @@
 ///
 /// **Source:** Buddhist/Indian astronomical tradition (宿曜道 Sukuyōdō), NOT in KHCBPPT
 /// **Decision:** DEC-0016
-
 use serde::{Deserialize, Serialize};
 
 use super::tu_menh::Gender;
@@ -33,29 +32,101 @@ struct StarInfo {
 /// Male lookup table (thuận — forward through base cycle)
 /// Index 0 = remainder 1, index 8 = remainder 9
 const MALE_STARS: [StarInfo; 9] = [
-    StarInfo { name: "La Hầu",     quality: CuuDieuQuality::Hung,  element: "Kim" },
-    StarInfo { name: "Thổ Tú",     quality: CuuDieuQuality::Trung, element: "Thổ" },
-    StarInfo { name: "Thủy Diệu",  quality: CuuDieuQuality::Trung, element: "Thủy" },
-    StarInfo { name: "Thái Bạch",   quality: CuuDieuQuality::Hung,  element: "Kim" },
-    StarInfo { name: "Thái Dương",  quality: CuuDieuQuality::Cat,   element: "Hỏa" },
-    StarInfo { name: "Vân Hớn",    quality: CuuDieuQuality::Trung, element: "Hỏa" },
-    StarInfo { name: "Kế Đô",      quality: CuuDieuQuality::Hung,  element: "Thổ" },
-    StarInfo { name: "Thái Âm",    quality: CuuDieuQuality::Cat,   element: "Thủy" },
-    StarInfo { name: "Mộc Đức",    quality: CuuDieuQuality::Cat,   element: "Mộc" },
+    StarInfo {
+        name: "La Hầu",
+        quality: CuuDieuQuality::Hung,
+        element: "Kim",
+    },
+    StarInfo {
+        name: "Thổ Tú",
+        quality: CuuDieuQuality::Trung,
+        element: "Thổ",
+    },
+    StarInfo {
+        name: "Thủy Diệu",
+        quality: CuuDieuQuality::Trung,
+        element: "Thủy",
+    },
+    StarInfo {
+        name: "Thái Bạch",
+        quality: CuuDieuQuality::Hung,
+        element: "Kim",
+    },
+    StarInfo {
+        name: "Thái Dương",
+        quality: CuuDieuQuality::Cat,
+        element: "Hỏa",
+    },
+    StarInfo {
+        name: "Vân Hớn",
+        quality: CuuDieuQuality::Trung,
+        element: "Hỏa",
+    },
+    StarInfo {
+        name: "Kế Đô",
+        quality: CuuDieuQuality::Hung,
+        element: "Thổ",
+    },
+    StarInfo {
+        name: "Thái Âm",
+        quality: CuuDieuQuality::Cat,
+        element: "Thủy",
+    },
+    StarInfo {
+        name: "Mộc Đức",
+        quality: CuuDieuQuality::Cat,
+        element: "Mộc",
+    },
 ];
 
 /// Female lookup table (specific mapping, not simple reverse)
 /// Index 0 = remainder 1, index 8 = remainder 9
 const FEMALE_STARS: [StarInfo; 9] = [
-    StarInfo { name: "Kế Đô",      quality: CuuDieuQuality::Hung,  element: "Thổ" },
-    StarInfo { name: "Vân Hớn",    quality: CuuDieuQuality::Trung, element: "Hỏa" },
-    StarInfo { name: "Mộc Đức",    quality: CuuDieuQuality::Cat,   element: "Mộc" },
-    StarInfo { name: "Thái Âm",    quality: CuuDieuQuality::Cat,   element: "Thủy" },
-    StarInfo { name: "Thổ Tú",     quality: CuuDieuQuality::Trung, element: "Thổ" },
-    StarInfo { name: "La Hầu",     quality: CuuDieuQuality::Hung,  element: "Kim" },
-    StarInfo { name: "Thái Dương",  quality: CuuDieuQuality::Cat,   element: "Hỏa" },
-    StarInfo { name: "Thái Bạch",   quality: CuuDieuQuality::Hung,  element: "Kim" },
-    StarInfo { name: "Thủy Diệu",  quality: CuuDieuQuality::Trung, element: "Thủy" },
+    StarInfo {
+        name: "Kế Đô",
+        quality: CuuDieuQuality::Hung,
+        element: "Thổ",
+    },
+    StarInfo {
+        name: "Vân Hớn",
+        quality: CuuDieuQuality::Trung,
+        element: "Hỏa",
+    },
+    StarInfo {
+        name: "Mộc Đức",
+        quality: CuuDieuQuality::Cat,
+        element: "Mộc",
+    },
+    StarInfo {
+        name: "Thái Âm",
+        quality: CuuDieuQuality::Cat,
+        element: "Thủy",
+    },
+    StarInfo {
+        name: "Thổ Tú",
+        quality: CuuDieuQuality::Trung,
+        element: "Thổ",
+    },
+    StarInfo {
+        name: "La Hầu",
+        quality: CuuDieuQuality::Hung,
+        element: "Kim",
+    },
+    StarInfo {
+        name: "Thái Dương",
+        quality: CuuDieuQuality::Cat,
+        element: "Hỏa",
+    },
+    StarInfo {
+        name: "Thái Bạch",
+        quality: CuuDieuQuality::Hung,
+        element: "Kim",
+    },
+    StarInfo {
+        name: "Thủy Diệu",
+        quality: CuuDieuQuality::Trung,
+        element: "Thủy",
+    },
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -96,10 +167,7 @@ pub fn compute_cuu_dieu(
 
     let star = &stars[remainder - 1]; // 1-based → 0-based
 
-    let is_han = matches!(
-        star.name,
-        "La Hầu" | "Kế Đô" | "Thái Bạch"
-    );
+    let is_han = matches!(star.name, "La Hầu" | "Kế Đô" | "Thái Bạch");
 
     CuuDieuResult {
         star_index: remainder as u8,

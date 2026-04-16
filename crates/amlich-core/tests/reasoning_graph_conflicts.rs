@@ -1,6 +1,6 @@
 use amlich_core::{
+    reasoning::{build_initiation_opening_decision, PersonalReasoningInput, RecommendationBucket},
     BirthInput, ConsultationIntent,
-    reasoning::{PersonalReasoningInput, RecommendationBucket, build_initiation_opening_decision},
 };
 
 fn bucket_rank(bucket: RecommendationBucket) -> u8 {
@@ -37,17 +37,20 @@ fn personal_override_can_weaken_a_generally_favorable_opening_day() {
         },
         ConsultationIntent::OpeningBusiness,
     );
-    let personalized =
-        build_initiation_opening_decision(&snapshot, Some(&personal_input)).expect("personalized decision");
+    let personalized = build_initiation_opening_decision(&snapshot, Some(&personal_input))
+        .expect("personalized decision");
 
     assert!(!baseline.strongest_supports.is_empty());
     assert!(
-        bucket_rank(personalized.recommendation_bucket) <= bucket_rank(baseline.recommendation_bucket)
-            && (bucket_rank(personalized.recommendation_bucket) < bucket_rank(baseline.recommendation_bucket)
+        bucket_rank(personalized.recommendation_bucket)
+            <= bucket_rank(baseline.recommendation_bucket)
+            && (bucket_rank(personalized.recommendation_bucket)
+                < bucket_rank(baseline.recommendation_bucket)
                 || (personalized.context_is_clear as u8) <= (baseline.context_is_clear as u8)
                 || personalized.conflict_notes.len() >= baseline.conflict_notes.len()
                 || personalized.override_factors.len() >= baseline.override_factors.len()
-                || personalized.strongest_resistances.len() >= baseline.strongest_resistances.len())
+                || personalized.strongest_resistances.len()
+                    >= baseline.strongest_resistances.len())
     );
 }
 

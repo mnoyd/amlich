@@ -1,8 +1,9 @@
 use crate::DaySnapshot;
 
 use super::{
-    ActionId, DecisionConfidence, InitiationOpeningDecision, InitiationOpeningVector, PersonalReasoningInput,
-    RecommendationBucket, assemble_action_vector, build_fact_graph, derive_interpreted_signals,
+    assemble_action_vector, build_fact_graph, derive_interpreted_signals, ActionId,
+    DecisionConfidence, InitiationOpeningDecision, InitiationOpeningVector, PersonalReasoningInput,
+    RecommendationBucket,
 };
 
 pub fn build_initiation_opening_decision(
@@ -18,7 +19,8 @@ pub fn build_initiation_opening_decision(
         .iter()
         .filter(|edge| edge.effect.is_override())
         .filter_map(|edge| {
-            graph.nodes
+            graph
+                .nodes
                 .iter()
                 .find(|node| node.id == edge.from_node_id)
                 .map(|node| node.summary_vi.clone())
@@ -33,13 +35,22 @@ pub fn build_initiation_opening_decision(
         .map(|edge| format!("{} tạo tín hiệu mâu thuẫn", edge.from_node_id))
         .collect::<Vec<_>>();
 
-    let strongest_supports = collect_notes(vector.strongest_support_note.clone(), vector.support > 0.0);
-    let strongest_resistances =
-        collect_notes(vector.strongest_resistance_note.clone(), vector.resistance > 0.0 || !override_factors.is_empty());
-    let context_is_clear = conflict_notes.is_empty() && vector.context_clarity > 0.0 && override_factors.is_empty();
+    let strongest_supports =
+        collect_notes(vector.strongest_support_note.clone(), vector.support > 0.0);
+    let strongest_resistances = collect_notes(
+        vector.strongest_resistance_note.clone(),
+        vector.resistance > 0.0 || !override_factors.is_empty(),
+    );
+    let context_is_clear =
+        conflict_notes.is_empty() && vector.context_clarity > 0.0 && override_factors.is_empty();
 
     let recommendation_bucket = synthesize_bucket(&vector, &override_factors, &conflict_notes);
-    let confidence = synthesize_confidence(&vector, &override_factors, &conflict_notes, context_is_clear);
+    let confidence = synthesize_confidence(
+        &vector,
+        &override_factors,
+        &conflict_notes,
+        context_is_clear,
+    );
     let primary_conclusion = synthesize_conclusion(
         recommendation_bucket,
         &vector,
@@ -129,7 +140,10 @@ fn synthesize_conclusion(
         ),
         RecommendationBucket::Mixed => format!(
             "Bối cảnh khởi sự đang trái chiều: thuận {} nhưng vẫn có lực cản {}",
-            strongest_supports.first().cloned().unwrap_or_else(|| format!("{:.0} tín hiệu thuận", vector.support)),
+            strongest_supports
+                .first()
+                .cloned()
+                .unwrap_or_else(|| format!("{:.0} tín hiệu thuận", vector.support)),
             strongest_resistances
                 .first()
                 .cloned()
@@ -149,13 +163,17 @@ fn synthesize_conclusion(
                         .unwrap_or_else(|| "nền ngày đang khá thuận".to_string())
                 )
             } else {
-                "Có tín hiệu thuận cho khởi sự/mở việc nhưng vẫn cần đọc bối cảnh tổng thể".to_string()
+                "Có tín hiệu thuận cho khởi sự/mở việc nhưng vẫn cần đọc bối cảnh tổng thể"
+                    .to_string()
             }
         }
     }
 }
 
-fn synthesize_hour_refinements(snapshot: &DaySnapshot, personal_input: Option<&PersonalReasoningInput>) -> Vec<String> {
+fn synthesize_hour_refinements(
+    snapshot: &DaySnapshot,
+    personal_input: Option<&PersonalReasoningInput>,
+) -> Vec<String> {
     if let Some(personal_input) = personal_input {
         let personal_hours = personal_input.suggested_hours(snapshot);
         if !personal_hours.is_empty() {
@@ -169,7 +187,12 @@ fn synthesize_hour_refinements(snapshot: &DaySnapshot, personal_input: Option<&P
         .good_hours
         .iter()
         .take(3)
-        .map(|hour| format!("Nếu vẫn tiến hành, ưu tiên giờ {} ({})", hour.hour_chi, hour.time_range))
+        .map(|hour| {
+            format!(
+                "Nếu vẫn tiến hành, ưu tiên giờ {} ({})",
+                hour.hour_chi, hour.time_range
+            )
+        })
         .collect()
 }
 
@@ -187,9 +210,17 @@ fn synthesize_direction_refinements(
     [
         ("Tài Thần", snapshot.day_fortune.travel.tai_than.as_str()),
         ("Hỷ Thần", snapshot.day_fortune.travel.hy_than.as_str()),
-        ("Xuất hành", snapshot.day_fortune.travel.xuat_hanh_huong.as_str()),
+        (
+            "Xuất hành",
+            snapshot.day_fortune.travel.xuat_hanh_huong.as_str(),
+        ),
     ]
     .into_iter()
-    .map(|(label, direction)| format!("Nếu vẫn tiến hành, ưu tiên hướng {} theo {}", direction, label))
+    .map(|(label, direction)| {
+        format!(
+            "Nếu vẫn tiến hành, ưu tiên hướng {} theo {}",
+            direction, label
+        )
+    })
     .collect()
 }

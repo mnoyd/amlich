@@ -1,6 +1,6 @@
 use amlich_core::{
     calculate_day_snapshot,
-    reasoning::{ActionId, build_fact_graph},
+    reasoning::{build_fact_graph, ActionId},
 };
 
 #[test]
@@ -11,8 +11,14 @@ fn build_fact_graph_maps_existing_day_snapshot_fields_to_fact_nodes() {
     assert!(graph.nodes.iter().any(|n| n.id == "fact.day.truc"));
     assert!(graph.nodes.iter().any(|n| n.id == "fact.day.day_deity"));
     assert!(graph.nodes.iter().any(|n| n.id == "fact.day.taboos"));
-    assert!(graph.nodes.iter().any(|n| n.id == "fact.day.travel_directions"));
-    assert!(graph.nodes.iter().any(|n| n.id == "fact.day.hoang_dao_hours"));
+    assert!(graph
+        .nodes
+        .iter()
+        .any(|n| n.id == "fact.day.travel_directions"));
+    assert!(graph
+        .nodes
+        .iter()
+        .any(|n| n.id == "fact.day.hoang_dao_hours"));
 }
 
 #[test]

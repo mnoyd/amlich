@@ -7,9 +7,18 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
     let has_favorable_fact = graph.nodes.iter().any(is_favorable_fact);
     let has_unfavorable_fact = graph.nodes.iter().any(is_unfavorable_fact);
 
-    graph.nodes.extend(InterpretedAxis::core_axes().into_iter().map(build_signal_node));
+    graph.nodes.extend(
+        InterpretedAxis::core_axes()
+            .into_iter()
+            .map(build_signal_node),
+    );
 
-    for node in graph.nodes.clone().into_iter().filter(|node| node.kind == NodeKind::Fact) {
+    for node in graph
+        .nodes
+        .clone()
+        .into_iter()
+        .filter(|node| node.kind == NodeKind::Fact)
+    {
         match node.id.as_str() {
             "fact.day.truc" => {
                 if node.severity.as_deref() == Some("cat") {
@@ -21,7 +30,8 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                 }
             }
             "fact.day.day_deity" => {
-                if node.severity.as_deref() == Some(day_deity_tag(DayDeityClassification::HoangDao)) {
+                if node.severity.as_deref() == Some(day_deity_tag(DayDeityClassification::HoangDao))
+                {
                     graph.edges.push(ReasoningEdge::new(
                         node.id.clone(),
                         InterpretedAxis::Support.signal_node_id(),
@@ -153,7 +163,9 @@ fn signal_summary(axis: InterpretedAxis) -> &'static str {
 fn is_favorable_fact(node: &ReasoningNode) -> bool {
     match node.id.as_str() {
         "fact.day.truc" => node.severity.as_deref() == Some("cat"),
-        "fact.day.day_deity" => node.severity.as_deref() == Some(day_deity_tag(DayDeityClassification::HoangDao)),
+        "fact.day.day_deity" => {
+            node.severity.as_deref() == Some(day_deity_tag(DayDeityClassification::HoangDao))
+        }
         "fact.day.nhi_thap_bat_tu" => is_star_supportive(&node.summary_vi),
         "fact.day.hoang_dao_hours" => has_good_hour_capacity(&node.severity),
         "fact.personal.day_person_matrix" => !node.summary_vi.contains("0 trụ hợp"),
@@ -187,7 +199,8 @@ fn has_good_hour_capacity(severity: &Option<String>) -> bool {
 }
 
 fn personal_alignment_effect(summary: &str) -> EdgeEffect {
-    if extract_first_count(summary, "trụ hợp") > extract_first_count(summary, "trụ xung/khắc") {
+    if extract_first_count(summary, "trụ hợp") > extract_first_count(summary, "trụ xung/khắc")
+    {
         EdgeEffect::Supports
     } else {
         EdgeEffect::Weakens

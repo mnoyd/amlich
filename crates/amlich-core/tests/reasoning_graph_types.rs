@@ -1,4 +1,6 @@
-use amlich_core::reasoning::{ActionId, EdgeEffect, InterpretedAxis, ReasoningEdge, ReasoningGraph};
+use amlich_core::reasoning::{
+    ActionId, EdgeEffect, InterpretedAxis, ReasoningEdge, ReasoningGraph,
+};
 
 #[test]
 fn reasoning_graph_can_store_fact_signal_and_decision_nodes() {

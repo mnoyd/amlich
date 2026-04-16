@@ -9,10 +9,26 @@ pub fn assemble_action_vector(graph: &ReasoningGraph) -> Result<InitiationOpenin
             personal_alignment: axis_score(graph, InterpretedAxis::PersonalAlignment),
             timing_fit: axis_score(graph, InterpretedAxis::TimingFit),
             context_clarity: axis_score(graph, InterpretedAxis::ContextClarity),
-            strongest_support_id: strongest_edge_source(graph, InterpretedAxis::Support, is_support_effect),
-            strongest_support_note: strongest_edge_note(graph, InterpretedAxis::Support, is_support_effect),
-            strongest_resistance_id: strongest_edge_source(graph, InterpretedAxis::Resistance, is_resistance_effect),
-            strongest_resistance_note: strongest_edge_note(graph, InterpretedAxis::Resistance, is_resistance_effect),
+            strongest_support_id: strongest_edge_source(
+                graph,
+                InterpretedAxis::Support,
+                is_support_effect,
+            ),
+            strongest_support_note: strongest_edge_note(
+                graph,
+                InterpretedAxis::Support,
+                is_support_effect,
+            ),
+            strongest_resistance_id: strongest_edge_source(
+                graph,
+                InterpretedAxis::Resistance,
+                is_resistance_effect,
+            ),
+            strongest_resistance_note: strongest_edge_note(
+                graph,
+                InterpretedAxis::Resistance,
+                is_resistance_effect,
+            ),
         }),
     }
 }

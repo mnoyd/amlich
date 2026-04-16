@@ -1,6 +1,6 @@
 use crate::{
-    DaySnapshot,
     almanac::types::{DayDeityClassification, DayFortune, DayStars, DayTaboo},
+    DaySnapshot,
 };
 
 use super::{ActionId, NodeKind, PersonalReasoningInput, ReasoningGraph, ReasoningNode};
@@ -37,10 +37,14 @@ pub fn build_fact_graph(
         id: "fact.day.day_deity".to_string(),
         kind: NodeKind::Fact,
         summary_vi: summarize_day_deity(&snapshot.day_fortune),
-        severity: snapshot.day_fortune.day_deity.as_ref().map(|deity| match deity.classification {
-            DayDeityClassification::HoangDao => "hoang_dao".to_string(),
-            DayDeityClassification::HacDao => "hac_dao".to_string(),
-        }),
+        severity: snapshot
+            .day_fortune
+            .day_deity
+            .as_ref()
+            .map(|deity| match deity.classification {
+                DayDeityClassification::HoangDao => "hoang_dao".to_string(),
+                DayDeityClassification::HacDao => "hac_dao".to_string(),
+            }),
         evidence: vec!["snapshot.day_fortune.day_deity".to_string()],
     });
     graph.nodes.push(ReasoningNode {
@@ -97,7 +101,9 @@ pub fn build_fact_graph(
     });
 
     if let Some(personal_context) = personal_context {
-        graph.nodes.extend(personal_context.build_fact_nodes(snapshot)?);
+        graph
+            .nodes
+            .extend(personal_context.build_fact_nodes(snapshot)?);
     }
 
     Ok(graph)

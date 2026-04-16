@@ -346,4 +346,3 @@ mod tests {
         assert_eq!(app.bazi_subview, BaziSubview::Overview);
     }
 }
-

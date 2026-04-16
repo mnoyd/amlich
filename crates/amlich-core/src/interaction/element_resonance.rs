@@ -102,7 +102,9 @@ fn season_strength(element: FiveElement, month_chi: &str) -> f32 {
 
         (Tho, "Sửu") | (Tho, "Thìn") | (Tho, "Mùi") | (Tho, "Tuất") => 0.8,
         (Tho, "Tỵ") | (Tho, "Ngọ") => 0.3,
-        (Tho, "Tý") | (Tho, "Dần") | (Tho, "Mão") | (Tho, "Thân") | (Tho, "Dậu") | (Tho, "Hợi") => 0.2,
+        (Tho, "Tý") | (Tho, "Dần") | (Tho, "Mão") | (Tho, "Thân") | (Tho, "Dậu") | (Tho, "Hợi") => {
+            0.2
+        }
 
         (Kim, "Thân") | (Kim, "Dậu") => 1.0,
         (Kim, "Tuất") => 0.5,
@@ -206,7 +208,11 @@ mod tests {
         };
         let day = CanChi::new(8, 0); // Nhâm (Thủy), Thủy sinh Mộc
         let matrix = compute_element_resonance(&day, "Tý", &dist);
-        let moc_entry = matrix.entries.iter().find(|e| e.element == FiveElement::Moc).unwrap();
+        let moc_entry = matrix
+            .entries
+            .iter()
+            .find(|e| e.element == FiveElement::Moc)
+            .unwrap();
         assert!(moc_entry.is_deficit);
         // Thủy → Mộc = generation (1.0), so day_helps_deficit should be true
         assert!(moc_entry.day_helps_deficit);

@@ -1,6 +1,6 @@
 use amlich_core::{
     calculate_day_snapshot,
-    reasoning::{ActionId, assemble_action_vector, build_fact_graph, derive_interpreted_signals},
+    reasoning::{assemble_action_vector, build_fact_graph, derive_interpreted_signals, ActionId},
 };
 
 #[test]

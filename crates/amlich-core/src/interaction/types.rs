@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::almanac::types::{FiveElementRelation, FiveElement, RuleEvidence, ThapThanResult};
+use crate::almanac::types::{FiveElement, FiveElementRelation, RuleEvidence, ThapThanResult};
 use crate::bazi::types::PillarKind;
 
 /// How today's Earthly Branch relates to a personal pillar's branch.

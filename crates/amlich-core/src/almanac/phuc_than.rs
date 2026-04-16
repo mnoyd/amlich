@@ -6,7 +6,6 @@
 /// **Source:** KHCBPPT, Quyển 9, Lập Thành (立成)
 /// **Decision:** DEC-0018
 /// **Mnemonic:** 甲己正北是福神，丙辛西北乾宮存，乙庚坤位戊癸艮，丁壬巽上妙追尋
-
 use serde::{Deserialize, Serialize};
 
 use super::types::RuleEvidence;
@@ -18,11 +17,11 @@ use super::types::RuleEvidence;
 /// Pair 3: Đinh(3)-Nhâm(8) → Đông Nam (SE)
 /// Pair 4: Mậu(4)-Quý(9) → Đông Bắc (NE)
 const PHUC_THAN_DIRECTIONS: [&str; 5] = [
-    "Bắc",       // Giáp-Kỷ
-    "Tây Nam",    // Ất-Canh
-    "Tây Bắc",   // Bính-Tân
-    "Đông Nam",   // Đinh-Nhâm
-    "Đông Bắc",  // Mậu-Quý
+    "Bắc",      // Giáp-Kỷ
+    "Tây Nam",  // Ất-Canh
+    "Tây Bắc",  // Bính-Tân
+    "Đông Nam", // Đinh-Nhâm
+    "Đông Bắc", // Mậu-Quý
 ];
 
 /// Hợp pairing: can_index maps to pair_index via (can_index % 5)
@@ -57,8 +56,8 @@ mod tests {
 
     #[test]
     fn giap_ky_north() {
-        assert_eq!(get_phuc_than(0).direction, "Bắc");  // Giáp
-        assert_eq!(get_phuc_than(5).direction, "Bắc");  // Kỷ
+        assert_eq!(get_phuc_than(0).direction, "Bắc"); // Giáp
+        assert_eq!(get_phuc_than(5).direction, "Bắc"); // Kỷ
     }
 
     #[test]
