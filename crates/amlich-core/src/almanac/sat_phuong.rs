@@ -5,7 +5,6 @@
 ///
 /// **Source:** KHCBPPT, Quyển 9, Lập Thành (立成)
 /// **Decision:** DEC-0018
-
 use serde::{Deserialize, Serialize};
 
 use super::types::RuleEvidence;
@@ -22,18 +21,18 @@ use super::types::RuleEvidence;
 /// However, the standard Tam Hợp mapping uses a different modular grouping
 /// than simple chi%4. We use the explicit lookup instead.
 const SAT_PHUONG_BY_CHI: [&str; 12] = [
-    "Nam",    // Tý(0)  — Water triad → Sát Nam
-    "Đông",  // Sửu(1) — Metal triad → Sát Đông
-    "Bắc",   // Dần(2) — Fire triad  → Sát Bắc
-    "Tây",   // Mão(3) — Wood triad  → Sát Tây
-    "Nam",    // Thìn(4)— Water triad → Sát Nam
-    "Đông",  // Tỵ(5)  — Metal triad → Sát Đông
-    "Bắc",   // Ngọ(6) — Fire triad  → Sát Bắc
-    "Tây",   // Mùi(7) — Wood triad  → Sát Tây
-    "Nam",    // Thân(8)— Water triad → Sát Nam
-    "Đông",  // Dậu(9) — Metal triad → Sát Đông
-    "Bắc",   // Tuất(10)— Fire triad → Sát Bắc
-    "Tây",   // Hợi(11)— Wood triad  → Sát Tây
+    "Nam",  // Tý(0)  — Water triad → Sát Nam
+    "Đông", // Sửu(1) — Metal triad → Sát Đông
+    "Bắc",  // Dần(2) — Fire triad  → Sát Bắc
+    "Tây",  // Mão(3) — Wood triad  → Sát Tây
+    "Nam",  // Thìn(4)— Water triad → Sát Nam
+    "Đông", // Tỵ(5)  — Metal triad → Sát Đông
+    "Bắc",  // Ngọ(6) — Fire triad  → Sát Bắc
+    "Tây",  // Mùi(7) — Wood triad  → Sát Tây
+    "Nam",  // Thân(8)— Water triad → Sát Nam
+    "Đông", // Dậu(9) — Metal triad → Sát Đông
+    "Bắc",  // Tuất(10)— Fire triad → Sát Bắc
+    "Tây",  // Hợi(11)— Wood triad  → Sát Tây
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

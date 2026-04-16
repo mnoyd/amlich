@@ -54,7 +54,7 @@ impl Widget for TimelineWidget<'_> {
         let mut bar_spans = vec![];
         let mut label_spans = vec![];
 
-        for (i, hd) in hours_data.all_hours.iter().enumerate() {
+        for hd in hours_data.all_hours.iter() {
             let color = if hd.is_good {
                 Color::Yellow // Gold
             } else {
@@ -65,17 +65,10 @@ impl Widget for TimelineWidget<'_> {
 
             // Labels (e.g. 23, 01, 03)
             let start_hour = hd.time_range.split(':').next().unwrap_or("00");
-            if i == 0 {
-                label_spans.push(Span::styled(
-                    format!("{:<4}", start_hour),
-                    Style::default().fg(Color::Gray),
-                ));
-            } else {
-                label_spans.push(Span::styled(
-                    format!("{:<4}", start_hour),
-                    Style::default().fg(Color::Gray),
-                ));
-            }
+            label_spans.push(Span::styled(
+                format!("{:<4}", start_hour),
+                Style::default().fg(Color::Gray),
+            ));
         }
 
         Paragraph::new(Line::from(bar_spans))

@@ -6,7 +6,6 @@
 ///
 /// **Source:** KHCBPPT (三殺) + Vietnamese adaptation
 /// **Decision:** DEC-0021
-
 use serde::{Deserialize, Serialize};
 
 use super::types::RuleEvidence;
@@ -45,10 +44,10 @@ pub struct TamTaiResult {
 /// Group 2 (Fire):  Dần(2), Ngọ(6), Tuất(10)
 /// Group 3 (Metal): Tỵ(5), Dậu(9), Sửu(1)
 const TAM_HOP_TRIADS: [[usize; 3]; 4] = [
-    [8, 0, 4],   // Water: Thân Tý Thìn
-    [11, 3, 7],  // Wood:  Hợi Mão Mùi
-    [2, 6, 10],  // Fire:  Dần Ngọ Tuất
-    [5, 9, 1],   // Metal: Tỵ Dậu Sửu
+    [8, 0, 4],  // Water: Thân Tý Thìn
+    [11, 3, 7], // Wood:  Hợi Mão Mùi
+    [2, 6, 10], // Fire:  Dần Ngọ Tuất
+    [5, 9, 1],  // Metal: Tỵ Dậu Sửu
 ];
 
 /// The 3 calamity years for each Tam Hợp group (opposite directional group).
@@ -57,10 +56,10 @@ const TAM_HOP_TRIADS: [[usize; 3]; 4] = [
 /// Fire triad  → West years (Thân Dậu Tuất)
 /// Metal triad → North years (Hợi Tý Sửu)
 const TAI_YEARS: [[usize; 3]; 4] = [
-    [2, 3, 4],    // East: Dần Mão Thìn
-    [5, 6, 7],    // South: Tỵ Ngọ Mùi
-    [8, 9, 10],   // West: Thân Dậu Tuất
-    [11, 0, 1],   // North: Hợi Tý Sửu
+    [2, 3, 4],  // East: Dần Mão Thìn
+    [5, 6, 7],  // South: Tỵ Ngọ Mùi
+    [8, 9, 10], // West: Thân Dậu Tuất
+    [11, 0, 1], // North: Hợi Tý Sửu
 ];
 
 /// Find which Tam Hợp group a chi_index belongs to.

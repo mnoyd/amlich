@@ -6,7 +6,6 @@
 ///
 /// **Source:** Composite — each component retains its own source_id
 /// **Decision:** DEC-0021
-
 use serde::{Deserialize, Serialize};
 
 use super::cuu_dieu::{compute_cuu_dieu, CuuDieuResult};
@@ -128,7 +127,7 @@ mod tests {
         let input = make_input(1990, 2026, Gender::Male);
         // 1990 = Ngọ (6), 2026 = Ngọ (6)
         let birth_chi = (1990 - 4) as usize % 12; // 1986%12=6 → Ngọ
-        let year_chi = (2026 - 4) as usize % 12;  // 2022%12=6 → Ngọ
+        let year_chi = (2026 - 4) as usize % 12; // 2022%12=6 → Ngọ
         let r = compute_yearly_han(&input, birth_chi, year_chi);
 
         // All components should be populated

@@ -87,12 +87,10 @@ pub fn compute_menh_than_cung(
     year_can_index: usize,
 ) -> MenhCungResult {
     // Branch of Mệnh Cung
-    let menh_branch =
-        ((lunar_month as isize) - (hour_chi_index as isize) + 13 + 12) as usize % 12;
+    let menh_branch = ((lunar_month as isize) - (hour_chi_index as isize) + 13 + 12) as usize % 12;
 
     // Branch of Thân Cung
-    let than_branch =
-        ((lunar_month as isize) + (hour_chi_index as isize) + 1) as usize % 12;
+    let than_branch = ((lunar_month as isize) + (hour_chi_index as isize) + 1) as usize % 12;
 
     // Derive stems via Ngũ Hổ Độn: stem for Dần (branch 2) is given by the
     // table, then each subsequent branch advances the stem by 1.

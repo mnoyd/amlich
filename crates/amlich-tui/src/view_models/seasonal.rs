@@ -37,11 +37,19 @@ pub fn seasonal_verdict(app: &AppState) -> Option<SeasonalVerdictVm> {
 
 pub fn profile_availability_summary(app: &AppState) -> Option<ProfileAvailabilityVm> {
     let bundle = app.bundle.as_ref()?;
-    let has_personal_overlay = bundle
-        .insight
-        .as_ref()
-        .map(|insight| insight.tu_menh.is_some() || insight.dai_van.is_some())
-        .unwrap_or(false);
+    let insight = bundle.insight.as_ref()?;
+    let has_personal_overlay = insight.tu_menh.is_some() || insight.dai_van.is_some();
+
+    let mut missing_requirements = Vec::new();
+    if insight.tu_menh.is_none() {
+        missing_requirements.push("Cần năm sinh + tháng + ngày + giới tính".to_string());
+    }
+    if insight.dai_van.is_none() {
+        missing_requirements.push("Đại Vận cần hồ sơ ngày sinh đầy đủ".to_string());
+    }
+    if insight.yearly_han.is_none() {
+        missing_requirements.push("Hạn năm cần hồ sơ ngày sinh đầy đủ".to_string());
+    }
 
     let note = if has_personal_overlay {
         "Đã có lớp cá nhân hóa; tách riêng phần ngày chung và phần mệnh cá nhân.".to_string()
@@ -52,6 +60,7 @@ pub fn profile_availability_summary(app: &AppState) -> Option<ProfileAvailabilit
     Some(ProfileAvailabilityVm {
         has_personal_overlay,
         note,
+        missing_requirements,
     })
 }
 

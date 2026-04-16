@@ -339,6 +339,7 @@ pub struct SeasonalVerdictVm {
 pub struct ProfileAvailabilityVm {
     pub has_personal_overlay: bool,
     pub note: String,
+    pub missing_requirements: Vec<String>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1094,10 +1095,10 @@ impl AppState {
                 birth_day: self.personal_draft.birth_day.clone(),
                 gender: self.personal_draft.gender,
             };
-            if insight.tu_menh.is_some() || insight.dai_van.is_some() {
-                if self.personal_draft.birth_year.is_empty() {
-                    self.personal_draft.birth_year = self.date.year().to_string();
-                }
+            if (insight.tu_menh.is_some() || insight.dai_van.is_some())
+                && self.personal_draft.birth_year.is_empty()
+            {
+                self.personal_draft.birth_year = self.date.year().to_string();
             }
         } else {
             self.personal_draft = PersonalDraft::empty();

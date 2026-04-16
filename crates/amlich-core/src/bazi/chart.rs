@@ -18,16 +18,30 @@ pub fn build_bazi_chart(input: BaziInput) -> Result<BaziChart, String> {
     let day_pillar = get_day_canchi(jd_from_date(input.day, input.month, input.year));
     let day_master =
         HeavenlyStem::try_from(day_pillar.can.as_str()).map_err(|err| err.to_string())?;
-    let hour_pillar = compute_hour_pillar(day_master, input.hour, input.minute)
-        .ok_or_else(|| "invalid birth hour/minute for hour pillar".to_string())?;
+    let hour_pillar = if input.hour == 0 && input.minute == 0 {
+        None
+    } else {
+        Some(
+            compute_hour_pillar(day_master, input.hour, input.minute)
+                .ok_or_else(|| "invalid birth hour/minute for hour pillar".to_string())?,
+        )
+    };
 
-    let metadata = BaziChartMetadata::new(&input, &hour_pillar);
+    let metadata = BaziChartMetadata::new(
+        &input,
+        hour_pillar.as_ref().map(|hour| hour.evidence.clone()),
+    );
 
     let year = build_pillar(PillarKind::Year, &year_pillar, day_master);
     let month = build_pillar(PillarKind::Month, &month_pillar, day_master);
     let day = build_pillar(PillarKind::Day, &day_pillar, day_master);
-    let hour = build_pillar(PillarKind::Hour, &hour_pillar.can_chi, day_master);
-    let pillars = vec![year.clone(), month.clone(), day.clone(), hour.clone()];
+    let hour = hour_pillar
+        .as_ref()
+        .map(|hour| build_pillar(PillarKind::Hour, &hour.can_chi, day_master));
+    let mut pillars = vec![year.clone(), month.clone(), day.clone()];
+    if let Some(hour) = &hour {
+        pillars.push(hour.clone());
+    }
 
     Ok(BaziChart {
         input,
@@ -127,6 +141,26 @@ mod tests {
     }
 
     #[test]
+    fn builds_bazi_chart_without_hour_pillar_for_date_only_input() {
+        let chart = build_bazi_chart(BaziInput {
+            day: 10,
+            month: 2,
+            year: 2024,
+            hour: 0,
+            minute: 0,
+            timezone: VIETNAM_TIMEZONE,
+            longitude: None,
+            use_solar_time: false,
+            gender: None,
+        })
+        .expect("chart");
+
+        assert_eq!(chart.pillars.len(), 3);
+        assert!(chart.hour_pillar.is_none());
+        assert!(chart.metadata.hour_evidence.is_none());
+    }
+
+    #[test]
     fn bazi_chart_populates_hidden_stems_and_ten_gods() {
         let chart = build_bazi_chart(BaziInput {
             day: 10,
@@ -164,7 +198,10 @@ mod tests {
         })
         .expect("chart");
 
-        assert_eq!(chart.hour_pillar.kind, PillarKind::Hour);
+        assert_eq!(
+            chart.hour_pillar.as_ref().map(|pillar| pillar.kind),
+            Some(PillarKind::Hour)
+        );
         assert_eq!(chart.metadata.hour_basis, "day_stem_seed_table");
         assert!(chart.metadata.hour_evidence.is_some());
     }

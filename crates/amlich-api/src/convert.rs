@@ -1,26 +1,99 @@
 use crate::dto::{
-    ActiveRecommendationPackDto, ActivityLabelDto, AnnualPillarDto, BaziAdvisoryDomainsDto,
-    BaziAdvisoryDto, BaziAnalysisDto, BaziCanChiDto, BaziChartDto, BaziChartMetadataDto,
-    BaziComputedMetricsDto, BaziCoreMetricsDto, BaziDomainScoreDto, BaziDomainScoresDto,
-    BaziInteractionMetricDto, BaziLuckPillarDto, BaziLunarDateDto, BaziPillarDto, BaziQuery,
-    BaziReportDto, BaziScoreContributorDto, BaziStructureMetricsDto, BaziTimingDto,
-    BaziTimingMetricsDto, BaziTimingWindowScoreDto, CanChiDto, CanChiInfoDto, CanInsightDto,
-    ChartInteractionDto, ChiInsightDto, ConventionMetadataDto, DailyRecommendationsDto,
-    DayConflictDto, DayDeityDto, DayElementDto, DayFortuneDto, DayGuidanceDto, DayInfoDto,
-    DayMasterStrengthDto, DayStarDto, DayStarsDto, DayTabooDto, DayTenGodsDto,
-    ElementDistributionDto, ElementInsightDto, FestivalInsightDto, FoodInsightDto, GioHoangDaoDto,
-    HiddenStemEntryDto, HolidayDto, HolidayInsightDto, HourInfoDto, KuaResultDto, LocalizedListDto,
-    LocalizedTextDto, LunarDto, MonthlyPillarDto, NaAmErrorDto, NaAmLookupResultDto, NguHanhDto,
-    ProverbInsightDto, RecommendationBucketDto, RecommendationEvidenceDto,
-    RecommendationEvidenceSourceDto, RecommendationPackCatalogEntryDto, RecommendationReasonDto,
-    RecommendationScopeDto, RecommendationSeverityDto, RegionsInsightDto, RuleEvidenceDto,
-    RulesetCatalogEntryDto, RulesetDefaultsDto, RulesetSourceNoteDto, SolarDto,
-    StarRuleEvidenceDto, SynthesizedRecommendationDto, TabooInsightDto, TangCanDto,
-    TenGodDistributionDto, ThapThanResultDto, TietKhiDto, TietKhiInsightDto, TravelDirectionDto,
-    TrucDto, UsefulGodDto, XungHopDto,
+    ActiveRecommendationPackDto,
+    ActivityLabelDto,
+    AnnualPillarDto,
+    BaziAdvisoryDomainsDto,
+    BaziAdvisoryDto,
+    BaziAnalysisDto,
+    BaziCanChiDto,
+    BaziChartDto,
+    BaziChartMetadataDto,
+    BaziComputedMetricsDto,
+    BaziCoreMetricsDto,
+    BaziDomainScoreDto,
+    BaziDomainScoresDto,
+    BaziInteractionMetricDto,
+    BaziLuckPillarDto,
+    BaziLunarDateDto,
+    BaziPillarDto,
+    BaziQuery,
+    BaziReportDto,
+    BaziScoreContributorDto,
+    BaziStructureMetricsDto,
+    BaziTimingDto,
+    BaziTimingMetricsDto,
+    BaziTimingWindowScoreDto,
+    BirthDataTierDto,
+    CanChiDto,
+    CanChiInfoDto,
+    CanInsightDto,
+    ChartInteractionDto,
+    ChiInsightDto,
+    ConventionMetadataDto,
+    DailyRecommendationsDto,
+    DayConflictDto,
+    DayDeityDto,
+    DayElementDto,
+    DayFortuneDto,
+    DayGuidanceDto,
+    DayInfoDto,
+    DayMasterStrengthDto,
+    DayStarDto,
+    DayStarsDto,
+    DayTabooDto,
+    DayTenGodsDto,
+    ElementDistributionDto,
+    ElementInsightDto,
+    FestivalInsightDto,
+    FoodInsightDto,
+    GioHoangDaoDto,
+    HiddenStemEntryDto,
+    HolidayDto,
+    HolidayInsightDto,
+    HourInfoDto,
     // Bazi Derived Report DTOs
-    KhongVongAnalysisDto, KhongVongPairDto, KhongVongPillarEntryDto,
-    MenhCungDto, ThaiNguyenDto, ThanSatEntryDto, ThanSatResultDto,
+    KhongVongAnalysisDto,
+    KhongVongPairDto,
+    KhongVongPillarEntryDto,
+    KuaResultDto,
+    LocalizedListDto,
+    LocalizedTextDto,
+    LunarDto,
+    MenhCungDto,
+    MonthlyPillarDto,
+    NaAmErrorDto,
+    NaAmLookupResultDto,
+    NguHanhDto,
+    ProverbInsightDto,
+    RecommendationBucketDto,
+    RecommendationEvidenceDto,
+    RecommendationEvidenceSourceDto,
+    RecommendationPackCatalogEntryDto,
+    RecommendationReasonDto,
+    RecommendationScopeDto,
+    RecommendationSeverityDto,
+    RegionsInsightDto,
+    RuleEvidenceDto,
+    RulesetCatalogEntryDto,
+    RulesetDefaultsDto,
+    RulesetSourceNoteDto,
+    SolarDto,
+    StarRuleEvidenceDto,
+    SynthesizedRecommendationDto,
+    TabooInsightDto,
+    TangCanDto,
+    TenGodDistributionDto,
+    ThaiNguyenDto,
+    ThanSatEntryDto,
+    ThanSatResultDto,
+    ThapThanResultDto,
+    TietKhiDto,
+    TietKhiInsightDto,
+    TravelDirectionDto,
+    TrucDto,
+    UnavailableSectionDto,
+    UsefulGodDto,
+    XungHopDto,
 };
 
 impl From<&amlich_core::NguHanh> for NguHanhDto {
@@ -108,10 +181,23 @@ impl From<&amlich_core::BaziChartMetadataResponse> for BaziChartMetadataDto {
     }
 }
 
-impl From<(&BaziQuery, &amlich_core::BaziChartResponse)> for BaziChartDto {
-    fn from((query, value): (&BaziQuery, &amlich_core::BaziChartResponse)) -> Self {
+impl
+    From<(
+        &BaziQuery,
+        &amlich_core::BaziChartResponse,
+        BirthDataTierDto,
+    )> for BaziChartDto
+{
+    fn from(
+        (query, value, tier): (
+            &BaziQuery,
+            &amlich_core::BaziChartResponse,
+            BirthDataTierDto,
+        ),
+    ) -> Self {
         Self {
             input: query.clone(),
+            tier,
             lunar_date: BaziLunarDateDto::from(&value.lunar_date),
             day_master: BaziCanChiDto::from(&value.day_master),
             pillars: value.pillars.iter().map(BaziPillarDto::from).collect(),
@@ -169,9 +255,22 @@ impl From<&amlich_core::bazi::contracts::TenGodDistributionResponse> for TenGodD
     }
 }
 
-impl From<&amlich_core::BaziAnalysisResponse> for BaziAnalysisDto {
-    fn from(value: &amlich_core::BaziAnalysisResponse) -> Self {
+impl
+    From<(
+        &amlich_core::BaziAnalysisResponse,
+        BirthDataTierDto,
+        Vec<UnavailableSectionDto>,
+    )> for BaziAnalysisDto
+{
+    fn from(
+        (value, tier, unavailable_sections): (
+            &amlich_core::BaziAnalysisResponse,
+            BirthDataTierDto,
+            Vec<UnavailableSectionDto>,
+        ),
+    ) -> Self {
         Self {
+            tier,
             element_distribution: ElementDistributionDto::from(&value.element_distribution),
             day_master_strength: DayMasterStrengthDto::from(&value.day_master_strength),
             interactions: value
@@ -180,6 +279,7 @@ impl From<&amlich_core::BaziAnalysisResponse> for BaziAnalysisDto {
                 .map(ChartInteractionDto::from)
                 .collect(),
             ten_god_distribution: TenGodDistributionDto::from(&value.ten_god_distribution),
+            unavailable_sections,
         }
     }
 }
@@ -281,6 +381,12 @@ impl From<&amlich_core::bazi::contracts::BaziAdvisoryDomainsResponse> for BaziAd
 impl From<&amlich_core::BaziAdvisoryResponse> for BaziAdvisoryDto {
     fn from(value: &amlich_core::BaziAdvisoryResponse) -> Self {
         Self {
+            summary: String::new(),
+            severity: String::new(),
+            top_signals: Vec::new(),
+            why_this_matters: Vec::new(),
+            recommended_actions: Vec::new(),
+            priority_order: Vec::new(),
             useful_god_analysis: UsefulGodDto::from(&value.useful_god_analysis),
             summary_vi: value.summary_vi.clone(),
             warnings: value.warnings.clone(),
@@ -400,41 +506,87 @@ impl From<&amlich_core::BaziStructureMetrics> for BaziStructureMetricsDto {
     }
 }
 
-impl From<&amlich_core::BaziComputedMetrics> for BaziComputedMetricsDto {
-    fn from(value: &amlich_core::BaziComputedMetrics) -> Self {
+impl
+    From<(
+        &amlich_core::BaziComputedMetrics,
+        BirthDataTierDto,
+        Vec<UnavailableSectionDto>,
+    )> for BaziComputedMetricsDto
+{
+    fn from(
+        (value, tier, unavailable_sections): (
+            &amlich_core::BaziComputedMetrics,
+            BirthDataTierDto,
+            Vec<UnavailableSectionDto>,
+        ),
+    ) -> Self {
         Self {
+            tier,
             core_metrics: BaziCoreMetricsDto::from(&value.core_metrics),
             structure_metrics: BaziStructureMetricsDto::from(&value.structure_metrics),
             domain_scores: BaziDomainScoresDto::from(&value.domain_scores),
             timing_metrics: BaziTimingMetricsDto::from(&value.timing_metrics),
+            unavailable_sections,
         }
     }
 }
 
-impl From<(&BaziQuery, &amlich_core::BaziReport)> for BaziReportDto {
-    fn from((query, value): (&BaziQuery, &amlich_core::BaziReport)) -> Self {
+impl From<(&BaziQuery, &amlich_core::BaziReport, BirthDataTierDto)> for BaziReportDto {
+    fn from(
+        (query, value, tier): (&BaziQuery, &amlich_core::BaziReport, BirthDataTierDto),
+    ) -> Self {
+        let advisory = BaziAdvisoryDto::from(
+            value
+                .advisory_response
+                .as_ref()
+                .expect("advisory response present"),
+        );
         Self {
+            summary: advisory.summary.clone(),
+            severity: advisory.severity.clone(),
+            top_signals: advisory.top_signals.clone(),
+            why_this_matters: advisory.why_this_matters.clone(),
+            recommended_actions: advisory.recommended_actions.clone(),
+            priority_order: advisory.priority_order.clone(),
             chart: BaziChartDto::from((
                 query,
                 value
                     .chart_response
                     .as_ref()
                     .expect("chart response present"),
+                tier.clone(),
             )),
-            analysis: BaziAnalysisDto::from(
+            analysis: BaziAnalysisDto::from((
                 value
                     .analysis_response
                     .as_ref()
                     .expect("analysis response present"),
-            ),
+                tier.clone(),
+                if tier == BirthDataTierDto::Date {
+                    vec![UnavailableSectionDto {
+                        section: "hour_pillar".to_string(),
+                        reason: "requires birth hour and minute".to_string(),
+                        required_fields: vec!["hour".to_string(), "minute".to_string()],
+                    }]
+                } else {
+                    Vec::new()
+                },
+            )),
             timing: value.timing_response.as_ref().map(BaziTimingDto::from),
-            computed_metrics: BaziComputedMetricsDto::from(&value.computed_metrics),
-            advisory: BaziAdvisoryDto::from(
-                value
-                    .advisory_response
-                    .as_ref()
-                    .expect("advisory response present"),
-            ),
+            computed_metrics: BaziComputedMetricsDto::from((
+                &value.computed_metrics,
+                tier.clone(),
+                if tier == BirthDataTierDto::Date {
+                    vec![UnavailableSectionDto {
+                        section: "hour_pillar".to_string(),
+                        reason: "requires birth hour and minute".to_string(),
+                        required_fields: vec!["hour".to_string(), "minute".to_string()],
+                    }]
+                } else {
+                    Vec::new()
+                },
+            )),
+            advisory,
         }
     }
 }

@@ -59,7 +59,6 @@ impl BaziSubview {
             BaziSubview::Metrics => BaziSubview::Advisory,
         }
     }
-
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

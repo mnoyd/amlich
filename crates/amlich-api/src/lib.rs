@@ -30,6 +30,18 @@ fn parse_bazi_gender(value: Option<&str>) -> Result<Option<amlich_core::Gender>,
     }
 }
 
+fn query_has_birth_time(query: &BaziQuery) -> bool {
+    !(query.hour == 0 && query.minute == 0)
+}
+
+fn bazi_birth_data_tier(query: &BaziQuery) -> BirthDataTierDto {
+    if query_has_birth_time(query) {
+        BirthDataTierDto::Datetime
+    } else {
+        BirthDataTierDto::Date
+    }
+}
+
 fn to_bazi_input(query: &BaziQuery) -> Result<amlich_core::BaziInput, String> {
     if !(1..=12).contains(&query.month) {
         return Err("month must be 1-12".to_string());
@@ -110,7 +122,11 @@ pub fn get_bazi_chart(query: &BaziQuery) -> Result<BaziChartDto, String> {
     let response = report
         .chart_response
         .ok_or_else(|| "missing bazi chart response".to_string())?;
-    Ok(BaziChartDto::from((query, &response)))
+    Ok(BaziChartDto::from((
+        query,
+        &response,
+        bazi_birth_data_tier(query),
+    )))
 }
 
 pub fn get_bazi_analysis(query: &BaziQuery) -> Result<BaziAnalysisDto, String> {
@@ -119,7 +135,12 @@ pub fn get_bazi_analysis(query: &BaziQuery) -> Result<BaziAnalysisDto, String> {
     let response = report
         .analysis_response
         .ok_or_else(|| "missing bazi analysis response".to_string())?;
-    Ok(BaziAnalysisDto::from(&response))
+    let tier = bazi_birth_data_tier(query);
+    Ok(BaziAnalysisDto::from((
+        &response,
+        tier.clone(),
+        matrix_unavailable_sections(&tier),
+    )))
 }
 
 pub fn get_bazi_timing(
@@ -162,7 +183,80 @@ pub fn get_bazi_advisory(
     let response = report
         .advisory_response
         .ok_or_else(|| "missing bazi advisory response".to_string())?;
-    Ok(BaziAdvisoryDto::from(&response))
+    let mut top_signals = Vec::new();
+    let mut why_this_matters = Vec::new();
+    let mut recommended_actions = Vec::new();
+    if let Some(yong_shen) = response.useful_god_analysis.tentative_yong_shen {
+        top_signals.push(format!("yong_shen {:?}", yong_shen));
+        why_this_matters.push(
+            "Dụng thần points to the element most useful for restoring chart balance.".to_string(),
+        );
+    }
+    if let Some(xi_shen) = response.useful_god_analysis.tentative_xi_shen {
+        top_signals.push(format!("xi_shen {:?}", xi_shen));
+        why_this_matters.push(
+            "Hỷ thần highlights secondary support, useful for timing and softer optimization."
+                .to_string(),
+        );
+    }
+    if let Some(first_warning) = response.warnings.first() {
+        top_signals.push(first_warning.clone());
+        recommended_actions.push(
+            "Treat warnings as constraints before optimizing around favorable signals.".to_string(),
+        );
+    }
+
+    let severity = if response.warnings.len() >= 2 {
+        "high"
+    } else if !response.warnings.is_empty() {
+        "medium"
+    } else {
+        "low"
+    }
+    .to_string();
+
+    let summary = if !response.warnings.is_empty() {
+        format!(
+            "Bazi advisory includes {} warning(s) with {} top signal(s).",
+            response.warnings.len(),
+            top_signals.len()
+        )
+    } else {
+        format!(
+            "Bazi advisory is primarily explanatory with {} top signal(s).",
+            top_signals.len()
+        )
+    };
+
+    if recommended_actions.is_empty() {
+        recommended_actions.push(
+            "Use the strongest supporting element signals first when choosing timing, workload, or emphasis."
+                .to_string(),
+        );
+    }
+
+    let priority_order = if !response.warnings.is_empty() {
+        vec![
+            "Review warnings first".to_string(),
+            "Interpret top_signals in light of balance goals".to_string(),
+            "Then use domain guidance for concrete decisions".to_string(),
+        ]
+    } else {
+        vec![
+            "Start from top_signals".to_string(),
+            "Use useful-god guidance to shape choices".to_string(),
+            "Apply domain guidance to execution details".to_string(),
+        ]
+    };
+
+    let mut advisory = BaziAdvisoryDto::from(&response);
+    advisory.summary = summary;
+    advisory.severity = severity;
+    advisory.top_signals = top_signals;
+    advisory.why_this_matters = why_this_matters;
+    advisory.recommended_actions = recommended_actions;
+    advisory.priority_order = priority_order;
+    Ok(advisory)
 }
 
 pub fn get_bazi_metrics(
@@ -182,7 +276,12 @@ pub fn get_bazi_metrics(
         None => None,
     };
     let report = amlich_core::build_bazi_report(input, timing_input)?;
-    Ok(BaziComputedMetricsDto::from(&report.computed_metrics))
+    let tier = bazi_birth_data_tier(query);
+    Ok(BaziComputedMetricsDto::from((
+        &report.computed_metrics,
+        tier.clone(),
+        matrix_unavailable_sections(&tier),
+    )))
 }
 
 pub fn get_bazi_report(
@@ -202,7 +301,13 @@ pub fn get_bazi_report(
         None => None,
     };
     let report = amlich_core::build_bazi_report(input, timing_input)?;
-    Ok(BaziReportDto::from((query, &report)))
+    let advisory = get_bazi_advisory(query, timing)?;
+    let mut dto = BaziReportDto::from((query, &report, bazi_birth_data_tier(query)));
+    dto.summary = advisory.summary.clone();
+    dto.severity = advisory.severity.clone();
+    dto.top_signals = advisory.top_signals.clone();
+    dto.advisory = advisory;
+    Ok(dto)
 }
 
 /// Compute derived Bazi data: Thai Nguyên, Mệnh/Thân Cung, Không Vong, Thần Sát.
@@ -213,6 +318,7 @@ pub fn get_bazi_derived_report(query: &BaziQuery) -> Result<BaziDerivedReportDto
     let input = to_bazi_input(query)?;
     let report = amlich_core::build_bazi_report(input, None)?;
     let chart = &report.chart;
+    let has_birth_time = query_has_birth_time(query);
 
     // Thai Nguyên: month pillar + 1 stem, + 3 branch
     let thai_nguyen = amlich_core::bazi::compute_thai_nguyen(
@@ -221,11 +327,18 @@ pub fn get_bazi_derived_report(query: &BaziQuery) -> Result<BaziDerivedReportDto
     );
 
     // Mệnh Cung + Thân Cung: lunar month, hour branch, year stem
-    let menh_cung = amlich_core::bazi::compute_menh_than_cung(
-        chart.lunar_date.month as i32,
-        chart.hour_pillar.can_chi.chi_index,
-        chart.year_pillar.can_chi.can_index,
-    );
+    let menh_cung = has_birth_time.then(|| {
+        amlich_core::bazi::compute_menh_than_cung(
+            chart.lunar_date.month as i32,
+            chart
+                .hour_pillar
+                .as_ref()
+                .expect("birth time should yield hour pillar")
+                .can_chi
+                .chi_index,
+            chart.year_pillar.can_chi.can_index,
+        )
+    });
 
     // Không Vong: per-pillar void branches with cross-reference
     let khong_vong = amlich_core::bazi::compute_khong_vong(chart);
@@ -235,10 +348,20 @@ pub fn get_bazi_derived_report(query: &BaziQuery) -> Result<BaziDerivedReportDto
 
     Ok(BaziDerivedReportDto {
         input: query.clone(),
+        tier: bazi_birth_data_tier(query),
         thai_nguyen: ThaiNguyenDto::from(&thai_nguyen),
-        menh_cung: MenhCungDto::from(&menh_cung),
+        menh_cung: menh_cung.as_ref().map(MenhCungDto::from),
         khong_vong: KhongVongAnalysisDto::from(&khong_vong),
         than_sat: ThanSatResultDto::from(&than_sat),
+        unavailable_sections: if has_birth_time {
+            Vec::new()
+        } else {
+            vec![unavailable_section(
+                "menh_cung",
+                "requires birth hour and minute",
+                &["hour", "minute"],
+            )]
+        },
     })
 }
 
@@ -628,13 +751,19 @@ pub fn get_day_insight_with_profile(
                 tam_tai: TamTaiInsightDto {
                     in_tam_tai: han.tam_tai.in_tam_tai,
                     year_position: han.tam_tai.year_position,
-                    severity: han.tam_tai.severity.map(|s| format!("{:?}", s).to_lowercase()),
+                    severity: han
+                        .tam_tai
+                        .severity
+                        .map(|s| format!("{:?}", s).to_lowercase()),
                     tam_hop_group: han.tam_tai.tam_hop_group,
                     tai_years: han.tam_tai.tai_years,
                 },
                 kim_lau: KimLauInsightDto {
                     in_kim_lau: han.kim_lau.in_kim_lau,
-                    category: han.kim_lau.category.map(|c| format!("{:?}", c).to_lowercase()),
+                    category: han
+                        .kim_lau
+                        .category
+                        .map(|c| format!("{:?}", c).to_lowercase()),
                     remainder: han.kim_lau.remainder,
                     tuoi_mu: han.kim_lau.tuoi_mu,
                 },
@@ -726,13 +855,96 @@ pub fn get_day_insight_for_date_with_profile(
     )
 }
 
-fn profile_gender_label(
-    gender: Option<amlich_core::almanac::tu_menh::Gender>,
-) -> Option<String> {
+fn profile_gender_label(gender: Option<amlich_core::almanac::tu_menh::Gender>) -> Option<String> {
     gender.map(|value| match value {
         amlich_core::almanac::tu_menh::Gender::Male => "male".to_string(),
         amlich_core::almanac::tu_menh::Gender::Female => "female".to_string(),
     })
+}
+
+fn personal_birth_data_tier(
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> BirthDataTierDto {
+    if birth_year.is_some() && birth_month.is_some() && birth_day.is_some() && gender.is_some() {
+        BirthDataTierDto::Date
+    } else {
+        BirthDataTierDto::Anonymous
+    }
+}
+
+fn matrix_birth_data_tier(birth: &BaziQuery) -> BirthDataTierDto {
+    if query_has_birth_time(birth) {
+        BirthDataTierDto::Datetime
+    } else {
+        BirthDataTierDto::Date
+    }
+}
+
+fn unavailable_section(
+    section: &str,
+    reason: &str,
+    required_fields: &[&str],
+) -> UnavailableSectionDto {
+    UnavailableSectionDto {
+        section: section.to_string(),
+        reason: reason.to_string(),
+        required_fields: required_fields
+            .iter()
+            .map(|value| value.to_string())
+            .collect(),
+    }
+}
+
+fn personal_day_unavailable_sections(tier: &BirthDataTierDto) -> Vec<UnavailableSectionDto> {
+    match tier {
+        BirthDataTierDto::Anonymous => vec![
+            unavailable_section(
+                "ten_gods",
+                "requires full birth date and gender",
+                &["birth_year", "birth_month", "birth_day", "gender"],
+            ),
+            unavailable_section(
+                "xung_hop",
+                "requires full birth date and gender",
+                &["birth_year", "birth_month", "birth_day", "gender"],
+            ),
+            unavailable_section(
+                "tang_can",
+                "requires full birth date and gender",
+                &["birth_year", "birth_month", "birth_day", "gender"],
+            ),
+            unavailable_section(
+                "tu_menh",
+                "requires full birth date and gender",
+                &["birth_year", "birth_month", "birth_day", "gender"],
+            ),
+            unavailable_section(
+                "dai_van",
+                "requires full birth date and gender",
+                &["birth_year", "birth_month", "birth_day", "gender"],
+            ),
+            unavailable_section(
+                "yearly_han",
+                "requires full birth date and gender",
+                &["birth_year", "birth_month", "birth_day", "gender"],
+            ),
+        ],
+        BirthDataTierDto::Date | BirthDataTierDto::Datetime => Vec::new(),
+    }
+}
+
+fn matrix_unavailable_sections(tier: &BirthDataTierDto) -> Vec<UnavailableSectionDto> {
+    match tier {
+        BirthDataTierDto::Date => vec![unavailable_section(
+            "personal_hours",
+            "requires birth hour and minute",
+            &["hour", "minute"],
+        )],
+        BirthDataTierDto::Anonymous | BirthDataTierDto::Datetime => Vec::new(),
+    }
 }
 
 fn personal_day_query(
@@ -759,8 +971,10 @@ pub fn get_personal_day_chart(
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayChartDto, String> {
     let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
+    let tier = personal_birth_data_tier(birth_year, birth_month, birth_day, gender);
     Ok(PersonalDayChartDto {
         input: personal_day_query(query, birth_year, birth_month, birth_day, gender),
+        tier,
         solar: insight.solar,
         lunar: insight.lunar,
         canchi: insight.canchi,
@@ -776,13 +990,16 @@ pub fn get_personal_day_analysis(
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayAnalysisDto, String> {
     let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
+    let tier = personal_birth_data_tier(birth_year, birth_month, birth_day, gender);
     Ok(PersonalDayAnalysisDto {
+        tier: tier.clone(),
         ten_gods: insight.ten_gods,
         xung_hop: insight.xung_hop,
         tang_can: insight.tang_can,
         tu_menh: insight.tu_menh,
         dai_van: insight.dai_van,
         yearly_han: insight.yearly_han,
+        unavailable_sections: personal_day_unavailable_sections(&tier),
     })
 }
 
@@ -794,6 +1011,7 @@ pub fn get_personal_day_metrics(
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayMetricsDto, String> {
     let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
+    let tier = personal_birth_data_tier(birth_year, birth_month, birth_day, gender);
     let mut available_sections = Vec::new();
     if insight.ten_gods.is_some() {
         available_sections.push("ten_gods".to_string());
@@ -825,11 +1043,13 @@ pub fn get_personal_day_metrics(
     .count() as u8;
 
     Ok(PersonalDayMetricsDto {
+        tier: tier.clone(),
         profile_completeness,
         has_personal_recommendations: insight.tu_menh.is_some()
             || insight.dai_van.is_some()
             || insight.yearly_han.is_some(),
         available_sections,
+        unavailable_sections: personal_day_unavailable_sections(&tier),
     })
 }
 
@@ -843,33 +1063,65 @@ pub fn get_personal_day_advisory(
     let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
     let mut highlights = Vec::new();
     let mut cautions = Vec::new();
+    let mut top_signals = Vec::new();
+    let mut why_this_matters = Vec::new();
+    let mut recommended_actions = Vec::new();
 
     if let Some(tu_menh) = &insight.tu_menh {
-        highlights.push(format!("kua {} {}", tu_menh.kua, tu_menh.group));
+        let kua_signal = format!("kua {} {}", tu_menh.kua, tu_menh.group);
+        highlights.push(kua_signal.clone());
+        top_signals.push(kua_signal);
+        why_this_matters.push(
+            "Kua context helps explain which directions and environments feel more supportive."
+                .to_string(),
+        );
     } else {
         cautions.push("missing kua profile context".to_string());
+        recommended_actions.push(
+            "Add full birth date and gender to unlock Kua-based personal context.".to_string(),
+        );
     }
 
     if let Some(dai_van) = &insight.dai_van {
-        highlights.push(format!("dai_van {}", dai_van.direction));
+        let dai_van_signal = format!("dai_van {}", dai_van.direction);
+        highlights.push(dai_van_signal.clone());
+        top_signals.push(dai_van_signal);
+        why_this_matters.push("Đại Vận gives timing context so favorable or difficult signals are read in a longer cycle.".to_string());
     } else {
         cautions.push("missing dai van timing context".to_string());
+        recommended_actions.push(
+            "Provide complete birth profile details to unlock Đại Vận timing context.".to_string(),
+        );
     }
 
     if insight.ten_gods.is_none() {
         cautions.push("ten gods analysis unavailable".to_string());
+        recommended_actions.push(
+            "Use the current output as partial guidance because Ten Gods detail is unavailable."
+                .to_string(),
+        );
     }
 
     if let Some(han) = &insight.yearly_han {
         if han.han_count == 0 {
-            highlights.push("no yearly han active".to_string());
+            let han_signal = "no yearly han active".to_string();
+            highlights.push(han_signal.clone());
+            top_signals.push(han_signal);
+            why_this_matters.push("No active yearly hạn means this day is less constrained by annual caution systems.".to_string());
         } else {
             if han.sao_han.is_han {
-                cautions.push(format!("sao han: {} ({})", han.sao_han.star_name, han.sao_han.quality));
+                cautions.push(format!(
+                    "sao han: {} ({})",
+                    han.sao_han.star_name, han.sao_han.quality
+                ));
             }
             if han.tam_tai.in_tam_tai {
                 let sev = han.tam_tai.severity.as_deref().unwrap_or("unknown");
-                cautions.push(format!("tam tai year {} ({})", han.tam_tai.year_position.unwrap_or(0), sev));
+                cautions.push(format!(
+                    "tam tai year {} ({})",
+                    han.tam_tai.year_position.unwrap_or(0),
+                    sev
+                ));
             }
             if han.kim_lau.in_kim_lau {
                 let cat = han.kim_lau.category.as_deref().unwrap_or("unknown");
@@ -879,16 +1131,79 @@ pub fn get_personal_day_advisory(
                 cautions.push(format!("hoang oc: {}", han.hoang_oc.position_name));
             }
             if han.thai_tue.has_conflict {
-                let kinds: Vec<&str> = han.thai_tue.conflicts.iter().map(|c| c.kind.as_str()).collect();
+                let kinds: Vec<&str> = han
+                    .thai_tue
+                    .conflicts
+                    .iter()
+                    .map(|c| c.kind.as_str())
+                    .collect();
                 cautions.push(format!("thai tue: {}", kinds.join(", ")));
             }
             if han.is_chong_han {
-                cautions.push(format!("han chong han: {} active ({})", han.han_count, han.severity));
+                cautions.push(format!(
+                    "han chong han: {} active ({})",
+                    han.han_count, han.severity
+                ));
             }
+            top_signals.push(format!("yearly_han {} {}", han.han_count, han.severity));
+            why_this_matters.push("Active yearly hạn raises the cost of risky decisions, so daily positives should be interpreted more carefully.".to_string());
+            recommended_actions.push("Prefer lower-risk decisions and avoid stacking major commitments on caution-heavy days.".to_string());
         }
     }
 
-    Ok(PersonalDayAdvisoryDto { highlights, cautions })
+    let severity = if cautions.len() >= 4 {
+        "high"
+    } else if !cautions.is_empty() {
+        "medium"
+    } else {
+        "low"
+    }
+    .to_string();
+
+    let summary = if !cautions.is_empty() {
+        format!(
+            "Personal day view has {} caution signal(s) and {} highlight(s).",
+            cautions.len(),
+            highlights.len()
+        )
+    } else if !highlights.is_empty() {
+        format!(
+            "Personal day view is broadly supportive with {} highlight signal(s).",
+            highlights.len()
+        )
+    } else {
+        "Personal day view has limited personalized context.".to_string()
+    };
+
+    if recommended_actions.is_empty() && !highlights.is_empty() {
+        recommended_actions
+            .push("Use the strongest positive signals first when choosing timing, direction, or level of commitment.".to_string());
+    }
+
+    let priority_order = if !cautions.is_empty() {
+        vec![
+            "Review cautions first".to_string(),
+            "Use top_signals to identify the main driver".to_string(),
+            "Only then apply highlights for optimization".to_string(),
+        ]
+    } else {
+        vec![
+            "Start from top_signals".to_string(),
+            "Use highlights to reinforce favorable choices".to_string(),
+            "Keep missing context in mind before making major decisions".to_string(),
+        ]
+    };
+
+    Ok(PersonalDayAdvisoryDto {
+        summary,
+        severity,
+        top_signals,
+        why_this_matters,
+        recommended_actions,
+        priority_order,
+        highlights,
+        cautions,
+    })
 }
 
 pub fn get_personal_day_report(
@@ -898,13 +1213,21 @@ pub fn get_personal_day_report(
     birth_day: Option<i32>,
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayReportDto, String> {
+    let advisory = get_personal_day_advisory(query, birth_year, birth_month, birth_day, gender)?;
     Ok(PersonalDayReportDto {
+        summary: advisory.summary.clone(),
+        severity: advisory.severity.clone(),
+        top_signals: advisory.top_signals.clone(),
         chart: get_personal_day_chart(query, birth_year, birth_month, birth_day, gender)?,
         analysis: get_personal_day_analysis(query, birth_year, birth_month, birth_day, gender)?,
         computed_metrics: get_personal_day_metrics(
-            query, birth_year, birth_month, birth_day, gender,
+            query,
+            birth_year,
+            birth_month,
+            birth_day,
+            gender,
         )?,
-        advisory: get_personal_day_advisory(query, birth_year, birth_month, birth_day, gender)?,
+        advisory,
     })
 }
 
@@ -1076,10 +1399,8 @@ pub fn get_personal_day_matrix_report(
 ) -> Result<PersonalDayMatrixReportDto, String> {
     use amlich_core::bazi::analysis::analyze_bazi_chart;
     use amlich_core::interaction::{
-        day_person::compute_day_person_matrix,
-        direction_merge::compute_direction_merge,
-        domain_day_boost::compute_domain_day_boost,
-        element_resonance::compute_element_resonance,
+        day_person::compute_day_person_matrix, direction_merge::compute_direction_merge,
+        domain_day_boost::compute_domain_day_boost, element_resonance::compute_element_resonance,
         personal_hour::compute_personal_hour_matrix,
     };
 
@@ -1087,6 +1408,7 @@ pub fn get_personal_day_matrix_report(
     let report = amlich_core::build_bazi_report(bazi_input, None)?;
     let chart = &report.chart;
     let analysis = analyze_bazi_chart(chart);
+    let tier = matrix_birth_data_tier(birth);
 
     let tz = date.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE);
     let day_ctx = amlich_core::compute_day_context(date.day, date.month, date.year, tz);
@@ -1111,8 +1433,12 @@ pub fn get_personal_day_matrix_report(
         compute_element_resonance(day_canchi, month_chi, &analysis.element_distribution);
 
     // Matrix 3: Personal Hours
-    let personal_hours =
-        compute_personal_hour_matrix(day_canchi, chart, &analysis.element_distribution);
+    let personal_hours = match tier {
+        BirthDataTierDto::Datetime => {
+            compute_personal_hour_matrix(day_canchi, chart, &analysis.element_distribution)
+        }
+        BirthDataTierDto::Anonymous | BirthDataTierDto::Date => None,
+    };
 
     // Matrix 4a: Direction Merge (requires Kua = requires gender)
     let direction_merge = day_fortune.tu_menh.as_ref().map(|kua| {
@@ -1139,11 +1465,13 @@ pub fn get_personal_day_matrix_report(
             birth: birth.clone(),
             date: date.clone(),
         },
+        tier: tier.clone(),
         day_person,
         element_resonance,
         personal_hours,
         direction_merge,
         domain_day_boost,
+        unavailable_sections: matrix_unavailable_sections(&tier),
     })
 }
 

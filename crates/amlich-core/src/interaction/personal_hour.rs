@@ -36,10 +36,10 @@ pub fn compute_personal_hour_matrix(
     day_canchi: &CanChi,
     chart: &BaziChart,
     element_dist: &ElementDistribution,
-) -> PersonalHourMatrix {
+) -> Option<PersonalHourMatrix> {
     let day_stem = HeavenlyStem::ALL[day_canchi.can_index];
     let day_master_stem = HeavenlyStem::ALL[chart.day_master.can_index];
-    let birth_hour_chi_index = chart.hour_pillar.can_chi.chi_index;
+    let birth_hour_chi_index = chart.hour_pillar.as_ref()?.can_chi.chi_index;
     let weak = weakest_element(element_dist);
 
     let hoang_dao = get_gio_hoang_dao(day_canchi.chi_index);
@@ -60,12 +60,7 @@ pub fn compute_personal_hour_matrix(
 
             let supports_weak = hour_stem.element() == weak;
 
-            let score = compute_hour_score(
-                is_hoang_dao,
-                &thap_than,
-                &branch_rel,
-                supports_weak,
-            );
+            let score = compute_hour_score(is_hoang_dao, &thap_than, &branch_rel, supports_weak);
 
             PersonalHourEntry {
                 chi_index: hour_chi_index,
@@ -83,7 +78,7 @@ pub fn compute_personal_hour_matrix(
         })
         .collect();
 
-    PersonalHourMatrix {
+    Some(PersonalHourMatrix {
         day_canchi: day_canchi.full.clone(),
         day_master: chart.day_master.full.clone(),
         birth_hour_chi: CHI[birth_hour_chi_index].to_string(),
@@ -94,7 +89,7 @@ pub fn compute_personal_hour_matrix(
             method: "personal-hour-matrix".to_string(),
             profile: "baseline".to_string(),
         },
-    }
+    })
 }
 
 /// Weighted composite score for one hour slot (0-100).
@@ -122,13 +117,13 @@ fn compute_hour_score(
     // Thập Thần favorability
     use crate::almanac::types::ThapThanLabel;
     score += match thap_than.label {
-        ThapThanLabel::ChinhAn | ThapThanLabel::ThienAn => 15,   // Seal = support
-        ThapThanLabel::TyKien | ThapThanLabel::KiepTai => 5,     // Peer = mild support
-        ThapThanLabel::ThucThan => 10,                           // Food God = positive
-        ThapThanLabel::ThuongQuan => -5,                         // Injured Officer = mild drain
-        ThapThanLabel::ChinhTai | ThapThanLabel::ThienTai => 0,  // Wealth = neutral
-        ThapThanLabel::ChinhQuan => 5,                           // Direct Officer = structure
-        ThapThanLabel::ThatSat => -10,                           // Seven Killings = pressure
+        ThapThanLabel::ChinhAn | ThapThanLabel::ThienAn => 15, // Seal = support
+        ThapThanLabel::TyKien | ThapThanLabel::KiepTai => 5,   // Peer = mild support
+        ThapThanLabel::ThucThan => 10,                         // Food God = positive
+        ThapThanLabel::ThuongQuan => -5,                       // Injured Officer = mild drain
+        ThapThanLabel::ChinhTai | ThapThanLabel::ThienTai => 0, // Wealth = neutral
+        ThapThanLabel::ChinhQuan => 5,                         // Direct Officer = structure
+        ThapThanLabel::ThatSat => -10,                         // Seven Killings = pressure
     };
 
     // Branch harmony/conflict
@@ -209,7 +204,7 @@ mod tests {
             year_pillar,
             month_pillar,
             day_pillar,
-            hour_pillar,
+            hour_pillar: Some(hour_pillar),
             day_master,
             pillars,
             metadata: BaziChartMetadata {
@@ -238,7 +233,7 @@ mod tests {
     fn matrix_has_12_hours() {
         let day = CanChi::new(0, 0); // Giáp Tý
         let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
-        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist());
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
         assert_eq!(matrix.hours.len(), 12);
     }
 
@@ -246,7 +241,7 @@ mod tests {
     fn hours_cover_all_12_branches() {
         let day = CanChi::new(0, 0);
         let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
-        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist());
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
         let chis: Vec<usize> = matrix.hours.iter().map(|h| h.chi_index).collect();
         for i in 0..12 {
             assert!(chis.contains(&i), "missing chi_index {i}");
@@ -257,7 +252,7 @@ mod tests {
     fn scores_are_in_valid_range() {
         let day = CanChi::new(0, 0);
         let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
-        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist());
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
         for h in &matrix.hours {
             assert!(h.score <= 100, "score {} exceeds 100", h.score);
         }
@@ -274,7 +269,7 @@ mod tests {
             kim: 50,
             thuy: 50,
         };
-        let matrix = compute_personal_hour_matrix(&day, &chart, &dist);
+        let matrix = compute_personal_hour_matrix(&day, &chart, &dist).expect("matrix");
         let avg_hd: f64 = matrix
             .hours
             .iter()
@@ -319,7 +314,7 @@ mod tests {
             kim: 30,
             thuy: 5, // weakest
         };
-        let matrix = compute_personal_hour_matrix(&day, &chart, &dist);
+        let matrix = compute_personal_hour_matrix(&day, &chart, &dist).expect("matrix");
         assert_eq!(matrix.weak_element, FiveElement::Thuy);
         // At least one hour should have a Thủy stem (Nhâm or Quý)
         let any_supports = matrix.hours.iter().any(|h| h.supports_weak_element);
@@ -330,7 +325,7 @@ mod tests {
     fn day_master_and_birth_hour_are_recorded() {
         let day = CanChi::new(0, 0);
         let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
-        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist());
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
         assert_eq!(matrix.day_master, chart.day_master.full);
         assert_eq!(matrix.birth_hour_chi, "Ngọ"); // chi_index 6
     }
@@ -339,7 +334,7 @@ mod tests {
     fn matrix_serializes_to_json() {
         let day = CanChi::new(0, 0);
         let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
-        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist());
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
         let json = serde_json::to_string(&matrix).expect("should serialize");
         assert!(json.contains("\"hours\""));
         assert!(json.contains("\"score\""));
@@ -351,8 +346,18 @@ mod tests {
     fn evidence_metadata_is_set() {
         let day = CanChi::new(0, 0);
         let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
-        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist());
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
         assert_eq!(matrix.evidence.source_id, "khcbppt");
         assert_eq!(matrix.evidence.method, "personal-hour-matrix");
+    }
+
+    #[test]
+    fn matrix_is_unavailable_without_birth_hour() {
+        let day = CanChi::new(0, 0);
+        let mut chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
+        chart.hour_pillar = None;
+        chart.pillars.pop();
+
+        assert!(compute_personal_hour_matrix(&day, &chart, &balanced_dist()).is_none());
     }
 }

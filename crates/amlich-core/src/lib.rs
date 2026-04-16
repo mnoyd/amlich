@@ -11,14 +11,15 @@ pub mod advisory;
 pub mod almanac;
 pub mod analysis_envelope;
 pub mod bazi;
-pub mod interaction;
 pub mod canchi;
 pub mod gio_hoang_dao;
 pub mod holiday_data;
 pub mod holidays;
 pub mod insight_data;
+pub mod interaction;
 pub mod julian;
 pub mod lunar;
+pub mod reasoning;
 pub mod sun;
 pub mod tietkhi;
 pub mod types;
@@ -37,8 +38,8 @@ pub use crate::almanac::kim_lau::{compute_kim_lau, KimLauCategory, KimLauResult}
 pub use crate::almanac::phuc_than::{get_phuc_than, PhucThanResult};
 pub use crate::almanac::sat_phuong::{get_sat_phuong, SatPhuongResult};
 pub use crate::almanac::tam_tai::{compute_tam_tai, TamTaiResult, TamTaiSeverity};
-pub use crate::almanac::thap_than::get_thap_than;
 pub use crate::almanac::thai_tue::{compute_thai_tue, ThaiTueConflictKind, ThaiTueResult};
+pub use crate::almanac::thap_than::get_thap_than;
 pub use crate::almanac::tu_menh::{compute_kua, Gender, KuaGroup, KuaResult};
 pub use crate::almanac::types::{HeavenlyStem, ThapThanLabel, ThapThanResult};
 pub use crate::almanac::yearly_han::{
@@ -67,7 +68,13 @@ pub use crate::bazi::{
     MonthlyPillarResponse, PillarKind, SeasonStrengthMatrix, StemRelationSet, TenGodContextMatrix,
     TenGodDistribution, TenGodWeightProfile, UsefulGodAnalysis, UsefulGodResponse,
 };
+pub use crate::reasoning::{
+    ActionId, DecisionConfidence, EdgeEffect, InitiationOpeningDecision, InitiationOpeningVector,
+    InterpretedAxis, NodeKind, ReasoningEdge, ReasoningGraph, ReasoningNode, RecommendationBucket,
+};
 pub use types::*;
+
+use crate::reasoning::{build_initiation_opening_decision, PersonalReasoningInput};
 
 use crate::almanac::calc::calculate_day_fortune;
 use crate::almanac::data::get_ruleset;
@@ -190,6 +197,13 @@ pub fn calculate_day_snapshot_with_timezone(
 ) -> DaySnapshot {
     calculate_day_snapshot_internal(day, month, year, time_zone, SnapshotRequest::default())
         .expect("default recommendation request should be valid")
+}
+
+pub fn build_initiation_opening_reasoning(
+    snapshot: &DaySnapshot,
+    personal_input: Option<&PersonalReasoningInput>,
+) -> Result<InitiationOpeningDecision, String> {
+    build_initiation_opening_decision(snapshot, personal_input)
 }
 
 fn calculate_day_snapshot_internal(

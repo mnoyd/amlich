@@ -5,7 +5,6 @@
 ///
 /// **Source:** Both KHCBPPT and Vietnamese folk tradition
 /// **Decision:** DEC-0021
-
 use serde::{Deserialize, Serialize};
 
 use super::types::RuleEvidence;
@@ -120,7 +119,10 @@ mod tests {
     fn truc_same_branch() {
         let r = compute_thai_tue(6, 6); // Ngọ year, Ngọ birth
         assert!(r.has_conflict);
-        assert!(r.conflicts.iter().any(|c| c.kind == ThaiTueConflictKind::Truc));
+        assert!(r
+            .conflicts
+            .iter()
+            .any(|c| c.kind == ThaiTueConflictKind::Truc));
     }
 
     #[test]
@@ -128,28 +130,40 @@ mod tests {
         // Tý(0) xung Ngọ(6)
         let r = compute_thai_tue(0, 6);
         assert!(r.has_conflict);
-        assert!(r.conflicts.iter().any(|c| c.kind == ThaiTueConflictKind::Xung));
+        assert!(r
+            .conflicts
+            .iter()
+            .any(|c| c.kind == ThaiTueConflictKind::Xung));
     }
 
     #[test]
     fn hai_harm_relationship() {
         // Tý(0) hại Mùi(7)
         let r = compute_thai_tue(0, 7);
-        assert!(r.conflicts.iter().any(|c| c.kind == ThaiTueConflictKind::Hai));
+        assert!(r
+            .conflicts
+            .iter()
+            .any(|c| c.kind == ThaiTueConflictKind::Hai));
     }
 
     #[test]
     fn hinh_punishment_relationship() {
         // Dần(2) hình Tỵ(5) — both in punishment group [Dần, Tỵ, Thân]
         let r = compute_thai_tue(2, 5);
-        assert!(r.conflicts.iter().any(|c| c.kind == ThaiTueConflictKind::Hinh));
+        assert!(r
+            .conflicts
+            .iter()
+            .any(|c| c.kind == ThaiTueConflictKind::Hinh));
     }
 
     #[test]
     fn pha_break_relationship() {
         // Tý(0) phá Dậu(9): (0+9)%12=9
         let r = compute_thai_tue(0, 9);
-        assert!(r.conflicts.iter().any(|c| c.kind == ThaiTueConflictKind::Pha));
+        assert!(r
+            .conflicts
+            .iter()
+            .any(|c| c.kind == ThaiTueConflictKind::Pha));
     }
 
     #[test]
@@ -166,7 +180,10 @@ mod tests {
         // Some branches can have multiple conflict types simultaneously
         let r = compute_thai_tue(6, 6); // Same branch → Truc + possibly Hinh (self-punishment for Ngọ)
         assert!(r.has_conflict);
-        assert!(r.conflicts.iter().any(|c| c.kind == ThaiTueConflictKind::Truc));
+        assert!(r
+            .conflicts
+            .iter()
+            .any(|c| c.kind == ThaiTueConflictKind::Truc));
     }
 
     #[test]

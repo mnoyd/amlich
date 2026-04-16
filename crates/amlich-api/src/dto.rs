@@ -379,6 +379,7 @@ pub struct BaziChartMetadataDto {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaziChartDto {
     pub input: BaziQuery,
+    pub tier: BirthDataTierDto,
     pub lunar_date: BaziLunarDateDto,
     pub day_master: BaziCanChiDto,
     pub pillars: Vec<BaziPillarDto>,
@@ -424,10 +425,13 @@ pub struct TenGodDistributionDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaziAnalysisDto {
+    pub tier: BirthDataTierDto,
     pub element_distribution: ElementDistributionDto,
     pub day_master_strength: DayMasterStrengthDto,
     pub interactions: Vec<ChartInteractionDto>,
     pub ten_god_distribution: TenGodDistributionDto,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unavailable_sections: Vec<UnavailableSectionDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -494,6 +498,12 @@ pub struct BaziAdvisoryDomainsDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaziAdvisoryDto {
+    pub summary: String,
+    pub severity: String,
+    pub top_signals: Vec<String>,
+    pub why_this_matters: Vec<String>,
+    pub recommended_actions: Vec<String>,
+    pub priority_order: Vec<String>,
     pub useful_god_analysis: UsefulGodDto,
     pub summary_vi: String,
     pub warnings: Vec<String>,
@@ -569,14 +579,23 @@ pub struct BaziStructureMetricsDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaziComputedMetricsDto {
+    pub tier: BirthDataTierDto,
     pub core_metrics: BaziCoreMetricsDto,
     pub structure_metrics: BaziStructureMetricsDto,
     pub domain_scores: BaziDomainScoresDto,
     pub timing_metrics: BaziTimingMetricsDto,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unavailable_sections: Vec<UnavailableSectionDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaziReportDto {
+    pub summary: String,
+    pub severity: String,
+    pub top_signals: Vec<String>,
+    pub why_this_matters: Vec<String>,
+    pub recommended_actions: Vec<String>,
+    pub priority_order: Vec<String>,
     pub chart: BaziChartDto,
     pub analysis: BaziAnalysisDto,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -1042,9 +1061,25 @@ pub struct PersonalDayQueryDto {
     pub gender: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BirthDataTierDto {
+    Anonymous,
+    Date,
+    Datetime,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+pub struct UnavailableSectionDto {
+    pub section: String,
+    pub reason: String,
+    pub required_fields: Vec<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PersonalDayChartDto {
     pub input: PersonalDayQueryDto,
+    pub tier: BirthDataTierDto,
     pub solar: SolarDto,
     pub lunar: LunarDto,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1055,6 +1090,7 @@ pub struct PersonalDayChartDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PersonalDayAnalysisDto {
+    pub tier: BirthDataTierDto,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub ten_gods: Option<TenGodsInsightDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1067,23 +1103,37 @@ pub struct PersonalDayAnalysisDto {
     pub dai_van: Option<DaiVanInsightDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub yearly_han: Option<YearlyHanInsightDto>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unavailable_sections: Vec<UnavailableSectionDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PersonalDayMetricsDto {
+    pub tier: BirthDataTierDto,
     pub profile_completeness: u8,
     pub available_sections: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unavailable_sections: Vec<UnavailableSectionDto>,
     pub has_personal_recommendations: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PersonalDayAdvisoryDto {
+    pub summary: String,
+    pub severity: String,
+    pub top_signals: Vec<String>,
+    pub why_this_matters: Vec<String>,
+    pub recommended_actions: Vec<String>,
+    pub priority_order: Vec<String>,
     pub highlights: Vec<String>,
     pub cautions: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PersonalDayReportDto {
+    pub summary: String,
+    pub severity: String,
+    pub top_signals: Vec<String>,
     pub chart: PersonalDayChartDto,
     pub analysis: PersonalDayAnalysisDto,
     pub computed_metrics: PersonalDayMetricsDto,
@@ -1107,18 +1157,22 @@ pub struct PersonalDayMatrixQueryDto {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PersonalDayMatrixReportDto {
     pub input: PersonalDayMatrixQueryDto,
+    pub tier: BirthDataTierDto,
     /// Matrix 1: how today's Can Chi interacts with each personal pillar.
     pub day_person: amlich_core::interaction::types::DayPersonMatrix,
     /// Matrix 2: element resonance between today and person's element distribution.
     pub element_resonance: amlich_core::interaction::types::ElementResonanceMatrix,
     /// Matrix 3: personal ranking of each of 12 traditional hours.
-    pub personal_hours: amlich_core::interaction::types::PersonalHourMatrix,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub personal_hours: Option<amlich_core::interaction::types::PersonalHourMatrix>,
     /// Matrix 4a: unified direction scores from Kua + day deities.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub direction_merge: Option<amlich_core::interaction::types::DirectionMergeMatrix>,
     /// Matrix 4b: domain scores boosted by day-level signals.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub domain_day_boost: Option<amlich_core::interaction::types::DomainDayBoostMatrix>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unavailable_sections: Vec<UnavailableSectionDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1253,10 +1307,14 @@ pub struct ThanSatResultDto {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaziDerivedReportDto {
     pub input: BaziQuery,
+    pub tier: BirthDataTierDto,
     pub thai_nguyen: ThaiNguyenDto,
-    pub menh_cung: MenhCungDto,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub menh_cung: Option<MenhCungDto>,
     pub khong_vong: KhongVongAnalysisDto,
     pub than_sat: ThanSatResultDto,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unavailable_sections: Vec<UnavailableSectionDto>,
 }
 
 #[cfg(test)]
@@ -1332,6 +1390,7 @@ mod tests {
     #[test]
     fn bazi_derived_report_dto_serializes() {
         let report = BaziDerivedReportDto {
+            tier: BirthDataTierDto::Datetime,
             input: BaziQuery {
                 year: 1990,
                 month: 6,
@@ -1357,7 +1416,7 @@ mod tests {
                     profile: "baseline".into(),
                 },
             },
-            menh_cung: MenhCungDto {
+            menh_cung: Some(MenhCungDto {
                 menh_cung: BaziCanChiDto {
                     can: "Bính".into(),
                     chi: "Dần".into(),
@@ -1377,7 +1436,7 @@ mod tests {
                     method: "menh-cung-month-hour-counter".into(),
                     profile: "baseline".into(),
                 },
-            },
+            }),
             khong_vong: KhongVongAnalysisDto {
                 entries: vec![],
                 evidence: RuleEvidenceDto {
@@ -1394,6 +1453,7 @@ mod tests {
                     profile: "baseline".into(),
                 },
             },
+            unavailable_sections: Vec::new(),
         };
 
         let json = serde_json::to_string(&report).expect("serialize");

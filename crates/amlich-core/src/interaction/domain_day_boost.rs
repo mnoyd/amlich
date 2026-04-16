@@ -111,7 +111,12 @@ mod tests {
         }
     }
 
-    fn make_fortune(cat_count: usize, sat_count: usize, truc_quality: &str, hoang_dao: bool) -> DayFortune {
+    fn make_fortune(
+        cat_count: usize,
+        sat_count: usize,
+        truc_quality: &str,
+        hoang_dao: bool,
+    ) -> DayFortune {
         DayFortune {
             ruleset_id: "test".to_string(),
             ruleset_version: "v1".to_string(),
@@ -190,7 +195,10 @@ mod tests {
         let fortune = make_fortune(0, 0, "binh", true);
         let matrix = compute_domain_day_boost(&fortune, &make_domain_scores(), 0);
         let names: Vec<&str> = matrix.entries.iter().map(|e| e.domain.as_str()).collect();
-        assert_eq!(names, ["career", "wealth", "relationship", "health", "timing"]);
+        assert_eq!(
+            names,
+            ["career", "wealth", "relationship", "health", "timing"]
+        );
     }
 
     #[test]

@@ -6,18 +6,17 @@
 ///
 /// **Source:** Vietnamese folk tradition (dân gian), NOT in KHCBPPT
 /// **Decision:** DEC-0015
-
 use serde::{Deserialize, Serialize};
 
 use super::types::RuleEvidence;
 
 pub const HOANG_OC_NAMES: [&str; 6] = [
     "Lục Hoàng Ốc", // position 0 (mod 6 = 0) → BAD
-    "Nhất Cát",      // position 1 → GOOD
-    "Nhị Nghi",      // position 2 → GOOD
-    "Tam Địa Sát",   // position 3 → BAD
-    "Tứ Tấn Tài",    // position 4 → GOOD
-    "Ngũ Thọ Tử",    // position 5 → BAD
+    "Nhất Cát",     // position 1 → GOOD
+    "Nhị Nghi",     // position 2 → GOOD
+    "Tam Địa Sát",  // position 3 → BAD
+    "Tứ Tấn Tài",   // position 4 → GOOD
+    "Ngũ Thọ Tử",   // position 5 → BAD
 ];
 
 pub const HOANG_OC_GOOD: [bool; 6] = [

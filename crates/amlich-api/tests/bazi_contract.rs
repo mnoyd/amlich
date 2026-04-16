@@ -70,6 +70,15 @@ fn bazi_advisory_can_include_timing_context() {
     )
     .expect("advisory");
 
+    assert!(!advisory.summary.is_empty());
+    assert!(matches!(
+        advisory.severity.as_str(),
+        "low" | "medium" | "high"
+    ));
+    assert!(!advisory.top_signals.is_empty());
+    assert!(!advisory.why_this_matters.is_empty());
+    assert!(!advisory.recommended_actions.is_empty());
+    assert!(!advisory.priority_order.is_empty());
     assert!(!advisory.summary_vi.is_empty());
     assert!(!advisory.domains.timing.is_empty());
 }
@@ -103,6 +112,12 @@ fn bazi_report_exposes_unified_surface() {
     )
     .expect("report");
 
+    assert!(!report.summary.is_empty());
+    assert!(matches!(
+        report.severity.as_str(),
+        "low" | "medium" | "high"
+    ));
+    assert!(!report.top_signals.is_empty());
     assert_eq!(report.chart.pillars.len(), 4);
     assert!(!report.analysis.day_master_strength.label.is_empty());
     assert!(report.timing.is_some());

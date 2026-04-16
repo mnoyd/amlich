@@ -154,6 +154,19 @@ fn render_profile_verdict(app: &AppState, area: Rect, buf: &mut Buffer) {
             Span::styled(direction.summary, Style::default().fg(Color::Cyan)),
         ]));
     }
+    if !profile.missing_requirements.is_empty() {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![
+            Span::raw("  "),
+            Span::styled("Thiếu để mở thêm:", Style::default().fg(Color::DarkGray)),
+        ]));
+        for item in profile.missing_requirements.iter().take(2) {
+            lines.push(Line::from(vec![
+                Span::raw("  • "),
+                Span::styled(item.clone(), Style::default().fg(Color::DarkGray)),
+            ]));
+        }
+    }
 
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })
@@ -185,6 +198,18 @@ fn render_scope_note(note: &str, area: Rect, buf: &mut Buffer) {
             Span::raw("  "),
             Span::styled(
                 "Cần năm sinh + giới tính để mở Tứ Mệnh, hướng hợp và Đại Vận.",
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::raw("  "),
+            Span::styled("Thiếu hiện tại:", Style::default().fg(Color::Yellow)),
+        ]),
+        Line::from(vec![
+            Span::raw("  • "),
+            Span::styled(
+                "Hồ sơ chưa đủ để mở hết lớp cá nhân hóa.",
                 Style::default().fg(Color::DarkGray),
             ),
         ]),
@@ -347,7 +372,7 @@ fn render_dai_van_timeline(insight: &amlich_api::DayInsightDto, area: Rect, buf:
         lines.push(Line::from(vec![
             Span::styled("  • ", Style::default().fg(Color::Yellow)),
             Span::styled(
-                format!("{}", pillar.can_chi),
+                pillar.can_chi.to_string(),
                 Style::default()
                     .fg(Color::White)
                     .add_modifier(Modifier::BOLD),

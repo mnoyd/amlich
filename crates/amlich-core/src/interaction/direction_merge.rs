@@ -61,14 +61,8 @@ pub fn compute_direction_merge(
                 signals.push(DirectionSignal::SatPhuong);
             }
 
-            let favorable_count = signals
-                .iter()
-                .filter(|s| s.is_favorable())
-                .count() as i8;
-            let unfavorable_count = signals
-                .iter()
-                .filter(|s| s.is_unfavorable())
-                .count() as i8;
+            let favorable_count = signals.iter().filter(|s| s.is_favorable()).count() as i8;
+            let unfavorable_count = signals.iter().filter(|s| s.is_unfavorable()).count() as i8;
 
             DirectionEntry {
                 direction: dir.to_string(),
@@ -159,7 +153,11 @@ mod tests {
         let day = CanChi::new(0, 0);
         let kua = make_kua(); // favorable: SE, E, S, N
         let matrix = compute_direction_merge(&day, "Tây", "Tây", &kua);
-        let south = matrix.entries.iter().find(|e| e.direction == "Nam").unwrap();
+        let south = matrix
+            .entries
+            .iter()
+            .find(|e| e.direction == "Nam")
+            .unwrap();
         assert!(south.signals.contains(&DirectionSignal::KuaFavorable));
     }
 
@@ -168,7 +166,11 @@ mod tests {
         let day = CanChi::new(0, 0);
         let kua = make_kua(); // unfavorable: W, NW, SW, NE
         let matrix = compute_direction_merge(&day, "Bắc", "Bắc", &kua);
-        let west = matrix.entries.iter().find(|e| e.direction == "Tây").unwrap();
+        let west = matrix
+            .entries
+            .iter()
+            .find(|e| e.direction == "Tây")
+            .unwrap();
         assert!(west.signals.contains(&DirectionSignal::KuaUnfavorable));
     }
 
@@ -177,7 +179,11 @@ mod tests {
         let day = CanChi::new(0, 0);
         let kua = make_kua();
         let matrix = compute_direction_merge(&day, "Đông Nam", "Bắc", &kua);
-        let se = matrix.entries.iter().find(|e| e.direction == "Đông Nam").unwrap();
+        let se = matrix
+            .entries
+            .iter()
+            .find(|e| e.direction == "Đông Nam")
+            .unwrap();
         assert!(se.signals.contains(&DirectionSignal::TaiThan));
     }
 
@@ -187,7 +193,11 @@ mod tests {
         let day = CanChi::new(0, 0);
         let kua = make_kua();
         let matrix = compute_direction_merge(&day, "Bắc", "Bắc", &kua);
-        let south = matrix.entries.iter().find(|e| e.direction == "Nam").unwrap();
+        let south = matrix
+            .entries
+            .iter()
+            .find(|e| e.direction == "Nam")
+            .unwrap();
         assert!(south.signals.contains(&DirectionSignal::SatPhuong));
     }
 
@@ -197,7 +207,11 @@ mod tests {
         let day = CanChi::new(0, 0);
         let kua = make_kua();
         let matrix = compute_direction_merge(&day, "Tây", "Tây", &kua);
-        let north = matrix.entries.iter().find(|e| e.direction == "Bắc").unwrap();
+        let north = matrix
+            .entries
+            .iter()
+            .find(|e| e.direction == "Bắc")
+            .unwrap();
         assert!(north.signals.contains(&DirectionSignal::PhucThan));
     }
 
@@ -207,7 +221,10 @@ mod tests {
         let kua = make_kua();
         let matrix = compute_direction_merge(&day, "Bắc", "Bắc", &kua);
         for entry in &matrix.entries {
-            assert_eq!(entry.net_score, entry.favorable_count - entry.unfavorable_count);
+            assert_eq!(
+                entry.net_score,
+                entry.favorable_count - entry.unfavorable_count
+            );
         }
     }
 

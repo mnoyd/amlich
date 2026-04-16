@@ -5,7 +5,6 @@
 ///
 /// **Source:** Ngọc Hạp Ký (玉匣記), NOT in KHCBPPT
 /// **Decision:** DEC-0015
-
 use serde::{Deserialize, Serialize};
 
 use super::types::RuleEvidence;
