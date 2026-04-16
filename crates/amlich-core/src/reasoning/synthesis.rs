@@ -26,7 +26,12 @@ pub fn build_initiation_opening_decision(
                 .map(|node| node.summary_vi.clone())
                 .or_else(|| Some(edge.from_node_id.clone()))
         })
-        .collect::<Vec<_>>();
+        .fold(Vec::new(), |mut acc, factor| {
+            if !acc.contains(&factor) {
+                acc.push(factor);
+            }
+            acc
+        });
 
     let conflict_notes = graph
         .edges
@@ -90,11 +95,20 @@ fn synthesize_bucket(
     conflict_notes: &[String],
 ) -> RecommendationBucket {
     if !override_factors.is_empty() {
+        if override_factors.len() == 1
+            && override_factors
+                .first()
+                .is_some_and(|factor| factor.starts_with("Kiêng/kỵ:"))
+            && vector.support <= 1.0
+            && !conflict_notes.is_empty()
+        {
+            return RecommendationBucket::Cautious;
+        }
         return RecommendationBucket::Avoid;
     }
 
     if vector.support > 0.0 && vector.resistance > 0.0 && !conflict_notes.is_empty() {
-        return RecommendationBucket::Mixed;
+        return RecommendationBucket::Cautious;
     }
 
     if vector.resistance > vector.support {

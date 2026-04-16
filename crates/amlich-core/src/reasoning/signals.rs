@@ -1,4 +1,7 @@
-use crate::almanac::types::DayDeityClassification;
+use crate::{
+    almanac::{recommendation::evidence::collect_truc_hits, types::DayDeityClassification},
+    insight_data::find_truc_insight,
+};
 
 use super::{EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdge, ReasoningGraph, ReasoningNode};
 
@@ -27,6 +30,49 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                         InterpretedAxis::Support.signal_node_id(),
                         EdgeEffect::Supports,
                     ));
+                }
+                if let Some(truc_name) = node.summary_vi.strip_prefix("Trực ") {
+                    if let Some(truc) = find_truc_insight(truc_name) {
+                        let opening_hits = collect_truc_hits(truc)
+                            .into_iter()
+                            .filter(|hit| {
+                                hit.activity_id == crate::almanac::recommendation::ActivityId::OpeningStart
+                            })
+                            .collect::<Vec<_>>();
+                        let opening_avoid_count = opening_hits
+                            .iter()
+                            .filter(|hit| matches!(hit.direction, crate::almanac::recommendation::evidence::BaseDirection::Avoid))
+                            .count();
+                        let has_opening_avoid = opening_avoid_count > 0;
+                        let has_opening_favor = opening_hits
+                            .iter()
+                            .any(|hit| matches!(hit.direction, crate::almanac::recommendation::evidence::BaseDirection::Favor));
+
+                        if has_opening_avoid {
+                            graph.edges.push(ReasoningEdge::new(
+                                node.id.clone(),
+                                InterpretedAxis::Resistance.signal_node_id(),
+                                if opening_avoid_count > 1 {
+                                    EdgeEffect::Overrides
+                                } else {
+                                    EdgeEffect::Supports
+                                },
+                            ));
+                            graph.edges.push(ReasoningEdge::new(
+                                node.id.clone(),
+                                InterpretedAxis::ContextClarity.signal_node_id(),
+                                EdgeEffect::ConflictsWith,
+                            ));
+                        }
+
+                        if has_opening_favor {
+                            graph.edges.push(ReasoningEdge::new(
+                                node.id.clone(),
+                                InterpretedAxis::Support.signal_node_id(),
+                                EdgeEffect::Supports,
+                            ));
+                        }
+                    }
                 }
             }
             "fact.day.day_deity" => {
@@ -188,7 +234,7 @@ fn is_star_supportive(summary: &str) -> bool {
 }
 
 fn looks_clash_heavy(summary: &str) -> bool {
-    summary.contains("Xung")
+    summary.contains("Xung") && !summary.contains(", hợp ")
 }
 
 fn has_good_hour_capacity(severity: &Option<String>) -> bool {

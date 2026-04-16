@@ -19,6 +19,10 @@ fn build_fact_graph_maps_existing_day_snapshot_fields_to_fact_nodes() {
         .nodes
         .iter()
         .any(|n| n.id == "fact.day.hoang_dao_hours"));
+    assert!(!graph
+        .nodes
+        .iter()
+        .any(|n| n.id.starts_with("fact.legacy.")));
 }
 
 #[test]
