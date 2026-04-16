@@ -174,7 +174,7 @@ mod tests {
 
     #[test]
     fn all_six_tuans_cover_all_branches() {
-        let mut seen = vec![false; 12];
+        let mut seen = [false; 12];
         for tuan in 0..6 {
             let pair = KhongVongPair::from_sexagenary(tuan * 10);
             for &idx in &pair.branch_indices {

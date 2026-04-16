@@ -372,7 +372,7 @@ fn render_dai_van_timeline(insight: &amlich_api::DayInsightDto, area: Rect, buf:
         lines.push(Line::from(vec![
             Span::styled("  • ", Style::default().fg(Color::Yellow)),
             Span::styled(
-                format!("{}", pillar.can_chi),
+                pillar.can_chi.to_string(),
                 Style::default()
                     .fg(Color::White)
                     .add_modifier(Modifier::BOLD),

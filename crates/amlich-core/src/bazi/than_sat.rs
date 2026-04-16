@@ -403,8 +403,8 @@ mod tests {
 
     #[test]
     fn thien_hy_is_hong_loan_plus_6() {
-        for chi in 0..12 {
-            assert_eq!(thien_hy(chi), (HONG_LOAN[chi] + 6) % 12);
+        for (chi, &hong_loan) in HONG_LOAN.iter().enumerate() {
+            assert_eq!(thien_hy(chi), (hong_loan + 6) % 12);
         }
     }
 
