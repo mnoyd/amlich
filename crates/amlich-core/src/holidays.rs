@@ -57,16 +57,14 @@ pub fn get_upcoming_events(
     for h in all_holidays {
         let jd = jd_from_date(h.solar_day, h.solar_month, h.solar_year);
         let days_left = jd - current_jd;
-        if days_left > 0 && days_left <= limit_days {
-            if !seen_jds.contains(&jd) {
-                seen_jds.insert(jd);
-                upcoming.push(UpcomingEvent {
-                    name: h.name.clone(),
-                    jd,
-                    days_left,
-                    is_lunar: !h.is_solar,
-                });
-            }
+        if days_left > 0 && days_left <= limit_days && !seen_jds.contains(&jd) {
+            seen_jds.insert(jd);
+            upcoming.push(UpcomingEvent {
+                name: h.name.clone(),
+                jd,
+                days_left,
+                is_lunar: !h.is_solar,
+            });
         }
     }
 

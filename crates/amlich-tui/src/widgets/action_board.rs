@@ -47,24 +47,22 @@ impl Widget for ActionBoardWidget<'_> {
         // Collect top 2 Nen
         let mut nen = vec![];
         for act in &recs.activities {
-            if act.bucket == RecommendationBucketDto::Nen
-                || act.bucket == RecommendationBucketDto::CoThe
+            if (act.bucket == RecommendationBucketDto::Nen
+                || act.bucket == RecommendationBucketDto::CoThe)
+                && nen.len() < 2
             {
-                if nen.len() < 2 {
-                    nen.push(act);
-                }
+                nen.push(act);
             }
         }
 
         // Collect top 2 Tranh
         let mut tranh = vec![];
         for act in &recs.activities {
-            if act.bucket == RecommendationBucketDto::KyManh
-                || act.bucket == RecommendationBucketDto::Tranh
+            if (act.bucket == RecommendationBucketDto::KyManh
+                || act.bucket == RecommendationBucketDto::Tranh)
+                && tranh.len() < 2
             {
-                if tranh.len() < 2 {
-                    tranh.push(act);
-                }
+                tranh.push(act);
             }
         }
 

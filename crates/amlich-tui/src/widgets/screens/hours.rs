@@ -316,8 +316,7 @@ fn render_block_timeline(
 ) {
     let current_idx = current_hour_block_index(selected_date);
 
-    let hour_chunks =
-        Layout::horizontal(std::iter::repeat(Constraint::Ratio(1, 12)).take(12)).split(area);
+    let hour_chunks = Layout::horizontal(vec![Constraint::Ratio(1, 12); 12]).split(area);
 
     for (i, hour) in gio.all_hours.iter().enumerate() {
         let is_current = current_idx == Some(i as u32);

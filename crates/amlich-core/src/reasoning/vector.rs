@@ -65,11 +65,11 @@ fn strongest_edge_note(
         .or_else(|| Some(edge.from_node_id.clone()))
 }
 
-fn strongest_edge<'a>(
-    graph: &'a ReasoningGraph,
+fn strongest_edge(
+    graph: &ReasoningGraph,
     axis: InterpretedAxis,
     predicate: impl Fn(EdgeEffect) -> bool,
-) -> Option<(&'a super::ReasoningEdge, i32)> {
+) -> Option<(&super::ReasoningEdge, i32)> {
     graph
         .edges
         .iter()
