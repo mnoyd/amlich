@@ -1202,9 +1202,13 @@ pub struct HourSelectionChartDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HourSelectionAnalysisDto {
+    pub intent: String,
+    pub summary_vi: String,
+    pub summary_en: String,
     pub good_hours: Vec<HourInfoDto>,
     pub bad_hours: Vec<HourInfoDto>,
-    pub summary: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub top_recommendation: Option<HourInfoDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1216,6 +1220,9 @@ pub struct HourSelectionMetricsDto {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HourSelectionAdvisoryDto {
+    pub intent: String,
+    pub summary_vi: String,
+    pub summary_en: String,
     pub best_windows: Vec<String>,
     pub caution_windows: Vec<String>,
 }

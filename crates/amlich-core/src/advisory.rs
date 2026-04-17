@@ -155,6 +155,15 @@ pub struct RankedHourCandidate {
     pub note_vi: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct HourSelectionReasoning {
+    pub intent: ConsultationIntent,
+    pub summary_vi: String,
+    pub summary_en: String,
+    pub top_recommendation: Option<RankedHourCandidate>,
+    pub ranked_hours: Vec<RankedHourCandidate>,
+}
+
 pub fn build_personalized_day_selection(
     day: i32,
     month: i32,
@@ -541,6 +550,46 @@ pub fn rank_hours_for_intent(
             .then_with(|| left.chi_name.cmp(&right.chi_name))
     });
     Ok(ranked)
+}
+
+pub fn build_hour_selection_reasoning(
+    day: i32,
+    month: i32,
+    year: i32,
+    intent: ConsultationIntent,
+    birth: Option<&BirthInput>,
+) -> Result<HourSelectionReasoning, String> {
+    let ranked_hours = rank_hours_for_intent(day, month, year, intent, birth)?;
+    let top_recommendation = ranked_hours.first().cloned();
+    let auspicious_count = ranked_hours.iter().filter(|hour| hour.is_auspicious).count();
+    let summary_vi = match top_recommendation.as_ref() {
+        Some(top) => format!(
+            "Ưu tiên giờ {} ({}) cho {} vì đứng đầu xếp hạng với {} giờ hoàng đạo hỗ trợ.",
+            top.chi_name,
+            top.time_range,
+            intent.event_kind(),
+            auspicious_count
+        ),
+        None => format!("Không có giờ phù hợp để xếp hạng cho {}.", intent.event_kind()),
+    };
+    let summary_en = match top_recommendation.as_ref() {
+        Some(top) => format!(
+            "Prefer the {} hour ({}) for {} because it leads the ranking with {} auspicious windows supporting the day.",
+            top.chi_name,
+            top.time_range,
+            intent.event_kind(),
+            auspicious_count
+        ),
+        None => format!("No ranked hour candidates are available for {}.", intent.event_kind()),
+    };
+
+    Ok(HourSelectionReasoning {
+        intent,
+        summary_vi,
+        summary_en,
+        top_recommendation,
+        ranked_hours,
+    })
 }
 
 #[cfg(test)]

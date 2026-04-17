@@ -1293,6 +1293,18 @@ fn get_hour_selection_day_info(query: &DateQuery) -> Result<DayInfoDto, String> 
     get_day_info(query)
 }
 
+fn get_hour_selection_reasoning(
+    query: &DateQuery,
+) -> Result<amlich_core::HourSelectionReasoning, String> {
+    amlich_core::build_hour_selection_reasoning(
+        query.day,
+        query.month,
+        query.year,
+        amlich_core::ConsultationIntent::Travel,
+        None,
+    )
+}
+
 pub fn get_hour_selection_chart(query: &DateQuery) -> Result<HourSelectionChartDto, String> {
     let info = get_hour_selection_day_info(query)?;
     Ok(HourSelectionChartDto {
@@ -1307,6 +1319,7 @@ pub fn get_hour_selection_chart(query: &DateQuery) -> Result<HourSelectionChartD
 
 pub fn get_hour_selection_analysis(query: &DateQuery) -> Result<HourSelectionAnalysisDto, String> {
     let info = get_hour_selection_day_info(query)?;
+    let reasoning = get_hour_selection_reasoning(query)?;
     let bad_hours = info
         .gio_hoang_dao
         .all_hours
@@ -1315,9 +1328,18 @@ pub fn get_hour_selection_analysis(query: &DateQuery) -> Result<HourSelectionAna
         .cloned()
         .collect();
     Ok(HourSelectionAnalysisDto {
+        intent: reasoning.intent.event_kind().to_string(),
+        summary_vi: reasoning.summary_vi,
+        summary_en: reasoning.summary_en,
         good_hours: info.gio_hoang_dao.good_hours.clone(),
         bad_hours,
-        summary: info.gio_hoang_dao.summary,
+        top_recommendation: reasoning.top_recommendation.as_ref().map(|candidate| HourInfoDto {
+            hour_index: 0,
+            hour_chi: candidate.chi_name.clone(),
+            time_range: candidate.time_range.clone(),
+            star: candidate.note_vi.clone(),
+            is_good: candidate.is_auspicious,
+        }),
     })
 }
 
@@ -1337,20 +1359,22 @@ pub fn get_hour_selection_metrics(query: &DateQuery) -> Result<HourSelectionMetr
 }
 
 pub fn get_hour_selection_advisory(query: &DateQuery) -> Result<HourSelectionAdvisoryDto, String> {
-    let info = get_hour_selection_day_info(query)?;
+    let reasoning = get_hour_selection_reasoning(query)?;
     Ok(HourSelectionAdvisoryDto {
-        best_windows: info
-            .gio_hoang_dao
-            .good_hours
+        intent: reasoning.intent.event_kind().to_string(),
+        summary_vi: reasoning.summary_vi,
+        summary_en: reasoning.summary_en,
+        best_windows: reasoning
+            .ranked_hours
             .iter()
-            .map(|hour| format!("{} {}", hour.hour_chi, hour.time_range))
+            .filter(|hour| hour.is_auspicious)
+            .map(|hour| format!("{} {}", hour.chi_name, hour.time_range))
             .collect(),
-        caution_windows: info
-            .gio_hoang_dao
-            .all_hours
+        caution_windows: reasoning
+            .ranked_hours
             .iter()
-            .filter(|hour| !hour.is_good)
-            .map(|hour| format!("{} {}", hour.hour_chi, hour.time_range))
+            .filter(|hour| !hour.is_auspicious)
+            .map(|hour| format!("{} {}", hour.chi_name, hour.time_range))
             .collect(),
     })
 }

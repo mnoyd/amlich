@@ -26,11 +26,12 @@ pub mod types;
 
 // Re-export main types
 pub use crate::advisory::{
-    build_personalized_day_selection, build_recommendation_context, compute_day_context_from_birth,
-    rank_dates_for_intent, rank_hours_for_intent, score_day_selection,
+    build_hour_selection_reasoning, build_personalized_day_selection,
+    build_recommendation_context, compute_day_context_from_birth, rank_dates_for_intent,
+    rank_hours_for_intent, score_day_selection,
     synthesize_advisory_recommendations, AdvisoryScoring, BirthInput, ConsultationIntent,
-    DateRangeInput, EvidenceEnvelope, PersonalizedDaySelection, RankedDateCandidate,
-    RankedHourCandidate, ScoredAdvice,
+    DateRangeInput, EvidenceEnvelope, HourSelectionReasoning, PersonalizedDaySelection,
+    RankedDateCandidate, RankedHourCandidate, ScoredAdvice,
 };
 pub use crate::almanac::cuu_dieu::{compute_cuu_dieu, CuuDieuQuality, CuuDieuResult};
 pub use crate::almanac::hoang_oc::{compute_hoang_oc, HoangOcResult};

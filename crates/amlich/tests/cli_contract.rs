@@ -1390,6 +1390,55 @@ fn lookup_hour_selection_report_outputs_machine_readable_payload() {
     assert!(json.get("analysis").is_some());
     assert!(json.get("computed_metrics").is_some());
     assert!(json.get("advisory").is_some());
+    assert_eq!(json["analysis"]["intent"].as_str(), Some("travel"));
+    assert!(json["analysis"]["summary_vi"].as_str().is_some());
+    assert!(json["analysis"]["summary_en"].as_str().is_some());
+    assert!(json["analysis"]["top_recommendation"].is_object());
+    let expected_best_window = format!(
+        "{} {}",
+        json["analysis"]["top_recommendation"]["hour_chi"]
+            .as_str()
+            .expect("hour chi"),
+        json["analysis"]["top_recommendation"]["time_range"]
+            .as_str()
+            .expect("time range")
+    );
+    assert_eq!(
+        json["advisory"]["best_windows"][0].as_str(),
+        Some(expected_best_window.as_str())
+    );
+    assert_eq!(json["advisory"]["intent"].as_str(), Some("travel"));
+    assert!(json["advisory"]["summary_vi"].as_str().is_some());
+    assert!(json["advisory"]["summary_en"].as_str().is_some());
+}
+
+#[test]
+fn lookup_hour_selection_analysis_outputs_reasoning_fields() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "hour-selection",
+            "2024-02-10",
+            "--surface",
+            "analysis",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert_eq!(json["intent"].as_str(), Some("travel"));
+    assert!(json["summary_vi"].as_str().is_some());
+    assert!(json["summary_en"].as_str().is_some());
+    assert!(json["top_recommendation"].is_object());
+    assert!(json["good_hours"].as_array().is_some_and(|hours| !hours.is_empty()));
+    assert!(json["bad_hours"].as_array().is_some_and(|hours| !hours.is_empty()));
 }
 
 #[test]
