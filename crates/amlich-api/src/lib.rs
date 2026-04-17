@@ -936,6 +936,54 @@ fn personal_day_unavailable_sections(tier: &BirthDataTierDto) -> Vec<Unavailable
     }
 }
 
+fn personal_reasoning_input(
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Option<amlich_core::reasoning::PersonalReasoningInput> {
+    Some(amlich_core::reasoning::PersonalReasoningInput::from_birth(
+        amlich_core::BirthInput {
+            day: birth_day?,
+            month: birth_month?,
+            year: birth_year?,
+            hour: None,
+            minute: None,
+            timezone: amlich_core::VIETNAM_TIMEZONE,
+            gender,
+            location_name: None,
+        },
+        amlich_core::ConsultationIntent::OpeningBusiness,
+    ))
+}
+
+fn get_personal_day_reasoning_bundle(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<Option<amlich_core::reasoning::InitiationOpeningReasoningBundle>, String> {
+    let Some(personal_input) = personal_reasoning_input(birth_year, birth_month, birth_day, gender)
+    else {
+        return Ok(None);
+    };
+    let enabled_pack_ids: Vec<&str> = query.enabled_pack_ids.iter().map(String::as_str).collect();
+
+    let snapshot = amlich_core::calculate_day_snapshot_with_recommendation_request(
+        query.day,
+        query.month,
+        query.year,
+        query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
+        query.ruleset_id.as_deref(),
+        query.event_kind.as_deref(),
+        &enabled_pack_ids,
+    )?;
+
+    amlich_core::build_initiation_opening_reasoning_bundle(&snapshot, Some(&personal_input))
+        .map(Some)
+}
+
 fn matrix_unavailable_sections(tier: &BirthDataTierDto) -> Vec<UnavailableSectionDto> {
     match tier {
         BirthDataTierDto::Date => vec![unavailable_section(
@@ -991,8 +1039,13 @@ pub fn get_personal_day_analysis(
 ) -> Result<PersonalDayAnalysisDto, String> {
     let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
     let tier = personal_birth_data_tier(birth_year, birth_month, birth_day, gender);
+    let reasoning =
+        get_personal_day_reasoning_bundle(query, birth_year, birth_month, birth_day, gender)?;
     Ok(PersonalDayAnalysisDto {
         tier: tier.clone(),
+        decision: reasoning.as_ref().map(|bundle| bundle.decision.clone()),
+        decision_export: reasoning.as_ref().map(|bundle| bundle.decision_export.clone()),
+        graph: reasoning.as_ref().map(|bundle| bundle.graph.clone()),
         ten_gods: insight.ten_gods,
         xung_hop: insight.xung_hop,
         tang_can: insight.tang_can,
@@ -1214,11 +1267,16 @@ pub fn get_personal_day_report(
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayReportDto, String> {
     let advisory = get_personal_day_advisory(query, birth_year, birth_month, birth_day, gender)?;
+    let reasoning =
+        get_personal_day_reasoning_bundle(query, birth_year, birth_month, birth_day, gender)?;
     Ok(PersonalDayReportDto {
         summary: advisory.summary.clone(),
         severity: advisory.severity.clone(),
         top_signals: advisory.top_signals.clone(),
         chart: get_personal_day_chart(query, birth_year, birth_month, birth_day, gender)?,
+        decision: reasoning.as_ref().map(|bundle| bundle.decision.clone()),
+        decision_export: reasoning.as_ref().map(|bundle| bundle.decision_export.clone()),
+        graph: reasoning.as_ref().map(|bundle| bundle.graph.clone()),
         analysis: get_personal_day_analysis(query, birth_year, birth_month, birth_day, gender)?,
         computed_metrics: get_personal_day_metrics(
             query,

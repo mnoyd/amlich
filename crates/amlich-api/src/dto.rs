@@ -1092,6 +1092,12 @@ pub struct PersonalDayChartDto {
 pub struct PersonalDayAnalysisDto {
     pub tier: BirthDataTierDto,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub decision: Option<amlich_core::reasoning::InitiationOpeningDecision>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub decision_export: Option<amlich_core::reasoning::InitiationOpeningDecisionExport>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub graph: Option<amlich_core::reasoning::ReasoningGraphExport>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub ten_gods: Option<TenGodsInsightDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub xung_hop: Option<XungHopInsightDto>,
@@ -1135,6 +1141,12 @@ pub struct PersonalDayReportDto {
     pub severity: String,
     pub top_signals: Vec<String>,
     pub chart: PersonalDayChartDto,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub decision: Option<amlich_core::reasoning::InitiationOpeningDecision>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub decision_export: Option<amlich_core::reasoning::InitiationOpeningDecisionExport>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub graph: Option<amlich_core::reasoning::ReasoningGraphExport>,
     pub analysis: PersonalDayAnalysisDto,
     pub computed_metrics: PersonalDayMetricsDto,
     pub advisory: PersonalDayAdvisoryDto,

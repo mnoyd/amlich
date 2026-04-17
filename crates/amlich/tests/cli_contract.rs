@@ -1230,6 +1230,10 @@ fn lookup_personal_day_report_outputs_machine_readable_payload() {
             "2024-02-10",
             "--birth-year",
             "1990",
+            "--birth-month",
+            "1",
+            "--birth-day",
+            "1",
             "--gender",
             "male",
             "--surface",
@@ -1248,6 +1252,12 @@ fn lookup_personal_day_report_outputs_machine_readable_payload() {
     assert!(json.get("analysis").is_some());
     assert!(json.get("computed_metrics").is_some());
     assert!(json.get("advisory").is_some());
+    assert!(json.get("decision").is_some());
+    assert!(json.get("decision_export").is_some());
+    assert!(json.get("graph").is_some());
+    assert!(json["analysis"].get("decision").is_some());
+    assert!(json["analysis"].get("decision_export").is_some());
+    assert!(json["analysis"].get("graph").is_some());
 }
 
 #[test]

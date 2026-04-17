@@ -46,6 +46,9 @@ fn personal_day_analysis_exposes_profile_sections() {
     )
     .expect("analysis");
     assert_eq!(analysis.tier, amlich_api::BirthDataTierDto::Date);
+    assert!(analysis.decision.is_some());
+    assert!(analysis.decision_export.is_some());
+    assert!(analysis.graph.is_some());
     assert!(analysis.tu_menh.is_some());
     assert!(analysis.yearly_han.is_some());
     assert!(analysis.unavailable_sections.is_empty());
@@ -139,6 +142,9 @@ fn personal_day_report_exposes_unified_surface() {
         "low" | "medium" | "high"
     ));
     assert!(!report.top_signals.is_empty());
+    assert!(report.decision.is_some());
+    assert!(report.decision_export.is_some());
+    assert!(report.graph.is_some());
     assert_eq!(report.chart.tier, amlich_api::BirthDataTierDto::Date);
     assert!(report.chart.canchi.is_some());
     assert!(!report.computed_metrics.available_sections.is_empty());
