@@ -366,6 +366,31 @@ impl From<&amlich_core::UsefulGodResponse> for UsefulGodDto {
     }
 }
 
+impl From<&amlich_core::UsefulGodAnalysis> for UsefulGodDto {
+    fn from(value: &amlich_core::UsefulGodAnalysis) -> Self {
+        Self {
+            favorable_elements: value
+                .favorable_elements
+                .iter()
+                .map(|element| format!("{element:?}").to_lowercase())
+                .collect(),
+            unfavorable_elements: value
+                .unfavorable_elements
+                .iter()
+                .map(|element| format!("{element:?}").to_lowercase())
+                .collect(),
+            tentative_yong_shen: value
+                .tentative_yong_shen
+                .map(|element| format!("{element:?}").to_lowercase()),
+            tentative_xi_shen: value
+                .tentative_xi_shen
+                .map(|element| format!("{element:?}").to_lowercase()),
+            confidence: value.confidence.clone(),
+            reasons: value.reasons.clone(),
+        }
+    }
+}
+
 impl From<&amlich_core::bazi::contracts::BaziAdvisoryDomainsResponse> for BaziAdvisoryDomainsDto {
     fn from(value: &amlich_core::bazi::contracts::BaziAdvisoryDomainsResponse) -> Self {
         Self {
@@ -378,15 +403,27 @@ impl From<&amlich_core::bazi::contracts::BaziAdvisoryDomainsResponse> for BaziAd
     }
 }
 
-impl From<&amlich_core::BaziAdvisoryResponse> for BaziAdvisoryDto {
-    fn from(value: &amlich_core::BaziAdvisoryResponse) -> Self {
+impl From<&amlich_core::BaziAdvisoryDomains> for BaziAdvisoryDomainsDto {
+    fn from(value: &amlich_core::BaziAdvisoryDomains) -> Self {
         Self {
-            summary: String::new(),
-            severity: String::new(),
-            top_signals: Vec::new(),
-            why_this_matters: Vec::new(),
-            recommended_actions: Vec::new(),
-            priority_order: Vec::new(),
+            career: value.career.clone(),
+            wealth: value.wealth.clone(),
+            relationship: value.relationship.clone(),
+            health: value.health.clone(),
+            timing: value.timing.clone(),
+        }
+    }
+}
+
+impl From<&amlich_core::BaziAdvisoryExport> for BaziAdvisoryDto {
+    fn from(value: &amlich_core::BaziAdvisoryExport) -> Self {
+        Self {
+            summary: value.summary.clone(),
+            severity: value.severity.clone(),
+            top_signals: value.top_signals.clone(),
+            why_this_matters: value.why_this_matters.clone(),
+            recommended_actions: value.recommended_actions.clone(),
+            priority_order: value.priority_order.clone(),
             useful_god_analysis: UsefulGodDto::from(&value.useful_god_analysis),
             summary_vi: value.summary_vi.clone(),
             warnings: value.warnings.clone(),
@@ -535,12 +572,7 @@ impl From<(&BaziQuery, &amlich_core::BaziReport, BirthDataTierDto)> for BaziRepo
     fn from(
         (query, value, tier): (&BaziQuery, &amlich_core::BaziReport, BirthDataTierDto),
     ) -> Self {
-        let advisory = BaziAdvisoryDto::from(
-            value
-                .advisory_response
-                .as_ref()
-                .expect("advisory response present"),
-        );
+        let advisory = BaziAdvisoryDto::from(&amlich_core::export_bazi_advisory(&value.advisory));
         Self {
             summary: advisory.summary.clone(),
             severity: advisory.severity.clone(),

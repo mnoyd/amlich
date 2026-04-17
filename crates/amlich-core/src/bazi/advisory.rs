@@ -37,6 +37,20 @@ pub struct BaziAdvisoryReport {
     pub domains: BaziAdvisoryDomains,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct BaziAdvisoryExport {
+    pub summary: String,
+    pub severity: String,
+    pub top_signals: Vec<String>,
+    pub why_this_matters: Vec<String>,
+    pub recommended_actions: Vec<String>,
+    pub priority_order: Vec<String>,
+    pub useful_god_analysis: UsefulGodAnalysis,
+    pub summary_vi: String,
+    pub warnings: Vec<String>,
+    pub domains: BaziAdvisoryDomains,
+}
+
 pub fn build_bazi_advisory(
     chart: &BaziChart,
     timing: Option<&BaziTimingReport>,
@@ -62,6 +76,88 @@ pub fn build_bazi_advisory_from_metrics(
         summary_vi,
         warnings,
         domains,
+    }
+}
+
+pub fn export_bazi_advisory(report: &BaziAdvisoryReport) -> BaziAdvisoryExport {
+    let mut top_signals = Vec::new();
+    let mut why_this_matters = Vec::new();
+    let mut recommended_actions = Vec::new();
+
+    if let Some(yong_shen) = report.useful_god_analysis.tentative_yong_shen {
+        top_signals.push(format!("yong_shen {:?}", yong_shen));
+        why_this_matters.push(
+            "Dụng thần points to the element most useful for restoring chart balance.".to_string(),
+        );
+    }
+    if let Some(xi_shen) = report.useful_god_analysis.tentative_xi_shen {
+        top_signals.push(format!("xi_shen {:?}", xi_shen));
+        why_this_matters.push(
+            "Hỷ thần highlights secondary support, useful for timing and softer optimization."
+                .to_string(),
+        );
+    }
+    if let Some(first_warning) = report.warnings.first() {
+        top_signals.push(first_warning.clone());
+        recommended_actions.push(
+            "Treat warnings as constraints before optimizing around favorable signals.".to_string(),
+        );
+    }
+
+    let severity = if report.warnings.len() >= 2 {
+        "high"
+    } else if !report.warnings.is_empty() {
+        "medium"
+    } else {
+        "low"
+    }
+    .to_string();
+
+    let summary = if !report.warnings.is_empty() {
+        format!(
+            "Bazi advisory includes {} warning(s) with {} top signal(s).",
+            report.warnings.len(),
+            top_signals.len()
+        )
+    } else {
+        format!(
+            "Bazi advisory is primarily explanatory with {} top signal(s).",
+            top_signals.len()
+        )
+    };
+
+    if recommended_actions.is_empty() {
+        recommended_actions.push(
+            "Use the strongest supporting element signals first when choosing timing, workload, or emphasis."
+                .to_string(),
+        );
+    }
+
+    let priority_order = if !report.warnings.is_empty() {
+        vec![
+            "Review warnings first".to_string(),
+            "Interpret top_signals in light of balance goals".to_string(),
+            "Then use domain guidance for concrete decisions".to_string(),
+        ]
+    } else {
+        vec![
+            "Start from top_signals".to_string(),
+            "Use useful-god guidance to shape choices".to_string(),
+            "Apply domain guidance to execution details".to_string(),
+        ]
+    };
+
+    BaziAdvisoryExport {
+        summary,
+        severity,
+        top_signals,
+        why_this_matters,
+        recommended_actions,
+        priority_order,
+        useful_god_analysis: report.useful_god_analysis.clone(),
+        summary_vi: report.summary_vi.clone(),
+        warnings: report.warnings.clone(),
+        domains: report.domains.clone(),
     }
 }
 

@@ -81,6 +81,10 @@ fn bazi_advisory_can_include_timing_context() {
     assert!(!advisory.priority_order.is_empty());
     assert!(!advisory.summary_vi.is_empty());
     assert!(!advisory.domains.timing.is_empty());
+    assert!(advisory
+        .top_signals
+        .iter()
+        .any(|signal| signal.contains("yong_shen") || signal.contains("xi_shen")));
 }
 
 #[test]
@@ -121,6 +125,9 @@ fn bazi_report_exposes_unified_surface() {
     assert_eq!(report.chart.pillars.len(), 4);
     assert!(!report.analysis.day_master_strength.label.is_empty());
     assert!(report.timing.is_some());
+    assert_eq!(report.summary, report.advisory.summary);
+    assert_eq!(report.severity, report.advisory.severity);
+    assert_eq!(report.top_signals, report.advisory.top_signals);
     assert!(!report.advisory.summary_vi.is_empty());
 }
 

@@ -180,83 +180,9 @@ pub fn get_bazi_advisory(
         None => None,
     };
     let report = amlich_core::build_bazi_report(input, timing_input)?;
-    let response = report
-        .advisory_response
-        .ok_or_else(|| "missing bazi advisory response".to_string())?;
-    let mut top_signals = Vec::new();
-    let mut why_this_matters = Vec::new();
-    let mut recommended_actions = Vec::new();
-    if let Some(yong_shen) = response.useful_god_analysis.tentative_yong_shen {
-        top_signals.push(format!("yong_shen {:?}", yong_shen));
-        why_this_matters.push(
-            "Dụng thần points to the element most useful for restoring chart balance.".to_string(),
-        );
-    }
-    if let Some(xi_shen) = response.useful_god_analysis.tentative_xi_shen {
-        top_signals.push(format!("xi_shen {:?}", xi_shen));
-        why_this_matters.push(
-            "Hỷ thần highlights secondary support, useful for timing and softer optimization."
-                .to_string(),
-        );
-    }
-    if let Some(first_warning) = response.warnings.first() {
-        top_signals.push(first_warning.clone());
-        recommended_actions.push(
-            "Treat warnings as constraints before optimizing around favorable signals.".to_string(),
-        );
-    }
-
-    let severity = if response.warnings.len() >= 2 {
-        "high"
-    } else if !response.warnings.is_empty() {
-        "medium"
-    } else {
-        "low"
-    }
-    .to_string();
-
-    let summary = if !response.warnings.is_empty() {
-        format!(
-            "Bazi advisory includes {} warning(s) with {} top signal(s).",
-            response.warnings.len(),
-            top_signals.len()
-        )
-    } else {
-        format!(
-            "Bazi advisory is primarily explanatory with {} top signal(s).",
-            top_signals.len()
-        )
-    };
-
-    if recommended_actions.is_empty() {
-        recommended_actions.push(
-            "Use the strongest supporting element signals first when choosing timing, workload, or emphasis."
-                .to_string(),
-        );
-    }
-
-    let priority_order = if !response.warnings.is_empty() {
-        vec![
-            "Review warnings first".to_string(),
-            "Interpret top_signals in light of balance goals".to_string(),
-            "Then use domain guidance for concrete decisions".to_string(),
-        ]
-    } else {
-        vec![
-            "Start from top_signals".to_string(),
-            "Use useful-god guidance to shape choices".to_string(),
-            "Apply domain guidance to execution details".to_string(),
-        ]
-    };
-
-    let mut advisory = BaziAdvisoryDto::from(&response);
-    advisory.summary = summary;
-    advisory.severity = severity;
-    advisory.top_signals = top_signals;
-    advisory.why_this_matters = why_this_matters;
-    advisory.recommended_actions = recommended_actions;
-    advisory.priority_order = priority_order;
-    Ok(advisory)
+    Ok(BaziAdvisoryDto::from(&amlich_core::export_bazi_advisory(
+        &report.advisory,
+    )))
 }
 
 pub fn get_bazi_metrics(
@@ -301,13 +227,7 @@ pub fn get_bazi_report(
         None => None,
     };
     let report = amlich_core::build_bazi_report(input, timing_input)?;
-    let advisory = get_bazi_advisory(query, timing)?;
-    let mut dto = BaziReportDto::from((query, &report, bazi_birth_data_tier(query)));
-    dto.summary = advisory.summary.clone();
-    dto.severity = advisory.severity.clone();
-    dto.top_signals = advisory.top_signals.clone();
-    dto.advisory = advisory;
-    Ok(dto)
+    Ok(BaziReportDto::from((query, &report, bazi_birth_data_tier(query))))
 }
 
 /// Compute derived Bazi data: Thai Nguyên, Mệnh/Thân Cung, Không Vong, Thần Sát.

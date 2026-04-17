@@ -1116,6 +1116,12 @@ fn lookup_bazi_report_outputs_machine_readable_payload() {
     assert_eq!(json["chart"]["tier"].as_str(), Some("datetime"));
     assert_eq!(json["analysis"]["tier"].as_str(), Some("datetime"));
     assert_eq!(json["computed_metrics"]["tier"].as_str(), Some("datetime"));
+    assert_eq!(json["summary"], json["advisory"]["summary"]);
+    assert_eq!(json["severity"], json["advisory"]["severity"]);
+    assert_eq!(json["top_signals"], json["advisory"]["top_signals"]);
+    assert!(json["advisory"]["top_signals"]
+        .as_array()
+        .is_some_and(|signals| !signals.is_empty()));
     assert!(json["analysis"]["unavailable_sections"]
         .as_array()
         .is_none());

@@ -11,8 +11,8 @@ pub mod timing;
 pub mod types;
 
 pub use advisory::{
-    build_bazi_advisory, infer_useful_gods, BaziAdvisoryDomains, BaziAdvisoryReport,
-    UsefulGodAnalysis,
+    build_bazi_advisory, export_bazi_advisory, infer_useful_gods, BaziAdvisoryDomains,
+    BaziAdvisoryExport, BaziAdvisoryReport, UsefulGodAnalysis,
 };
 pub use analysis::{
     analyze_bazi_chart, compute_element_distribution, compute_ten_god_distribution,
