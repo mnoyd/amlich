@@ -1,5 +1,6 @@
 use amlich_core::reasoning::{
-    ActionId, EdgeEffect, InterpretedAxis, ReasoningEdge, ReasoningGraph,
+    ActionId, EdgeEffect, InterpretedAxis, ReasoningEdge, ReasoningEdgeJustification,
+    ReasoningGraph,
 };
 
 #[test]
@@ -17,9 +18,12 @@ fn reasoning_edges_preserve_support_override_and_condition_effects() {
         "fact.taboo.tam_nuong",
         "signal.resistance",
         EdgeEffect::Overrides,
+        ReasoningEdgeJustification::TabooPressure,
+        vec![],
     );
 
     assert_eq!(edge.effect, EdgeEffect::Overrides);
+    assert_eq!(edge.justification, ReasoningEdgeJustification::TabooPressure);
     assert_eq!(edge.from_node_id, "fact.taboo.tam_nuong");
     assert_eq!(edge.to_node_id, "signal.resistance");
 }

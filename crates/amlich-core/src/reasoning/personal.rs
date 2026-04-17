@@ -8,7 +8,7 @@ use crate::{
     BirthInput, ConsultationIntent, DaySnapshot,
 };
 
-use super::{NodeKind, ReasoningNode};
+use super::{NodeKind, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily, ReasoningNode};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PersonalReasoningInput {
@@ -33,7 +33,10 @@ impl PersonalReasoningInput {
                 &chart,
             )),
             severity: None,
-            evidence: vec!["interaction.day_person.compute_day_person_matrix".to_string()],
+            evidence: vec![interaction_evidence(
+                "interaction.day_person.compute_day_person_matrix",
+                "day_person_matrix",
+            )],
         }];
 
         if let Some(personal_hour) =
@@ -44,7 +47,10 @@ impl PersonalReasoningInput {
                 kind: NodeKind::Fact,
                 summary_vi: summarize_personal_hour_matrix(&personal_hour),
                 severity: Some(personal_hour.hours.len().to_string()),
-                evidence: vec!["interaction.personal_hour.compute_personal_hour_matrix".to_string()],
+                evidence: vec![interaction_evidence(
+                    "interaction.personal_hour.compute_personal_hour_matrix",
+                    "personal_hour_matrix",
+                )],
             });
         }
 
@@ -61,7 +67,10 @@ impl PersonalReasoningInput {
                 kind: NodeKind::Fact,
                 summary_vi: summarize_direction_merge(&direction_merge),
                 severity: Some(kua.kua.to_string()),
-                evidence: vec!["interaction.direction_merge.compute_direction_merge".to_string()],
+                evidence: vec![interaction_evidence(
+                    "interaction.direction_merge.compute_direction_merge",
+                    "direction_merge",
+                )],
             });
         }
 
@@ -82,7 +91,7 @@ impl PersonalReasoningInput {
                     .join(", ")
             ),
             severity: None,
-            evidence: vec!["bazi.compute_bazi_metrics".to_string()],
+            evidence: vec![bazi_evidence("bazi.compute_bazi_metrics", "profile_analysis")],
         });
 
         Ok(nodes)
@@ -152,6 +161,24 @@ impl PersonalReasoningInput {
             use_solar_time: false,
             gender: self.birth.gender,
         }
+    }
+}
+
+fn interaction_evidence(source_id: &str, note: &str) -> ReasoningEvidenceEnvelope {
+    ReasoningEvidenceEnvelope {
+        source_family: ReasoningEvidenceSourceFamily::Interaction,
+        source_id: source_id.to_string(),
+        method: "computed_matrix".to_string(),
+        note: Some(note.to_string()),
+    }
+}
+
+fn bazi_evidence(source_id: &str, note: &str) -> ReasoningEvidenceEnvelope {
+    ReasoningEvidenceEnvelope {
+        source_family: ReasoningEvidenceSourceFamily::Bazi,
+        source_id: source_id.to_string(),
+        method: "profile_analysis".to_string(),
+        note: Some(note.to_string()),
     }
 }
 

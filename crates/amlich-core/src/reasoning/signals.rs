@@ -3,7 +3,10 @@ use crate::{
     insight_data::find_truc_insight,
 };
 
-use super::{EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdge, ReasoningGraph, ReasoningNode};
+use super::{
+    EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdge, ReasoningEvidenceEnvelope,
+    ReasoningEdgeJustification, ReasoningEvidenceSourceFamily, ReasoningGraph, ReasoningNode,
+};
 
 pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<ReasoningGraph, String> {
     let fact_summary_count = graph.nodes.len();
@@ -29,6 +32,8 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                         node.id.clone(),
                         InterpretedAxis::Support.signal_node_id(),
                         EdgeEffect::Supports,
+                        ReasoningEdgeJustification::FavorableDaySignal,
+                        node.evidence.clone(),
                     ));
                 }
                 if let Some(truc_name) = node.summary_vi.strip_prefix("Trực ") {
@@ -57,11 +62,15 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                                 } else {
                                     EdgeEffect::Supports
                                 },
+                                ReasoningEdgeJustification::TrucActivityConflict,
+                                truc_evidence(truc.id.as_str(), "opening_start"),
                             ));
                             graph.edges.push(ReasoningEdge::new(
                                 node.id.clone(),
                                 InterpretedAxis::ContextClarity.signal_node_id(),
                                 EdgeEffect::ConflictsWith,
+                                ReasoningEdgeJustification::TrucActivityConflict,
+                                truc_evidence(truc.id.as_str(), "opening_start"),
                             ));
                         }
 
@@ -70,6 +79,8 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                                 node.id.clone(),
                                 InterpretedAxis::Support.signal_node_id(),
                                 EdgeEffect::Supports,
+                                ReasoningEdgeJustification::TrucActivitySupport,
+                                truc_evidence(truc.id.as_str(), "opening_start"),
                             ));
                         }
                     }
@@ -82,6 +93,8 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                         node.id.clone(),
                         InterpretedAxis::Support.signal_node_id(),
                         EdgeEffect::Supports,
+                        ReasoningEdgeJustification::DayDeitySupport,
+                        node.evidence.clone(),
                     ));
                 }
             }
@@ -91,6 +104,8 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                         node.id.clone(),
                         InterpretedAxis::Support.signal_node_id(),
                         EdgeEffect::Supports,
+                        ReasoningEdgeJustification::StarSupport,
+                        node.evidence.clone(),
                     ));
                 }
             }
@@ -104,12 +119,16 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                     node.id.clone(),
                     InterpretedAxis::Resistance.signal_node_id(),
                     effect,
+                    ReasoningEdgeJustification::TabooPressure,
+                    node.evidence.clone(),
                 ));
                 if node.severity.is_some() {
                     graph.edges.push(ReasoningEdge::new(
                         node.id.clone(),
                         InterpretedAxis::Stability.signal_node_id(),
                         EdgeEffect::Weakens,
+                        ReasoningEdgeJustification::TabooStabilityPenalty,
+                        node.evidence.clone(),
                     ));
                 }
                 if node.severity.as_deref() == Some("hard") {
@@ -117,6 +136,8 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                         node.id.clone(),
                         InterpretedAxis::ContextClarity.signal_node_id(),
                         EdgeEffect::Overrides,
+                        ReasoningEdgeJustification::TabooContextPenalty,
+                        node.evidence.clone(),
                     ));
                 }
             }
@@ -126,11 +147,15 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                         node.id.clone(),
                         InterpretedAxis::Resistance.signal_node_id(),
                         EdgeEffect::Supports,
+                        ReasoningEdgeJustification::ClashPressure,
+                        node.evidence.clone(),
                     ));
                     graph.edges.push(ReasoningEdge::new(
                         node.id.clone(),
                         InterpretedAxis::Stability.signal_node_id(),
                         EdgeEffect::Weakens,
+                        ReasoningEdgeJustification::ClashStabilityPenalty,
+                        node.evidence.clone(),
                     ));
                 }
             }
@@ -140,6 +165,8 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                         node.id.clone(),
                         InterpretedAxis::TimingFit.signal_node_id(),
                         EdgeEffect::Supports,
+                        ReasoningEdgeJustification::HoangDaoHourSupport,
+                        node.evidence.clone(),
                     ));
                 }
             }
@@ -148,6 +175,8 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                     node.id.clone(),
                     InterpretedAxis::PersonalAlignment.signal_node_id(),
                     personal_alignment_effect(&node.summary_vi),
+                    ReasoningEdgeJustification::PersonalDayAlignment,
+                    node.evidence.clone(),
                 ));
             }
             "fact.personal.personal_hour_matrix" => {
@@ -155,6 +184,8 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                     node.id.clone(),
                     InterpretedAxis::PersonalAlignment.signal_node_id(),
                     personal_hour_effect(&node.summary_vi),
+                    ReasoningEdgeJustification::PersonalHourAlignment,
+                    node.evidence.clone(),
                 ));
             }
             _ => {}
@@ -166,6 +197,13 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
             "fact.graph.mixed_day_signals",
             InterpretedAxis::ContextClarity.signal_node_id(),
             EdgeEffect::ConflictsWith,
+            ReasoningEdgeJustification::MixedSignalConflict,
+            vec![ReasoningEvidenceEnvelope {
+                source_family: ReasoningEvidenceSourceFamily::Derived,
+                source_id: "fact.graph.mixed_day_signals".to_string(),
+                method: "mixed_fact_detection".to_string(),
+                note: None,
+            }],
         ));
     }
 
@@ -179,10 +217,26 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
             "fact.graph.available_context",
             InterpretedAxis::ContextClarity.signal_node_id(),
             EdgeEffect::Supports,
+            ReasoningEdgeJustification::AvailableContextSupport,
+            vec![ReasoningEvidenceEnvelope {
+                source_family: ReasoningEvidenceSourceFamily::Derived,
+                source_id: "fact.graph.available_context".to_string(),
+                method: "context_availability".to_string(),
+                note: None,
+            }],
         ));
     }
 
     Ok(graph)
+}
+
+fn truc_evidence(truc_id: &str, note: &str) -> Vec<ReasoningEvidenceEnvelope> {
+    vec![ReasoningEvidenceEnvelope {
+        source_family: ReasoningEvidenceSourceFamily::Insight,
+        source_id: format!("truc.{truc_id}"),
+        method: "insight_lookup".to_string(),
+        note: Some(note.to_string()),
+    }]
 }
 
 fn build_signal_node(axis: InterpretedAxis) -> ReasoningNode {
@@ -191,7 +245,12 @@ fn build_signal_node(axis: InterpretedAxis) -> ReasoningNode {
         kind: NodeKind::InterpretedSignal,
         summary_vi: signal_summary(axis).to_string(),
         severity: Some("0".to_string()),
-        evidence: vec![format!("axis::{axis:?}")],
+        evidence: vec![ReasoningEvidenceEnvelope {
+            source_family: ReasoningEvidenceSourceFamily::Axis,
+            source_id: format!("axis::{axis:?}"),
+            method: "axis_registration".to_string(),
+            note: None,
+        }],
     }
 }
 

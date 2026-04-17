@@ -70,7 +70,11 @@ pub use crate::bazi::{
 };
 pub use crate::reasoning::{
     ActionId, DecisionConfidence, EdgeEffect, InitiationOpeningDecision, InitiationOpeningVector,
-    InterpretedAxis, NodeKind, ReasoningEdge, ReasoningGraph, ReasoningNode, RecommendationBucket,
+    InitiationOpeningDecisionExport, InitiationOpeningReasoningBundle, InterpretedAxis, NodeKind,
+    ReasoningAxisScore, ReasoningConclusionSemantic, ReasoningEdge, ReasoningEdgeExport,
+    ReasoningEdgeJustification, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily,
+    ReasoningGraph, ReasoningGraphExport, ReasoningNode, ReasoningNodeExport,
+    ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
 };
 pub use types::*;
 
@@ -204,6 +208,13 @@ pub fn build_initiation_opening_reasoning(
     personal_input: Option<&PersonalReasoningInput>,
 ) -> Result<InitiationOpeningDecision, String> {
     build_initiation_opening_decision(snapshot, personal_input)
+}
+
+pub fn build_initiation_opening_reasoning_bundle(
+    snapshot: &DaySnapshot,
+    personal_input: Option<&PersonalReasoningInput>,
+) -> Result<reasoning::InitiationOpeningReasoningBundle, String> {
+    reasoning::build_initiation_opening_reasoning_bundle(snapshot, personal_input)
 }
 
 fn calculate_day_snapshot_internal(
