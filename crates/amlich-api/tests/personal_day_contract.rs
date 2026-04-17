@@ -148,6 +148,9 @@ fn personal_day_report_exposes_unified_surface() {
     assert!(report.decision.is_some());
     assert!(report.decision_export.is_some());
     assert!(report.graph.is_some());
+    assert_eq!(report.summary, report.advisory.summary);
+    assert_eq!(report.severity, report.advisory.severity);
+    assert_eq!(report.top_signals, report.advisory.top_signals);
     assert_eq!(report.chart.tier, amlich_api::BirthDataTierDto::Date);
     assert!(report.chart.canchi.is_some());
     assert!(!report.computed_metrics.available_sections.is_empty());

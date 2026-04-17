@@ -71,4 +71,7 @@ fn hour_selection_report_exposes_unified_surface() {
     assert_eq!(report.analysis.summary_en, report.advisory.summary_en);
     assert!(report.analysis.top_recommendation.is_some());
     assert!(!report.advisory.best_windows.is_empty());
+    let top = report.analysis.top_recommendation.expect("top recommendation");
+    let expected = format!("{} {}", top.hour_chi, top.time_range);
+    assert_eq!(report.advisory.best_windows.first().map(String::as_str), Some(expected.as_str()));
 }

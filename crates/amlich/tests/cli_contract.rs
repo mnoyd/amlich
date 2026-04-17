@@ -1261,6 +1261,9 @@ fn lookup_personal_day_report_outputs_machine_readable_payload() {
     assert!(json.get("decision").is_some());
     assert!(json.get("decision_export").is_some());
     assert!(json.get("graph").is_some());
+    assert_eq!(json["summary"], json["advisory"]["summary"]);
+    assert_eq!(json["severity"], json["advisory"]["severity"]);
+    assert_eq!(json["top_signals"], json["advisory"]["top_signals"]);
     assert!(json["analysis"].get("decision").is_some());
     assert!(json["analysis"].get("decision_export").is_some());
     assert!(json["analysis"].get("graph").is_some());
@@ -1416,6 +1419,8 @@ fn lookup_hour_selection_report_outputs_machine_readable_payload() {
     assert_eq!(json["advisory"]["intent"].as_str(), Some("travel"));
     assert!(json["advisory"]["summary_vi"].as_str().is_some());
     assert!(json["advisory"]["summary_en"].as_str().is_some());
+    assert_eq!(json["analysis"]["summary_vi"], json["advisory"]["summary_vi"]);
+    assert_eq!(json["analysis"]["summary_en"], json["advisory"]["summary_en"]);
 }
 
 #[test]
