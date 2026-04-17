@@ -78,6 +78,9 @@ fn personal_day_analysis_yearly_han_absent_without_birth_year() {
         get_personal_day_analysis(&sample_query(), None, None, None, None).expect("analysis");
     assert!(analysis.yearly_han.is_none());
     assert_eq!(analysis.tier, amlich_api::BirthDataTierDto::Anonymous);
+    assert!(analysis.decision.is_none());
+    assert!(analysis.decision_export.is_none());
+    assert!(analysis.graph.is_none());
     assert!(!analysis.unavailable_sections.is_empty());
     assert!(analysis
         .unavailable_sections
@@ -148,4 +151,20 @@ fn personal_day_report_exposes_unified_surface() {
     assert_eq!(report.chart.tier, amlich_api::BirthDataTierDto::Date);
     assert!(report.chart.canchi.is_some());
     assert!(!report.computed_metrics.available_sections.is_empty());
+}
+
+#[test]
+fn personal_day_report_omits_reasoning_bundle_without_full_birth_data() {
+    let report = get_personal_day_report(
+        &sample_query(),
+        Some(1990),
+        None,
+        None,
+        Some(sample_gender()),
+    )
+    .expect("report");
+
+    assert!(report.decision.is_none());
+    assert!(report.decision_export.is_none());
+    assert!(report.graph.is_none());
 }

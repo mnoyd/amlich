@@ -1261,6 +1261,111 @@ fn lookup_personal_day_report_outputs_machine_readable_payload() {
 }
 
 #[test]
+fn lookup_personal_day_analysis_outputs_canonical_reasoning_bundle_fields() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "personal-day",
+            "2024-02-10",
+            "--birth-year",
+            "1990",
+            "--birth-month",
+            "1",
+            "--birth-day",
+            "1",
+            "--gender",
+            "male",
+            "--surface",
+            "analysis",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert_eq!(json["tier"].as_str(), Some("date"));
+    assert!(json.get("decision").is_some());
+    assert!(json.get("decision_export").is_some());
+    assert!(json.get("graph").is_some());
+    assert!(json["graph"]["nodes"].as_array().is_some_and(|nodes| !nodes.is_empty()));
+    assert!(json["graph"]["edges"].as_array().is_some_and(|edges| !edges.is_empty()));
+}
+
+#[test]
+fn lookup_personal_day_analysis_omits_reasoning_bundle_without_full_birth_data() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "personal-day",
+            "2024-02-10",
+            "--birth-year",
+            "1990",
+            "--gender",
+            "male",
+            "--surface",
+            "analysis",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert_eq!(json["tier"].as_str(), Some("anonymous"));
+    assert!(json.get("decision").is_none());
+    assert!(json.get("decision_export").is_none());
+    assert!(json.get("graph").is_none());
+}
+
+#[test]
+fn lookup_personal_day_report_pretty_json_keeps_reasoning_bundle_fields() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "personal-day",
+            "2024-02-10",
+            "--birth-year",
+            "1990",
+            "--birth-month",
+            "1",
+            "--birth-day",
+            "1",
+            "--gender",
+            "male",
+            "--surface",
+            "report",
+            "--format",
+            "json",
+            "--pretty",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("\n"));
+    let json: Value = serde_json::from_slice(output.stdout.as_slice()).expect("valid json");
+    assert!(json.get("decision").is_some());
+    assert!(json.get("decision_export").is_some());
+    assert!(json.get("graph").is_some());
+}
+
+#[test]
 fn lookup_hour_selection_report_outputs_machine_readable_payload() {
     let home = temp_home();
     let output = run(
