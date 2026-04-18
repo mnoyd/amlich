@@ -3,6 +3,7 @@
   import type {
     DayForInsight,
     DomainDayBoostEntryDto,
+    InitiationOpeningDecisionExportDto,
     PersonalDayMatrixReportDto,
     PersonalDayReportDto,
     PersonalHourEntryDto,
@@ -65,6 +66,35 @@
 
   function topHours(hours: PersonalHourEntryDto[] = []): PersonalHourEntryDto[] {
     return [...hours].sort((left, right) => right.score - left.score).slice(0, 4);
+  }
+
+  function helpNotes(decision: InitiationOpeningDecisionExportDto): string[] {
+    return decision.strongest_supports.map((note) => note.summary_vi);
+  }
+
+  function watchNotes(decision: InitiationOpeningDecisionExportDto): string[] {
+    return [
+      ...decision.strongest_resistances,
+      ...decision.override_factors,
+      ...decision.conflict_notes,
+    ].map((note) => note.summary_vi);
+  }
+
+  function nextMoves(decision: InitiationOpeningDecisionExportDto): string[] {
+    return [...decision.suggested_hours, ...decision.suggested_directions];
+  }
+
+  function explanationMeta(decision: InitiationOpeningDecisionExportDto): string[] {
+    return [
+      `mức ${decision.recommendation_bucket}`,
+      `độ tin cậy ${decision.confidence}`,
+      decision.context_is_clear ? "bối cảnh khá rõ" : "bối cảnh còn pha trộn",
+    ];
+  }
+
+  function evidenceSummary(report: PersonalDayReportDto): string {
+    if (!report.graph) return "Không có lớp bằng chứng sâu hơn cho ngày này.";
+    return `${report.graph.nodes.length} nút lý do · ${report.graph.edges.length} liên kết giải thích`;
   }
 
   $effect(() => {
@@ -160,9 +190,9 @@
 <section class="personal-panel">
   <header class="panel-header">
     <div>
-      <h2>Hồ sơ cá nhân & lý do khuyến nghị</h2>
+      <h2>Hồ sơ cá nhân & cách đọc ngày này</h2>
       <p class="panel-copy">
-        Nhập ngày sinh để xem reasoning bundle chuẩn hóa; thêm giờ sinh để mở ma trận cá nhân.
+        Nhập ngày sinh để xem kết luận, điểm nâng đỡ và điều cần lưu ý; thêm giờ sinh để mở ma trận cá nhân.
       </p>
     </div>
   </header>
@@ -205,14 +235,14 @@
       <article class="card">
         <div class="card-head">
           <div>
-            <h3>Canonical reasoning</h3>
+            <h3>Giải thích cho ngày này</h3>
             <p class="meta-line">
               {#if loadingReport}
-                Đang tải reasoning...
+                Đang tải phần giải thích...
               {:else if report}
-                tier: {report.computed_metrics.tier} · completeness: {report.computed_metrics.profile_completeness}/4
+                hồ sơ {report.computed_metrics.tier} · đầy đủ {report.computed_metrics.profile_completeness}/4
               {:else}
-                Chưa có dữ liệu reasoning
+                Chưa có dữ liệu giải thích
               {/if}
             </p>
           </div>
@@ -224,70 +254,61 @@
         {#if reportError}
           <p class="error">{reportError}</p>
         {:else if report}
-          <p class="summary">{report.decision_export?.primary_conclusion ?? report.summary}</p>
+          <p class="summary">{report.decision_export.primary_conclusion}</p>
 
-          {#if report.decision_export}
-            <div class="pill-row">
-              <span class="pill">confidence: {report.decision_export.confidence}</span>
-              <span class="pill">semantic: {report.decision_export.semantic}</span>
-              <span class="pill">
-                context: {report.decision_export.context_is_clear ? "clear" : "mixed"}
-              </span>
-            </div>
+          <div class="pill-row">
+            {#each explanationMeta(report.decision_export) as detail}
+              <span class="pill">{detail}</span>
+            {/each}
+          </div>
 
-            <div class="columns">
-              <section>
-                <h4>Strongest supports</h4>
-                <ul>
-                  {#each report.decision_export.strongest_supports as note}
-                    <li>{note.summary_vi}</li>
-                  {/each}
-                </ul>
-              </section>
-              <section>
-                <h4>Strongest resistances</h4>
-                <ul>
-                  {#each report.decision_export.strongest_resistances as note}
-                    <li>{note.summary_vi}</li>
-                  {/each}
-                  {#each report.decision_export.override_factors as note}
-                    <li>{note.summary_vi}</li>
-                  {/each}
-                </ul>
-              </section>
-            </div>
+          <div class="columns explanation-columns">
+            <section>
+              <h4>Điểm đang nâng đỡ</h4>
+              <ul>
+                {#each helpNotes(report.decision_export) as note}
+                  <li>{note}</li>
+                {/each}
+              </ul>
+            </section>
+            <section>
+              <h4>Điểm cần giữ chừng mực</h4>
+              <ul>
+                {#each watchNotes(report.decision_export) as note}
+                  <li>{note}</li>
+                {/each}
+              </ul>
+            </section>
+          </div>
 
+          {#if nextMoves(report.decision_export).length}
+            <section>
+              <h4>Nếu vẫn tiến hành</h4>
+              <ul>
+                {#each nextMoves(report.decision_export) as step}
+                  <li>{step}</li>
+                {/each}
+              </ul>
+            </section>
+          {/if}
+
+          <section class="details-block">
+            <h4>Chi tiết & bằng chứng</h4>
+            <p class="card-note">{evidenceSummary(report)}</p>
             {#if report.decision_export.axis_scores.length}
-              <section>
-                <h4>Axis scores</h4>
-                <div class="axis-grid">
-                  {#each report.decision_export.axis_scores as axis}
-                    <div class="axis-row">
-                      <span>{formatAxis(axis.axis)}</span>
-                      <strong>{axis.score.toFixed(2)}</strong>
-                    </div>
-                  {/each}
-                </div>
-              </section>
+              <div class="axis-grid">
+                {#each report.decision_export.axis_scores as axis}
+                  <div class="axis-row">
+                    <span>{formatAxis(axis.axis)}</span>
+                    <strong>{axis.score.toFixed(2)}</strong>
+                  </div>
+                {/each}
+              </div>
             {/if}
+          </section>
 
-            {#if report.graph}
-              <section>
-                <h4>Graph evidence</h4>
-                <p class="card-note">
-                  {report.graph.nodes.length} nodes · {report.graph.edges.length} edges
-                </p>
-                <ul>
-                  {#each report.graph.nodes.slice(0, 5) as node}
-                    <li>{node.summary_vi}</li>
-                  {/each}
-                </ul>
-              </section>
-            {/if}
-
-            {#if report.analysis.unavailable_sections.length}
-              <p class="card-note">{formatUnavailable(report.analysis.unavailable_sections)}</p>
-            {/if}
+          {#if report.analysis.unavailable_sections.length}
+            <p class="card-note">{formatUnavailable(report.analysis.unavailable_sections)}</p>
           {/if}
         {/if}
       </article>
@@ -469,6 +490,14 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
+  }
+
+  .explanation-columns section,
+  .details-block {
+    padding: 12px;
+    border-radius: 14px;
+    background: rgba(255, 251, 245, 0.76);
+    border: 1px solid rgba(139, 99, 58, 0.1);
   }
 
   .summary {

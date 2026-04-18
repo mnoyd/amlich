@@ -852,45 +852,67 @@ impl<'a> InsightOverlay<'a> {
             }
             lines.push(Line::from(""));
 
-            let canonical_highlights = report
-                .decision_export
-                .as_ref()
-                .map(|export| {
-                    export
-                        .strongest_supports
-                        .iter()
-                        .map(|note| note.summary_vi.clone())
-                        .collect::<Vec<_>>()
-                })
-                .unwrap_or_default();
-            if !canonical_highlights.is_empty() {
+            if let Some(export) = &report.decision_export {
                 lines.push(Line::from(Span::styled(
-                    pick_text(lang, "Điểm nổi bật:", "Highlights:"),
-                    Style::default().fg(theme::GOOD_HOUR_FG),
+                    pick_text(lang, "Kết luận hôm nay:", "Today's verdict:"),
+                    Style::default()
+                        .fg(theme::ACCENT_FG)
+                        .add_modifier(Modifier::BOLD),
                 )));
-                push_bulleted(&mut lines, &canonical_highlights, "•", 4);
+                lines.push(Line::from(format!(
+                    "  {:?} • {} • {:?}",
+                    export.recommendation_bucket,
+                    pick_text(lang, "độ tin cậy", "confidence"),
+                    export.confidence
+                )));
+                lines.push(Line::from(format!("  {}", export.primary_conclusion)));
                 lines.push(Line::from(""));
-            }
 
-            let canonical_cautions = report
-                .decision_export
-                .as_ref()
-                .map(|export| {
-                    export
-                        .strongest_resistances
-                        .iter()
-                        .chain(export.override_factors.iter())
-                        .map(|note| note.summary_vi.clone())
-                        .collect::<Vec<_>>()
-                })
-                .unwrap_or_default();
-            if !canonical_cautions.is_empty() {
-                lines.push(Line::from(Span::styled(
-                    pick_text(lang, "Lưu ý:", "Cautions:"),
-                    Style::default().fg(theme::WEEKEND_FG),
-                )));
-                push_bulleted(&mut lines, &canonical_cautions, "•", 4);
-                lines.push(Line::from(""));
+                let canonical_highlights: Vec<String> = export
+                    .strongest_supports
+                    .iter()
+                    .map(|note| note.summary_vi.clone())
+                    .collect();
+                if !canonical_highlights.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        pick_text(lang, "Điểm đang nâng đỡ:", "What helps:"),
+                        Style::default().fg(theme::GOOD_HOUR_FG),
+                    )));
+                    push_bulleted(&mut lines, &canonical_highlights, "•", 4);
+                    lines.push(Line::from(""));
+                }
+
+                let canonical_cautions: Vec<String> = export
+                    .strongest_resistances
+                    .iter()
+                    .chain(export.override_factors.iter())
+                    .map(|note| note.summary_vi.clone())
+                    .collect();
+                if !canonical_cautions.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        pick_text(lang, "Điểm cần giữ chừng mực:", "What to watch:"),
+                        Style::default()
+                            .fg(theme::WEEKEND_FG)
+                            .add_modifier(Modifier::BOLD),
+                    )));
+                    push_bulleted(&mut lines, &canonical_cautions, "•", 4);
+                    lines.push(Line::from(""));
+                }
+
+                let next_moves: Vec<String> = export
+                    .suggested_hours
+                    .iter()
+                    .chain(export.suggested_directions.iter())
+                    .cloned()
+                    .collect();
+                if !next_moves.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        pick_text(lang, "Nếu vẫn tiến hành:", "If proceeding:"),
+                        Style::default().fg(theme::SECONDARY_FG),
+                    )));
+                    push_bulleted(&mut lines, &next_moves, "→", 4);
+                    lines.push(Line::from(""));
+                }
             }
         }
 

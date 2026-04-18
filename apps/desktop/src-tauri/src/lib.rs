@@ -344,3 +344,64 @@ pub fn run() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_gender_accepts_supported_aliases_and_rejects_unknown_values() {
+        assert_eq!(parse_gender(Some("male".to_string())), Ok(Some(amlich_core::Gender::Male)));
+        assert_eq!(parse_gender(Some("nam".to_string())), Ok(Some(amlich_core::Gender::Male)));
+        assert_eq!(
+            parse_gender(Some("female".to_string())),
+            Ok(Some(amlich_core::Gender::Female))
+        );
+        assert_eq!(parse_gender(Some("nữ".to_string())), Ok(Some(amlich_core::Gender::Female)));
+        assert!(parse_gender(Some("other".to_string())).is_err());
+    }
+
+    #[test]
+    fn personal_day_report_command_exposes_canonical_reasoning_bundle() {
+        let report = get_personal_day_report(
+            10,
+            2,
+            2024,
+            Some(1990),
+            Some(1),
+            Some(1),
+            Some("male".to_string()),
+        )
+        .expect("personal day report");
+
+        let decision_export = report.decision_export.as_ref().expect("decision export");
+        let graph = report.graph.as_ref().expect("graph");
+
+        assert!(!decision_export.primary_conclusion.is_empty());
+        assert!(!decision_export.axis_scores.is_empty());
+        assert!(!graph.nodes.is_empty());
+        assert_eq!(report.decision_export, report.analysis.decision_export);
+        assert_eq!(report.graph, report.analysis.graph);
+    }
+
+    #[test]
+    fn personal_day_matrix_command_exposes_matrix_sections() {
+        let report = get_personal_day_matrix_report(
+            10,
+            2,
+            2024,
+            1990,
+            1,
+            1,
+            9,
+            30,
+            Some("male".to_string()),
+        )
+        .expect("personal day matrix report");
+
+        assert_eq!(report.tier, amlich_api::BirthDataTierDto::Datetime);
+        assert!(report.personal_hours.is_some());
+        assert!(report.direction_merge.is_some());
+        assert!(report.domain_day_boost.is_some());
+    }
+}
