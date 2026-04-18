@@ -1133,6 +1133,10 @@ pub struct PersonalDayAdvisoryDto {
     pub priority_order: Vec<String>,
     pub highlights: Vec<String>,
     pub cautions: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_bucket: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reasoning_confidence: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1209,6 +1213,8 @@ pub struct HourSelectionAnalysisDto {
     pub bad_hours: Vec<HourInfoDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub top_recommendation: Option<HourInfoDto>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub canonical: Option<amlich_core::HourSelectionReasoningExport>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1225,6 +1231,8 @@ pub struct HourSelectionAdvisoryDto {
     pub summary_en: String,
     pub best_windows: Vec<String>,
     pub caution_windows: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub canonical: Option<amlich_core::HourSelectionReasoningExport>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

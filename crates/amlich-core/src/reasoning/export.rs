@@ -64,6 +64,28 @@ fn severity_for_node(node: &ReasoningNode) -> Option<ReasoningNodeSeverity> {
             Some("soft") => Some(ReasoningNodeSeverity::SoftTaboo),
             _ => None,
         },
+        "fact.day.nhi_thap_bat_tu" => {
+            if node.summary_vi.contains("cát tinh") {
+                Some(ReasoningNodeSeverity::Auspicious)
+            } else if node.summary_vi.contains("sát tinh") {
+                Some(ReasoningNodeSeverity::Inauspicious)
+            } else {
+                None
+            }
+        }
+        "fact.day.hoang_dao_hours" => node
+            .severity
+            .as_deref()
+            .and_then(|s| s.parse::<usize>().ok())
+            .filter(|&count| count > 0)
+            .map(|_| ReasoningNodeSeverity::Auspicious),
+        "fact.day.xung_hop" => {
+            if node.summary_vi.starts_with("Xung") && !node.summary_vi.contains(", hợp ") {
+                Some(ReasoningNodeSeverity::Inauspicious)
+            } else {
+                None
+            }
+        }
         _ => None,
     }
 }
@@ -79,17 +101,24 @@ fn tags_for_node(node: &ReasoningNode) -> Vec<String> {
     if node.id.starts_with("signal.") {
         tags.push("signal".to_string());
     }
-    if matches!(
-        node.id.as_str(),
-        "fact.day.taboos" | "fact.day.xung_hop" | "signal.resistance"
-    ) {
-        tags.push("resistance".to_string());
-    }
-    if matches!(
-        node.id.as_str(),
-        "fact.day.truc" | "fact.day.day_deity" | "fact.day.nhi_thap_bat_tu" | "signal.support"
-    ) {
-        tags.push("support".to_string());
+    match node.id.as_str() {
+        "fact.day.taboos" | "fact.day.xung_hop" | "signal.resistance" => {
+            tags.push("resistance".to_string());
+        }
+        "fact.day.truc"
+        | "fact.day.day_deity"
+        | "fact.day.nhi_thap_bat_tu"
+        | "fact.day.hoang_dao_hours"
+        | "signal.support" => {
+            tags.push("support".to_string());
+        }
+        "fact.day.travel_directions" | "signal.timing_fit" => {
+            tags.push("timing".to_string());
+        }
+        "fact.day.solar_term" => {
+            tags.push("context".to_string());
+        }
+        _ => {}
     }
     tags
 }

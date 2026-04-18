@@ -1544,6 +1544,79 @@ fn lookup_hour_selection_analysis_outputs_reasoning_fields() {
 }
 
 #[test]
+fn lookup_hour_selection_report_keeps_canonical_exports_aligned() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "hour-selection",
+            "2024-02-10",
+            "--surface",
+            "report",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    let analysis = &json["analysis"]["canonical"];
+    let advisory = &json["advisory"]["canonical"];
+
+    assert!(analysis.is_object());
+    assert!(advisory.is_object());
+    assert_eq!(analysis["intent"], advisory["intent"]);
+    assert_eq!(analysis["birth_data_tier"], advisory["birth_data_tier"]);
+    assert_eq!(analysis["summary_vi"], advisory["summary_vi"]);
+    assert_eq!(analysis["summary_en"], advisory["summary_en"]);
+    assert_eq!(analysis["top_recommendation"], advisory["top_recommendation"]);
+    assert_eq!(analysis["ranked_hours"], advisory["ranked_hours"]);
+}
+
+#[test]
+fn lookup_personal_day_report_keeps_reasoning_bundle_aligned_with_analysis() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "personal-day",
+            "2024-02-10",
+            "--birth-year",
+            "1990",
+            "--birth-month",
+            "1",
+            "--birth-day",
+            "1",
+            "--gender",
+            "male",
+            "--surface",
+            "report",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert_eq!(json["decision"], json["analysis"]["decision"]);
+    assert_eq!(json["decision_export"], json["analysis"]["decision_export"]);
+    assert_eq!(json["graph"], json["analysis"]["graph"]);
+    assert_eq!(json["summary"], json["advisory"]["summary"]);
+    assert_eq!(json["severity"], json["advisory"]["severity"]);
+    assert_eq!(json["top_signals"], json["advisory"]["top_signals"]);
+}
+
+#[test]
 fn config_profile_show_succeeds() {
     let home = temp_home();
     let output = run(&home, &["config", "profile", "show"]);

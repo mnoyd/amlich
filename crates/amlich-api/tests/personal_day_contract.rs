@@ -171,3 +171,108 @@ fn personal_day_report_omits_reasoning_bundle_without_full_birth_data() {
     assert!(report.decision_export.is_none());
     assert!(report.graph.is_none());
 }
+
+#[test]
+fn personal_day_advisory_aligns_with_reasoning_bundle() {
+    let report = get_personal_day_report(
+        &sample_query(),
+        Some(1990),
+        Some(1),
+        Some(1),
+        Some(sample_gender()),
+    )
+    .expect("report");
+
+    let decision = report.decision.as_ref().expect("decision");
+    let advisory = &report.advisory;
+
+    assert!(advisory.reasoning_bucket.is_some());
+    assert!(advisory.reasoning_confidence.is_some());
+    assert_eq!(
+        advisory.reasoning_bucket.as_deref(),
+        Some(decision.recommendation_bucket.as_str())
+    );
+
+    let analysis = &report.analysis;
+    let analysis_decision = analysis.decision.as_ref().expect("analysis decision");
+    assert_eq!(
+        analysis_decision.primary_conclusion,
+        decision.primary_conclusion
+    );
+    assert_eq!(
+        analysis_decision.recommendation_bucket,
+        decision.recommendation_bucket
+    );
+    assert_eq!(analysis_decision.confidence, decision.confidence);
+}
+
+#[test]
+fn personal_day_advisory_incorporates_reasoning_signals() {
+    let advisory = get_personal_day_advisory(
+        &sample_query(),
+        Some(1990),
+        Some(1),
+        Some(1),
+        Some(sample_gender()),
+    )
+    .expect("advisory");
+
+    assert!(advisory.reasoning_bucket.is_some());
+    assert!(advisory
+        .top_signals
+        .iter()
+        .any(|signal| signal.contains("khởi sự")
+            || signal.contains("thận trọng")
+            || signal.contains("Không nên")));
+}
+
+#[test]
+fn personal_day_report_analysis_and_advisory_keep_reasoning_fields_aligned() {
+    let report = get_personal_day_report(
+        &sample_query(),
+        Some(1990),
+        Some(1),
+        Some(1),
+        Some(sample_gender()),
+    )
+    .expect("report");
+
+    let report_decision = report.decision.as_ref().expect("report decision");
+    let report_export = report.decision_export.as_ref().expect("report decision export");
+    let analysis_decision = report.analysis.decision.as_ref().expect("analysis decision");
+    let analysis_export = report
+        .analysis
+        .decision_export
+        .as_ref()
+        .expect("analysis decision export");
+    let advisory = &report.advisory;
+
+    assert_eq!(report_decision.primary_conclusion, analysis_decision.primary_conclusion);
+    assert_eq!(report_decision.recommendation_bucket, analysis_decision.recommendation_bucket);
+    assert_eq!(report_decision.confidence, analysis_decision.confidence);
+    assert_eq!(report_export.semantic, analysis_export.semantic);
+    assert_eq!(report_export.axis_scores, analysis_export.axis_scores);
+    assert_eq!(report.graph, report.analysis.graph);
+    assert_eq!(advisory.reasoning_bucket.as_deref(), Some(report_decision.recommendation_bucket.as_str()));
+}
+
+#[test]
+fn personal_day_reasoning_bundle_stays_absent_consistently_when_profile_is_incomplete() {
+    let report = get_personal_day_report(
+        &sample_query(),
+        Some(1990),
+        None,
+        None,
+        Some(sample_gender()),
+    )
+    .expect("report");
+
+    assert!(report.decision.is_none());
+    assert!(report.decision_export.is_none());
+    assert!(report.graph.is_none());
+    assert!(report.analysis.decision.is_none());
+    assert!(report.analysis.decision_export.is_none());
+    assert!(report.analysis.graph.is_none());
+    assert!(report.advisory.reasoning_bucket.is_none());
+    assert!(report.advisory.reasoning_confidence.is_none());
+}

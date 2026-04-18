@@ -326,6 +326,33 @@ fn render_matrix_summary(app: &AppState, area: Rect, buf: &mut Buffer) {
         return;
     };
 
+    let lines = matrix_summary_lines(matrix);
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn matrix_summary_lines(matrix: &amlich_api::PersonalDayMatrixReportDto) -> Vec<Line<'static>> {
+    let harmonious_pillars = matrix
+        .day_person
+        .pillars
+        .iter()
+        .filter(|pillar| pillar.branch_relation.has_harmony())
+        .count();
+    let conflicting_pillars = matrix
+        .day_person
+        .pillars
+        .iter()
+        .filter(|pillar| pillar.branch_relation.has_conflict())
+        .count();
+    let supportive_elements = matrix
+        .element_resonance
+        .entries
+        .iter()
+        .filter(|entry| entry.day_helps_deficit)
+        .count();
+
     let best_direction = matrix.direction_merge.as_ref().and_then(|merge| {
         merge
             .entries
@@ -348,7 +375,23 @@ fn render_matrix_summary(app: &AppState, area: Rect, buf: &mut Buffer) {
             .map(|entry| format!("Miền nổi bật: {} ({:.0})", entry.domain, entry.boosted_score))
     });
 
-    let mut lines: Vec<Line<'_>> = vec![];
+    let mut lines: Vec<Line<'static>> = vec![
+        Line::from(vec![
+            Span::raw("  • "),
+            Span::raw(format!(
+                "Ngày-person: {} trụ hợp, {} trụ xung/khắc",
+                harmonious_pillars, conflicting_pillars
+            )),
+        ]),
+        Line::from(vec![
+            Span::raw("  • "),
+            Span::raw(format!(
+                "Cộng hưởng ngũ hành: {} hành được ngày hỗ trợ đúng chỗ thiếu",
+                supportive_elements
+            )),
+        ]),
+    ];
+
     if let Some(line) = best_direction {
         lines.push(Line::from(vec![Span::raw("  • "), Span::raw(line)]));
     }
@@ -363,9 +406,7 @@ fn render_matrix_summary(app: &AppState, area: Rect, buf: &mut Buffer) {
         lines.push(Line::from("  Chưa có điểm nhấn ma trận để hiển thị."));
     }
 
-    Paragraph::new(lines)
-        .wrap(Wrap { trim: true })
-        .render(inner, buf);
+    lines
 }
 
 fn render_dai_van(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
@@ -452,4 +493,65 @@ fn render_dai_van_timeline(insight: &amlich_api::DayInsightDto, area: Rect, buf:
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })
         .render(inner, buf);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::matrix_summary_lines;
+    use amlich_api::{get_personal_day_matrix_report, BaziQuery, DateQuery};
+
+    fn sample_birth() -> BaziQuery {
+        BaziQuery {
+            day: 1,
+            month: 1,
+            year: 1990,
+            hour: 9,
+            minute: 30,
+            timezone: Some(7.0),
+            longitude: None,
+            use_solar_time: false,
+            gender: Some("male".to_string()),
+        }
+    }
+
+    fn sample_date() -> DateQuery {
+        DateQuery {
+            day: 10,
+            month: 2,
+            year: 2024,
+            timezone: Some(7.0),
+            ruleset_id: None,
+            event_kind: None,
+            enabled_pack_ids: vec![],
+        }
+    }
+
+    #[test]
+    fn matrix_summary_surfaces_day_person_and_element_resonance() {
+        let matrix = get_personal_day_matrix_report(&sample_birth(), &sample_date()).expect("matrix");
+        let lines = matrix_summary_lines(&matrix);
+        let rendered = lines
+            .iter()
+            .map(|line| line.to_string())
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(rendered.contains("Ngày-person:"));
+        assert!(rendered.contains("Cộng hưởng ngũ hành:"));
+    }
+
+    #[test]
+    fn matrix_summary_keeps_best_direction_hour_and_domain_when_available() {
+        let matrix = get_personal_day_matrix_report(&sample_birth(), &sample_date()).expect("matrix");
+        let lines = matrix_summary_lines(&matrix);
+        let rendered = lines
+            .iter()
+            .map(|line| line.to_string())
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(rendered.contains("Hướng nổi bật:"));
+        assert!(rendered.contains("Giờ hợp cá nhân:"));
+        assert!(rendered.contains("Miền nổi bật:"));
+    }
 }

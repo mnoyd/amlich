@@ -1537,7 +1537,7 @@ fn run_lookup_hour_selection(args: HourSelectionArgs) -> Result<(), String> {
             args.pretty,
         ),
         InsightSurface::Analysis => render_structured(
-            &amlich_api::get_hour_selection_analysis(&query)?,
+            &amlich_api::get_hour_selection_analysis(&query, None, None, None, None)?,
             args.format,
             args.pretty,
         ),
@@ -1547,12 +1547,12 @@ fn run_lookup_hour_selection(args: HourSelectionArgs) -> Result<(), String> {
             args.pretty,
         ),
         InsightSurface::Advisory => render_structured(
-            &amlich_api::get_hour_selection_advisory(&query)?,
+            &amlich_api::get_hour_selection_advisory(&query, None, None, None, None)?,
             args.format,
             args.pretty,
         ),
         InsightSurface::Report => render_structured(
-            &amlich_api::get_hour_selection_report(&query)?,
+            &amlich_api::get_hour_selection_report(&query, None, None, None, None)?,
             args.format,
             args.pretty,
         ),

@@ -156,12 +156,79 @@ pub struct RankedHourCandidate {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct HourSelectionEvidence {
+    pub source_family: String,
+    pub source_id: String,
+    pub method: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct HourSelectionReasoningExport {
+    pub intent: String,
+    pub birth_data_tier: String,
+    pub summary_vi: String,
+    pub summary_en: String,
+    pub top_recommendation: Option<RankedHourCandidate>,
+    pub ranked_hours: Vec<RankedHourCandidate>,
+    pub auspicious_count: usize,
+    pub total_hours: usize,
+    #[serde(default)]
+    pub evidence: Vec<HourSelectionEvidence>,
+}
+
+impl HourSelectionReasoningExport {
+    pub fn from_reasoning(reasoning: &HourSelectionReasoning, birth: Option<&BirthInput>) -> Self {
+        let auspicious_count = reasoning.ranked_hours.iter().filter(|h| h.is_auspicious).count();
+        let total_hours = reasoning.ranked_hours.len();
+        let birth_data_tier = match birth {
+            Some(b) if b.hour.is_some() && b.minute.is_some() && b.gender.is_some() => "datetime",
+            Some(_) => "date",
+            None => "anonymous",
+        };
+        let mut evidence = vec![HourSelectionEvidence {
+            source_family: "amlich_core".to_string(),
+            source_id: "hour_selection".to_string(),
+            method: "rank_hours_for_intent".to_string(),
+            note: Some(format!("intent={}", reasoning.intent.event_kind())),
+        }];
+        if let Some(birth) = birth {
+            evidence.push(HourSelectionEvidence {
+                source_family: "birth_input".to_string(),
+                source_id: format!("birth.{}.{}.{}", birth.year, birth.month, birth.day),
+                method: "birth_compatibility".to_string(),
+                note: None,
+            });
+        }
+
+        HourSelectionReasoningExport {
+            intent: reasoning.intent.event_kind().to_string(),
+            birth_data_tier: birth_data_tier.to_string(),
+            summary_vi: reasoning.summary_vi.clone(),
+            summary_en: reasoning.summary_en.clone(),
+            top_recommendation: reasoning.top_recommendation.clone(),
+            ranked_hours: reasoning.ranked_hours.clone(),
+            auspicious_count,
+            total_hours,
+            evidence,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct HourSelectionReasoning {
     pub intent: ConsultationIntent,
     pub summary_vi: String,
     pub summary_en: String,
     pub top_recommendation: Option<RankedHourCandidate>,
     pub ranked_hours: Vec<RankedHourCandidate>,
+}
+
+impl HourSelectionReasoning {
+    pub fn export(&self, birth: Option<&BirthInput>) -> HourSelectionReasoningExport {
+        HourSelectionReasoningExport::from_reasoning(self, birth)
+    }
 }
 
 pub fn build_personalized_day_selection(

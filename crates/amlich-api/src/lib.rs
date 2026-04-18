@@ -877,6 +877,33 @@ fn personal_reasoning_input(
     ))
 }
 
+fn personal_birth_input(
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<&str>,
+) -> Option<amlich_core::BirthInput> {
+    let gender = gender.and_then(|g| parse_gender(g));
+    Some(amlich_core::BirthInput {
+        day: birth_day?,
+        month: birth_month?,
+        year: birth_year?,
+        hour: None,
+        minute: None,
+        timezone: amlich_core::VIETNAM_TIMEZONE,
+        gender,
+        location_name: None,
+    })
+}
+
+fn parse_gender(gender: &str) -> Option<amlich_core::almanac::tu_menh::Gender> {
+    match gender.to_lowercase().as_str() {
+        "male" | "nam" => Some(amlich_core::almanac::tu_menh::Gender::Male),
+        "female" | "nữ" | "nu" => Some(amlich_core::almanac::tu_menh::Gender::Female),
+        _ => None,
+    }
+}
+
 fn get_personal_day_reasoning_bundle(
     query: &DateQuery,
     birth_year: Option<i32>,
@@ -1034,11 +1061,26 @@ pub fn get_personal_day_advisory(
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayAdvisoryDto, String> {
     let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
+    let reasoning =
+        get_personal_day_reasoning_bundle(query, birth_year, birth_month, birth_day, gender)?;
     let mut highlights = Vec::new();
     let mut cautions = Vec::new();
     let mut top_signals = Vec::new();
     let mut why_this_matters = Vec::new();
     let mut recommended_actions = Vec::new();
+
+    if let Some(bundle) = &reasoning {
+        top_signals.push(bundle.decision.primary_conclusion.clone());
+        for support in &bundle.decision.strongest_supports {
+            highlights.push(support.clone());
+        }
+        for resistance in &bundle.decision.strongest_resistances {
+            cautions.push(resistance.clone());
+        }
+        for factor in &bundle.decision.override_factors {
+            cautions.push(format!("override: {factor}"));
+        }
+    }
 
     if let Some(tu_menh) = &insight.tu_menh {
         let kua_signal = format!("kua {} {}", tu_menh.kua, tu_menh.group);
@@ -1124,6 +1166,13 @@ pub fn get_personal_day_advisory(
         }
     }
 
+    let reasoning_bucket = reasoning
+        .as_ref()
+        .map(|bundle| bundle.decision.recommendation_bucket.as_str().to_string());
+    let reasoning_confidence = reasoning
+        .as_ref()
+        .map(|bundle| format!("{:?}", bundle.decision.confidence).to_lowercase());
+
     let severity = if cautions.len() >= 4 {
         "high"
     } else if !cautions.is_empty() {
@@ -1176,6 +1225,8 @@ pub fn get_personal_day_advisory(
         priority_order,
         highlights,
         cautions,
+        reasoning_bucket,
+        reasoning_confidence,
     })
 }
 
@@ -1215,13 +1266,18 @@ fn get_hour_selection_day_info(query: &DateQuery) -> Result<DayInfoDto, String> 
 
 fn get_hour_selection_reasoning(
     query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<&str>,
 ) -> Result<amlich_core::HourSelectionReasoning, String> {
+    let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
     amlich_core::build_hour_selection_reasoning(
         query.day,
         query.month,
         query.year,
         amlich_core::ConsultationIntent::Travel,
-        None,
+        birth.as_ref(),
     )
 }
 
@@ -1237,9 +1293,16 @@ pub fn get_hour_selection_chart(query: &DateQuery) -> Result<HourSelectionChartD
     })
 }
 
-pub fn get_hour_selection_analysis(query: &DateQuery) -> Result<HourSelectionAnalysisDto, String> {
+pub fn get_hour_selection_analysis(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<&str>,
+) -> Result<HourSelectionAnalysisDto, String> {
     let info = get_hour_selection_day_info(query)?;
-    let reasoning = get_hour_selection_reasoning(query)?;
+    let reasoning = get_hour_selection_reasoning(query, birth_year, birth_month, birth_day, gender)?;
+    let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
     let bad_hours = info
         .gio_hoang_dao
         .all_hours
@@ -1249,8 +1312,8 @@ pub fn get_hour_selection_analysis(query: &DateQuery) -> Result<HourSelectionAna
         .collect();
     Ok(HourSelectionAnalysisDto {
         intent: reasoning.intent.event_kind().to_string(),
-        summary_vi: reasoning.summary_vi,
-        summary_en: reasoning.summary_en,
+        summary_vi: reasoning.summary_vi.clone(),
+        summary_en: reasoning.summary_en.clone(),
         good_hours: info.gio_hoang_dao.good_hours.clone(),
         bad_hours,
         top_recommendation: reasoning.top_recommendation.as_ref().map(|candidate| HourInfoDto {
@@ -1260,6 +1323,7 @@ pub fn get_hour_selection_analysis(query: &DateQuery) -> Result<HourSelectionAna
             star: candidate.note_vi.clone(),
             is_good: candidate.is_auspicious,
         }),
+        canonical: Some(reasoning.export(birth.as_ref())),
     })
 }
 
@@ -1278,12 +1342,19 @@ pub fn get_hour_selection_metrics(query: &DateQuery) -> Result<HourSelectionMetr
     })
 }
 
-pub fn get_hour_selection_advisory(query: &DateQuery) -> Result<HourSelectionAdvisoryDto, String> {
-    let reasoning = get_hour_selection_reasoning(query)?;
+pub fn get_hour_selection_advisory(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<&str>,
+) -> Result<HourSelectionAdvisoryDto, String> {
+    let reasoning = get_hour_selection_reasoning(query, birth_year, birth_month, birth_day, gender)?;
+    let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
     Ok(HourSelectionAdvisoryDto {
         intent: reasoning.intent.event_kind().to_string(),
-        summary_vi: reasoning.summary_vi,
-        summary_en: reasoning.summary_en,
+        summary_vi: reasoning.summary_vi.clone(),
+        summary_en: reasoning.summary_en.clone(),
         best_windows: reasoning
             .ranked_hours
             .iter()
@@ -1296,15 +1367,22 @@ pub fn get_hour_selection_advisory(query: &DateQuery) -> Result<HourSelectionAdv
             .filter(|hour| !hour.is_auspicious)
             .map(|hour| format!("{} {}", hour.chi_name, hour.time_range))
             .collect(),
+        canonical: Some(reasoning.export(birth.as_ref())),
     })
 }
 
-pub fn get_hour_selection_report(query: &DateQuery) -> Result<HourSelectionReportDto, String> {
+pub fn get_hour_selection_report(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<&str>,
+) -> Result<HourSelectionReportDto, String> {
     Ok(HourSelectionReportDto {
         chart: get_hour_selection_chart(query)?,
-        analysis: get_hour_selection_analysis(query)?,
+        analysis: get_hour_selection_analysis(query, birth_year, birth_month, birth_day, gender)?,
         computed_metrics: get_hour_selection_metrics(query)?,
-        advisory: get_hour_selection_advisory(query)?,
+        advisory: get_hour_selection_advisory(query, birth_year, birth_month, birth_day, gender)?,
     })
 }
 

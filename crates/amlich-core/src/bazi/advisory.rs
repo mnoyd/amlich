@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::{
     almanac::types::FiveElement,
     bazi::{
@@ -10,7 +12,7 @@ use crate::{
     },
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct UsefulGodAnalysis {
     pub favorable_elements: Vec<FiveElement>,
     pub unfavorable_elements: Vec<FiveElement>,
@@ -20,7 +22,7 @@ pub struct UsefulGodAnalysis {
     pub reasons: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BaziAdvisoryDomains {
     pub career: Vec<String>,
     pub wealth: Vec<String>,
@@ -29,7 +31,7 @@ pub struct BaziAdvisoryDomains {
     pub timing: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BaziAdvisoryReport {
     pub useful_god_analysis: UsefulGodAnalysis,
     pub summary_vi: String,
@@ -37,7 +39,7 @@ pub struct BaziAdvisoryReport {
     pub domains: BaziAdvisoryDomains,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BaziAdvisoryExport {
     pub summary: String,
     pub severity: String,

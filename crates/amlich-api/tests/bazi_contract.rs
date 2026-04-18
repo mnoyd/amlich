@@ -151,3 +151,79 @@ fn bazi_timing_rejects_missing_gender() {
         "gender is required for bazi timing/advisory. supported values: male, female"
     );
 }
+
+#[test]
+fn bazi_advisory_canonical_export_locks_required_fields() {
+    let advisory = get_bazi_advisory(
+        &sample_query(),
+        Some(&BaziTimingQuery {
+            current_age: 15.0,
+            target_year: 2027,
+            months: vec![1, 2],
+        }),
+    )
+    .expect("advisory");
+
+    let value = serde_json::to_value(&advisory).expect("serialize");
+    let obj = value.as_object().expect("object");
+
+    let required = [
+        "summary",
+        "severity",
+        "top_signals",
+        "why_this_matters",
+        "recommended_actions",
+        "priority_order",
+        "useful_god_analysis",
+        "summary_vi",
+        "warnings",
+        "domains",
+    ];
+    for key in &required {
+        assert!(obj.contains_key(*key), "bazi advisory missing key: {key}");
+    }
+
+    let useful = obj["useful_god_analysis"].as_object().expect("useful god object");
+    assert!(useful.contains_key("favorable_elements"));
+    assert!(useful.contains_key("unfavorable_elements"));
+    assert!(useful.contains_key("confidence"));
+    assert!(useful.contains_key("reasons"));
+
+    let domains = obj["domains"].as_object().expect("domains object");
+    assert!(domains.contains_key("career"));
+    assert!(domains.contains_key("wealth"));
+    assert!(domains.contains_key("relationship"));
+    assert!(domains.contains_key("health"));
+    assert!(domains.contains_key("timing"));
+}
+
+#[test]
+fn bazi_report_advisory_matches_standalone_advisory() {
+    let report = get_bazi_report(
+        &sample_query(),
+        Some(&BaziTimingQuery {
+            current_age: 15.0,
+            target_year: 2027,
+            months: vec![1, 2],
+        }),
+    )
+    .expect("report");
+    let advisory = get_bazi_advisory(
+        &sample_query(),
+        Some(&BaziTimingQuery {
+            current_age: 15.0,
+            target_year: 2027,
+            months: vec![1, 2],
+        }),
+    )
+    .expect("advisory");
+
+    assert_eq!(report.advisory.summary, advisory.summary);
+    assert_eq!(report.advisory.severity, advisory.severity);
+    assert_eq!(report.advisory.top_signals, advisory.top_signals);
+    assert_eq!(report.advisory.why_this_matters, advisory.why_this_matters);
+    assert_eq!(report.advisory.recommended_actions, advisory.recommended_actions);
+    assert_eq!(report.advisory.priority_order, advisory.priority_order);
+    assert_eq!(report.advisory.summary_vi, advisory.summary_vi);
+    assert_eq!(report.advisory.warnings, advisory.warnings);
+}

@@ -30,7 +30,8 @@ pub use crate::advisory::{
     build_recommendation_context, compute_day_context_from_birth, rank_dates_for_intent,
     rank_hours_for_intent, score_day_selection,
     synthesize_advisory_recommendations, AdvisoryScoring, BirthInput, ConsultationIntent,
-    DateRangeInput, EvidenceEnvelope, HourSelectionReasoning, PersonalizedDaySelection,
+    DateRangeInput, EvidenceEnvelope, HourSelectionReasoning, HourSelectionReasoningExport,
+    HourSelectionEvidence, PersonalizedDaySelection,
     RankedDateCandidate, RankedHourCandidate, ScoredAdvice,
 };
 pub use crate::almanac::cuu_dieu::{compute_cuu_dieu, CuuDieuQuality, CuuDieuResult};
