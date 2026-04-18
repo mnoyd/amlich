@@ -1443,12 +1443,13 @@ pub fn get_personal_day_matrix_report(
     };
 
     // Matrix 4a: Direction Merge (requires Kua = requires gender)
-    let direction_merge = day_fortune.tu_menh.as_ref().map(|kua| {
+    let direction_merge = chart.input.gender.map(|gender| {
+        let kua = amlich_core::almanac::tu_menh::compute_kua(chart.input.year, gender);
         compute_direction_merge(
             day_canchi,
             &day_fortune.travel.tai_than,
             &day_fortune.travel.hy_than,
-            kua,
+            &kua,
         )
     });
 

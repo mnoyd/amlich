@@ -1,5 +1,5 @@
 use amlich_api::{
-    v2::{get_day_bundle, get_day_bundle_projected},
+    v2::{get_day_bundle, get_day_bundle_projected, get_day_range},
     DateQuery,
 };
 
@@ -234,4 +234,84 @@ fn projection_cannot_bypass_omitted_sections() {
     .expect_err("projection should fail when section is omitted");
 
     assert!(err.contains("unknown field path"));
+}
+
+#[test]
+fn day_range_reuses_day_bundle_metadata_and_selector_context() {
+    let mut start = query(10, 2, 2024);
+    start.ruleset_id = Some("baseline".to_string());
+    start.event_kind = Some("contract_signing".to_string());
+    start.enabled_pack_ids = vec!["pack.nhi_thap_bat_tu.v1".to_string()];
+    let end = start.clone();
+
+    let day = get_day_bundle(&start, &[]).expect("day bundle");
+    let range = get_day_range(start, end, &[]).expect("day range");
+
+    assert_eq!(range.schema_version, day.schema_version);
+    assert_eq!(range.ruleset_id, day.ruleset_id);
+    assert_eq!(range.ruleset_version, day.ruleset_version);
+    assert_eq!(range.profile, day.profile);
+    assert_eq!(range.days.len(), 1);
+
+    let row = &range.days[0];
+    assert_eq!(row.schema_version, day.schema_version);
+    assert_eq!(row.ruleset_id, day.ruleset_id);
+    assert_eq!(row.ruleset_version, day.ruleset_version);
+    assert_eq!(row.profile, day.profile);
+    let row_active_packs: Vec<_> = row
+        .contextual_recommendations
+        .as_ref()
+        .expect("contextual recommendations")
+        .active_packs
+        .iter()
+        .map(|pack| pack.pack_id.as_str())
+        .collect();
+    let day_active_packs: Vec<_> = day
+        .contextual_recommendations
+        .as_ref()
+        .expect("day contextual recommendations")
+        .active_packs
+        .iter()
+        .map(|pack| pack.pack_id.as_str())
+        .collect();
+    assert_eq!(row_active_packs, day_active_packs);
+}
+
+#[test]
+fn day_bundle_projection_preserves_metadata_and_contextual_recommendations_together() {
+    let mut request = query(10, 2, 2024);
+    request.ruleset_id = Some("baseline".to_string());
+    request.event_kind = Some("contract_signing".to_string());
+    request.enabled_pack_ids = vec!["pack.nhi_thap_bat_tu.v1".to_string()];
+
+    let projected = get_day_bundle_projected(
+        &request,
+        &[],
+        &[
+            "schema_version".to_string(),
+            "ruleset_id".to_string(),
+            "ruleset_version".to_string(),
+            "profile".to_string(),
+            "contextual_recommendations.ruleset_id".to_string(),
+            "contextual_recommendations.profile".to_string(),
+            "contextual_recommendations.active_packs".to_string(),
+        ],
+    )
+    .expect("projected");
+
+    assert_eq!(projected["schema_version"], "amlich.engine/v1");
+    assert_eq!(projected["ruleset_id"], "vn_baseline_v1");
+    assert_eq!(projected["ruleset_version"], "v1");
+    assert_eq!(projected["profile"], "baseline");
+    assert_eq!(
+        projected["contextual_recommendations"]["ruleset_id"],
+        projected["ruleset_id"]
+    );
+    assert_eq!(
+        projected["contextual_recommendations"]["profile"],
+        projected["profile"]
+    );
+    assert!(projected["contextual_recommendations"]["active_packs"]
+        .as_array()
+        .is_some_and(|packs| !packs.is_empty()));
 }

@@ -18,11 +18,18 @@ pub struct UserProfile {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub birth_day: Option<i32>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub birth_hour: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub birth_minute: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub gender: Option<ProfileGender>,
 }
 
 fn profile_path() -> Option<PathBuf> {
-    dirs::config_dir().map(|dir| dir.join("amlich").join("profile.json"))
+    std::env::var_os("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .or_else(dirs::config_dir)
+        .map(|dir| dir.join("amlich").join("profile.json"))
 }
 
 pub fn load_profile_from_str(json: &str) -> UserProfile {
@@ -65,11 +72,13 @@ mod tests {
 
     #[test]
     fn loads_full_profile() {
-        let json = r#"{"birth_year":1990,"birth_month":5,"birth_day":15,"gender":"male"}"#;
+        let json = r#"{"birth_year":1990,"birth_month":5,"birth_day":15,"birth_hour":9,"birth_minute":30,"gender":"male"}"#;
         let profile = load_profile_from_str(json);
         assert_eq!(profile.birth_year, Some(1990));
         assert_eq!(profile.birth_month, Some(5));
         assert_eq!(profile.birth_day, Some(15));
+        assert_eq!(profile.birth_hour, Some(9));
+        assert_eq!(profile.birth_minute, Some(30));
         assert_eq!(profile.gender, Some(ProfileGender::Male));
     }
 

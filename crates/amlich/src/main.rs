@@ -383,6 +383,7 @@ enum LookupCommand {
     Kua(LookupKuaArgs),
     Bazi(BaziArgs),
     PersonalDay(PersonalDayArgs),
+    PersonalDayMatrix(PersonalDayMatrixArgs),
     HourSelection(HourSelectionArgs),
     Rulesets(LookupCatalogArgs),
     RecommendationPacks(LookupCatalogArgs),
@@ -472,6 +473,45 @@ struct PersonalDayArgs {
 
     #[arg(long, value_enum, default_value_t = InsightSurfaceArg::Report)]
     surface: InsightSurfaceArg,
+
+    #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
+    format: StructuredFormatArg,
+
+    #[arg(long)]
+    pretty: bool,
+}
+
+#[derive(Args, Debug)]
+struct PersonalDayMatrixArgs {
+    #[arg(value_name = "DATE")]
+    date: String,
+
+    #[arg(long)]
+    birth_year: Option<i32>,
+
+    #[arg(long)]
+    birth_month: Option<i32>,
+
+    #[arg(long)]
+    birth_day: Option<i32>,
+
+    #[arg(long)]
+    hour: Option<u8>,
+
+    #[arg(long)]
+    minute: Option<u8>,
+
+    #[arg(long, value_enum)]
+    gender: Option<GenderArg>,
+
+    #[arg(long, value_name = "TZ")]
+    timezone: Option<f64>,
+
+    #[arg(long, value_name = "LONGITUDE")]
+    longitude: Option<f64>,
+
+    #[arg(long, default_value_t = false)]
+    use_solar_time: bool,
 
     #[arg(long, value_enum, default_value_t = StructuredFormatArg::Json)]
     format: StructuredFormatArg,
@@ -580,6 +620,10 @@ enum ProfileCommand {
         birth_month: Option<i32>,
         #[arg(long)]
         birth_day: Option<i32>,
+        #[arg(long)]
+        birth_hour: Option<u8>,
+        #[arg(long)]
+        birth_minute: Option<u8>,
         #[arg(long)]
         gender: Option<String>,
     },
@@ -1113,6 +1157,7 @@ fn run_lookup(args: LookupArgs) -> Result<(), String> {
         LookupCommand::Kua(a) => run_lookup_kua(a),
         LookupCommand::Bazi(a) => run_lookup_bazi(a),
         LookupCommand::PersonalDay(a) => run_lookup_personal_day(a),
+        LookupCommand::PersonalDayMatrix(a) => run_lookup_personal_day_matrix(a),
         LookupCommand::HourSelection(a) => run_lookup_hour_selection(a),
         LookupCommand::Rulesets(a) => run_lookup_rulesets(a),
         LookupCommand::RecommendationPacks(a) => run_lookup_recommendation_packs(a),
@@ -1393,6 +1438,86 @@ fn run_lookup_personal_day(args: PersonalDayArgs) -> Result<(), String> {
     }
 }
 
+fn run_lookup_personal_day_matrix(args: PersonalDayMatrixArgs) -> Result<(), String> {
+    let date = parse_date(&args.date)?;
+    let profile = crate::profile::load_profile();
+    let birth_year = args
+        .birth_year
+        .or(profile.birth_year)
+        .ok_or_else(|| "birth year is required (flag or saved profile)".to_string())?;
+    let birth_month = args
+        .birth_month
+        .or(profile.birth_month)
+        .ok_or_else(|| "birth month is required (flag or saved profile)".to_string())?;
+    let birth_day = args
+        .birth_day
+        .or(profile.birth_day)
+        .ok_or_else(|| "birth day is required (flag or saved profile)".to_string())?;
+    let hour = args
+        .hour
+        .or(profile.birth_hour)
+        .ok_or_else(|| "birth hour is required (flag or saved profile)".to_string())?;
+    let minute = args.minute.or(profile.birth_minute).unwrap_or(0);
+    let gender = args
+        .gender
+        .map(|g| match g {
+            GenderArg::Male => amlich_core::almanac::tu_menh::Gender::Male,
+            GenderArg::Female => amlich_core::almanac::tu_menh::Gender::Female,
+        })
+        .or_else(|| {
+            profile.gender.map(|g| match g {
+                crate::profile::ProfileGender::Male => amlich_core::almanac::tu_menh::Gender::Male,
+                crate::profile::ProfileGender::Female => {
+                    amlich_core::almanac::tu_menh::Gender::Female
+                }
+            })
+        })
+        .ok_or_else(|| "gender is required (flag or saved profile)".to_string())?;
+
+    let birth = amlich_api::BaziQuery {
+        day: birth_day,
+        month: birth_month,
+        year: birth_year,
+        hour,
+        minute,
+        timezone: args.timezone,
+        longitude: args.longitude,
+        use_solar_time: args.use_solar_time,
+        gender: Some(match gender {
+            amlich_core::almanac::tu_menh::Gender::Male => "male".to_string(),
+            amlich_core::almanac::tu_menh::Gender::Female => "female".to_string(),
+        }),
+    };
+    let query = DateQuery {
+        day: date.day() as i32,
+        month: date.month() as i32,
+        year: date.year(),
+        timezone: args.timezone,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
+    };
+    let report = amlich_api::get_personal_day_matrix_report(&birth, &query)?;
+
+    match args.format {
+        StructuredFormatArg::Json => print_json(&report, args.pretty)?,
+        StructuredFormatArg::Text => {
+            println!("tier: {:?}", report.tier);
+            println!("day-person: {}", report.day_person.day_canchi);
+            println!(
+                "direction-merge: {}",
+                if report.direction_merge.is_some() {
+                    "available"
+                } else {
+                    "unavailable"
+                }
+            );
+        }
+    }
+
+    Ok(())
+}
+
 fn run_lookup_hour_selection(args: HourSelectionArgs) -> Result<(), String> {
     let date = parse_date(&args.date)?;
     let query = DateQuery {
@@ -1545,6 +1670,8 @@ fn run_config(args: ConfigArgs) -> Result<(), String> {
                 birth_year,
                 birth_month,
                 birth_day,
+                birth_hour,
+                birth_minute,
                 gender,
             } => {
                 let mut p = crate::profile::load_profile();
@@ -1556,6 +1683,12 @@ fn run_config(args: ConfigArgs) -> Result<(), String> {
                 }
                 if let Some(d) = birth_day {
                     p.birth_day = Some(d);
+                }
+                if let Some(h) = birth_hour {
+                    p.birth_hour = Some(h);
+                }
+                if let Some(m) = birth_minute {
+                    p.birth_minute = Some(m);
                 }
                 if let Some(g) = &gender {
                     p.gender = Some(match g.to_lowercase().as_str() {

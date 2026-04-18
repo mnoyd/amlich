@@ -18,6 +18,7 @@ fn run(home: &PathBuf, args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_amlich"))
         .args(args)
         .env("HOME", home)
+        .env("XDG_CONFIG_HOME", home)
         .output()
         .expect("command should execute")
 }
@@ -1191,6 +1192,10 @@ fn lookup_bazi_timing_can_use_profile_birth_year_and_gender() {
             "set",
             "--birth-year",
             "1990",
+            "--birth-hour",
+            "9",
+            "--birth-minute",
+            "30",
             "--gender",
             "male",
         ],
@@ -1375,6 +1380,92 @@ fn lookup_personal_day_report_pretty_json_keeps_reasoning_bundle_fields() {
 }
 
 #[test]
+fn lookup_personal_day_matrix_report_outputs_direction_merge_when_gender_present() {
+    let home = temp_home();
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "personal-day-matrix",
+            "2024-02-10",
+            "--birth-year",
+            "1990",
+            "--birth-month",
+            "1",
+            "--birth-day",
+            "1",
+            "--hour",
+            "9",
+            "--gender",
+            "male",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert_eq!(json["tier"].as_str(), Some("datetime"));
+    assert!(json.get("day_person").is_some());
+    assert!(json.get("element_resonance").is_some());
+    assert!(json.get("personal_hours").is_some());
+    assert!(json.get("direction_merge").is_some());
+    assert!(json.get("domain_day_boost").is_some());
+}
+
+#[test]
+fn lookup_personal_day_matrix_uses_persisted_profile_birth_time() {
+    let home = temp_home();
+    let set = run(
+        &home,
+        &[
+            "config",
+            "profile",
+            "set",
+            "--birth-year",
+            "1990",
+            "--birth-month",
+            "1",
+            "--birth-day",
+            "1",
+            "--birth-hour",
+            "9",
+            "--birth-minute",
+            "30",
+            "--gender",
+            "male",
+        ],
+    );
+    assert!(set.status.success());
+
+    let output = run(
+        &home,
+        &[
+            "lookup",
+            "personal-day-matrix",
+            "2024-02-10",
+            "--format",
+            "json",
+        ],
+    );
+    assert!(
+        output.status.success(),
+        "command failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    let json: Value = serde_json::from_slice(&output.stdout).expect("valid json");
+    assert_eq!(json["input"]["birth"]["hour"].as_u64(), Some(9));
+    assert_eq!(json["input"]["birth"]["minute"].as_u64(), Some(30));
+    assert!(json.get("personal_hours").is_some());
+    assert!(json.get("direction_merge").is_some());
+}
+
+#[test]
 fn lookup_hour_selection_report_outputs_machine_readable_payload() {
     let home = temp_home();
     let output = run(
@@ -1478,6 +1569,10 @@ fn config_profile_set_and_clear_roundtrip() {
             "set",
             "--birth-year",
             "1990",
+            "--birth-hour",
+            "9",
+            "--birth-minute",
+            "30",
             "--gender",
             "male",
         ],
@@ -1488,6 +1583,8 @@ fn config_profile_set_and_clear_roundtrip() {
     assert!(show.status.success());
     let json: Value = serde_json::from_slice(&show.stdout).expect("valid json");
     assert_eq!(json["birth_year"].as_i64(), Some(1990));
+    assert_eq!(json["birth_hour"].as_i64(), Some(9));
+    assert_eq!(json["birth_minute"].as_i64(), Some(30));
     assert_eq!(json["gender"].as_str(), Some("male"));
 
     let clear = run(&home, &["config", "profile", "clear"]);
