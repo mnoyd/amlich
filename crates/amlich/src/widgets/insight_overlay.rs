@@ -852,22 +852,35 @@ impl<'a> InsightOverlay<'a> {
             }
             lines.push(Line::from(""));
 
-            if !report.advisory.highlights.is_empty() {
-                lines.push(Line::from(Span::styled(
-                    pick_text(lang, "Điểm nổi bật:", "Highlights:"),
-                    Style::default().fg(theme::GOOD_HOUR_FG),
-                )));
-                push_bulleted(&mut lines, &report.advisory.highlights, "•", 4);
-                lines.push(Line::from(""));
-            }
+            if let Some(export) = &report.decision_export {
+                let highlights: Vec<String> = export
+                    .strongest_supports
+                    .iter()
+                    .map(|n| n.summary_vi.clone())
+                    .collect();
+                if !highlights.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        pick_text(lang, "Điểm nổi bật:", "Highlights:"),
+                        Style::default().fg(theme::GOOD_HOUR_FG),
+                    )));
+                    push_bulleted(&mut lines, &highlights, "•", 4);
+                    lines.push(Line::from(""));
+                }
 
-            if !report.advisory.cautions.is_empty() {
-                lines.push(Line::from(Span::styled(
-                    pick_text(lang, "Lưu ý:", "Cautions:"),
-                    Style::default().fg(theme::WEEKEND_FG),
-                )));
-                push_bulleted(&mut lines, &report.advisory.cautions, "•", 4);
-                lines.push(Line::from(""));
+                let cautions: Vec<String> = export
+                    .strongest_resistances
+                    .iter()
+                    .chain(export.override_factors.iter())
+                    .map(|n| n.summary_vi.clone())
+                    .collect();
+                if !cautions.is_empty() {
+                    lines.push(Line::from(Span::styled(
+                        pick_text(lang, "Lưu ý:", "Cautions:"),
+                        Style::default().fg(theme::WEEKEND_FG),
+                    )));
+                    push_bulleted(&mut lines, &cautions, "•", 4);
+                    lines.push(Line::from(""));
+                }
             }
         }
 
