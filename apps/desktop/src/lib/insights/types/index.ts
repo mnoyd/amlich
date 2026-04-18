@@ -50,7 +50,6 @@ export type {
   PersonalDayQueryDto,
   PersonalDayChartDto,
   PersonalDayMetricsDto,
-  PersonalDayAdvisoryDto,
   PersonalDayAnalysisDto,
   PersonalDayReportDto,
   BranchRelationDto,

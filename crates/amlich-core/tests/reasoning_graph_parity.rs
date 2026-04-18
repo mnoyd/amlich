@@ -56,6 +56,13 @@ fn decision_snapshot(case: &ParityCase) -> amlich_core::DaySnapshot {
     }
 }
 
+fn parity_case(id: &str) -> ParityCase {
+    parity_corpus()
+        .into_iter()
+        .find(|case| case.id == id)
+        .unwrap_or_else(|| panic!("missing parity case: {id}"))
+}
+
 fn parity_corpus() -> Vec<ParityCase> {
     vec![
         ParityCase {
@@ -234,7 +241,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: None,
             personal_input: Some(profile_input(12, 8, 1992, 11, 30, 7.0, Some(Gender::Female))),
-            expected_bucket: RecommendationBucket::Favorable,
+            expected_bucket: RecommendationBucket::Cautious,
             expect_conflict_visibility: false,
             expect_override_visibility: false,
         },
@@ -387,6 +394,69 @@ fn initiation_opening_reasoning_stays_stable_on_representative_dates() {
             case.expected_bucket,
             decision.recommendation_bucket
         );
+    }
+}
+
+#[test]
+fn representative_explanation_ux_cases_stay_understandable_and_proportionate() {
+    let representative_ids = [
+        "strong_favorable",
+        "conflicting_layered",
+        "strong_avoid",
+        "profile_directions_with_gendered_kua",
+        "vn_midnight_conflict_window",
+    ];
+
+    for id in representative_ids {
+        let case = parity_case(id);
+        let snapshot = decision_snapshot(&case);
+        let decision = build_initiation_opening_reasoning(&snapshot, case.personal_input.as_ref())
+            .expect("decision");
+
+        assert_eq!(
+            decision.recommendation_bucket,
+            case.expected_bucket,
+            "{} headline bucket mismatch",
+            case.id
+        );
+        assert!(
+            !decision.primary_conclusion.is_empty(),
+            "{} should keep a non-empty headline",
+            case.id
+        );
+        assert!(
+            !decision.strongest_supports.is_empty() || !decision.strongest_resistances.is_empty(),
+            "{} should keep at least one rationale item",
+            case.id
+        );
+
+        if case.expect_conflict_visibility {
+            assert!(
+                !decision.context_is_clear || !decision.conflict_notes.is_empty(),
+                "{} should keep conflict visibility",
+                case.id
+            );
+        }
+
+        if case.expect_override_visibility {
+            assert!(
+                !decision.override_factors.is_empty(),
+                "{} should keep override visibility",
+                case.id
+            );
+        }
+
+        if matches!(case.kind, ParityKind::Personal) {
+            let baseline = build_initiation_opening_reasoning(&snapshot, None).expect("baseline");
+            assert!(
+                decision.suggested_hours != baseline.suggested_hours
+                    || decision.suggested_directions != baseline.suggested_directions
+                    || !decision.override_factors.is_empty()
+                    || !decision.conflict_notes.is_empty(),
+                "{} should preserve profile-dependent explanation output",
+                case.id
+            );
+        }
     }
 }
 

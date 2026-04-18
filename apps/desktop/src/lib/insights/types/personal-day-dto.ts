@@ -110,36 +110,19 @@ export type PersonalDayMetricsDto = {
   has_personal_recommendations: boolean;
 };
 
-export type PersonalDayAdvisoryDto = {
-  summary: string;
-  severity: string;
-  top_signals: string[];
-  why_this_matters: string[];
-  recommended_actions: string[];
-  priority_order: string[];
-  highlights: string[];
-  cautions: string[];
-  reasoning_bucket?: string | null;
-  reasoning_confidence?: string | null;
-};
-
 export type PersonalDayAnalysisDto = {
   tier: BirthDataTierDto;
-  decision_export?: InitiationOpeningDecisionExportDto | null;
-  graph?: ReasoningGraphExportDto | null;
+  decision_export: InitiationOpeningDecisionExportDto;
+  graph: ReasoningGraphExportDto;
   unavailable_sections: UnavailableSectionDto[];
 };
 
 export type PersonalDayReportDto = {
-  summary: string;
-  severity: string;
-  top_signals: string[];
   chart: PersonalDayChartDto;
-  decision_export?: InitiationOpeningDecisionExportDto | null;
-  graph?: ReasoningGraphExportDto | null;
+  decision_export: InitiationOpeningDecisionExportDto;
+  graph: ReasoningGraphExportDto;
   analysis: PersonalDayAnalysisDto;
   computed_metrics: PersonalDayMetricsDto;
-  advisory: PersonalDayAdvisoryDto;
 };
 
 export type BranchRelationDto = {
