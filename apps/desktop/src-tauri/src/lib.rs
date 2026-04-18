@@ -2,8 +2,10 @@ use serde::Serialize;
 use std::collections::HashMap;
 
 use amlich_api::{
-    get_day_info_for_date, get_day_insight_for_date, get_holidays, DayInfoDto, DayInsightDto,
-    HolidayDto,
+    get_day_info_for_date, get_day_insight_for_date, get_holidays,
+    get_personal_day_matrix_report as api_get_personal_day_matrix_report,
+    get_personal_day_report as api_get_personal_day_report, BaziQuery, DateQuery, DayInfoDto,
+    DayInsightDto, HolidayDto, PersonalDayMatrixReportDto, PersonalDayReportDto,
 };
 
 #[derive(Debug, Serialize, Clone)]
@@ -113,6 +115,21 @@ fn holiday_to_info(holiday: &HolidayDto) -> HolidayInfo {
     }
 }
 
+fn parse_gender(gender: Option<String>) -> Result<Option<amlich_core::Gender>, String> {
+    match gender
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        None => Ok(None),
+        Some("male") | Some("nam") => Ok(Some(amlich_core::Gender::Male)),
+        Some("female") | Some("nu") | Some("nữ") => Ok(Some(amlich_core::Gender::Female)),
+        Some(value) => Err(format!(
+            "gender must be one of: male, female, nam, nu, nữ; got '{value}'"
+        )),
+    }
+}
+
 #[tauri::command]
 fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
     if !(1..=12).contains(&month) {
@@ -198,6 +215,83 @@ fn get_day_info(day: i32, month: i32, year: i32) -> Result<DayInfoDto, String> {
 }
 
 #[tauri::command]
+fn get_personal_day_report(
+    day: i32,
+    month: i32,
+    year: i32,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<String>,
+) -> Result<PersonalDayReportDto, String> {
+    if !(1..=12).contains(&month) {
+        return Err("month must be 1-12".to_string());
+    }
+    if !(1..=31).contains(&day) {
+        return Err("day must be 1-31".to_string());
+    }
+
+    api_get_personal_day_report(
+        &DateQuery {
+            day,
+            month,
+            year,
+            timezone: None,
+            ruleset_id: None,
+            event_kind: None,
+            enabled_pack_ids: vec![],
+        },
+        birth_year,
+        birth_month,
+        birth_day,
+        parse_gender(gender)?,
+    )
+}
+
+#[tauri::command]
+fn get_personal_day_matrix_report(
+    day: i32,
+    month: i32,
+    year: i32,
+    birth_year: i32,
+    birth_month: i32,
+    birth_day: i32,
+    birth_hour: u8,
+    birth_minute: u8,
+    gender: Option<String>,
+) -> Result<PersonalDayMatrixReportDto, String> {
+    if !(1..=12).contains(&month) {
+        return Err("month must be 1-12".to_string());
+    }
+    if !(1..=31).contains(&day) {
+        return Err("day must be 1-31".to_string());
+    }
+
+    api_get_personal_day_matrix_report(
+        &BaziQuery {
+            day: birth_day,
+            month: birth_month,
+            year: birth_year,
+            hour: birth_hour,
+            minute: birth_minute,
+            timezone: None,
+            longitude: None,
+            use_solar_time: false,
+            gender,
+        },
+        &DateQuery {
+            day,
+            month,
+            year,
+            timezone: None,
+            ruleset_id: None,
+            event_kind: None,
+            enabled_pack_ids: vec![],
+        },
+    )
+}
+
+#[tauri::command]
 fn get_install_context() -> InstallContext {
     let executable_path = std::env::current_exe()
         .ok()
@@ -243,6 +337,8 @@ pub fn run() {
             get_day_detail,
             get_day_insight,
             get_day_info,
+            get_personal_day_report,
+            get_personal_day_matrix_report,
             get_install_context
         ])
         .run(tauri::generate_context!())

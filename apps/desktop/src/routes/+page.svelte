@@ -2,6 +2,7 @@
   import { invoke } from "@tauri-apps/api/core";
   import { getVersion } from "@tauri-apps/api/app";
   import DateInsightBox from "$lib/components/DateInsightBox.svelte";
+  import PersonalDayPanel from "$lib/components/PersonalDayPanel.svelte";
   import ZodiacClock from "$lib/components/ZodiacClock.svelte";
   import type { DayCell, MonthData } from "$lib/insights/types";
   import { checkForAppUpdates } from "$lib/updater";
@@ -859,6 +860,7 @@
 
             <div class="focus-insight">
               <DateInsightBox day={selectedDay} />
+              <PersonalDayPanel day={selectedDay} />
             </div>
           </div>
         {:else}
