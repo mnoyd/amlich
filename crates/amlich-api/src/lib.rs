@@ -883,7 +883,7 @@ fn personal_birth_input(
     birth_day: Option<i32>,
     gender: Option<&str>,
 ) -> Option<amlich_core::BirthInput> {
-    let gender = gender.and_then(|g| parse_gender(g));
+    let gender = gender.and_then(parse_gender);
     Some(amlich_core::BirthInput {
         day: birth_day?,
         month: birth_month?,
