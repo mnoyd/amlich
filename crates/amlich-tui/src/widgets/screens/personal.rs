@@ -48,16 +48,19 @@ impl Widget for PersonalScreenWidget<'_> {
                 let rows = Layout::vertical([
                     Constraint::Length(6),
                     Constraint::Length(9),
+                    Constraint::Length(9),
                     Constraint::Min(10),
                 ])
                 .split(area);
                 render_profile_verdict(self.app, rows[0], buf);
                 render_kua(insight, rows[1], buf);
-                render_directions(insight, rows[2], buf);
+                render_matrix_summary(self.app, rows[2], buf);
+                render_directions(insight, rows[3], buf);
             }
             (true, VerbosityMode::Compact, _) => {
                 let rows = Layout::vertical([
                     Constraint::Length(6),
+                    Constraint::Length(9),
                     Constraint::Length(9),
                     Constraint::Min(10),
                 ])
@@ -68,11 +71,13 @@ impl Widget for PersonalScreenWidget<'_> {
                         .split(rows[1]);
                 DirectionPanelWidget::new(self.app, self.mode).render(middle[0], buf);
                 render_kua(insight, middle[1], buf);
-                render_directions(insight, rows[2], buf);
+                render_matrix_summary(self.app, rows[2], buf);
+                render_directions(insight, rows[3], buf);
             }
             (true, VerbosityMode::Verbose, _) => {
                 let rows = Layout::vertical([
                     Constraint::Length(6),
+                    Constraint::Length(9),
                     Constraint::Length(9),
                     Constraint::Min(16),
                 ])
@@ -84,6 +89,7 @@ impl Widget for PersonalScreenWidget<'_> {
                         .split(rows[1]);
                 DirectionPanelWidget::new(self.app, self.mode).render(middle[0], buf);
                 render_kua(insight, middle[1], buf);
+                render_matrix_summary(self.app, rows[2], buf);
 
                 match self.mode {
                     LayoutMode::Large | LayoutMode::Medium => {
@@ -92,7 +98,7 @@ impl Widget for PersonalScreenWidget<'_> {
                             Constraint::Percentage(33),
                             Constraint::Percentage(33),
                         ])
-                        .split(rows[2]);
+                        .split(rows[3]);
                         render_directions(insight, bottom[0], buf);
                         render_dai_van(insight, bottom[1], buf);
                         render_dai_van_timeline(insight, bottom[2], buf);
@@ -103,7 +109,7 @@ impl Widget for PersonalScreenWidget<'_> {
                             Constraint::Length(10),
                             Constraint::Min(10),
                         ])
-                        .split(rows[2]);
+                        .split(rows[3]);
                         render_directions(insight, bottom[0], buf);
                         render_dai_van(insight, bottom[1], buf);
                         render_dai_van_timeline(insight, bottom[2], buf);
@@ -300,6 +306,61 @@ fn render_directions(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut 
             Span::styled("   ✖ ", Style::default().fg(Color::Red)),
             Span::raw(direction.as_str()),
         ]));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_matrix_summary(app: &AppState, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Ma Trận Cá Nhân Hóa ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(matrix) = &app.personal_matrix else {
+        Paragraph::new("  Chưa có dữ liệu ma trận cá nhân.").render(inner, buf);
+        return;
+    };
+
+    let best_direction = matrix.direction_merge.as_ref().and_then(|merge| {
+        merge
+            .entries
+            .iter()
+            .max_by_key(|entry| entry.net_score)
+            .map(|entry| format!("Hướng nổi bật: {} (điểm {})", entry.direction, entry.net_score))
+    });
+    let best_hour = matrix.personal_hours.as_ref().and_then(|hours| {
+        hours
+            .hours
+            .iter()
+            .max_by_key(|entry| entry.score)
+            .map(|entry| format!("Giờ hợp cá nhân: {} ({})", entry.chi, entry.score))
+    });
+    let best_domain = matrix.domain_day_boost.as_ref().and_then(|boost| {
+        boost
+            .entries
+            .iter()
+            .max_by(|a, b| a.boosted_score.total_cmp(&b.boosted_score))
+            .map(|entry| format!("Miền nổi bật: {} ({:.0})", entry.domain, entry.boosted_score))
+    });
+
+    let mut lines: Vec<Line<'_>> = vec![];
+    if let Some(line) = best_direction {
+        lines.push(Line::from(vec![Span::raw("  • "), Span::raw(line)]));
+    }
+    if let Some(line) = best_hour {
+        lines.push(Line::from(vec![Span::raw("  • "), Span::raw(line)]));
+    }
+    if let Some(line) = best_domain {
+        lines.push(Line::from(vec![Span::raw("  • "), Span::raw(line)]));
+    }
+
+    if lines.is_empty() {
+        lines.push(Line::from("  Chưa có điểm nhấn ma trận để hiển thị."));
     }
 
     Paragraph::new(lines)

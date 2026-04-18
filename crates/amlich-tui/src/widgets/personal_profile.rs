@@ -26,9 +26,9 @@ impl Widget for PersonalProfileModalWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         let popup = Rect::new(
             area.x + (area.width.saturating_sub(64)) / 2,
-            area.y + (area.height.saturating_sub(17)) / 2,
+            area.y + (area.height.saturating_sub(21)) / 2,
             64,
-            17,
+            21,
         );
 
         Clear.render(popup, buf);
@@ -62,6 +62,20 @@ impl Widget for PersonalProfileModalWidget<'_> {
             Style::default().fg(Color::White)
         };
         let gender_style = if self.app.personal_focus == PersonalField::Gender {
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+        let hour_style = if self.app.personal_focus == PersonalField::BirthHour {
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+        let minute_style = if self.app.personal_focus == PersonalField::BirthMinute {
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD)
@@ -103,12 +117,28 @@ impl Widget for PersonalProfileModalWidget<'_> {
                 }),
             ]),
             Line::from(vec![
+                Span::styled("Giờ sinh: ", hour_style),
+                Span::raw(if self.app.personal_draft.birth_hour.is_empty() {
+                    "__".to_string()
+                } else {
+                    self.app.personal_draft.birth_hour.clone()
+                }),
+            ]),
+            Line::from(vec![
+                Span::styled("Phút sinh: ", minute_style),
+                Span::raw(if self.app.personal_draft.birth_minute.is_empty() {
+                    "__".to_string()
+                } else {
+                    self.app.personal_draft.birth_minute.clone()
+                }),
+            ]),
+            Line::from(vec![
                 Span::styled("Giới tính: ", gender_style),
                 Span::raw(gender_label),
             ]),
             Line::from(""),
             Line::from("Tab/h/l: đổi trường · j/k: đổi giới tính"),
-            Line::from("Tháng/ngày có thể để trống nếu chỉ cần Tứ Mệnh cơ bản."),
+            Line::from("Tháng/ngày/giờ/phút có thể để trống nếu chỉ cần lớp cơ bản."),
             Line::from("Enter: áp dụng · Esc: hủy"),
         ];
 

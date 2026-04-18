@@ -145,6 +145,7 @@ pub fn day_detail_verdict_support(app: &AppState) -> Option<DayDetailVerdictSupp
 
 pub fn direction_verdict(app: &AppState) -> Option<DirectionVerdictVm> {
     let bundle = app.bundle.as_ref()?;
+    let profile = app.profile_availability_summary()?;
 
     let xuat_hanh = bundle
         .insight
@@ -226,12 +227,20 @@ pub fn direction_verdict(app: &AppState) -> Option<DirectionVerdictVm> {
         .first()
         .filter(|layer| layer.kind == crate::state::RecommendationLayerKind::Contextual)
         .map(|layer| format!("Ngữ cảnh đang ưu tiên: {}", layer.profile));
+    let matrix_note = if profile.has_personal_overlay {
+        xuat_hanh
+            .filter(|value: &&str| !value.trim().is_empty())
+            .map(|direction| format!("Lớp cá nhân hóa hiện có thể ghép hướng mệnh với hướng ngày quanh trục {direction}."))
+    } else {
+        None
+    };
 
     Some(DirectionVerdictVm {
         summary,
         directions,
         deity_context,
         note,
+        matrix_note,
     })
 }
 

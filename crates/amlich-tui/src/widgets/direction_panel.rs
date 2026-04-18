@@ -58,6 +58,14 @@ impl Widget for DirectionPanelWidget<'_> {
             ]));
         }
 
+        if let Some(matrix_note) = direction.matrix_note {
+            lines.push(Line::from(""));
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled(matrix_note, Style::default().fg(Color::Cyan)),
+            ]));
+        }
+
         Paragraph::new(lines)
             .wrap(Wrap { trim: true })
             .render(inner, buf);

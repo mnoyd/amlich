@@ -1,10 +1,12 @@
 use std::collections::BTreeSet;
+use std::path::PathBuf;
 
 use amlich_api::v2::{DayBundleDto, Include};
 use amlich_api::{
     RecommendationBucketDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto,
 };
 use chrono::{Datelike, Local, NaiveDate};
+use serde::{Deserialize, Serialize};
 
 use super::ui_prefs::{default_verbosity_for_size, VerbosityMode};
 
@@ -218,6 +220,8 @@ pub enum PersonalField {
     BirthYear,
     BirthMonth,
     BirthDay,
+    BirthHour,
+    BirthMinute,
     Gender,
 }
 
@@ -226,7 +230,9 @@ impl PersonalField {
         match self {
             Self::BirthYear => Self::BirthMonth,
             Self::BirthMonth => Self::BirthDay,
-            Self::BirthDay => Self::Gender,
+            Self::BirthDay => Self::BirthHour,
+            Self::BirthHour => Self::BirthMinute,
+            Self::BirthMinute => Self::Gender,
             Self::Gender => Self::BirthYear,
         }
     }
@@ -241,6 +247,8 @@ pub struct PersonalDraft {
     pub birth_year: String,
     pub birth_month: String,
     pub birth_day: String,
+    pub birth_hour: String,
+    pub birth_minute: String,
     pub gender: Option<amlich_core::almanac::tu_menh::Gender>,
 }
 
@@ -250,7 +258,23 @@ impl PersonalDraft {
             birth_year: String::new(),
             birth_month: String::new(),
             birth_day: String::new(),
+            birth_hour: String::new(),
+            birth_minute: String::new(),
             gender: None,
+        }
+    }
+
+    fn from_persisted(profile: &PersistedUserProfile) -> Self {
+        Self {
+            birth_year: profile.birth_year.map(|v| v.to_string()).unwrap_or_default(),
+            birth_month: profile.birth_month.map(|v| v.to_string()).unwrap_or_default(),
+            birth_day: profile.birth_day.map(|v| v.to_string()).unwrap_or_default(),
+            birth_hour: profile.birth_hour.map(|v| v.to_string()).unwrap_or_default(),
+            birth_minute: profile.birth_minute.map(|v| v.to_string()).unwrap_or_default(),
+            gender: profile.gender.map(|g| match g {
+                PersistedProfileGender::Male => amlich_core::almanac::tu_menh::Gender::Male,
+                PersistedProfileGender::Female => amlich_core::almanac::tu_menh::Gender::Female,
+            }),
         }
     }
 }
@@ -302,6 +326,7 @@ pub struct DirectionVerdictVm {
     pub directions: Vec<String>,
     pub deity_context: Option<String>,
     pub note: Option<String>,
+    pub matrix_note: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -368,6 +393,29 @@ pub struct ActivePackVm {
     pub mode: String,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+enum PersistedProfileGender {
+    Male,
+    Female,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+struct PersistedUserProfile {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    birth_year: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    birth_month: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    birth_day: Option<i32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    birth_hour: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    birth_minute: Option<u8>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    gender: Option<PersistedProfileGender>,
+}
+
 pub struct AppState {
     pub running: bool,
     pub date: NaiveDate,
@@ -377,6 +425,7 @@ pub struct AppState {
 
     // Data cache for the current date
     pub bundle: Option<DayBundleDto>,
+    pub personal_matrix: Option<amlich_api::PersonalDayMatrixReportDto>,
     pub is_loading: bool,
     pub error_msg: Option<String>,
     pub ruleset_catalog: Vec<RulesetCatalogEntryDto>,
@@ -418,6 +467,7 @@ impl AppState {
             .map(|(width, height)| default_verbosity_for_size(width, height))
             .unwrap_or(VerbosityMode::Compact);
 
+        let persisted_profile = load_persisted_profile();
         let mut app = Self {
             running: true,
             date,
@@ -425,6 +475,7 @@ impl AppState {
             content_height: 0,
             viewport_height: 0,
             bundle: None,
+            personal_matrix: None,
             is_loading: false,
             error_msg: None,
             ruleset_catalog,
@@ -447,7 +498,7 @@ impl AppState {
             expanded_sections: BTreeSet::new(),
             search_input: String::new(),
             personal_focus: PersonalField::BirthYear,
-            personal_draft: PersonalDraft::empty(),
+            personal_draft: PersonalDraft::from_persisted(&persisted_profile),
             calendar_cursor: date,
             navigation_history: Vec::new(),
         };
@@ -487,6 +538,7 @@ impl AppState {
                 let selection = ExplorerSelection::from_loaded_data(&bundle, &query_selection);
                 self.date = selection.date;
                 self.bundle = Some(bundle);
+                self.personal_matrix = self.load_personal_matrix();
                 self.applied_selection = selection.clone();
                 self.staged_selection = selection;
                 self.pack_cursor = self.clamp_pack_cursor();
@@ -494,6 +546,7 @@ impl AppState {
             }
             Err(e) => {
                 self.error_msg = Some(e);
+                self.personal_matrix = None;
                 self.is_loading = false;
             }
         }
@@ -1093,6 +1146,8 @@ impl AppState {
                 birth_year: self.personal_draft.birth_year.clone(),
                 birth_month: self.personal_draft.birth_month.clone(),
                 birth_day: self.personal_draft.birth_day.clone(),
+                birth_hour: self.personal_draft.birth_hour.clone(),
+                birth_minute: self.personal_draft.birth_minute.clone(),
                 gender: self.personal_draft.gender,
             };
             if (insight.tu_menh.is_some() || insight.dai_van.is_some())
@@ -1124,6 +1179,16 @@ impl AppState {
             {
                 self.personal_draft.birth_day.push(ch)
             }
+            PersonalField::BirthHour
+                if ch.is_ascii_digit() && self.personal_draft.birth_hour.len() < 2 =>
+            {
+                self.personal_draft.birth_hour.push(ch)
+            }
+            PersonalField::BirthMinute
+                if ch.is_ascii_digit() && self.personal_draft.birth_minute.len() < 2 =>
+            {
+                self.personal_draft.birth_minute.push(ch)
+            }
             _ => {}
         }
     }
@@ -1138,6 +1203,12 @@ impl AppState {
             }
             PersonalField::BirthDay => {
                 self.personal_draft.birth_day.pop();
+            }
+            PersonalField::BirthHour => {
+                self.personal_draft.birth_hour.pop();
+            }
+            PersonalField::BirthMinute => {
+                self.personal_draft.birth_minute.pop();
             }
             PersonalField::Gender => {}
         }
@@ -1192,6 +1263,8 @@ impl AppState {
         };
         let birth_month = self.personal_draft.birth_month.parse::<i32>().ok();
         let birth_day = self.personal_draft.birth_day.parse::<i32>().ok();
+        let birth_hour = self.personal_draft.birth_hour.parse::<u8>().ok();
+        let birth_minute = self.personal_draft.birth_minute.parse::<u8>().ok();
 
         let Some(gender) = self.personal_draft.gender else {
             self.error_msg = Some("Hãy chọn giới tính để mở lớp cá nhân hóa.".to_string());
@@ -1220,6 +1293,14 @@ impl AppState {
                 if let Some(bundle) = self.bundle.as_mut() {
                     bundle.insight = Some(insight);
                 }
+                save_persisted_profile(&self.personal_draft);
+                if birth_hour.is_none() {
+                    self.personal_draft.birth_hour.clear();
+                }
+                if birth_minute.is_none() {
+                    self.personal_draft.birth_minute.clear();
+                }
+                self.personal_matrix = self.load_personal_matrix();
                 self.error_msg = None;
             }
             Err(err) => {
@@ -1228,6 +1309,46 @@ impl AppState {
         }
 
         self.app_mode = AppMode::Normal;
+    }
+
+    fn load_personal_matrix(&self) -> Option<amlich_api::PersonalDayMatrixReportDto> {
+        let birth_year = self.personal_draft.birth_year.parse::<i32>().ok()?;
+        let birth_month = self.personal_draft.birth_month.parse::<i32>().ok()?;
+        let birth_day = self.personal_draft.birth_day.parse::<i32>().ok()?;
+        let birth_hour = self.personal_draft.birth_hour.parse::<u8>().ok().unwrap_or(0);
+        let birth_minute = self
+            .personal_draft
+            .birth_minute
+            .parse::<u8>()
+            .ok()
+            .unwrap_or(0);
+        let gender = self.personal_draft.gender?;
+
+        let query = amlich_api::DateQuery {
+            day: self.date.day() as i32,
+            month: self.date.month() as i32,
+            year: self.date.year(),
+            timezone: None,
+            ruleset_id: self.applied_selection.ruleset_id.clone(),
+            event_kind: self.applied_selection.event_kind.clone(),
+            enabled_pack_ids: self.applied_selection.enabled_pack_ids.clone(),
+        };
+        let birth = amlich_api::BaziQuery {
+            day: birth_day,
+            month: birth_month,
+            year: birth_year,
+            hour: birth_hour,
+            minute: birth_minute,
+            timezone: None,
+            longitude: None,
+            use_solar_time: false,
+            gender: Some(match gender {
+                amlich_core::almanac::tu_menh::Gender::Male => "male".to_string(),
+                amlich_core::almanac::tu_menh::Gender::Female => "female".to_string(),
+            }),
+        };
+
+        amlich_api::get_personal_day_matrix_report(&birth, &query).ok()
     }
 
     pub fn scroll_up(&mut self) {
@@ -1273,6 +1394,51 @@ impl AppState {
         self.staged_selection.date = date;
         self.calendar_cursor = date;
         self.load_data();
+    }
+}
+
+fn profile_path() -> Option<PathBuf> {
+    std::env::var_os("XDG_CONFIG_HOME")
+        .map(PathBuf::from)
+        .or_else(dirs::config_dir)
+        .map(|dir| dir.join("amlich").join("profile.json"))
+}
+
+fn load_persisted_profile() -> PersistedUserProfile {
+    let Some(path) = profile_path() else {
+        return PersistedUserProfile::default();
+    };
+    match std::fs::read_to_string(path) {
+        Ok(content) => serde_json::from_str(&content).unwrap_or_default(),
+        Err(_) => PersistedUserProfile::default(),
+    }
+}
+
+fn save_persisted_profile(draft: &PersonalDraft) {
+    let Some(path) = profile_path() else {
+        return;
+    };
+    let Some(parent) = path.parent() else {
+        return;
+    };
+    if std::fs::create_dir_all(parent).is_err() {
+        return;
+    }
+
+    let profile = PersistedUserProfile {
+        birth_year: draft.birth_year.parse::<i32>().ok(),
+        birth_month: draft.birth_month.parse::<i32>().ok(),
+        birth_day: draft.birth_day.parse::<i32>().ok(),
+        birth_hour: draft.birth_hour.parse::<u8>().ok(),
+        birth_minute: draft.birth_minute.parse::<u8>().ok(),
+        gender: draft.gender.map(|g| match g {
+            amlich_core::almanac::tu_menh::Gender::Male => PersistedProfileGender::Male,
+            amlich_core::almanac::tu_menh::Gender::Female => PersistedProfileGender::Female,
+        }),
+    };
+
+    if let Ok(json) = serde_json::to_string_pretty(&profile) {
+        let _ = std::fs::write(path, json);
     }
 }
 
@@ -1383,6 +1549,7 @@ mod tests {
             content_height: 0,
             viewport_height: 0,
             bundle: None,
+            personal_matrix: None,
             is_loading: false,
             error_msg: None,
             ruleset_catalog,
@@ -1937,6 +2104,77 @@ mod tests {
             .as_deref()
             .unwrap_or_default()
             .contains("Kim Quỹ"));
+        assert!(verdict.matrix_note.is_none());
+    }
+
+    #[test]
+    fn direction_verdict_surfaces_personalized_matrix_note_when_profile_overlay_exists() {
+        let mut app = sample_app_state_with_bundle();
+        let insight = app
+            .bundle
+            .as_mut()
+            .and_then(|bundle| bundle.insight.as_mut())
+            .expect("insight");
+        insight.tu_menh = Some(TuMenhInsightDto {
+            kua: 3,
+            group: "Đông tứ mệnh".to_string(),
+            trigram: LocalizedTextDto {
+                vi: "Chấn".to_string(),
+                en: "Zhen".to_string(),
+            },
+            direction: LocalizedTextDto {
+                vi: "Đông".to_string(),
+                en: "East".to_string(),
+            },
+            meaning: LocalizedTextDto {
+                vi: "Hợp hướng mở lối và khởi động.".to_string(),
+                en: "Favors opening movement.".to_string(),
+            },
+            group_meaning: LocalizedTextDto {
+                vi: "Nhóm hướng tăng trưởng".to_string(),
+                en: "Growth group".to_string(),
+            },
+            favorable_directions: vec!["Đông".to_string()],
+            unfavorable_directions: vec!["Tây".to_string()],
+        });
+
+        let verdict = app.direction_verdict().expect("direction verdict");
+        assert!(verdict.matrix_note.is_some());
+    }
+
+    #[test]
+    fn apply_personal_profile_populates_personal_matrix_cache() {
+        let mut app = sample_app_state_with_bundle();
+        app.personal_draft.birth_year = "1990".to_string();
+        app.personal_draft.birth_month = "1".to_string();
+        app.personal_draft.birth_day = "1".to_string();
+        app.personal_draft.birth_hour = "9".to_string();
+        app.personal_draft.birth_minute = "30".to_string();
+        app.personal_draft.gender = Some(amlich_core::almanac::tu_menh::Gender::Male);
+
+        app.apply_personal_profile();
+
+        assert!(app.personal_matrix.is_some());
+        let matrix = app.personal_matrix.as_ref().expect("matrix");
+        assert!(matrix.direction_merge.is_some());
+        assert!(matrix.personal_hours.is_some());
+    }
+
+    #[test]
+    fn personal_draft_from_persisted_profile_keeps_birth_time() {
+        let profile = PersistedUserProfile {
+            birth_year: Some(1990),
+            birth_month: Some(1),
+            birth_day: Some(1),
+            birth_hour: Some(9),
+            birth_minute: Some(30),
+            gender: Some(PersistedProfileGender::Male),
+        };
+
+        let draft = PersonalDraft::from_persisted(&profile);
+        assert_eq!(draft.birth_hour, "9");
+        assert_eq!(draft.birth_minute, "30");
+        assert_eq!(draft.gender, Some(amlich_core::almanac::tu_menh::Gender::Male));
     }
 
     #[test]
