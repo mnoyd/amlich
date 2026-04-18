@@ -852,21 +852,44 @@ impl<'a> InsightOverlay<'a> {
             }
             lines.push(Line::from(""));
 
-            if !report.advisory.highlights.is_empty() {
+            let canonical_highlights = report
+                .decision_export
+                .as_ref()
+                .map(|export| {
+                    export
+                        .strongest_supports
+                        .iter()
+                        .map(|note| note.summary_vi.clone())
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            if !canonical_highlights.is_empty() {
                 lines.push(Line::from(Span::styled(
                     pick_text(lang, "Điểm nổi bật:", "Highlights:"),
                     Style::default().fg(theme::GOOD_HOUR_FG),
                 )));
-                push_bulleted(&mut lines, &report.advisory.highlights, "•", 4);
+                push_bulleted(&mut lines, &canonical_highlights, "•", 4);
                 lines.push(Line::from(""));
             }
 
-            if !report.advisory.cautions.is_empty() {
+            let canonical_cautions = report
+                .decision_export
+                .as_ref()
+                .map(|export| {
+                    export
+                        .strongest_resistances
+                        .iter()
+                        .chain(export.override_factors.iter())
+                        .map(|note| note.summary_vi.clone())
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            if !canonical_cautions.is_empty() {
                 lines.push(Line::from(Span::styled(
                     pick_text(lang, "Lưu ý:", "Cautions:"),
                     Style::default().fg(theme::WEEKEND_FG),
                 )));
-                push_bulleted(&mut lines, &report.advisory.cautions, "•", 4);
+                push_bulleted(&mut lines, &canonical_cautions, "•", 4);
                 lines.push(Line::from(""));
             }
         }
