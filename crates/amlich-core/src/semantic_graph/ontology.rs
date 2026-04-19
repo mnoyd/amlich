@@ -107,6 +107,39 @@ pub enum ConceptLabel {
     Derives,
 }
 
+impl ConceptLabel {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::DayCanchi => "day_canchi",
+            Self::MonthCanchi => "month_canchi",
+            Self::YearCanchi => "year_canchi",
+            Self::SolarTerm => "solar_term",
+            Self::HourCanchi => "hour_canchi",
+            Self::Truc => "truc",
+            Self::DayDeity => "day_deity",
+            Self::NaAm => "na_am",
+            Self::Star => "star",
+            Self::Element => "element",
+            Self::Direction => "direction",
+            Self::PersonalAlignment => "personal_alignment",
+            Self::InteractionSignal => "interaction_signal",
+            Self::Recommendation => "recommendation",
+            Self::Taboo => "taboo",
+            Self::ChartPillar => "chart_pillar",
+            Self::AxisSignal => "axis_signal",
+            Self::Resonates => "resonates",
+            Self::Conflicts => "conflicts",
+            Self::Conditions => "conditions",
+            Self::Supports => "supports",
+            Self::Weakens => "weakens",
+            Self::Overrides => "overrides",
+            Self::Composes => "composes",
+            Self::Projects => "projects",
+            Self::Derives => "derives",
+        }
+    }
+}
+
 pub struct GraphOntology;
 
 impl GraphOntology {

@@ -91,6 +91,76 @@ impl SemanticId {
         Self::new("axis_signal", format!("{}_{}", axis_name, signal_id))
     }
 
+    pub fn day_root(date: &str, tz: &str) -> Self {
+        Self::new("day", format!("{}:{}", date, tz))
+    }
+
+    pub fn day_child(child_kind: &str, date: &str, tz: &str) -> Self {
+        Self::new(child_kind, format!("day:{}:{}", date, tz))
+    }
+
+    pub fn solar_term_day(date: &str, tz: &str) -> Self {
+        Self::day_child("solar_term", date, tz)
+    }
+
+    pub fn truc_day(date: &str, tz: &str) -> Self {
+        Self::day_child("truc", date, tz)
+    }
+
+    pub fn day_deity_day(date: &str, tz: &str) -> Self {
+        Self::day_child("day_deity", date, tz)
+    }
+
+    pub fn star_day(date: &str, tz: &str) -> Self {
+        Self::day_child("star", date, tz)
+    }
+
+    pub fn taboo_day(date: &str, tz: &str, taboo_name: &str) -> Self {
+        Self::new("taboo", format!("day:{}:{}:{}", date, tz, taboo_name))
+    }
+
+    pub fn xung_hop_day(date: &str, tz: &str) -> Self {
+        Self::day_child("xung_hop", date, tz)
+    }
+
+    pub fn travel_day(date: &str, tz: &str) -> Self {
+        Self::day_child("travel", date, tz)
+    }
+
+    pub fn hoang_dao_hours_day(date: &str, tz: &str) -> Self {
+        Self::day_child("hoang_dao_hours", date, tz)
+    }
+
+    pub fn bazi_profile(dob: &str, tz: &str) -> Self {
+        Self::new("bazi_profile", format!("{}:{}", dob, tz))
+    }
+
+    pub fn pillar_bazi(pillar_kind: &str, dob: &str, tz: &str) -> Self {
+        Self::new(
+            "pillar",
+            format!("bazi_profile:{}:{}:{}", dob, tz, pillar_kind),
+        )
+    }
+
+    pub fn element_distribution_bazi(dob: &str, tz: &str) -> Self {
+        Self::new("element_distribution", format!("bazi_profile:{}:{}", dob, tz))
+    }
+
+    pub fn ten_god_distribution_bazi(dob: &str, tz: &str) -> Self {
+        Self::new("ten_god_distribution", format!("bazi_profile:{}:{}", dob, tz))
+    }
+
+    pub fn day_master_strength_bazi(dob: &str, tz: &str) -> Self {
+        Self::new("day_master_strength", format!("bazi_profile:{}:{}", dob, tz))
+    }
+
+    pub fn chart_interaction_bazi(dob: &str, tz: &str, index: usize) -> Self {
+        Self::new(
+            "chart_interaction",
+            format!("bazi_profile:{}:{}:{}", dob, tz, index),
+        )
+    }
+
     pub fn to_node_id(&self) -> String {
         format!("{}:{}", self.concept_label, self.stable_key)
     }

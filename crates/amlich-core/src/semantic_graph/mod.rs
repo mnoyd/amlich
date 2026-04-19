@@ -4,10 +4,12 @@ mod ids;
 mod node;
 mod ontology;
 mod provenance;
+mod views;
 
-pub use edge::{SemanticEdge, SemanticEdgeLabel};
-pub use graph::{GraphValidationError, SemanticGraph};
+pub use edge::{SemanticEdge, SemanticEdgeLabel, SemanticEdgeId};
+pub use graph::{GraphMergeError, GraphValidationError, SemanticGraph};
 pub use ids::SemanticId;
 pub use node::{NodeOrigin, SemanticNode, SemanticNodeId};
 pub use ontology::{ConceptLabel, EdgeConcept, GraphOntology, NodeConcept};
 pub use provenance::{ProvenanceEntry, ProvenanceSource, ProvenanceTracker};
+pub use views::{LlmGraphSlice, SubgraphView, VisualizationEdge, VisualizationGraph, VisualizationNode};

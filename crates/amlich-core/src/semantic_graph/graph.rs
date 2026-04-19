@@ -7,7 +7,7 @@ use super::provenance::{ProvenanceEntry, ProvenanceTracker};
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SemanticGraph {
     nodes: HashMap<String, SemanticNode>,
-    edges: Vec<SemanticEdge>,
+    edges: HashMap<String, SemanticEdge>,
     provenance: ProvenanceTracker,
 }
 
@@ -22,7 +22,7 @@ impl SemanticGraph {
 
     pub fn add_edge(&mut self, edge: SemanticEdge) {
         if self.nodes.contains_key(&edge.from_node_id) && self.nodes.contains_key(&edge.to_node_id) {
-            self.edges.push(edge);
+            self.edges.insert(edge.edge_id.clone(), edge);
         }
     }
 
@@ -34,11 +34,19 @@ impl SemanticGraph {
         self.nodes.contains_key(node_id)
     }
 
+    pub fn get_edge(&self, edge_id: &str) -> Option<&SemanticEdge> {
+        self.edges.get(edge_id)
+    }
+
+    pub fn has_edge(&self, edge_id: &str) -> bool {
+        self.edges.contains_key(edge_id)
+    }
+
     pub fn nodes(&self) -> &HashMap<String, SemanticNode> {
         &self.nodes
     }
 
-    pub fn edges(&self) -> &Vec<SemanticEdge> {
+    pub fn edges(&self) -> &HashMap<String, SemanticEdge> {
         &self.edges
     }
 
@@ -52,14 +60,14 @@ impl SemanticGraph {
 
     pub fn outgoing_edges(&self, node_id: &str) -> Vec<&SemanticEdge> {
         self.edges
-            .iter()
+            .values()
             .filter(|e| e.from_node_id == node_id)
             .collect()
     }
 
     pub fn incoming_edges(&self, node_id: &str) -> Vec<&SemanticEdge> {
         self.edges
-            .iter()
+            .values()
             .filter(|e| e.to_node_id == node_id)
             .collect()
     }
@@ -72,23 +80,59 @@ impl SemanticGraph {
         self.edges.len()
     }
 
-    pub fn merge(&mut self, other: SemanticGraph) {
+    pub fn merge(&mut self, other: SemanticGraph) -> Result<(), GraphMergeError> {
         for (_, node) in other.nodes {
-            if !self.nodes.contains_key(&node.node_id) {
+            if let Some(existing) = self.nodes.get(&node.node_id) {
+                if existing.concept != node.concept {
+                    return Err(GraphMergeError::NodeKindConflict {
+                        node_id: node.node_id.clone(),
+                        existing_kind: existing.concept,
+                        incoming_kind: node.concept,
+                    });
+                }
+                let mut merged = existing.clone();
+                for prov in node.provenance {
+                    if !merged.provenance.contains(&prov) {
+                        merged.provenance.push(prov);
+                    }
+                }
+                self.nodes.insert(node.node_id.clone(), merged);
+            } else {
                 self.nodes.insert(node.node_id.clone(), node);
             }
         }
-        for edge in other.edges {
-            if self.nodes.contains_key(&edge.from_node_id) && self.nodes.contains_key(&edge.to_node_id) {
-                self.edges.push(edge);
+        for (_, edge) in other.edges {
+            if let Some(existing) = self.edges.get(&edge.edge_id) {
+                if existing.label.concept != edge.label.concept {
+                    return Err(GraphMergeError::EdgePayloadConflict {
+                        edge_id: edge.edge_id.clone(),
+                    });
+                }
+                if existing.from_node_id != edge.from_node_id || existing.to_node_id != edge.to_node_id {
+                    return Err(GraphMergeError::EdgePayloadConflict {
+                        edge_id: edge.edge_id.clone(),
+                    });
+                }
+                let mut merged = existing.clone();
+                for prov in edge.provenance {
+                    if !merged.provenance.contains(&prov) {
+                        merged.provenance.push(prov);
+                    }
+                }
+                self.edges.insert(edge.edge_id.clone(), merged);
+            } else {
+                if self.nodes.contains_key(&edge.from_node_id) && self.nodes.contains_key(&edge.to_node_id) {
+                    self.edges.insert(edge.edge_id.clone(), edge);
+                }
             }
         }
         self.provenance.merge(other.provenance);
+        Ok(())
     }
 
     pub fn validate(&self) -> Result<(), GraphValidationError> {
         let node_ids: HashSet<_> = self.nodes.keys().collect();
-        for edge in &self.edges {
+        for edge in self.edges.values() {
             if !node_ids.contains(&edge.from_node_id) {
                 return Err(GraphValidationError::MissingSourceNode(edge.from_node_id.clone()));
             }
@@ -104,4 +148,16 @@ impl SemanticGraph {
 pub enum GraphValidationError {
     MissingSourceNode(String),
     MissingTargetNode(String),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum GraphMergeError {
+    NodeKindConflict {
+        node_id: String,
+        existing_kind: super::ontology::NodeConcept,
+        incoming_kind: super::ontology::NodeConcept,
+    },
+    EdgePayloadConflict {
+        edge_id: String,
+    },
 }
