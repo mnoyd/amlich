@@ -161,6 +161,52 @@ impl SemanticId {
         )
     }
 
+    pub fn matrix_root(matrix_kind: &str, day_id: &str, profile_id: &str) -> Self {
+        Self::new(matrix_kind, format!("{}:{}", day_id, profile_id))
+    }
+
+    pub fn matrix_row(matrix_kind: &str, day_id: &str, profile_id: &str, row_key: &str) -> Self {
+        Self::new(
+            "matrix_row",
+            format!("{}:{}:{}:{}", matrix_kind, day_id, profile_id, row_key),
+        )
+    }
+
+    pub fn ten_god_relation(matrix_kind: &str, day_id: &str, profile_id: &str, row_key: &str) -> Self {
+        Self::new(
+            "ten_god_relation",
+            format!("{}:{}:{}:{}", matrix_kind, day_id, profile_id, row_key),
+        )
+    }
+
+    pub fn branch_relation_node(matrix_kind: &str, day_id: &str, profile_id: &str, row_key: &str) -> Self {
+        Self::new(
+            "branch_relation_node",
+            format!("{}:{}:{}:{}", matrix_kind, day_id, profile_id, row_key),
+        )
+    }
+
+    pub fn element_relation_node(matrix_kind: &str, day_id: &str, profile_id: &str, row_key: &str) -> Self {
+        Self::new(
+            "element_relation_node",
+            format!("{}:{}:{}:{}", matrix_kind, day_id, profile_id, row_key),
+        )
+    }
+
+    pub fn direction_signal_node(matrix_kind: &str, day_id: &str, profile_id: &str, direction: &str, signal: &str) -> Self {
+        Self::new(
+            "direction_signal_node",
+            format!("{}:{}:{}:{}:{}", matrix_kind, day_id, profile_id, direction, signal),
+        )
+    }
+
+    pub fn hour_slot_node(day_id: &str, profile_id: &str, slot: usize) -> Self {
+        Self::new(
+            "hour_slot",
+            format!("personal_hour:{}:{}:{}", day_id, profile_id, slot),
+        )
+    }
+
     pub fn to_node_id(&self) -> String {
         format!("{}:{}", self.concept_label, self.stable_key)
     }

@@ -608,3 +608,6 @@ this schema:
 | Drill-down | `graph.nodes`, `graph.edges`, matrix types |
 
 This doc is the schema-level reference for those layers.
+
+For rules on how these contracts may evolve over time, see
+`docs/almanac/contract-evolution-guidelines.md`.

@@ -22,6 +22,17 @@ pub enum NodeConcept {
     AxisSignal,
     XungHop,
     HoangDaoHour,
+    DayPersonMatrix,
+    PersonalHourMatrix,
+    ElementResonanceMatrix,
+    DirectionMergeMatrix,
+    DomainDayBoostMatrix,
+    InteractionRow,
+    TenGodRelation,
+    BranchRelationNode,
+    ElementRelationNode,
+    DirectionSignalNode,
+    HourSlot,
 }
 
 impl NodeConcept {
@@ -46,6 +57,17 @@ impl NodeConcept {
             Self::AxisSignal => ConceptLabel::AxisSignal,
             Self::XungHop => ConceptLabel::XungHop,
             Self::HoangDaoHour => ConceptLabel::HoangDaoHour,
+            Self::DayPersonMatrix => ConceptLabel::DayPersonMatrix,
+            Self::PersonalHourMatrix => ConceptLabel::PersonalHourMatrix,
+            Self::ElementResonanceMatrix => ConceptLabel::ElementResonanceMatrix,
+            Self::DirectionMergeMatrix => ConceptLabel::DirectionMergeMatrix,
+            Self::DomainDayBoostMatrix => ConceptLabel::DomainDayBoostMatrix,
+            Self::InteractionRow => ConceptLabel::InteractionRow,
+            Self::TenGodRelation => ConceptLabel::TenGodRelation,
+            Self::BranchRelationNode => ConceptLabel::BranchRelationNode,
+            Self::ElementRelationNode => ConceptLabel::ElementRelationNode,
+            Self::DirectionSignalNode => ConceptLabel::DirectionSignalNode,
+            Self::HourSlot => ConceptLabel::HourSlot,
         }
     }
 }
@@ -62,6 +84,15 @@ pub enum EdgeConcept {
     Composes,
     Projects,
     Derives,
+    HasMatrix,
+    HasRow,
+    RelatesTo,
+    Evaluates,
+    InteractsWith,
+    HasTenGodRelation,
+    HasBranchRelation,
+    HasElementRelation,
+    BestFor,
 }
 
 impl EdgeConcept {
@@ -76,6 +107,15 @@ impl EdgeConcept {
             Self::Composes => ConceptLabel::Composes,
             Self::Projects => ConceptLabel::Projects,
             Self::Derives => ConceptLabel::Derives,
+            Self::HasMatrix => ConceptLabel::HasMatrix,
+            Self::HasRow => ConceptLabel::HasRow,
+            Self::RelatesTo => ConceptLabel::RelatesTo,
+            Self::Evaluates => ConceptLabel::Evaluates,
+            Self::InteractsWith => ConceptLabel::InteractsWith,
+            Self::HasTenGodRelation => ConceptLabel::HasTenGodRelation,
+            Self::HasBranchRelation => ConceptLabel::HasBranchRelation,
+            Self::HasElementRelation => ConceptLabel::HasElementRelation,
+            Self::BestFor => ConceptLabel::BestFor,
         }
     }
 }
@@ -102,6 +142,17 @@ pub enum ConceptLabel {
     AxisSignal,
     XungHop,
     HoangDaoHour,
+    DayPersonMatrix,
+    PersonalHourMatrix,
+    ElementResonanceMatrix,
+    DirectionMergeMatrix,
+    DomainDayBoostMatrix,
+    InteractionRow,
+    TenGodRelation,
+    BranchRelationNode,
+    ElementRelationNode,
+    DirectionSignalNode,
+    HourSlot,
     Resonates,
     Conflicts,
     Conditions,
@@ -111,6 +162,15 @@ pub enum ConceptLabel {
     Composes,
     Projects,
     Derives,
+    HasMatrix,
+    HasRow,
+    RelatesTo,
+    Evaluates,
+    InteractsWith,
+    HasTenGodRelation,
+    HasBranchRelation,
+    HasElementRelation,
+    BestFor,
 }
 
 impl ConceptLabel {
@@ -144,6 +204,26 @@ impl ConceptLabel {
             Self::Composes => "composes",
             Self::Projects => "projects",
             Self::Derives => "derives",
+            Self::HasMatrix => "has_matrix",
+            Self::HasRow => "has_row",
+            Self::RelatesTo => "relates_to",
+            Self::Evaluates => "evaluates",
+            Self::InteractsWith => "interacts_with",
+            Self::HasTenGodRelation => "has_ten_god_relation",
+            Self::HasBranchRelation => "has_branch_relation",
+            Self::HasElementRelation => "has_element_relation",
+            Self::BestFor => "best_for",
+            Self::DayPersonMatrix => "day_person_matrix",
+            Self::PersonalHourMatrix => "personal_hour_matrix",
+            Self::ElementResonanceMatrix => "element_resonance_matrix",
+            Self::DirectionMergeMatrix => "direction_merge_matrix",
+            Self::DomainDayBoostMatrix => "domain_day_boost_matrix",
+            Self::InteractionRow => "interaction_row",
+            Self::TenGodRelation => "ten_god_relation",
+            Self::BranchRelationNode => "branch_relation_node",
+            Self::ElementRelationNode => "element_relation_node",
+            Self::DirectionSignalNode => "direction_signal_node",
+            Self::HourSlot => "hour_slot",
         }
     }
 }
@@ -172,6 +252,17 @@ impl GraphOntology {
             NodeConcept::AxisSignal,
             NodeConcept::XungHop,
             NodeConcept::HoangDaoHour,
+            NodeConcept::DayPersonMatrix,
+            NodeConcept::PersonalHourMatrix,
+            NodeConcept::ElementResonanceMatrix,
+            NodeConcept::DirectionMergeMatrix,
+            NodeConcept::DomainDayBoostMatrix,
+            NodeConcept::InteractionRow,
+            NodeConcept::TenGodRelation,
+            NodeConcept::BranchRelationNode,
+            NodeConcept::ElementRelationNode,
+            NodeConcept::DirectionSignalNode,
+            NodeConcept::HourSlot,
         ]
     }
 
@@ -186,6 +277,15 @@ impl GraphOntology {
             EdgeConcept::Composes,
             EdgeConcept::Projects,
             EdgeConcept::Derives,
+            EdgeConcept::HasMatrix,
+            EdgeConcept::HasRow,
+            EdgeConcept::RelatesTo,
+            EdgeConcept::Evaluates,
+            EdgeConcept::InteractsWith,
+            EdgeConcept::HasTenGodRelation,
+            EdgeConcept::HasBranchRelation,
+            EdgeConcept::HasElementRelation,
+            EdgeConcept::BestFor,
         ]
     }
 }
