@@ -226,3 +226,95 @@ Current dependency order for follow-up beads:
 3. expand regression corpus and API parity
 4. design optional recommendation pack architecture
 5. define personalized recommendation layer
+
+## Hybrid Semantic Graph Architecture Track (2026-04-19)
+
+A new hybrid `2.5` architecture track is now active for long-term explainability, visualization, and LLM-ready system design in `amlich-core`. This track does **not** replace the phased delivery plan above; it introduces a migration substrate that existing day, bazi, interaction, reasoning, and recommendation systems can converge onto over time.
+
+### Why this track exists
+
+The current architecture already contains strong structured outputs, but they are split across separate feature slices:
+
+- `almanac/` day facts and rule outputs
+- `bazi/` chart and analysis outputs
+- `interaction/` personal matrices
+- `reasoning/` action-specific explanation graph and decision export
+- `almanac/recommendation/` recommendation evidence aggregation
+
+The hybrid semantic-graph track creates a shared substrate so these systems can:
+
+- reuse canonical fact identity
+- preserve provenance across surfaces
+- graphify matrix and recommendation evidence
+- support graph visualization and drill-down
+- expose structured LLM-ready semantic slices
+
+### Target architecture
+
+```text
+domain producers
+  -> semantic_graph
+    -> reasoning evaluators
+    -> matrix projections
+    -> recommendation projections
+    -> visualization exports
+    -> llm-ready exports
+```
+
+### Guiding rule
+
+This is a hybrid migration, not a rewrite:
+
+- existing modules remain authoritative for raw computation in the near term
+- `semantic_graph` becomes the shared integration substrate
+- current contracts remain available as compatibility projections until parity-backed migration is complete
+
+### Architecture planning artifacts
+
+The current design set for this track is:
+
+- `docs/almanac/hybrid-semantic-graph-plan.md`
+- `docs/almanac/semantic-graph-v1-spec.md`
+- `docs/almanac/interaction-graphification-spec.md`
+- `docs/almanac/graph-backed-reasoning-migration-spec.md`
+- `docs/almanac/graph-backed-recommendation-evidence-spec.md`
+
+### Epic map
+
+1. **Semantic Graph Foundation**
+2. **Domain Fact Graphification**
+3. **Interaction Matrices as Graph Projections**
+4. **Graph-backed Reasoning**
+5. **Graph-backed Recommendation Evidence**
+6. **Visualization Contract**
+7. **LLM-ready Semantic Views**
+8. **Migration, Compatibility, and Validation**
+
+### Recommended dependency order
+
+1. semantic graph foundation
+2. fact graphification
+3. interaction graphification
+4. graph-backed reasoning
+5. graph-backed recommendation evidence
+6. visualization contract
+7. llm-ready views
+8. compatibility/parity hardening throughout
+
+### Relationship to existing phases
+
+This architecture track overlays the existing phase plan rather than replacing it. In practice:
+
+- Phase 4-6 outputs are key inputs to semantic graphification
+- recommendation-system planning artifacts remain valid but can later be graph-backed
+- explanation and personalization work should prefer canonical graph-connected identities when expanding contracts
+
+### Expected payoff
+
+If executed successfully, this track should make `amlich-core`:
+
+- more explainable
+- easier to visualize
+- more coherent across reasoning and recommendation surfaces
+- more suitable for structured LLM consumers
+- easier to extend without creating new isolated explanation islands
