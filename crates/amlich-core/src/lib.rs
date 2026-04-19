@@ -20,6 +20,7 @@ pub mod interaction;
 pub mod julian;
 pub mod lunar;
 pub mod reasoning;
+pub mod semantic_graph;
 pub mod sun;
 pub mod tietkhi;
 pub mod types;
@@ -78,6 +79,11 @@ pub use crate::reasoning::{
     ReasoningEdgeJustification, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily,
     ReasoningGraph, ReasoningGraphExport, ReasoningNode, ReasoningNodeExport,
     ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
+};
+pub use semantic_graph::{
+    ConceptLabel, EdgeConcept, GraphOntology, GraphValidationError, NodeConcept, NodeOrigin,
+    SemanticEdge, SemanticEdgeLabel, SemanticGraph, SemanticId, SemanticNode, SemanticNodeId,
+    ProvenanceEntry, ProvenanceSource, ProvenanceTracker,
 };
 pub use types::*;
 
