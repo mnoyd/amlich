@@ -22,7 +22,9 @@ impl SynthesisSemantic {
         match self {
             SynthesisSemantic::OverrideAvoid => ReasoningConclusionSemantic::OverrideAvoid,
             SynthesisSemantic::OverrideCautious => ReasoningConclusionSemantic::OverrideCautious,
-            SynthesisSemantic::ConflictedCautious => ReasoningConclusionSemantic::ConflictedCautious,
+            SynthesisSemantic::ConflictedCautious => {
+                ReasoningConclusionSemantic::ConflictedCautious
+            }
             SynthesisSemantic::ResistanceLedCautious => {
                 ReasoningConclusionSemantic::ResistanceLedCautious
             }
@@ -306,7 +308,8 @@ fn note_from_node_id(
     node_id: &str,
     tags: &[&str],
 ) -> Option<ReasoningNote> {
-    graph.nodes
+    graph
+        .nodes
         .iter()
         .find(|node| node.id == node_id)
         .map(|node| ReasoningNote {

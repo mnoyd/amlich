@@ -4,8 +4,8 @@ use crate::{
 };
 
 use super::{
-    EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdge, ReasoningEvidenceEnvelope,
-    ReasoningEdgeJustification, ReasoningEvidenceSourceFamily, ReasoningGraph, ReasoningNode,
+    EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdge, ReasoningEdgeJustification,
+    ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily, ReasoningGraph, ReasoningNode,
 };
 
 pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<ReasoningGraph, String> {
@@ -41,17 +41,26 @@ pub fn derive_interpreted_signals(mut graph: ReasoningGraph) -> Result<Reasoning
                         let opening_hits = collect_truc_hits(truc)
                             .into_iter()
                             .filter(|hit| {
-                                hit.activity_id == crate::almanac::recommendation::ActivityId::OpeningStart
+                                hit.activity_id
+                                    == crate::almanac::recommendation::ActivityId::OpeningStart
                             })
                             .collect::<Vec<_>>();
                         let opening_avoid_count = opening_hits
                             .iter()
-                            .filter(|hit| matches!(hit.direction, crate::almanac::recommendation::evidence::BaseDirection::Avoid))
+                            .filter(|hit| {
+                                matches!(
+                                    hit.direction,
+                                    crate::almanac::recommendation::evidence::BaseDirection::Avoid
+                                )
+                            })
                             .count();
                         let has_opening_avoid = opening_avoid_count > 0;
-                        let has_opening_favor = opening_hits
-                            .iter()
-                            .any(|hit| matches!(hit.direction, crate::almanac::recommendation::evidence::BaseDirection::Favor));
+                        let has_opening_favor = opening_hits.iter().any(|hit| {
+                            matches!(
+                                hit.direction,
+                                crate::almanac::recommendation::evidence::BaseDirection::Favor
+                            )
+                        });
 
                         if has_opening_avoid {
                             graph.edges.push(ReasoningEdge::new(

@@ -27,12 +27,11 @@ pub mod types;
 
 // Re-export main types
 pub use crate::advisory::{
-    build_hour_selection_reasoning, build_personalized_day_selection,
-    build_recommendation_context, compute_day_context_from_birth, rank_dates_for_intent,
-    rank_hours_for_intent, score_day_selection,
-    synthesize_advisory_recommendations, AdvisoryScoring, BirthInput, ConsultationIntent,
-    DateRangeInput, EvidenceEnvelope, HourSelectionReasoning, HourSelectionReasoningExport,
-    HourSelectionEvidence, PersonalizedDaySelection,
+    build_hour_selection_reasoning, build_personalized_day_selection, build_recommendation_context,
+    compute_day_context_from_birth, rank_dates_for_intent, rank_hours_for_intent,
+    score_day_selection, synthesize_advisory_recommendations, AdvisoryScoring, BirthInput,
+    ConsultationIntent, DateRangeInput, EvidenceEnvelope, HourSelectionEvidence,
+    HourSelectionReasoning, HourSelectionReasoningExport, PersonalizedDaySelection,
     RankedDateCandidate, RankedHourCandidate, ScoredAdvice,
 };
 pub use crate::almanac::cuu_dieu::{compute_cuu_dieu, CuuDieuQuality, CuuDieuResult};
@@ -58,12 +57,11 @@ pub use crate::bazi::{
     export_bazi_advisory, infer_useful_gods, to_bazi_advisory_response, to_bazi_analysis_response,
     to_bazi_chart_response, to_bazi_timing_response, AnnualPillar, AnnualPillarResponse,
     BaziAdvisoryDomains, BaziAdvisoryExport, BaziAdvisoryReport, BaziAdvisoryResponse,
-    BaziAnalysisEnvelope,
-    BaziAnalysisReport, BaziAnalysisResponse, BaziCanChiResponse, BaziChart, BaziChartMetadata,
-    BaziChartMetadataResponse, BaziChartResponse, BaziComputedMetrics, BaziCoreMetrics,
-    BaziDomainScore, BaziDomainScores, BaziInput, BaziInteractionMetric, BaziLuckPillar,
-    BaziLuckPillarResponse, BaziLunarDateResponse, BaziPillar, BaziPillarResponse, BaziReport,
-    BaziReportFacts, BaziReportOptions, BaziScoreContributor, BaziScoringMatrixSet,
+    BaziAnalysisEnvelope, BaziAnalysisReport, BaziAnalysisResponse, BaziCanChiResponse, BaziChart,
+    BaziChartMetadata, BaziChartMetadataResponse, BaziChartResponse, BaziComputedMetrics,
+    BaziCoreMetrics, BaziDomainScore, BaziDomainScores, BaziInput, BaziInteractionMetric,
+    BaziLuckPillar, BaziLuckPillarResponse, BaziLunarDateResponse, BaziPillar, BaziPillarResponse,
+    BaziReport, BaziReportFacts, BaziReportOptions, BaziScoreContributor, BaziScoringMatrixSet,
     BaziStructureMetrics, BaziTimingInput, BaziTimingMetrics, BaziTimingReport, BaziTimingResponse,
     BaziTimingWindowScore, BranchStrengthProfile, ChartInteraction, ChartInteractionKind,
     ChartInteractionResponse, DayMasterStrength, DayMasterStrengthLabel, DayMasterStrengthResponse,
@@ -73,17 +71,17 @@ pub use crate::bazi::{
     TenGodDistribution, TenGodWeightProfile, UsefulGodAnalysis, UsefulGodResponse,
 };
 pub use crate::reasoning::{
-    ActionId, DecisionConfidence, EdgeEffect, InitiationOpeningDecision, InitiationOpeningVector,
-    InitiationOpeningDecisionExport, InitiationOpeningReasoningBundle, InterpretedAxis, NodeKind,
-    ReasoningAxisScore, ReasoningConclusionSemantic, ReasoningEdge, ReasoningEdgeExport,
-    ReasoningEdgeJustification, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily,
-    ReasoningGraph, ReasoningGraphExport, ReasoningNode, ReasoningNodeExport,
-    ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
+    ActionId, DecisionConfidence, EdgeEffect, InitiationOpeningDecision,
+    InitiationOpeningDecisionExport, InitiationOpeningReasoningBundle, InitiationOpeningVector,
+    InterpretedAxis, NodeKind, ReasoningAxisScore, ReasoningConclusionSemantic, ReasoningEdge,
+    ReasoningEdgeExport, ReasoningEdgeJustification, ReasoningEvidenceEnvelope,
+    ReasoningEvidenceSourceFamily, ReasoningGraph, ReasoningGraphExport, ReasoningNode,
+    ReasoningNodeExport, ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
 };
 pub use semantic_graph::{
-    ConceptLabel, EdgeConcept, GraphOntology, GraphValidationError, NodeConcept, NodeOrigin,
-    SemanticEdge, SemanticEdgeLabel, SemanticGraph, SemanticId, SemanticNode, SemanticNodeId,
-    ProvenanceEntry, ProvenanceSource, ProvenanceTracker,
+    build_reasoning_input_graph, ConceptLabel, EdgeConcept, GraphOntology, GraphValidationError,
+    NodeConcept, NodeOrigin, ProvenanceEntry, ProvenanceSource, ProvenanceTracker, SemanticEdge,
+    SemanticEdgeLabel, SemanticGraph, SemanticId, SemanticNode, SemanticNodeId,
 };
 pub use types::*;
 

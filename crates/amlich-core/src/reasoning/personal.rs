@@ -91,7 +91,10 @@ impl PersonalReasoningInput {
                     .join(", ")
             ),
             severity: None,
-            evidence: vec![bazi_evidence("bazi.compute_bazi_metrics", "profile_analysis")],
+            evidence: vec![bazi_evidence(
+                "bazi.compute_bazi_metrics",
+                "profile_analysis",
+            )],
         });
 
         Ok(nodes)

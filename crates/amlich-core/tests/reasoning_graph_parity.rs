@@ -492,3 +492,155 @@ fn initiation_opening_reasoning_keeps_reasons_and_conflict_signals_visible() {
         }
     }
 }
+
+#[test]
+fn graph_backed_evaluator_bucket_parity_with_current_pipeline() {
+    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
+    use amlich_core::reasoning::project_initiation_opening_decision;
+
+    for case in parity_corpus()
+        .into_iter()
+        .filter(|case| matches!(case.kind, ParityKind::Baseline))
+    {
+        let snapshot = decision_snapshot(&case);
+        let graph = amlich_core::build_reasoning_input_graph(&snapshot, None).expect("valid graph");
+        let evaluator = InitiationOpeningEvaluator::new();
+
+        let evaluation = evaluator
+            .evaluate(&graph, &snapshot, None)
+            .expect("valid evaluation");
+        let graph_decision = project_initiation_opening_decision(&evaluation);
+        let current_decision =
+            build_initiation_opening_reasoning(&snapshot, None).expect("current decision");
+
+        assert_eq!(
+            graph_decision.recommendation_bucket, case.expected_bucket,
+            "{} graph bucket mismatch: expected {:?} vs got {:?}",
+            case.id, case.expected_bucket, graph_decision.recommendation_bucket
+        );
+
+        assert_eq!(
+            graph_decision.recommendation_bucket, current_decision.recommendation_bucket,
+            "{} bucket should match current pipeline",
+            case.id
+        );
+    }
+}
+
+#[test]
+fn graph_backed_evaluator_confidence_parity() {
+    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
+    use amlich_core::reasoning::project_initiation_opening_decision;
+
+    let snapshot = calculate_day_snapshot(3, 1, 2024);
+    let graph = amlich_core::build_reasoning_input_graph(&snapshot, None).expect("valid graph");
+    let evaluator = InitiationOpeningEvaluator::new();
+
+    let evaluation = evaluator
+        .evaluate(&graph, &snapshot, None)
+        .expect("valid evaluation");
+    let graph_decision = project_initiation_opening_decision(&evaluation);
+    let current_decision =
+        build_initiation_opening_reasoning(&snapshot, None).expect("current decision");
+
+    assert_eq!(
+        graph_decision.confidence, current_decision.confidence,
+        "3/1/2024 confidence should match current pipeline"
+    );
+}
+
+#[test]
+fn graph_backed_evaluator_produces_valid_action_evaluation() {
+    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
+    use amlich_core::reasoning::project_initiation_opening_decision;
+
+    let snapshot = calculate_day_snapshot(10, 2, 2024);
+    let graph = amlich_core::build_reasoning_input_graph(&snapshot, None).expect("valid graph");
+    let evaluator = InitiationOpeningEvaluator::new();
+
+    let evaluation = evaluator
+        .evaluate(&graph, &snapshot, None)
+        .expect("valid evaluation");
+
+    assert!(!evaluation.primary_conclusion.is_empty(), "should have conclusion");
+    assert!(
+        !evaluation.strongest_supports.is_empty() || !evaluation.strongest_resistances.is_empty(),
+        "should have at least one support or resistance note"
+    );
+    assert!(
+        matches!(evaluation.semantic, amlich_core::reasoning::ReasoningConclusionSemantic::FavorableClear
+            | amlich_core::reasoning::ReasoningConclusionSemantic::FavorableContextual
+            | amlich_core::reasoning::ReasoningConclusionSemantic::ConflictedCautious
+            | amlich_core::reasoning::ReasoningConclusionSemantic::ResistanceLedCautious
+            | amlich_core::reasoning::ReasoningConclusionSemantic::OverrideCautious
+            | amlich_core::reasoning::ReasoningConclusionSemantic::OverrideAvoid),
+        "should have valid semantic"
+    );
+
+    let decision = project_initiation_opening_decision(&evaluation);
+    assert!(
+        matches!(
+            decision.recommendation_bucket,
+            amlich_core::reasoning::RecommendationBucket::Favorable
+                | amlich_core::reasoning::RecommendationBucket::Cautious
+                | amlich_core::reasoning::RecommendationBucket::Avoid
+        ),
+        "should have valid bucket"
+    );
+}
+
+#[test]
+fn graph_backed_evaluator_handles_personal_input() {
+    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
+
+    let snapshot = calculate_day_snapshot(13, 5, 2024);
+    let personal_input = profile_input(1, 1, 1990, 9, 0, 7.0, None);
+
+    let bazi_input = amlich_core::bazi::BaziInput {
+        day: personal_input.birth.day,
+        month: personal_input.birth.month,
+        year: personal_input.birth.year,
+        hour: personal_input.birth.hour.unwrap_or(0),
+        minute: personal_input.birth.minute.unwrap_or(0),
+        timezone: personal_input.birth.timezone,
+        longitude: None,
+        use_solar_time: false,
+        gender: personal_input.birth.gender,
+    };
+
+    let graph = amlich_core::build_reasoning_input_graph(&snapshot, Some(&bazi_input)).expect("valid graph");
+    let evaluator = InitiationOpeningEvaluator::new();
+
+    let evaluation = evaluator
+        .evaluate(&graph, &snapshot, Some(&personal_input))
+        .expect("valid evaluation");
+
+    assert!(
+        !evaluation.primary_conclusion.is_empty(),
+        "should have conclusion with personal input"
+    );
+    assert!(
+        evaluation.axis_scores.iter().any(|s| s.axis == amlich_core::InterpretedAxis::PersonalAlignment && s.score > 0.0),
+        "should have personal alignment score"
+    );
+}
+
+#[test]
+fn graph_backed_evaluator_suggested_hours_from_day() {
+    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
+    use amlich_core::reasoning::project_initiation_opening_decision;
+
+    let snapshot = calculate_day_snapshot(10, 2, 2024);
+    let graph = amlich_core::build_reasoning_input_graph(&snapshot, None).expect("valid graph");
+    let evaluator = InitiationOpeningEvaluator::new();
+
+    let evaluation = evaluator
+        .evaluate(&graph, &snapshot, None)
+        .expect("valid evaluation");
+    let decision = project_initiation_opening_decision(&evaluation);
+
+    assert!(
+        !decision.suggested_hours.is_empty(),
+        "should have suggested hours from day"
+    );
+}

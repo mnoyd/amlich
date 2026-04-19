@@ -20,21 +20,30 @@ pub fn build_fact_graph(
         kind: NodeKind::Fact,
         summary_vi: snapshot.context.tiet_khi.name.clone(),
         severity: None,
-        evidence: vec![snapshot_evidence("snapshot.context.tiet_khi", "context.tiet_khi")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.context.tiet_khi",
+            "context.tiet_khi",
+        )],
     });
     graph.nodes.push(ReasoningNode {
         id: "fact.day.truc".to_string(),
         kind: NodeKind::Fact,
         summary_vi: format!("Trực {}", snapshot.day_fortune.truc.name),
         severity: Some(snapshot.day_fortune.truc.quality.clone()),
-        evidence: vec![snapshot_evidence("snapshot.day_fortune.truc", "day_fortune.truc")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.day_fortune.truc",
+            "day_fortune.truc",
+        )],
     });
     graph.nodes.push(ReasoningNode {
         id: "fact.day.nhi_thap_bat_tu".to_string(),
         kind: NodeKind::Fact,
         summary_vi: summarize_stars(&snapshot.day_fortune.stars),
         severity: None,
-        evidence: vec![snapshot_evidence("snapshot.day_fortune.stars", "day_fortune.stars")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.day_fortune.stars",
+            "day_fortune.stars",
+        )],
     });
     graph.nodes.push(ReasoningNode {
         id: "fact.day.day_deity".to_string(),
@@ -96,7 +105,10 @@ pub fn build_fact_graph(
             snapshot.day_fortune.travel.hy_than
         ),
         severity: None,
-        evidence: vec![snapshot_evidence("snapshot.day_fortune.travel", "day_fortune.travel")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.day_fortune.travel",
+            "day_fortune.travel",
+        )],
     });
     graph.nodes.push(ReasoningNode {
         id: "fact.day.hoang_dao_hours".to_string(),

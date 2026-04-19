@@ -152,4 +152,3 @@ fn effect_weight(effect: EdgeEffect) -> i32 {
         EdgeEffect::Conditions => 0,
     }
 }
-
