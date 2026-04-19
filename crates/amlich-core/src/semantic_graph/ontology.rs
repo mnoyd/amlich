@@ -20,6 +20,8 @@ pub enum NodeConcept {
     Taboo,
     ChartPillar,
     AxisSignal,
+    XungHop,
+    HoangDaoHour,
 }
 
 impl NodeConcept {
@@ -42,6 +44,8 @@ impl NodeConcept {
             Self::Taboo => ConceptLabel::Taboo,
             Self::ChartPillar => ConceptLabel::ChartPillar,
             Self::AxisSignal => ConceptLabel::AxisSignal,
+            Self::XungHop => ConceptLabel::XungHop,
+            Self::HoangDaoHour => ConceptLabel::HoangDaoHour,
         }
     }
 }
@@ -96,6 +100,8 @@ pub enum ConceptLabel {
     Taboo,
     ChartPillar,
     AxisSignal,
+    XungHop,
+    HoangDaoHour,
     Resonates,
     Conflicts,
     Conditions,
@@ -127,6 +133,8 @@ impl ConceptLabel {
             Self::Taboo => "taboo",
             Self::ChartPillar => "chart_pillar",
             Self::AxisSignal => "axis_signal",
+            Self::XungHop => "xung_hop",
+            Self::HoangDaoHour => "hoang_dao_hour",
             Self::Resonates => "resonates",
             Self::Conflicts => "conflicts",
             Self::Conditions => "conditions",
@@ -162,6 +170,8 @@ impl GraphOntology {
             NodeConcept::Taboo,
             NodeConcept::ChartPillar,
             NodeConcept::AxisSignal,
+            NodeConcept::XungHop,
+            NodeConcept::HoangDaoHour,
         ]
     }
 

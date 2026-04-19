@@ -1,3 +1,4 @@
+mod builders;
 mod edge;
 mod graph;
 mod ids;
@@ -6,6 +7,7 @@ mod ontology;
 mod provenance;
 mod views;
 
+pub use builders::DaySnapshotGraphBuilder;
 pub use edge::{SemanticEdge, SemanticEdgeLabel, SemanticEdgeId};
 pub use graph::{GraphMergeError, GraphValidationError, SemanticGraph};
 pub use ids::SemanticId;

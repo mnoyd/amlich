@@ -18,6 +18,8 @@ pub struct ProvenanceEntry {
     pub source_id: String,
     pub method: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub profile: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
 }
 
@@ -27,12 +29,18 @@ impl ProvenanceEntry {
             source,
             source_id: source_id.into(),
             method: method.into(),
+            profile: None,
             note: None,
         }
     }
 
     pub fn with_note(mut self, note: impl Into<String>) -> Self {
         self.note = Some(note.into());
+        self
+    }
+
+    pub fn with_profile(mut self, profile: impl Into<String>) -> Self {
+        self.profile = Some(profile.into());
         self
     }
 
@@ -58,6 +66,31 @@ impl ProvenanceEntry {
 
     pub fn derived(source_id: impl Into<String>, method: impl Into<String>) -> Self {
         Self::new(ProvenanceSource::Derived, source_id, method)
+    }
+
+    pub fn from_rule_evidence(
+        source: ProvenanceSource,
+        evidence: &crate::almanac::types::RuleEvidence,
+    ) -> Self {
+        Self::new(
+            source,
+            evidence.source_id.clone(),
+            evidence.method.clone(),
+        ).with_profile(evidence.profile.clone())
+    }
+
+    pub fn from_rule_evidence_opt(
+        source: ProvenanceSource,
+        evidence: &Option<crate::almanac::types::RuleEvidence>,
+    ) -> Option<Self> {
+        evidence.as_ref().map(|e| Self::from_rule_evidence(source, e))
+    }
+
+    pub fn from_source_meta(
+        source: ProvenanceSource,
+        meta: &crate::almanac::types::SourceMeta,
+    ) -> Self {
+        Self::new(source, meta.source_id.clone(), meta.method.clone())
     }
 }
 
