@@ -5,6 +5,7 @@
 > **Depends on:** [`semantic-graph-v1-spec.md`](semantic-graph-v1-spec.md) (Epic 1), [`interaction-graphification-spec.md`](interaction-graphification-spec.md) (Epic 3)
 > **Parent roadmap:** [`hybrid-semantic-graph-plan.md`](hybrid-semantic-graph-plan.md)
 > **Migration playbook:** [`legacy-replacement-playbook.md`](legacy-replacement-playbook.md)
+> **Contract follow-up:** [`reasoning-graph-export-replacement-plan.md`](reasoning-graph-export-replacement-plan.md)
 
 ## Purpose
 
