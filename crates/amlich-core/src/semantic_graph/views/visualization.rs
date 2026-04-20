@@ -1,6 +1,8 @@
 use crate::semantic_graph::{EdgeConcept, NodeConcept, SemanticGraph};
 use serde::{Deserialize, Serialize};
 
+use super::helpers::cluster_for_node_id;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VisualizationNode {
     pub node_id: String,
@@ -34,8 +36,8 @@ impl VisualizationGraph {
         let mut edges = Vec::new();
 
         for (_, node) in graph.nodes() {
-            let cluster = cluster_for_node(&node.node_id, node.concept);
-            let semantic_kind = semantic_kind_for_node(node.concept);
+            let cluster = cluster_for_node_id(&node.node_id, node.concept);
+            let semantic_kind = node.concept.label().as_str().to_string();
             let shape_hint = shape_hint_for_node(node.concept);
             nodes.push(VisualizationNode {
                 node_id: node.node_id.clone(),
@@ -48,7 +50,7 @@ impl VisualizationGraph {
         }
 
         for (_, edge) in graph.edges() {
-            let semantic_kind = semantic_kind_for_edge(edge.label.concept);
+            let semantic_kind = edge.label.concept.label().as_str().to_string();
             edges.push(VisualizationEdge {
                 edge_id: edge.edge_id.clone(),
                 from_id: edge.from_node_id.clone(),
@@ -61,73 +63,6 @@ impl VisualizationGraph {
 
         Self { nodes, edges }
     }
-}
-
-fn cluster_for_node(node_id: &str, concept: NodeConcept) -> String {
-    match concept {
-        NodeConcept::DayCanchi
-        | NodeConcept::MonthCanchi
-        | NodeConcept::YearCanchi
-        | NodeConcept::SolarTerm
-        | NodeConcept::HourCanchi
-        | NodeConcept::Truc
-        | NodeConcept::DayDeity
-        | NodeConcept::NaAm
-        | NodeConcept::Star
-        | NodeConcept::Taboo
-        | NodeConcept::XungHop
-        | NodeConcept::HoangDaoHour
-        | NodeConcept::Direction
-        | NodeConcept::Element
-        | NodeConcept::PersonalAlignment => "day-core".to_string(),
-
-        NodeConcept::ChartPillar
-        | NodeConcept::AxisSignal
-        | NodeConcept::DayPersonMatrix
-        | NodeConcept::PersonalHourMatrix
-        | NodeConcept::ElementResonanceMatrix
-        | NodeConcept::DirectionMergeMatrix
-        | NodeConcept::DomainDayBoostMatrix
-        | NodeConcept::InteractionRow
-        | NodeConcept::TenGodRelation
-        | NodeConcept::BranchRelationNode
-        | NodeConcept::ElementRelationNode
-        | NodeConcept::DirectionSignalNode
-        | NodeConcept::HourSlot
-        | NodeConcept::InteractionSignal => "interaction-core".to_string(),
-
-        NodeConcept::Activity
-        | NodeConcept::RecommendationHit
-        | NodeConcept::RecommendationLayer
-        | NodeConcept::RecommendationSummary => "recommendation-evidence".to_string(),
-
-        NodeConcept::Recommendation => "recommendation-summary".to_string(),
-
-        _ => {
-            if node_id.starts_with("bazi_profile:")
-                || node_id.starts_with("pillar:")
-                || node_id.starts_with("element_distribution:")
-            {
-                "bazi-core".to_string()
-            } else if node_id.starts_with("day:")
-                || node_id.starts_with("solar_term:")
-                || node_id.starts_with("truc:")
-                || node_id.contains(":day:")
-            {
-                "day-core".to_string()
-            } else {
-                "misc".to_string()
-            }
-        }
-    }
-}
-
-fn semantic_kind_for_node(concept: NodeConcept) -> String {
-    concept.label().as_str().to_string()
-}
-
-fn semantic_kind_for_edge(concept: EdgeConcept) -> String {
-    concept.label().as_str().to_string()
 }
 
 fn shape_hint_for_node(concept: NodeConcept) -> Option<String> {

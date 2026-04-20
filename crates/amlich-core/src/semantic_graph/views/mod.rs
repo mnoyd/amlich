@@ -1,4 +1,5 @@
 mod convergence;
+mod helpers;
 mod llm;
 mod recommendation;
 mod subgraph;

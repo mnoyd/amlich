@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
-use crate::semantic_graph::{NodeConcept, SemanticGraph, SemanticNode};
+use crate::semantic_graph::SemanticGraph;
 use serde::{Deserialize, Serialize};
 
+use super::helpers::{cluster_for_node_id, NodeViewAccumulator, opt_map};
 use super::subgraph::SubgraphView;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -31,73 +32,27 @@ impl LlmGraphSlice {
         let node_refs = view.node_ids.clone();
         let edge_refs = view.edge_ids.clone();
 
-        let mut summary_points = Vec::new();
-        let mut cluster_counts: HashMap<String, usize> = HashMap::new();
-        let mut semantic_kind_counts: HashMap<String, usize> = HashMap::new();
-        let mut severity_counts: HashMap<String, usize> = HashMap::new();
-
+        let mut acc = NodeViewAccumulator::new();
         for node_id in &view.node_ids {
             if let Some(node) = graph.get_node(node_id) {
-                let cluster = cluster_label_for_node(node);
-                *cluster_counts.entry(cluster).or_insert(0) += 1;
-
-                let kind_label = node.concept.label().as_str().to_string();
-                *semantic_kind_counts.entry(kind_label).or_insert(0) += 1;
-
-                if let Some(ref sev) = node.severity {
-                    *severity_counts.entry(sev.clone()).or_insert(0) += 1;
-                }
-
-                let mut parts = vec![format!(
-                    "[{}] {}",
-                    node.concept.label().as_str(),
-                    node.summary_vi
-                )];
-                if let Some(sev) = &node.severity {
-                    parts.push(format!("severity={}", sev));
-                }
-                if !node.provenance.is_empty() {
-                    let sources: Vec<_> = node
-                        .provenance
-                        .iter()
-                        .map(|p| format!("{:?}", p.source))
-                        .collect();
-                    parts.push(format!("sources={}", sources.join(",")));
-                }
-                summary_points.push(parts.join(" | "));
+                acc.accumulate(node);
             }
         }
 
-        let cluster_summary = if cluster_counts.is_empty() {
-            None
-        } else {
-            Some(ClusterSummary {
-                total_nodes: node_refs.len(),
-                total_edges: edge_refs.len(),
-                clusters: cluster_counts,
-            })
-        };
-
-        let semantic_kind_counts = if semantic_kind_counts.is_empty() {
-            None
-        } else {
-            Some(semantic_kind_counts)
-        };
-
-        let severity_counts = if severity_counts.is_empty() {
-            None
-        } else {
-            Some(severity_counts)
-        };
+        let cluster_summary = opt_map(acc.cluster_counts).map(|clusters| ClusterSummary {
+            total_nodes: node_refs.len(),
+            total_edges: edge_refs.len(),
+            clusters,
+        });
 
         Self {
             root_ids: view.root_ids.clone(),
             node_refs,
             edge_refs,
-            summary_points,
+            summary_points: acc.summary_points,
             cluster_summary,
-            semantic_kind_counts,
-            severity_counts,
+            semantic_kind_counts: opt_map(acc.semantic_kind_counts),
+            severity_counts: opt_map(acc.severity_counts),
         }
     }
 
@@ -105,71 +60,25 @@ impl LlmGraphSlice {
         let all_node_ids: Vec<String> = graph.nodes().keys().cloned().collect();
         let all_edge_ids: Vec<String> = graph.edges().keys().cloned().collect();
 
-        let mut summary_points = Vec::new();
-        let mut cluster_counts: HashMap<String, usize> = HashMap::new();
-        let mut semantic_kind_counts: HashMap<String, usize> = HashMap::new();
-        let mut severity_counts: HashMap<String, usize> = HashMap::new();
-
+        let mut acc = NodeViewAccumulator::new();
         for (_node_id, node) in graph.nodes() {
-            let cluster = cluster_label_for_node(node);
-            *cluster_counts.entry(cluster).or_insert(0) += 1;
-
-            let kind_label = node.concept.label().as_str().to_string();
-            *semantic_kind_counts.entry(kind_label).or_insert(0) += 1;
-
-            if let Some(ref sev) = node.severity {
-                *severity_counts.entry(sev.clone()).or_insert(0) += 1;
-            }
-
-            let mut parts = vec![format!(
-                "[{}] {}",
-                node.concept.label().as_str(),
-                node.summary_vi
-            )];
-            if let Some(sev) = &node.severity {
-                parts.push(format!("severity={}", sev));
-            }
-            if !node.provenance.is_empty() {
-                let sources: Vec<_> = node
-                    .provenance
-                    .iter()
-                    .map(|p| format!("{:?}", p.source))
-                    .collect();
-                parts.push(format!("sources={}", sources.join(",")));
-            }
-            summary_points.push(parts.join(" | "));
+            acc.accumulate(node);
         }
 
-        let cluster_summary = if cluster_counts.is_empty() {
-            None
-        } else {
-            Some(ClusterSummary {
-                total_nodes: all_node_ids.len(),
-                total_edges: all_edge_ids.len(),
-                clusters: cluster_counts,
-            })
-        };
-
-        let semantic_kind_counts = if semantic_kind_counts.is_empty() {
-            None
-        } else {
-            Some(semantic_kind_counts)
-        };
-
-        let severity_counts = if severity_counts.is_empty() {
-            None
-        } else {
-            Some(severity_counts)
-        };
+        let cluster_summary = opt_map(acc.cluster_counts).map(|clusters| ClusterSummary {
+            total_nodes: all_node_ids.len(),
+            total_edges: all_edge_ids.len(),
+            clusters,
+        });
 
         Self {
             root_ids: vec![],
             node_refs: all_node_ids,
             edge_refs: all_edge_ids,
-            summary_points,
+            summary_points: acc.summary_points,
             cluster_summary,
-            semantic_kind_counts,
-            severity_counts,
+            semantic_kind_counts: opt_map(acc.semantic_kind_counts),
+            severity_counts: opt_map(acc.severity_counts),
         }
     }
 
@@ -204,65 +113,6 @@ impl LlmGraphSlice {
             .take(limit)
             .map(|(id, _)| id)
             .collect()
-    }
-}
-
-fn cluster_label_for_node(node: &SemanticNode) -> String {
-    match node.concept {
-        NodeConcept::DayCanchi
-        | NodeConcept::MonthCanchi
-        | NodeConcept::YearCanchi
-        | NodeConcept::SolarTerm
-        | NodeConcept::HourCanchi
-        | NodeConcept::Truc
-        | NodeConcept::DayDeity
-        | NodeConcept::NaAm
-        | NodeConcept::Star
-        | NodeConcept::Taboo
-        | NodeConcept::XungHop
-        | NodeConcept::HoangDaoHour
-        | NodeConcept::Direction
-        | NodeConcept::Element
-        | NodeConcept::PersonalAlignment => "day-core".to_string(),
-
-        NodeConcept::ChartPillar
-        | NodeConcept::AxisSignal
-        | NodeConcept::DayPersonMatrix
-        | NodeConcept::PersonalHourMatrix
-        | NodeConcept::ElementResonanceMatrix
-        | NodeConcept::DirectionMergeMatrix
-        | NodeConcept::DomainDayBoostMatrix
-        | NodeConcept::InteractionRow
-        | NodeConcept::TenGodRelation
-        | NodeConcept::BranchRelationNode
-        | NodeConcept::ElementRelationNode
-        | NodeConcept::DirectionSignalNode
-        | NodeConcept::HourSlot
-        | NodeConcept::InteractionSignal => "interaction-core".to_string(),
-
-        NodeConcept::Activity
-        | NodeConcept::RecommendationHit
-        | NodeConcept::RecommendationLayer
-        | NodeConcept::RecommendationSummary => "recommendation-evidence".to_string(),
-
-        NodeConcept::Recommendation => "recommendation-summary".to_string(),
-
-        _ => {
-            if node.node_id.starts_with("bazi_profile:")
-                || node.node_id.starts_with("pillar:")
-                || node.node_id.starts_with("element_distribution:")
-            {
-                "bazi-core".to_string()
-            } else if node.node_id.starts_with("day:")
-                || node.node_id.starts_with("solar_term:")
-                || node.node_id.starts_with("truc:")
-                || node.node_id.contains(":day:")
-            {
-                "day-core".to_string()
-            } else {
-                "misc".to_string()
-            }
-        }
     }
 }
 
