@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::semantic_graph::SemanticGraph;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SubgraphView {
@@ -12,10 +12,8 @@ impl SubgraphView {
     pub fn extract(graph: &SemanticGraph, root_ids: &[&str], depth: usize) -> Self {
         let mut visited_nodes: Vec<String> = Vec::new();
         let mut visited_edges: Vec<String> = Vec::new();
-        let mut queue: Vec<(String, usize)> = root_ids
-            .iter()
-            .map(|&id| (id.to_string(), 0))
-            .collect();
+        let mut queue: Vec<(String, usize)> =
+            root_ids.iter().map(|&id| (id.to_string(), 0)).collect();
 
         while let Some((node_id, current_depth)) = queue.pop() {
             if visited_nodes.contains(&node_id) {

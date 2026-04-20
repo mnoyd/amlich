@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
 use super::ontology::EdgeConcept;
 use super::provenance::ProvenanceEntry;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct SemanticEdgeId(pub String);
@@ -25,10 +25,7 @@ pub struct SemanticEdgeLabel {
 
 impl SemanticEdgeLabel {
     pub fn new(concept: EdgeConcept) -> Self {
-        Self {
-            concept,
-            weight: 1,
-        }
+        Self { concept, weight: 1 }
     }
 
     pub fn with_weight(mut self, weight: i32) -> Self {
@@ -50,11 +47,7 @@ pub struct SemanticEdge {
 }
 
 impl SemanticEdge {
-    pub fn new(
-        from: impl Into<String>,
-        to: impl Into<String>,
-        concept: EdgeConcept,
-    ) -> Self {
+    pub fn new(from: impl Into<String>, to: impl Into<String>, concept: EdgeConcept) -> Self {
         let from_node_id = from.into();
         let to_node_id = to.into();
         let edge_id = format!("{}->{}", from_node_id, to_node_id);

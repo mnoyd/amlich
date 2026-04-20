@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
-use std::collections::{HashMap, HashSet};
 use super::edge::SemanticEdge;
 use super::node::SemanticNode;
 use super::provenance::{ProvenanceEntry, ProvenanceTracker};
+use serde::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SemanticGraph {
@@ -21,7 +21,8 @@ impl SemanticGraph {
     }
 
     pub fn add_edge(&mut self, edge: SemanticEdge) {
-        if self.nodes.contains_key(&edge.from_node_id) && self.nodes.contains_key(&edge.to_node_id) {
+        if self.nodes.contains_key(&edge.from_node_id) && self.nodes.contains_key(&edge.to_node_id)
+        {
             self.edges.insert(edge.edge_id.clone(), edge);
         }
     }
@@ -108,7 +109,9 @@ impl SemanticGraph {
                         edge_id: edge.edge_id.clone(),
                     });
                 }
-                if existing.from_node_id != edge.from_node_id || existing.to_node_id != edge.to_node_id {
+                if existing.from_node_id != edge.from_node_id
+                    || existing.to_node_id != edge.to_node_id
+                {
                     return Err(GraphMergeError::EdgePayloadConflict {
                         edge_id: edge.edge_id.clone(),
                     });
@@ -121,7 +124,9 @@ impl SemanticGraph {
                 }
                 self.edges.insert(edge.edge_id.clone(), merged);
             } else {
-                if self.nodes.contains_key(&edge.from_node_id) && self.nodes.contains_key(&edge.to_node_id) {
+                if self.nodes.contains_key(&edge.from_node_id)
+                    && self.nodes.contains_key(&edge.to_node_id)
+                {
                     self.edges.insert(edge.edge_id.clone(), edge);
                 }
             }
@@ -134,10 +139,14 @@ impl SemanticGraph {
         let node_ids: HashSet<_> = self.nodes.keys().collect();
         for edge in self.edges.values() {
             if !node_ids.contains(&edge.from_node_id) {
-                return Err(GraphValidationError::MissingSourceNode(edge.from_node_id.clone()));
+                return Err(GraphValidationError::MissingSourceNode(
+                    edge.from_node_id.clone(),
+                ));
             }
             if !node_ids.contains(&edge.to_node_id) {
-                return Err(GraphValidationError::MissingTargetNode(edge.to_node_id.clone()));
+                return Err(GraphValidationError::MissingTargetNode(
+                    edge.to_node_id.clone(),
+                ));
             }
         }
         Ok(())

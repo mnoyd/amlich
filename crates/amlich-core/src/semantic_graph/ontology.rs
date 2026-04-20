@@ -33,6 +33,10 @@ pub enum NodeConcept {
     ElementRelationNode,
     DirectionSignalNode,
     HourSlot,
+    Activity,
+    RecommendationHit,
+    RecommendationLayer,
+    RecommendationSummary,
 }
 
 impl NodeConcept {
@@ -68,6 +72,10 @@ impl NodeConcept {
             Self::ElementRelationNode => ConceptLabel::ElementRelationNode,
             Self::DirectionSignalNode => ConceptLabel::DirectionSignalNode,
             Self::HourSlot => ConceptLabel::HourSlot,
+            Self::Activity => ConceptLabel::Activity,
+            Self::RecommendationHit => ConceptLabel::RecommendationHit,
+            Self::RecommendationLayer => ConceptLabel::RecommendationLayer,
+            Self::RecommendationSummary => ConceptLabel::RecommendationSummary,
         }
     }
 }
@@ -93,6 +101,13 @@ pub enum EdgeConcept {
     HasBranchRelation,
     HasElementRelation,
     BestFor,
+    Recommends,
+    AdvisesAgainst,
+    ContributesTo,
+    OriginatesFrom,
+    TargetsActivity,
+    ProducedByLayer,
+    Aggregates,
 }
 
 impl EdgeConcept {
@@ -116,6 +131,13 @@ impl EdgeConcept {
             Self::HasBranchRelation => ConceptLabel::HasBranchRelation,
             Self::HasElementRelation => ConceptLabel::HasElementRelation,
             Self::BestFor => ConceptLabel::BestFor,
+            Self::Recommends => ConceptLabel::Recommends,
+            Self::AdvisesAgainst => ConceptLabel::AdvisesAgainst,
+            Self::ContributesTo => ConceptLabel::ContributesTo,
+            Self::OriginatesFrom => ConceptLabel::OriginatesFrom,
+            Self::TargetsActivity => ConceptLabel::TargetsActivity,
+            Self::ProducedByLayer => ConceptLabel::ProducedByLayer,
+            Self::Aggregates => ConceptLabel::Aggregates,
         }
     }
 }
@@ -153,6 +175,10 @@ pub enum ConceptLabel {
     ElementRelationNode,
     DirectionSignalNode,
     HourSlot,
+    Activity,
+    RecommendationHit,
+    RecommendationLayer,
+    RecommendationSummary,
     Resonates,
     Conflicts,
     Conditions,
@@ -171,6 +197,13 @@ pub enum ConceptLabel {
     HasBranchRelation,
     HasElementRelation,
     BestFor,
+    Recommends,
+    AdvisesAgainst,
+    ContributesTo,
+    OriginatesFrom,
+    TargetsActivity,
+    ProducedByLayer,
+    Aggregates,
 }
 
 impl ConceptLabel {
@@ -195,6 +228,21 @@ impl ConceptLabel {
             Self::AxisSignal => "axis_signal",
             Self::XungHop => "xung_hop",
             Self::HoangDaoHour => "hoang_dao_hour",
+            Self::DayPersonMatrix => "day_person_matrix",
+            Self::PersonalHourMatrix => "personal_hour_matrix",
+            Self::ElementResonanceMatrix => "element_resonance_matrix",
+            Self::DirectionMergeMatrix => "direction_merge_matrix",
+            Self::DomainDayBoostMatrix => "domain_day_boost_matrix",
+            Self::InteractionRow => "interaction_row",
+            Self::TenGodRelation => "ten_god_relation",
+            Self::BranchRelationNode => "branch_relation_node",
+            Self::ElementRelationNode => "element_relation_node",
+            Self::DirectionSignalNode => "direction_signal_node",
+            Self::HourSlot => "hour_slot",
+            Self::Activity => "activity",
+            Self::RecommendationHit => "recommendation_hit",
+            Self::RecommendationLayer => "recommendation_layer",
+            Self::RecommendationSummary => "recommendation_summary",
             Self::Resonates => "resonates",
             Self::Conflicts => "conflicts",
             Self::Conditions => "conditions",
@@ -213,17 +261,13 @@ impl ConceptLabel {
             Self::HasBranchRelation => "has_branch_relation",
             Self::HasElementRelation => "has_element_relation",
             Self::BestFor => "best_for",
-            Self::DayPersonMatrix => "day_person_matrix",
-            Self::PersonalHourMatrix => "personal_hour_matrix",
-            Self::ElementResonanceMatrix => "element_resonance_matrix",
-            Self::DirectionMergeMatrix => "direction_merge_matrix",
-            Self::DomainDayBoostMatrix => "domain_day_boost_matrix",
-            Self::InteractionRow => "interaction_row",
-            Self::TenGodRelation => "ten_god_relation",
-            Self::BranchRelationNode => "branch_relation_node",
-            Self::ElementRelationNode => "element_relation_node",
-            Self::DirectionSignalNode => "direction_signal_node",
-            Self::HourSlot => "hour_slot",
+            Self::Recommends => "recommends",
+            Self::AdvisesAgainst => "advises_against",
+            Self::ContributesTo => "contributes_to",
+            Self::OriginatesFrom => "originates_from",
+            Self::TargetsActivity => "targets_activity",
+            Self::ProducedByLayer => "produced_by_layer",
+            Self::Aggregates => "aggregates",
         }
     }
 }
@@ -263,6 +307,10 @@ impl GraphOntology {
             NodeConcept::ElementRelationNode,
             NodeConcept::DirectionSignalNode,
             NodeConcept::HourSlot,
+            NodeConcept::Activity,
+            NodeConcept::RecommendationHit,
+            NodeConcept::RecommendationLayer,
+            NodeConcept::RecommendationSummary,
         ]
     }
 
@@ -286,6 +334,13 @@ impl GraphOntology {
             EdgeConcept::HasBranchRelation,
             EdgeConcept::HasElementRelation,
             EdgeConcept::BestFor,
+            EdgeConcept::Recommends,
+            EdgeConcept::AdvisesAgainst,
+            EdgeConcept::ContributesTo,
+            EdgeConcept::OriginatesFrom,
+            EdgeConcept::TargetsActivity,
+            EdgeConcept::ProducedByLayer,
+            EdgeConcept::Aggregates,
         ]
     }
 }

@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use crate::semantic_graph::SemanticGraph;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VisualizationNode {
@@ -54,9 +54,16 @@ impl VisualizationGraph {
 }
 
 fn cluster_for_node(node_id: &str) -> String {
-    if node_id.starts_with("bazi_profile:") || node_id.starts_with("pillar:") || node_id.starts_with("element_distribution:") {
+    if node_id.starts_with("bazi_profile:")
+        || node_id.starts_with("pillar:")
+        || node_id.starts_with("element_distribution:")
+    {
         "bazi-core".to_string()
-    } else if node_id.starts_with("day:") || node_id.starts_with("solar_term:") || node_id.starts_with("truc:") || node_id.contains(":day:") {
+    } else if node_id.starts_with("day:")
+        || node_id.starts_with("solar_term:")
+        || node_id.starts_with("truc:")
+        || node_id.contains(":day:")
+    {
         "day-core".to_string()
     } else {
         "misc".to_string()

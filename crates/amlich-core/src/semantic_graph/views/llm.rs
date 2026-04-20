@@ -1,6 +1,6 @@
-use serde::{Deserialize, Serialize};
-use crate::semantic_graph::SemanticGraph;
 use super::subgraph::SubgraphView;
+use crate::semantic_graph::SemanticGraph;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct LlmGraphSlice {
@@ -19,12 +19,20 @@ impl LlmGraphSlice {
 
         for node_id in &view.node_ids {
             if let Some(node) = graph.get_node(node_id) {
-                let mut parts = vec![format!("[{}] {}", node.concept.label().as_str(), node.summary_vi)];
+                let mut parts = vec![format!(
+                    "[{}] {}",
+                    node.concept.label().as_str(),
+                    node.summary_vi
+                )];
                 if let Some(sev) = &node.severity {
                     parts.push(format!("severity={}", sev));
                 }
                 if !node.provenance.is_empty() {
-                    let sources: Vec<_> = node.provenance.iter().map(|p| format!("{:?}", p.source)).collect();
+                    let sources: Vec<_> = node
+                        .provenance
+                        .iter()
+                        .map(|p| format!("{:?}", p.source))
+                        .collect();
                     parts.push(format!("sources={}", sources.join(",")));
                 }
                 summary_points.push(parts.join(" | "));

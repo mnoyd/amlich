@@ -24,7 +24,11 @@ pub struct ProvenanceEntry {
 }
 
 impl ProvenanceEntry {
-    pub fn new(source: ProvenanceSource, source_id: impl Into<String>, method: impl Into<String>) -> Self {
+    pub fn new(
+        source: ProvenanceSource,
+        source_id: impl Into<String>,
+        method: impl Into<String>,
+    ) -> Self {
         Self {
             source,
             source_id: source_id.into(),
@@ -72,18 +76,17 @@ impl ProvenanceEntry {
         source: ProvenanceSource,
         evidence: &crate::almanac::types::RuleEvidence,
     ) -> Self {
-        Self::new(
-            source,
-            evidence.source_id.clone(),
-            evidence.method.clone(),
-        ).with_profile(evidence.profile.clone())
+        Self::new(source, evidence.source_id.clone(), evidence.method.clone())
+            .with_profile(evidence.profile.clone())
     }
 
     pub fn from_rule_evidence_opt(
         source: ProvenanceSource,
         evidence: &Option<crate::almanac::types::RuleEvidence>,
     ) -> Option<Self> {
-        evidence.as_ref().map(|e| Self::from_rule_evidence(source, e))
+        evidence
+            .as_ref()
+            .map(|e| Self::from_rule_evidence(source, e))
     }
 
     pub fn from_source_meta(

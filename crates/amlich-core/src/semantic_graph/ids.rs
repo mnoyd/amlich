@@ -143,15 +143,24 @@ impl SemanticId {
     }
 
     pub fn element_distribution_bazi(dob: &str, tz: &str) -> Self {
-        Self::new("element_distribution", format!("bazi_profile:{}:{}", dob, tz))
+        Self::new(
+            "element_distribution",
+            format!("bazi_profile:{}:{}", dob, tz),
+        )
     }
 
     pub fn ten_god_distribution_bazi(dob: &str, tz: &str) -> Self {
-        Self::new("ten_god_distribution", format!("bazi_profile:{}:{}", dob, tz))
+        Self::new(
+            "ten_god_distribution",
+            format!("bazi_profile:{}:{}", dob, tz),
+        )
     }
 
     pub fn day_master_strength_bazi(dob: &str, tz: &str) -> Self {
-        Self::new("day_master_strength", format!("bazi_profile:{}:{}", dob, tz))
+        Self::new(
+            "day_master_strength",
+            format!("bazi_profile:{}:{}", dob, tz),
+        )
     }
 
     pub fn chart_interaction_bazi(dob: &str, tz: &str, index: usize) -> Self {
@@ -172,31 +181,55 @@ impl SemanticId {
         )
     }
 
-    pub fn ten_god_relation(matrix_kind: &str, day_id: &str, profile_id: &str, row_key: &str) -> Self {
+    pub fn ten_god_relation(
+        matrix_kind: &str,
+        day_id: &str,
+        profile_id: &str,
+        row_key: &str,
+    ) -> Self {
         Self::new(
             "ten_god_relation",
             format!("{}:{}:{}:{}", matrix_kind, day_id, profile_id, row_key),
         )
     }
 
-    pub fn branch_relation_node(matrix_kind: &str, day_id: &str, profile_id: &str, row_key: &str) -> Self {
+    pub fn branch_relation_node(
+        matrix_kind: &str,
+        day_id: &str,
+        profile_id: &str,
+        row_key: &str,
+    ) -> Self {
         Self::new(
             "branch_relation_node",
             format!("{}:{}:{}:{}", matrix_kind, day_id, profile_id, row_key),
         )
     }
 
-    pub fn element_relation_node(matrix_kind: &str, day_id: &str, profile_id: &str, row_key: &str) -> Self {
+    pub fn element_relation_node(
+        matrix_kind: &str,
+        day_id: &str,
+        profile_id: &str,
+        row_key: &str,
+    ) -> Self {
         Self::new(
             "element_relation_node",
             format!("{}:{}:{}:{}", matrix_kind, day_id, profile_id, row_key),
         )
     }
 
-    pub fn direction_signal_node(matrix_kind: &str, day_id: &str, profile_id: &str, direction: &str, signal: &str) -> Self {
+    pub fn direction_signal_node(
+        matrix_kind: &str,
+        day_id: &str,
+        profile_id: &str,
+        direction: &str,
+        signal: &str,
+    ) -> Self {
         Self::new(
             "direction_signal_node",
-            format!("{}:{}:{}:{}:{}", matrix_kind, day_id, profile_id, direction, signal),
+            format!(
+                "{}:{}:{}:{}:{}",
+                matrix_kind, day_id, profile_id, direction, signal
+            ),
         )
     }
 

@@ -5,9 +5,12 @@ mod ids;
 mod node;
 mod ontology;
 mod provenance;
+mod selectors;
 mod views;
 
-pub use builders::DaySnapshotGraphBuilder;
+pub use selectors::{
+    EvidenceSelectors, SelectHitDirection, SourceFamilyCounts,
+};
 pub use builders::{build_reasoning_input_graph, ReasoningInputGraph};
 pub use edge::{SemanticEdge, SemanticEdgeId, SemanticEdgeLabel};
 pub use graph::{GraphMergeError, GraphValidationError, SemanticGraph};
@@ -16,5 +19,7 @@ pub use node::{NodeOrigin, SemanticNode, SemanticNodeId};
 pub use ontology::{ConceptLabel, EdgeConcept, GraphOntology, NodeConcept};
 pub use provenance::{ProvenanceEntry, ProvenanceSource, ProvenanceTracker};
 pub use views::{
-    LlmGraphSlice, SubgraphView, VisualizationEdge, VisualizationGraph, VisualizationNode,
+    ConvergenceView, LlmGraphSlice, LlmRecommendationSlice, LlmActivitySummary,
+    RecommendationEvidenceGraphView, RecommendationEvidenceView, HitView, SourceBreakdown,
+    SubgraphView, VisualizationEdge, VisualizationGraph, VisualizationNode,
 };
