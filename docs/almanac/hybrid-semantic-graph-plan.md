@@ -179,5 +179,6 @@ This roadmap is the architectural overview. The following specs detail each epic
 | [`interaction-graphification-spec.md`](interaction-graphification-spec.md) | 3 — Interaction Graphs | Five matrix graphification, projections |
 | [`graph-backed-reasoning-migration-spec.md`](graph-backed-reasoning-migration-spec.md) | 4 — Reasoning | `ActionEvaluator` trait, `InitiationOpening` migration |
 | [`graph-backed-recommendation-evidence-spec.md`](graph-backed-recommendation-evidence-spec.md) | 5 — Recommendation | Recommendation evidence graph, convergence strategy |
+| [`legacy-replacement-playbook.md`](legacy-replacement-playbook.md) | 8 — Migration / Compatibility / Validation | Standard lifecycle states, parity gates, and legacy retirement workflow |
 
-Epics 2, 6, 7, and 8 do not yet have standalone specs — they are described inline in this plan until dedicated specs are needed.
+Epics 2, 6, and 7 do not yet have standalone specs — they are described inline in this plan until dedicated specs are needed. Epic 8 now uses the dedicated [`legacy-replacement-playbook.md`](legacy-replacement-playbook.md).
