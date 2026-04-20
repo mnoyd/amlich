@@ -5,7 +5,8 @@ use crate::insight_data::find_truc_insight;
 use crate::reasoning::action_evaluator::{ActionEvaluation, ActionEvaluator};
 use crate::reasoning::types::{
     ActionId, DecisionConfidence, InterpretedAxis, ReasoningAxisScore,
-    ReasoningConclusionSemantic, ReasoningNote, RecommendationBucket,
+    ReasoningConclusionSemantic, ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
+    interpret_severity,
 };
 use crate::DaySnapshot;
 use crate::reasoning::PersonalReasoningInput;
@@ -143,13 +144,15 @@ impl InitiationOpeningEvaluator {
 
     fn has_favorable_fact(&self, graph: &SemanticGraph) -> bool {
         graph.nodes().values().any(|n| {
-            match n.concept {
-                NodeConcept::Truc => n.severity.as_deref() == Some("cat"),
-                NodeConcept::DayDeity => n.severity.as_deref() == Some("hoang_dao"),
-                NodeConcept::Star => self.is_star_supportive(n),
-                NodeConcept::HoangDaoHour => n.severity.as_ref().and_then(|s| s.parse::<usize>().ok()).is_some_and(|c| c > 0),
-                _ => false,
-            }
+            let concept_key = match n.concept {
+                NodeConcept::Truc => "truc",
+                NodeConcept::DayDeity => "day_deity",
+                NodeConcept::HoangDaoHour => "hoang_dao_hours",
+                NodeConcept::Star => return self.is_star_supportive(n),
+                _ => return false,
+            };
+            interpret_severity(concept_key, n.severity.as_deref(), &n.summary_vi)
+                .is_some_and(ReasoningNodeSeverity::is_favorable)
         })
     }
 

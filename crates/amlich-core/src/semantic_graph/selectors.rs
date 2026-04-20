@@ -205,17 +205,7 @@ impl EvidenceSelectors {
                 .map(|t| t.replace("source=", ""));
 
             if let Some(source) = source_tag {
-                match source.as_str() {
-                    "Truc" => counts.truc += 1,
-                    "DayDeity" => counts.day_deity += 1,
-                    "Taboo" => counts.taboo += 1,
-                    "XungHop" => counts.xung_hop += 1,
-                    "Stars" => counts.stars += 1,
-                    "GioHoangDao" => counts.gio_hoang_dao += 1,
-                    "Travel" => counts.travel += 1,
-                    "TietKhi" => counts.tiet_khi += 1,
-                    _ => counts.other += 1,
-                }
+                counts.tally_source(&source);
             }
         }
 
@@ -240,6 +230,22 @@ pub struct SourceFamilyCounts {
     pub travel: usize,
     pub tiet_khi: usize,
     pub other: usize,
+}
+
+impl SourceFamilyCounts {
+    pub fn tally_source(&mut self, source: &str) {
+        match source {
+            "Truc" => self.truc += 1,
+            "DayDeity" => self.day_deity += 1,
+            "Taboo" => self.taboo += 1,
+            "XungHop" => self.xung_hop += 1,
+            "Stars" => self.stars += 1,
+            "GioHoangDao" => self.gio_hoang_dao += 1,
+            "Travel" => self.travel += 1,
+            "TietKhi" => self.tiet_khi += 1,
+            _ => self.other += 1,
+        }
+    }
 }
 
 #[cfg(test)]

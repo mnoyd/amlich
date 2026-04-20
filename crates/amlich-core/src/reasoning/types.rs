@@ -212,6 +212,57 @@ pub enum ReasoningNodeSeverity {
     HacDao,
 }
 
+impl ReasoningNodeSeverity {
+    pub fn is_favorable(self) -> bool {
+        matches!(self, Self::Auspicious | Self::HoangDao)
+    }
+}
+
+pub fn interpret_severity(
+    concept_key: &str,
+    severity: Option<&str>,
+    summary_vi: &str,
+) -> Option<ReasoningNodeSeverity> {
+    match concept_key {
+        "truc" => match severity {
+            Some("cat") => Some(ReasoningNodeSeverity::Auspicious),
+            Some("hung") => Some(ReasoningNodeSeverity::Inauspicious),
+            _ => None,
+        },
+        "day_deity" => match severity {
+            Some("hoang_dao") => Some(ReasoningNodeSeverity::HoangDao),
+            Some("hac_dao") => Some(ReasoningNodeSeverity::HacDao),
+            _ => None,
+        },
+        "taboo" => match severity {
+            Some("hard") => Some(ReasoningNodeSeverity::HardTaboo),
+            Some("soft") => Some(ReasoningNodeSeverity::SoftTaboo),
+            _ => None,
+        },
+        "star" => {
+            if summary_vi.contains("cát tinh") {
+                Some(ReasoningNodeSeverity::Auspicious)
+            } else if summary_vi.contains("sát tinh") {
+                Some(ReasoningNodeSeverity::Inauspicious)
+            } else {
+                None
+            }
+        }
+        "hoang_dao_hours" => severity
+            .and_then(|s| s.parse::<usize>().ok())
+            .filter(|&count| count > 0)
+            .map(|_| ReasoningNodeSeverity::Auspicious),
+        "xung_hop" => {
+            if summary_vi.starts_with("Xung") && !summary_vi.contains(", hợp ") {
+                Some(ReasoningNodeSeverity::Inauspicious)
+            } else {
+                None
+            }
+        }
+        _ => None,
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ReasoningNodeExport {
     pub id: String,

@@ -1,4 +1,5 @@
 use crate::semantic_graph::{EdgeConcept, NodeConcept, SemanticGraph};
+use crate::semantic_graph::selectors::SourceFamilyCounts;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -33,6 +34,22 @@ pub struct SourceBreakdown {
     pub travel_count: usize,
     pub tiet_khi_count: usize,
     pub other_count: usize,
+}
+
+impl SourceBreakdown {
+    fn from_counts(counts: &SourceFamilyCounts) -> Self {
+        Self {
+            truc_count: counts.truc,
+            taboo_count: counts.taboo,
+            day_deity_count: counts.day_deity,
+            xung_hop_count: counts.xung_hop,
+            stars_count: counts.stars,
+            gio_hoang_dao_count: counts.gio_hoang_dao,
+            travel_count: counts.travel,
+            tiet_khi_count: counts.tiet_khi,
+            other_count: counts.other,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -143,31 +160,11 @@ impl RecommendationEvidenceGraphView {
     }
 
     fn compute_source_breakdown(favor_hits: &[HitView], avoid_hits: &[HitView]) -> SourceBreakdown {
-        let mut breakdown = SourceBreakdown::default();
-
+        let mut counts = SourceFamilyCounts::default();
         for hit in favor_hits.iter().chain(avoid_hits.iter()) {
-            if hit.source.contains("Truc") {
-                breakdown.truc_count += 1;
-            } else if hit.source.contains("Taboo") {
-                breakdown.taboo_count += 1;
-            } else if hit.source.contains("DayDeity") {
-                breakdown.day_deity_count += 1;
-            } else if hit.source.contains("XungHop") {
-                breakdown.xung_hop_count += 1;
-            } else if hit.source.contains("Stars") {
-                breakdown.stars_count += 1;
-            } else if hit.source.contains("GioHoangDao") {
-                breakdown.gio_hoang_dao_count += 1;
-            } else if hit.source.contains("Travel") {
-                breakdown.travel_count += 1;
-            } else if hit.source.contains("TietKhi") {
-                breakdown.tiet_khi_count += 1;
-            } else {
-                breakdown.other_count += 1;
-            }
+            counts.tally_source(&hit.source);
         }
-
-        breakdown
+        SourceBreakdown::from_counts(&counts)
     }
 }
 

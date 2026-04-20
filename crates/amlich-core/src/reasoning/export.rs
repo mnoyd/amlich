@@ -2,6 +2,7 @@ use super::{
     EdgeEffect, InterpretedAxis, ReasoningEdge, ReasoningEdgeExport, ReasoningGraph,
     ReasoningGraphExport, ReasoningNode, ReasoningNodeExport, ReasoningNodeSeverity,
 };
+use super::types::interpret_severity;
 
 pub fn export_reasoning_graph(graph: &ReasoningGraph) -> ReasoningGraphExport {
     ReasoningGraphExport {
@@ -48,46 +49,16 @@ fn axis_for_node(node_id: &str) -> Option<InterpretedAxis> {
 }
 
 fn severity_for_node(node: &ReasoningNode) -> Option<ReasoningNodeSeverity> {
-    match node.id.as_str() {
-        "fact.day.truc" => match node.severity.as_deref() {
-            Some("cat") => Some(ReasoningNodeSeverity::Auspicious),
-            Some("hung") => Some(ReasoningNodeSeverity::Inauspicious),
-            _ => None,
-        },
-        "fact.day.day_deity" => match node.severity.as_deref() {
-            Some("hoang_dao") => Some(ReasoningNodeSeverity::HoangDao),
-            Some("hac_dao") => Some(ReasoningNodeSeverity::HacDao),
-            _ => None,
-        },
-        "fact.day.taboos" => match node.severity.as_deref() {
-            Some("hard") => Some(ReasoningNodeSeverity::HardTaboo),
-            Some("soft") => Some(ReasoningNodeSeverity::SoftTaboo),
-            _ => None,
-        },
-        "fact.day.nhi_thap_bat_tu" => {
-            if node.summary_vi.contains("cát tinh") {
-                Some(ReasoningNodeSeverity::Auspicious)
-            } else if node.summary_vi.contains("sát tinh") {
-                Some(ReasoningNodeSeverity::Inauspicious)
-            } else {
-                None
-            }
-        }
-        "fact.day.hoang_dao_hours" => node
-            .severity
-            .as_deref()
-            .and_then(|s| s.parse::<usize>().ok())
-            .filter(|&count| count > 0)
-            .map(|_| ReasoningNodeSeverity::Auspicious),
-        "fact.day.xung_hop" => {
-            if node.summary_vi.starts_with("Xung") && !node.summary_vi.contains(", hợp ") {
-                Some(ReasoningNodeSeverity::Inauspicious)
-            } else {
-                None
-            }
-        }
-        _ => None,
-    }
+    let concept_key = match node.id.as_str() {
+        "fact.day.truc" => "truc",
+        "fact.day.day_deity" => "day_deity",
+        "fact.day.taboos" => "taboo",
+        "fact.day.nhi_thap_bat_tu" => "star",
+        "fact.day.hoang_dao_hours" => "hoang_dao_hours",
+        "fact.day.xung_hop" => "xung_hop",
+        _ => return None,
+    };
+    interpret_severity(concept_key, node.severity.as_deref(), &node.summary_vi)
 }
 
 fn tags_for_node(node: &ReasoningNode) -> Vec<String> {
