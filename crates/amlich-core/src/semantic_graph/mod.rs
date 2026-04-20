@@ -23,4 +23,6 @@ pub use views::{
     LlmConvergenceSlice, LlmGraphSlice, LlmRecommendationSlice,
     RecommendationEvidenceGraphView, RecommendationEvidenceView, HitView, SourceBreakdown,
     SubgraphView, VisualizationEdge, VisualizationGraph, VisualizationNode,
+    DebugSemanticGraphInspection, DebugInspectionDate, DebugInspectionSummary,
+    debug_inspect_semantic_graph,
 };

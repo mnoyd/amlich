@@ -1344,6 +1344,68 @@ pub struct BaziDerivedReportDto {
     pub unavailable_sections: Vec<UnavailableSectionDto>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugSemanticGraphQueryDto {
+    pub day: i32,
+    pub month: i32,
+    pub year: i32,
+    #[serde(default)]
+    pub include_recommendations: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugSemanticGraphResponseDto {
+    pub surface: String,
+    pub date: DebugInspectionDateDto,
+    pub visualization: DebugVisualizationDto,
+    pub summary: DebugInspectionSummaryDto,
+    pub cluster_counts: std::collections::HashMap<String, usize>,
+    pub semantic_kind_counts: std::collections::HashMap<String, usize>,
+    pub severity_counts: std::collections::HashMap<String, usize>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugInspectionDateDto {
+    pub year: i32,
+    pub month: i32,
+    pub day: i32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugInspectionSummaryDto {
+    pub total_nodes: usize,
+    pub total_edges: usize,
+    pub clusters: Vec<String>,
+    pub semantic_kinds: Vec<String>,
+    pub has_recommendation_evidence: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugVisualizationDto {
+    pub nodes: Vec<DebugVisualizationNodeDto>,
+    pub edges: Vec<DebugVisualizationEdgeDto>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugVisualizationNodeDto {
+    pub node_id: String,
+    pub label: String,
+    pub cluster: String,
+    pub semantic_kind: String,
+    pub severity: Option<String>,
+    pub shape_hint: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DebugVisualizationEdgeDto {
+    pub edge_id: String,
+    pub from_id: String,
+    pub to_id: String,
+    pub label: String,
+    pub semantic_kind: String,
+    pub weight: i32,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

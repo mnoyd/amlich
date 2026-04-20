@@ -1,6 +1,9 @@
 mod convert;
+mod debug;
 mod dto;
 pub mod v2;
+
+pub use debug::get_debug_semantic_graph_inspection;
 
 use std::collections::HashMap;
 

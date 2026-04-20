@@ -82,6 +82,8 @@ pub use semantic_graph::{
     build_reasoning_input_graph, ConceptLabel, EdgeConcept, GraphOntology, GraphValidationError,
     NodeConcept, NodeOrigin, ProvenanceEntry, ProvenanceSource, ProvenanceTracker, SemanticEdge,
     SemanticEdgeLabel, SemanticGraph, SemanticId, SemanticNode, SemanticNodeId,
+    DebugSemanticGraphInspection, DebugInspectionDate, DebugInspectionSummary,
+    debug_inspect_semantic_graph,
 };
 pub use types::*;
 
