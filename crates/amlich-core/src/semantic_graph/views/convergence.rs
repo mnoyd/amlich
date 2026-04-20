@@ -38,7 +38,7 @@ impl ConvergenceView {
     pub fn from_connected_graph(graph: &SemanticGraph) -> Self {
         let mut shared_fact_nodes = Vec::new();
         let mut recommendation_hits = Vec::new();
-        let mut fact_influences_reasoning: HashSet<String> = HashSet::new();
+        let fact_influences_reasoning: HashSet<String> = HashSet::new();
         let mut fact_influences_recommendation: HashSet<String> = HashSet::new();
         let mut fact_influences_both: HashSet<String> = HashSet::new();
         let mut clusters: HashSet<String> = HashSet::new();

@@ -1,4 +1,4 @@
-use crate::semantic_graph::{EdgeConcept, NodeConcept, SemanticGraph};
+use crate::semantic_graph::{NodeConcept, SemanticGraph};
 use serde::{Deserialize, Serialize};
 
 use super::helpers::cluster_for_node_id;
@@ -105,8 +105,6 @@ fn shape_hint_for_node(concept: NodeConcept) -> Option<String> {
         | NodeConcept::InteractionSignal => Some("ellipse".to_string()),
 
         NodeConcept::RecommendationHit => Some("diamond".to_string()),
-
-        _ => None,
     }
 }
 

@@ -9,7 +9,6 @@ pub struct BaziGraphBuilder {
     graph: SemanticGraph,
     profile_root_id: String,
     tz_suffix: String,
-    profile: String,
 }
 
 impl BaziGraphBuilder {
@@ -29,7 +28,6 @@ impl BaziGraphBuilder {
             graph: SemanticGraph::new(),
             profile_root_id,
             tz_suffix,
-            profile: "bazi".to_string(),
         };
 
         builder.add_profile_root(chart);

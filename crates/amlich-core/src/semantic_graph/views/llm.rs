@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::semantic_graph::SemanticGraph;
 use serde::{Deserialize, Serialize};
 
-use super::helpers::{cluster_for_node_id, NodeViewAccumulator, opt_map};
+use super::helpers::{NodeViewAccumulator, opt_map};
 use super::subgraph::SubgraphView;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]

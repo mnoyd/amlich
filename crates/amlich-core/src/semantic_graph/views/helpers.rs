@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::semantic_graph::{NodeConcept, SemanticNode};
 
-pub(crate) fn cluster_for_node_id(node_id: &str, concept: NodeConcept) -> String {
+pub(crate) fn cluster_for_node_id(_node_id: &str, concept: NodeConcept) -> String {
     match concept {
         NodeConcept::DayCanchi
         | NodeConcept::MonthCanchi
@@ -41,23 +41,6 @@ pub(crate) fn cluster_for_node_id(node_id: &str, concept: NodeConcept) -> String
         | NodeConcept::RecommendationSummary => "recommendation-evidence".to_string(),
 
         NodeConcept::Recommendation => "recommendation-summary".to_string(),
-
-        _ => {
-            if node_id.starts_with("bazi_profile:")
-                || node_id.starts_with("pillar:")
-                || node_id.starts_with("element_distribution:")
-            {
-                "bazi-core".to_string()
-            } else if node_id.starts_with("day:")
-                || node_id.starts_with("solar_term:")
-                || node_id.starts_with("truc:")
-                || node_id.contains(":day:")
-            {
-                "day-core".to_string()
-            } else {
-                "misc".to_string()
-            }
-        }
     }
 }
 

@@ -1,5 +1,5 @@
 use crate::almanac::recommendation::{
-    collect_recommendation_hits, ActivityId, BaseDirection, RecommendationHit,
+    BaseDirection, RecommendationHit,
     SynthesizedRecommendation,
 };
 use crate::semantic_graph::{
@@ -9,8 +9,6 @@ use crate::semantic_graph::{
 
 pub struct RecommendationEvidenceGraphBuilder {
     graph: SemanticGraph,
-    date_str: String,
-    tz_suffix: String,
     profile: String,
     day_fact_ids: DayFactIds,
 }
@@ -45,8 +43,6 @@ impl RecommendationEvidenceGraphBuilder {
 
         let builder = Self {
             graph: SemanticGraph::new(),
-            date_str,
-            tz_suffix,
             profile: profile.to_string(),
             day_fact_ids,
         };
@@ -189,72 +185,6 @@ impl RecommendationEvidenceGraphBuilder {
         }
     }
 
-    pub fn add_layer_nodes(&mut self, layer_id: &str) {
-        let node_id = format!("recommendation_layer:{}", layer_id);
-
-        let provenance = ProvenanceEntry::snapshot(node_id.clone(), "recommendation_layer_v1")
-            .with_profile(self.profile.clone());
-
-        let node = SemanticNode::new(
-            SemanticId::new("recommendation_layer", layer_id),
-            NodeConcept::RecommendationLayer,
-            NodeOrigin::Interpreted,
-            format!("Layer: {}", layer_id),
-        )
-        .with_provenance(provenance);
-
-        self.graph.add_node(node);
-    }
-
-    pub fn add_summary_node(
-        &mut self,
-        activity_id: ActivityId,
-        favor_sources: usize,
-        strong_avoid_sources: usize,
-        supporting_avoid_sources: usize,
-        saw_hard_stop: bool,
-    ) {
-        let node_id = format!(
-            "recommendation_summary:{}:{}:{}",
-            activity_id.as_str(),
-            self.date_str,
-            self.tz_suffix
-        );
-
-        let provenance = ProvenanceEntry::snapshot(node_id.clone(), "recommendation_summary_v1")
-            .with_profile(self.profile.clone());
-
-        let summary = format!(
-            "favor={}, strong_avoid={}, supporting_avoid={}, hard_stop={}",
-            favor_sources, strong_avoid_sources, supporting_avoid_sources, saw_hard_stop
-        );
-
-        let mut tags = vec![];
-        if saw_hard_stop {
-            tags.push("hard_stop=true".to_string());
-        }
-
-        let node = SemanticNode::new(
-            SemanticId::new(
-                "recommendation_summary",
-                &format!("{}:{}:{}", activity_id.as_str(), self.date_str, self.tz_suffix),
-            ),
-            NodeConcept::RecommendationSummary,
-            NodeOrigin::Interpreted,
-            summary,
-        )
-        .with_tags(tags)
-        .with_provenance(provenance);
-
-        self.graph.add_node(node);
-
-        let activity_node_id = format!("activity:{}", activity_id.as_str());
-        if self.graph.has_node(&activity_node_id) {
-            let edge = SemanticEdge::new(&node_id, &activity_node_id, EdgeConcept::Aggregates);
-            self.graph.add_edge(edge);
-        }
-    }
-
     pub fn build(self) -> SemanticGraph {
         self.graph
     }
@@ -290,24 +220,12 @@ pub fn build_recommendation_evidence_graph_connected(
     builder.build()
 }
 
-pub fn build_recommendation_evidence_graph_with_layers(
-    context: &crate::almanac::recommendation::RecommendationSynthesisContext<'_>,
-    activities: &[SynthesizedRecommendation],
-    layers: &[&dyn crate::almanac::recommendation::RecommendationLayer],
-) -> Result<SemanticGraph, String> {
-    let hits = collect_recommendation_hits(context, layers).map_err(|e| e.to_string())?;
-    Ok(build_recommendation_evidence_graph(
-        0, 0, 0,
-        &context.day_fortune.profile,
-        activities,
-        &hits,
-    ))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::almanac::recommendation::RecommendationSynthesisContext;
+    use crate::almanac::recommendation::{
+        collect_recommendation_hits, RecommendationSynthesisContext,
+    };
     use crate::calculate_day_snapshot;
 
     #[test]

@@ -23,28 +23,7 @@ impl InitiationOpeningEvaluator {
         Self
     }
 
-    fn day_root_id(snapshot: &DaySnapshot) -> String {
-        let date_str = format!(
-            "{:04}-{:02}-{:02}",
-            snapshot.context.solar.year, snapshot.context.solar.month, snapshot.context.solar.day
-        );
-        format!("day:{}:+7", date_str)
-    }
-
-    fn profile_root_id(personal_input: &PersonalReasoningInput) -> String {
-        let dob_str = format!(
-            "{:04}-{:02}-{:02}T{:02}:{:02}",
-            personal_input.birth.year,
-            personal_input.birth.month,
-            personal_input.birth.day,
-            personal_input.birth.hour.unwrap_or(0),
-            personal_input.birth.minute.unwrap_or(0)
-        );
-        let tz = format!("tz{:.1}", personal_input.birth.timezone);
-        format!("bazi_profile:{}:{}", dob_str, tz)
-    }
-
-    fn extract_support_evidence(&self, graph: &SemanticGraph, snapshot: &DaySnapshot) -> Vec<ReasoningNote> {
+    fn extract_support_evidence(&self, graph: &SemanticGraph, _snapshot: &DaySnapshot) -> Vec<ReasoningNote> {
         let mut notes = Vec::new();
 
         if let Some(truc_node) = self.find_node_by_concept(graph, NodeConcept::Truc) {
