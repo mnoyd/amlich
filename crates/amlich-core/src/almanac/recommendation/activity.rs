@@ -72,6 +72,26 @@ impl ActivityId {
         }
     }
 
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ActivityId::Travel => "travel",
+            ActivityId::MeetingSocial => "meeting_social",
+            ActivityId::OpeningStart => "opening_start",
+            ActivityId::ContractAgreement => "contract_agreement",
+            ActivityId::BusinessTrade => "business_trade",
+            ActivityId::FinanceInvestment => "finance_investment",
+            ActivityId::ConstructionGroundbreaking => "construction_groundbreaking",
+            ActivityId::RepairRenovation => "repair_renovation",
+            ActivityId::MoveRelocation => "move_relocation",
+            ActivityId::WeddingEngagement => "wedding_engagement",
+            ActivityId::LawsuitDispute => "lawsuit_dispute",
+            ActivityId::PrayerOffering => "prayer_offering",
+            ActivityId::MedicalTreatment => "medical_treatment",
+            ActivityId::BurialMemorial => "burial_memorial",
+            ActivityId::CleaningPurging => "cleaning_purging",
+        }
+    }
+
     pub fn labels(self) -> ActivityLabel {
         match self {
             ActivityId::Travel => ActivityLabel::new("Xuất hành", "Travel"),

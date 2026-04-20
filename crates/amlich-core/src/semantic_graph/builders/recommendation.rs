@@ -1,5 +1,6 @@
 use crate::almanac::recommendation::{
-    collect_recommendation_hits, ActivityId, RecommendationHit, SynthesizedRecommendation,
+    collect_recommendation_hits, ActivityId, BaseDirection, RecommendationHit,
+    SynthesizedRecommendation,
 };
 use crate::semantic_graph::{
     EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, SemanticEdge, SemanticGraph,
@@ -109,8 +110,8 @@ impl RecommendationEvidenceGraphBuilder {
                 .with_profile(self.profile.clone());
 
             let direction_tag = match hit.direction {
-                crate::almanac::recommendation::types::BaseDirection::Favor => "favor",
-                crate::almanac::recommendation::types::BaseDirection::Avoid => "avoid",
+                BaseDirection::Favor => "favor",
+                BaseDirection::Avoid => "avoid",
             };
 
             let mut tags = vec![

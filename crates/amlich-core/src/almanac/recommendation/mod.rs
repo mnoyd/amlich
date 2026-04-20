@@ -16,9 +16,9 @@ pub use activity::{
 pub use evidence::{BaseDirection, BaseEvidenceHit};
 pub use pack::{RecommendationPackDescriptor, RecommendationPackLookupError};
 pub use synthesize::{
-    synthesize_base_daily_recommendations, synthesize_daily_recommendations,
-    synthesize_daily_recommendations_with_layers, RecommendationLayer, RecommendationLayerHit,
-    RecommendationSynthesisContext,
+    collect_recommendation_hits, synthesize_base_daily_recommendations,
+    synthesize_daily_recommendations, synthesize_daily_recommendations_with_layers,
+    RecommendationHit, RecommendationLayer, RecommendationLayerHit, RecommendationSynthesisContext,
 };
 pub use types::{
     ActiveRecommendationPack, DailyRecommendations, RecommendationBucket, RecommendationEvidence,

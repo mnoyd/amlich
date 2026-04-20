@@ -43,6 +43,19 @@ pub struct RecommendationLayerHit {
     pub hard_stop: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecommendationHit {
+    pub hit_id: String,
+    pub activity_id: ActivityId,
+    pub source: RecommendationEvidenceSource,
+    pub source_code: String,
+    pub direction: BaseDirection,
+    pub summary_vi: String,
+    pub summary_en: String,
+    pub severity: RecommendationSeverity,
+    pub hard_stop: bool,
+}
+
 pub trait RecommendationLayer {
     fn layer_id(&self) -> &'static str;
     fn collect_hits(
@@ -106,6 +119,47 @@ pub fn synthesize_daily_recommendations_with_layers(
         context.tiet_khi_name,
         layers,
     )
+}
+
+pub fn collect_recommendation_hits(
+    context: &RecommendationSynthesisContext<'_>,
+    layers: &[&dyn RecommendationLayer],
+) -> Result<Vec<RecommendationHit>, RecommendationPackLookupError> {
+    let recommendations = synthesize_daily_recommendations_with_layers(context, layers)?;
+
+    Ok(recommendations
+        .activities
+        .into_iter()
+        .flat_map(|activity| {
+            let activity_id = activity.activity_id;
+            let bucket = activity.bucket;
+
+            activity.reasons.into_iter().map(move |reason| {
+                let direction = if reason.summary_vi.starts_with("Nên tránh ") {
+                    BaseDirection::Avoid
+                } else {
+                    BaseDirection::Favor
+                };
+
+                let hard_stop = matches!(reason.evidence.source, RecommendationEvidenceSource::Taboo)
+                    && reason.severity == RecommendationSeverity::Override
+                    && direction == BaseDirection::Avoid
+                    && bucket == RecommendationBucket::KyManh;
+
+                RecommendationHit {
+                    hit_id: format!("hit:{}:{}", activity_id.as_str(), reason.rule_id),
+                    activity_id,
+                    source: reason.evidence.source,
+                    source_code: reason.evidence.code,
+                    direction,
+                    summary_vi: reason.summary_vi,
+                    summary_en: reason.summary_en,
+                    severity: reason.severity,
+                    hard_stop,
+                }
+            })
+        })
+        .collect())
 }
 
 fn synthesize_internal(
