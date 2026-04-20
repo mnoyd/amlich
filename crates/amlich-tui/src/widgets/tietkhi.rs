@@ -250,6 +250,7 @@ mod tests {
             show_tietkhi_details: expanded,
             show_evidence: false,
             show_week_strip: true,
+            show_graph_recommendations: false,
             verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             focused_section: PageSection::TraditionalEvidence,
             zoomed_section: None,

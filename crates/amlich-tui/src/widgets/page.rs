@@ -12,7 +12,8 @@ use crate::state::{AppState, PageSection};
 use super::{
     calendar::CalendarViewWidget,
     screens::{
-        day_detail::DayDetailScreenWidget, hours::HoursScreenWidget, today::TodayScreenWidget,
+        day_detail::DayDetailScreenWidget, graph_inspector::GraphInspectorScreenWidget,
+        hours::HoursScreenWidget, today::TodayScreenWidget,
     },
     week_strip::WeekStripWidget,
 };
@@ -40,6 +41,7 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
 
         (crate::state::ActiveView::Calendar, _, _) => 40,
         (crate::state::ActiveView::Personal, _, _) => personal_natural_height(app, mode),
+        (crate::state::ActiveView::GraphInspector, _, _) => 28,
     }
 }
 
@@ -72,6 +74,9 @@ pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: 
         crate::state::ActiveView::Personal => {
             crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode)
                 .render(area, buf)
+        }
+        crate::state::ActiveView::GraphInspector => {
+            GraphInspectorScreenWidget::new(app, mode).render(area, buf)
         }
     }
 }
@@ -163,6 +168,9 @@ impl Widget for PageWidget<'_> {
                 crate::widgets::screens::personal::PersonalScreenWidget::new(self.app, self.mode)
                     .render(content_area, buf)
             }
+            crate::state::ActiveView::GraphInspector => {
+                GraphInspectorScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
         }
     }
 }
@@ -245,6 +253,7 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            show_graph_recommendations: false,
             verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             focused_section: PageSection::Hero,
             zoomed_section: None,

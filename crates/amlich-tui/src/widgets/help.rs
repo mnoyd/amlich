@@ -55,6 +55,7 @@ impl Widget for HelpModalWidget<'_> {
             Line::from("  [3] Giờ Tốt"),
             Line::from("  [4] hoặc [c] Lịch"),
             Line::from("  [5] Cá Nhân"),
+            Line::from("  [6] Đồ Thị Ngữ Nghĩa (Debug)"),
             Line::from(""),
             Line::from(Span::styled(
                 "Điều hướng thời gian:",

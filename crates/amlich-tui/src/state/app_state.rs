@@ -44,6 +44,7 @@ pub enum ActiveView {
     Hours,
     Calendar,
     Personal,
+    GraphInspector,
 }
 
 impl ActiveView {
@@ -54,6 +55,7 @@ impl ActiveView {
             Self::Hours => "Giờ Tốt",
             Self::Calendar => "Lịch",
             Self::Personal => "Cá Nhân",
+            Self::GraphInspector => "Đồ Thị Ngữ Nghĩa",
         }
     }
 
@@ -64,6 +66,7 @@ impl ActiveView {
             Self::Hours => "Giờ",
             Self::Calendar => "Lịch",
             Self::Personal => "Nhân",
+            Self::GraphInspector => "Graph",
         }
     }
 }
@@ -441,6 +444,7 @@ pub struct AppState {
     pub show_tietkhi_details: bool,
     pub show_evidence: bool,
     pub show_week_strip: bool,
+    pub show_graph_recommendations: bool,
     pub verbosity: VerbosityMode,
     pub active_view: ActiveView,
     pub view_history: Vec<ActiveView>,
@@ -489,6 +493,7 @@ impl AppState {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            show_graph_recommendations: false,
             verbosity,
             active_view: ActiveView::Today,
             view_history: Vec::new(),
@@ -648,6 +653,7 @@ impl AppState {
             ActiveView::Hours,
             ActiveView::Calendar,
             ActiveView::Personal,
+            ActiveView::GraphInspector,
         ]
     }
 
@@ -1025,6 +1031,10 @@ impl AppState {
 
     pub fn toggle_evidence(&mut self) {
         self.show_evidence = !self.show_evidence;
+    }
+
+    pub fn toggle_graph_recommendations(&mut self) {
+        self.show_graph_recommendations = !self.show_graph_recommendations;
     }
 
     pub fn toggle_zoom_for_focused_section(&mut self) {
@@ -1563,6 +1573,7 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            show_graph_recommendations: false,
             verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             active_view: ActiveView::Today,
             view_history: Vec::new(),

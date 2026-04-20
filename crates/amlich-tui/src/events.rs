@@ -72,6 +72,10 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             app.go_to_view(crate::state::ActiveView::Personal);
             return false;
         }
+        KeyCode::Char('6') => {
+            app.go_to_view(crate::state::ActiveView::GraphInspector);
+            return false;
+        }
         _ => {}
     }
 
@@ -91,6 +95,20 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 app.calendar_prev_month()
             }
             KeyCode::Char('t') => app.calendar_go_today(),
+            _ => {}
+        }
+        return false;
+    }
+
+    if app.active_view == crate::state::ActiveView::GraphInspector {
+        match code {
+            KeyCode::Char('q') | KeyCode::Esc => app.running = false,
+            KeyCode::Char('r') => app.toggle_graph_recommendations(),
+            KeyCode::Right | KeyCode::Char('l') => app.navigate_days(1),
+            KeyCode::Left | KeyCode::Char('h') => app.navigate_days(-1),
+            KeyCode::Down | KeyCode::Char('j') => app.scroll_down(),
+            KeyCode::Up | KeyCode::Char('k') => app.scroll_up(),
+            KeyCode::Char('t') => app.jump_to_today(),
             _ => {}
         }
         return false;
@@ -328,6 +346,7 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            show_graph_recommendations: false,
             verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             focused_section: PageSection::Explorer,
             zoomed_section: None,
@@ -367,7 +386,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::BackTab, KeyModifiers::SHIFT);
 
-        assert_eq!(app.active_view, ActiveView::Personal);
+        assert_eq!(app.active_view, ActiveView::GraphInspector);
     }
 
     #[test]

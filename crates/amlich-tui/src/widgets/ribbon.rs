@@ -100,7 +100,7 @@ impl Widget for RibbonWidget<'_> {
         };
         all_spans.push(Span::styled(
             format!(
-                "| v: {verbosity_label}  Tab: màn  1-5: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp"
+                "| v: {verbosity_label}  Tab: màn  1-6: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp"
             ),
             Style::default().fg(Color::DarkGray),
         ));
@@ -203,6 +203,7 @@ mod tests {
             show_tietkhi_details: false,
             show_evidence: false,
             show_week_strip: true,
+            show_graph_recommendations: false,
             verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             focused_section: PageSection::Recommendations,
             zoomed_section: None,
@@ -249,7 +250,7 @@ mod tests {
 
         assert!(hotkey_line.contains("[Hôm Nay]"));
         assert!(hotkey_line.contains("Tab: màn"));
-        assert!(hotkey_line.contains("1-5: chọn"));
+        assert!(hotkey_line.contains("1-6: chọn"));
         assert!(!weekday_line.contains("Tab:"));
         assert!(!weekday_line.contains("màn"));
     }
