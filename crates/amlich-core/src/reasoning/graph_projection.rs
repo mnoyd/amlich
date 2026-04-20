@@ -4,8 +4,6 @@ use crate::insight_data::find_truc_insight;
 use crate::semantic_graph::{NodeConcept, SemanticGraph};
 use crate::DaySnapshot;
 
-use super::action_evaluator::ActionEvaluation;
-use super::personal::PersonalReasoningInput;
 use super::types::{
     interpret_severity, ActionId, EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdgeExport,
     ReasoningEdgeJustification, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily,
@@ -15,9 +13,9 @@ use super::export::{axis_for_node, severity_for_node, tags_for_node};
 
 pub fn project_semantic_graph_export(
     graph: &SemanticGraph,
-    evaluation: &ActionEvaluation,
+    _evaluation: &super::action_evaluator::ActionEvaluation,
     snapshot: &DaySnapshot,
-    personal_input: Option<&PersonalReasoningInput>,
+    personal_input: Option<&super::personal::PersonalReasoningInput>,
 ) -> ReasoningGraphExport {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
@@ -96,8 +94,6 @@ pub fn project_semantic_graph_export(
         add_personal_nodes_and_edges(&mut nodes, &mut edges, snapshot, personal, graph);
     }
 
-    let _ = (graph, evaluation);
-
     ReasoningGraphExport {
         action_id: ActionId::InitiationOpening,
         nodes,
@@ -118,77 +114,57 @@ fn build_solar_term_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
 }
 
 fn build_truc_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
-    let raw_node = super::types::ReasoningNode {
-        id: "fact.day.truc".to_string(),
-        kind: NodeKind::Fact,
-        summary_vi: format!("Trực {}", snapshot.day_fortune.truc.name),
-        severity: Some(snapshot.day_fortune.truc.quality.clone()),
-        evidence: vec![],
-    };
+    let summary_vi = format!("Trực {}", snapshot.day_fortune.truc.name);
+    let quality = &snapshot.day_fortune.truc.quality;
     ReasoningNodeExport {
         id: "fact.day.truc".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.truc"),
-        severity: severity_for_node(&raw_node),
-        tags: tags_for_node(&raw_node),
-        summary_vi: raw_node.summary_vi,
+        severity: severity_for_node("fact.day.truc", Some(quality.as_str()), &summary_vi),
+        tags: tags_for_node("fact.day.truc"),
+        summary_vi,
         evidence: vec![snapshot_evidence("snapshot.day_fortune.truc", "day_fortune.truc")],
     }
 }
 
 fn build_star_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
-    let summary = summarize_stars(&snapshot.day_fortune.stars);
-    let raw_node = super::types::ReasoningNode {
-        id: "fact.day.nhi_thap_bat_tu".to_string(),
-        kind: NodeKind::Fact,
-        summary_vi: summary,
-        severity: None,
-        evidence: vec![],
-    };
+    let summary_vi = summarize_stars(&snapshot.day_fortune.stars);
     ReasoningNodeExport {
         id: "fact.day.nhi_thap_bat_tu".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.nhi_thap_bat_tu"),
-        severity: severity_for_node(&raw_node),
-        tags: tags_for_node(&raw_node),
-        summary_vi: raw_node.summary_vi,
+        severity: severity_for_node("fact.day.nhi_thap_bat_tu", None, &summary_vi),
+        tags: tags_for_node("fact.day.nhi_thap_bat_tu"),
+        summary_vi,
         evidence: vec![snapshot_evidence("snapshot.day_fortune.stars", "day_fortune.stars")],
     }
 }
 
 fn build_day_deity_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
-    use crate::almanac::types::DayDeityClassification;
-    let summary = match &snapshot.day_fortune.day_deity {
+    let summary_vi = match &snapshot.day_fortune.day_deity {
         Some(deity) => deity.name.clone(),
         None => "Không có thần sát ngày".to_string(),
     };
-    let severity = snapshot.day_fortune.day_deity.as_ref().map(|deity| {
+    let severity_str = snapshot.day_fortune.day_deity.as_ref().map(|deity| {
         match deity.classification {
-            DayDeityClassification::HoangDao => "hoang_dao".to_string(),
-            DayDeityClassification::HacDao => "hac_dao".to_string(),
+            crate::almanac::types::DayDeityClassification::HoangDao => "hoang_dao",
+            crate::almanac::types::DayDeityClassification::HacDao => "hac_dao",
         }
     });
-    let raw_node = super::types::ReasoningNode {
-        id: "fact.day.day_deity".to_string(),
-        kind: NodeKind::Fact,
-        summary_vi: summary,
-        severity: severity.clone(),
-        evidence: vec![],
-    };
     ReasoningNodeExport {
         id: "fact.day.day_deity".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.day_deity"),
-        severity: severity_for_node(&raw_node),
-        tags: tags_for_node(&raw_node),
-        summary_vi: raw_node.summary_vi,
+        severity: severity_for_node("fact.day.day_deity", severity_str, &summary_vi),
+        tags: tags_for_node("fact.day.day_deity"),
+        summary_vi,
         evidence: vec![snapshot_evidence("snapshot.day_fortune.day_deity", "day_fortune.day_deity")],
     }
 }
 
 fn build_taboo_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
     let taboos = &snapshot.day_fortune.taboos;
-    let summary = if taboos.is_empty() {
+    let summary_vi = if taboos.is_empty() {
         "Không có điều kiêng kỵ nổi bật".to_string()
     } else {
         format!(
@@ -196,46 +172,32 @@ fn build_taboo_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
             taboos.iter().map(|t| t.name.as_str()).collect::<Vec<_>>().join(", ")
         )
     };
-    let severity = taboo_severity_val(taboos);
+    let severity_str = taboo_severity_val(taboos);
     let evidence: Vec<_> = taboos.iter().take(3).map(|t| almanac_rule_evidence(&t.rule_id)).collect();
-    let raw_node = super::types::ReasoningNode {
-        id: "fact.day.taboos".to_string(),
-        kind: NodeKind::Fact,
-        summary_vi: summary,
-        severity: severity.clone(),
-        evidence: vec![],
-    };
     ReasoningNodeExport {
         id: "fact.day.taboos".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.taboos"),
-        severity: severity_for_node(&raw_node),
-        tags: tags_for_node(&raw_node),
-        summary_vi: raw_node.summary_vi,
+        severity: severity_for_node("fact.day.taboos", severity_str.as_deref(), &summary_vi),
+        tags: tags_for_node("fact.day.taboos"),
+        summary_vi,
         evidence,
     }
 }
 
 fn build_xung_hop_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
-    let summary = format!(
+    let summary_vi = format!(
         "Xung {}{}",
         snapshot.day_fortune.conflict.opposing_chi,
         snapshot.day_fortune.xung_hop.liu_he.as_ref().map(|p| format!(", hợp {p}")).unwrap_or_default()
     );
-    let raw_node = super::types::ReasoningNode {
-        id: "fact.day.xung_hop".to_string(),
-        kind: NodeKind::Fact,
-        summary_vi: summary,
-        severity: None,
-        evidence: vec![],
-    };
     ReasoningNodeExport {
         id: "fact.day.xung_hop".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.xung_hop"),
-        severity: severity_for_node(&raw_node),
-        tags: tags_for_node(&raw_node),
-        summary_vi: raw_node.summary_vi,
+        severity: severity_for_node("fact.day.xung_hop", None, &summary_vi),
+        tags: tags_for_node("fact.day.xung_hop"),
+        summary_vi,
         evidence: vec![
             snapshot_evidence("snapshot.day_fortune.conflict", "day_fortune.conflict"),
             snapshot_evidence("snapshot.day_fortune.xung_hop", "day_fortune.xung_hop"),
@@ -244,45 +206,33 @@ fn build_xung_hop_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
 }
 
 fn build_travel_direction_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
-    let summary = format!(
+    let summary_vi = format!(
         "Xuất hành {}, Tài Thần {}, Hỷ Thần {}",
         snapshot.day_fortune.travel.xuat_hanh_huong,
         snapshot.day_fortune.travel.tai_than,
         snapshot.day_fortune.travel.hy_than
     );
-    let raw_node = super::types::ReasoningNode {
-        id: "fact.day.travel_directions".to_string(),
-        kind: NodeKind::Fact,
-        summary_vi: summary,
-        severity: None,
-        evidence: vec![],
-    };
     ReasoningNodeExport {
         id: "fact.day.travel_directions".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.travel_directions"),
-        severity: severity_for_node(&raw_node),
-        tags: tags_for_node(&raw_node),
-        summary_vi: raw_node.summary_vi,
+        severity: severity_for_node("fact.day.travel_directions", None, &summary_vi),
+        tags: tags_for_node("fact.day.travel_directions"),
+        summary_vi,
         evidence: vec![snapshot_evidence("snapshot.day_fortune.travel", "day_fortune.travel")],
     }
 }
 
 fn build_hoang_dao_hours_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
-    let raw_node = super::types::ReasoningNode {
-        id: "fact.day.hoang_dao_hours".to_string(),
-        kind: NodeKind::Fact,
-        summary_vi: snapshot.context.gio_hoang_dao.summary.clone(),
-        severity: Some(snapshot.context.gio_hoang_dao.good_hour_count.to_string()),
-        evidence: vec![],
-    };
+    let summary_vi = snapshot.context.gio_hoang_dao.summary.clone();
+    let severity_str = snapshot.context.gio_hoang_dao.good_hour_count.to_string();
     ReasoningNodeExport {
         id: "fact.day.hoang_dao_hours".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.hoang_dao_hours"),
-        severity: severity_for_node(&raw_node),
-        tags: tags_for_node(&raw_node),
-        summary_vi: raw_node.summary_vi,
+        severity: severity_for_node("fact.day.hoang_dao_hours", Some(&severity_str), &summary_vi),
+        tags: tags_for_node("fact.day.hoang_dao_hours"),
+        summary_vi,
         evidence: vec![snapshot_evidence("snapshot.context.gio_hoang_dao", "context.gio_hoang_dao")],
     }
 }
@@ -472,7 +422,7 @@ fn add_personal_nodes_and_edges(
     nodes: &mut Vec<ReasoningNodeExport>,
     edges: &mut Vec<ReasoningEdgeExport>,
     snapshot: &DaySnapshot,
-    personal: &PersonalReasoningInput,
+    personal: &super::personal::PersonalReasoningInput,
     _graph: &SemanticGraph,
 ) {
     let personal_nodes = match personal.build_fact_nodes(snapshot) {
@@ -483,10 +433,10 @@ fn add_personal_nodes_and_edges(
         let id = raw_node.id.clone();
         let node_export = ReasoningNodeExport {
             id: id.clone(),
-            kind: raw_node.kind,
+            kind: NodeKind::Fact,
             axis: axis_for_node(&id),
-            severity: severity_for_node(&raw_node),
-            tags: tags_for_node(&raw_node),
+            severity: severity_for_node(&id, raw_node.severity.as_deref(), &raw_node.summary_vi),
+            tags: tags_for_node(&id),
             summary_vi: raw_node.summary_vi,
             evidence: raw_node.evidence,
         };

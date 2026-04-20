@@ -127,15 +127,6 @@ pub struct ReasoningNote {
     pub tags: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ReasoningNode {
-    pub id: String,
-    pub kind: NodeKind,
-    pub summary_vi: String,
-    pub severity: Option<String>,
-    pub evidence: Vec<ReasoningEvidenceEnvelope>,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ReasoningEvidenceSourceFamily {
@@ -155,50 +146,6 @@ pub struct ReasoningEvidenceEnvelope {
     pub method: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ReasoningEdge {
-    pub from_node_id: String,
-    pub to_node_id: String,
-    pub effect: EdgeEffect,
-    pub justification: ReasoningEdgeJustification,
-    pub evidence: Vec<ReasoningEvidenceEnvelope>,
-}
-
-impl ReasoningEdge {
-    pub fn new(
-        from_node_id: impl Into<String>,
-        to_node_id: impl Into<String>,
-        effect: EdgeEffect,
-        justification: ReasoningEdgeJustification,
-        evidence: Vec<ReasoningEvidenceEnvelope>,
-    ) -> Self {
-        Self {
-            from_node_id: from_node_id.into(),
-            to_node_id: to_node_id.into(),
-            effect,
-            justification,
-            evidence,
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ReasoningGraph {
-    pub action_id: ActionId,
-    pub nodes: Vec<ReasoningNode>,
-    pub edges: Vec<ReasoningEdge>,
-}
-
-impl ReasoningGraph {
-    pub fn new(action_id: ActionId) -> Self {
-        Self {
-            action_id,
-            nodes: Vec::new(),
-            edges: Vec::new(),
-        }
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

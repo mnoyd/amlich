@@ -73,10 +73,10 @@ pub use crate::bazi::{
 pub use crate::reasoning::{
     ActionId, DecisionConfidence, EdgeEffect, InitiationOpeningDecision,
     InitiationOpeningDecisionExport, InitiationOpeningReasoningBundle, InitiationOpeningVector,
-    InterpretedAxis, NodeKind, ReasoningAxisScore, ReasoningConclusionSemantic, ReasoningEdge,
+    InterpretedAxis, NodeKind, PersonalFactNode, ReasoningAxisScore, ReasoningConclusionSemantic,
     ReasoningEdgeExport, ReasoningEdgeJustification, ReasoningEvidenceEnvelope,
-    ReasoningEvidenceSourceFamily, ReasoningGraph, ReasoningGraphExport, ReasoningNode,
-    ReasoningNodeExport, ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
+    ReasoningEvidenceSourceFamily, ReasoningGraphExport, ReasoningNodeExport,
+    ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
 };
 pub use semantic_graph::{
     build_reasoning_input_graph, ConceptLabel, EdgeConcept, GraphOntology, GraphValidationError,

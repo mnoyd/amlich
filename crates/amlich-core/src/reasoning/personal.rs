@@ -8,7 +8,14 @@ use crate::{
     BirthInput, ConsultationIntent, DaySnapshot,
 };
 
-use super::{NodeKind, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily, ReasoningNode};
+use super::{ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily};
+
+pub struct PersonalFactNode {
+    pub id: String,
+    pub summary_vi: String,
+    pub severity: Option<String>,
+    pub evidence: Vec<ReasoningEvidenceEnvelope>,
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PersonalReasoningInput {
@@ -21,13 +28,12 @@ impl PersonalReasoningInput {
         Self { birth, intent }
     }
 
-    pub fn build_fact_nodes(&self, snapshot: &DaySnapshot) -> Result<Vec<ReasoningNode>, String> {
+    pub fn build_fact_nodes(&self, snapshot: &DaySnapshot) -> Result<Vec<PersonalFactNode>, String> {
         let chart = build_bazi_chart(self.to_bazi_input())?;
         let analysis = compute_element_distribution(&chart);
         let metrics = compute_bazi_metrics(&chart, None);
-        let mut nodes = vec![ReasoningNode {
+        let mut nodes = vec![PersonalFactNode {
             id: "fact.personal.day_person_matrix".to_string(),
-            kind: NodeKind::Fact,
             summary_vi: summarize_day_person_matrix(&compute_day_person_matrix(
                 &snapshot.context.canchi.day,
                 &chart,
@@ -42,9 +48,8 @@ impl PersonalReasoningInput {
         if let Some(personal_hour) =
             compute_personal_hour_matrix(&snapshot.context.canchi.day, &chart, &analysis)
         {
-            nodes.push(ReasoningNode {
+            nodes.push(PersonalFactNode {
                 id: "fact.personal.personal_hour_matrix".to_string(),
-                kind: NodeKind::Fact,
                 summary_vi: summarize_personal_hour_matrix(&personal_hour),
                 severity: Some(personal_hour.hours.len().to_string()),
                 evidence: vec![interaction_evidence(
@@ -62,9 +67,8 @@ impl PersonalReasoningInput {
                 &snapshot.day_fortune.travel.hy_than,
                 &kua,
             );
-            nodes.push(ReasoningNode {
+            nodes.push(PersonalFactNode {
                 id: "fact.personal.direction_merge".to_string(),
-                kind: NodeKind::Fact,
                 summary_vi: summarize_direction_merge(&direction_merge),
                 severity: Some(kua.kua.to_string()),
                 evidence: vec![interaction_evidence(
@@ -74,9 +78,8 @@ impl PersonalReasoningInput {
             });
         }
 
-        nodes.push(ReasoningNode {
+        nodes.push(PersonalFactNode {
             id: "fact.personal.bazi_profile".to_string(),
-            kind: NodeKind::Fact,
             summary_vi: format!(
                 "Nhật chủ {}, mạnh yếu {}, hành trội {}",
                 chart.day_master.full,
