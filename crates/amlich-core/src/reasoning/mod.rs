@@ -18,7 +18,6 @@ pub use initiation_opening_evaluator::InitiationOpeningEvaluator;
 pub use personal::PersonalReasoningInput;
 pub use projection::{
     project_initiation_opening_decision, project_initiation_opening_decision_export,
-    project_reasoning_graph_export,
 };
 pub use signals::derive_interpreted_signals;
 pub use synthesis::{build_initiation_opening_decision, build_initiation_opening_reasoning_bundle};

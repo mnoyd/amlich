@@ -14,8 +14,6 @@ pub struct InteractionGraphBuilder {
     graph: SemanticGraph,
     day_id: String,
     profile_id: String,
-    ruleset_id: String,
-    ruleset_version: String,
     profile: String,
 }
 
@@ -25,25 +23,12 @@ impl InteractionGraphBuilder {
             graph: SemanticGraph::new(),
             day_id: day_id.to_string(),
             profile_id: profile_id.to_string(),
-            ruleset_id: "baseline".to_string(),
-            ruleset_version: "v1".to_string(),
             profile: "baseline".to_string(),
         }
     }
 
-    pub fn with_ruleset(mut self, ruleset_id: &str, ruleset_version: &str, profile: &str) -> Self {
-        self.ruleset_id = ruleset_id.to_string();
-        self.ruleset_version = ruleset_version.to_string();
-        self.profile = profile.to_string();
-        self
-    }
-
     fn provenance(&self, source_id: &str, method: &str) -> ProvenanceEntry {
         ProvenanceEntry::interaction(source_id, method).with_profile(self.profile.clone())
-    }
-
-    pub fn graph(&self) -> &SemanticGraph {
-        &self.graph
     }
 
     pub fn build(self) -> SemanticGraph {

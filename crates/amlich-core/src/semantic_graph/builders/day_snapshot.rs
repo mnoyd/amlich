@@ -8,8 +8,6 @@ pub struct DaySnapshotGraphBuilder {
     graph: SemanticGraph,
     day_root_id: String,
     tz_suffix: String,
-    ruleset_id: String,
-    ruleset_version: String,
     profile: String,
 }
 
@@ -26,8 +24,6 @@ impl DaySnapshotGraphBuilder {
             graph: SemanticGraph::new(),
             day_root_id,
             tz_suffix,
-            ruleset_id: snapshot.ruleset_id.clone(),
-            ruleset_version: snapshot.ruleset_version.clone(),
             profile: snapshot.profile.clone(),
         };
 
