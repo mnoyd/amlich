@@ -2,6 +2,7 @@ mod action;
 mod action_evaluator;
 mod export;
 mod facts;
+mod graph_projection;
 mod initiation_opening_evaluator;
 mod personal;
 mod projection;

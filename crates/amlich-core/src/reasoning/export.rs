@@ -36,7 +36,7 @@ fn export_edge(edge: &ReasoningEdge) -> ReasoningEdgeExport {
     }
 }
 
-fn axis_for_node(node_id: &str) -> Option<InterpretedAxis> {
+pub(super) fn axis_for_node(node_id: &str) -> Option<InterpretedAxis> {
     match node_id {
         "signal.support" => Some(InterpretedAxis::Support),
         "signal.resistance" => Some(InterpretedAxis::Resistance),
@@ -48,7 +48,7 @@ fn axis_for_node(node_id: &str) -> Option<InterpretedAxis> {
     }
 }
 
-fn severity_for_node(node: &ReasoningNode) -> Option<ReasoningNodeSeverity> {
+pub(super) fn severity_for_node(node: &ReasoningNode) -> Option<ReasoningNodeSeverity> {
     let concept_key = match node.id.as_str() {
         "fact.day.truc" => "truc",
         "fact.day.day_deity" => "day_deity",
@@ -61,7 +61,7 @@ fn severity_for_node(node: &ReasoningNode) -> Option<ReasoningNodeSeverity> {
     interpret_severity(concept_key, node.severity.as_deref(), &node.summary_vi)
 }
 
-fn tags_for_node(node: &ReasoningNode) -> Vec<String> {
+pub(super) fn tags_for_node(node: &ReasoningNode) -> Vec<String> {
     let mut tags = Vec::new();
     if node.id.starts_with("fact.personal.") {
         tags.push("personal".to_string());
