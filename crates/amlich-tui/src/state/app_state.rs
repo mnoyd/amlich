@@ -24,6 +24,7 @@ pub enum GraphInspectorFocus {
     ClusterList,
     ClusterNodes { cluster: String },
     NodeDetail { node_id: String },
+    NodeEdges { node_id: String },
 }
 
 impl Default for GraphInspectorFocus {
@@ -1104,7 +1105,36 @@ impl AppState {
                     self.graph_inspector_focus = GraphInspectorFocus::NodeDetail { node_id };
                 }
             }
-            GraphInspectorFocus::NodeDetail { .. } => {}
+            GraphInspectorFocus::NodeDetail { .. } => {
+                let node_id = match &self.graph_inspector_focus {
+                    GraphInspectorFocus::NodeDetail { node_id } => node_id.clone(),
+                    _ => unreachable!(),
+                };
+                self.graph_inspector_focus = GraphInspectorFocus::NodeEdges { node_id };
+                self.graph_inspector_cursor = 0;
+            }
+            GraphInspectorFocus::NodeEdges { .. } => {
+                let node_id = match &self.graph_inspector_focus {
+                    GraphInspectorFocus::NodeEdges { node_id } => node_id.clone(),
+                    _ => unreachable!(),
+                };
+                let connected_edges: Vec<_> = inspection
+                    .visualization
+                    .edges
+                    .iter()
+                    .filter(|e| e.from_id == node_id || e.to_id == node_id)
+                    .collect();
+                if let Some(edge) = connected_edges.get(self.graph_inspector_cursor) {
+                    let neighbor_id = if edge.from_id == node_id {
+                        &edge.to_id
+                    } else {
+                        &edge.from_id
+                    };
+                    self.graph_inspector_focus =
+                        GraphInspectorFocus::NodeDetail { node_id: neighbor_id.clone() };
+                    self.graph_inspector_cursor = 0;
+                }
+            }
         }
     }
 
@@ -1148,6 +1178,11 @@ impl AppState {
                     self.graph_inspector_focus = GraphInspectorFocus::ClusterList;
                     self.graph_inspector_cursor = 0;
                 }
+            }
+            GraphInspectorFocus::NodeEdges { node_id } => {
+                let node_id = node_id.clone();
+                self.graph_inspector_focus = GraphInspectorFocus::NodeDetail { node_id };
+                self.graph_inspector_cursor = 0;
             }
         }
     }

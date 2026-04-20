@@ -50,6 +50,9 @@ impl Widget for GraphInspectorScreenWidget<'_> {
             GraphInspectorFocus::NodeDetail { node_id } => {
                 self.render_node_detail_view(&inspection, node_id, area, buf);
             }
+            GraphInspectorFocus::NodeEdges { node_id } => {
+                self.render_node_edges_view(&inspection, node_id, area, buf);
+            }
         }
     }
 }
@@ -171,6 +174,38 @@ impl GraphInspectorScreenWidget<'_> {
             node,
             &connected_edges,
             node_id,
+            rows[1],
+            buf,
+        );
+    }
+
+    fn render_node_edges_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        node_id: &str,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let rows = Layout::vertical([
+            Constraint::Length(4),
+            Constraint::Min(4),
+        ])
+        .split(area);
+
+        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, false);
+
+        let connected_edges: Vec<_> = inspection
+            .visualization
+            .edges
+            .iter()
+            .filter(|e| e.from_id == node_id || e.to_id == node_id)
+            .collect();
+
+        render_selectable_edge_list(
+            node_id,
+            &connected_edges,
+            &inspection.visualization.nodes,
+            self.app.graph_inspector_cursor,
             rows[1],
             buf,
         );
@@ -578,6 +613,124 @@ fn render_node_detail(
                 Style::default().fg(Color::DarkGray),
             ),
         ]));
+    }
+
+    if edge_count > 0 {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![
+            Span::styled(
+                "  Enter/l: xem chi tiết edges / nhảy sang node khác",
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_selectable_edge_list(
+    node_id: &str,
+    connected_edges: &[&amlich_core::semantic_graph::VisualizationEdge],
+    all_nodes: &[amlich_core::semantic_graph::VisualizationNode],
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let title = format!(
+        " Edges: {} (Enter để nhảy sang neighbor) ",
+        truncate_label(node_id, 24)
+    );
+    let block = Block::default()
+        .title(title.as_str())
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+
+    for (idx, edge) in connected_edges.iter().enumerate() {
+        let is_outgoing = edge.from_id == node_id;
+        let direction = if is_outgoing { "→ out" } else { "← in " };
+        let other_id = if is_outgoing {
+            &edge.to_id
+        } else {
+            &edge.from_id
+        };
+        let other_label = all_nodes
+            .iter()
+            .find(|n| &n.node_id == other_id)
+            .map(|n| n.label.as_str())
+            .unwrap_or("?");
+
+        let selected = idx == cursor;
+        let style = if selected {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+        let dir_style = if selected {
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else if is_outgoing {
+            Style::default().fg(Color::Green)
+        } else {
+            Style::default().fg(Color::Magenta)
+        };
+        let detail_style = if selected {
+            Style::default().fg(Color::Cyan)
+        } else {
+            Style::default().fg(Color::DarkGray)
+        };
+
+        let marker = if selected { ">" } else { " " };
+
+        lines.push(Line::from(vec![
+            Span::styled(format!("{} ", marker), style),
+            Span::styled(direction, dir_style),
+            Span::raw(" "),
+            Span::styled(
+                format!("{:<24}", truncate_label(other_id, 24)),
+                style,
+            ),
+        ]));
+
+        lines.push(Line::from(vec![
+            Span::raw("     "),
+            Span::styled(
+                format!("label: {}", truncate_label(&edge.label, 30)),
+                detail_style,
+            ),
+        ]));
+
+        lines.push(Line::from(vec![
+            Span::raw("     "),
+            Span::styled(
+                format!(
+                    "kind: {}  weight: {}  other: {}",
+                    truncate_label(&edge.semantic_kind, 18),
+                    edge.weight,
+                    truncate_label(other_label, 24)
+                ),
+                detail_style,
+            ),
+        ]));
+
+        if selected {
+            lines.push(Line::from(""));
+        }
+    }
+
+    if lines.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Không có edge nào kết nối node này.",
+            Style::default().fg(Color::DarkGray),
+        )));
     }
 
     Paragraph::new(lines)
