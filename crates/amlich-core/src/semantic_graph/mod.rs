@@ -19,7 +19,8 @@ pub use node::{NodeOrigin, SemanticNode, SemanticNodeId};
 pub use ontology::{ConceptLabel, EdgeConcept, GraphOntology, NodeConcept};
 pub use provenance::{ProvenanceEntry, ProvenanceSource, ProvenanceTracker};
 pub use views::{
-    ConvergenceView, LlmGraphSlice, LlmRecommendationSlice, LlmActivitySummary,
+    ClusterSummary, ConvergenceFactRef, ConvergenceHitRef, ConvergenceView, LlmActivitySummary,
+    LlmConvergenceSlice, LlmGraphSlice, LlmRecommendationSlice,
     RecommendationEvidenceGraphView, RecommendationEvidenceView, HitView, SourceBreakdown,
     SubgraphView, VisualizationEdge, VisualizationGraph, VisualizationNode,
 };
