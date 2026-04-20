@@ -1,5 +1,11 @@
 # Graph-backed Recommendation Evidence Spec
 
+> **Doc status:** Active — canonical spec for Epic 5 (Graph-backed Recommendation Evidence).
+> **When to use:** Reference this when graphifying recommendation hits, activity nodes, and evidence aggregation, or connecting recommendation evidence to shared semantic facts.
+> **Depends on:** [`semantic-graph-v1-spec.md`](semantic-graph-v1-spec.md) (Epic 1), [`interaction-graphification-spec.md`](interaction-graphification-spec.md) (Epic 3), [`graph-backed-reasoning-migration-spec.md`](graph-backed-reasoning-migration-spec.md) (Epic 4)
+> **Parent roadmap:** [`hybrid-semantic-graph-plan.md`](hybrid-semantic-graph-plan.md)
+> **Contains:** Reasoning–Recommendation Convergence Spec (appendix below — describes the long-term convergence strategy for Epics 4 and 5)
+
 ## Purpose
 
 Define how the recommendation layer in `amlich-core` migrates from a procedural hit-merging pipeline toward graph-backed recommendation evidence built on the shared `semantic_graph` substrate.
@@ -365,8 +371,10 @@ focused on:
 - where reasoning and recommendation should remain separate
 - whether a common evaluator/policy substrate should exist later
 
-
+---
 # Reasoning–Recommendation Convergence Spec
+
+> **Note:** This convergence spec is co-located here because it directly extends both the recommendation evidence model (above) and the graph-backed reasoning model. It describes the long-term convergence strategy rather than an independent implementation spec.
 
 ## Purpose
 

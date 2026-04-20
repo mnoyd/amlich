@@ -1,5 +1,9 @@
 # Semantic Graph v1 Spec
 
+> **Doc status:** Active — canonical spec for Epic 1 (Semantic Graph Foundation).
+> **When to use:** Reference this when implementing core types (`EntityKind`, `RelationKind`, `GraphNode`, `GraphEdge`, `SemanticGraph`), ID conventions, builder APIs, and merge rules.
+> **Parent roadmap:** [`hybrid-semantic-graph-plan.md`](hybrid-semantic-graph-plan.md)
+
 ## Purpose
 
 Define the first concrete version of the new `semantic_graph` substrate for `amlich-core`.

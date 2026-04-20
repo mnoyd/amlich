@@ -1,5 +1,8 @@
 # Amlich-core Hybrid Semantic Graph Plan
 
+> **Doc status:** Active — source-of-truth architecture roadmap for the semantic graph track.
+> **When to use:** Read this first to understand the overall hybrid `2.5` architecture vision, epic sequencing, and dependency order. Then consult the detailed specs for each epic.
+
 ## Purpose
 
 Define the hybrid `2.5` architecture direction for `amlich-core` where existing domain engines remain authoritative for computation while a new `semantic_graph` substrate becomes the long-term integration layer for facts, matrices, reasoning, recommendation evidence, visualization, and LLM-ready outputs.
@@ -166,11 +169,15 @@ semantic_graph/
 4. visualization needs distort core design
 5. LLM-ready exports become flattened convenience blobs
 
-## Recommended Next Docs
+## Related Specs
 
-This roadmap is complemented by:
+This roadmap is the architectural overview. The following specs detail each epic:
 
-- `semantic-graph-v1-spec.md`
-- `interaction-graphification-spec.md`
-- `graph-backed-reasoning-migration-spec.md`
-- `graph-backed-recommendation-evidence-spec.md`
+| Spec | Epic | Purpose |
+|------|------|---------|
+| [`semantic-graph-v1-spec.md`](semantic-graph-v1-spec.md) | 1 — Foundation | Core types, IDs, builders, merge rules |
+| [`interaction-graphification-spec.md`](interaction-graphification-spec.md) | 3 — Interaction Graphs | Five matrix graphification, projections |
+| [`graph-backed-reasoning-migration-spec.md`](graph-backed-reasoning-migration-spec.md) | 4 — Reasoning | `ActionEvaluator` trait, `InitiationOpening` migration |
+| [`graph-backed-recommendation-evidence-spec.md`](graph-backed-recommendation-evidence-spec.md) | 5 — Recommendation | Recommendation evidence graph, convergence strategy |
+
+Epics 2, 6, 7, and 8 do not yet have standalone specs — they are described inline in this plan until dedicated specs are needed.

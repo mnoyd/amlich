@@ -271,13 +271,19 @@ This is a hybrid migration, not a rewrite:
 
 ### Architecture planning artifacts
 
-The current design set for this track is:
+The semantic graph track is documented in a small, focused set. The table below clarifies the role of each doc and the canonical reading order.
 
-- `docs/almanac/hybrid-semantic-graph-plan.md`
-- `docs/almanac/semantic-graph-v1-spec.md`
-- `docs/almanac/interaction-graphification-spec.md`
-- `docs/almanac/graph-backed-reasoning-migration-spec.md`
-- `docs/almanac/graph-backed-recommendation-evidence-spec.md`
+| Doc | Status | Role | Covers |
+|-----|--------|------|--------|
+| [`hybrid-semantic-graph-plan.md`](hybrid-semantic-graph-plan.md) | Active — source-of-truth | Overall architecture roadmap | Vision, epic map, dependency order, risks |
+| [`semantic-graph-v1-spec.md`](semantic-graph-v1-spec.md) | Active — canonical spec | Epic 1 (Foundation) | Core types, IDs, builders, merge rules, views |
+| [`interaction-graphification-spec.md`](interaction-graphification-spec.md) | Active — canonical spec | Epic 3 (Interaction Graphs) | Five matrix graphification, ontology extensions, projections |
+| [`graph-backed-reasoning-migration-spec.md`](graph-backed-reasoning-migration-spec.md) | Active — canonical spec | Epic 4 (Reasoning) | `ActionEvaluator` trait, `InitiationOpening` migration, axis mapping |
+| [`graph-backed-recommendation-evidence-spec.md`](graph-backed-recommendation-evidence-spec.md) | Active — canonical spec | Epic 5 (Recommendation) + convergence | Recommendation evidence graph, activity nodes, and the reasoning–recommendation convergence strategy |
+
+**Reading order for new sessions/agents:** Start with `hybrid-semantic-graph-plan.md` for the big picture, then `semantic-graph-v1-spec.md` for foundation types, then the epic-specific spec you are working on.
+
+Archived planning docs for earlier work are in [`docs/archived/plans/`](../archived/plans/) and are historical reference only — do not treat them as active specs.
 
 ### Epic map
 

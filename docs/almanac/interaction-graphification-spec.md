@@ -1,5 +1,10 @@
 # Interaction Graphification Spec
 
+> **Doc status:** Active — canonical spec for Epic 3 (Interaction Matrices as Graph Projections).
+> **When to use:** Reference this when graphifying any of the five interaction matrices, defining matrix ontology extensions, or building matrix subgraph extraction helpers.
+> **Depends on:** [`semantic-graph-v1-spec.md`](semantic-graph-v1-spec.md) (Epic 1 foundation types)
+> **Parent roadmap:** [`hybrid-semantic-graph-plan.md`](hybrid-semantic-graph-plan.md)
+
 ## Purpose
 
 Define how `interaction/` outputs become graph-backed structures in the hybrid `semantic_graph` architecture.

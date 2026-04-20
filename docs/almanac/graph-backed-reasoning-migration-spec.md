@@ -1,5 +1,10 @@
 # Graph-backed Reasoning Migration Spec
 
+> **Doc status:** Active — canonical spec for Epic 4 (Graph-backed Reasoning).
+> **When to use:** Reference this when migrating `InitiationOpening` (or future actions) to graph-backed evaluation, implementing the `ActionEvaluator` trait, or projecting decision exports from the semantic graph.
+> **Depends on:** [`semantic-graph-v1-spec.md`](semantic-graph-v1-spec.md) (Epic 1), [`interaction-graphification-spec.md`](interaction-graphification-spec.md) (Epic 3)
+> **Parent roadmap:** [`hybrid-semantic-graph-plan.md`](hybrid-semantic-graph-plan.md)
+
 ## Purpose
 
 Define how `amlich-core` migrates from the current action-specific reasoning pipeline toward graph-backed reasoning built on the new `semantic_graph` substrate.
