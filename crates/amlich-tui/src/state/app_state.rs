@@ -18,6 +18,20 @@ const EVENT_KIND_OPTIONS: [&str; 4] = [
     "travel",
 ];
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum GraphInspectorFocus {
+    Summary,
+    ClusterList,
+    ClusterNodes { cluster: String },
+    NodeDetail { node_id: String },
+}
+
+impl Default for GraphInspectorFocus {
+    fn default() -> Self {
+        Self::Summary
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FocusLens {
     General,
@@ -71,7 +85,7 @@ impl ActiveView {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AppMode {
     Normal,
     SearchModal,
@@ -457,6 +471,8 @@ pub struct AppState {
     pub personal_draft: PersonalDraft,
     pub calendar_cursor: NaiveDate,
     pub(crate) navigation_history: Vec<NaiveDate>,
+    pub graph_inspector_focus: GraphInspectorFocus,
+    pub graph_inspector_cursor: usize,
 }
 
 impl AppState {
@@ -506,6 +522,8 @@ impl AppState {
             personal_draft: PersonalDraft::from_persisted(&persisted_profile),
             calendar_cursor: date,
             navigation_history: Vec::new(),
+            graph_inspector_focus: GraphInspectorFocus::Summary,
+            graph_inspector_cursor: 0,
         };
 
         app.load_data();
@@ -680,6 +698,9 @@ impl AppState {
     }
 
     pub fn go_to_view(&mut self, view: ActiveView) {
+        if self.active_view == ActiveView::GraphInspector && view != ActiveView::GraphInspector {
+            self.graph_inspector_reset();
+        }
         if self.active_view == view {
             return;
         }
@@ -1035,6 +1056,116 @@ impl AppState {
 
     pub fn toggle_graph_recommendations(&mut self) {
         self.show_graph_recommendations = !self.show_graph_recommendations;
+    }
+
+    pub fn graph_inspector_drill_down(&mut self) {
+        let day = self.date.day() as i32;
+        let month = self.date.month() as i32;
+        let year = self.date.year();
+        let inspection = amlich_core::debug_inspect_semantic_graph(
+            day,
+            month,
+            year,
+            self.show_graph_recommendations,
+        );
+
+        match &self.graph_inspector_focus {
+            GraphInspectorFocus::Summary => {
+                self.graph_inspector_focus = GraphInspectorFocus::ClusterList;
+                self.graph_inspector_cursor = 0;
+            }
+            GraphInspectorFocus::ClusterList => {
+                let mut clusters: Vec<_> = inspection.cluster_counts.keys().collect();
+                clusters.sort_by(|a, b| {
+                    let ca = inspection.cluster_counts.get(*a).copied().unwrap_or(0);
+                    let cb = inspection.cluster_counts.get(*b).copied().unwrap_or(0);
+                    cb.cmp(&ca)
+                });
+                if let Some(cluster) = clusters.get(self.graph_inspector_cursor) {
+                    let cluster = (*cluster).clone();
+                    self.graph_inspector_focus =
+                        GraphInspectorFocus::ClusterNodes { cluster };
+                    self.graph_inspector_cursor = 0;
+                }
+            }
+            GraphInspectorFocus::ClusterNodes { .. } => {
+                let cluster = match &self.graph_inspector_focus {
+                    GraphInspectorFocus::ClusterNodes { cluster } => cluster.clone(),
+                    _ => unreachable!(),
+                };
+                let nodes: Vec<_> = inspection
+                    .visualization
+                    .nodes
+                    .iter()
+                    .filter(|n| n.cluster == cluster)
+                    .collect();
+                if let Some(node) = nodes.get(self.graph_inspector_cursor) {
+                    let node_id = node.node_id.clone();
+                    self.graph_inspector_focus = GraphInspectorFocus::NodeDetail { node_id };
+                }
+            }
+            GraphInspectorFocus::NodeDetail { .. } => {}
+        }
+    }
+
+    pub fn graph_inspector_go_back(&mut self) {
+        match &self.graph_inspector_focus {
+            GraphInspectorFocus::Summary => {}
+            GraphInspectorFocus::ClusterList => {
+                self.graph_inspector_focus = GraphInspectorFocus::Summary;
+                self.graph_inspector_cursor = 0;
+            }
+            GraphInspectorFocus::ClusterNodes { .. } => {
+                self.graph_inspector_focus = GraphInspectorFocus::ClusterList;
+                self.graph_inspector_cursor = 0;
+            }
+            GraphInspectorFocus::NodeDetail { .. } => {
+                let cluster = match &self.graph_inspector_focus {
+                    GraphInspectorFocus::NodeDetail { node_id } => {
+                        let day = self.date.day() as i32;
+                        let month = self.date.month() as i32;
+                        let year = self.date.year();
+                        let inspection = amlich_core::debug_inspect_semantic_graph(
+                            day,
+                            month,
+                            year,
+                            self.show_graph_recommendations,
+                        );
+                        inspection
+                            .visualization
+                            .nodes
+                            .iter()
+                            .find(|n| &n.node_id == node_id)
+                            .map(|n| n.cluster.clone())
+                    }
+                    _ => unreachable!(),
+                };
+                if let Some(cluster) = cluster {
+                    self.graph_inspector_focus =
+                        GraphInspectorFocus::ClusterNodes { cluster };
+                    self.graph_inspector_cursor = 0;
+                } else {
+                    self.graph_inspector_focus = GraphInspectorFocus::ClusterList;
+                    self.graph_inspector_cursor = 0;
+                }
+            }
+        }
+    }
+
+    pub fn graph_inspector_move_cursor(&mut self, delta: i32) {
+        if delta >= 0 {
+            self.graph_inspector_cursor =
+                self.graph_inspector_cursor.saturating_add(delta as usize);
+        } else {
+            self.graph_inspector_cursor = self
+                .graph_inspector_cursor
+                .saturating_sub((-delta) as usize);
+        }
+    }
+
+    pub fn graph_inspector_reset(&mut self) {
+        self.graph_inspector_focus = GraphInspectorFocus::Summary;
+        self.graph_inspector_cursor = 0;
     }
 
     pub fn toggle_zoom_for_focused_section(&mut self) {
@@ -1577,6 +1708,8 @@ mod tests {
             verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
             active_view: ActiveView::Today,
             view_history: Vec::new(),
+            graph_inspector_focus: GraphInspectorFocus::Summary,
+            graph_inspector_cursor: 0,
             app_mode: AppMode::Normal,
             focused_section: PageSection::Hero,
             zoomed_section: None,

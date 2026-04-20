@@ -312,6 +312,8 @@ mod tests {
             navigation_history: Vec::new(),
             active_view: crate::state::ActiveView::Today,
             view_history: Vec::new(),
+            graph_inspector_focus: crate::state::GraphInspectorFocus::Summary,
+            graph_inspector_cursor: 0,
         }
     }
 

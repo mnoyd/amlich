@@ -102,13 +102,34 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
 
     if app.active_view == crate::state::ActiveView::GraphInspector {
         match code {
-            KeyCode::Char('q') | KeyCode::Esc => app.running = false,
+            KeyCode::Char('q') => app.running = false,
+            KeyCode::Esc => {
+                use crate::state::GraphInspectorFocus;
+                match &app.graph_inspector_focus {
+                    GraphInspectorFocus::Summary => app.running = false,
+                    _ => app.graph_inspector_go_back(),
+                }
+            }
             KeyCode::Char('r') => app.toggle_graph_recommendations(),
-            KeyCode::Right | KeyCode::Char('l') => app.navigate_days(1),
-            KeyCode::Left | KeyCode::Char('h') => app.navigate_days(-1),
-            KeyCode::Down | KeyCode::Char('j') => app.scroll_down(),
-            KeyCode::Up | KeyCode::Char('k') => app.scroll_up(),
+            KeyCode::Right => app.navigate_days(1),
+            KeyCode::Left => app.navigate_days(-1),
             KeyCode::Char('t') => app.jump_to_today(),
+            KeyCode::Down | KeyCode::Char('j') => {
+                use crate::state::GraphInspectorFocus;
+                match &app.graph_inspector_focus {
+                    GraphInspectorFocus::Summary => app.scroll_down(),
+                    _ => app.graph_inspector_move_cursor(1),
+                }
+            }
+            KeyCode::Up | KeyCode::Char('k') => {
+                use crate::state::GraphInspectorFocus;
+                match &app.graph_inspector_focus {
+                    GraphInspectorFocus::Summary => app.scroll_up(),
+                    _ => app.graph_inspector_move_cursor(-1),
+                }
+            }
+            KeyCode::Enter | KeyCode::Char('l') => app.graph_inspector_drill_down(),
+            KeyCode::Backspace | KeyCode::Char('h') => app.graph_inspector_go_back(),
             _ => {}
         }
         return false;
@@ -366,6 +387,8 @@ mod tests {
             navigation_history: Vec::new(),
             active_view: crate::state::ActiveView::Today,
             view_history: Vec::new(),
+            graph_inspector_focus: crate::state::GraphInspectorFocus::Summary,
+            graph_inspector_cursor: 0,
         }
     }
 

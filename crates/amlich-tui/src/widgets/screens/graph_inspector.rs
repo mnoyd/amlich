@@ -11,7 +11,7 @@ use ratatui::{
 use chrono::Datelike;
 
 use crate::layout::LayoutMode;
-use crate::state::AppState;
+use crate::state::{AppState, GraphInspectorFocus};
 
 pub struct GraphInspectorScreenWidget<'a> {
     app: &'a AppState,
@@ -37,6 +37,30 @@ impl Widget for GraphInspectorScreenWidget<'_> {
             self.app.show_graph_recommendations,
         );
 
+        match &self.app.graph_inspector_focus {
+            GraphInspectorFocus::Summary => {
+                self.render_summary_view(&inspection, area, buf);
+            }
+            GraphInspectorFocus::ClusterList => {
+                self.render_cluster_list_view(&inspection, area, buf);
+            }
+            GraphInspectorFocus::ClusterNodes { cluster } => {
+                self.render_cluster_nodes_view(&inspection, cluster, area, buf);
+            }
+            GraphInspectorFocus::NodeDetail { node_id } => {
+                self.render_node_detail_view(&inspection, node_id, area, buf);
+            }
+        }
+    }
+}
+
+impl GraphInspectorScreenWidget<'_> {
+    fn render_summary_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
         let rows = Layout::vertical([
             Constraint::Length(8),
             Constraint::Length(7),
@@ -45,7 +69,7 @@ impl Widget for GraphInspectorScreenWidget<'_> {
         ])
         .split(area);
 
-        render_header(&inspection, self.app.show_graph_recommendations, rows[0], buf);
+        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, true);
         render_summary(&inspection.summary, rows[1], buf);
 
         let bottom = if self.mode == LayoutMode::Small {
@@ -63,6 +87,94 @@ impl Widget for GraphInspectorScreenWidget<'_> {
             render_node_sample(&inspection, rows[3], buf);
         }
     }
+
+    fn render_cluster_list_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let rows = Layout::vertical([
+            Constraint::Length(4),
+            Constraint::Min(4),
+        ])
+        .split(area);
+
+        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, false);
+        render_selectable_cluster_list(
+            &inspection.cluster_counts,
+            self.app.graph_inspector_cursor,
+            rows[1],
+            buf,
+        );
+    }
+
+    fn render_cluster_nodes_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        cluster: &str,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let rows = Layout::vertical([
+            Constraint::Length(4),
+            Constraint::Min(4),
+        ])
+        .split(area);
+
+        let nodes: Vec<_> = inspection
+            .visualization
+            .nodes
+            .iter()
+            .filter(|n| n.cluster == cluster)
+            .collect();
+
+        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, false);
+        render_selectable_node_list(
+            cluster,
+            &nodes,
+            self.app.graph_inspector_cursor,
+            rows[1],
+            buf,
+        );
+    }
+
+    fn render_node_detail_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        node_id: &str,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let rows = Layout::vertical([
+            Constraint::Length(4),
+            Constraint::Min(4),
+        ])
+        .split(area);
+
+        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, false);
+
+        let node = inspection
+            .visualization
+            .nodes
+            .iter()
+            .find(|n| n.node_id == node_id);
+
+        let connected_edges: Vec<_> = inspection
+            .visualization
+            .edges
+            .iter()
+            .filter(|e| e.from_id == node_id || e.to_id == node_id)
+            .collect();
+
+        render_node_detail(
+            node,
+            &connected_edges,
+            node_id,
+            rows[1],
+            buf,
+        );
+    }
 }
 
 fn render_header(
@@ -70,6 +182,7 @@ fn render_header(
     include_recs: bool,
     area: Rect,
     buf: &mut Buffer,
+    is_summary: bool,
 ) {
     let block = Block::default()
         .title(" Đồ Thị Ngữ Nghĩa (Semantic Graph Inspector) ")
@@ -82,6 +195,12 @@ fn render_header(
         ("BẬT", Color::Green)
     } else {
         ("TẮT", Color::DarkGray)
+    };
+
+    let help_line = if is_summary {
+        "←/→: đổi ngày  t: hôm nay  r: toggle recs  Enter/l: drill-down  1-6: đổi màn"
+    } else {
+        "↑/k ↓/j: chọn  Enter/l: vào  Esc/h/Backspace: quay lại  r: toggle recs"
     };
 
     let lines = vec![
@@ -116,7 +235,7 @@ fn render_header(
         ]),
         Line::from(vec![
             Span::styled(
-                "  ←/→: đổi ngày  t: hôm nay  r: toggle recommendations  1-6: đổi màn",
+                format!("  {}", help_line),
                 Style::default().fg(Color::DarkGray),
             ),
         ]),
@@ -230,6 +349,235 @@ fn render_cluster_counts(counts: &HashMap<String, usize>, area: Rect, buf: &mut 
             "  Không có cluster nào.",
             Style::default().fg(Color::DarkGray),
         )));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_selectable_cluster_list(
+    counts: &HashMap<String, usize>,
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Chọn Cluster (Enter để xem nodes) ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut entries: Vec<_> = counts.iter().collect();
+    entries.sort_by(|a, b| b.1.cmp(a.1));
+
+    let mut lines = Vec::new();
+    for (idx, (cluster, count)) in entries.iter().enumerate() {
+        let selected = idx == cursor;
+        let marker = if selected { ">" } else { " " };
+        let style = if selected {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+        let count_style = if selected {
+            Style::default()
+                .fg(Color::Cyan)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::Yellow)
+        };
+        lines.push(Line::from(vec![
+            Span::styled(format!("{} ", marker), style),
+            Span::styled(
+                format!("{:<36}", truncate_label(cluster, 36)),
+                style,
+            ),
+            Span::styled(format!("{:>5}", count), count_style),
+        ]));
+    }
+
+    if lines.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Không có cluster nào.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_selectable_node_list(
+    cluster: &str,
+    nodes: &[&amlich_core::semantic_graph::VisualizationNode],
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let title = format!(" Cluster: {} — Nodes (Enter để xem chi tiết) ", cluster);
+    let block = Block::default()
+        .title(title.as_str())
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+    for (idx, node) in nodes.iter().enumerate() {
+        let selected = idx == cursor;
+        let marker = if selected { ">" } else { " " };
+        let style = if selected {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+        let kind_style = if selected {
+            Style::default().fg(Color::Cyan)
+        } else {
+            Style::default().fg(Color::DarkGray)
+        };
+        lines.push(Line::from(vec![
+            Span::styled(format!("{} ", marker), style),
+            Span::styled(
+                format!("{:<28}", truncate_label(&node.node_id, 28)),
+                style,
+            ),
+            Span::styled(
+                format!("{:<20}", truncate_label(&node.label, 20)),
+                style,
+            ),
+            Span::styled(
+                truncate_label(&node.semantic_kind, 14),
+                kind_style,
+            ),
+        ]));
+    }
+
+    if lines.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Không có node nào trong cluster này.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_node_detail(
+    node: Option<&amlich_core::semantic_graph::VisualizationNode>,
+    connected_edges: &[&amlich_core::semantic_graph::VisualizationEdge],
+    node_id: &str,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let title = format!(" Node Detail: {} ", truncate_label(node_id, 30));
+    let block = Block::default()
+        .title(title.as_str())
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+
+    if let Some(n) = node {
+        lines.push(Line::from(vec![
+            Span::styled("  node_id:       ", Style::default().fg(Color::Cyan)),
+            Span::styled(&n.node_id, Style::default().fg(Color::White)),
+        ]));
+        lines.push(Line::from(vec![
+            Span::styled("  label:         ", Style::default().fg(Color::Cyan)),
+            Span::styled(&n.label, Style::default().fg(Color::White)),
+        ]));
+        lines.push(Line::from(vec![
+            Span::styled("  cluster:       ", Style::default().fg(Color::Cyan)),
+            Span::styled(&n.cluster, Style::default().fg(Color::White)),
+        ]));
+        lines.push(Line::from(vec![
+            Span::styled("  semantic_kind: ", Style::default().fg(Color::Cyan)),
+            Span::styled(&n.semantic_kind, Style::default().fg(Color::White)),
+        ]));
+        lines.push(Line::from(vec![
+            Span::styled("  severity:      ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                n.severity.as_deref().unwrap_or("(none)"),
+                match n.severity.as_deref() {
+                    Some("critical") => Style::default().fg(Color::Red),
+                    Some("caution") => Style::default().fg(Color::Yellow),
+                    Some("favorable") | Some("positive") => Style::default().fg(Color::Green),
+                    Some("neutral") => Style::default().fg(Color::White),
+                    _ => Style::default().fg(Color::DarkGray),
+                },
+            ),
+        ]));
+        lines.push(Line::from(vec![
+            Span::styled("  shape_hint:    ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                n.shape_hint.as_deref().unwrap_or("(none)"),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]));
+    } else {
+        lines.push(Line::from(vec![
+            Span::styled("  Node không tìm thấy: ", Style::default().fg(Color::Red)),
+            Span::styled(node_id, Style::default().fg(Color::White)),
+        ]));
+    }
+
+    lines.push(Line::from(""));
+
+    let edge_count = connected_edges.len();
+    lines.push(Line::from(vec![
+        Span::styled("  Connected edges: ", Style::default().fg(Color::Cyan)),
+        Span::styled(
+            edge_count.to_string(),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        ),
+    ]));
+
+    for edge in connected_edges.iter().take(10) {
+        let direction = if edge.from_id == node_id {
+            "→"
+        } else {
+            "←"
+        };
+        let other = if edge.from_id == node_id {
+            &edge.to_id
+        } else {
+            &edge.from_id
+        };
+        lines.push(Line::from(vec![
+            Span::styled("    ", Style::default()),
+            Span::styled(direction, Style::default().fg(Color::Cyan)),
+            Span::raw(" "),
+            Span::styled(
+                format!("{:<24}", truncate_label(other, 24)),
+                Style::default().fg(Color::White),
+            ),
+            Span::styled(
+                format!(" [{:<14}]", truncate_label(&edge.semantic_kind, 14)),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]));
+    }
+    if edge_count > 10 {
+        lines.push(Line::from(vec![
+            Span::styled(
+                format!("    ... +{} more edges", edge_count - 10),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]));
     }
 
     Paragraph::new(lines)
@@ -456,6 +804,8 @@ mod tests {
             navigation_history: Vec::new(),
             active_view: crate::state::ActiveView::GraphInspector,
             view_history: Vec::new(),
+            graph_inspector_focus: crate::state::GraphInspectorFocus::Summary,
+            graph_inspector_cursor: 0,
         }
     }
 
