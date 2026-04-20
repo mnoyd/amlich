@@ -119,6 +119,14 @@ impl InitiationOpeningEvaluator {
             }
         }
 
+        if let Some(node) = self.most_unfavorable_direction_row(graph) {
+            notes.push(ReasoningNote {
+                node_id: Some(node.node_id.clone()),
+                summary_vi: format!("Hướng cá nhân có điểm xung: {}", node.summary_vi),
+                tags: vec!["resistance".to_string(), "personal_direction".to_string()],
+            });
+        }
+
         notes
     }
 
@@ -157,11 +165,13 @@ impl InitiationOpeningEvaluator {
     }
 
     fn has_unfavorable_fact(&self, graph: &SemanticGraph) -> bool {
-        graph.nodes().values().any(|n| {
-            match n.concept {
+        graph.nodes().values().any(|n| match n.concept {
                 NodeConcept::Taboo => n.severity.is_some(),
+                NodeConcept::InteractionRow => {
+                    n.summary_vi.contains(" direction: net=")
+                        && self.node_has_tag(n, "unfavorable")
+                }
                 _ => false,
-            }
         })
     }
 
@@ -189,7 +199,67 @@ impl InitiationOpeningEvaluator {
             });
         }
 
+        if self.has_mixed_direction_merge(graph) {
+            notes.push(ReasoningNote {
+                node_id: None,
+                summary_vi: "Hướng hợp cá nhân còn phân hóa giữa thuận và nghịch".to_string(),
+                tags: vec!["conflict".to_string(), "personal_direction".to_string()],
+            });
+        }
+
         notes
+    }
+
+    fn has_mixed_direction_merge(&self, graph: &SemanticGraph) -> bool {
+        let mut has_favorable = false;
+        let mut has_unfavorable = false;
+
+        for node in self.direction_rows(graph) {
+            if self.node_has_tag(node, "favorable") {
+                has_favorable = true;
+            }
+            if self.node_has_tag(node, "unfavorable") {
+                has_unfavorable = true;
+            }
+        }
+
+        has_favorable && has_unfavorable
+    }
+
+    fn most_unfavorable_direction_row<'a>(
+        &self,
+        graph: &'a SemanticGraph,
+    ) -> Option<&'a SemanticNode> {
+        self.direction_rows(graph)
+            .filter(|node| self.node_has_tag(node, "unfavorable"))
+            .min_by(|left, right| {
+                let left_score = self.node_tag_i8(left, "net_score").unwrap_or(0);
+                let right_score = self.node_tag_i8(right, "net_score").unwrap_or(0);
+                left_score
+                    .cmp(&right_score)
+                    .then_with(|| left.node_id.cmp(&right.node_id))
+            })
+    }
+
+    fn direction_rows<'a>(
+        &self,
+        graph: &'a SemanticGraph,
+    ) -> impl Iterator<Item = &'a SemanticNode> {
+        graph.nodes().values().filter(|node| {
+            node.concept == NodeConcept::InteractionRow
+                && node.summary_vi.contains(" direction: net=")
+        })
+    }
+
+    fn node_tag_i8(&self, node: &SemanticNode, prefix: &str) -> Option<i8> {
+        let prefix = format!("{prefix}:");
+        node.tags
+            .iter()
+            .find_map(|tag| tag.strip_prefix(&prefix)?.parse::<i8>().ok())
+    }
+
+    fn node_has_tag(&self, node: &SemanticNode, tag: &str) -> bool {
+        node.tags.iter().any(|node_tag| node_tag == tag)
     }
 
     fn score_axis(

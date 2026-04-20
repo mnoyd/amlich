@@ -528,6 +528,81 @@ fn graph_backed_evaluator_bucket_parity_with_current_pipeline() {
 }
 
 #[test]
+fn production_reasoning_entrypoint_matches_graph_evaluator_projection() {
+    use amlich_core::reasoning::{
+        project_initiation_opening_decision, ActionEvaluator, InitiationOpeningEvaluator,
+    };
+
+    let case = parity_case("profile_directions_with_gendered_kua");
+    let snapshot = decision_snapshot(&case);
+    let personal_input = case.personal_input.as_ref().expect("personal input");
+    let graph = amlich_core::build_reasoning_input_graph(
+        &snapshot,
+        Some(&amlich_core::bazi::BaziInput {
+            day: personal_input.birth.day,
+            month: personal_input.birth.month,
+            year: personal_input.birth.year,
+            hour: personal_input.birth.hour.unwrap_or(0),
+            minute: personal_input.birth.minute.unwrap_or(0),
+            timezone: personal_input.birth.timezone,
+            longitude: None,
+            use_solar_time: false,
+            gender: personal_input.birth.gender,
+        }),
+    )
+    .expect("valid graph");
+    let evaluator = InitiationOpeningEvaluator::new();
+
+    let evaluation = evaluator
+        .evaluate(&graph, &snapshot, Some(personal_input))
+        .expect("valid evaluation");
+    let projected = project_initiation_opening_decision(&evaluation);
+    let production =
+        build_initiation_opening_reasoning(&snapshot, Some(personal_input)).expect("decision");
+
+    assert_eq!(production, projected);
+}
+
+#[test]
+fn production_reasoning_bundle_export_matches_graph_evaluator_projection() {
+    use amlich_core::reasoning::{
+        project_initiation_opening_decision_export, ActionEvaluator, InitiationOpeningEvaluator,
+    };
+
+    let case = parity_case("vn_midnight_conflict_window");
+    let snapshot = decision_snapshot(&case);
+    let personal_input = case.personal_input.as_ref().expect("personal input");
+    let graph = amlich_core::build_reasoning_input_graph(
+        &snapshot,
+        Some(&amlich_core::bazi::BaziInput {
+            day: personal_input.birth.day,
+            month: personal_input.birth.month,
+            year: personal_input.birth.year,
+            hour: personal_input.birth.hour.unwrap_or(0),
+            minute: personal_input.birth.minute.unwrap_or(0),
+            timezone: personal_input.birth.timezone,
+            longitude: None,
+            use_solar_time: false,
+            gender: personal_input.birth.gender,
+        }),
+    )
+    .expect("valid graph");
+    let evaluator = InitiationOpeningEvaluator::new();
+
+    let evaluation = evaluator
+        .evaluate(&graph, &snapshot, Some(personal_input))
+        .expect("valid evaluation");
+    let projected = project_initiation_opening_decision_export(&evaluation);
+    let production = amlich_core::build_initiation_opening_reasoning_bundle(
+        &snapshot,
+        Some(personal_input),
+    )
+    .expect("bundle");
+
+    assert_eq!(production.decision_export, projected);
+}
+
+#[test]
 fn graph_backed_evaluator_confidence_parity() {
     use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
     use amlich_core::reasoning::project_initiation_opening_decision;

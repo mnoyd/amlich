@@ -152,7 +152,7 @@ impl PersonalReasoningInput {
             .collect()
     }
 
-    fn to_bazi_input(&self) -> BaziInput {
+    pub(crate) fn to_bazi_input(&self) -> BaziInput {
         BaziInput {
             day: self.birth.day,
             month: self.birth.month,

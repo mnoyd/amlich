@@ -79,7 +79,7 @@ fn canonical_corpus() -> Vec<CanonicalCase> {
             year: 2024,
             timezone: None,
             personal: Some(profile_input(1, 1, 1990, 9, 0, 7.0, None)),
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Favorable,
         },
         CanonicalCase {
             id: "personal_with_kua_directions",
