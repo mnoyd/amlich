@@ -53,6 +53,9 @@ impl Widget for GraphInspectorScreenWidget<'_> {
             GraphInspectorFocus::NodeEdges { node_id } => {
                 self.render_node_edges_view(&inspection, node_id, area, buf);
             }
+            GraphInspectorFocus::Search => {
+                self.render_search_view(&inspection, area, buf);
+            }
         }
     }
 }
@@ -210,6 +213,133 @@ impl GraphInspectorScreenWidget<'_> {
             buf,
         );
     }
+    fn render_search_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let rows = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Min(4),
+        ])
+        .split(area);
+
+        render_search_header(
+            &self.app.graph_inspector_search_query,
+            rows[0],
+            buf,
+        );
+
+        let results = self.app.graph_inspector_search_results(inspection);
+        render_search_result_list(
+            &results,
+            &self.app.graph_inspector_search_query,
+            self.app.graph_inspector_search_cursor,
+            rows[1],
+            buf,
+        );
+    }
+}
+
+fn render_search_header(query: &str, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Tìm Kiếm (Search) ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Yellow));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let cursor_char = "▎";
+    let display = format!("  Tìm: {}{}  (Esc: quay lại  Enter: chọn  ↑↓: di chuyển)", query, cursor_char);
+    let lines = vec![
+        Line::from(vec![
+            Span::styled(&display, Style::default().fg(Color::Yellow)),
+        ]),
+    ];
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_search_result_list(
+    results: &[amlich_core::semantic_graph::VisualizationNode],
+    query: &str,
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let title = if query.is_empty() {
+        " Kết Quả — Gõ từ khóa để tìm node ".to_string()
+    } else {
+        format!(" Kết Quả: {} kết quả cho '{}' ", results.len(), truncate_label(query, 30))
+    };
+    let block = Block::default()
+        .title(title.as_str())
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+
+    if query.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Gõ từ khóa để tìm theo node_id, label, cluster, hoặc semantic_kind.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else if results.is_empty() {
+        lines.push(Line::from(Span::styled(
+            format!("  Không tìm thấy kết quả cho '{}'.", query),
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for (idx, node) in results.iter().enumerate() {
+            let selected = idx == cursor;
+            let marker = if selected { ">" } else { " " };
+            let style = if selected {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+            let kind_style = if selected {
+                Style::default().fg(Color::Cyan)
+            } else {
+                Style::default().fg(Color::DarkGray)
+            };
+            let cluster_style = if selected {
+                Style::default().fg(Color::Green)
+            } else {
+                Style::default().fg(Color::DarkGray)
+            };
+            lines.push(Line::from(vec![
+                Span::styled(format!("{} ", marker), style),
+                Span::styled(
+                    format!("{:<24}", truncate_label(&node.node_id, 24)),
+                    style,
+                ),
+                Span::styled(
+                    format!("{:<18}", truncate_label(&node.label, 18)),
+                    style,
+                ),
+                Span::styled(
+                    format!("{:<16}", truncate_label(&node.cluster, 16)),
+                    cluster_style,
+                ),
+                Span::styled(
+                    truncate_label(&node.semantic_kind, 14),
+                    kind_style,
+                ),
+            ]));
+        }
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn render_header(
@@ -233,9 +363,9 @@ fn render_header(
     };
 
     let help_line = if is_summary {
-        "←/→: đổi ngày  t: hôm nay  r: toggle recs  Enter/l: drill-down  1-6: đổi màn"
+        "←/→: đổi ngày  t: hôm nay  r: toggle recs  Enter/l: drill-down  /: tìm kiếm  1-6: đổi màn"
     } else {
-        "↑/k ↓/j: chọn  Enter/l: vào  Esc/h/Backspace: quay lại  r: toggle recs"
+        "↑/k ↓/j: chọn  Enter/l: vào  Esc/h/Backspace: quay lại  r: toggle recs  /: tìm kiếm"
     };
 
     let lines = vec![
@@ -959,6 +1089,9 @@ mod tests {
             view_history: Vec::new(),
             graph_inspector_focus: crate::state::GraphInspectorFocus::Summary,
             graph_inspector_cursor: 0,
+            graph_inspector_search_query: String::new(),
+            graph_inspector_search_cursor: 0,
+            graph_inspector_focus_before_search: None,
         }
     }
 

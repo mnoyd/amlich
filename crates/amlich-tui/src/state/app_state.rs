@@ -25,6 +25,7 @@ pub enum GraphInspectorFocus {
     ClusterNodes { cluster: String },
     NodeDetail { node_id: String },
     NodeEdges { node_id: String },
+    Search,
 }
 
 impl Default for GraphInspectorFocus {
@@ -474,6 +475,9 @@ pub struct AppState {
     pub(crate) navigation_history: Vec<NaiveDate>,
     pub graph_inspector_focus: GraphInspectorFocus,
     pub graph_inspector_cursor: usize,
+    pub graph_inspector_search_query: String,
+    pub graph_inspector_search_cursor: usize,
+    pub graph_inspector_focus_before_search: Option<Box<GraphInspectorFocus>>,
 }
 
 impl AppState {
@@ -525,6 +529,9 @@ impl AppState {
             navigation_history: Vec::new(),
             graph_inspector_focus: GraphInspectorFocus::Summary,
             graph_inspector_cursor: 0,
+            graph_inspector_search_query: String::new(),
+            graph_inspector_search_cursor: 0,
+            graph_inspector_focus_before_search: None,
         };
 
         app.load_data();
@@ -1135,6 +1142,7 @@ impl AppState {
                     self.graph_inspector_cursor = 0;
                 }
             }
+            GraphInspectorFocus::Search => {}
         }
     }
 
@@ -1184,6 +1192,12 @@ impl AppState {
                 self.graph_inspector_focus = GraphInspectorFocus::NodeDetail { node_id };
                 self.graph_inspector_cursor = 0;
             }
+            GraphInspectorFocus::Search => {
+                if let Some(prev) = self.graph_inspector_focus_before_search.take() {
+                    self.graph_inspector_focus = *prev;
+                    self.graph_inspector_cursor = 0;
+                }
+            }
         }
     }
 
@@ -1201,6 +1215,90 @@ impl AppState {
     pub fn graph_inspector_reset(&mut self) {
         self.graph_inspector_focus = GraphInspectorFocus::Summary;
         self.graph_inspector_cursor = 0;
+        self.graph_inspector_search_query.clear();
+        self.graph_inspector_search_cursor = 0;
+        self.graph_inspector_focus_before_search = None;
+    }
+
+    pub fn graph_inspector_enter_search(&mut self) {
+        self.graph_inspector_focus_before_search =
+            Some(Box::new(self.graph_inspector_focus.clone()));
+        self.graph_inspector_focus = GraphInspectorFocus::Search;
+        self.graph_inspector_search_query.clear();
+        self.graph_inspector_search_cursor = 0;
+    }
+
+    pub fn graph_inspector_exit_search(&mut self) {
+        if let Some(prev) = self.graph_inspector_focus_before_search.take() {
+            self.graph_inspector_focus = *prev;
+        } else {
+            self.graph_inspector_focus = GraphInspectorFocus::Summary;
+        }
+        self.graph_inspector_cursor = 0;
+    }
+
+    pub fn graph_inspector_search_insert_char(&mut self, ch: char) {
+        if self.graph_inspector_search_query.len() < 80 {
+            self.graph_inspector_search_query.push(ch);
+            self.graph_inspector_search_cursor = 0;
+        }
+    }
+
+    pub fn graph_inspector_search_backspace(&mut self) {
+        self.graph_inspector_search_query.pop();
+        self.graph_inspector_search_cursor = 0;
+    }
+
+    pub fn graph_inspector_search_results(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+    ) -> Vec<amlich_core::semantic_graph::VisualizationNode> {
+        let query = self.graph_inspector_search_query.to_lowercase();
+        if query.is_empty() {
+            return Vec::new();
+        }
+        inspection
+            .visualization
+            .nodes
+            .iter()
+            .filter(|n| {
+                n.node_id.to_lowercase().contains(&query)
+                    || n.label.to_lowercase().contains(&query)
+                    || n.cluster.to_lowercase().contains(&query)
+                    || n.semantic_kind.to_lowercase().contains(&query)
+            })
+            .cloned()
+            .collect()
+    }
+
+    pub fn graph_inspector_search_select(&mut self) {
+        let day = self.date.day() as i32;
+        let month = self.date.month() as i32;
+        let year = self.date.year();
+        let inspection = amlich_core::debug_inspect_semantic_graph(
+            day,
+            month,
+            year,
+            self.show_graph_recommendations,
+        );
+        let results = self.graph_inspector_search_results(&inspection);
+        if let Some(node) = results.get(self.graph_inspector_search_cursor) {
+            let node_id = node.node_id.clone();
+            self.graph_inspector_focus_before_search = None;
+            self.graph_inspector_focus = GraphInspectorFocus::NodeDetail { node_id };
+            self.graph_inspector_cursor = 0;
+        }
+    }
+
+    pub fn graph_inspector_search_move_cursor(&mut self, delta: i32) {
+        if delta >= 0 {
+            self.graph_inspector_search_cursor =
+                self.graph_inspector_search_cursor.saturating_add(delta as usize);
+        } else {
+            self.graph_inspector_search_cursor = self
+                .graph_inspector_search_cursor
+                .saturating_sub((-delta) as usize);
+        }
     }
 
     pub fn toggle_zoom_for_focused_section(&mut self) {
@@ -1745,6 +1843,9 @@ mod tests {
             view_history: Vec::new(),
             graph_inspector_focus: GraphInspectorFocus::Summary,
             graph_inspector_cursor: 0,
+            graph_inspector_search_query: String::new(),
+            graph_inspector_search_cursor: 0,
+            graph_inspector_focus_before_search: None,
             app_mode: AppMode::Normal,
             focused_section: PageSection::Hero,
             zoomed_section: None,

@@ -107,6 +107,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 use crate::state::GraphInspectorFocus;
                 match &app.graph_inspector_focus {
                     GraphInspectorFocus::Summary => app.running = false,
+                    GraphInspectorFocus::Search => app.graph_inspector_exit_search(),
                     _ => app.graph_inspector_go_back(),
                 }
             }
@@ -118,6 +119,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 use crate::state::GraphInspectorFocus;
                 match &app.graph_inspector_focus {
                     GraphInspectorFocus::Summary => app.scroll_down(),
+                    GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(1),
                     _ => app.graph_inspector_move_cursor(1),
                 }
             }
@@ -125,11 +127,36 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 use crate::state::GraphInspectorFocus;
                 match &app.graph_inspector_focus {
                     GraphInspectorFocus::Summary => app.scroll_up(),
+                    GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(-1),
                     _ => app.graph_inspector_move_cursor(-1),
                 }
             }
-            KeyCode::Enter | KeyCode::Char('l') => app.graph_inspector_drill_down(),
-            KeyCode::Backspace | KeyCode::Char('h') => app.graph_inspector_go_back(),
+            KeyCode::Enter | KeyCode::Char('l') => {
+                use crate::state::GraphInspectorFocus;
+                match &app.graph_inspector_focus {
+                    GraphInspectorFocus::Search => app.graph_inspector_search_select(),
+                    _ => app.graph_inspector_drill_down(),
+                }
+            }
+            KeyCode::Backspace | KeyCode::Char('h') => {
+                use crate::state::GraphInspectorFocus;
+                match &app.graph_inspector_focus {
+                    GraphInspectorFocus::Search => app.graph_inspector_search_backspace(),
+                    _ => app.graph_inspector_go_back(),
+                }
+            }
+            KeyCode::Char('/') | KeyCode::Char('s') => {
+                use crate::state::GraphInspectorFocus;
+                if app.graph_inspector_focus != GraphInspectorFocus::Search {
+                    app.graph_inspector_enter_search();
+                }
+            }
+            KeyCode::Char(c) => {
+                use crate::state::GraphInspectorFocus;
+                if app.graph_inspector_focus == GraphInspectorFocus::Search {
+                    app.graph_inspector_search_insert_char(c);
+                }
+            }
             _ => {}
         }
         return false;
@@ -389,6 +416,9 @@ mod tests {
             view_history: Vec::new(),
             graph_inspector_focus: crate::state::GraphInspectorFocus::Summary,
             graph_inspector_cursor: 0,
+            graph_inspector_search_query: String::new(),
+            graph_inspector_search_cursor: 0,
+            graph_inspector_focus_before_search: None,
         }
     }
 

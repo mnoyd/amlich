@@ -257,6 +257,9 @@ mod tests {
             view_history: Vec::new(),
             graph_inspector_focus: crate::state::GraphInspectorFocus::Summary,
             graph_inspector_cursor: 0,
+            graph_inspector_search_query: String::new(),
+            graph_inspector_search_cursor: 0,
+            graph_inspector_focus_before_search: None,
         }
     }
 
