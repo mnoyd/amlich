@@ -157,7 +157,7 @@ impl ConvergenceView {
         };
 
         for node in &mut view.shared_fact_nodes {
-            let shared = fact_influences_both.contains(&node.node_id);
+            let _shared = fact_influences_both.contains(&node.node_id);
             node.feeds_reasoning = fact_influences_reasoning.contains(&node.node_id);
             node.feeds_recommendation = fact_influences_recommendation.contains(&node.node_id);
         }

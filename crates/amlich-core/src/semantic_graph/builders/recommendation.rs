@@ -42,7 +42,7 @@ impl RecommendationEvidenceGraphBuilder {
             gio_hoang_dao: format!("hoang_dao_hours:day:{}:hoang_dao", tz_suffix),
         };
 
-        let mut builder = Self {
+        let builder = Self {
             graph: SemanticGraph::new(),
             date_str,
             tz_suffix,

@@ -327,7 +327,7 @@ impl InitiationOpeningEvaluator {
     fn synthesize_primary_conclusion(
         &self,
         semantic: ReasoningConclusionSemantic,
-        bucket: RecommendationBucket,
+        _bucket: RecommendationBucket,
         support_score: f32,
         resistance_score: f32,
         override_notes: &[ReasoningNote],
@@ -460,8 +460,8 @@ impl ActionEvaluator for InitiationOpeningEvaluator {
     fn select_subgraph(
         &self,
         graph: &SemanticGraph,
-        snapshot: &DaySnapshot,
-        personal_input: Option<&PersonalReasoningInput>,
+        _snapshot: &DaySnapshot,
+        _personal_input: Option<&PersonalReasoningInput>,
     ) -> Result<SemanticGraph, String> {
         Ok(graph.clone())
     }

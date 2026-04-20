@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::semantic_graph::{EdgeConcept, NodeConcept, SemanticGraph, SemanticNode};
+use crate::semantic_graph::{NodeConcept, SemanticGraph, SemanticNode};
 use serde::{Deserialize, Serialize};
 
 use super::subgraph::SubgraphView;
@@ -110,7 +110,7 @@ impl LlmGraphSlice {
         let mut semantic_kind_counts: HashMap<String, usize> = HashMap::new();
         let mut severity_counts: HashMap<String, usize> = HashMap::new();
 
-        for (node_id, node) in graph.nodes() {
+        for (_node_id, node) in graph.nodes() {
             let cluster = cluster_label_for_node(node);
             *cluster_counts.entry(cluster).or_insert(0) += 1;
 

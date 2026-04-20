@@ -62,8 +62,7 @@ pub fn project_reasoning_graph_export(
     evaluation: &ActionEvaluation,
 ) -> ReasoningGraphExport {
     use crate::reasoning::types::{
-        ActionId, NodeKind, ReasoningAxisScore, ReasoningConclusionSemantic,
-        ReasoningEdgeExport, ReasoningNodeExport, ReasoningNodeSeverity,
+        NodeKind, ReasoningNodeExport, ReasoningNodeSeverity,
     };
 
     let referenced_node_ids = &evaluation.referenced_node_ids;
