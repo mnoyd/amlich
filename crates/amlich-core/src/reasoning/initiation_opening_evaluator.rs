@@ -33,6 +33,7 @@ impl InitiationOpeningEvaluator {
                         node_id: Some(truc_node.node_id.clone()),
                         summary_vi: truc_node.summary_vi.clone(),
                         tags: vec!["support".to_string(), "truc".to_string()],
+                        provenance: truc_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                     });
                 }
             }
@@ -45,6 +46,7 @@ impl InitiationOpeningEvaluator {
                         node_id: Some(deity_node.node_id.clone()),
                         summary_vi: deity_node.summary_vi.clone(),
                         tags: vec!["support".to_string(), "day_deity".to_string()],
+                        provenance: deity_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                     });
                 }
             }
@@ -56,6 +58,7 @@ impl InitiationOpeningEvaluator {
                     node_id: Some(star_node.node_id.clone()),
                     summary_vi: star_node.summary_vi.clone(),
                     tags: vec!["support".to_string(), "star".to_string()],
+                    provenance: star_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                 });
             }
         }
@@ -72,6 +75,7 @@ impl InitiationOpeningEvaluator {
                     node_id: Some(truc_node.node_id.clone()),
                     summary_vi: truc_node.summary_vi.clone(),
                     tags: vec!["resistance".to_string(), "truc".to_string()],
+                    provenance: truc_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                 });
             }
         }
@@ -82,6 +86,7 @@ impl InitiationOpeningEvaluator {
                     node_id: Some(xung_hop_node.node_id.clone()),
                     summary_vi: xung_hop_node.summary_vi.clone(),
                     tags: vec!["resistance".to_string(), "xung_hop".to_string()],
+                    provenance: xung_hop_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                 });
             }
         }
@@ -93,6 +98,7 @@ impl InitiationOpeningEvaluator {
                         node_id: Some(node.node_id.clone()),
                         summary_vi: node.summary_vi.clone(),
                         tags: vec!["resistance".to_string(), "taboo".to_string()],
+                        provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                     });
                 }
             }
@@ -103,6 +109,7 @@ impl InitiationOpeningEvaluator {
                 node_id: Some(node.node_id.clone()),
                 summary_vi: format!("Hướng cá nhân có điểm xung: {}", node.summary_vi),
                 tags: vec!["resistance".to_string(), "personal_direction".to_string()],
+                provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
             });
         }
 
@@ -120,6 +127,7 @@ impl InitiationOpeningEvaluator {
                             node_id: Some(node.node_id.clone()),
                             summary_vi: node.summary_vi.clone(),
                             tags: vec!["override".to_string(), "hard_taboo".to_string()],
+                            provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                         });
                     }
                 }
@@ -166,6 +174,7 @@ impl InitiationOpeningEvaluator {
                     node_id: Some(truc_node.node_id.clone()),
                     summary_vi: truc_node.summary_vi.clone(),
                     tags: vec!["conflict".to_string(), "truc".to_string()],
+                    provenance: truc_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                 });
             }
         }
@@ -175,6 +184,7 @@ impl InitiationOpeningEvaluator {
                 node_id: None,
                 summary_vi: "Bối cảnh có cả yếu tố thuận và cản trở".to_string(),
                 tags: vec!["conflict".to_string()],
+                provenance: vec![],
             });
         }
 
@@ -183,6 +193,7 @@ impl InitiationOpeningEvaluator {
                 node_id: None,
                 summary_vi: "Hướng hợp cá nhân còn phân hóa giữa thuận và nghịch".to_string(),
                 tags: vec!["conflict".to_string(), "personal_direction".to_string()],
+                provenance: vec![],
             });
         }
 

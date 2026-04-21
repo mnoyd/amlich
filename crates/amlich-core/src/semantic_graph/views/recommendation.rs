@@ -1,3 +1,4 @@
+use crate::reasoning::ReasoningEvidenceEnvelope;
 use crate::semantic_graph::{EdgeConcept, NodeConcept, SemanticGraph};
 use crate::semantic_graph::selectors::SourceFamilyCounts;
 use serde::{Deserialize, Serialize};
@@ -21,6 +22,8 @@ pub struct HitView {
     pub source: String,
     pub severity: String,
     pub hard_stop: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub provenance: Vec<ReasoningEvidenceEnvelope>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -137,6 +140,10 @@ impl RecommendationEvidenceGraphView {
                             .map(|t| t.replace("source=", ""))
                             .unwrap_or_default();
 
+                        let provenance = hit_node.provenance.iter()
+                            .map(|p| p.to_reasoning_evidence())
+                            .collect();
+
                         let hit_view = HitView {
                             hit_id: hit_node.node_id.clone(),
                             summary_vi: hit_node.summary_vi.clone(),
@@ -144,6 +151,7 @@ impl RecommendationEvidenceGraphView {
                             source,
                             severity: hit_node.severity.clone().unwrap_or_default(),
                             hard_stop: is_hard_stop,
+                            provenance,
                         };
 
                         if is_favor {

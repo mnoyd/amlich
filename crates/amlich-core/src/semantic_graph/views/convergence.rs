@@ -1,3 +1,4 @@
+use crate::reasoning::ReasoningEvidenceEnvelope;
 use crate::semantic_graph::{
     EdgeConcept, NodeConcept, SemanticGraph, SemanticNode,
 };
@@ -12,6 +13,8 @@ pub struct ConvergenceFactNode {
     pub severity: Option<String>,
     pub feeds_reasoning: bool,
     pub feeds_recommendation: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub provenance: Vec<ReasoningEvidenceEnvelope>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -22,6 +25,8 @@ pub struct ConvergenceRecommendationHit {
     pub direction: String,
     pub hard_stop: bool,
     pub origin_fact_ids: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub provenance: Vec<ReasoningEvidenceEnvelope>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -88,6 +93,7 @@ impl ConvergenceView {
                         direction,
                         hard_stop,
                         origin_fact_ids,
+                        provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                     });
                 }
                 NodeConcept::Truc
@@ -137,6 +143,7 @@ impl ConvergenceView {
                         severity: node.severity.clone(),
                         feeds_reasoning: fact_influences_reasoning.contains(&node.node_id),
                         feeds_recommendation: fact_influences_recommendation.contains(&node.node_id),
+                        provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
                     });
 
                     if shared {

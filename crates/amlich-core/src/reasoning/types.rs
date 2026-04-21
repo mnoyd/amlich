@@ -125,6 +125,8 @@ pub struct ReasoningNote {
     pub summary_vi: String,
     #[serde(default)]
     pub tags: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub provenance: Vec<ReasoningEvidenceEnvelope>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

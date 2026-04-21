@@ -1,3 +1,5 @@
+use crate::reasoning::ReasoningEvidenceEnvelope;
+
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -94,6 +96,24 @@ impl ProvenanceEntry {
         meta: &crate::almanac::types::SourceMeta,
     ) -> Self {
         Self::new(source, meta.source_id.clone(), meta.method.clone())
+    }
+
+    pub fn to_reasoning_evidence(&self) -> ReasoningEvidenceEnvelope {
+        use crate::reasoning::ReasoningEvidenceSourceFamily as Family;
+        let source_family = match self.source {
+            ProvenanceSource::Snapshot => Family::Snapshot,
+            ProvenanceSource::Interaction => Family::Interaction,
+            ProvenanceSource::Bazi => Family::Bazi,
+            ProvenanceSource::AlmanacRule => Family::AlmanacRule,
+            ProvenanceSource::Insight => Family::Insight,
+            ProvenanceSource::Derived => Family::Derived,
+        };
+        ReasoningEvidenceEnvelope {
+            source_family,
+            source_id: self.source_id.clone(),
+            method: self.method.clone(),
+            note: self.note.clone(),
+        }
     }
 }
 
