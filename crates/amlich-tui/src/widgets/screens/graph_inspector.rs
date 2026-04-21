@@ -50,6 +50,9 @@ impl Widget for GraphInspectorScreenWidget<'_> {
             GraphInspectorFocus::NodeDetail { node_id } => {
                 self.render_node_detail_view(&inspection, node_id, area, buf);
             }
+            GraphInspectorFocus::NodeSubgraph { node_id } => {
+                self.render_node_subgraph_view(&inspection, node_id, area, buf);
+            }
             GraphInspectorFocus::NodeEdges { node_id } => {
                 self.render_node_edges_view(&inspection, node_id, area, buf);
             }
@@ -187,12 +190,25 @@ impl GraphInspectorScreenWidget<'_> {
             .iter()
             .find(|n| n.node_id == node_id);
 
-        let connected_edges: Vec<_> = inspection
+        let mut connected_edges: Vec<_> = inspection
             .visualization
             .edges
             .iter()
             .filter(|e| e.from_id == node_id || e.to_id == node_id)
             .collect();
+        connected_edges.sort_by(|a, b| {
+            let a_key = if a.from_id == node_id {
+                (&a.to_id, &a.label, &a.semantic_kind)
+            } else {
+                (&a.from_id, &a.label, &a.semantic_kind)
+            };
+            let b_key = if b.from_id == node_id {
+                (&b.to_id, &b.label, &b.semantic_kind)
+            } else {
+                (&b.from_id, &b.label, &b.semantic_kind)
+            };
+            a_key.cmp(&b_key)
+        });
 
         render_node_detail(node, &connected_edges, node_id, rows[1], buf);
     }
@@ -226,6 +242,45 @@ impl GraphInspectorScreenWidget<'_> {
             &connected_edges,
             &inspection.visualization.nodes,
             self.app.graph_inspector_cursor,
+            rows[1],
+            buf,
+        );
+    }
+
+    fn render_node_subgraph_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        node_id: &str,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let rows = Layout::vertical([Constraint::Length(4), Constraint::Min(8)]).split(area);
+
+        render_header(
+            inspection,
+            self.app.show_graph_recommendations,
+            rows[0],
+            buf,
+            false,
+        );
+
+        let node = inspection
+            .visualization
+            .nodes
+            .iter()
+            .find(|n| n.node_id == node_id);
+
+        let connected_edges: Vec<_> = inspection
+            .visualization
+            .edges
+            .iter()
+            .filter(|e| e.from_id == node_id || e.to_id == node_id)
+            .collect();
+
+        render_local_subgraph(
+            node,
+            &connected_edges,
+            &inspection.visualization.nodes,
             rows[1],
             buf,
         );
@@ -1006,6 +1061,367 @@ fn render_semantic_kind_counts(counts: &HashMap<String, usize>, area: Rect, buf:
         .render(inner, buf);
 }
 
+fn render_local_subgraph(
+    node: Option<&amlich_core::semantic_graph::VisualizationNode>,
+    connected_edges: &[&amlich_core::semantic_graph::VisualizationEdge],
+    all_nodes: &[amlich_core::semantic_graph::VisualizationNode],
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let title = format!(
+        " Local Subgraph: {} ",
+        truncate_label(node.map(|n| n.node_id.as_str()).unwrap_or("(missing)"), 28)
+    );
+    let block = Block::default()
+        .title(title.as_str())
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(node) = node else {
+        Paragraph::new(vec![Line::from(Span::styled(
+            "  Node không tìm thấy nên không thể dựng local subgraph.",
+            Style::default().fg(Color::Red),
+        ))])
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+        return;
+    };
+
+    let max_neighbors = if inner.width >= 110 {
+        4
+    } else if inner.width >= 84 {
+        3
+    } else {
+        2
+    };
+
+    let mut incoming = Vec::new();
+    let mut outgoing = Vec::new();
+    let mut truncated_incoming = 0usize;
+    let mut truncated_outgoing = 0usize;
+
+    for edge in connected_edges {
+        let (is_outgoing, neighbor_id) = if edge.from_id == node.node_id {
+            (true, edge.to_id.as_str())
+        } else {
+            (false, edge.from_id.as_str())
+        };
+        let neighbor = all_nodes
+            .iter()
+            .find(|candidate| candidate.node_id == neighbor_id);
+        let entry = LocalNeighborEntry {
+            edge,
+            neighbor_id,
+            neighbor,
+            semantic_marker: semantic_marker(
+                neighbor.map(|item| item.semantic_kind.as_str()),
+                neighbor.and_then(|item| item.shape_hint.as_deref()),
+                neighbor.and_then(|item| item.severity.as_deref()),
+            ),
+        };
+
+        if is_outgoing {
+            if outgoing.len() < max_neighbors {
+                outgoing.push(entry);
+            } else {
+                truncated_outgoing += 1;
+            }
+        } else if incoming.len() < max_neighbors {
+            incoming.push(entry);
+        } else {
+            truncated_incoming += 1;
+        }
+    }
+
+    let compact = inner.width < 84;
+    let lines = if compact {
+        render_compact_local_subgraph_lines(
+            node,
+            &incoming,
+            &outgoing,
+            truncated_incoming,
+            truncated_outgoing,
+        )
+    } else {
+        render_column_local_subgraph_lines(
+            node,
+            &incoming,
+            &outgoing,
+            truncated_incoming,
+            truncated_outgoing,
+            inner.width as usize,
+        )
+    };
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: false })
+        .render(inner, buf);
+}
+
+#[derive(Clone, Copy)]
+struct LocalNeighborEntry<'a> {
+    edge: &'a amlich_core::semantic_graph::VisualizationEdge,
+    neighbor_id: &'a str,
+    neighbor: Option<&'a amlich_core::semantic_graph::VisualizationNode>,
+    semantic_marker: &'static str,
+}
+
+fn render_compact_local_subgraph_lines(
+    node: &amlich_core::semantic_graph::VisualizationNode,
+    incoming: &[LocalNeighborEntry<'_>],
+    outgoing: &[LocalNeighborEntry<'_>],
+    truncated_incoming: usize,
+    truncated_outgoing: usize,
+) -> Vec<Line<'static>> {
+    let mut lines = vec![
+        Line::from(vec![Span::styled(
+            format!(
+                "  [FOCAL {}] {}",
+                semantic_marker(
+                    Some(node.semantic_kind.as_str()),
+                    node.shape_hint.as_deref(),
+                    node.severity.as_deref()
+                ),
+                truncate_label(&node.label, 42)
+            ),
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD),
+        )]),
+        Line::from(vec![Span::styled(
+            format!(
+                "  {}  {}  {}",
+                truncate_label(&node.node_id, 24),
+                truncate_label(&node.semantic_kind, 18),
+                truncate_label(&node.cluster, 16)
+            ),
+            Style::default().fg(Color::DarkGray),
+        )]),
+        Line::from(""),
+    ];
+
+    lines.push(Line::from(vec![Span::styled(
+        "  Incoming",
+        Style::default()
+            .fg(Color::Magenta)
+            .add_modifier(Modifier::BOLD),
+    )]));
+    push_neighbor_list(&mut lines, incoming, false);
+    if truncated_incoming > 0 {
+        lines.push(Line::from(vec![Span::styled(
+            format!("    ... +{} incoming edges", truncated_incoming),
+            Style::default().fg(Color::DarkGray),
+        )]));
+    }
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(vec![Span::styled(
+        "  Outgoing",
+        Style::default()
+            .fg(Color::Green)
+            .add_modifier(Modifier::BOLD),
+    )]));
+    push_neighbor_list(&mut lines, outgoing, true);
+    if truncated_outgoing > 0 {
+        lines.push(Line::from(vec![Span::styled(
+            format!("    ... +{} outgoing edges", truncated_outgoing),
+            Style::default().fg(Color::DarkGray),
+        )]));
+    }
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(vec![Span::styled(
+        "  Enter/l: xem edge list  Esc/h: quay lại node detail",
+        Style::default().fg(Color::DarkGray),
+    )]));
+    lines
+}
+
+fn render_column_local_subgraph_lines(
+    node: &amlich_core::semantic_graph::VisualizationNode,
+    incoming: &[LocalNeighborEntry<'_>],
+    outgoing: &[LocalNeighborEntry<'_>],
+    truncated_incoming: usize,
+    truncated_outgoing: usize,
+    width: usize,
+) -> Vec<Line<'static>> {
+    let center_width = 28usize.min(width.saturating_sub(24));
+    let side_width = width.saturating_sub(center_width + 6) / 2;
+    let row_count = incoming.len().max(outgoing.len()).max(1);
+    let mut lines = vec![
+        Line::from(vec![Span::styled(
+            format!(
+                "  Legend: [in] {:<14} [FOCAL {}] {:<18} [out] {:<14}",
+                "incoming",
+                semantic_marker(
+                    Some(node.semantic_kind.as_str()),
+                    node.shape_hint.as_deref(),
+                    node.severity.as_deref()
+                ),
+                truncate_label(&node.label, 18),
+                "outgoing"
+            ),
+            Style::default().fg(Color::DarkGray),
+        )]),
+        Line::from(""),
+    ];
+
+    for row in 0..row_count {
+        let left = incoming
+            .get(row)
+            .map(|entry| format_neighbor_cell(entry, false, side_width))
+            .unwrap_or_else(|| " ".repeat(side_width));
+        let center = if row == row_count / 2 {
+            format!(
+                "[FOCAL {}] {:<width$}",
+                semantic_marker(
+                    Some(node.semantic_kind.as_str()),
+                    node.shape_hint.as_deref(),
+                    node.severity.as_deref()
+                ),
+                truncate_label(&node.label, center_width.saturating_sub(11)),
+                width = center_width
+            )
+        } else if row == (row_count / 2).saturating_add(1) {
+            format!(
+                "{:<width$}",
+                format!(
+                    "{}  {}",
+                    truncate_label(&node.node_id, center_width / 2),
+                    truncate_label(&node.semantic_kind, center_width / 2)
+                ),
+                width = center_width
+            )
+        } else {
+            " ".repeat(center_width)
+        };
+        let right = outgoing
+            .get(row)
+            .map(|entry| format_neighbor_cell(entry, true, side_width))
+            .unwrap_or_else(|| " ".repeat(side_width));
+        let connector_left = if incoming.get(row).is_some() {
+            " -> "
+        } else {
+            "    "
+        };
+        let connector_right = if outgoing.get(row).is_some() {
+            " -> "
+        } else {
+            "    "
+        };
+
+        lines.push(Line::from(
+            left + connector_left + &center + connector_right + &right,
+        ));
+    }
+
+    if truncated_incoming > 0 || truncated_outgoing > 0 {
+        lines.push(Line::from(""));
+        let mut extras = Vec::new();
+        if truncated_incoming > 0 {
+            extras.push(format!("+{} incoming", truncated_incoming));
+        }
+        if truncated_outgoing > 0 {
+            extras.push(format!("+{} outgoing", truncated_outgoing));
+        }
+        lines.push(Line::from(vec![Span::styled(
+            format!("  Hidden for stability: {}", extras.join("  ")),
+            Style::default().fg(Color::DarkGray),
+        )]));
+    }
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(vec![Span::styled(
+        "  Edge markers use neighbor kind/shape/severity. Enter/l opens the full edge list.",
+        Style::default().fg(Color::DarkGray),
+    )]));
+    lines
+}
+
+fn push_neighbor_list(
+    lines: &mut Vec<Line<'static>>,
+    entries: &[LocalNeighborEntry<'_>],
+    is_outgoing: bool,
+) {
+    if entries.is_empty() {
+        lines.push(Line::from(vec![Span::styled(
+            "    (none)",
+            Style::default().fg(Color::DarkGray),
+        )]));
+        return;
+    }
+
+    for entry in entries {
+        let neighbor_label = entry
+            .neighbor
+            .map(|item| truncate_label(&item.label, 26))
+            .unwrap_or_else(|| truncate_label(entry.neighbor_id, 26));
+        let dir = if is_outgoing { "->" } else { "<-" };
+        lines.push(Line::from(vec![
+            Span::styled(
+                format!("    [{}] {} {}", entry.semantic_marker, dir, neighbor_label),
+                Style::default().fg(Color::White),
+            ),
+            Span::styled(
+                format!("  {}", truncate_label(&entry.edge.label, 18)),
+                Style::default().fg(if is_outgoing {
+                    Color::Green
+                } else {
+                    Color::Magenta
+                }),
+            ),
+        ]));
+        lines.push(Line::from(vec![Span::styled(
+            format!(
+                "       {}  {}",
+                truncate_label(entry.neighbor_id, 24),
+                truncate_label(&entry.edge.semantic_kind, 16)
+            ),
+            Style::default().fg(Color::DarkGray),
+        )]));
+    }
+}
+
+fn format_neighbor_cell(entry: &LocalNeighborEntry<'_>, is_outgoing: bool, width: usize) -> String {
+    let arrow = if is_outgoing { "out" } else { "in " };
+    let label = entry
+        .neighbor
+        .map(|item| truncate_label(&item.label, width.saturating_sub(14)))
+        .unwrap_or_else(|| truncate_label(entry.neighbor_id, width.saturating_sub(14)));
+    let edge = truncate_label(&entry.edge.label, 12);
+    format!(
+        "{:<width$}",
+        format!("[{} {}] {} {}", arrow, entry.semantic_marker, label, edge),
+        width = width
+    )
+}
+
+fn semantic_marker(
+    semantic_kind: Option<&str>,
+    shape_hint: Option<&str>,
+    severity: Option<&str>,
+) -> &'static str {
+    match severity {
+        Some("critical") => "!!",
+        Some("caution") => "!",
+        Some("favorable") | Some("positive") => "+",
+        _ => match shape_hint {
+            Some("diamond") => "<>",
+            Some("hexagon") => "{6}",
+            Some("ellipse") => "()",
+            Some("box") => "[]",
+            _ => match semantic_kind.unwrap_or_default() {
+                kind if kind.contains("recommendation") => "<>",
+                kind if kind.contains("activity") => "[]",
+                kind if kind.contains("relation") || kind.contains("signal") => "()",
+                _ => "..",
+            },
+        },
+    }
+}
+
 fn render_severity_counts(counts: &HashMap<String, usize>, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
         .title(" Severity Counts ")
@@ -1188,10 +1604,7 @@ fn render_reasoning_lens_entries(
                     format!("{:<12}", truncate_label(&entry.kind, 12)),
                     Style::default().fg(kind_color),
                 ),
-                Span::styled(
-                    format!("{:<36}", truncate_label(&entry.label, 36)),
-                    style,
-                ),
+                Span::styled(format!("{:<36}", truncate_label(&entry.label, 36)), style),
             ]));
 
             if selected && !entry.provenance.is_empty() {
@@ -1249,7 +1662,11 @@ fn render_recommendation_lens_entries(
             } else {
                 Color::Red
             };
-            let hard_stop_marker = if entry.is_hard_stop { " [KỶ MẠNH]" } else { "" };
+            let hard_stop_marker = if entry.is_hard_stop {
+                " [KỶ MẠNH]"
+            } else {
+                ""
+            };
 
             lines.push(Line::from(vec![
                 Span::styled(format!("{} ", marker), style),
@@ -1259,7 +1676,11 @@ fn render_recommendation_lens_entries(
                 ),
                 Span::raw(" "),
                 Span::styled(
-                    format!("{}{}", truncate_label(&entry.activity, 20), hard_stop_marker),
+                    format!(
+                        "{}{}",
+                        truncate_label(&entry.activity, 20),
+                        hard_stop_marker
+                    ),
                     style,
                 ),
             ]));
@@ -1348,10 +1769,7 @@ fn render_convergence_lens_entries(
                     format!("{:<14}", truncate_label(&entry.kind, 14)),
                     Style::default().fg(kind_color),
                 ),
-                Span::styled(
-                    format!("{:<32}", truncate_label(&entry.label, 32)),
-                    style,
-                ),
+                Span::styled(format!("{:<32}", truncate_label(&entry.label, 32)), style),
                 if !entry.activity.is_empty() {
                     Span::styled(
                         format!(" → {}", truncate_label(&entry.activity, 16)),
@@ -1598,5 +2016,134 @@ mod tests {
             .join("\n");
 
         assert!(text.contains("Không có provenance cho node này."));
+    }
+
+    #[test]
+    fn render_local_subgraph_shows_focal_and_directional_neighbors() {
+        let node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:focal".to_string(),
+            label: "Focal Node".to_string(),
+            cluster: "reasoning".to_string(),
+            semantic_kind: "recommendation_hit".to_string(),
+            severity: Some("caution".to_string()),
+            provenance: vec![],
+            shape_hint: Some("diamond".to_string()),
+        };
+        let incoming_node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:source".to_string(),
+            label: "Source Node".to_string(),
+            cluster: "snapshot".to_string(),
+            semantic_kind: "day_snapshot".to_string(),
+            severity: None,
+            provenance: vec![],
+            shape_hint: Some("box".to_string()),
+        };
+        let outgoing_node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:target".to_string(),
+            label: "Target Activity".to_string(),
+            cluster: "recommendation".to_string(),
+            semantic_kind: "activity".to_string(),
+            severity: Some("favorable".to_string()),
+            provenance: vec![],
+            shape_hint: Some("box".to_string()),
+        };
+        let incoming_edge = amlich_core::semantic_graph::VisualizationEdge {
+            edge_id: "edge:in".to_string(),
+            from_id: incoming_node.node_id.clone(),
+            to_id: node.node_id.clone(),
+            label: "supports".to_string(),
+            semantic_kind: "support".to_string(),
+            weight: 1,
+        };
+        let outgoing_edge = amlich_core::semantic_graph::VisualizationEdge {
+            edge_id: "edge:out".to_string(),
+            from_id: node.node_id.clone(),
+            to_id: outgoing_node.node_id.clone(),
+            label: "targets_activity".to_string(),
+            semantic_kind: "targets_activity".to_string(),
+            weight: 2,
+        };
+        let area = Rect::new(0, 0, 120, 20);
+        let mut buf = Buffer::empty(area);
+
+        render_local_subgraph(
+            Some(&node),
+            &[&incoming_edge, &outgoing_edge],
+            &[node.clone(), incoming_node, outgoing_node],
+            area,
+            &mut buf,
+        );
+
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(text.contains("Local Subgraph"));
+        assert!(text.contains("[FOCAL !] Focal Node"));
+        assert!(text.contains("Source Node"));
+        assert!(text.contains("Target Activity"));
+        assert!(text.contains("Enter/l opens the full edge list."));
+    }
+
+    #[test]
+    fn render_local_subgraph_uses_compact_layout_on_narrow_width() {
+        let node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:focal".to_string(),
+            label: "Focal Node".to_string(),
+            cluster: "reasoning".to_string(),
+            semantic_kind: "recommendation_hit".to_string(),
+            severity: None,
+            provenance: vec![],
+            shape_hint: Some("diamond".to_string()),
+        };
+        let outgoing_node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:target".to_string(),
+            label: "Target Activity".to_string(),
+            cluster: "recommendation".to_string(),
+            semantic_kind: "activity".to_string(),
+            severity: None,
+            provenance: vec![],
+            shape_hint: Some("box".to_string()),
+        };
+        let outgoing_edge = amlich_core::semantic_graph::VisualizationEdge {
+            edge_id: "edge:out".to_string(),
+            from_id: node.node_id.clone(),
+            to_id: outgoing_node.node_id.clone(),
+            label: "targets_activity".to_string(),
+            semantic_kind: "targets_activity".to_string(),
+            weight: 2,
+        };
+        let area = Rect::new(0, 0, 72, 16);
+        let mut buf = Buffer::empty(area);
+
+        render_local_subgraph(
+            Some(&node),
+            &[&outgoing_edge],
+            &[node.clone(), outgoing_node],
+            area,
+            &mut buf,
+        );
+
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(text.contains("Incoming"));
+        assert!(text.contains("Outgoing"));
+        assert!(text.contains("Enter/l: xem edge list"));
     }
 }

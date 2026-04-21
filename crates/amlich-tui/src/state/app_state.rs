@@ -24,6 +24,7 @@ pub enum GraphInspectorFocus {
     ClusterList,
     ClusterNodes { cluster: String },
     NodeDetail { node_id: String },
+    NodeSubgraph { node_id: String },
     NodeEdges { node_id: String },
     Search,
     ReasoningLens,
@@ -1195,6 +1196,14 @@ impl AppState {
                     GraphInspectorFocus::NodeDetail { node_id } => node_id.clone(),
                     _ => unreachable!(),
                 };
+                self.graph_inspector_focus = GraphInspectorFocus::NodeSubgraph { node_id };
+                self.graph_inspector_cursor = 0;
+            }
+            GraphInspectorFocus::NodeSubgraph { .. } => {
+                let node_id = match &self.graph_inspector_focus {
+                    GraphInspectorFocus::NodeSubgraph { node_id } => node_id.clone(),
+                    _ => unreachable!(),
+                };
                 self.graph_inspector_focus = GraphInspectorFocus::NodeEdges { node_id };
                 self.graph_inspector_cursor = 0;
             }
@@ -1268,9 +1277,14 @@ impl AppState {
                     self.graph_inspector_cursor = 0;
                 }
             }
-            GraphInspectorFocus::NodeEdges { node_id } => {
+            GraphInspectorFocus::NodeSubgraph { node_id } => {
                 let node_id = node_id.clone();
                 self.graph_inspector_focus = GraphInspectorFocus::NodeDetail { node_id };
+                self.graph_inspector_cursor = 0;
+            }
+            GraphInspectorFocus::NodeEdges { node_id } => {
+                let node_id = node_id.clone();
+                self.graph_inspector_focus = GraphInspectorFocus::NodeSubgraph { node_id };
                 self.graph_inspector_cursor = 0;
             }
             GraphInspectorFocus::Search => {
@@ -1362,7 +1376,8 @@ impl AppState {
                     }
                 }
                 "star" => {
-                    if node.label.contains("cát tinh") || node.label.contains("Nhị thập bát tú") {
+                    if node.label.contains("cát tinh") || node.label.contains("Nhị thập bát tú")
+                    {
                         "support"
                     } else if node.label.contains("sát tinh") {
                         "resistance"
@@ -1424,23 +1439,13 @@ impl AppState {
                     .find(|n| n.node_id == edge.to_id);
 
                 if let (Some(from), Some(to)) = (from_node, to_node) {
-                    let is_favor = from
-                        .provenance
-                        .iter()
-                        .any(|p| p.source_family == amlich_core::ReasoningEvidenceSourceFamily::AlmanacRule);
+                    let is_favor = from.provenance.iter().any(|p| {
+                        p.source_family == amlich_core::ReasoningEvidenceSourceFamily::AlmanacRule
+                    });
 
-                    let is_hard_stop = from
-                        .label
-                        .to_lowercase()
-                        .contains("kỵ mạnh")
-                        || from
-                            .label
-                            .to_lowercase()
-                            .contains("tam nương")
-                        || from
-                            .label
-                            .to_lowercase()
-                            .contains("kiêng");
+                    let is_hard_stop = from.label.to_lowercase().contains("kỵ mạnh")
+                        || from.label.to_lowercase().contains("tam nương")
+                        || from.label.to_lowercase().contains("kiêng");
 
                     let source = from
                         .provenance
@@ -2459,6 +2464,60 @@ mod tests {
         let mut app = sample_app_state();
         app.bundle = Some(sample_bundle());
         app
+    }
+
+    #[test]
+    fn graph_inspector_drill_down_enters_subgraph_before_edges() {
+        let mut app = sample_app_state();
+        app.active_view = ActiveView::GraphInspector;
+        app.graph_inspector_focus = GraphInspectorFocus::NodeDetail {
+            node_id: "snapshot:day".to_string(),
+        };
+
+        app.graph_inspector_drill_down();
+
+        assert_eq!(
+            app.graph_inspector_focus,
+            GraphInspectorFocus::NodeSubgraph {
+                node_id: "snapshot:day".to_string()
+            }
+        );
+
+        app.graph_inspector_drill_down();
+
+        assert_eq!(
+            app.graph_inspector_focus,
+            GraphInspectorFocus::NodeEdges {
+                node_id: "snapshot:day".to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn graph_inspector_backtracks_from_edges_to_subgraph_to_detail() {
+        let mut app = sample_app_state();
+        app.active_view = ActiveView::GraphInspector;
+        app.graph_inspector_focus = GraphInspectorFocus::NodeEdges {
+            node_id: "snapshot:day".to_string(),
+        };
+
+        app.graph_inspector_go_back();
+
+        assert_eq!(
+            app.graph_inspector_focus,
+            GraphInspectorFocus::NodeSubgraph {
+                node_id: "snapshot:day".to_string()
+            }
+        );
+
+        app.graph_inspector_go_back();
+
+        assert_eq!(
+            app.graph_inspector_focus,
+            GraphInspectorFocus::NodeDetail {
+                node_id: "snapshot:day".to_string()
+            }
+        );
     }
 
     #[test]
