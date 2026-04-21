@@ -1,3 +1,4 @@
+use crate::reasoning::ReasoningEvidenceEnvelope;
 use crate::semantic_graph::{NodeConcept, SemanticGraph};
 use serde::{Deserialize, Serialize};
 
@@ -10,6 +11,8 @@ pub struct VisualizationNode {
     pub cluster: String,
     pub semantic_kind: String,
     pub severity: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub provenance: Vec<ReasoningEvidenceEnvelope>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub shape_hint: Option<String>,
 }
@@ -45,6 +48,11 @@ impl VisualizationGraph {
                 cluster,
                 semantic_kind,
                 severity: node.severity.clone(),
+                provenance: node
+                    .provenance
+                    .iter()
+                    .map(|entry| entry.to_reasoning_evidence())
+                    .collect(),
                 shape_hint,
             });
         }
@@ -111,13 +119,14 @@ fn shape_hint_for_node(concept: NodeConcept) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::almanac::recommendation::{
+        collect_recommendation_hits, synthesize_daily_recommendations,
+        RecommendationSynthesisContext,
+    };
+    use crate::calculate_day_snapshot;
     use crate::semantic_graph::builders::{
         build_day_snapshot_graph, build_recommendation_evidence_graph_connected,
     };
-    use crate::almanac::recommendation::{
-        collect_recommendation_hits, synthesize_daily_recommendations, RecommendationSynthesisContext,
-    };
-    use crate::calculate_day_snapshot;
 
     #[test]
     fn visualization_node_has_semantic_kind() {
@@ -147,6 +156,18 @@ mod tests {
                 node.node_id
             );
         }
+    }
+
+    #[test]
+    fn visualization_node_preserves_provenance() {
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
+        let graph = build_day_snapshot_graph(&snapshot);
+        let viz = VisualizationGraph::from_semantic_graph(&graph);
+
+        assert!(
+            viz.nodes.iter().any(|node| !node.provenance.is_empty()),
+            "at least one visualization node should keep provenance"
+        );
     }
 
     #[test]
@@ -187,7 +208,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -231,10 +255,7 @@ mod tests {
         let viz = VisualizationGraph::from_semantic_graph(&graph);
 
         let has_shape_hint = viz.nodes.iter().any(|n| n.shape_hint.is_some());
-        assert!(
-            has_shape_hint,
-            "some nodes should have shape hints"
-        );
+        assert!(has_shape_hint, "some nodes should have shape hints");
     }
 
     #[test]
@@ -255,7 +276,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -263,7 +287,8 @@ mod tests {
 
         let viz = VisualizationGraph::from_semantic_graph(&connected_graph);
 
-        let clusters: std::collections::HashSet<_> = viz.nodes.iter().map(|n| n.cluster.clone()).collect();
+        let clusters: std::collections::HashSet<_> =
+            viz.nodes.iter().map(|n| n.cluster.clone()).collect();
 
         assert!(
             clusters.contains(&"day-core".to_string()),

@@ -75,7 +75,13 @@ impl GraphInspectorScreenWidget<'_> {
         ])
         .split(area);
 
-        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, true);
+        render_header(
+            inspection,
+            self.app.show_graph_recommendations,
+            rows[0],
+            buf,
+            true,
+        );
         render_summary(&inspection.summary, rows[1], buf);
 
         let bottom = if self.mode == LayoutMode::Small {
@@ -100,13 +106,15 @@ impl GraphInspectorScreenWidget<'_> {
         area: Rect,
         buf: &mut Buffer,
     ) {
-        let rows = Layout::vertical([
-            Constraint::Length(4),
-            Constraint::Min(4),
-        ])
-        .split(area);
+        let rows = Layout::vertical([Constraint::Length(4), Constraint::Min(4)]).split(area);
 
-        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, false);
+        render_header(
+            inspection,
+            self.app.show_graph_recommendations,
+            rows[0],
+            buf,
+            false,
+        );
         render_selectable_cluster_list(
             &inspection.cluster_counts,
             self.app.graph_inspector_cursor,
@@ -122,11 +130,7 @@ impl GraphInspectorScreenWidget<'_> {
         area: Rect,
         buf: &mut Buffer,
     ) {
-        let rows = Layout::vertical([
-            Constraint::Length(4),
-            Constraint::Min(4),
-        ])
-        .split(area);
+        let rows = Layout::vertical([Constraint::Length(4), Constraint::Min(4)]).split(area);
 
         let nodes: Vec<_> = inspection
             .visualization
@@ -135,7 +139,13 @@ impl GraphInspectorScreenWidget<'_> {
             .filter(|n| n.cluster == cluster)
             .collect();
 
-        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, false);
+        render_header(
+            inspection,
+            self.app.show_graph_recommendations,
+            rows[0],
+            buf,
+            false,
+        );
         render_selectable_node_list(
             cluster,
             &nodes,
@@ -152,13 +162,15 @@ impl GraphInspectorScreenWidget<'_> {
         area: Rect,
         buf: &mut Buffer,
     ) {
-        let rows = Layout::vertical([
-            Constraint::Length(4),
-            Constraint::Min(4),
-        ])
-        .split(area);
+        let rows = Layout::vertical([Constraint::Length(4), Constraint::Min(4)]).split(area);
 
-        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, false);
+        render_header(
+            inspection,
+            self.app.show_graph_recommendations,
+            rows[0],
+            buf,
+            false,
+        );
 
         let node = inspection
             .visualization
@@ -173,13 +185,7 @@ impl GraphInspectorScreenWidget<'_> {
             .filter(|e| e.from_id == node_id || e.to_id == node_id)
             .collect();
 
-        render_node_detail(
-            node,
-            &connected_edges,
-            node_id,
-            rows[1],
-            buf,
-        );
+        render_node_detail(node, &connected_edges, node_id, rows[1], buf);
     }
 
     fn render_node_edges_view(
@@ -189,13 +195,15 @@ impl GraphInspectorScreenWidget<'_> {
         area: Rect,
         buf: &mut Buffer,
     ) {
-        let rows = Layout::vertical([
-            Constraint::Length(4),
-            Constraint::Min(4),
-        ])
-        .split(area);
+        let rows = Layout::vertical([Constraint::Length(4), Constraint::Min(4)]).split(area);
 
-        render_header(inspection, self.app.show_graph_recommendations, rows[0], buf, false);
+        render_header(
+            inspection,
+            self.app.show_graph_recommendations,
+            rows[0],
+            buf,
+            false,
+        );
 
         let connected_edges: Vec<_> = inspection
             .visualization
@@ -219,17 +227,9 @@ impl GraphInspectorScreenWidget<'_> {
         area: Rect,
         buf: &mut Buffer,
     ) {
-        let rows = Layout::vertical([
-            Constraint::Length(3),
-            Constraint::Min(4),
-        ])
-        .split(area);
+        let rows = Layout::vertical([Constraint::Length(3), Constraint::Min(4)]).split(area);
 
-        render_search_header(
-            &self.app.graph_inspector_search_query,
-            rows[0],
-            buf,
-        );
+        render_search_header(&self.app.graph_inspector_search_query, rows[0], buf);
 
         let results = self.app.graph_inspector_search_results(inspection);
         render_search_result_list(
@@ -251,12 +251,14 @@ fn render_search_header(query: &str, area: Rect, buf: &mut Buffer) {
     block.render(area, buf);
 
     let cursor_char = "▎";
-    let display = format!("  Tìm: {}{}  (Esc: quay lại  Enter: chọn  ↑↓: di chuyển)", query, cursor_char);
-    let lines = vec![
-        Line::from(vec![
-            Span::styled(&display, Style::default().fg(Color::Yellow)),
-        ]),
-    ];
+    let display = format!(
+        "  Tìm: {}{}  (Esc: quay lại  Enter: chọn  ↑↓: di chuyển)",
+        query, cursor_char
+    );
+    let lines = vec![Line::from(vec![Span::styled(
+        &display,
+        Style::default().fg(Color::Yellow),
+    )])];
 
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })
@@ -273,7 +275,11 @@ fn render_search_result_list(
     let title = if query.is_empty() {
         " Kết Quả — Gõ từ khóa để tìm node ".to_string()
     } else {
-        format!(" Kết Quả: {} kết quả cho '{}' ", results.len(), truncate_label(query, 30))
+        format!(
+            " Kết Quả: {} kết quả cho '{}' ",
+            results.len(),
+            truncate_label(query, 30)
+        )
     };
     let block = Block::default()
         .title(title.as_str())
@@ -317,22 +323,13 @@ fn render_search_result_list(
             };
             lines.push(Line::from(vec![
                 Span::styled(format!("{} ", marker), style),
-                Span::styled(
-                    format!("{:<24}", truncate_label(&node.node_id, 24)),
-                    style,
-                ),
-                Span::styled(
-                    format!("{:<18}", truncate_label(&node.label, 18)),
-                    style,
-                ),
+                Span::styled(format!("{:<24}", truncate_label(&node.node_id, 24)), style),
+                Span::styled(format!("{:<18}", truncate_label(&node.label, 18)), style),
                 Span::styled(
                     format!("{:<16}", truncate_label(&node.cluster, 16)),
                     cluster_style,
                 ),
-                Span::styled(
-                    truncate_label(&node.semantic_kind, 14),
-                    kind_style,
-                ),
+                Span::styled(truncate_label(&node.semantic_kind, 14), kind_style),
             ]));
         }
     }
@@ -393,17 +390,12 @@ fn render_header(
                     .add_modifier(Modifier::BOLD),
             ),
             Span::raw("   "),
-            Span::styled(
-                "[r] để bật/tắt",
-                Style::default().fg(Color::DarkGray),
-            ),
+            Span::styled("[r] để bật/tắt", Style::default().fg(Color::DarkGray)),
         ]),
-        Line::from(vec![
-            Span::styled(
-                format!("  {}", help_line),
-                Style::default().fg(Color::DarkGray),
-            ),
-        ]),
+        Line::from(vec![Span::styled(
+            format!("  {}", help_line),
+            Style::default().fg(Color::DarkGray),
+        )]),
     ];
 
     Paragraph::new(lines)
@@ -494,19 +486,14 @@ fn render_cluster_counts(counts: &HashMap<String, usize>, area: Rect, buf: &mut 
                 format!("{:<30}", truncate_label(cluster, 30)),
                 Style::default().fg(Color::White),
             ),
-            Span::styled(
-                format!("{:>5}", count),
-                Style::default().fg(Color::Yellow),
-            ),
+            Span::styled(format!("{:>5}", count), Style::default().fg(Color::Yellow)),
         ]));
     }
     if entries.len() > 12 {
-        lines.push(Line::from(vec![
-            Span::styled(
-                format!("  ... +{} more", entries.len() - 12),
-                Style::default().fg(Color::DarkGray),
-            ),
-        ]));
+        lines.push(Line::from(vec![Span::styled(
+            format!("  ... +{} more", entries.len() - 12),
+            Style::default().fg(Color::DarkGray),
+        )]));
     }
 
     if lines.is_empty() {
@@ -557,10 +544,7 @@ fn render_selectable_cluster_list(
         };
         lines.push(Line::from(vec![
             Span::styled(format!("{} ", marker), style),
-            Span::styled(
-                format!("{:<36}", truncate_label(cluster, 36)),
-                style,
-            ),
+            Span::styled(format!("{:<36}", truncate_label(cluster, 36)), style),
             Span::styled(format!("{:>5}", count), count_style),
         ]));
     }
@@ -610,18 +594,9 @@ fn render_selectable_node_list(
         };
         lines.push(Line::from(vec![
             Span::styled(format!("{} ", marker), style),
-            Span::styled(
-                format!("{:<28}", truncate_label(&node.node_id, 28)),
-                style,
-            ),
-            Span::styled(
-                format!("{:<20}", truncate_label(&node.label, 20)),
-                style,
-            ),
-            Span::styled(
-                truncate_label(&node.semantic_kind, 14),
-                kind_style,
-            ),
+            Span::styled(format!("{:<28}", truncate_label(&node.node_id, 28)), style),
+            Span::styled(format!("{:<20}", truncate_label(&node.label, 20)), style),
+            Span::styled(truncate_label(&node.semantic_kind, 14), kind_style),
         ]));
     }
 
@@ -737,22 +712,72 @@ fn render_node_detail(
         ]));
     }
     if edge_count > 10 {
-        lines.push(Line::from(vec![
-            Span::styled(
-                format!("    ... +{} more edges", edge_count - 10),
-                Style::default().fg(Color::DarkGray),
-            ),
-        ]));
+        lines.push(Line::from(vec![Span::styled(
+            format!("    ... +{} more edges", edge_count - 10),
+            Style::default().fg(Color::DarkGray),
+        )]));
     }
 
     if edge_count > 0 {
         lines.push(Line::from(""));
-        lines.push(Line::from(vec![
-            Span::styled(
-                "  Enter/l: xem chi tiết edges / nhảy sang node khác",
+        lines.push(Line::from(vec![Span::styled(
+            "  Enter/l: xem chi tiết edges / nhảy sang node khác",
+            Style::default().fg(Color::DarkGray),
+        )]));
+    }
+
+    lines.push(Line::from(""));
+    lines.push(Line::from(vec![Span::styled(
+        "  Provenance:",
+        Style::default().fg(Color::Cyan),
+    )]));
+
+    match node {
+        Some(n) if !n.provenance.is_empty() => {
+            for (idx, entry) in n.provenance.iter().enumerate() {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        format!("    [{}] family: ", idx + 1),
+                        Style::default().fg(Color::DarkGray),
+                    ),
+                    Span::styled(
+                        provenance_source_family_label(entry),
+                        Style::default().fg(Color::White),
+                    ),
+                ]));
+                lines.push(Line::from(vec![
+                    Span::styled("        source_id: ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(&entry.source_id, Style::default().fg(Color::White)),
+                ]));
+                lines.push(Line::from(vec![
+                    Span::styled("        method:    ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(&entry.method, Style::default().fg(Color::White)),
+                ]));
+                lines.push(Line::from(vec![
+                    Span::styled("        note:      ", Style::default().fg(Color::DarkGray)),
+                    Span::styled(
+                        entry.note.as_deref().unwrap_or("(none)"),
+                        if entry.note.is_some() {
+                            Style::default().fg(Color::White)
+                        } else {
+                            Style::default().fg(Color::DarkGray)
+                        },
+                    ),
+                ]));
+            }
+        }
+        Some(_) => {
+            lines.push(Line::from(vec![Span::styled(
+                "    Không có provenance cho node này.",
                 Style::default().fg(Color::DarkGray),
-            ),
-        ]));
+            )]));
+        }
+        None => {
+            lines.push(Line::from(vec![Span::styled(
+                "    Không có provenance vì node không tồn tại.",
+                Style::default().fg(Color::DarkGray),
+            )]));
+        }
     }
 
     Paragraph::new(lines)
@@ -824,10 +849,7 @@ fn render_selectable_edge_list(
             Span::styled(format!("{} ", marker), style),
             Span::styled(direction, dir_style),
             Span::raw(" "),
-            Span::styled(
-                format!("{:<24}", truncate_label(other_id, 24)),
-                style,
-            ),
+            Span::styled(format!("{:<24}", truncate_label(other_id, 24)), style),
         ]));
 
         lines.push(Line::from(vec![
@@ -887,19 +909,14 @@ fn render_semantic_kind_counts(counts: &HashMap<String, usize>, area: Rect, buf:
                 format!("{:<30}", truncate_label(kind, 30)),
                 Style::default().fg(Color::White),
             ),
-            Span::styled(
-                format!("{:>5}", count),
-                Style::default().fg(Color::Yellow),
-            ),
+            Span::styled(format!("{:>5}", count), Style::default().fg(Color::Yellow)),
         ]));
     }
     if entries.len() > 12 {
-        lines.push(Line::from(vec![
-            Span::styled(
-                format!("  ... +{} more", entries.len() - 12),
-                Style::default().fg(Color::DarkGray),
-            ),
-        ]));
+        lines.push(Line::from(vec![Span::styled(
+            format!("  ... +{} more", entries.len() - 12),
+            Style::default().fg(Color::DarkGray),
+        )]));
     }
 
     if lines.is_empty() {
@@ -940,10 +957,7 @@ fn render_severity_counts(counts: &HashMap<String, usize>, area: Rect, buf: &mut
                 format!("{:<20}", truncate_label(severity, 20)),
                 Style::default().fg(color),
             ),
-            Span::styled(
-                format!("{:>5}", count),
-                Style::default().fg(Color::Yellow),
-            ),
+            Span::styled(format!("{:>5}", count), Style::default().fg(Color::Yellow)),
         ]));
     }
 
@@ -984,12 +998,10 @@ fn render_node_sample(
     }
     let remaining = inspection.visualization.nodes.len().saturating_sub(8);
     if remaining > 0 {
-        lines.push(Line::from(vec![
-            Span::styled(
-                format!("  ... +{} more nodes", remaining),
-                Style::default().fg(Color::DarkGray),
-            ),
-        ]));
+        lines.push(Line::from(vec![Span::styled(
+            format!("  ... +{} more nodes", remaining),
+            Style::default().fg(Color::DarkGray),
+        )]));
     }
 
     if lines.is_empty() {
@@ -1009,6 +1021,20 @@ fn truncate_label(s: &str, max_len: usize) -> String {
         s.to_string()
     } else {
         format!("{}…", &s[..max_len.saturating_sub(1)])
+    }
+}
+
+fn provenance_source_family_label(entry: &amlich_core::ReasoningEvidenceEnvelope) -> &'static str {
+    use amlich_core::ReasoningEvidenceSourceFamily as Family;
+
+    match entry.source_family {
+        Family::Snapshot => "snapshot",
+        Family::Interaction => "interaction",
+        Family::Bazi => "bazi",
+        Family::Axis => "axis",
+        Family::AlmanacRule => "almanac_rule",
+        Family::Insight => "insight",
+        Family::Derived => "derived",
     }
 }
 
@@ -1139,5 +1165,74 @@ mod tests {
         let text = render_text(&app);
 
         assert!(text.contains("BẬT"));
+    }
+
+    #[test]
+    fn render_node_detail_shows_provenance_fields() {
+        let node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:test".to_string(),
+            label: "Node Test".to_string(),
+            cluster: "reasoning".to_string(),
+            semantic_kind: "recommendation_hit".to_string(),
+            severity: Some("caution".to_string()),
+            provenance: vec![amlich_core::ReasoningEvidenceEnvelope {
+                source_family: amlich_core::ReasoningEvidenceSourceFamily::AlmanacRule,
+                source_id: "rule:demo".to_string(),
+                method: "derive_demo".to_string(),
+                note: Some("Example provenance note".to_string()),
+            }],
+            shape_hint: Some("diamond".to_string()),
+        };
+        let area = Rect::new(0, 0, 100, 30);
+        let mut buf = Buffer::empty(area);
+
+        render_node_detail(Some(&node), &[], "node:test", area, &mut buf);
+
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(text.contains("Provenance:"));
+        assert!(text.contains("family: almanac_rule"));
+        assert!(text.contains("source_id: rule:demo"));
+        assert!(text.contains("method:    derive_demo"));
+        assert!(text.contains("note:      Example provenance note"));
+    }
+
+    #[test]
+    fn render_node_detail_shows_absent_provenance_message() {
+        let node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:test".to_string(),
+            label: "Node Test".to_string(),
+            cluster: "reasoning".to_string(),
+            semantic_kind: "recommendation_hit".to_string(),
+            severity: None,
+            provenance: vec![],
+            shape_hint: None,
+        };
+        let area = Rect::new(0, 0, 100, 30);
+        let mut buf = Buffer::empty(area);
+
+        render_node_detail(Some(&node), &[], "node:test", area, &mut buf);
+
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(text.contains("Không có provenance cho node này."));
     }
 }
