@@ -56,6 +56,15 @@ impl Widget for GraphInspectorScreenWidget<'_> {
             GraphInspectorFocus::Search => {
                 self.render_search_view(&inspection, area, buf);
             }
+            GraphInspectorFocus::ReasoningLens => {
+                self.render_reasoning_lens_view(&inspection, area, buf);
+            }
+            GraphInspectorFocus::RecommendationLens => {
+                self.render_recommendation_lens_view(&inspection, area, buf);
+            }
+            GraphInspectorFocus::ConvergenceLens => {
+                self.render_convergence_lens_view(&inspection, area, buf);
+            }
         }
     }
 }
@@ -239,6 +248,72 @@ impl GraphInspectorScreenWidget<'_> {
             rows[1],
             buf,
         );
+    }
+
+    fn render_reasoning_lens_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let rows = Layout::vertical([Constraint::Length(4), Constraint::Min(6)]).split(area);
+
+        render_lens_header(
+            "Lý Giải (Reasoning Lens)",
+            self.app.graph_inspector_lens,
+            inspection.date.day,
+            inspection.date.month,
+            inspection.date.year,
+            rows[0],
+            buf,
+        );
+
+        let entries = self.app.reasoning_lens_entries(inspection);
+        render_reasoning_lens_entries(&entries, self.app.graph_inspector_cursor, rows[1], buf);
+    }
+
+    fn render_recommendation_lens_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let rows = Layout::vertical([Constraint::Length(4), Constraint::Min(6)]).split(area);
+
+        render_lens_header(
+            "Khuyến Nghị (Recommendation Lens)",
+            self.app.graph_inspector_lens,
+            inspection.date.day,
+            inspection.date.month,
+            inspection.date.year,
+            rows[0],
+            buf,
+        );
+
+        let entries = self.app.recommendation_lens_entries(inspection);
+        render_recommendation_lens_entries(&entries, self.app.graph_inspector_cursor, rows[1], buf);
+    }
+
+    fn render_convergence_lens_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let rows = Layout::vertical([Constraint::Length(4), Constraint::Min(6)]).split(area);
+
+        render_lens_header(
+            "Hội Tụ (Convergence Lens)",
+            self.app.graph_inspector_lens,
+            inspection.date.day,
+            inspection.date.month,
+            inspection.date.year,
+            rows[0],
+            buf,
+        );
+
+        let entries = self.app.convergence_lens_entries(inspection);
+        render_convergence_lens_entries(&entries, self.app.graph_inspector_cursor, rows[1], buf);
     }
 }
 
@@ -1024,6 +1099,294 @@ fn truncate_label(s: &str, max_len: usize) -> String {
     }
 }
 
+fn render_lens_header(
+    title: &str,
+    lens: crate::state::GraphInspectorLens,
+    day: i32,
+    month: i32,
+    year: i32,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(format!(" {} ", title))
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Magenta));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let lens_label = lens.label();
+    let help_line = "Tab: đổi lens  ←/→: đổi ngày  t: hôm nay  ↑↓: chọn  Esc: quay lại";
+
+    let lines = vec![
+        Line::from(vec![
+            Span::styled("  Ngày: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("{}/{}/{}", day, month, year),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::raw("   "),
+            Span::styled("Lens: ", Style::default().fg(Color::Magenta)),
+            Span::styled(lens_label, Style::default().fg(Color::White)),
+        ]),
+        Line::from(vec![Span::styled(
+            format!("  {}", help_line),
+            Style::default().fg(Color::DarkGray),
+        )]),
+    ];
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_reasoning_lens_entries(
+    entries: &[crate::state::ReasoningLensEntry],
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Reasoning Slice ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+
+    if entries.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Không có reasoning slice cho ngày này.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for (idx, entry) in entries.iter().enumerate() {
+            let selected = idx == cursor;
+            let marker = if selected { ">" } else { " " };
+            let style = if selected {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+            let kind_color = match entry.kind.as_str() {
+                "support" => Color::Green,
+                "resistance" => Color::Red,
+                "override" => Color::Magenta,
+                "conflict" => Color::Yellow,
+                "refinement" => Color::Cyan,
+                _ => Color::White,
+            };
+
+            lines.push(Line::from(vec![
+                Span::styled(format!("{} ", marker), style),
+                Span::styled(
+                    format!("{:<12}", truncate_label(&entry.kind, 12)),
+                    Style::default().fg(kind_color),
+                ),
+                Span::styled(
+                    format!("{:<36}", truncate_label(&entry.label, 36)),
+                    style,
+                ),
+            ]));
+
+            if selected && !entry.provenance.is_empty() {
+                for prov in entry.provenance.iter().take(3) {
+                    lines.push(Line::from(vec![
+                        Span::raw("     "),
+                        Span::styled(
+                            format!("[{:?}] {}", prov.source_family, prov.source_id),
+                            Style::default().fg(Color::DarkGray),
+                        ),
+                    ]));
+                }
+            }
+        }
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_recommendation_lens_entries(
+    entries: &[crate::state::RecommendationLensEntry],
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Recommendation Slice ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+
+    if entries.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Không có recommendation slice cho ngày này.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for (idx, entry) in entries.iter().enumerate() {
+            let selected = idx == cursor;
+            let marker = if selected { ">" } else { " " };
+            let style = if selected {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+            let direction_color = if entry.is_favor {
+                Color::Green
+            } else {
+                Color::Red
+            };
+            let hard_stop_marker = if entry.is_hard_stop { " [KỶ MẠNH]" } else { "" };
+
+            lines.push(Line::from(vec![
+                Span::styled(format!("{} ", marker), style),
+                Span::styled(
+                    format!("{}", if entry.is_favor { "NÊN" } else { "TRÁNH" }),
+                    Style::default().fg(direction_color),
+                ),
+                Span::raw(" "),
+                Span::styled(
+                    format!("{}{}", truncate_label(&entry.activity, 20), hard_stop_marker),
+                    style,
+                ),
+            ]));
+
+            if selected {
+                lines.push(Line::from(vec![
+                    Span::raw("     "),
+                    Span::styled(
+                        format!("{} ", truncate_label(&entry.reason, 40)),
+                        Style::default().fg(Color::DarkGray),
+                    ),
+                ]));
+
+                lines.push(Line::from(vec![
+                    Span::raw("     "),
+                    Span::styled(
+                        format!("source: {} ", entry.source),
+                        Style::default().fg(Color::DarkGray),
+                    ),
+                ]));
+
+                if !entry.provenance.is_empty() {
+                    lines.push(Line::from(vec![Span::styled(
+                        "     provenance:",
+                        Style::default().fg(Color::Cyan),
+                    )]));
+                    for prov in entry.provenance.iter().take(2) {
+                        lines.push(Line::from(vec![
+                            Span::raw("       "),
+                            Span::styled(
+                                format!("[{:?}] {}", prov.source_family, prov.source_id),
+                                Style::default().fg(Color::DarkGray),
+                            ),
+                        ]));
+                    }
+                }
+            }
+        }
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_convergence_lens_entries(
+    entries: &[crate::state::ConvergenceLensEntry],
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Convergence Slice ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+
+    if entries.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Không có convergence slice cho ngày này.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for (idx, entry) in entries.iter().enumerate() {
+            let selected = idx == cursor;
+            let marker = if selected { ">" } else { " " };
+            let style = if selected {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+            let kind_color = match entry.kind.as_str() {
+                "shared_fact" => Color::Magenta,
+                "rec_hit" => Color::Cyan,
+                _ => Color::White,
+            };
+
+            lines.push(Line::from(vec![
+                Span::styled(format!("{} ", marker), style),
+                Span::styled(
+                    format!("{:<14}", truncate_label(&entry.kind, 14)),
+                    Style::default().fg(kind_color),
+                ),
+                Span::styled(
+                    format!("{:<32}", truncate_label(&entry.label, 32)),
+                    style,
+                ),
+                if !entry.activity.is_empty() {
+                    Span::styled(
+                        format!(" → {}", truncate_label(&entry.activity, 16)),
+                        Style::default().fg(Color::DarkGray),
+                    )
+                } else {
+                    Span::raw("")
+                },
+            ]));
+
+            if selected {
+                if !entry.provenance.is_empty() {
+                    lines.push(Line::from(vec![Span::styled(
+                        "     provenance:",
+                        Style::default().fg(Color::Cyan),
+                    )]));
+                    for prov in entry.provenance.iter().take(3) {
+                        lines.push(Line::from(vec![
+                            Span::raw("       "),
+                            Span::styled(
+                                format!("[{:?}] {}", prov.source_family, prov.source_id),
+                                Style::default().fg(Color::DarkGray),
+                            ),
+                        ]));
+                    }
+                }
+            }
+        }
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
 fn provenance_source_family_label(entry: &amlich_core::ReasoningEvidenceEnvelope) -> &'static str {
     use amlich_core::ReasoningEvidenceSourceFamily as Family;
 
@@ -1118,6 +1481,7 @@ mod tests {
             graph_inspector_search_query: String::new(),
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
+            graph_inspector_lens: crate::state::GraphInspectorLens::General,
         }
     }
 

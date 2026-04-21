@@ -26,6 +26,9 @@ pub enum GraphInspectorFocus {
     NodeDetail { node_id: String },
     NodeEdges { node_id: String },
     Search,
+    ReasoningLens,
+    RecommendationLens,
+    ConvergenceLens,
 }
 
 impl Default for GraphInspectorFocus {
@@ -40,6 +43,43 @@ pub enum FocusLens {
     Planning,
     DayDetail,
     Personal,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum GraphInspectorLens {
+    General,
+    Reasoning,
+    Recommendation,
+    Convergence,
+}
+
+impl GraphInspectorLens {
+    pub fn next(&self) -> Self {
+        match self {
+            Self::General => Self::Reasoning,
+            Self::Reasoning => Self::Recommendation,
+            Self::Recommendation => Self::Convergence,
+            Self::Convergence => Self::General,
+        }
+    }
+
+    pub fn label(&self) -> &'static str {
+        match self {
+            Self::General => "Tổng Quan",
+            Self::Reasoning => "Lý Giải",
+            Self::Recommendation => "Khuyến Nghị",
+            Self::Convergence => "Hội Tụ",
+        }
+    }
+
+    pub fn short_key(&self) -> &'static str {
+        match self {
+            Self::General => "g",
+            Self::Reasoning => "y",
+            Self::Recommendation => "c",
+            Self::Convergence => "v",
+        }
+    }
 }
 
 impl FocusLens {
@@ -285,11 +325,23 @@ impl PersonalDraft {
 
     fn from_persisted(profile: &PersistedUserProfile) -> Self {
         Self {
-            birth_year: profile.birth_year.map(|v| v.to_string()).unwrap_or_default(),
-            birth_month: profile.birth_month.map(|v| v.to_string()).unwrap_or_default(),
+            birth_year: profile
+                .birth_year
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
+            birth_month: profile
+                .birth_month
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
             birth_day: profile.birth_day.map(|v| v.to_string()).unwrap_or_default(),
-            birth_hour: profile.birth_hour.map(|v| v.to_string()).unwrap_or_default(),
-            birth_minute: profile.birth_minute.map(|v| v.to_string()).unwrap_or_default(),
+            birth_hour: profile
+                .birth_hour
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
+            birth_minute: profile
+                .birth_minute
+                .map(|v| v.to_string())
+                .unwrap_or_default(),
             gender: profile.gender.map(|g| match g {
                 PersistedProfileGender::Male => amlich_core::almanac::tu_menh::Gender::Male,
                 PersistedProfileGender::Female => amlich_core::almanac::tu_menh::Gender::Female,
@@ -412,6 +464,31 @@ pub struct ActivePackVm {
     pub mode: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ReasoningLensEntry {
+    pub kind: String,
+    pub label: String,
+    pub provenance: Vec<amlich_core::ReasoningEvidenceEnvelope>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecommendationLensEntry {
+    pub activity: String,
+    pub reason: String,
+    pub is_favor: bool,
+    pub is_hard_stop: bool,
+    pub source: String,
+    pub provenance: Vec<amlich_core::ReasoningEvidenceEnvelope>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConvergenceLensEntry {
+    pub kind: String,
+    pub label: String,
+    pub activity: String,
+    pub provenance: Vec<amlich_core::ReasoningEvidenceEnvelope>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum PersistedProfileGender {
@@ -478,6 +555,7 @@ pub struct AppState {
     pub graph_inspector_search_query: String,
     pub graph_inspector_search_cursor: usize,
     pub graph_inspector_focus_before_search: Option<Box<GraphInspectorFocus>>,
+    pub graph_inspector_lens: GraphInspectorLens,
 }
 
 impl AppState {
@@ -532,6 +610,7 @@ impl AppState {
             graph_inspector_search_query: String::new(),
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
+            graph_inspector_lens: GraphInspectorLens::General,
         };
 
         app.load_data();
@@ -1091,8 +1170,7 @@ impl AppState {
                 });
                 if let Some(cluster) = clusters.get(self.graph_inspector_cursor) {
                     let cluster = (*cluster).clone();
-                    self.graph_inspector_focus =
-                        GraphInspectorFocus::ClusterNodes { cluster };
+                    self.graph_inspector_focus = GraphInspectorFocus::ClusterNodes { cluster };
                     self.graph_inspector_cursor = 0;
                 }
             }
@@ -1137,12 +1215,16 @@ impl AppState {
                     } else {
                         &edge.from_id
                     };
-                    self.graph_inspector_focus =
-                        GraphInspectorFocus::NodeDetail { node_id: neighbor_id.clone() };
+                    self.graph_inspector_focus = GraphInspectorFocus::NodeDetail {
+                        node_id: neighbor_id.clone(),
+                    };
                     self.graph_inspector_cursor = 0;
                 }
             }
             GraphInspectorFocus::Search => {}
+            GraphInspectorFocus::ReasoningLens
+            | GraphInspectorFocus::RecommendationLens
+            | GraphInspectorFocus::ConvergenceLens => {}
         }
     }
 
@@ -1179,8 +1261,7 @@ impl AppState {
                     _ => unreachable!(),
                 };
                 if let Some(cluster) = cluster {
-                    self.graph_inspector_focus =
-                        GraphInspectorFocus::ClusterNodes { cluster };
+                    self.graph_inspector_focus = GraphInspectorFocus::ClusterNodes { cluster };
                     self.graph_inspector_cursor = 0;
                 } else {
                     self.graph_inspector_focus = GraphInspectorFocus::ClusterList;
@@ -1197,6 +1278,13 @@ impl AppState {
                     self.graph_inspector_focus = *prev;
                     self.graph_inspector_cursor = 0;
                 }
+            }
+            GraphInspectorFocus::ReasoningLens
+            | GraphInspectorFocus::RecommendationLens
+            | GraphInspectorFocus::ConvergenceLens => {
+                self.graph_inspector_lens = GraphInspectorLens::General;
+                self.graph_inspector_focus = GraphInspectorFocus::Summary;
+                self.graph_inspector_cursor = 0;
             }
         }
     }
@@ -1218,6 +1306,220 @@ impl AppState {
         self.graph_inspector_search_query.clear();
         self.graph_inspector_search_cursor = 0;
         self.graph_inspector_focus_before_search = None;
+        self.graph_inspector_lens = GraphInspectorLens::General;
+    }
+
+    pub fn graph_inspector_cycle_lens(&mut self) {
+        self.graph_inspector_lens = self.graph_inspector_lens.next();
+        match self.graph_inspector_lens {
+            GraphInspectorLens::General => {
+                self.graph_inspector_focus = GraphInspectorFocus::Summary;
+            }
+            GraphInspectorLens::Reasoning => {
+                self.graph_inspector_focus = GraphInspectorFocus::ReasoningLens;
+            }
+            GraphInspectorLens::Recommendation => {
+                self.graph_inspector_focus = GraphInspectorFocus::RecommendationLens;
+            }
+            GraphInspectorLens::Convergence => {
+                self.graph_inspector_focus = GraphInspectorFocus::ConvergenceLens;
+            }
+        }
+        self.graph_inspector_cursor = 0;
+    }
+
+    pub fn reasoning_lens_entries(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+    ) -> Vec<ReasoningLensEntry> {
+        let mut entries = Vec::new();
+
+        for node in &inspection.visualization.nodes {
+            let kind = match node.semantic_kind.as_str() {
+                "truc" => {
+                    if node.severity.as_deref() == Some("cat") {
+                        "support"
+                    } else if node.severity.as_deref() == Some("hung") {
+                        "resistance"
+                    } else {
+                        continue;
+                    }
+                }
+                "day_deity" => {
+                    if node.label.contains("Hoàng Đạo") {
+                        "support"
+                    } else if node.label.contains("Hạc Đạo") {
+                        "resistance"
+                    } else {
+                        continue;
+                    }
+                }
+                "taboo" => {
+                    if node.severity.as_deref() == Some("hard") {
+                        "override"
+                    } else {
+                        "resistance"
+                    }
+                }
+                "star" => {
+                    if node.label.contains("cát tinh") || node.label.contains("Nhị thập bát tú") {
+                        "support"
+                    } else if node.label.contains("sát tinh") {
+                        "resistance"
+                    } else {
+                        continue;
+                    }
+                }
+                "hoang_dao_hour" => "support",
+                "xung_hop" => {
+                    if node.label.contains("Xung") && !node.label.contains(", hợp ") {
+                        "conflict"
+                    } else {
+                        continue;
+                    }
+                }
+                "direction" => "refinement",
+                _ => continue,
+            };
+
+            entries.push(ReasoningLensEntry {
+                kind: kind.to_string(),
+                label: node.label.clone(),
+                provenance: node.provenance.clone(),
+            });
+        }
+
+        entries.sort_by(|a, b| {
+            let order = |k: &str| match k {
+                "support" => 0,
+                "resistance" => 1,
+                "override" => 2,
+                "conflict" => 3,
+                "refinement" => 4,
+                _ => 5,
+            };
+            order(&a.kind).cmp(&order(&b.kind))
+        });
+
+        entries
+    }
+
+    pub fn recommendation_lens_entries(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+    ) -> Vec<RecommendationLensEntry> {
+        let mut entries = Vec::new();
+
+        for edge in &inspection.visualization.edges {
+            if edge.semantic_kind == "targets_activity" {
+                let from_node = inspection
+                    .visualization
+                    .nodes
+                    .iter()
+                    .find(|n| n.node_id == edge.from_id);
+                let to_node = inspection
+                    .visualization
+                    .nodes
+                    .iter()
+                    .find(|n| n.node_id == edge.to_id);
+
+                if let (Some(from), Some(to)) = (from_node, to_node) {
+                    let is_favor = from
+                        .provenance
+                        .iter()
+                        .any(|p| p.source_family == amlich_core::ReasoningEvidenceSourceFamily::AlmanacRule);
+
+                    let is_hard_stop = from
+                        .label
+                        .to_lowercase()
+                        .contains("kỵ mạnh")
+                        || from
+                            .label
+                            .to_lowercase()
+                            .contains("tam nương")
+                        || from
+                            .label
+                            .to_lowercase()
+                            .contains("kiêng");
+
+                    let source = from
+                        .provenance
+                        .first()
+                        .map(|p| format!("{:?}", p.source_family))
+                        .unwrap_or_default();
+
+                    entries.push(RecommendationLensEntry {
+                        activity: to.label.clone(),
+                        reason: from.label.clone(),
+                        is_favor,
+                        is_hard_stop,
+                        source,
+                        provenance: from.provenance.clone(),
+                    });
+                }
+            }
+        }
+
+        entries.sort_by(|a, b| {
+            if a.is_hard_stop != b.is_hard_stop {
+                b.is_hard_stop.cmp(&a.is_hard_stop)
+            } else if a.is_favor != b.is_favor {
+                a.is_favor.cmp(&b.is_favor)
+            } else {
+                a.activity.cmp(&b.activity)
+            }
+        });
+
+        entries
+    }
+
+    pub fn convergence_lens_entries(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+    ) -> Vec<ConvergenceLensEntry> {
+        let mut entries = Vec::new();
+        let mut seen_facts: std::collections::HashSet<String> = std::collections::HashSet::new();
+
+        for node in &inspection.visualization.nodes {
+            let kind = match node.semantic_kind.as_str() {
+                "truc" | "day_deity" | "taboo" | "star" | "hoang_dao_hour" | "xung_hop" => {
+                    if seen_facts.contains(&node.node_id) {
+                        continue;
+                    }
+                    seen_facts.insert(node.node_id.clone());
+                    "shared_fact"
+                }
+                _ => continue,
+            };
+
+            let mut activity = String::new();
+            for edge in &inspection.visualization.edges {
+                if edge.from_id == node.node_id && edge.semantic_kind == "targets_activity" {
+                    if let Some(target) = inspection
+                        .visualization
+                        .nodes
+                        .iter()
+                        .find(|n| n.node_id == edge.to_id)
+                    {
+                        if !activity.is_empty() {
+                            activity.push_str(", ");
+                        }
+                        activity.push_str(&target.label);
+                    }
+                }
+            }
+
+            entries.push(ConvergenceLensEntry {
+                kind: kind.to_string(),
+                label: node.label.clone(),
+                activity,
+                provenance: node.provenance.clone(),
+            });
+        }
+
+        entries.sort_by(|a, b| a.kind.cmp(&b.kind).then(a.label.cmp(&b.label)));
+
+        entries
     }
 
     pub fn graph_inspector_enter_search(&mut self) {
@@ -1292,8 +1594,9 @@ impl AppState {
 
     pub fn graph_inspector_search_move_cursor(&mut self, delta: i32) {
         if delta >= 0 {
-            self.graph_inspector_search_cursor =
-                self.graph_inspector_search_cursor.saturating_add(delta as usize);
+            self.graph_inspector_search_cursor = self
+                .graph_inspector_search_cursor
+                .saturating_add(delta as usize);
         } else {
             self.graph_inspector_search_cursor = self
                 .graph_inspector_search_cursor
@@ -1589,7 +1892,12 @@ impl AppState {
         let birth_year = self.personal_draft.birth_year.parse::<i32>().ok()?;
         let birth_month = self.personal_draft.birth_month.parse::<i32>().ok()?;
         let birth_day = self.personal_draft.birth_day.parse::<i32>().ok()?;
-        let birth_hour = self.personal_draft.birth_hour.parse::<u8>().ok().unwrap_or(0);
+        let birth_hour = self
+            .personal_draft
+            .birth_hour
+            .parse::<u8>()
+            .ok()
+            .unwrap_or(0);
         let birth_minute = self
             .personal_draft
             .birth_minute
@@ -1846,6 +2154,7 @@ mod tests {
             graph_inspector_search_query: String::new(),
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
+            graph_inspector_lens: GraphInspectorLens::General,
             app_mode: AppMode::Normal,
             focused_section: PageSection::Hero,
             zoomed_section: None,
@@ -2454,7 +2763,10 @@ mod tests {
         let draft = PersonalDraft::from_persisted(&profile);
         assert_eq!(draft.birth_hour, "9");
         assert_eq!(draft.birth_minute, "30");
-        assert_eq!(draft.gender, Some(amlich_core::almanac::tu_menh::Gender::Male));
+        assert_eq!(
+            draft.gender,
+            Some(amlich_core::almanac::tu_menh::Gender::Male)
+        );
     }
 
     #[test]

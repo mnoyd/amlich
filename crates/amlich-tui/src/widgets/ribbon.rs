@@ -228,6 +228,7 @@ mod tests {
             graph_inspector_search_query: String::new(),
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
+            graph_inspector_lens: crate::state::GraphInspectorLens::General,
         }
     }
 

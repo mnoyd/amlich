@@ -106,12 +106,16 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             KeyCode::Esc => {
                 use crate::state::GraphInspectorFocus;
                 match &app.graph_inspector_focus {
-                    GraphInspectorFocus::Summary => app.running = false,
+                    GraphInspectorFocus::Summary
+                    | GraphInspectorFocus::ReasoningLens
+                    | GraphInspectorFocus::RecommendationLens
+                    | GraphInspectorFocus::ConvergenceLens => app.running = false,
                     GraphInspectorFocus::Search => app.graph_inspector_exit_search(),
                     _ => app.graph_inspector_go_back(),
                 }
             }
             KeyCode::Char('r') => app.toggle_graph_recommendations(),
+            KeyCode::Tab => app.graph_inspector_cycle_lens(),
             KeyCode::Right => app.navigate_days(1),
             KeyCode::Left => app.navigate_days(-1),
             KeyCode::Char('t') => app.jump_to_today(),
@@ -120,6 +124,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 match &app.graph_inspector_focus {
                     GraphInspectorFocus::Summary => app.scroll_down(),
                     GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(1),
+                    GraphInspectorFocus::ReasoningLens
+                    | GraphInspectorFocus::RecommendationLens
+                    | GraphInspectorFocus::ConvergenceLens => app.graph_inspector_move_cursor(1),
                     _ => app.graph_inspector_move_cursor(1),
                 }
             }
@@ -128,6 +135,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 match &app.graph_inspector_focus {
                     GraphInspectorFocus::Summary => app.scroll_up(),
                     GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(-1),
+                    GraphInspectorFocus::ReasoningLens
+                    | GraphInspectorFocus::RecommendationLens
+                    | GraphInspectorFocus::ConvergenceLens => app.graph_inspector_move_cursor(-1),
                     _ => app.graph_inspector_move_cursor(-1),
                 }
             }
@@ -142,6 +152,12 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 use crate::state::GraphInspectorFocus;
                 match &app.graph_inspector_focus {
                     GraphInspectorFocus::Search => app.graph_inspector_search_backspace(),
+                    GraphInspectorFocus::ReasoningLens
+                    | GraphInspectorFocus::RecommendationLens
+                    | GraphInspectorFocus::ConvergenceLens => {
+                        app.graph_inspector_lens = crate::state::GraphInspectorLens::General;
+                        app.graph_inspector_focus = crate::state::GraphInspectorFocus::Summary;
+                    }
                     _ => app.graph_inspector_go_back(),
                 }
             }
@@ -419,6 +435,7 @@ mod tests {
             graph_inspector_search_query: String::new(),
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
+            graph_inspector_lens: crate::state::GraphInspectorLens::General,
         }
     }
 
