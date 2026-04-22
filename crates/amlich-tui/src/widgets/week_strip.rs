@@ -39,7 +39,7 @@ impl Widget for WeekStripWidget<'_> {
         let outer_block = Block::default()
             .borders(Borders::ALL)
             .border_type(BorderType::Rounded)
-            .border_style(Style::default().fg(Color::DarkGray));
+            .border_style(Style::default().fg(Color::Rgb(80, 80, 80)));
 
         let inner_area = outer_block.inner(area);
         outer_block.render(area, buf);
@@ -47,34 +47,31 @@ impl Widget for WeekStripWidget<'_> {
         let cells = build_week_strip_cells(self.app);
         let chunks = Layout::horizontal([Constraint::Ratio(1, 7); 7]).split(inner_area);
 
-        for (i, (cell, chunk)) in cells.into_iter().zip(chunks.iter().copied()).enumerate() {
+        for (cell, chunk) in cells.into_iter().zip(chunks.iter().copied()) {
             let weekday = WEEKDAY_LABELS[cell.date.weekday().num_days_from_monday() as usize];
 
-            let cell_borders = if i < 6 { Borders::RIGHT } else { Borders::NONE };
+            let cell_borders = Borders::NONE;
 
             let mut cell_bg = Color::Reset;
-            let mut cell_border_style = Style::default().fg(Color::DarkGray);
-            let mut weekday_style = Style::default().fg(Color::DarkGray);
+            let mut cell_border_style = Style::default();
+            let mut weekday_style = Style::default().fg(Color::Rgb(120, 120, 120));
             let mut solar_style = Style::default()
                 .fg(Color::White)
                 .add_modifier(Modifier::BOLD);
-            let mut lunar_style = Style::default().fg(Color::Gray);
+            let mut lunar_style = Style::default().fg(Color::Rgb(120, 120, 120));
 
             if cell.is_today {
                 solar_style = solar_style.add_modifier(Modifier::UNDERLINED);
-            }
-
-            if cell.is_today {
                 weekday_style = weekday_style.fg(Color::Yellow).add_modifier(Modifier::BOLD);
-                lunar_style = lunar_style.fg(Color::White);
+                lunar_style = lunar_style.fg(Color::Yellow);
             }
 
             if cell.is_selected {
-                cell_bg = Color::Rgb(32, 40, 52);
+                cell_bg = Color::Rgb(30, 45, 65);
                 cell_border_style = Style::default().fg(Color::Cyan);
-                weekday_style = weekday_style.fg(Color::Cyan).add_modifier(Modifier::BOLD);
+                weekday_style = weekday_style.fg(Color::White).add_modifier(Modifier::BOLD);
                 solar_style = solar_style.fg(Color::Cyan).add_modifier(Modifier::BOLD);
-                lunar_style = lunar_style.fg(Color::White);
+                lunar_style = lunar_style.fg(Color::Rgb(180, 180, 180));
             }
 
             let block = Block::default()
@@ -93,11 +90,11 @@ impl Widget for WeekStripWidget<'_> {
                 ..
             } = cell;
 
-            let weekday_line = Line::from(Span::styled(format!("• {weekday}"), weekday_style));
+            let weekday_line = Line::from(Span::styled(weekday.to_string(), weekday_style));
 
             let solar_line = Line::from(Span::styled(solar_label.clone(), solar_style));
 
-            let lunar_line = match quality_badge {
+            let lunar_line = match quality_badge.clone() {
                 Some(badge) => Line::from(vec![
                     Span::styled(lunar_label.clone(), lunar_style),
                     Span::raw(" "),
@@ -118,13 +115,24 @@ impl Widget for WeekStripWidget<'_> {
             let lines = if inner.height >= 3 {
                 vec![weekday_line, solar_line, lunar_line]
             } else {
-                vec![
-                    weekday_line,
-                    Line::from(vec![
-                        Span::styled(format!("{} · ", solar_label), solar_style),
-                        Span::styled(lunar_label, lunar_style),
-                    ]),
-                ]
+                let mut spans = vec![
+                    Span::styled(format!("{} ", solar_label), solar_style),
+                    Span::styled(lunar_label, lunar_style),
+                ];
+                if let Some(badge) = quality_badge {
+                    spans.push(Span::raw(" "));
+                    spans.push(Span::styled(
+                        badge,
+                        Style::default()
+                            .fg(if is_selected {
+                                Color::Cyan
+                            } else {
+                                Color::Yellow
+                            })
+                            .add_modifier(Modifier::BOLD),
+                    ));
+                }
+                vec![weekday_line, Line::from(spans)]
             };
 
             let y_offset = if inner.height > 3 {
@@ -320,7 +328,7 @@ mod tests {
     }
 
     fn render_week_strip_text(app: &AppState) -> String {
-        let area = Rect::new(0, 0, 84, 4);
+        let area = Rect::new(0, 0, 84, 5);
         let mut buf = Buffer::empty(area);
         WeekStripWidget::new(app).render(area, &mut buf);
         (0..area.height)
