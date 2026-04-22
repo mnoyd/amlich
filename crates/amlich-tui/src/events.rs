@@ -103,15 +103,23 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
     if app.active_view == crate::state::ActiveView::GraphInspector {
         match code {
             KeyCode::Char('q') => app.running = false,
+            KeyCode::Char('d') => app.toggle_dev_inspector_mode(),
             KeyCode::Esc => {
-                use crate::state::GraphInspectorFocus;
-                match &app.graph_inspector_focus {
-                    GraphInspectorFocus::Summary
-                    | GraphInspectorFocus::ReasoningLens
-                    | GraphInspectorFocus::RecommendationLens
-                    | GraphInspectorFocus::ConvergenceLens => app.running = false,
-                    GraphInspectorFocus::Search => app.graph_inspector_exit_search(),
-                    _ => app.graph_inspector_go_back(),
+                if !app.dev_inspector_mode {
+                    match app.causality_focus {
+                        crate::state::CausalityFocus::SummaryList => app.running = false,
+                        crate::state::CausalityFocus::DetailFlow(_) => app.causality_go_back(),
+                    }
+                } else {
+                    use crate::state::GraphInspectorFocus;
+                    match &app.graph_inspector_focus {
+                        GraphInspectorFocus::Summary
+                        | GraphInspectorFocus::ReasoningLens
+                        | GraphInspectorFocus::RecommendationLens
+                        | GraphInspectorFocus::ConvergenceLens => app.running = false,
+                        GraphInspectorFocus::Search => app.graph_inspector_exit_search(),
+                        _ => app.graph_inspector_go_back(),
+                    }
                 }
             }
             KeyCode::Char('r') => app.toggle_graph_recommendations(),
@@ -142,23 +150,31 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 }
             }
             KeyCode::Enter | KeyCode::Char('l') => {
-                use crate::state::GraphInspectorFocus;
-                match &app.graph_inspector_focus {
-                    GraphInspectorFocus::Search => app.graph_inspector_search_select(),
-                    _ => app.graph_inspector_drill_down(),
+                if !app.dev_inspector_mode {
+                    app.causality_drill_down("".to_string()); // Will be updated in UI implementation
+                } else {
+                    use crate::state::GraphInspectorFocus;
+                    match &app.graph_inspector_focus {
+                        GraphInspectorFocus::Search => app.graph_inspector_search_select(),
+                        _ => app.graph_inspector_drill_down(),
+                    }
                 }
             }
             KeyCode::Backspace | KeyCode::Char('h') => {
-                use crate::state::GraphInspectorFocus;
-                match &app.graph_inspector_focus {
-                    GraphInspectorFocus::Search => app.graph_inspector_search_backspace(),
-                    GraphInspectorFocus::ReasoningLens
-                    | GraphInspectorFocus::RecommendationLens
-                    | GraphInspectorFocus::ConvergenceLens => {
-                        app.graph_inspector_lens = crate::state::GraphInspectorLens::General;
-                        app.graph_inspector_focus = crate::state::GraphInspectorFocus::Summary;
+                if !app.dev_inspector_mode {
+                    app.causality_go_back();
+                } else {
+                    use crate::state::GraphInspectorFocus;
+                    match &app.graph_inspector_focus {
+                        GraphInspectorFocus::Search => app.graph_inspector_search_backspace(),
+                        GraphInspectorFocus::ReasoningLens
+                        | GraphInspectorFocus::RecommendationLens
+                        | GraphInspectorFocus::ConvergenceLens => {
+                            app.graph_inspector_lens = crate::state::GraphInspectorLens::General;
+                            app.graph_inspector_focus = crate::state::GraphInspectorFocus::Summary;
+                        }
+                        _ => app.graph_inspector_go_back(),
                     }
-                    _ => app.graph_inspector_go_back(),
                 }
             }
             KeyCode::Char('/') | KeyCode::Char('s') => {

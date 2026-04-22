@@ -19,6 +19,18 @@ const EVENT_KIND_OPTIONS: [&str; 4] = [
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CausalityFocus {
+    SummaryList,
+    DetailFlow(String),
+}
+
+impl Default for CausalityFocus {
+    fn default() -> Self {
+        Self::SummaryList
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GraphInspectorFocus {
     Summary,
     ClusterList,
@@ -557,6 +569,8 @@ pub struct AppState {
     pub graph_inspector_search_cursor: usize,
     pub graph_inspector_focus_before_search: Option<Box<GraphInspectorFocus>>,
     pub graph_inspector_lens: GraphInspectorLens,
+    pub dev_inspector_mode: bool,
+    pub causality_focus: CausalityFocus,
 }
 
 impl AppState {
@@ -612,6 +626,8 @@ impl AppState {
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
             graph_inspector_lens: GraphInspectorLens::General,
+            dev_inspector_mode: false,
+            causality_focus: CausalityFocus::SummaryList,
         };
 
         app.load_data();
@@ -1144,6 +1160,18 @@ impl AppState {
 
     pub fn toggle_graph_recommendations(&mut self) {
         self.show_graph_recommendations = !self.show_graph_recommendations;
+    }
+
+    pub fn toggle_dev_inspector_mode(&mut self) {
+        self.dev_inspector_mode = !self.dev_inspector_mode;
+    }
+
+    pub fn causality_drill_down(&mut self, node_id: String) {
+        self.causality_focus = CausalityFocus::DetailFlow(node_id);
+    }
+
+    pub fn causality_go_back(&mut self) {
+        self.causality_focus = CausalityFocus::SummaryList;
     }
 
     pub fn graph_inspector_drill_down(&mut self) {
