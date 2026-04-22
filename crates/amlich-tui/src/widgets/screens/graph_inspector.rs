@@ -2407,6 +2407,19 @@ fn render_causality_master_list(
             Style::default().fg(Color::White)
         };
 
+        let relation_count = node.incoming.len() + node.outgoing.len();
+        let density_label = match relation_count {
+            0 => "tĩnh",
+            1..=2 => "ít",
+            3..=4 => "vừa",
+            _ => "đậm",
+        };
+        let relation_style = if relation_count > 0 {
+            Style::default().fg(Color::Cyan)
+        } else {
+            Style::default().fg(Color::DarkGray)
+        };
+
         items.push(ratatui::widgets::ListItem::new(Line::from(vec![
             Span::styled(if selected { ">" } else { " " }, style),
             Span::raw(" "),
@@ -2414,7 +2427,14 @@ fn render_causality_master_list(
             Span::raw(" "),
             Span::styled(icon, Style::default().fg(color)),
             Span::raw(" "),
-            Span::styled(truncate_label(&node.label, inner.width.saturating_sub(16) as usize), style),
+            Span::styled(
+                truncate_label(&node.label, inner.width.saturating_sub(26) as usize),
+                style,
+            ),
+            Span::raw(" "),
+            Span::styled(format!("{:>2}q", relation_count), relation_style),
+            Span::raw(" "),
+            Span::styled(density_label, Style::default().fg(Color::DarkGray)),
         ])));
     }
 
@@ -2450,6 +2470,26 @@ fn render_causality_detail_preview(
         .render(inner, buf);
         return;
     };
+
+    if node.incoming.is_empty() && node.outgoing.is_empty() {
+        let sections: Vec<Rect> = if inner.height < 14 {
+            Layout::vertical([Constraint::Length(5), Constraint::Min(6)])
+                .split(inner)
+                .iter()
+                .copied()
+                .collect()
+        } else {
+            Layout::vertical([Constraint::Length(5), Constraint::Min(8)])
+                .split(inner)
+                .iter()
+                .copied()
+                .collect()
+        };
+
+        render_causality_selected_summary(node, sections[0], buf);
+        render_causality_empty_explanation(node, sections[1], buf);
+        return;
+    }
 
     let sections: Vec<Rect> = if inner.width < 70 || inner.height < 18 {
         Layout::vertical([Constraint::Length(5), Constraint::Min(6), Constraint::Min(6)])
@@ -2576,6 +2616,53 @@ fn render_causality_relation_block(
             ]));
         }
     }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_causality_empty_explanation(
+    node: &crate::view_models::causality::CausalityNode,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Trạng Thái Liên Kết ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let fact_label = match node.semantic_kind.as_str() {
+        "hoang_dao_hour" => "một fact node về giờ hoàng đạo của ngày",
+        "day_deity" | "deity" => "một fact node về thần sát / sao trong ngày",
+        "star" => "một fact node về sao chi phối",
+        "truc" => "một fact node về trực của ngày",
+        "xung_hop" => "một fact node về tương tác can chi",
+        "taboo" => "một fact node về điều kiêng kỵ",
+        _ => "một fact node trong lớp causality hiện tại",
+    };
+
+    let lines = vec![
+        Line::from(vec![
+            Span::styled("  Node này hiện được biểu diễn như ", Style::default().fg(Color::White)),
+            Span::styled(fact_label, Style::default().fg(Color::Yellow)),
+            Span::raw("."),
+        ]),
+        Line::from(Span::styled(
+            "  Chưa có cạnh vào/ra trực tiếp, nên màn hình không tách riêng phần nguyên nhân và hệ quả.",
+            Style::default().fg(Color::DarkGray),
+        )),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("  Gợi ý đọc: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                "xem đây là dữ kiện nền để đối chiếu với các node có quan hệ nhiều hơn trong danh sách bên trái.",
+                Style::default().fg(Color::White),
+            ),
+        ]),
+    ];
 
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })

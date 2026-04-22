@@ -70,6 +70,26 @@ pub fn extract_causality_tree(inspection: &DebugSemanticGraphInspection) -> Vec<
         }
     }
 
-    focal_nodes.sort_by(|a, b| a.cluster.cmp(&b.cluster).then(a.label.cmp(&b.label)));
+    let mut cluster_scores: HashMap<String, usize> = HashMap::new();
+    for node in &focal_nodes {
+        let relation_count = node.incoming.len() + node.outgoing.len();
+        cluster_scores
+            .entry(node.cluster.clone())
+            .and_modify(|score| *score = (*score).max(relation_count))
+            .or_insert(relation_count);
+    }
+
+    focal_nodes.sort_by(|a, b| {
+        let a_rel = a.incoming.len() + a.outgoing.len();
+        let b_rel = b.incoming.len() + b.outgoing.len();
+        let a_cluster_score = cluster_scores.get(&a.cluster).copied().unwrap_or(0);
+        let b_cluster_score = cluster_scores.get(&b.cluster).copied().unwrap_or(0);
+
+        b_cluster_score
+            .cmp(&a_cluster_score)
+            .then(b_rel.cmp(&a_rel))
+            .then(a.cluster.cmp(&b.cluster))
+            .then(a.label.cmp(&b.label))
+    });
     focal_nodes
 }
