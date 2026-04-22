@@ -1,3 +1,4 @@
+use chrono::Datelike;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 
 use crate::state::{AppState, ExplorerAction, ExplorerField};
@@ -128,30 +129,50 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             KeyCode::Left => app.navigate_days(-1),
             KeyCode::Char('t') => app.jump_to_today(),
             KeyCode::Down | KeyCode::Char('j') => {
-                use crate::state::GraphInspectorFocus;
-                match &app.graph_inspector_focus {
-                    GraphInspectorFocus::Summary => app.scroll_down(),
-                    GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(1),
-                    GraphInspectorFocus::ReasoningLens
-                    | GraphInspectorFocus::RecommendationLens
-                    | GraphInspectorFocus::ConvergenceLens => app.graph_inspector_move_cursor(1),
-                    _ => app.graph_inspector_move_cursor(1),
+                if !app.dev_inspector_mode {
+                    app.graph_inspector_move_cursor(1);
+                } else {
+                    use crate::state::GraphInspectorFocus;
+                    match &app.graph_inspector_focus {
+                        GraphInspectorFocus::Summary => app.scroll_down(),
+                        GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(1),
+                        GraphInspectorFocus::ReasoningLens
+                        | GraphInspectorFocus::RecommendationLens
+                        | GraphInspectorFocus::ConvergenceLens => app.graph_inspector_move_cursor(1),
+                        _ => app.graph_inspector_move_cursor(1),
+                    }
                 }
             }
             KeyCode::Up | KeyCode::Char('k') => {
-                use crate::state::GraphInspectorFocus;
-                match &app.graph_inspector_focus {
-                    GraphInspectorFocus::Summary => app.scroll_up(),
-                    GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(-1),
-                    GraphInspectorFocus::ReasoningLens
-                    | GraphInspectorFocus::RecommendationLens
-                    | GraphInspectorFocus::ConvergenceLens => app.graph_inspector_move_cursor(-1),
-                    _ => app.graph_inspector_move_cursor(-1),
+                if !app.dev_inspector_mode {
+                    app.graph_inspector_move_cursor(-1);
+                } else {
+                    use crate::state::GraphInspectorFocus;
+                    match &app.graph_inspector_focus {
+                        GraphInspectorFocus::Summary => app.scroll_up(),
+                        GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(-1),
+                        GraphInspectorFocus::ReasoningLens
+                        | GraphInspectorFocus::RecommendationLens
+                        | GraphInspectorFocus::ConvergenceLens => app.graph_inspector_move_cursor(-1),
+                        _ => app.graph_inspector_move_cursor(-1),
+                    }
                 }
             }
             KeyCode::Enter | KeyCode::Char('l') => {
                 if !app.dev_inspector_mode {
-                    app.causality_drill_down("".to_string()); // Will be updated in UI implementation
+                    let day = app.date.day() as i32;
+                    let month = app.date.month() as i32;
+                    let year = app.date.year();
+                    let inspection = amlich_core::debug_inspect_semantic_graph(
+                        day,
+                        month,
+                        year,
+                        app.show_graph_recommendations,
+                    );
+                    let nodes = crate::view_models::causality::extract_causality_tree(&inspection);
+                    if let Some(node) = nodes.get(app.graph_inspector_cursor) {
+                        app.causality_drill_down(node.node_id.clone());
+                    }
                 } else {
                     use crate::state::GraphInspectorFocus;
                     match &app.graph_inspector_focus {

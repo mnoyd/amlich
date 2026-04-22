@@ -37,6 +37,11 @@ impl Widget for GraphInspectorScreenWidget<'_> {
             self.app.show_graph_recommendations,
         );
 
+        if !self.app.dev_inspector_mode {
+            self.render_causality_view(&inspection, area, buf);
+            return;
+        }
+
         match &self.app.graph_inspector_focus {
             GraphInspectorFocus::Summary => {
                 self.render_summary_view(&inspection, area, buf);
@@ -81,9 +86,8 @@ impl GraphInspectorScreenWidget<'_> {
     ) {
         let rows = Layout::vertical([
             Constraint::Length(8),
-            Constraint::Length(7),
-            Constraint::Min(6),
-            Constraint::Min(5),
+            Constraint::Min(14),
+            Constraint::Min(8),
         ])
         .split(area);
 
@@ -94,21 +98,26 @@ impl GraphInspectorScreenWidget<'_> {
             buf,
             true,
         );
-        render_summary(&inspection.summary, rows[1], buf);
+        let overview = if self.mode == LayoutMode::Small {
+            Layout::vertical([Constraint::Length(7), Constraint::Min(7)]).split(rows[1])
+        } else {
+            Layout::horizontal([Constraint::Percentage(38), Constraint::Percentage(62)])
+                .split(rows[1])
+        };
+        render_summary(&inspection.summary, overview[0], buf);
+        render_graph_preview(inspection, default_focal_node(inspection), overview[1], buf);
 
         let bottom = if self.mode == LayoutMode::Small {
-            Layout::vertical([Constraint::Min(6), Constraint::Min(5)]).split(rows[2])
+            Layout::vertical([Constraint::Min(6), Constraint::Min(6)]).split(rows[2])
         } else {
-            Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+            Layout::horizontal([Constraint::Percentage(42), Constraint::Percentage(58)])
                 .split(rows[2])
         };
         render_cluster_counts(&inspection.cluster_counts, bottom[0], buf);
-        render_semantic_kind_counts(&inspection.semantic_kind_counts, bottom[1], buf);
-
         if !inspection.severity_counts.is_empty() {
-            render_severity_counts(&inspection.severity_counts, rows[3], buf);
+            render_severity_counts(&inspection.severity_counts, bottom[1], buf);
         } else {
-            render_node_sample(&inspection, rows[3], buf);
+            render_semantic_kind_counts(&inspection.semantic_kind_counts, bottom[1], buf);
         }
     }
 
@@ -210,7 +219,22 @@ impl GraphInspectorScreenWidget<'_> {
             a_key.cmp(&b_key)
         });
 
-        render_node_detail(node, &connected_edges, node_id, rows[1], buf);
+        let detail_body = if rows[1].width < 100 || rows[1].height < 18 {
+            Layout::vertical([Constraint::Percentage(54), Constraint::Percentage(46)])
+                .split(rows[1])
+        } else {
+            Layout::horizontal([Constraint::Percentage(44), Constraint::Percentage(56)])
+                .split(rows[1])
+        };
+
+        render_node_detail(node, &connected_edges, node_id, detail_body[0], buf);
+        render_local_subgraph(
+            node,
+            &connected_edges,
+            &inspection.visualization.nodes,
+            detail_body[1],
+            buf,
+        );
     }
 
     fn render_node_edges_view(
@@ -230,12 +254,7 @@ impl GraphInspectorScreenWidget<'_> {
             false,
         );
 
-        let connected_edges: Vec<_> = inspection
-            .visualization
-            .edges
-            .iter()
-            .filter(|e| e.from_id == node_id || e.to_id == node_id)
-            .collect();
+        let connected_edges = sorted_connected_edges(inspection, node_id);
 
         render_selectable_edge_list(
             node_id,
@@ -414,7 +433,7 @@ fn render_search_result_list(
     let block = Block::default()
         .title(title.as_str())
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Cyan));
+        .border_style(Style::default().fg(Color::Yellow));
     let inner = block.inner(area);
     block.render(area, buf);
 
@@ -490,7 +509,7 @@ fn render_header(
     };
 
     let help_line = if is_summary {
-        "←/→: đổi ngày  t: hôm nay  r: toggle recs  Enter/l: drill-down  /: tìm kiếm  1-6: đổi màn"
+        "←/→: đổi ngày  t: hôm nay  r: toggle recs  Enter/l: drill-down  preview graph bên dưới  /: tìm kiếm  1-6: đổi màn"
     } else {
         "↑/k ↓/j: chọn  Enter/l: vào  Esc/h/Backspace: quay lại  r: toggle recs  /: tìm kiếm"
     };
@@ -1061,6 +1080,77 @@ fn render_semantic_kind_counts(counts: &HashMap<String, usize>, area: Rect, buf:
         .render(inner, buf);
 }
 
+fn render_graph_preview(
+    inspection: &amlich_core::DebugSemanticGraphInspection,
+    focal_node: Option<&amlich_core::semantic_graph::VisualizationNode>,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Graph Preview ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::Cyan));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(node) = focal_node else {
+        Paragraph::new(vec![Line::from(Span::styled(
+            "  Không có node để preview.",
+            Style::default().fg(Color::DarkGray),
+        ))])
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+        return;
+    };
+
+    let connected_edges = sorted_connected_edges(inspection, &node.node_id);
+    let header_height = inner.height.min(3);
+    let header_area = Rect {
+        x: inner.x,
+        y: inner.y,
+        width: inner.width,
+        height: header_height,
+    };
+    Paragraph::new(vec![
+        Line::from(vec![
+            Span::styled("  Focal: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                truncate_label(&node.label, 28),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::raw("  "),
+            Span::styled(
+                truncate_label(&node.node_id, 22),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]),
+        Line::from(vec![Span::styled(
+            "  Đây là preview cục bộ của node nổi bật nhất trong graph hiện tại.",
+            Style::default().fg(Color::DarkGray),
+        )]),
+    ])
+    .wrap(Wrap { trim: true })
+    .render(header_area, buf);
+
+    let graph_area = Rect {
+        x: inner.x,
+        y: inner.y.saturating_add(header_height),
+        width: inner.width,
+        height: inner.height.saturating_sub(header_height),
+    };
+    if graph_area.height > 0 {
+        render_local_subgraph(
+            Some(node),
+            &connected_edges,
+            &inspection.visualization.nodes,
+            graph_area,
+            buf,
+        );
+    }
+}
+
 fn render_local_subgraph(
     node: Option<&amlich_core::semantic_graph::VisualizationNode>,
     connected_edges: &[&amlich_core::semantic_graph::VisualizationEdge],
@@ -1135,7 +1225,7 @@ fn render_local_subgraph(
         }
     }
 
-    let compact = inner.width < 84;
+    let compact = inner.width < 92;
     let lines = if compact {
         render_compact_local_subgraph_lines(
             node,
@@ -1178,7 +1268,7 @@ fn render_compact_local_subgraph_lines(
     let mut lines = vec![
         Line::from(vec![Span::styled(
             format!(
-                "  [FOCAL {}] {}",
+                "  ┏━ FOCAL {} ━┓  {}",
                 semantic_marker(
                     Some(node.semantic_kind.as_str()),
                     node.shape_hint.as_deref(),
@@ -1203,7 +1293,7 @@ fn render_compact_local_subgraph_lines(
     ];
 
     lines.push(Line::from(vec![Span::styled(
-        "  Incoming",
+        "  ← Incoming",
         Style::default()
             .fg(Color::Magenta)
             .add_modifier(Modifier::BOLD),
@@ -1218,7 +1308,7 @@ fn render_compact_local_subgraph_lines(
 
     lines.push(Line::from(""));
     lines.push(Line::from(vec![Span::styled(
-        "  Outgoing",
+        "  Outgoing →",
         Style::default()
             .fg(Color::Green)
             .add_modifier(Modifier::BOLD),
@@ -1253,15 +1343,15 @@ fn render_column_local_subgraph_lines(
     let mut lines = vec![
         Line::from(vec![Span::styled(
             format!(
-                "  Legend: [in] {:<14} [FOCAL {}] {:<18} [out] {:<14}",
-                "incoming",
+                "  Legend: incoming {:<10}  [FOCAL {}] {:<18}  outgoing {:<10}",
+                "←",
                 semantic_marker(
                     Some(node.semantic_kind.as_str()),
                     node.shape_hint.as_deref(),
                     node.severity.as_deref()
                 ),
                 truncate_label(&node.label, 18),
-                "outgoing"
+                "→"
             ),
             Style::default().fg(Color::DarkGray),
         )]),
@@ -1302,14 +1392,14 @@ fn render_column_local_subgraph_lines(
             .map(|entry| format_neighbor_cell(entry, true, side_width))
             .unwrap_or_else(|| " ".repeat(side_width));
         let connector_left = if incoming.get(row).is_some() {
-            " -> "
+            " ==> "
         } else {
-            "    "
+            "     "
         };
         let connector_right = if outgoing.get(row).is_some() {
-            " -> "
+            " ==> "
         } else {
-            "    "
+            "     "
         };
 
         lines.push(Line::from(
@@ -1365,7 +1455,7 @@ fn push_neighbor_list(
                 Style::default().fg(Color::White),
             ),
             Span::styled(
-                format!("  {}", truncate_label(&entry.edge.label, 18)),
+                format!("  <{}>", truncate_label(&entry.edge.label, 18)),
                 Style::default().fg(if is_outgoing {
                     Color::Green
                 } else {
@@ -1385,7 +1475,7 @@ fn push_neighbor_list(
 }
 
 fn format_neighbor_cell(entry: &LocalNeighborEntry<'_>, is_outgoing: bool, width: usize) -> String {
-    let arrow = if is_outgoing { "out" } else { "in " };
+    let arrow = if is_outgoing { ">>" } else { "<<" };
     let label = entry
         .neighbor
         .map(|item| truncate_label(&item.label, width.saturating_sub(14)))
@@ -1420,6 +1510,52 @@ fn semantic_marker(
             },
         },
     }
+}
+
+fn default_focal_node(
+    inspection: &amlich_core::DebugSemanticGraphInspection,
+) -> Option<&amlich_core::semantic_graph::VisualizationNode> {
+    inspection.visualization.nodes.iter().max_by(|a, b| {
+        let a_degree = inspection
+            .visualization
+            .edges
+            .iter()
+            .filter(|edge| edge.from_id == a.node_id || edge.to_id == a.node_id)
+            .count();
+        let b_degree = inspection
+            .visualization
+            .edges
+            .iter()
+            .filter(|edge| edge.from_id == b.node_id || edge.to_id == b.node_id)
+            .count();
+        a_degree.cmp(&b_degree).then_with(|| a.label.cmp(&b.label))
+    })
+}
+
+fn sorted_connected_edges<'a>(
+    inspection: &'a amlich_core::DebugSemanticGraphInspection,
+    node_id: &str,
+) -> Vec<&'a amlich_core::semantic_graph::VisualizationEdge> {
+    let mut connected_edges: Vec<_> = inspection
+        .visualization
+        .edges
+        .iter()
+        .filter(|e| e.from_id == node_id || e.to_id == node_id)
+        .collect();
+    connected_edges.sort_by(|a, b| {
+        let a_key = if a.from_id == node_id {
+            (&a.to_id, &a.label, &a.semantic_kind)
+        } else {
+            (&a.from_id, &a.label, &a.semantic_kind)
+        };
+        let b_key = if b.from_id == node_id {
+            (&b.to_id, &b.label, &b.semantic_kind)
+        } else {
+            (&b.from_id, &b.label, &b.semantic_kind)
+        };
+        a_key.cmp(&b_key)
+    });
+    connected_edges
 }
 
 fn render_severity_counts(counts: &HashMap<String, usize>, area: Rect, buf: &mut Buffer) {
@@ -1457,61 +1593,13 @@ fn render_severity_counts(counts: &HashMap<String, usize>, area: Rect, buf: &mut
         .render(inner, buf);
 }
 
-fn render_node_sample(
-    inspection: &amlich_core::DebugSemanticGraphInspection,
-    area: Rect,
-    buf: &mut Buffer,
-) {
-    let block = Block::default()
-        .title(" Top Nodes ")
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::DarkGray));
-    let inner = block.inner(area);
-    block.render(area, buf);
-
-    let mut lines = Vec::new();
-    for node in inspection.visualization.nodes.iter().take(8) {
-        lines.push(Line::from(vec![
-            Span::raw("  "),
-            Span::styled(
-                format!("{:<20}", truncate_label(&node.node_id, 20)),
-                Style::default().fg(Color::White),
-            ),
-            Span::styled(
-                format!("{:<16}", truncate_label(&node.cluster, 16)),
-                Style::default().fg(Color::Cyan),
-            ),
-            Span::styled(
-                truncate_label(&node.semantic_kind, 14),
-                Style::default().fg(Color::DarkGray),
-            ),
-        ]));
-    }
-    let remaining = inspection.visualization.nodes.len().saturating_sub(8);
-    if remaining > 0 {
-        lines.push(Line::from(vec![Span::styled(
-            format!("  ... +{} more nodes", remaining),
-            Style::default().fg(Color::DarkGray),
-        )]));
-    }
-
-    if lines.is_empty() {
-        lines.push(Line::from(Span::styled(
-            "  Không có node nào.",
-            Style::default().fg(Color::DarkGray),
-        )));
-    }
-
-    Paragraph::new(lines)
-        .wrap(Wrap { trim: true })
-        .render(inner, buf);
-}
-
 fn truncate_label(s: &str, max_len: usize) -> String {
-    if s.len() <= max_len {
+    let char_count = s.chars().count();
+    if char_count <= max_len {
         s.to_string()
     } else {
-        format!("{}…", &s[..max_len.saturating_sub(1)])
+        let trimmed: String = s.chars().take(max_len.saturating_sub(1)).collect();
+        format!("{trimmed}…")
     }
 }
 
@@ -1926,10 +2014,11 @@ mod tests {
 
         assert!(text.contains("Đồ Thị Ngữ Nghĩa"));
         assert!(text.contains("Tổng Quan"));
+        assert!(text.contains("Graph Preview"));
         assert!(text.contains("Tổng nodes:"));
         assert!(text.contains("Tổng edges:"));
         assert!(text.contains("Cluster Counts"));
-        assert!(text.contains("Semantic Kind Counts"));
+        assert!(text.contains("Severity Counts") || text.contains("Semantic Kind Counts"));
     }
 
     #[test]
@@ -2145,5 +2234,60 @@ mod tests {
         assert!(text.contains("Incoming"));
         assert!(text.contains("Outgoing"));
         assert!(text.contains("Enter/l: xem edge list"));
+    }
+}
+
+impl GraphInspectorScreenWidget<'_> {
+    fn render_causality_view(&self, inspection: &amlich_core::DebugSemanticGraphInspection, area: Rect, buf: &mut Buffer) {
+        let block = Block::default()
+            .title(" Bản Đồ Nhân Quả (Causality Map) - Nhấn 'd' để chuyển Debug Mode ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan));
+        let inner = block.inner(area);
+        block.render(area, buf);
+
+        let nodes = crate::view_models::causality::extract_causality_tree(inspection);
+
+        use crate::state::CausalityFocus;
+        match &self.app.causality_focus {
+            CausalityFocus::SummaryList => {
+                let items: Vec<ratatui::widgets::ListItem> = nodes.iter().enumerate().map(|(idx, n)| {
+                    let marker = if idx == self.app.graph_inspector_cursor { "> " } else { "  " };
+                    let style = if idx == self.app.graph_inspector_cursor {
+                        Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
+                    } else {
+                        Style::default().fg(Color::White)
+                    };
+                    ratatui::widgets::ListItem::new(format!("{}{:<30} [{}]", marker, n.label, n.cluster)).style(style)
+                }).collect();
+
+                ratatui::widgets::List::new(items)
+                    .render(inner, buf);
+            }
+            CausalityFocus::DetailFlow(node_id) => {
+                let node = nodes.iter().find(|n| &n.node_id == node_id);
+                let mut lines = Vec::new();
+                lines.push(Line::from(Span::styled(" [Esc] Quay lại", Style::default().fg(Color::DarkGray))));
+                lines.push(Line::from(""));
+
+                if let Some(n) = node {
+                    lines.push(Line::from(vec![Span::styled("Nguồn gốc (Incoming):", Style::default().fg(Color::Cyan))]));
+                    for inc in &n.incoming {
+                        lines.push(Line::from(format!("  <- {} ({})", inc.neighbor_label, inc.edge_label)));
+                    }
+                    lines.push(Line::from(""));
+                    lines.push(Line::from(vec![Span::styled(format!("Yếu tố: {}", n.label), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]));
+                    lines.push(Line::from(""));
+                    lines.push(Line::from(vec![Span::styled("Ảnh hưởng (Outgoing):", Style::default().fg(Color::Green))]));
+                    for out in &n.outgoing {
+                        lines.push(Line::from(format!("  -> {} ({})", out.neighbor_label, out.edge_label)));
+                    }
+                } else {
+                    lines.push(Line::from("Không tìm thấy dữ liệu."));
+                }
+
+                Paragraph::new(lines).wrap(Wrap { trim: true }).render(inner, buf);
+            }
+        }
     }
 }
