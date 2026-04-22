@@ -2238,56 +2238,372 @@ mod tests {
 }
 
 impl GraphInspectorScreenWidget<'_> {
-    fn render_causality_view(&self, inspection: &amlich_core::DebugSemanticGraphInspection, area: Rect, buf: &mut Buffer) {
+    fn render_causality_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
         let block = Block::default()
-            .title(" Bản Đồ Nhân Quả (Causality Map) - Nhấn 'd' để chuyển Debug Mode ")
+            .title(" Bản Đồ Nhân Quả (Causality Map) ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan));
         let inner = block.inner(area);
         block.render(area, buf);
 
         let nodes = crate::view_models::causality::extract_causality_tree(inspection);
+        let selected_node = nodes.get(self.app.graph_inspector_cursor.min(nodes.len().saturating_sub(1)));
+
+        let rows = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Min(8),
+            Constraint::Length(2),
+        ])
+        .split(inner);
+
+        render_causality_header(inspection, selected_node, rows[0], buf);
 
         use crate::state::CausalityFocus;
         match &self.app.causality_focus {
             CausalityFocus::SummaryList => {
-                let items: Vec<ratatui::widgets::ListItem> = nodes.iter().enumerate().map(|(idx, n)| {
-                    let marker = if idx == self.app.graph_inspector_cursor { "> " } else { "  " };
-                    let style = if idx == self.app.graph_inspector_cursor {
-                        Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD)
-                    } else {
-                        Style::default().fg(Color::White)
-                    };
-                    ratatui::widgets::ListItem::new(format!("{}{:<30} [{}]", marker, n.label, n.cluster)).style(style)
-                }).collect();
+                let panes = if rows[1].width < 100 {
+                    Layout::vertical([Constraint::Percentage(45), Constraint::Percentage(55)])
+                        .split(rows[1])
+                } else {
+                    Layout::horizontal([Constraint::Percentage(39), Constraint::Percentage(61)])
+                        .split(rows[1])
+                };
 
-                ratatui::widgets::List::new(items)
-                    .render(inner, buf);
+                render_causality_master_list(&nodes, self.app.graph_inspector_cursor, panes[0], buf);
+                render_causality_detail_preview(selected_node, panes[1], buf);
+
+                render_causality_footer(
+                    "↑↓: chọn  Enter: khóa vào chi tiết  d: debug mode  ←/→: đổi ngày",
+                    rows[2],
+                    buf,
+                );
             }
             CausalityFocus::DetailFlow(node_id) => {
                 let node = nodes.iter().find(|n| &n.node_id == node_id);
-                let mut lines = Vec::new();
-                lines.push(Line::from(Span::styled(" [Esc] Quay lại", Style::default().fg(Color::DarkGray))));
-                lines.push(Line::from(""));
-
-                if let Some(n) = node {
-                    lines.push(Line::from(vec![Span::styled("Nguồn gốc (Incoming):", Style::default().fg(Color::Cyan))]));
-                    for inc in &n.incoming {
-                        lines.push(Line::from(format!("  <- {} ({})", inc.neighbor_label, inc.edge_label)));
-                    }
-                    lines.push(Line::from(""));
-                    lines.push(Line::from(vec![Span::styled(format!("Yếu tố: {}", n.label), Style::default().fg(Color::Yellow).add_modifier(Modifier::BOLD))]));
-                    lines.push(Line::from(""));
-                    lines.push(Line::from(vec![Span::styled("Ảnh hưởng (Outgoing):", Style::default().fg(Color::Green))]));
-                    for out in &n.outgoing {
-                        lines.push(Line::from(format!("  -> {} ({})", out.neighbor_label, out.edge_label)));
-                    }
-                } else {
-                    lines.push(Line::from("Không tìm thấy dữ liệu."));
-                }
-
-                Paragraph::new(lines).wrap(Wrap { trim: true }).render(inner, buf);
+                render_causality_detail_preview(node, rows[1], buf);
+                render_causality_footer(
+                    "Esc: quay lại danh sách  d: debug mode  ←/→: đổi ngày",
+                    rows[2],
+                    buf,
+                );
             }
         }
+    }
+}
+
+fn render_causality_header(
+    inspection: &amlich_core::DebugSemanticGraphInspection,
+    selected: Option<&crate::view_models::causality::CausalityNode>,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Tóm Tắt ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let nodes = crate::view_models::causality::extract_causality_tree(inspection);
+    let good = nodes
+        .iter()
+        .filter(|node| matches!(node.severity.as_deref(), Some("favorable") | Some("positive")))
+        .count();
+    let risk = nodes
+        .iter()
+        .filter(|node| matches!(node.severity.as_deref(), Some("critical") | Some("caution")))
+        .count();
+    let neutral = nodes.len().saturating_sub(good + risk);
+
+    let focus = selected
+        .map(|node| truncate_label(&node.label, 22))
+        .unwrap_or_else(|| "chưa có mục nào".to_string());
+
+    let lines = vec![
+        Line::from(vec![
+            Span::styled("  Ngày: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!(
+                    "{}/{}/{}",
+                    inspection.date.day, inspection.date.month, inspection.date.year
+                ),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+            Span::raw("   "),
+            Span::styled(
+                format!("{} yếu tố trọng tâm", nodes.len()),
+                Style::default().fg(Color::White),
+            ),
+            Span::raw("   "),
+            Span::styled(format!("{} tốt", good), Style::default().fg(Color::Green)),
+            Span::raw("  "),
+            Span::styled(format!("{} xấu", risk), Style::default().fg(Color::Red)),
+            Span::raw("  "),
+            Span::styled(format!("{} trung tính", neutral), Style::default().fg(Color::DarkGray)),
+        ]),
+        Line::from(vec![
+            Span::styled("  Đang chọn: ", Style::default().fg(Color::Cyan)),
+            Span::styled(focus, Style::default().fg(Color::Yellow)),
+            Span::raw("   "),
+            Span::styled("[d] debug mode", Style::default().fg(Color::DarkGray)),
+        ]),
+    ];
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_causality_master_list(
+    nodes: &[crate::view_models::causality::CausalityNode],
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Các Yếu Tố ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut items = Vec::new();
+    let mut current_cluster = String::new();
+    let mut selected_item = None;
+
+    for (idx, node) in nodes.iter().enumerate() {
+        if node.cluster != current_cluster {
+            current_cluster = node.cluster.clone();
+            if !items.is_empty() {
+                items.push(ratatui::widgets::ListItem::new(Line::from("")));
+            }
+            items.push(ratatui::widgets::ListItem::new(Line::from(vec![Span::styled(
+                format!("  {}", causality_cluster_title(&node.cluster)),
+                Style::default()
+                    .fg(Color::Magenta)
+                    .add_modifier(Modifier::BOLD),
+            )])));
+        }
+
+        let selected = idx == cursor;
+        if selected {
+            selected_item = Some(items.len());
+        }
+
+        let (severity_tag, color, icon) = causality_severity_badge(node.severity.as_deref());
+        let style = if selected {
+            Style::default()
+                .fg(Color::Yellow)
+                .bg(Color::Rgb(30, 30, 40))
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+
+        items.push(ratatui::widgets::ListItem::new(Line::from(vec![
+            Span::styled(if selected { ">" } else { " " }, style),
+            Span::raw(" "),
+            Span::styled(format!("{:<6}", severity_tag), Style::default().fg(color)),
+            Span::raw(" "),
+            Span::styled(icon, Style::default().fg(color)),
+            Span::raw(" "),
+            Span::styled(truncate_label(&node.label, inner.width.saturating_sub(16) as usize), style),
+        ])));
+    }
+
+    if items.is_empty() {
+        items.push(ratatui::widgets::ListItem::new(Line::from(Span::styled(
+            "  Không tìm thấy dữ liệu nhân quả nào.",
+            Style::default().fg(Color::DarkGray),
+        ))));
+    }
+
+    let mut state = ratatui::widgets::ListState::default();
+    state.select(selected_item);
+    ratatui::widgets::StatefulWidget::render(ratatui::widgets::List::new(items), inner, buf, &mut state);
+}
+
+fn render_causality_detail_preview(
+    node: Option<&crate::view_models::causality::CausalityNode>,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Chi Tiết Nhân Quả ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(node) = node else {
+        Paragraph::new(Line::from(Span::styled(
+            "  Chưa có yếu tố nào để hiển thị.",
+            Style::default().fg(Color::DarkGray),
+        )))
+        .render(inner, buf);
+        return;
+    };
+
+    let sections: Vec<Rect> = if inner.width < 70 || inner.height < 18 {
+        Layout::vertical([Constraint::Length(5), Constraint::Min(6), Constraint::Min(6)])
+            .split(inner)
+            .iter()
+            .copied()
+            .collect()
+    } else {
+        let cols = Layout::horizontal([Constraint::Percentage(46), Constraint::Percentage(54)]).split(inner);
+        let right = Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).split(cols[1]);
+        vec![cols[0], right[0], right[1]]
+    };
+
+    render_causality_selected_summary(node, sections[0], buf);
+    render_causality_relation_block(
+        " Đến Từ Đâu ",
+        &node.incoming,
+        true,
+        sections[1],
+        buf,
+    );
+    render_causality_relation_block(
+        " Dẫn Tới Điều Gì ",
+        &node.outgoing,
+        false,
+        sections[2],
+        buf,
+    );
+}
+
+fn render_causality_selected_summary(
+    node: &crate::view_models::causality::CausalityNode,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let (severity_tag, color, icon) = causality_severity_badge(node.severity.as_deref());
+    let lines = vec![
+        Line::from(vec![
+            Span::styled(format!("  {} ", icon), Style::default().fg(color)),
+            Span::styled(
+                truncate_label(&node.label, area.width.saturating_sub(8) as usize),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+        Line::from(vec![
+            Span::styled("  Cụm: ", Style::default().fg(Color::Cyan)),
+            Span::styled(causality_cluster_title(&node.cluster), Style::default().fg(Color::White)),
+        ]),
+        Line::from(vec![
+            Span::styled("  Loại: ", Style::default().fg(Color::Cyan)),
+            Span::styled(&node.semantic_kind, Style::default().fg(Color::White)),
+            Span::raw("   "),
+            Span::styled("Mức: ", Style::default().fg(Color::Cyan)),
+            Span::styled(severity_tag, Style::default().fg(color)),
+        ]),
+        Line::from(vec![
+            Span::styled("  Quan hệ: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("{} vào, {} ra", node.incoming.len(), node.outgoing.len()),
+                Style::default().fg(Color::White),
+            ),
+        ]),
+    ];
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(area, buf);
+}
+
+fn render_causality_relation_block(
+    title: &str,
+    edges: &[crate::view_models::causality::CausalityEdge],
+    incoming: bool,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(title)
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+    if edges.is_empty() {
+        let empty = if incoming {
+            "  Không có nguyên nhân trực tiếp nổi bật."
+        } else {
+            "  Chưa thấy ảnh hưởng hoặc lời khuyên trực tiếp."
+        };
+        lines.push(Line::from(Span::styled(
+            empty,
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for edge in edges.iter().take(inner.height.saturating_sub(1) as usize) {
+            let (icon, color) = if !incoming && (edge.neighbor_label.starts_with("Kỵ") || edge.edge_label.contains("avoid")) {
+                ("x", Color::Red)
+            } else if !incoming
+                && (edge.neighbor_label.starts_with("Nên") || edge.edge_label.contains("support"))
+            {
+                ("+", Color::Green)
+            } else if incoming {
+                ("<", Color::Cyan)
+            } else {
+                (">", Color::White)
+            };
+
+            lines.push(Line::from(vec![
+                Span::styled(format!("{} ", icon), Style::default().fg(color)),
+                Span::styled(
+                    truncate_label(&edge.neighbor_label, inner.width.saturating_sub(12) as usize),
+                    Style::default().fg(Color::White),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("  "),
+                Span::styled(
+                    format!("{} [{}]", truncate_label(&edge.edge_label, 24), truncate_label(&edge.neighbor_kind, 12)),
+                    Style::default().fg(Color::DarkGray),
+                ),
+            ]));
+        }
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_causality_footer(help: &str, area: Rect, buf: &mut Buffer) {
+    Paragraph::new(Line::from(Span::styled(
+        format!("  {}", help),
+        Style::default().fg(Color::DarkGray),
+    )))
+    .render(area, buf);
+}
+
+fn causality_cluster_title(cluster: &str) -> String {
+    match cluster {
+        "day-core" => "THẦN SÁT CHUNG CỦA NGÀY".to_string(),
+        "bazi" => "TƯƠNG TÁC CÁ NHÂN (BÁT TỰ)".to_string(),
+        "day_person_matrix" => "MA TRẬN NGƯỜI - NGÀY".to_string(),
+        "domain_day_boost" => "MA TRẬN NĂNG LƯỢNG".to_string(),
+        other => other.to_uppercase(),
+    }
+}
+
+fn causality_severity_badge(severity: Option<&str>) -> (&'static str, Color, &'static str) {
+    match severity {
+        Some("favorable") | Some("positive") => ("TỐT", Color::Green, "*"),
+        Some("critical") | Some("caution") => ("XẤU", Color::Red, "!"),
+        _ => ("BÌNH", Color::DarkGray, "~"),
     }
 }
