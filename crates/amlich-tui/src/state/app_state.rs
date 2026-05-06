@@ -47,6 +47,24 @@ impl UserExplanationLens {
             Self::Nguon => "Nguồn",
         }
     }
+
+    pub fn next(self) -> Self {
+        match self {
+            Self::ViSao => Self::YeuTo,
+            Self::YeuTo => Self::HoatDong,
+            Self::HoatDong => Self::Nguon,
+            Self::Nguon => Self::ViSao,
+        }
+    }
+
+    pub fn previous(self) -> Self {
+        match self {
+            Self::ViSao => Self::Nguon,
+            Self::YeuTo => Self::ViSao,
+            Self::HoatDong => Self::YeuTo,
+            Self::Nguon => Self::HoatDong,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -92,6 +110,15 @@ impl GraphInspectorLens {
             Self::Reasoning => Self::Recommendation,
             Self::Recommendation => Self::Convergence,
             Self::Convergence => Self::General,
+        }
+    }
+
+    pub fn previous(&self) -> Self {
+        match self {
+            Self::General => Self::Convergence,
+            Self::Reasoning => Self::General,
+            Self::Recommendation => Self::Reasoning,
+            Self::Convergence => Self::Recommendation,
         }
     }
 
@@ -1216,12 +1243,13 @@ impl AppState {
     }
 
     pub fn cycle_explanation_lens(&mut self) {
-        self.explanation_lens = match self.explanation_lens {
-            UserExplanationLens::ViSao => UserExplanationLens::YeuTo,
-            UserExplanationLens::YeuTo => UserExplanationLens::HoatDong,
-            UserExplanationLens::HoatDong => UserExplanationLens::Nguon,
-            UserExplanationLens::Nguon => UserExplanationLens::ViSao,
-        };
+        self.explanation_lens = self.explanation_lens.next();
+        self.causality_focus = CausalityFocus::SummaryList;
+        self.graph_inspector_cursor = 0;
+    }
+
+    pub fn previous_explanation_lens(&mut self) {
+        self.explanation_lens = self.explanation_lens.previous();
         self.causality_focus = CausalityFocus::SummaryList;
         self.graph_inspector_cursor = 0;
     }
@@ -1413,6 +1441,25 @@ impl AppState {
 
     pub fn graph_inspector_cycle_lens(&mut self) {
         self.graph_inspector_lens = self.graph_inspector_lens.next();
+        match self.graph_inspector_lens {
+            GraphInspectorLens::General => {
+                self.graph_inspector_focus = GraphInspectorFocus::Summary;
+            }
+            GraphInspectorLens::Reasoning => {
+                self.graph_inspector_focus = GraphInspectorFocus::ReasoningLens;
+            }
+            GraphInspectorLens::Recommendation => {
+                self.graph_inspector_focus = GraphInspectorFocus::RecommendationLens;
+            }
+            GraphInspectorLens::Convergence => {
+                self.graph_inspector_focus = GraphInspectorFocus::ConvergenceLens;
+            }
+        }
+        self.graph_inspector_cursor = 0;
+    }
+
+    pub fn graph_inspector_previous_lens(&mut self) {
+        self.graph_inspector_lens = self.graph_inspector_lens.previous();
         match self.graph_inspector_lens {
             GraphInspectorLens::General => {
                 self.graph_inspector_focus = GraphInspectorFocus::Summary;

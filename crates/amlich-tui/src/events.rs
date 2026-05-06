@@ -46,15 +46,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
     // Global view switching
     match code {
         KeyCode::Tab => {
-            if app.active_view == crate::state::ActiveView::GraphInspector {
-                if !app.dev_inspector_mode {
-                    app.cycle_explanation_lens();
-                } else {
-                    app.graph_inspector_cycle_lens();
-                }
-            } else {
-                app.next_view();
-            }
+            app.next_view();
             return false;
         }
         KeyCode::BackTab => {
@@ -113,6 +105,20 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         match code {
             KeyCode::Char('q') => app.running = false,
             KeyCode::Char('d') => app.toggle_dev_inspector_mode(),
+            KeyCode::Char(']') => {
+                if !app.dev_inspector_mode {
+                    app.cycle_explanation_lens();
+                } else {
+                    app.graph_inspector_cycle_lens();
+                }
+            }
+            KeyCode::Char('[') => {
+                if !app.dev_inspector_mode {
+                    app.previous_explanation_lens();
+                } else {
+                    app.graph_inspector_previous_lens();
+                }
+            }
             KeyCode::Esc => {
                 if !app.dev_inspector_mode {
                     if app.explanation_lens == UserExplanationLens::YeuTo {
@@ -136,7 +142,6 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 }
             }
             KeyCode::Char('r') => app.toggle_graph_recommendations(),
-            KeyCode::Tab => app.graph_inspector_cycle_lens(),
             KeyCode::Right => app.navigate_days(1),
             KeyCode::Left => app.navigate_days(-1),
             KeyCode::Char('t') => app.jump_to_today(),
@@ -517,7 +522,22 @@ mod tests {
     }
 
     #[test]
-    fn tab_cycles_explanation_lens_inside_non_dev_graph_inspector() {
+    fn tab_still_cycles_screen_forward_inside_graph_inspector() {
+        let mut app = sample_app_state();
+        app.active_view = ActiveView::GraphInspector;
+        app.dev_inspector_mode = false;
+
+        dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+
+        assert_eq!(app.active_view, ActiveView::Today);
+        assert_eq!(
+            app.explanation_lens,
+            crate::state::UserExplanationLens::ViSao
+        );
+    }
+
+    #[test]
+    fn bracket_cycles_explanation_lens_inside_non_dev_graph_inspector() {
         let mut app = sample_app_state();
         app.active_view = ActiveView::GraphInspector;
         app.dev_inspector_mode = false;
@@ -526,16 +546,35 @@ mod tests {
             crate::state::UserExplanationLens::ViSao
         );
 
-        dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+        dispatch_key(&mut app, KeyCode::Char(']'), KeyModifiers::NONE);
         assert_eq!(
             app.explanation_lens,
             crate::state::UserExplanationLens::YeuTo
         );
 
-        dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+        dispatch_key(&mut app, KeyCode::Char('['), KeyModifiers::NONE);
         assert_eq!(
             app.explanation_lens,
-            crate::state::UserExplanationLens::HoatDong
+            crate::state::UserExplanationLens::ViSao
+        );
+    }
+
+    #[test]
+    fn bracket_cycles_dev_graph_inspector_lens() {
+        let mut app = sample_app_state();
+        app.active_view = ActiveView::GraphInspector;
+        app.dev_inspector_mode = true;
+
+        dispatch_key(&mut app, KeyCode::Char(']'), KeyModifiers::NONE);
+        assert_eq!(
+            app.graph_inspector_lens,
+            crate::state::GraphInspectorLens::Reasoning
+        );
+
+        dispatch_key(&mut app, KeyCode::Char('['), KeyModifiers::NONE);
+        assert_eq!(
+            app.graph_inspector_lens,
+            crate::state::GraphInspectorLens::General
         );
     }
 

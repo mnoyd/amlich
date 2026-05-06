@@ -1645,7 +1645,7 @@ fn render_lens_header(
     block.render(area, buf);
 
     let lens_label = lens.label();
-    let help_line = "Tab: đổi lens  ←/→: đổi ngày  t: hôm nay  ↑↓: chọn  Esc: quay lại";
+    let help_line = "[/]: đổi lens  Tab: đổi màn  ←/→: đổi ngày  t: hôm nay  ↑↓: chọn  Esc: quay lại";
 
     let lines = vec![
         Line::from(vec![
@@ -2561,7 +2561,7 @@ impl GraphInspectorScreenWidget<'_> {
         render_vi_sao_detail(entries.get(selected_idx), body_panes[1], buf);
 
         render_causality_footer(
-            "Tab: đổi góc nhìn  d: chế độ debug  ←/→: đổi ngày",
+            "[/]: đổi góc nhìn  Tab: đổi màn  d: chế độ debug  ←/→: đổi ngày",
             rows[2],
             buf,
         );
@@ -2680,7 +2680,7 @@ impl GraphInspectorScreenWidget<'_> {
         }
 
         render_causality_footer(
-            "Tab: đổi góc nhìn  d: debug mode  ←/→: đổi ngày",
+            "[/]: đổi góc nhìn  Tab: đổi màn  d: debug mode  ←/→: đổi ngày",
             rows[2],
             buf,
         );
@@ -2770,7 +2770,7 @@ impl GraphInspectorScreenWidget<'_> {
         render_nguon_detail(selected, body_panes[1], buf);
 
         render_causality_footer(
-            "Tab: đổi góc nhìn  d: debug mode  ←/→: đổi ngày",
+            "[/]: đổi góc nhìn  Tab: đổi màn  d: debug mode  ←/→: đổi ngày",
             rows[2],
             buf,
         );
@@ -2824,7 +2824,7 @@ impl GraphInspectorScreenWidget<'_> {
                 render_causality_detail_preview(selected_node, panes[1], buf, user_facing);
 
                 let summary_help = if user_facing {
-                    "Tab: đổi góc nhìn  ↑↓: chọn  Enter: khóa chi tiết  d: debug mode"
+                    "[/]: đổi góc nhìn  Tab: đổi màn  ↑↓: chọn  Enter: khóa chi tiết  d: debug mode"
                 } else {
                     "↑↓: chọn  Enter: khóa vào chi tiết  d: debug mode  ←/→: đổi ngày"
                 };
@@ -2834,7 +2834,7 @@ impl GraphInspectorScreenWidget<'_> {
                 let node = nodes.iter().find(|n| &n.node_id == node_id);
                 render_causality_detail_preview(node, rows[1], buf, user_facing);
                 let detail_help = if user_facing {
-                    "Tab: đổi góc nhìn  Esc: quay lại  d: debug mode  ←/→: đổi ngày"
+                    "[/]: đổi góc nhìn  Tab: đổi màn  Esc: quay lại  d: debug mode  ←/→: đổi ngày"
                 } else {
                     "Esc: quay lại danh sách  d: debug mode  ←/→: đổi ngày"
                 };
