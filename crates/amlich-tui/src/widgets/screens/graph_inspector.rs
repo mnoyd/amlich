@@ -11,7 +11,8 @@ use ratatui::{
 use chrono::Datelike;
 
 use crate::layout::LayoutMode;
-use crate::state::{AppState, GraphInspectorFocus};
+use crate::state::{AppState, GraphInspectorFocus, UserExplanationLens};
+use crate::view_models::decision_stack::DecisionRole;
 
 pub struct GraphInspectorScreenWidget<'a> {
     app: &'a AppState,
@@ -38,7 +39,14 @@ impl Widget for GraphInspectorScreenWidget<'_> {
         );
 
         if !self.app.dev_inspector_mode {
-            self.render_causality_view(&inspection, area, buf);
+            match self.app.explanation_lens {
+                UserExplanationLens::ViSao => self.render_vi_sao_view(&inspection, area, buf),
+                UserExplanationLens::YeuTo => self.render_causality_view(&inspection, area, buf, true),
+                UserExplanationLens::HoatDong => {
+                    self.render_hoat_dong_view(&inspection, area, buf)
+                }
+                UserExplanationLens::Nguon => self.render_nguon_view(&inspection, area, buf),
+            }
             return;
         }
 
@@ -1988,6 +1996,9 @@ mod tests {
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
             graph_inspector_lens: crate::state::GraphInspectorLens::General,
+            dev_inspector_mode: true,
+            explanation_lens: crate::state::UserExplanationLens::ViSao,
+            causality_focus: crate::state::CausalityFocus::SummaryList,
         }
     }
 
@@ -2235,6 +2246,500 @@ mod tests {
         assert!(text.contains("Outgoing"));
         assert!(text.contains("Enter/l: xem edge list"));
     }
+
+    #[test]
+    fn hoat_dong_view_renders_title() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::HoatDong;
+        let text = render_text(&app);
+        assert!(text.contains("Hoạt Động"));
+    }
+
+    #[test]
+    fn hoat_dong_view_empty_state() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::HoatDong;
+        let text = render_text(&app);
+        assert!(text.contains("Không có hoạt động cho ngày này"));
+    }
+
+    #[test]
+    fn nguon_view_renders_title() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::Nguon;
+        let text = render_text(&app);
+        assert!(text.contains("Nguồn"));
+    }
+
+    #[test]
+    fn nguon_view_shows_source_data() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::Nguon;
+        let text = render_text(&app);
+        assert!(text.contains("nguồn dữ liệu") || text.contains("Không có nguồn dữ liệu"));
+    }
+
+    #[test]
+    fn yeu_to_lens_shows_user_facing_title() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::YeuTo;
+        let text = render_text(&app);
+        assert!(text.contains("Yếu Tố"));
+        assert!(!text.contains("Causality Map"));
+    }
+
+    #[test]
+    fn default_non_dev_renders_vi_sao() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::ViSao;
+        let text = render_text(&app);
+        assert!(text.contains("Vì Sao Kết Luận"));
+    }
+
+    #[test]
+    fn d_switches_to_debug_graph_mode() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::ViSao;
+        let text_non_dev = render_text(&app);
+        assert!(text_non_dev.contains("Vì Sao Kết Luận"));
+
+        app.dev_inspector_mode = true;
+        let text_dev = render_text(&app);
+        assert!(text_dev.contains("Đồ Thị Ngữ Nghĩa"));
+    }
+
+    #[test]
+    fn small_layout_renders_without_panic() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        let area = Rect::new(0, 0, 40, 15);
+        let mut buf = Buffer::empty(area);
+        GraphInspectorScreenWidget::new(&app, LayoutMode::Small).render(area, &mut buf);
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(!text.is_empty());
+    }
+}
+
+impl GraphInspectorScreenWidget<'_> {
+    fn render_vi_sao_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let block = Block::default()
+            .title(" Vì Sao Kết Luận ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan));
+        let inner = block.inner(area);
+        block.render(area, buf);
+
+        let entries = crate::view_models::decision_stack::extract_decision_stack(inspection);
+
+        let rows = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Min(6),
+            Constraint::Length(2),
+        ])
+        .split(inner);
+
+        let good = entries
+            .iter()
+            .filter(|e| matches!(e.role, DecisionRole::Support | DecisionRole::Refinement))
+            .count();
+        let risk = entries
+            .iter()
+            .filter(|e| {
+                matches!(
+                    e.role,
+                    DecisionRole::Override | DecisionRole::Resistance | DecisionRole::Conflict
+                )
+            })
+            .count();
+
+        let header_lines = vec![
+            Line::from(vec![
+                Span::styled("  Ngày: ", Style::default().fg(Color::Cyan)),
+                Span::styled(
+                    format!(
+                        "{}/{}/{}",
+                        inspection.date.day, inspection.date.month, inspection.date.year
+                    ),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::raw("   "),
+                Span::styled(
+                    format!("{} yếu tố", entries.len()),
+                    Style::default().fg(Color::White),
+                ),
+                Span::raw("   "),
+                Span::styled(format!("{} hỗ trợ", good), Style::default().fg(Color::Green)),
+                Span::raw("  "),
+                Span::styled(format!("{} rủi ro", risk), Style::default().fg(Color::Red)),
+            ]),
+            Line::from(vec![Span::styled(
+                format!(
+                    "  Góc nhìn: {}",
+                    self.app.explanation_lens.label()
+                ),
+                Style::default().fg(Color::DarkGray),
+            )]),
+        ];
+
+        let header_block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+        let header_inner = header_block.inner(rows[0]);
+        header_block.render(rows[0], buf);
+        Paragraph::new(header_lines)
+            .wrap(Wrap { trim: true })
+            .render(header_inner, buf);
+
+        let body_block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+        let body_inner = body_block.inner(rows[1]);
+        body_block.render(rows[1], buf);
+
+        let mut lines = Vec::new();
+        let mut current_role = None;
+
+        for (idx, entry) in entries.iter().enumerate() {
+            if current_role != Some(entry.role) {
+                current_role = Some(entry.role);
+                if !lines.is_empty() {
+                    lines.push(Line::from(""));
+                }
+                let role_color = match entry.role {
+                    DecisionRole::Override => Color::Red,
+                    DecisionRole::Resistance => Color::Yellow,
+                    DecisionRole::Conflict => Color::Magenta,
+                    DecisionRole::Support => Color::Green,
+                    DecisionRole::Refinement => Color::Cyan,
+                };
+                lines.push(Line::from(vec![Span::styled(
+                    format!("  {}", entry.role.label()),
+                    Style::default()
+                        .fg(role_color)
+                        .add_modifier(Modifier::BOLD),
+                )]));
+            }
+
+            let selected = idx == self.app.graph_inspector_cursor;
+            let style = if selected {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+
+            let impact_span = entry
+                .impact
+                .as_ref()
+                .map(|imp| {
+                    Span::styled(
+                        format!(" [{}]", imp),
+                        Style::default().fg(Color::DarkGray),
+                    )
+                })
+                .unwrap_or_else(|| Span::raw(""));
+
+            lines.push(Line::from(vec![
+                Span::styled(if selected { ">" } else { " " }, style),
+                Span::raw(" "),
+                Span::styled(truncate_label(&entry.label, body_inner.width as usize - 6), style),
+                impact_span,
+            ]));
+        }
+
+        if lines.is_empty() {
+            lines.push(Line::from(Span::styled(
+                "  Không có quyết định nào cho ngày này.",
+                Style::default().fg(Color::DarkGray),
+            )));
+        }
+
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: true })
+            .render(body_inner, buf);
+
+        render_causality_footer(
+            "Tab: đổi góc nhìn  d: chế độ debug  ←/→: đổi ngày",
+            rows[2],
+            buf,
+        );
+    }
+
+    fn render_hoat_dong_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let block = Block::default()
+            .title(" Hoạt Động ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan));
+        let inner = block.inner(area);
+        block.render(area, buf);
+
+        let entries = self.app.recommendation_lens_entries(inspection);
+
+        let rows = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Min(6),
+            Constraint::Length(2),
+        ])
+        .split(inner);
+
+        let nen = entries.iter().filter(|e| e.is_favor).count();
+        let khong_nen = entries.iter().filter(|e| !e.is_favor).count();
+
+        let header_lines = vec![
+            Line::from(vec![
+                Span::styled("  Ngày: ", Style::default().fg(Color::Cyan)),
+                Span::styled(
+                    format!(
+                        "{}/{}/{}",
+                        inspection.date.day, inspection.date.month, inspection.date.year
+                    ),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::raw("   "),
+                Span::styled(
+                    format!("{} hoạt động", entries.len()),
+                    Style::default().fg(Color::White),
+                ),
+                Span::raw("   "),
+                Span::styled(format!("{} nên", nen), Style::default().fg(Color::Green)),
+                Span::raw("  "),
+                Span::styled(format!("{} tránh", khong_nen), Style::default().fg(Color::Red)),
+            ]),
+            Line::from(vec![Span::styled(
+                format!(
+                    "  Góc nhìn: {}",
+                    self.app.explanation_lens.label()
+                ),
+                Style::default().fg(Color::DarkGray),
+            )]),
+        ];
+
+        let header_block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+        let header_inner = header_block.inner(rows[0]);
+        header_block.render(rows[0], buf);
+        Paragraph::new(header_lines)
+            .wrap(Wrap { trim: true })
+            .render(header_inner, buf);
+
+        if entries.is_empty() {
+            let body_block = Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::DarkGray));
+            let body_inner = body_block.inner(rows[1]);
+            body_block.render(rows[1], buf);
+            Paragraph::new(Line::from(Span::styled(
+                "  Không có hoạt động cho ngày này",
+                Style::default().fg(Color::DarkGray),
+            )))
+            .wrap(Wrap { trim: true })
+            .render(body_inner, buf);
+        } else {
+            let panes = if rows[1].width < 100 {
+                Layout::vertical([Constraint::Percentage(45), Constraint::Percentage(55)])
+                    .split(rows[1])
+            } else {
+                Layout::horizontal([Constraint::Percentage(39), Constraint::Percentage(61)])
+                    .split(rows[1])
+            };
+
+            render_hoat_dong_master_list(&entries, self.app.graph_inspector_cursor, panes[0], buf);
+
+            let selected = entries.get(self.app.graph_inspector_cursor.min(entries.len().saturating_sub(1)));
+            render_hoat_dong_detail(selected, panes[1], buf);
+        }
+
+        render_causality_footer(
+            "Tab: đổi góc nhìn  d: debug mode  ←/→: đổi ngày",
+            rows[2],
+            buf,
+        );
+    }
+
+    fn render_nguon_view(
+        &self,
+        inspection: &amlich_core::DebugSemanticGraphInspection,
+        area: Rect,
+        buf: &mut Buffer,
+    ) {
+        let block = Block::default()
+            .title(" Nguồn ")
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::Cyan));
+        let inner = block.inner(area);
+        block.render(area, buf);
+
+        let mut source_groups: HashMap<String, Vec<&amlich_core::semantic_graph::VisualizationNode>> =
+            HashMap::new();
+
+        for node in &inspection.visualization.nodes {
+            if node.provenance.is_empty() {
+                source_groups
+                    .entry("(không rõ)".to_string())
+                    .or_default()
+                    .push(node);
+            } else {
+                for prov in &node.provenance {
+                    let family = provenance_source_family_label(prov).to_string();
+                    source_groups
+                        .entry(family)
+                        .or_default()
+                        .push(node);
+                }
+            }
+        }
+
+        let rows = Layout::vertical([
+            Constraint::Length(3),
+            Constraint::Min(6),
+            Constraint::Length(2),
+        ])
+        .split(inner);
+
+        let header_lines = vec![
+            Line::from(vec![
+                Span::styled("  Ngày: ", Style::default().fg(Color::Cyan)),
+                Span::styled(
+                    format!(
+                        "{}/{}/{}",
+                        inspection.date.day, inspection.date.month, inspection.date.year
+                    ),
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Span::raw("   "),
+                Span::styled(
+                    format!("{} nguồn dữ liệu", source_groups.len()),
+                    Style::default().fg(Color::White),
+                ),
+                Span::raw("   "),
+                Span::styled(
+                    format!("{} yếu tố", inspection.visualization.nodes.len()),
+                    Style::default().fg(Color::DarkGray),
+                ),
+            ]),
+            Line::from(vec![Span::styled(
+                format!(
+                    "  Góc nhìn: {}",
+                    self.app.explanation_lens.label()
+                ),
+                Style::default().fg(Color::DarkGray),
+            )]),
+        ];
+
+        let header_block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+        let header_inner = header_block.inner(rows[0]);
+        header_block.render(rows[0], buf);
+        Paragraph::new(header_lines)
+            .wrap(Wrap { trim: true })
+            .render(header_inner, buf);
+
+        let body_block = Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::DarkGray));
+        let body_inner = body_block.inner(rows[1]);
+        body_block.render(rows[1], buf);
+
+        let mut lines = Vec::new();
+
+        if source_groups.is_empty() {
+            lines.push(Line::from(Span::styled(
+                "  Không có nguồn dữ liệu",
+                Style::default().fg(Color::DarkGray),
+            )));
+        } else {
+            let mut sorted_groups: Vec<_> = source_groups.into_iter().collect();
+            sorted_groups.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+
+            for (idx, (family, nodes)) in sorted_groups.iter().enumerate() {
+                let selected = idx == self.app.graph_inspector_cursor.min(sorted_groups.len().saturating_sub(1));
+                let style = if selected {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::White)
+                };
+                let count_style = if selected {
+                    Style::default()
+                        .fg(Color::Cyan)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default().fg(Color::Yellow)
+                };
+                let marker = if selected { ">" } else { " " };
+
+                lines.push(Line::from(vec![
+                    Span::styled(format!("{} ", marker), style),
+                    Span::styled(format!("{:<20}", truncate_label(family, 20)), style),
+                    Span::styled(format!("{:>4} yếu tố", nodes.len()), count_style),
+                ]));
+
+                if selected {
+                    for node in nodes.iter().take(5) {
+                        lines.push(Line::from(vec![
+                            Span::raw("     "),
+                            Span::styled(
+                                truncate_label(&node.label, body_inner.width.saturating_sub(10) as usize),
+                                Style::default().fg(Color::DarkGray),
+                            ),
+                        ]));
+                    }
+                    if nodes.len() > 5 {
+                        lines.push(Line::from(vec![Span::styled(
+                            format!("     ... +{} more", nodes.len() - 5),
+                            Style::default().fg(Color::DarkGray),
+                        )]));
+                    }
+                }
+            }
+        }
+
+        Paragraph::new(lines)
+            .wrap(Wrap { trim: true })
+            .render(body_inner, buf);
+
+        render_causality_footer(
+            "Tab: đổi góc nhìn  d: debug mode  ←/→: đổi ngày",
+            rows[2],
+            buf,
+        );
+    }
 }
 
 impl GraphInspectorScreenWidget<'_> {
@@ -2243,9 +2748,15 @@ impl GraphInspectorScreenWidget<'_> {
         inspection: &amlich_core::DebugSemanticGraphInspection,
         area: Rect,
         buf: &mut Buffer,
+        user_facing: bool,
     ) {
+        let title = if user_facing {
+            " Yếu Tố "
+        } else {
+            " Bản Đồ Nhân Quả (Causality Map) "
+        };
         let block = Block::default()
-            .title(" Bản Đồ Nhân Quả (Causality Map) ")
+            .title(title)
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan));
         let inner = block.inner(area);
@@ -2275,22 +2786,24 @@ impl GraphInspectorScreenWidget<'_> {
                 };
 
                 render_causality_master_list(&nodes, self.app.graph_inspector_cursor, panes[0], buf);
-                render_causality_detail_preview(selected_node, panes[1], buf);
+                render_causality_detail_preview(selected_node, panes[1], buf, user_facing);
 
-                render_causality_footer(
-                    "↑↓: chọn  Enter: khóa vào chi tiết  d: debug mode  ←/→: đổi ngày",
-                    rows[2],
-                    buf,
-                );
+                let summary_help = if user_facing {
+                    "Tab: đổi góc nhìn  ↑↓: chọn  Enter: khóa chi tiết  d: debug mode"
+                } else {
+                    "↑↓: chọn  Enter: khóa vào chi tiết  d: debug mode  ←/→: đổi ngày"
+                };
+                render_causality_footer(summary_help, rows[2], buf);
             }
             CausalityFocus::DetailFlow(node_id) => {
                 let node = nodes.iter().find(|n| &n.node_id == node_id);
-                render_causality_detail_preview(node, rows[1], buf);
-                render_causality_footer(
-                    "Esc: quay lại danh sách  d: debug mode  ←/→: đổi ngày",
-                    rows[2],
-                    buf,
-                );
+                render_causality_detail_preview(node, rows[1], buf, user_facing);
+                let detail_help = if user_facing {
+                    "Tab: đổi góc nhìn  Esc: quay lại  d: debug mode  ←/→: đổi ngày"
+                } else {
+                    "Esc: quay lại danh sách  d: debug mode  ←/→: đổi ngày"
+                };
+                render_causality_footer(detail_help, rows[2], buf);
             }
         }
     }
@@ -2454,6 +2967,7 @@ fn render_causality_detail_preview(
     node: Option<&crate::view_models::causality::CausalityNode>,
     area: Rect,
     buf: &mut Buffer,
+    user_facing: bool,
 ) {
     let block = Block::default()
         .title(" Chi Tiết Nhân Quả ")
@@ -2486,7 +3000,7 @@ fn render_causality_detail_preview(
                 .collect()
         };
 
-        render_causality_selected_summary(node, sections[0], buf);
+        render_causality_selected_summary(node, sections[0], buf, user_facing);
         render_causality_empty_explanation(node, sections[1], buf);
         return;
     }
@@ -2503,7 +3017,7 @@ fn render_causality_detail_preview(
         vec![cols[0], right[0], right[1]]
     };
 
-    render_causality_selected_summary(node, sections[0], buf);
+    render_causality_selected_summary(node, sections[0], buf, user_facing);
     render_causality_relation_block(
         " Đến Từ Đâu ",
         &node.incoming,
@@ -2524,7 +3038,11 @@ fn render_causality_selected_summary(
     node: &crate::view_models::causality::CausalityNode,
     area: Rect,
     buf: &mut Buffer,
+    user_facing: bool,
 ) {
+    let cluster_label = if user_facing { "Nhóm" } else { "Cụm" };
+    let kind_label = if user_facing { "Kiểu yếu tố" } else { "Loại" };
+    let conn_label = if user_facing { "Liên kết" } else { "Quan hệ" };
     let (severity_tag, color, icon) = causality_severity_badge(node.severity.as_deref());
     let lines = vec![
         Line::from(vec![
@@ -2537,18 +3055,18 @@ fn render_causality_selected_summary(
             ),
         ]),
         Line::from(vec![
-            Span::styled("  Cụm: ", Style::default().fg(Color::Cyan)),
+            Span::styled(format!("  {}: ", cluster_label), Style::default().fg(Color::Cyan)),
             Span::styled(causality_cluster_title(&node.cluster), Style::default().fg(Color::White)),
         ]),
         Line::from(vec![
-            Span::styled("  Loại: ", Style::default().fg(Color::Cyan)),
+            Span::styled(format!("  {}: ", kind_label), Style::default().fg(Color::Cyan)),
             Span::styled(&node.semantic_kind, Style::default().fg(Color::White)),
             Span::raw("   "),
             Span::styled("Mức: ", Style::default().fg(Color::Cyan)),
             Span::styled(severity_tag, Style::default().fg(color)),
         ]),
         Line::from(vec![
-            Span::styled("  Quan hệ: ", Style::default().fg(Color::Cyan)),
+            Span::styled(format!("  {}: ", conn_label), Style::default().fg(Color::Cyan)),
             Span::styled(
                 format!("{} vào, {} ra", node.incoming.len(), node.outgoing.len()),
                 Style::default().fg(Color::White),
@@ -2675,6 +3193,152 @@ fn render_causality_footer(help: &str, area: Rect, buf: &mut Buffer) {
         Style::default().fg(Color::DarkGray),
     )))
     .render(area, buf);
+}
+
+fn render_hoat_dong_master_list(
+    entries: &[crate::state::RecommendationLensEntry],
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Các Hoạt Động ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+    let mut current_bucket: Option<bool> = None;
+
+    for (idx, entry) in entries.iter().enumerate() {
+        if current_bucket != Some(entry.is_favor) {
+            current_bucket = Some(entry.is_favor);
+            if !lines.is_empty() {
+                lines.push(Line::from(""));
+            }
+            let bucket_label = if entry.is_favor { "NÊN" } else { "KHÔNG NÊN" };
+            let bucket_color = if entry.is_favor { Color::Green } else { Color::Red };
+            lines.push(Line::from(vec![Span::styled(
+                format!("  {}", bucket_label),
+                Style::default()
+                    .fg(bucket_color)
+                    .add_modifier(Modifier::BOLD),
+            )]));
+        }
+
+        let selected = idx == cursor;
+        let marker = if selected { ">" } else { " " };
+        let style = if selected {
+            Style::default()
+                .fg(Color::Yellow)
+                .add_modifier(Modifier::BOLD)
+        } else {
+            Style::default().fg(Color::White)
+        };
+        let hard_stop_marker = if entry.is_hard_stop { " !" } else { "" };
+
+        lines.push(Line::from(vec![
+            Span::styled(format!("{} ", marker), style),
+            Span::styled(
+                format!(
+                    "{}{}",
+                    truncate_label(&entry.activity, inner.width.saturating_sub(6) as usize),
+                    hard_stop_marker
+                ),
+                style,
+            ),
+        ]));
+    }
+
+    if lines.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Không có hoạt động cho ngày này",
+            Style::default().fg(Color::DarkGray),
+        )));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_hoat_dong_detail(
+    entry: Option<&crate::state::RecommendationLensEntry>,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Chi Tiết ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(entry) = entry else {
+        Paragraph::new(Line::from(Span::styled(
+            "  Chọn một hoạt động để xem chi tiết.",
+            Style::default().fg(Color::DarkGray),
+        )))
+        .render(inner, buf);
+        return;
+    };
+
+    let bucket_label = if entry.is_favor { "Nên" } else { "Tránh" };
+    let bucket_color = if entry.is_favor { Color::Green } else { Color::Red };
+
+    let mut lines = vec![
+        Line::from(vec![
+            Span::styled("  Hoạt động: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                truncate_label(&entry.activity, inner.width.saturating_sub(16) as usize),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+        Line::from(vec![
+            Span::styled("  Phân loại: ", Style::default().fg(Color::Cyan)),
+            Span::styled(bucket_label, Style::default().fg(bucket_color)),
+            Span::raw(if entry.is_hard_stop { "  [KỶ MẠNH]" } else { "" }),
+        ]),
+        Line::from(""),
+        Line::from(vec![
+            Span::styled("  Lý do: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                truncate_label(&entry.reason, inner.width.saturating_sub(12) as usize),
+                Style::default().fg(Color::White),
+            ),
+        ]),
+    ];
+
+    if !entry.source.is_empty() {
+        lines.push(Line::from(vec![
+            Span::styled("  Nguồn: ", Style::default().fg(Color::Cyan)),
+            Span::styled(&entry.source, Style::default().fg(Color::DarkGray)),
+        ]));
+    }
+
+    if !entry.provenance.is_empty() {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![Span::styled(
+            "  Nguồn gốc:",
+            Style::default().fg(Color::Cyan),
+        )]));
+        for prov in entry.provenance.iter().take(3) {
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(
+                    format!("[{}] {}", provenance_source_family_label(prov), prov.source_id),
+                    Style::default().fg(Color::DarkGray),
+                ),
+            ]));
+        }
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
 
 fn causality_cluster_title(cluster: &str) -> String {

@@ -46,7 +46,15 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
     // Global view switching
     match code {
         KeyCode::Tab => {
-            app.next_view();
+            if app.active_view == crate::state::ActiveView::GraphInspector {
+                if !app.dev_inspector_mode {
+                    app.cycle_explanation_lens();
+                } else {
+                    app.graph_inspector_cycle_lens();
+                }
+            } else {
+                app.next_view();
+            }
             return false;
         }
         KeyCode::BackTab => {
@@ -473,6 +481,9 @@ mod tests {
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
             graph_inspector_lens: crate::state::GraphInspectorLens::General,
+            dev_inspector_mode: false,
+            explanation_lens: crate::state::UserExplanationLens::ViSao,
+            causality_focus: crate::state::CausalityFocus::SummaryList,
         }
     }
 

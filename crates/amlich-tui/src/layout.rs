@@ -318,6 +318,9 @@ mod tests {
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
             graph_inspector_lens: crate::state::GraphInspectorLens::General,
+            dev_inspector_mode: false,
+            explanation_lens: crate::state::UserExplanationLens::ViSao,
+            causality_focus: crate::state::CausalityFocus::SummaryList,
         }
     }
 

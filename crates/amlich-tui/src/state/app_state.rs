@@ -30,6 +30,25 @@ impl Default for CausalityFocus {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UserExplanationLens {
+    ViSao,
+    YeuTo,
+    HoatDong,
+    Nguon,
+}
+
+impl UserExplanationLens {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::ViSao => "Vì Sao",
+            Self::YeuTo => "Yếu Tố",
+            Self::HoatDong => "Hoạt Động",
+            Self::Nguon => "Nguồn",
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum GraphInspectorFocus {
     Summary,
@@ -570,6 +589,7 @@ pub struct AppState {
     pub graph_inspector_focus_before_search: Option<Box<GraphInspectorFocus>>,
     pub graph_inspector_lens: GraphInspectorLens,
     pub dev_inspector_mode: bool,
+    pub explanation_lens: UserExplanationLens,
     pub causality_focus: CausalityFocus,
 }
 
@@ -627,6 +647,7 @@ impl AppState {
             graph_inspector_focus_before_search: None,
             graph_inspector_lens: GraphInspectorLens::General,
             dev_inspector_mode: false,
+            explanation_lens: UserExplanationLens::ViSao,
             causality_focus: CausalityFocus::SummaryList,
         };
 
@@ -1164,6 +1185,15 @@ impl AppState {
 
     pub fn toggle_dev_inspector_mode(&mut self) {
         self.dev_inspector_mode = !self.dev_inspector_mode;
+    }
+
+    pub fn cycle_explanation_lens(&mut self) {
+        self.explanation_lens = match self.explanation_lens {
+            UserExplanationLens::ViSao => UserExplanationLens::YeuTo,
+            UserExplanationLens::YeuTo => UserExplanationLens::HoatDong,
+            UserExplanationLens::HoatDong => UserExplanationLens::Nguon,
+            UserExplanationLens::Nguon => UserExplanationLens::ViSao,
+        };
     }
 
     pub fn causality_drill_down(&mut self, node_id: String) {
@@ -2188,6 +2218,9 @@ mod tests {
             graph_inspector_search_cursor: 0,
             graph_inspector_focus_before_search: None,
             graph_inspector_lens: GraphInspectorLens::General,
+            dev_inspector_mode: false,
+            explanation_lens: UserExplanationLens::ViSao,
+            causality_focus: CausalityFocus::SummaryList,
             app_mode: AppMode::Normal,
             focused_section: PageSection::Hero,
             zoomed_section: None,
