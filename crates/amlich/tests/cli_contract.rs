@@ -1307,8 +1307,12 @@ fn lookup_personal_day_analysis_outputs_canonical_reasoning_bundle_fields() {
     assert!(json.get("decision").is_some());
     assert!(json.get("decision_export").is_some());
     assert!(json.get("graph").is_some());
-    assert!(json["graph"]["nodes"].as_array().is_some_and(|nodes| !nodes.is_empty()));
-    assert!(json["graph"]["edges"].as_array().is_some_and(|edges| !edges.is_empty()));
+    assert!(json["graph"]["nodes"]
+        .as_array()
+        .is_some_and(|nodes| !nodes.is_empty()));
+    assert!(json["graph"]["edges"]
+        .as_array()
+        .is_some_and(|edges| !edges.is_empty()));
 }
 
 #[test]
@@ -1510,8 +1514,14 @@ fn lookup_hour_selection_report_outputs_machine_readable_payload() {
     assert_eq!(json["advisory"]["intent"].as_str(), Some("travel"));
     assert!(json["advisory"]["summary_vi"].as_str().is_some());
     assert!(json["advisory"]["summary_en"].as_str().is_some());
-    assert_eq!(json["analysis"]["summary_vi"], json["advisory"]["summary_vi"]);
-    assert_eq!(json["analysis"]["summary_en"], json["advisory"]["summary_en"]);
+    assert_eq!(
+        json["analysis"]["summary_vi"],
+        json["advisory"]["summary_vi"]
+    );
+    assert_eq!(
+        json["analysis"]["summary_en"],
+        json["advisory"]["summary_en"]
+    );
 }
 
 #[test]
@@ -1539,8 +1549,12 @@ fn lookup_hour_selection_analysis_outputs_reasoning_fields() {
     assert!(json["summary_vi"].as_str().is_some());
     assert!(json["summary_en"].as_str().is_some());
     assert!(json["top_recommendation"].is_object());
-    assert!(json["good_hours"].as_array().is_some_and(|hours| !hours.is_empty()));
-    assert!(json["bad_hours"].as_array().is_some_and(|hours| !hours.is_empty()));
+    assert!(json["good_hours"]
+        .as_array()
+        .is_some_and(|hours| !hours.is_empty()));
+    assert!(json["bad_hours"]
+        .as_array()
+        .is_some_and(|hours| !hours.is_empty()));
 }
 
 #[test]
@@ -1574,7 +1588,10 @@ fn lookup_hour_selection_report_keeps_canonical_exports_aligned() {
     assert_eq!(analysis["birth_data_tier"], advisory["birth_data_tier"]);
     assert_eq!(analysis["summary_vi"], advisory["summary_vi"]);
     assert_eq!(analysis["summary_en"], advisory["summary_en"]);
-    assert_eq!(analysis["top_recommendation"], advisory["top_recommendation"]);
+    assert_eq!(
+        analysis["top_recommendation"],
+        advisory["top_recommendation"]
+    );
     assert_eq!(analysis["ranked_hours"], advisory["ranked_hours"]);
 }
 

@@ -238,8 +238,15 @@ fn personal_day_report_analysis_and_advisory_keep_reasoning_fields_aligned() {
     .expect("report");
 
     let report_decision = report.decision.as_ref().expect("report decision");
-    let report_export = report.decision_export.as_ref().expect("report decision export");
-    let analysis_decision = report.analysis.decision.as_ref().expect("analysis decision");
+    let report_export = report
+        .decision_export
+        .as_ref()
+        .expect("report decision export");
+    let analysis_decision = report
+        .analysis
+        .decision
+        .as_ref()
+        .expect("analysis decision");
     let analysis_export = report
         .analysis
         .decision_export
@@ -247,13 +254,22 @@ fn personal_day_report_analysis_and_advisory_keep_reasoning_fields_aligned() {
         .expect("analysis decision export");
     let advisory = &report.advisory;
 
-    assert_eq!(report_decision.primary_conclusion, analysis_decision.primary_conclusion);
-    assert_eq!(report_decision.recommendation_bucket, analysis_decision.recommendation_bucket);
+    assert_eq!(
+        report_decision.primary_conclusion,
+        analysis_decision.primary_conclusion
+    );
+    assert_eq!(
+        report_decision.recommendation_bucket,
+        analysis_decision.recommendation_bucket
+    );
     assert_eq!(report_decision.confidence, analysis_decision.confidence);
     assert_eq!(report_export.semantic, analysis_export.semantic);
     assert_eq!(report_export.axis_scores, analysis_export.axis_scores);
     assert_eq!(report.graph, report.analysis.graph);
-    assert_eq!(advisory.reasoning_bucket.as_deref(), Some(report_decision.recommendation_bucket.as_str()));
+    assert_eq!(
+        advisory.reasoning_bucket.as_deref(),
+        Some(report_decision.recommendation_bucket.as_str())
+    );
 }
 
 #[test]

@@ -230,7 +230,11 @@ pub fn get_bazi_report(
         None => None,
     };
     let report = amlich_core::build_bazi_report(input, timing_input)?;
-    Ok(BaziReportDto::from((query, &report, bazi_birth_data_tier(query))))
+    Ok(BaziReportDto::from((
+        query,
+        &report,
+        bazi_birth_data_tier(query),
+    )))
 }
 
 /// Compute derived Bazi data: Thai Nguyên, Mệnh/Thân Cung, Không Vong, Thần Sát.
@@ -994,7 +998,9 @@ pub fn get_personal_day_analysis(
     Ok(PersonalDayAnalysisDto {
         tier: tier.clone(),
         decision: reasoning.as_ref().map(|bundle| bundle.decision.clone()),
-        decision_export: reasoning.as_ref().map(|bundle| bundle.decision_export.clone()),
+        decision_export: reasoning
+            .as_ref()
+            .map(|bundle| bundle.decision_export.clone()),
         graph: reasoning.as_ref().map(|bundle| bundle.graph.clone()),
         ten_gods: insight.ten_gods,
         xung_hop: insight.xung_hop,
@@ -1249,7 +1255,9 @@ pub fn get_personal_day_report(
         top_signals: advisory.top_signals.clone(),
         chart: get_personal_day_chart(query, birth_year, birth_month, birth_day, gender)?,
         decision: reasoning.as_ref().map(|bundle| bundle.decision.clone()),
-        decision_export: reasoning.as_ref().map(|bundle| bundle.decision_export.clone()),
+        decision_export: reasoning
+            .as_ref()
+            .map(|bundle| bundle.decision_export.clone()),
         graph: reasoning.as_ref().map(|bundle| bundle.graph.clone()),
         analysis: get_personal_day_analysis(query, birth_year, birth_month, birth_day, gender)?,
         computed_metrics: get_personal_day_metrics(
@@ -1304,7 +1312,8 @@ pub fn get_hour_selection_analysis(
     gender: Option<&str>,
 ) -> Result<HourSelectionAnalysisDto, String> {
     let info = get_hour_selection_day_info(query)?;
-    let reasoning = get_hour_selection_reasoning(query, birth_year, birth_month, birth_day, gender)?;
+    let reasoning =
+        get_hour_selection_reasoning(query, birth_year, birth_month, birth_day, gender)?;
     let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
     let bad_hours = info
         .gio_hoang_dao
@@ -1319,13 +1328,16 @@ pub fn get_hour_selection_analysis(
         summary_en: reasoning.summary_en.clone(),
         good_hours: info.gio_hoang_dao.good_hours.clone(),
         bad_hours,
-        top_recommendation: reasoning.top_recommendation.as_ref().map(|candidate| HourInfoDto {
-            hour_index: 0,
-            hour_chi: candidate.chi_name.clone(),
-            time_range: candidate.time_range.clone(),
-            star: candidate.note_vi.clone(),
-            is_good: candidate.is_auspicious,
-        }),
+        top_recommendation: reasoning
+            .top_recommendation
+            .as_ref()
+            .map(|candidate| HourInfoDto {
+                hour_index: 0,
+                hour_chi: candidate.chi_name.clone(),
+                time_range: candidate.time_range.clone(),
+                star: candidate.note_vi.clone(),
+                is_good: candidate.is_auspicious,
+            }),
         canonical: Some(reasoning.export(birth.as_ref())),
     })
 }
@@ -1352,7 +1364,8 @@ pub fn get_hour_selection_advisory(
     birth_day: Option<i32>,
     gender: Option<&str>,
 ) -> Result<HourSelectionAdvisoryDto, String> {
-    let reasoning = get_hour_selection_reasoning(query, birth_year, birth_month, birth_day, gender)?;
+    let reasoning =
+        get_hour_selection_reasoning(query, birth_year, birth_month, birth_day, gender)?;
     let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
     Ok(HourSelectionAdvisoryDto {
         intent: reasoning.intent.event_kind().to_string(),

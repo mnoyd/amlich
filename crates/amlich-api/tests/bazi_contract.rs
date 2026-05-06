@@ -183,7 +183,9 @@ fn bazi_advisory_canonical_export_locks_required_fields() {
         assert!(obj.contains_key(*key), "bazi advisory missing key: {key}");
     }
 
-    let useful = obj["useful_god_analysis"].as_object().expect("useful god object");
+    let useful = obj["useful_god_analysis"]
+        .as_object()
+        .expect("useful god object");
     assert!(useful.contains_key("favorable_elements"));
     assert!(useful.contains_key("unfavorable_elements"));
     assert!(useful.contains_key("confidence"));
@@ -222,7 +224,10 @@ fn bazi_report_advisory_matches_standalone_advisory() {
     assert_eq!(report.advisory.severity, advisory.severity);
     assert_eq!(report.advisory.top_signals, advisory.top_signals);
     assert_eq!(report.advisory.why_this_matters, advisory.why_this_matters);
-    assert_eq!(report.advisory.recommended_actions, advisory.recommended_actions);
+    assert_eq!(
+        report.advisory.recommended_actions,
+        advisory.recommended_actions
+    );
     assert_eq!(report.advisory.priority_order, advisory.priority_order);
     assert_eq!(report.advisory.summary_vi, advisory.summary_vi);
     assert_eq!(report.advisory.warnings, advisory.warnings);
