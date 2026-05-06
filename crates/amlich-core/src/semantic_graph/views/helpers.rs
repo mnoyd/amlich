@@ -107,9 +107,9 @@ impl NodeViewAccumulator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::semantic_graph::{NodeConcept, NodeOrigin, SemanticNode};
     use crate::semantic_graph::ids::SemanticId;
     use crate::semantic_graph::provenance::{ProvenanceEntry, ProvenanceSource};
+    use crate::semantic_graph::{NodeConcept, NodeOrigin, SemanticNode};
 
     #[test]
     fn cluster_day_core_concepts() {

@@ -7,10 +7,10 @@ use super::visualization::VisualizationGraph;
 use crate::almanac::recommendation::{
     collect_recommendation_hits, synthesize_daily_recommendations, RecommendationSynthesisContext,
 };
+use crate::calculate_day_snapshot;
 use crate::semantic_graph::builders::{
     build_day_snapshot_graph, build_recommendation_evidence_graph_connected,
 };
-use crate::calculate_day_snapshot;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DebugSemanticGraphInspection {
@@ -103,11 +103,7 @@ pub fn debug_inspect_semantic_graph(
 
     DebugSemanticGraphInspection {
         surface: "debug_semantic_graph_inspector".to_string(),
-        date: DebugInspectionDate {
-            year,
-            month,
-            day,
-        },
+        date: DebugInspectionDate { year, month, day },
         visualization,
         summary,
         cluster_counts,
@@ -166,10 +162,7 @@ mod tests {
         let inspection = debug_inspect_semantic_graph(10, 2, 2024, true);
 
         for node in &inspection.visualization.nodes {
-            assert!(
-                !node.node_id.is_empty(),
-                "node should have node_id"
-            );
+            assert!(!node.node_id.is_empty(), "node should have node_id");
             assert!(
                 !node.cluster.is_empty(),
                 "node {} should have cluster",
@@ -188,10 +181,7 @@ mod tests {
         let inspection = debug_inspect_semantic_graph(10, 2, 2024, true);
 
         for edge in &inspection.visualization.edges {
-            assert!(
-                !edge.edge_id.is_empty(),
-                "edge should have edge_id"
-            );
+            assert!(!edge.edge_id.is_empty(), "edge should have edge_id");
             assert!(
                 !edge.from_id.is_empty(),
                 "edge {} should have from_id",

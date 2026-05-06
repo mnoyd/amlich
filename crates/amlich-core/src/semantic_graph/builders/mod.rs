@@ -11,8 +11,6 @@ pub use interaction::{
     build_personal_hour_matrix_graph,
 };
 pub use merge::{build_reasoning_input_graph, ReasoningInputGraph};
-pub use recommendation::{
-    build_recommendation_evidence_graph_connected,
-};
 #[allow(unused)]
 pub use recommendation::build_recommendation_evidence_graph;
+pub use recommendation::build_recommendation_evidence_graph_connected;

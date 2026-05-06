@@ -28,7 +28,10 @@ impl PersonalReasoningInput {
         Self { birth, intent }
     }
 
-    pub fn build_fact_nodes(&self, snapshot: &DaySnapshot) -> Result<Vec<PersonalFactNode>, String> {
+    pub fn build_fact_nodes(
+        &self,
+        snapshot: &DaySnapshot,
+    ) -> Result<Vec<PersonalFactNode>, String> {
         let chart = build_bazi_chart(self.to_bazi_input())?;
         let analysis = compute_element_distribution(&chart);
         let metrics = compute_bazi_metrics(&chart, None);

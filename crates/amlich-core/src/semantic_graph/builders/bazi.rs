@@ -1,8 +1,8 @@
 use crate::bazi::analysis::BaziAnalysisReport;
 use crate::bazi::types::BaziChart;
 use crate::semantic_graph::{
-    EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, SemanticEdge,
-    SemanticGraph, SemanticId, SemanticNode,
+    EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, SemanticEdge, SemanticGraph, SemanticId,
+    SemanticNode,
 };
 
 pub struct BaziGraphBuilder {

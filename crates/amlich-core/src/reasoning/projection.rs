@@ -52,4 +52,3 @@ pub fn project_initiation_opening_decision_export(
         axis_scores: evaluation.axis_scores.clone(),
     }
 }
-

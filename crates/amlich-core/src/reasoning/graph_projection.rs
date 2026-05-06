@@ -4,12 +4,12 @@ use crate::insight_data::find_truc_insight;
 use crate::semantic_graph::{NodeConcept, SemanticGraph};
 use crate::DaySnapshot;
 
+use super::export::{axis_for_node, severity_for_node, tags_for_node};
 use super::types::{
     interpret_severity, ActionId, EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdgeExport,
     ReasoningEdgeJustification, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily,
     ReasoningGraphExport, ReasoningNodeExport, ReasoningNodeSeverity,
 };
-use super::export::{axis_for_node, severity_for_node, tags_for_node};
 
 pub fn project_semantic_graph_export(
     graph: &SemanticGraph,
@@ -109,7 +109,10 @@ fn build_solar_term_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         severity: None,
         tags: vec!["context".to_string()],
         summary_vi: snapshot.context.tiet_khi.name.clone(),
-        evidence: vec![snapshot_evidence("snapshot.context.tiet_khi", "context.tiet_khi")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.context.tiet_khi",
+            "context.tiet_khi",
+        )],
     }
 }
 
@@ -123,7 +126,10 @@ fn build_truc_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         severity: severity_for_node("fact.day.truc", Some(quality.as_str()), &summary_vi),
         tags: tags_for_node("fact.day.truc"),
         summary_vi,
-        evidence: vec![snapshot_evidence("snapshot.day_fortune.truc", "day_fortune.truc")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.day_fortune.truc",
+            "day_fortune.truc",
+        )],
     }
 }
 
@@ -136,7 +142,10 @@ fn build_star_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         severity: severity_for_node("fact.day.nhi_thap_bat_tu", None, &summary_vi),
         tags: tags_for_node("fact.day.nhi_thap_bat_tu"),
         summary_vi,
-        evidence: vec![snapshot_evidence("snapshot.day_fortune.stars", "day_fortune.stars")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.day_fortune.stars",
+            "day_fortune.stars",
+        )],
     }
 }
 
@@ -145,12 +154,15 @@ fn build_day_deity_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         Some(deity) => deity.name.clone(),
         None => "Không có thần sát ngày".to_string(),
     };
-    let severity_str = snapshot.day_fortune.day_deity.as_ref().map(|deity| {
-        match deity.classification {
-            crate::almanac::types::DayDeityClassification::HoangDao => "hoang_dao",
-            crate::almanac::types::DayDeityClassification::HacDao => "hac_dao",
-        }
-    });
+    let severity_str =
+        snapshot
+            .day_fortune
+            .day_deity
+            .as_ref()
+            .map(|deity| match deity.classification {
+                crate::almanac::types::DayDeityClassification::HoangDao => "hoang_dao",
+                crate::almanac::types::DayDeityClassification::HacDao => "hac_dao",
+            });
     ReasoningNodeExport {
         id: "fact.day.day_deity".to_string(),
         kind: NodeKind::Fact,
@@ -158,7 +170,10 @@ fn build_day_deity_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         severity: severity_for_node("fact.day.day_deity", severity_str, &summary_vi),
         tags: tags_for_node("fact.day.day_deity"),
         summary_vi,
-        evidence: vec![snapshot_evidence("snapshot.day_fortune.day_deity", "day_fortune.day_deity")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.day_fortune.day_deity",
+            "day_fortune.day_deity",
+        )],
     }
 }
 
@@ -169,11 +184,19 @@ fn build_taboo_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
     } else {
         format!(
             "Kiêng/kỵ: {}",
-            taboos.iter().map(|t| t.name.as_str()).collect::<Vec<_>>().join(", ")
+            taboos
+                .iter()
+                .map(|t| t.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", ")
         )
     };
     let severity_str = taboo_severity_val(taboos);
-    let evidence: Vec<_> = taboos.iter().take(3).map(|t| almanac_rule_evidence(&t.rule_id)).collect();
+    let evidence: Vec<_> = taboos
+        .iter()
+        .take(3)
+        .map(|t| almanac_rule_evidence(&t.rule_id))
+        .collect();
     ReasoningNodeExport {
         id: "fact.day.taboos".to_string(),
         kind: NodeKind::Fact,
@@ -189,7 +212,13 @@ fn build_xung_hop_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
     let summary_vi = format!(
         "Xung {}{}",
         snapshot.day_fortune.conflict.opposing_chi,
-        snapshot.day_fortune.xung_hop.liu_he.as_ref().map(|p| format!(", hợp {p}")).unwrap_or_default()
+        snapshot
+            .day_fortune
+            .xung_hop
+            .liu_he
+            .as_ref()
+            .map(|p| format!(", hợp {p}"))
+            .unwrap_or_default()
     );
     ReasoningNodeExport {
         id: "fact.day.xung_hop".to_string(),
@@ -219,7 +248,10 @@ fn build_travel_direction_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         severity: severity_for_node("fact.day.travel_directions", None, &summary_vi),
         tags: tags_for_node("fact.day.travel_directions"),
         summary_vi,
-        evidence: vec![snapshot_evidence("snapshot.day_fortune.travel", "day_fortune.travel")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.day_fortune.travel",
+            "day_fortune.travel",
+        )],
     }
 }
 
@@ -233,7 +265,10 @@ fn build_hoang_dao_hours_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         severity: severity_for_node("fact.day.hoang_dao_hours", Some(&severity_str), &summary_vi),
         tags: tags_for_node("fact.day.hoang_dao_hours"),
         summary_vi,
-        evidence: vec![snapshot_evidence("snapshot.context.gio_hoang_dao", "context.gio_hoang_dao")],
+        evidence: vec![snapshot_evidence(
+            "snapshot.context.gio_hoang_dao",
+            "context.gio_hoang_dao",
+        )],
     }
 }
 
@@ -255,7 +290,11 @@ fn build_signal_node(axis: InterpretedAxis) -> ReasoningNodeExport {
     }
 }
 
-fn add_truc_edges(truc_node: &ReasoningNodeExport, edges: &mut Vec<ReasoningEdgeExport>, _snapshot: &DaySnapshot) {
+fn add_truc_edges(
+    truc_node: &ReasoningNodeExport,
+    edges: &mut Vec<ReasoningEdgeExport>,
+    _snapshot: &DaySnapshot,
+) {
     let evidence = &truc_node.evidence;
     if truc_node.severity.is_some() {
         if let Some(ReasoningNodeSeverity::Auspicious) = truc_node.severity {
@@ -280,9 +319,9 @@ fn add_truc_edges(truc_node: &ReasoningNodeExport, edges: &mut Vec<ReasoningEdge
                 .iter()
                 .filter(|hit| matches!(hit.direction, BaseDirection::Avoid))
                 .count();
-            let has_opening_favor = opening_hits.iter().any(|hit| {
-                matches!(hit.direction, BaseDirection::Favor)
-            });
+            let has_opening_favor = opening_hits
+                .iter()
+                .any(|hit| matches!(hit.direction, BaseDirection::Favor));
 
             if opening_avoid_count > 0 {
                 let effect = if opening_avoid_count > 1 {
@@ -294,7 +333,11 @@ fn add_truc_edges(truc_node: &ReasoningNodeExport, edges: &mut Vec<ReasoningEdge
                     "fact.day.truc",
                     InterpretedAxis::Resistance.signal_node_id(),
                     effect,
-                    if effect == EdgeEffect::Overrides { 2 } else { 1 },
+                    if effect == EdgeEffect::Overrides {
+                        2
+                    } else {
+                        1
+                    },
                     ReasoningEdgeJustification::TrucActivityConflict,
                     truc_evidence(truc.id.as_str(), "opening_start"),
                 ));
@@ -358,7 +401,11 @@ fn add_taboo_edges(taboo_node: &ReasoningNodeExport, edges: &mut Vec<ReasoningEd
         "fact.day.taboos",
         InterpretedAxis::Resistance.signal_node_id(),
         effect,
-        if effect == EdgeEffect::Overrides { 2 } else { 1 },
+        if effect == EdgeEffect::Overrides {
+            2
+        } else {
+            1
+        },
         ReasoningEdgeJustification::TabooPressure,
         taboo_node.evidence.clone(),
     ));
@@ -448,7 +495,11 @@ fn add_personal_nodes_and_edges(
                     &id,
                     InterpretedAxis::PersonalAlignment.signal_node_id(),
                     effect,
-                    if effect == EdgeEffect::Overrides { 2 } else { 1 },
+                    if effect == EdgeEffect::Overrides {
+                        2
+                    } else {
+                        1
+                    },
                     ReasoningEdgeJustification::PersonalDayAlignment,
                     node_export.evidence.clone(),
                 ));
@@ -598,7 +649,8 @@ fn taboo_severity_val(taboos: &[crate::almanac::types::DayTaboo]) -> Option<Stri
 }
 
 fn personal_alignment_effect(summary: &str) -> EdgeEffect {
-    if extract_first_count(summary, "trụ hợp") > extract_first_count(summary, "trụ xung/khắc") {
+    if extract_first_count(summary, "trụ hợp") > extract_first_count(summary, "trụ xung/khắc")
+    {
         EdgeEffect::Supports
     } else {
         EdgeEffect::Weakens

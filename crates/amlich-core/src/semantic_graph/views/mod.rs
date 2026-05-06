@@ -15,8 +15,8 @@ pub use llm::{
     ClusterSummary, ConvergenceFactRef, ConvergenceHitRef, LlmConvergenceSlice, LlmGraphSlice,
 };
 pub use recommendation::{
-    LlmRecommendationSlice, LlmActivitySummary, RecommendationEvidenceGraphView,
-    RecommendationEvidenceView, HitView, SourceBreakdown,
+    HitView, LlmActivitySummary, LlmRecommendationSlice, RecommendationEvidenceGraphView,
+    RecommendationEvidenceView, SourceBreakdown,
 };
 pub use subgraph::SubgraphView;
 pub use visualization::{VisualizationEdge, VisualizationGraph, VisualizationNode};

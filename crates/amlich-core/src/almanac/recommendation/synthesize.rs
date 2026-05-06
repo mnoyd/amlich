@@ -141,10 +141,11 @@ pub fn collect_recommendation_hits(
                     BaseDirection::Favor
                 };
 
-                let hard_stop = matches!(reason.evidence.source, RecommendationEvidenceSource::Taboo)
-                    && reason.severity == RecommendationSeverity::Override
-                    && direction == BaseDirection::Avoid
-                    && bucket == RecommendationBucket::KyManh;
+                let hard_stop =
+                    matches!(reason.evidence.source, RecommendationEvidenceSource::Taboo)
+                        && reason.severity == RecommendationSeverity::Override
+                        && direction == BaseDirection::Avoid
+                        && bucket == RecommendationBucket::KyManh;
 
                 RecommendationHit {
                     hit_id: format!("hit:{}:{}", activity_id.as_str(), reason.rule_id),

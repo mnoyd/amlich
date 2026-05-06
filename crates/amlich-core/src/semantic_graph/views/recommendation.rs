@@ -1,6 +1,6 @@
 use crate::reasoning::ReasoningEvidenceEnvelope;
-use crate::semantic_graph::{EdgeConcept, NodeConcept, SemanticGraph};
 use crate::semantic_graph::selectors::SourceFamilyCounts;
+use crate::semantic_graph::{EdgeConcept, NodeConcept, SemanticGraph};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -75,13 +75,30 @@ impl RecommendationEvidenceGraphView {
         for (_, node) in graph.nodes() {
             match node.concept {
                 NodeConcept::Activity => {
-                    let label_vi = node.summary_vi.split(" / ").next().unwrap_or("").to_string();
-                    let label_en = node.summary_vi.split(" / ").nth(1).unwrap_or("").to_string();
+                    let label_vi = node
+                        .summary_vi
+                        .split(" / ")
+                        .next()
+                        .unwrap_or("")
+                        .to_string();
+                    let label_en = node
+                        .summary_vi
+                        .split(" / ")
+                        .nth(1)
+                        .unwrap_or("")
+                        .to_string();
 
-                    let activity_id = node.node_id.strip_prefix("activity:").unwrap_or(&node.node_id).to_string();
+                    let activity_id = node
+                        .node_id
+                        .strip_prefix("activity:")
+                        .unwrap_or(&node.node_id)
+                        .to_string();
 
-                    let (favor_hits, avoid_hits) = Self::collect_hits_for_activity(graph, &node.node_id);
-                    let has_hard_stop = favor_hits.iter().chain(avoid_hits.iter())
+                    let (favor_hits, avoid_hits) =
+                        Self::collect_hits_for_activity(graph, &node.node_id);
+                    let has_hard_stop = favor_hits
+                        .iter()
+                        .chain(avoid_hits.iter())
                         .any(|h| h.hard_stop);
 
                     let source_breakdown = Self::compute_source_breakdown(&favor_hits, &avoid_hits);
@@ -123,24 +140,32 @@ impl RecommendationEvidenceGraphView {
         }
     }
 
-    fn collect_hits_for_activity(graph: &SemanticGraph, activity_node_id: &str) -> (Vec<HitView>, Vec<HitView>) {
+    fn collect_hits_for_activity(
+        graph: &SemanticGraph,
+        activity_node_id: &str,
+    ) -> (Vec<HitView>, Vec<HitView>) {
         let mut favor_hits = Vec::new();
         let mut avoid_hits = Vec::new();
 
         for (_, edge) in graph.edges() {
-            if edge.to_node_id == activity_node_id && matches!(edge.label.concept, EdgeConcept::TargetsActivity) {
+            if edge.to_node_id == activity_node_id
+                && matches!(edge.label.concept, EdgeConcept::TargetsActivity)
+            {
                 if let Some(hit_node) = graph.get_node(&edge.from_node_id) {
                     if matches!(hit_node.concept, NodeConcept::RecommendationHit) {
                         let tags = &hit_node.tags;
                         let is_favor = tags.iter().any(|t| t == "favor");
                         let is_hard_stop = tags.iter().any(|t| t == "hard_stop=true");
 
-                        let source = tags.iter()
+                        let source = tags
+                            .iter()
                             .find(|t| t.starts_with("source="))
                             .map(|t| t.replace("source=", ""))
                             .unwrap_or_default();
 
-                        let provenance = hit_node.provenance.iter()
+                        let provenance = hit_node
+                            .provenance
+                            .iter()
                             .map(|p| p.to_reasoning_evidence())
                             .collect();
 
@@ -265,13 +290,13 @@ impl LlmRecommendationSlice {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::semantic_graph::builders::{
-        build_recommendation_evidence_graph, build_recommendation_evidence_graph_connected,
-        build_day_snapshot_graph,
-    };
     use crate::almanac::recommendation::collect_recommendation_hits;
-    use crate::calculate_day_snapshot;
     use crate::almanac::recommendation::RecommendationSynthesisContext;
+    use crate::calculate_day_snapshot;
+    use crate::semantic_graph::builders::{
+        build_day_snapshot_graph, build_recommendation_evidence_graph,
+        build_recommendation_evidence_graph_connected,
+    };
 
     #[test]
     fn recommendation_evidence_view_extracts_activities() {
@@ -286,11 +311,15 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
@@ -314,11 +343,15 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
@@ -326,7 +359,10 @@ mod tests {
         let view = RecommendationEvidenceGraphView::from_graph(&graph);
         let slice = LlmRecommendationSlice::from_view(&view, "2024-02-10", "default");
 
-        assert!(!slice.activity_summaries.is_empty(), "slice should have summaries");
+        assert!(
+            !slice.activity_summaries.is_empty(),
+            "slice should have summaries"
+        );
     }
 
     #[test]
@@ -342,16 +378,22 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
 
-        let activity_count = graph.nodes().values()
+        let activity_count = graph
+            .nodes()
+            .values()
             .filter(|n| matches!(n.concept, NodeConcept::Activity))
             .count();
 
@@ -375,16 +417,22 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
 
-        let hit_count = graph.nodes().values()
+        let hit_count = graph
+            .nodes()
+            .values()
             .filter(|n| matches!(n.concept, NodeConcept::RecommendationHit))
             .count();
 
@@ -408,11 +456,15 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 14, "default",
+            2024,
+            2,
+            14,
+            "default",
             &recommendations.activities,
             &hits,
         );
@@ -420,12 +472,13 @@ mod tests {
         let view = RecommendationEvidenceGraphView::from_graph(&graph);
 
         let has_hard_stop_in_view = view.activities.iter().any(|a| a.has_hard_stop);
-        let has_hard_stop_in_recommendations = recommendations.activities.iter()
+        let has_hard_stop_in_recommendations = recommendations
+            .activities
+            .iter()
             .any(|a| a.bucket == crate::almanac::recommendation::RecommendationBucket::KyManh);
 
         assert_eq!(
-            has_hard_stop_in_view,
-            has_hard_stop_in_recommendations,
+            has_hard_stop_in_view, has_hard_stop_in_recommendations,
             "hard stop detection in graph view should match daily recommendations bucket"
         );
     }
@@ -443,29 +496,40 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
 
         let view = RecommendationEvidenceGraphView::from_graph(&graph);
 
-        let total_breakdown: usize = view.activities.iter()
+        let total_breakdown: usize = view
+            .activities
+            .iter()
             .map(|a| {
                 let b = &a.source_breakdown;
-                b.truc_count + b.taboo_count + b.day_deity_count + b.xung_hop_count
-                    + b.stars_count + b.gio_hoang_dao_count + b.travel_count
-                    + b.tiet_khi_count + b.other_count
+                b.truc_count
+                    + b.taboo_count
+                    + b.day_deity_count
+                    + b.xung_hop_count
+                    + b.stars_count
+                    + b.gio_hoang_dao_count
+                    + b.travel_count
+                    + b.tiet_khi_count
+                    + b.other_count
             })
             .sum();
 
         assert_eq!(
-            total_breakdown,
-            view.total_hits,
+            total_breakdown, view.total_hits,
             "source breakdown total should equal total hits"
         );
     }
@@ -483,18 +547,24 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
         );
 
-        let day_chi_nodes: Vec<_> = connected_graph.nodes().values()
+        let day_chi_nodes: Vec<_> = connected_graph
+            .nodes()
+            .values()
             .filter(|n| matches!(n.concept, crate::semantic_graph::NodeConcept::Truc))
             .collect();
 
@@ -517,11 +587,15 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
@@ -531,7 +605,9 @@ mod tests {
         for activity in &recommendations.activities {
             let activity_id_str = activity.activity_id.as_str();
 
-            let view_activity = view.activities.iter()
+            let view_activity = view
+                .activities
+                .iter()
                 .find(|a| a.activity_id == activity_id_str);
 
             if let Some(view_act) = view_activity {

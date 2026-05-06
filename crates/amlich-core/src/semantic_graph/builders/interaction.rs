@@ -1,9 +1,7 @@
-use crate::almanac::types::{
-    FiveElement, FiveElementRelation, RuleEvidence, ThapThanLabel,
-};
+use crate::almanac::types::{FiveElement, FiveElementRelation, RuleEvidence, ThapThanLabel};
 use crate::interaction::types::{
-    BranchRelation, DayPersonMatrix, DirectionMergeMatrix, DirectionSignal,
-    ElementInteraction, PersonalHourMatrix,
+    BranchRelation, DayPersonMatrix, DirectionMergeMatrix, DirectionSignal, ElementInteraction,
+    PersonalHourMatrix,
 };
 use crate::semantic_graph::{
     EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, SemanticEdge, SemanticGraph, SemanticId,

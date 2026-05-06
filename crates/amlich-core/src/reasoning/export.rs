@@ -1,4 +1,4 @@
-use super::types::{InterpretedAxis, ReasoningNodeSeverity, interpret_severity};
+use super::types::{interpret_severity, InterpretedAxis, ReasoningNodeSeverity};
 
 pub(super) fn axis_for_node(node_id: &str) -> Option<InterpretedAxis> {
     match node_id {

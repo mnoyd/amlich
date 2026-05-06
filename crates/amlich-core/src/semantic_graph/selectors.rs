@@ -8,8 +8,7 @@ impl EvidenceSelectors {
             .nodes()
             .values()
             .filter(|node| {
-                node.concept == NodeConcept::Taboo
-                    && node.severity.as_deref() == Some("hard")
+                node.concept == NodeConcept::Taboo && node.severity.as_deref() == Some("hard")
             })
             .map(|node| node.node_id.clone())
             .collect()
@@ -29,8 +28,7 @@ impl EvidenceSelectors {
             .nodes()
             .values()
             .filter(|node| {
-                node.concept == NodeConcept::Truc
-                    && node.severity.as_deref() == Some("cat")
+                node.concept == NodeConcept::Truc && node.severity.as_deref() == Some("cat")
             })
             .map(|node| node.node_id.clone())
             .collect()
@@ -41,8 +39,7 @@ impl EvidenceSelectors {
             .nodes()
             .values()
             .filter(|node| {
-                node.concept == NodeConcept::Truc
-                    && node.severity.as_deref() == Some("bat")
+                node.concept == NodeConcept::Truc && node.severity.as_deref() == Some("bat")
             })
             .map(|node| node.node_id.clone())
             .collect()
@@ -53,8 +50,7 @@ impl EvidenceSelectors {
             .nodes()
             .values()
             .filter(|node| {
-                node.concept == NodeConcept::DayDeity
-                    && node.tags.iter().any(|t| t == "hoang_dao")
+                node.concept == NodeConcept::DayDeity && node.tags.iter().any(|t| t == "hoang_dao")
             })
             .map(|node| node.node_id.clone())
             .collect()
@@ -65,8 +61,7 @@ impl EvidenceSelectors {
             .nodes()
             .values()
             .filter(|node| {
-                node.concept == NodeConcept::DayDeity
-                    && node.tags.iter().any(|t| t == "hac_dao")
+                node.concept == NodeConcept::DayDeity && node.tags.iter().any(|t| t == "hac_dao")
             })
             .map(|node| node.node_id.clone())
             .collect()
@@ -78,7 +73,8 @@ impl EvidenceSelectors {
             .values()
             .filter(|node| {
                 node.concept == NodeConcept::HoangDaoHour
-                    && node.severity
+                    && node
+                        .severity
                         .as_ref()
                         .and_then(|s| s.parse::<usize>().ok())
                         .is_some_and(|count| count > 0)
@@ -128,7 +124,10 @@ impl EvidenceSelectors {
             .values()
             .filter(|node| {
                 node.concept == NodeConcept::XungHop
-                    && node.tags.iter().any(|t| t.starts_with("tam_hop=") || t.starts_with("liu_he="))
+                    && node
+                        .tags
+                        .iter()
+                        .any(|t| t.starts_with("tam_hop=") || t.starts_with("liu_he="))
             })
             .map(|node| node.node_id.clone())
             .collect()
@@ -144,12 +143,8 @@ impl EvidenceSelectors {
             .filter(|node| {
                 node.concept == NodeConcept::RecommendationHit
                     && match direction {
-                        Some(SelectHitDirection::Favor) => {
-                            node.tags.iter().any(|t| t == "favor")
-                        }
-                        Some(SelectHitDirection::Avoid) => {
-                            node.tags.iter().any(|t| t == "avoid")
-                        }
+                        Some(SelectHitDirection::Favor) => node.tags.iter().any(|t| t == "favor"),
+                        Some(SelectHitDirection::Avoid) => node.tags.iter().any(|t| t == "avoid"),
                         None => true,
                     }
             })
@@ -251,8 +246,8 @@ impl SourceFamilyCounts {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::semantic_graph::builders::build_day_snapshot_graph;
     use crate::calculate_day_snapshot;
+    use crate::semantic_graph::builders::build_day_snapshot_graph;
 
     #[test]
     fn select_hard_taboo_nodes_finds_hard_severity() {
@@ -314,7 +309,9 @@ mod tests {
         let deity_nodes: Vec<_> = graph
             .nodes()
             .values()
-            .filter(|n| n.concept == NodeConcept::DayDeity && n.tags.iter().any(|t| t == "hoang_dao"))
+            .filter(|n| {
+                n.concept == NodeConcept::DayDeity && n.tags.iter().any(|t| t == "hoang_dao")
+            })
             .collect();
 
         let selected = EvidenceSelectors::select_hoang_dao_day_deity_nodes(&graph);
@@ -385,8 +382,11 @@ mod tests {
 
     #[test]
     fn select_activity_nodes_finds_activities() {
+        use crate::almanac::recommendation::{
+            collect_recommendation_hits, synthesize_daily_recommendations,
+            RecommendationSynthesisContext,
+        };
         use crate::semantic_graph::builders::build_recommendation_evidence_graph;
-        use crate::almanac::recommendation::{synthesize_daily_recommendations, collect_recommendation_hits, RecommendationSynthesisContext};
 
         let snapshot = calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
@@ -403,7 +403,10 @@ mod tests {
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
@@ -418,11 +421,13 @@ mod tests {
 
     #[test]
     fn select_recommendation_hit_origin_facts_returns_fact_ids() {
-        use crate::semantic_graph::builders::{
-            build_day_snapshot_graph,
-            build_recommendation_evidence_graph_connected,
+        use crate::almanac::recommendation::{
+            collect_recommendation_hits, synthesize_daily_recommendations,
+            RecommendationSynthesisContext,
         };
-        use crate::almanac::recommendation::{synthesize_daily_recommendations, collect_recommendation_hits, RecommendationSynthesisContext};
+        use crate::semantic_graph::builders::{
+            build_day_snapshot_graph, build_recommendation_evidence_graph_connected,
+        };
 
         let snapshot = calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
@@ -440,7 +445,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -472,8 +480,11 @@ mod tests {
 
     #[test]
     fn count_hits_by_source_family_sums_correctly() {
+        use crate::almanac::recommendation::{
+            collect_recommendation_hits, synthesize_daily_recommendations,
+            RecommendationSynthesisContext,
+        };
         use crate::semantic_graph::builders::build_recommendation_evidence_graph;
-        use crate::almanac::recommendation::{synthesize_daily_recommendations, collect_recommendation_hits, RecommendationSynthesisContext};
 
         let snapshot = calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
@@ -490,16 +501,25 @@ mod tests {
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
 
         let counts = EvidenceSelectors::count_hits_by_source_family(&graph);
 
-        let total: usize = counts.truc + counts.day_deity + counts.taboo
-            + counts.xung_hop + counts.stars + counts.gio_hoang_dao
-            + counts.travel + counts.tiet_khi + counts.other;
+        let total: usize = counts.truc
+            + counts.day_deity
+            + counts.taboo
+            + counts.xung_hop
+            + counts.stars
+            + counts.gio_hoang_dao
+            + counts.travel
+            + counts.tiet_khi
+            + counts.other;
 
         assert_eq!(
             total,
@@ -510,8 +530,11 @@ mod tests {
 
     #[test]
     fn select_recommendation_hit_nodes_filters_by_direction() {
+        use crate::almanac::recommendation::{
+            collect_recommendation_hits, synthesize_daily_recommendations,
+            RecommendationSynthesisContext,
+        };
         use crate::semantic_graph::builders::build_recommendation_evidence_graph;
-        use crate::almanac::recommendation::{synthesize_daily_recommendations, collect_recommendation_hits, RecommendationSynthesisContext};
 
         let snapshot = calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
@@ -528,7 +551,10 @@ mod tests {
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
@@ -552,8 +578,11 @@ mod tests {
 
     #[test]
     fn select_hard_stop_recommendation_hits_finds_hard_stops() {
+        use crate::almanac::recommendation::{
+            collect_recommendation_hits, synthesize_daily_recommendations,
+            RecommendationSynthesisContext,
+        };
         use crate::semantic_graph::builders::build_recommendation_evidence_graph;
-        use crate::almanac::recommendation::{synthesize_daily_recommendations, collect_recommendation_hits, RecommendationSynthesisContext};
 
         let snapshot = calculate_day_snapshot(10, 2, 2024);
         let context = RecommendationSynthesisContext {
@@ -570,7 +599,10 @@ mod tests {
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );

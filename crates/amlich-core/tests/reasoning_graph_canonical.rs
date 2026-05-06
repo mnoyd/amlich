@@ -1,10 +1,7 @@
 use amlich_core::{
-    build_initiation_opening_reasoning_bundle, build_initiation_opening_reasoning,
+    build_initiation_opening_reasoning, build_initiation_opening_reasoning_bundle,
     calculate_day_snapshot, calculate_day_snapshot_with_timezone,
-    reasoning::{
-        PersonalReasoningInput, RecommendationBucket,
-        ReasoningNodeSeverity,
-    },
+    reasoning::{PersonalReasoningInput, ReasoningNodeSeverity, RecommendationBucket},
     BirthInput, ConsultationIntent, Gender,
 };
 use serde_json::Value;
@@ -87,7 +84,15 @@ fn canonical_corpus() -> Vec<CanonicalCase> {
             month: 6,
             year: 2024,
             timezone: None,
-            personal: Some(profile_input(12, 8, 1992, 11, 30, 7.0, Some(Gender::Female))),
+            personal: Some(profile_input(
+                12,
+                8,
+                1992,
+                11,
+                30,
+                7.0,
+                Some(Gender::Female),
+            )),
             expected_bucket: RecommendationBucket::Cautious,
         },
         CanonicalCase {
@@ -129,8 +134,8 @@ fn snapshot_for(case: &CanonicalCase) -> amlich_core::DaySnapshot {
 
 fn bundle_value(case: &CanonicalCase) -> Value {
     let snapshot = snapshot_for(case);
-    let bundle =
-        build_initiation_opening_reasoning_bundle(&snapshot, case.personal.as_ref()).expect("bundle");
+    let bundle = build_initiation_opening_reasoning_bundle(&snapshot, case.personal.as_ref())
+        .expect("bundle");
     serde_json::to_value(&bundle).expect("serialize")
 }
 
@@ -197,7 +202,10 @@ fn canonical_decision_export_shape_locks_required_fields() {
         "axis_scores",
     ];
     for key in &required_keys {
-        assert!(export.contains_key(*key), "decision_export missing key: {key}");
+        assert!(
+            export.contains_key(*key),
+            "decision_export missing key: {key}"
+        );
     }
 
     let axes = require_array(&value, "/decision_export/axis_scores");
@@ -304,12 +312,11 @@ fn canonical_semantic_values_span_valid_enum() {
 fn canonical_corpus_bucket_consistency() {
     for case in canonical_corpus() {
         let snapshot = snapshot_for(&case);
-        let decision =
-            build_initiation_opening_reasoning(&snapshot, case.personal.as_ref()).expect("decision");
+        let decision = build_initiation_opening_reasoning(&snapshot, case.personal.as_ref())
+            .expect("decision");
 
         assert_eq!(
-            decision.recommendation_bucket,
-            case.expected_bucket,
+            decision.recommendation_bucket, case.expected_bucket,
             "{} bucket mismatch",
             case.id
         );
@@ -320,31 +327,26 @@ fn canonical_corpus_bucket_consistency() {
 fn canonical_decision_and_export_stay_aligned_across_corpus() {
     for case in canonical_corpus() {
         let snapshot = snapshot_for(&case);
-        let bundle =
-            build_initiation_opening_reasoning_bundle(&snapshot, case.personal.as_ref())
-                .expect("bundle");
+        let bundle = build_initiation_opening_reasoning_bundle(&snapshot, case.personal.as_ref())
+            .expect("bundle");
 
         assert_eq!(
-            bundle.decision.primary_conclusion,
-            bundle.decision_export.primary_conclusion,
+            bundle.decision.primary_conclusion, bundle.decision_export.primary_conclusion,
             "{} conclusion drift",
             case.id
         );
         assert_eq!(
-            bundle.decision.recommendation_bucket,
-            bundle.decision_export.recommendation_bucket,
+            bundle.decision.recommendation_bucket, bundle.decision_export.recommendation_bucket,
             "{} bucket drift",
             case.id
         );
         assert_eq!(
-            bundle.decision.confidence,
-            bundle.decision_export.confidence,
+            bundle.decision.confidence, bundle.decision_export.confidence,
             "{} confidence drift",
             case.id
         );
         assert_eq!(
-            bundle.decision.context_is_clear,
-            bundle.decision_export.context_is_clear,
+            bundle.decision.context_is_clear, bundle.decision_export.context_is_clear,
             "{} context_is_clear drift",
             case.id
         );
@@ -373,14 +375,12 @@ fn canonical_decision_and_export_stay_aligned_across_corpus() {
             case.id
         );
         assert_eq!(
-            bundle.decision.suggested_hours,
-            bundle.decision_export.suggested_hours,
+            bundle.decision.suggested_hours, bundle.decision_export.suggested_hours,
             "{} hours drift",
             case.id
         );
         assert_eq!(
-            bundle.decision.suggested_directions,
-            bundle.decision_export.suggested_directions,
+            bundle.decision.suggested_directions, bundle.decision_export.suggested_directions,
             "{} directions drift",
             case.id
         );
@@ -428,9 +428,8 @@ fn canonical_boundary_cases_preserve_graph_stability() {
 fn canonical_serialization_roundtrip_is_lossless() {
     for case in canonical_corpus() {
         let snapshot = snapshot_for(&case);
-        let bundle =
-            build_initiation_opening_reasoning_bundle(&snapshot, case.personal.as_ref())
-                .expect("bundle");
+        let bundle = build_initiation_opening_reasoning_bundle(&snapshot, case.personal.as_ref())
+            .expect("bundle");
 
         let json = serde_json::to_value(&bundle).expect("to value");
         let re_json = serde_json::to_string(&json).expect("to string");
@@ -477,14 +476,8 @@ fn canonical_node_kinds_are_valid_enum_variants() {
     let valid_kinds = ["fact", "interpreted_signal", "decision_target"];
 
     for node in nodes {
-        let kind = node
-            .get("kind")
-            .and_then(Value::as_str)
-            .expect("node kind");
-        assert!(
-            valid_kinds.contains(&kind),
-            "unexpected node kind: {kind}"
-        );
+        let kind = node.get("kind").and_then(Value::as_str).expect("node kind");
+        assert!(valid_kinds.contains(&kind), "unexpected node kind: {kind}");
     }
 }
 

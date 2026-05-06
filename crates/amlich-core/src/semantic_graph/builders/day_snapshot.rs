@@ -371,11 +371,7 @@ impl DaySnapshotGraphBuilder {
             .map(|partner| format!(", hợp {}", partner))
             .unwrap_or_default();
 
-        let summary = format!(
-            "Xung {}{}",
-            conflict.opposing_chi,
-            liu_he_part
-        );
+        let summary = format!("Xung {}{}", conflict.opposing_chi, liu_he_part);
 
         let node = SemanticNode::new(
             SemanticId::new("xung_hop", format!("day:{}:{}", date_str, self.tz_suffix)),

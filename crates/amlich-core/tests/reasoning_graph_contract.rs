@@ -1,10 +1,8 @@
 use amlich_core::{
     build_initiation_opening_reasoning_bundle, calculate_day_snapshot,
-    calculate_day_snapshot_with_timezone, BirthInput, ConsultationIntent, Gender,
-    ReasoningConclusionSemantic, ReasoningEdgeJustification, ReasoningEvidenceSourceFamily,
-    ReasoningNodeSeverity,
-    RecommendationBucket,
-    reasoning::PersonalReasoningInput,
+    calculate_day_snapshot_with_timezone, reasoning::PersonalReasoningInput, BirthInput,
+    ConsultationIntent, Gender, ReasoningConclusionSemantic, ReasoningEdgeJustification,
+    ReasoningEvidenceSourceFamily, ReasoningNodeSeverity, RecommendationBucket,
 };
 use serde_json::Value;
 
@@ -47,7 +45,10 @@ fn exported_graph_marks_override_and_taboo_metadata() {
     let snapshot = calculate_day_snapshot(3, 1, 2024);
     let bundle = build_initiation_opening_reasoning_bundle(&snapshot, None).expect("bundle");
 
-    assert_eq!(bundle.decision.recommendation_bucket, RecommendationBucket::Avoid);
+    assert_eq!(
+        bundle.decision.recommendation_bucket,
+        RecommendationBucket::Avoid
+    );
     assert_eq!(
         bundle.decision_export.semantic,
         ReasoningConclusionSemantic::OverrideAvoid
@@ -95,23 +96,16 @@ fn exported_graph_keeps_personal_nodes_and_signal_axes_visible() {
         .nodes
         .iter()
         .any(|node| node.tags.iter().any(|tag| tag == "personal")));
-    assert!(bundle
-        .graph
-        .nodes
-        .iter()
-        .any(|node| node.axis.is_some()));
+    assert!(bundle.graph.nodes.iter().any(|node| node.axis.is_some()));
     assert!(bundle
         .graph
         .nodes
         .iter()
         .flat_map(|node| node.evidence.iter())
         .any(|e| e.source_family == ReasoningEvidenceSourceFamily::Interaction));
-    assert!(bundle
-        .graph
-        .edges
-        .iter()
-        .any(|edge| edge.justification == ReasoningEdgeJustification::PersonalDayAlignment
-            || edge.justification == ReasoningEdgeJustification::PersonalHourAlignment));
+    assert!(bundle.graph.edges.iter().any(|edge| edge.justification
+        == ReasoningEdgeJustification::PersonalDayAlignment
+        || edge.justification == ReasoningEdgeJustification::PersonalHourAlignment));
     assert!(bundle
         .decision_export
         .axis_scores
@@ -157,7 +151,9 @@ fn reasoning_bundle_serializes_to_stable_machine_readable_shape() {
         .and_then(Value::as_array)
         .is_some_and(|edges| !edges.is_empty()));
     assert!(value.pointer("/graph/edges/0/justification").is_some());
-    assert!(value.pointer("/graph/edges/0/evidence/0/source_family").is_some());
+    assert!(value
+        .pointer("/graph/edges/0/evidence/0/source_family")
+        .is_some());
     assert!(value
         .pointer("/decision_export/axis_scores")
         .and_then(Value::as_array)

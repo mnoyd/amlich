@@ -1,7 +1,5 @@
 use crate::reasoning::ReasoningEvidenceEnvelope;
-use crate::semantic_graph::{
-    EdgeConcept, NodeConcept, SemanticGraph, SemanticNode,
-};
+use crate::semantic_graph::{EdgeConcept, NodeConcept, SemanticGraph, SemanticNode};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
 
@@ -48,7 +46,8 @@ impl ConvergenceView {
         let mut fact_influences_both: HashSet<String> = HashSet::new();
         let mut clusters: HashSet<String> = HashSet::new();
 
-        let mut hit_to_activity: std::collections::HashMap<String, String> = std::collections::HashMap::new();
+        let mut hit_to_activity: std::collections::HashMap<String, String> =
+            std::collections::HashMap::new();
         for (_, edge) in graph.edges() {
             if matches!(edge.label.concept, EdgeConcept::TargetsActivity) {
                 hit_to_activity.insert(edge.from_node_id.clone(), edge.to_node_id.clone());
@@ -93,7 +92,11 @@ impl ConvergenceView {
                         direction,
                         hard_stop,
                         origin_fact_ids,
-                        provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                        provenance: node
+                            .provenance
+                            .iter()
+                            .map(|p| p.to_reasoning_evidence())
+                            .collect(),
                     });
                 }
                 NodeConcept::Truc
@@ -108,9 +111,9 @@ impl ConvergenceView {
                     let outgoing = graph.outgoing_edges(&node.node_id);
                     let has_hit_origin = outgoing.iter().any(|e| {
                         matches!(e.label.concept, EdgeConcept::OriginatesFrom)
-                            && graph.get_node(&e.to_node_id).map_or(false, |n| {
-                                n.concept == NodeConcept::RecommendationHit
-                            })
+                            && graph
+                                .get_node(&e.to_node_id)
+                                .map_or(false, |n| n.concept == NodeConcept::RecommendationHit)
                     });
 
                     if has_hit_origin {
@@ -142,8 +145,13 @@ impl ConvergenceView {
                         summary_vi: node.summary_vi.clone(),
                         severity: node.severity.clone(),
                         feeds_reasoning: fact_influences_reasoning.contains(&node.node_id),
-                        feeds_recommendation: fact_influences_recommendation.contains(&node.node_id),
-                        provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                        feeds_recommendation: fact_influences_recommendation
+                            .contains(&node.node_id),
+                        provenance: node
+                            .provenance
+                            .iter()
+                            .map(|p| p.to_reasoning_evidence())
+                            .collect(),
                     });
 
                     if shared {
@@ -172,7 +180,10 @@ impl ConvergenceView {
         view
     }
 
-    pub fn extract_shared_influence_slice<'a>(&self, graph: &'a SemanticGraph) -> Vec<&'a SemanticNode> {
+    pub fn extract_shared_influence_slice<'a>(
+        &self,
+        graph: &'a SemanticGraph,
+    ) -> Vec<&'a SemanticNode> {
         graph
             .nodes()
             .values()
@@ -199,13 +210,14 @@ impl ConvergenceView {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::almanac::recommendation::{
+        collect_recommendation_hits, synthesize_daily_recommendations,
+        RecommendationSynthesisContext,
+    };
+    use crate::calculate_day_snapshot;
     use crate::semantic_graph::builders::{
         build_day_snapshot_graph, build_recommendation_evidence_graph_connected,
     };
-    use crate::almanac::recommendation::{
-        collect_recommendation_hits, synthesize_daily_recommendations, RecommendationSynthesisContext,
-    };
-    use crate::calculate_day_snapshot;
 
     #[test]
     fn convergence_view_extracts_fact_nodes() {
@@ -225,7 +237,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -257,7 +272,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -296,7 +314,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -304,9 +325,10 @@ mod tests {
 
         let view = ConvergenceView::from_connected_graph(&connected_graph);
 
-        let has_hoang_dao = view.shared_fact_nodes.iter().any(|n| {
-            n.concept == "hoang_dao_hour"
-        });
+        let has_hoang_dao = view
+            .shared_fact_nodes
+            .iter()
+            .any(|n| n.concept == "hoang_dao_hour");
 
         assert!(
             has_hoang_dao || view.shared_fact_nodes.is_empty(),
@@ -332,7 +354,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -364,7 +389,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 14, "default",
+            2024,
+            2,
+            14,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -380,7 +408,10 @@ mod tests {
 
         assert_eq!(
             hard_stop_count,
-            view.recommendation_hits.iter().filter(|h| h.hard_stop).count(),
+            view.recommendation_hits
+                .iter()
+                .filter(|h| h.hard_stop)
+                .count(),
             "hard stop hits should be correctly identified"
         );
     }
@@ -403,7 +434,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,

@@ -1,5 +1,6 @@
 use amlich_core::{
-    build_initiation_opening_reasoning, calculate_day_snapshot, calculate_day_snapshot_with_timezone,
+    build_initiation_opening_reasoning, calculate_day_snapshot,
+    calculate_day_snapshot_with_timezone,
     reasoning::{PersonalReasoningInput, RecommendationBucket},
     BirthInput, ConsultationIntent, Gender,
 };
@@ -51,7 +52,9 @@ fn profile_input(
 
 fn decision_snapshot(case: &ParityCase) -> amlich_core::DaySnapshot {
     match case.snapshot_timezone {
-        Some(timezone) => calculate_day_snapshot_with_timezone(case.day, case.month, case.year, timezone),
+        Some(timezone) => {
+            calculate_day_snapshot_with_timezone(case.day, case.month, case.year, timezone)
+        }
         None => calculate_day_snapshot(case.day, case.month, case.year),
     }
 }
@@ -240,7 +243,15 @@ fn parity_corpus() -> Vec<ParityCase> {
             month: 6,
             year: 2024,
             snapshot_timezone: None,
-            personal_input: Some(profile_input(12, 8, 1992, 11, 30, 7.0, Some(Gender::Female))),
+            personal_input: Some(profile_input(
+                12,
+                8,
+                1992,
+                11,
+                30,
+                7.0,
+                Some(Gender::Female),
+            )),
             expected_bucket: RecommendationBucket::Cautious,
             expect_conflict_visibility: false,
             expect_override_visibility: false,
@@ -300,9 +311,15 @@ fn parity_corpus() -> Vec<ParityCase> {
 fn reasoning_graph_parity_corpus_covers_baseline_personal_and_boundary_tracks() {
     let corpus = parity_corpus();
 
-    assert!(corpus.iter().any(|case| matches!(case.kind, ParityKind::Baseline)));
-    assert!(corpus.iter().any(|case| matches!(case.kind, ParityKind::Personal)));
-    assert!(corpus.iter().any(|case| matches!(case.kind, ParityKind::Boundary)));
+    assert!(corpus
+        .iter()
+        .any(|case| matches!(case.kind, ParityKind::Baseline)));
+    assert!(corpus
+        .iter()
+        .any(|case| matches!(case.kind, ParityKind::Personal)));
+    assert!(corpus
+        .iter()
+        .any(|case| matches!(case.kind, ParityKind::Boundary)));
 }
 
 #[test]
@@ -313,9 +330,15 @@ fn baseline_parity_corpus_spans_multiple_bucket_patterns() {
         .collect::<Vec<_>>();
 
     assert!(baseline.len() >= 10, "need a larger baseline corpus");
-    assert!(baseline.iter().any(|case| case.expected_bucket == RecommendationBucket::Favorable));
-    assert!(baseline.iter().any(|case| case.expected_bucket == RecommendationBucket::Avoid));
-    assert!(baseline.iter().any(|case| case.expected_bucket == RecommendationBucket::Cautious));
+    assert!(baseline
+        .iter()
+        .any(|case| case.expected_bucket == RecommendationBucket::Favorable));
+    assert!(baseline
+        .iter()
+        .any(|case| case.expected_bucket == RecommendationBucket::Avoid));
+    assert!(baseline
+        .iter()
+        .any(|case| case.expected_bucket == RecommendationBucket::Cautious));
 }
 
 #[test]
@@ -325,16 +348,14 @@ fn personal_parity_cases_keep_profile_effects_explicit() {
         .filter(|case| matches!(case.kind, ParityKind::Personal))
     {
         let snapshot = decision_snapshot(&case);
-        let without_profile = build_initiation_opening_reasoning(&snapshot, None).expect("baseline");
-        let with_profile = build_initiation_opening_reasoning(
-            &snapshot,
-            case.personal_input.as_ref(),
-        )
-        .expect("personalized");
+        let without_profile =
+            build_initiation_opening_reasoning(&snapshot, None).expect("baseline");
+        let with_profile =
+            build_initiation_opening_reasoning(&snapshot, case.personal_input.as_ref())
+                .expect("personalized");
 
         assert_ne!(
-            with_profile.suggested_hours,
-            without_profile.suggested_hours,
+            with_profile.suggested_hours, without_profile.suggested_hours,
             "{} should expose personal hour refinement",
             case.id
         );
@@ -363,13 +384,13 @@ fn boundary_parity_cases_cover_timezone_and_local_day_edges() {
             .expect("decision");
 
         assert_eq!(
-            decision.recommendation_bucket,
-            case.expected_bucket,
+            decision.recommendation_bucket, case.expected_bucket,
             "{} bucket mismatch",
             case.id
         );
         assert!(
-            case.expect_conflict_visibility == (!decision.context_is_clear || !decision.conflict_notes.is_empty())
+            case.expect_conflict_visibility
+                == (!decision.context_is_clear || !decision.conflict_notes.is_empty())
                 || case.expect_override_visibility == !decision.override_factors.is_empty(),
             "{} should preserve declared boundary visibility",
             case.id
@@ -387,12 +408,9 @@ fn initiation_opening_reasoning_stays_stable_on_representative_dates() {
         let decision = build_initiation_opening_reasoning(&snapshot, None).expect("decision");
 
         assert_eq!(
-            decision.recommendation_bucket,
-            case.expected_bucket,
+            decision.recommendation_bucket, case.expected_bucket,
             "{} bucket mismatch: expected {:?} vs reasoning {:?}",
-            case.id,
-            case.expected_bucket,
-            decision.recommendation_bucket
+            case.id, case.expected_bucket, decision.recommendation_bucket
         );
     }
 }
@@ -414,8 +432,7 @@ fn representative_explanation_ux_cases_stay_understandable_and_proportionate() {
             .expect("decision");
 
         assert_eq!(
-            decision.recommendation_bucket,
-            case.expected_bucket,
+            decision.recommendation_bucket, case.expected_bucket,
             "{} headline bucket mismatch",
             case.id
         );
@@ -495,8 +512,8 @@ fn initiation_opening_reasoning_keeps_reasons_and_conflict_signals_visible() {
 
 #[test]
 fn graph_backed_evaluator_bucket_parity_with_current_pipeline() {
-    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
     use amlich_core::reasoning::project_initiation_opening_decision;
+    use amlich_core::reasoning::{ActionEvaluator, InitiationOpeningEvaluator};
 
     for case in parity_corpus()
         .into_iter()
@@ -593,19 +610,17 @@ fn production_reasoning_bundle_export_matches_graph_evaluator_projection() {
         .evaluate(&graph, &snapshot, Some(personal_input))
         .expect("valid evaluation");
     let projected = project_initiation_opening_decision_export(&evaluation);
-    let production = amlich_core::build_initiation_opening_reasoning_bundle(
-        &snapshot,
-        Some(personal_input),
-    )
-    .expect("bundle");
+    let production =
+        amlich_core::build_initiation_opening_reasoning_bundle(&snapshot, Some(personal_input))
+            .expect("bundle");
 
     assert_eq!(production.decision_export, projected);
 }
 
 #[test]
 fn graph_backed_evaluator_confidence_parity() {
-    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
     use amlich_core::reasoning::project_initiation_opening_decision;
+    use amlich_core::reasoning::{ActionEvaluator, InitiationOpeningEvaluator};
 
     let snapshot = calculate_day_snapshot(3, 1, 2024);
     let graph = amlich_core::build_reasoning_input_graph(&snapshot, None).expect("valid graph");
@@ -626,8 +641,8 @@ fn graph_backed_evaluator_confidence_parity() {
 
 #[test]
 fn graph_backed_evaluator_produces_valid_action_evaluation() {
-    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
     use amlich_core::reasoning::project_initiation_opening_decision;
+    use amlich_core::reasoning::{ActionEvaluator, InitiationOpeningEvaluator};
 
     let snapshot = calculate_day_snapshot(10, 2, 2024);
     let graph = amlich_core::build_reasoning_input_graph(&snapshot, None).expect("valid graph");
@@ -637,18 +652,24 @@ fn graph_backed_evaluator_produces_valid_action_evaluation() {
         .evaluate(&graph, &snapshot, None)
         .expect("valid evaluation");
 
-    assert!(!evaluation.primary_conclusion.is_empty(), "should have conclusion");
+    assert!(
+        !evaluation.primary_conclusion.is_empty(),
+        "should have conclusion"
+    );
     assert!(
         !evaluation.strongest_supports.is_empty() || !evaluation.strongest_resistances.is_empty(),
         "should have at least one support or resistance note"
     );
     assert!(
-        matches!(evaluation.semantic, amlich_core::reasoning::ReasoningConclusionSemantic::FavorableClear
-            | amlich_core::reasoning::ReasoningConclusionSemantic::FavorableContextual
-            | amlich_core::reasoning::ReasoningConclusionSemantic::ConflictedCautious
-            | amlich_core::reasoning::ReasoningConclusionSemantic::ResistanceLedCautious
-            | amlich_core::reasoning::ReasoningConclusionSemantic::OverrideCautious
-            | amlich_core::reasoning::ReasoningConclusionSemantic::OverrideAvoid),
+        matches!(
+            evaluation.semantic,
+            amlich_core::reasoning::ReasoningConclusionSemantic::FavorableClear
+                | amlich_core::reasoning::ReasoningConclusionSemantic::FavorableContextual
+                | amlich_core::reasoning::ReasoningConclusionSemantic::ConflictedCautious
+                | amlich_core::reasoning::ReasoningConclusionSemantic::ResistanceLedCautious
+                | amlich_core::reasoning::ReasoningConclusionSemantic::OverrideCautious
+                | amlich_core::reasoning::ReasoningConclusionSemantic::OverrideAvoid
+        ),
         "should have valid semantic"
     );
 
@@ -666,7 +687,7 @@ fn graph_backed_evaluator_produces_valid_action_evaluation() {
 
 #[test]
 fn graph_backed_evaluator_handles_personal_input() {
-    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
+    use amlich_core::reasoning::{ActionEvaluator, InitiationOpeningEvaluator};
 
     let snapshot = calculate_day_snapshot(13, 5, 2024);
     let personal_input = profile_input(1, 1, 1990, 9, 0, 7.0, None);
@@ -683,7 +704,8 @@ fn graph_backed_evaluator_handles_personal_input() {
         gender: personal_input.birth.gender,
     };
 
-    let graph = amlich_core::build_reasoning_input_graph(&snapshot, Some(&bazi_input)).expect("valid graph");
+    let graph = amlich_core::build_reasoning_input_graph(&snapshot, Some(&bazi_input))
+        .expect("valid graph");
     let evaluator = InitiationOpeningEvaluator::new();
 
     let evaluation = evaluator
@@ -695,15 +717,18 @@ fn graph_backed_evaluator_handles_personal_input() {
         "should have conclusion with personal input"
     );
     assert!(
-        evaluation.axis_scores.iter().any(|s| s.axis == amlich_core::InterpretedAxis::PersonalAlignment && s.score > 0.0),
+        evaluation
+            .axis_scores
+            .iter()
+            .any(|s| s.axis == amlich_core::InterpretedAxis::PersonalAlignment && s.score > 0.0),
         "should have personal alignment score"
     );
 }
 
 #[test]
 fn graph_backed_evaluator_suggested_hours_from_day() {
-    use amlich_core::reasoning::{InitiationOpeningEvaluator, ActionEvaluator};
     use amlich_core::reasoning::project_initiation_opening_decision;
+    use amlich_core::reasoning::{ActionEvaluator, InitiationOpeningEvaluator};
 
     let snapshot = calculate_day_snapshot(10, 2, 2024);
     let graph = amlich_core::build_reasoning_input_graph(&snapshot, None).expect("valid graph");

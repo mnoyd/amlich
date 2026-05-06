@@ -1,15 +1,14 @@
 use crate::semantic_graph::{NodeConcept, SemanticGraph, SemanticNode};
 
-use crate::almanac::recommendation::evidence::{BaseDirection, collect_truc_hits};
+use crate::almanac::recommendation::evidence::{collect_truc_hits, BaseDirection};
 use crate::insight_data::find_truc_insight;
 use crate::reasoning::action_evaluator::{ActionEvaluation, ActionEvaluator};
 use crate::reasoning::types::{
-    ActionId, DecisionConfidence, InterpretedAxis, ReasoningAxisScore,
+    interpret_severity, ActionId, DecisionConfidence, InterpretedAxis, ReasoningAxisScore,
     ReasoningConclusionSemantic, ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
-    interpret_severity,
 };
-use crate::DaySnapshot;
 use crate::reasoning::PersonalReasoningInput;
+use crate::DaySnapshot;
 
 pub struct InitiationOpeningEvaluator;
 
@@ -23,7 +22,11 @@ impl InitiationOpeningEvaluator {
         Self
     }
 
-    fn extract_support_evidence(&self, graph: &SemanticGraph, _snapshot: &DaySnapshot) -> Vec<ReasoningNote> {
+    fn extract_support_evidence(
+        &self,
+        graph: &SemanticGraph,
+        _snapshot: &DaySnapshot,
+    ) -> Vec<ReasoningNote> {
         let mut notes = Vec::new();
 
         if let Some(truc_node) = self.find_node_by_concept(graph, NodeConcept::Truc) {
@@ -33,7 +36,11 @@ impl InitiationOpeningEvaluator {
                         node_id: Some(truc_node.node_id.clone()),
                         summary_vi: truc_node.summary_vi.clone(),
                         tags: vec!["support".to_string(), "truc".to_string()],
-                        provenance: truc_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                        provenance: truc_node
+                            .provenance
+                            .iter()
+                            .map(|p| p.to_reasoning_evidence())
+                            .collect(),
                     });
                 }
             }
@@ -46,7 +53,11 @@ impl InitiationOpeningEvaluator {
                         node_id: Some(deity_node.node_id.clone()),
                         summary_vi: deity_node.summary_vi.clone(),
                         tags: vec!["support".to_string(), "day_deity".to_string()],
-                        provenance: deity_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                        provenance: deity_node
+                            .provenance
+                            .iter()
+                            .map(|p| p.to_reasoning_evidence())
+                            .collect(),
                     });
                 }
             }
@@ -58,7 +69,11 @@ impl InitiationOpeningEvaluator {
                     node_id: Some(star_node.node_id.clone()),
                     summary_vi: star_node.summary_vi.clone(),
                     tags: vec!["support".to_string(), "star".to_string()],
-                    provenance: star_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                    provenance: star_node
+                        .provenance
+                        .iter()
+                        .map(|p| p.to_reasoning_evidence())
+                        .collect(),
                 });
             }
         }
@@ -75,18 +90,28 @@ impl InitiationOpeningEvaluator {
                     node_id: Some(truc_node.node_id.clone()),
                     summary_vi: truc_node.summary_vi.clone(),
                     tags: vec!["resistance".to_string(), "truc".to_string()],
-                    provenance: truc_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                    provenance: truc_node
+                        .provenance
+                        .iter()
+                        .map(|p| p.to_reasoning_evidence())
+                        .collect(),
                 });
             }
         }
 
         if let Some(xung_hop_node) = self.find_node_by_concept(graph, NodeConcept::XungHop) {
-            if xung_hop_node.summary_vi.contains("Xung") && !xung_hop_node.summary_vi.contains(", hợp ") {
+            if xung_hop_node.summary_vi.contains("Xung")
+                && !xung_hop_node.summary_vi.contains(", hợp ")
+            {
                 notes.push(ReasoningNote {
                     node_id: Some(xung_hop_node.node_id.clone()),
                     summary_vi: xung_hop_node.summary_vi.clone(),
                     tags: vec!["resistance".to_string(), "xung_hop".to_string()],
-                    provenance: xung_hop_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                    provenance: xung_hop_node
+                        .provenance
+                        .iter()
+                        .map(|p| p.to_reasoning_evidence())
+                        .collect(),
                 });
             }
         }
@@ -98,7 +123,11 @@ impl InitiationOpeningEvaluator {
                         node_id: Some(node.node_id.clone()),
                         summary_vi: node.summary_vi.clone(),
                         tags: vec!["resistance".to_string(), "taboo".to_string()],
-                        provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                        provenance: node
+                            .provenance
+                            .iter()
+                            .map(|p| p.to_reasoning_evidence())
+                            .collect(),
                     });
                 }
             }
@@ -109,7 +138,11 @@ impl InitiationOpeningEvaluator {
                 node_id: Some(node.node_id.clone()),
                 summary_vi: format!("Hướng cá nhân có điểm xung: {}", node.summary_vi),
                 tags: vec!["resistance".to_string(), "personal_direction".to_string()],
-                provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                provenance: node
+                    .provenance
+                    .iter()
+                    .map(|p| p.to_reasoning_evidence())
+                    .collect(),
             });
         }
 
@@ -127,7 +160,11 @@ impl InitiationOpeningEvaluator {
                             node_id: Some(node.node_id.clone()),
                             summary_vi: node.summary_vi.clone(),
                             tags: vec!["override".to_string(), "hard_taboo".to_string()],
-                            provenance: node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                            provenance: node
+                                .provenance
+                                .iter()
+                                .map(|p| p.to_reasoning_evidence())
+                                .collect(),
                         });
                     }
                 }
@@ -153,12 +190,11 @@ impl InitiationOpeningEvaluator {
 
     fn has_unfavorable_fact(&self, graph: &SemanticGraph) -> bool {
         graph.nodes().values().any(|n| match n.concept {
-                NodeConcept::Taboo => n.severity.is_some(),
-                NodeConcept::InteractionRow => {
-                    n.summary_vi.contains(" direction: net=")
-                        && self.node_has_tag(n, "unfavorable")
-                }
-                _ => false,
+            NodeConcept::Taboo => n.severity.is_some(),
+            NodeConcept::InteractionRow => {
+                n.summary_vi.contains(" direction: net=") && self.node_has_tag(n, "unfavorable")
+            }
+            _ => false,
         })
     }
 
@@ -174,7 +210,11 @@ impl InitiationOpeningEvaluator {
                     node_id: Some(truc_node.node_id.clone()),
                     summary_vi: truc_node.summary_vi.clone(),
                     tags: vec!["conflict".to_string(), "truc".to_string()],
-                    provenance: truc_node.provenance.iter().map(|p| p.to_reasoning_evidence()).collect(),
+                    provenance: truc_node
+                        .provenance
+                        .iter()
+                        .map(|p| p.to_reasoning_evidence())
+                        .collect(),
                 });
             }
         }
@@ -262,7 +302,10 @@ impl InitiationOpeningEvaluator {
         match axis {
             InterpretedAxis::Support => {
                 let score = self.extract_support_evidence(graph, snapshot).len() as f32;
-                let strongest = self.extract_support_evidence(graph, snapshot).into_iter().next();
+                let strongest = self
+                    .extract_support_evidence(graph, snapshot)
+                    .into_iter()
+                    .next();
                 ReasoningAxisScore {
                     axis,
                     score,
@@ -281,7 +324,9 @@ impl InitiationOpeningEvaluator {
                 }
             }
             InterpretedAxis::Stability => {
-                let taboo_count = graph.nodes().values()
+                let taboo_count = graph
+                    .nodes()
+                    .values()
                     .filter(|n| n.concept == NodeConcept::Taboo)
                     .count() as f32;
                 ReasoningAxisScore {
@@ -301,7 +346,8 @@ impl InitiationOpeningEvaluator {
                 }
             }
             InterpretedAxis::TimingFit => {
-                let hoang_dao_count = self.find_node_by_concept(graph, NodeConcept::HoangDaoHour)
+                let hoang_dao_count = self
+                    .find_node_by_concept(graph, NodeConcept::HoangDaoHour)
                     .and_then(|n| n.severity.as_ref())
                     .and_then(|s| s.parse::<usize>().ok())
                     .unwrap_or(0);
@@ -331,9 +377,15 @@ impl InitiationOpeningEvaluator {
         override_notes: &[ReasoningNote],
         conflict_count: usize,
         context_clarity_score: f32,
-    ) -> (ReasoningConclusionSemantic, RecommendationBucket, DecisionConfidence, bool) {
+    ) -> (
+        ReasoningConclusionSemantic,
+        RecommendationBucket,
+        DecisionConfidence,
+        bool,
+    ) {
         let override_count = override_notes.len();
-        let context_is_clear = conflict_count == 0 && context_clarity_score > 0.0 && override_count == 0;
+        let context_is_clear =
+            conflict_count == 0 && context_clarity_score > 0.0 && override_count == 0;
 
         let semantic = if override_count > 0 {
             let is_single_taboo_pressure = override_count == 1
@@ -363,15 +415,13 @@ impl InitiationOpeningEvaluator {
             ReasoningConclusionSemantic::OverrideCautious
             | ReasoningConclusionSemantic::ConflictedCautious
             | ReasoningConclusionSemantic::ResistanceLedCautious => RecommendationBucket::Cautious,
-            ReasoningConclusionSemantic::FavorableClear | ReasoningConclusionSemantic::FavorableContextual => {
-                RecommendationBucket::Favorable
-            }
+            ReasoningConclusionSemantic::FavorableClear
+            | ReasoningConclusionSemantic::FavorableContextual => RecommendationBucket::Favorable,
         };
 
         let confidence = match semantic {
-            ReasoningConclusionSemantic::OverrideAvoid | ReasoningConclusionSemantic::OverrideCautious => {
-                DecisionConfidence::High
-            }
+            ReasoningConclusionSemantic::OverrideAvoid
+            | ReasoningConclusionSemantic::OverrideCautious => DecisionConfidence::High,
             ReasoningConclusionSemantic::ConflictedCautious
             | ReasoningConclusionSemantic::ResistanceLedCautious
             | ReasoningConclusionSemantic::FavorableContextual => DecisionConfidence::Low,
@@ -443,7 +493,12 @@ impl InitiationOpeningEvaluator {
             .good_hours
             .iter()
             .take(3)
-            .map(|hour| format!("Nếu vẫn tiến hành, ưu tiên giờ {} ({})", hour.hour_chi, hour.time_range))
+            .map(|hour| {
+                format!(
+                    "Nếu vẫn tiến hành, ưu tiên giờ {} ({})",
+                    hour.hour_chi, hour.time_range
+                )
+            })
             .collect()
     }
 
@@ -475,7 +530,11 @@ impl InitiationOpeningEvaluator {
         ]
     }
 
-    fn find_node_by_concept<'a>(&self, graph: &'a SemanticGraph, concept: NodeConcept) -> Option<&'a SemanticNode> {
+    fn find_node_by_concept<'a>(
+        &self,
+        graph: &'a SemanticGraph,
+        concept: NodeConcept,
+    ) -> Option<&'a SemanticNode> {
         graph.nodes().values().find(|n| n.concept == concept)
     }
 
@@ -544,9 +603,16 @@ impl ActionEvaluator for InitiationOpeningEvaluator {
         let resistance_score = resistance_notes.len() as f32;
         let conflict_count = conflict_notes.len();
 
-        let stability_score = self.score_axis(graph, snapshot, personal_input, InterpretedAxis::Stability);
-        let timing_fit_score = self.score_axis(graph, snapshot, personal_input, InterpretedAxis::TimingFit);
-        let context_clarity_score = self.score_axis(graph, snapshot, personal_input, InterpretedAxis::ContextClarity);
+        let stability_score =
+            self.score_axis(graph, snapshot, personal_input, InterpretedAxis::Stability);
+        let timing_fit_score =
+            self.score_axis(graph, snapshot, personal_input, InterpretedAxis::TimingFit);
+        let context_clarity_score = self.score_axis(
+            graph,
+            snapshot,
+            personal_input,
+            InterpretedAxis::ContextClarity,
+        );
 
         let (semantic, bucket, confidence, context_is_clear) = self.synthesize_semantic(
             support_score,
@@ -594,7 +660,11 @@ impl ActionEvaluator for InitiationOpeningEvaluator {
         ];
 
         let mut referenced_node_ids = Vec::new();
-        for note in support_notes.iter().chain(resistance_notes.iter()).chain(override_notes.iter()) {
+        for note in support_notes
+            .iter()
+            .chain(resistance_notes.iter())
+            .chain(override_notes.iter())
+        {
             if let Some(ref node_id) = note.node_id {
                 referenced_node_ids.push(node_id.clone());
             }

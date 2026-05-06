@@ -35,9 +35,8 @@ impl ReasoningInputGraph {
         bazi_input: &BaziInput,
     ) -> Result<Self, String> {
         use crate::semantic_graph::builders::{
-            build_bazi_profile_graph, build_day_person_matrix_graph,
+            build_bazi_profile_graph, build_day_person_matrix_graph, build_day_snapshot_graph,
             build_direction_merge_matrix_graph, build_personal_hour_matrix_graph,
-            build_day_snapshot_graph,
         };
 
         let mut day_graph = build_day_snapshot_graph(snapshot);
@@ -63,15 +62,21 @@ impl ReasoningInputGraph {
         let profile_root_id = format!("bazi_profile:{}:{}", dob_str, tz);
 
         let day_person_matrix = compute_day_person_matrix(&snapshot.context.canchi.day, &chart);
-        let day_person_graph = build_day_person_matrix_graph(&day_root_id, &profile_root_id, &day_person_matrix)?;
-        day_graph.merge(day_person_graph).map_err(|e| format!("matrix merge error: {:?}", e))?;
+        let day_person_graph =
+            build_day_person_matrix_graph(&day_root_id, &profile_root_id, &day_person_matrix)?;
+        day_graph
+            .merge(day_person_graph)
+            .map_err(|e| format!("matrix merge error: {:?}", e))?;
 
         let element_dist = compute_element_distribution(&chart);
         if let Some(personal_hour_matrix) =
             compute_personal_hour_matrix(&snapshot.context.canchi.day, &chart, &element_dist)
         {
-            let personal_hour_graph =
-                build_personal_hour_matrix_graph(&day_root_id, &profile_root_id, &personal_hour_matrix)?;
+            let personal_hour_graph = build_personal_hour_matrix_graph(
+                &day_root_id,
+                &profile_root_id,
+                &personal_hour_matrix,
+            )?;
             day_graph
                 .merge(personal_hour_graph)
                 .map_err(|e| format!("matrix merge error: {:?}", e))?;
@@ -85,8 +90,11 @@ impl ReasoningInputGraph {
                 &snapshot.day_fortune.travel.hy_than,
                 &kua,
             );
-            let direction_graph =
-                build_direction_merge_matrix_graph(&day_root_id, &profile_root_id, &direction_matrix)?;
+            let direction_graph = build_direction_merge_matrix_graph(
+                &day_root_id,
+                &profile_root_id,
+                &direction_matrix,
+            )?;
             day_graph
                 .merge(direction_graph)
                 .map_err(|e| format!("matrix merge error: {:?}", e))?;
@@ -182,20 +190,28 @@ mod tests {
 
         let graph = build_reasoning_input_graph(&snapshot, Some(&bazi_input)).expect("valid graph");
 
-        let has_day_person_matrix = graph.nodes().values().any(|n| {
-            n.concept == crate::semantic_graph::ontology::NodeConcept::DayPersonMatrix
-        });
+        let has_day_person_matrix = graph
+            .nodes()
+            .values()
+            .any(|n| n.concept == crate::semantic_graph::ontology::NodeConcept::DayPersonMatrix);
         assert!(has_day_person_matrix, "should have day-person matrix node");
 
-        let has_personal_hour_matrix = graph.nodes().values().any(|n| {
-            n.concept == crate::semantic_graph::ontology::NodeConcept::PersonalHourMatrix
-        });
-        assert!(has_personal_hour_matrix, "should have personal-hour matrix node");
+        let has_personal_hour_matrix = graph
+            .nodes()
+            .values()
+            .any(|n| n.concept == crate::semantic_graph::ontology::NodeConcept::PersonalHourMatrix);
+        assert!(
+            has_personal_hour_matrix,
+            "should have personal-hour matrix node"
+        );
 
         let has_direction_merge_matrix = graph.nodes().values().any(|n| {
             n.concept == crate::semantic_graph::ontology::NodeConcept::DirectionMergeMatrix
         });
-        assert!(has_direction_merge_matrix, "should have direction-merge matrix node");
+        assert!(
+            has_direction_merge_matrix,
+            "should have direction-merge matrix node"
+        );
     }
 
     #[test]
@@ -218,7 +234,10 @@ mod tests {
         let has_direction_merge_matrix = graph.nodes().values().any(|n| {
             n.concept == crate::semantic_graph::ontology::NodeConcept::DirectionMergeMatrix
         });
-        assert!(!has_direction_merge_matrix, "should NOT have direction-merge matrix without gender");
+        assert!(
+            !has_direction_merge_matrix,
+            "should NOT have direction-merge matrix without gender"
+        );
     }
 
     #[test]

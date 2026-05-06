@@ -180,7 +180,11 @@ pub struct HourSelectionReasoningExport {
 
 impl HourSelectionReasoningExport {
     pub fn from_reasoning(reasoning: &HourSelectionReasoning, birth: Option<&BirthInput>) -> Self {
-        let auspicious_count = reasoning.ranked_hours.iter().filter(|h| h.is_auspicious).count();
+        let auspicious_count = reasoning
+            .ranked_hours
+            .iter()
+            .filter(|h| h.is_auspicious)
+            .count();
         let total_hours = reasoning.ranked_hours.len();
         let birth_data_tier = match birth {
             Some(b) if b.hour.is_some() && b.minute.is_some() && b.gender.is_some() => "datetime",
@@ -628,7 +632,10 @@ pub fn build_hour_selection_reasoning(
 ) -> Result<HourSelectionReasoning, String> {
     let ranked_hours = rank_hours_for_intent(day, month, year, intent, birth)?;
     let top_recommendation = ranked_hours.first().cloned();
-    let auspicious_count = ranked_hours.iter().filter(|hour| hour.is_auspicious).count();
+    let auspicious_count = ranked_hours
+        .iter()
+        .filter(|hour| hour.is_auspicious)
+        .count();
     let summary_vi = match top_recommendation.as_ref() {
         Some(top) => format!(
             "Ưu tiên giờ {} ({}) cho {} vì đứng đầu xếp hạng với {} giờ hoàng đạo hỗ trợ.",
@@ -637,7 +644,10 @@ pub fn build_hour_selection_reasoning(
             intent.event_kind(),
             auspicious_count
         ),
-        None => format!("Không có giờ phù hợp để xếp hạng cho {}.", intent.event_kind()),
+        None => format!(
+            "Không có giờ phù hợp để xếp hạng cho {}.",
+            intent.event_kind()
+        ),
     };
     let summary_en = match top_recommendation.as_ref() {
         Some(top) => format!(

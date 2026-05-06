@@ -2,8 +2,8 @@ use amlich_core::{
     build_initiation_opening_reasoning_bundle, calculate_day_snapshot,
     calculate_day_snapshot_with_timezone,
     reasoning::{
-        PersonalReasoningInput,
-        ReasoningEdgeJustification, ReasoningGraphExport, ReasoningNodeSeverity,
+        PersonalReasoningInput, ReasoningEdgeJustification, ReasoningGraphExport,
+        ReasoningNodeSeverity,
     },
     BirthInput, ConsultationIntent, Gender,
 };
@@ -99,7 +99,15 @@ fn parity_corpus() -> Vec<ParityCase> {
             month: 6,
             year: 2024,
             timezone: None,
-            personal: Some(profile_input(12, 8, 1992, 11, 30, 7.0, Some(Gender::Female))),
+            personal: Some(profile_input(
+                12,
+                8,
+                1992,
+                11,
+                30,
+                7.0,
+                Some(Gender::Female),
+            )),
         },
         ParityCase {
             id: "boundary_vn_tz",
@@ -145,17 +153,61 @@ fn semantic_projection_preserves_canonical_node_ids() {
         let graph = build_graph(&case);
         let node_ids: HashSet<&str> = graph.nodes.iter().map(|n| n.id.as_str()).collect();
 
-        assert!(node_ids.contains("fact.day.taboos"), "{} missing taboos", case.id);
-        assert!(node_ids.contains("fact.day.day_deity"), "{} missing deity", case.id);
-        assert!(node_ids.contains("fact.day.hoang_dao_hours"), "{} missing hours", case.id);
-        assert!(node_ids.contains("fact.day.truc"), "{} missing truc", case.id);
-        assert!(node_ids.contains("fact.day.xung_hop"), "{} missing xung_hop", case.id);
-        assert!(node_ids.contains("fact.day.nhi_thap_bat_tu"), "{} missing star", case.id);
-        assert!(node_ids.contains("fact.day.solar_term"), "{} missing solar_term", case.id);
-        assert!(node_ids.contains("signal.support"), "{} missing signal.support", case.id);
-        assert!(node_ids.contains("signal.resistance"), "{} missing signal.resistance", case.id);
-        assert!(node_ids.contains("signal.stability"), "{} missing signal.stability", case.id);
-        assert!(node_ids.contains("signal.timing_fit"), "{} missing signal.timing_fit", case.id);
+        assert!(
+            node_ids.contains("fact.day.taboos"),
+            "{} missing taboos",
+            case.id
+        );
+        assert!(
+            node_ids.contains("fact.day.day_deity"),
+            "{} missing deity",
+            case.id
+        );
+        assert!(
+            node_ids.contains("fact.day.hoang_dao_hours"),
+            "{} missing hours",
+            case.id
+        );
+        assert!(
+            node_ids.contains("fact.day.truc"),
+            "{} missing truc",
+            case.id
+        );
+        assert!(
+            node_ids.contains("fact.day.xung_hop"),
+            "{} missing xung_hop",
+            case.id
+        );
+        assert!(
+            node_ids.contains("fact.day.nhi_thap_bat_tu"),
+            "{} missing star",
+            case.id
+        );
+        assert!(
+            node_ids.contains("fact.day.solar_term"),
+            "{} missing solar_term",
+            case.id
+        );
+        assert!(
+            node_ids.contains("signal.support"),
+            "{} missing signal.support",
+            case.id
+        );
+        assert!(
+            node_ids.contains("signal.resistance"),
+            "{} missing signal.resistance",
+            case.id
+        );
+        assert!(
+            node_ids.contains("signal.stability"),
+            "{} missing signal.stability",
+            case.id
+        );
+        assert!(
+            node_ids.contains("signal.timing_fit"),
+            "{} missing signal.timing_fit",
+            case.id
+        );
         assert!(
             node_ids.contains("signal.context_clarity"),
             "{} missing signal.context_clarity",
@@ -180,10 +232,22 @@ fn semantic_projection_preserves_node_and_edge_non_emptiness() {
 
 #[test]
 fn semantic_projection_preserves_severity_annotations() {
-    let graph = build_graph(&parity_corpus().into_iter().find(|c| c.id == "hard_avoid").unwrap());
-    let taboo = graph.nodes.iter().find(|n| n.id == "fact.day.taboos").expect("taboo");
+    let graph = build_graph(
+        &parity_corpus()
+            .into_iter()
+            .find(|c| c.id == "hard_avoid")
+            .unwrap(),
+    );
+    let taboo = graph
+        .nodes
+        .iter()
+        .find(|n| n.id == "fact.day.taboos")
+        .expect("taboo");
     assert!(taboo.severity.is_some());
-    assert!(matches!(taboo.severity, Some(ReasoningNodeSeverity::HardTaboo)));
+    assert!(matches!(
+        taboo.severity,
+        Some(ReasoningNodeSeverity::HardTaboo)
+    ));
 }
 
 #[test]
@@ -199,27 +263,61 @@ fn semantic_projection_preserves_edge_justifications() {
         assert!(!justifications.is_empty(), "{} should have edges", case.id);
     }
 
-    let hard_avoid = build_graph(&parity_corpus().into_iter().find(|c| c.id == "hard_avoid").unwrap());
+    let hard_avoid = build_graph(
+        &parity_corpus()
+            .into_iter()
+            .find(|c| c.id == "hard_avoid")
+            .unwrap(),
+    );
     let has_taboo_pressure = hard_avoid
         .edges
         .iter()
         .any(|e| e.justification == ReasoningEdgeJustification::TabooPressure);
-    assert!(has_taboo_pressure, "hard_avoid should have TabooPressure edge");
+    assert!(
+        has_taboo_pressure,
+        "hard_avoid should have TabooPressure edge"
+    );
 }
 
 #[test]
 fn semantic_projection_preserves_node_tags() {
-    let graph = build_graph(&parity_corpus().into_iter().find(|c| c.id == "hard_avoid").unwrap());
-    let taboo = graph.nodes.iter().find(|n| n.id == "fact.day.taboos").expect("taboo");
-    assert!(taboo.tags.iter().any(|t| t == "resistance"), "taboo should have resistance tag");
-    assert!(taboo.tags.iter().any(|t| t == "day"), "taboo should have day tag");
+    let graph = build_graph(
+        &parity_corpus()
+            .into_iter()
+            .find(|c| c.id == "hard_avoid")
+            .unwrap(),
+    );
+    let taboo = graph
+        .nodes
+        .iter()
+        .find(|n| n.id == "fact.day.taboos")
+        .expect("taboo");
+    assert!(
+        taboo.tags.iter().any(|t| t == "resistance"),
+        "taboo should have resistance tag"
+    );
+    assert!(
+        taboo.tags.iter().any(|t| t == "day"),
+        "taboo should have day tag"
+    );
 }
 
 #[test]
 fn semantic_projection_preserves_edge_tags() {
-    let graph = build_graph(&parity_corpus().into_iter().find(|c| c.id == "hard_avoid").unwrap());
-    let has_override_edge = graph.edges.iter().any(|e| e.tags.iter().any(|t| t == "override"));
-    assert!(has_override_edge, "hard_avoid should have override-tagged edge");
+    let graph = build_graph(
+        &parity_corpus()
+            .into_iter()
+            .find(|c| c.id == "hard_avoid")
+            .unwrap(),
+    );
+    let has_override_edge = graph
+        .edges
+        .iter()
+        .any(|e| e.tags.iter().any(|t| t == "override"));
+    assert!(
+        has_override_edge,
+        "hard_avoid should have override-tagged edge"
+    );
 }
 
 #[test]
@@ -230,8 +328,16 @@ fn semantic_projection_preserves_evidence_provenance() {
         assert!(!all_evidence.is_empty(), "{} should have evidence", case.id);
 
         for ev in &all_evidence {
-            assert!(!ev.source_id.is_empty(), "{} evidence should have source_id", case.id);
-            assert!(!ev.method.is_empty(), "{} evidence should have method", case.id);
+            assert!(
+                !ev.source_id.is_empty(),
+                "{} evidence should have source_id",
+                case.id
+            );
+            assert!(
+                !ev.method.is_empty(),
+                "{} evidence should have method",
+                case.id
+            );
         }
     }
 }
@@ -289,7 +395,10 @@ fn semantic_projection_preserves_interaction_evidence() {
         .iter()
         .flat_map(|n| n.evidence.iter())
         .any(|e| e.source_family == amlich_core::ReasoningEvidenceSourceFamily::Interaction);
-    assert!(has_interaction, "personal case should have interaction evidence");
+    assert!(
+        has_interaction,
+        "personal case should have interaction evidence"
+    );
 }
 
 #[test]
@@ -301,10 +410,19 @@ fn semantic_projection_preserves_signal_axis_annotations() {
             .iter()
             .filter(|n| n.id.starts_with("signal."))
             .collect();
-        assert_eq!(signal_nodes.len(), 6, "{} should have 6 signal nodes", case.id);
+        assert_eq!(
+            signal_nodes.len(),
+            6,
+            "{} should have 6 signal nodes",
+            case.id
+        );
 
         for node in &signal_nodes {
-            assert!(node.axis.is_some(), "signal node {} should have axis", node.id);
+            assert!(
+                node.axis.is_some(),
+                "signal node {} should have axis",
+                node.id
+            );
         }
     }
 }
@@ -313,14 +431,26 @@ fn semantic_projection_preserves_signal_axis_annotations() {
 fn semantic_projection_preserves_node_kinds() {
     for case in parity_corpus() {
         let graph = build_graph(&case);
-        let fact_count = graph.nodes.iter().filter(|n| matches!(n.kind, amlich_core::NodeKind::Fact)).count();
+        let fact_count = graph
+            .nodes
+            .iter()
+            .filter(|n| matches!(n.kind, amlich_core::NodeKind::Fact))
+            .count();
         let signal_count = graph
             .nodes
             .iter()
             .filter(|n| matches!(n.kind, amlich_core::NodeKind::InterpretedSignal))
             .count();
-        assert!(fact_count >= 8, "{} should have at least 8 fact nodes", case.id);
-        assert_eq!(signal_count, 6, "{} should have exactly 6 signal nodes", case.id);
+        assert!(
+            fact_count >= 8,
+            "{} should have at least 8 fact nodes",
+            case.id
+        );
+        assert_eq!(
+            signal_count, 6,
+            "{} should have exactly 6 signal nodes",
+            case.id
+        );
     }
 }
 
@@ -334,7 +464,10 @@ fn semantic_projection_preserves_serialization_shape() {
     assert!(obj.contains_key("nodes"));
     assert!(obj.contains_key("edges"));
 
-    let nodes = value.pointer("/nodes").and_then(serde_json::Value::as_array).expect("nodes");
+    let nodes = value
+        .pointer("/nodes")
+        .and_then(serde_json::Value::as_array)
+        .expect("nodes");
     assert!(!nodes.is_empty());
 
     let first = nodes[0].as_object().expect("node");

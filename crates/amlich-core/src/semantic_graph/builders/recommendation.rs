@@ -1,10 +1,7 @@
-use crate::almanac::recommendation::{
-    BaseDirection, RecommendationHit,
-    SynthesizedRecommendation,
-};
+use crate::almanac::recommendation::{BaseDirection, RecommendationHit, SynthesizedRecommendation};
 use crate::semantic_graph::{
-    EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, SemanticEdge, SemanticGraph,
-    SemanticId, SemanticNode,
+    EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, SemanticEdge, SemanticGraph, SemanticId,
+    SemanticNode,
 };
 
 pub struct RecommendationEvidenceGraphBuilder {
@@ -23,12 +20,7 @@ struct DayFactIds {
 }
 
 impl RecommendationEvidenceGraphBuilder {
-    pub fn new(
-        year: i32,
-        month: i32,
-        day: i32,
-        profile: &str,
-    ) -> Self {
+    pub fn new(year: i32, month: i32, day: i32, profile: &str) -> Self {
         let tz_suffix = "+7".to_string();
         let date_str = format!("{:04}-{:02}-{:02}", year, month, day);
 
@@ -64,11 +56,19 @@ impl RecommendationEvidenceGraphBuilder {
     }
 
     fn find_truc_node(&self, graph: &SemanticGraph) -> Option<String> {
-        graph.nodes().keys().find(|id| id.starts_with("truc:")).cloned()
+        graph
+            .nodes()
+            .keys()
+            .find(|id| id.starts_with("truc:"))
+            .cloned()
     }
 
     fn find_day_deity_node(&self, graph: &SemanticGraph) -> Option<String> {
-        graph.nodes().keys().find(|id| id.starts_with("day_deity:")).cloned()
+        graph
+            .nodes()
+            .keys()
+            .find(|id| id.starts_with("day_deity:"))
+            .cloned()
     }
 
     pub fn with_activities(mut self, activities: &[SynthesizedRecommendation]) -> Self {
@@ -81,8 +81,9 @@ impl RecommendationEvidenceGraphBuilder {
             let node_id = format!("activity:{}", activity.activity_id.as_str());
             let label = format!("{} / {}", activity.label.vi, activity.label.en);
 
-            let provenance = ProvenanceEntry::snapshot(node_id.clone(), "recommendation_activity_v1")
-                .with_profile(self.profile.clone());
+            let provenance =
+                ProvenanceEntry::snapshot(node_id.clone(), "recommendation_activity_v1")
+                    .with_profile(self.profile.clone());
 
             let node = SemanticNode::new(
                 SemanticId::new("activity", activity.activity_id.as_str()),
@@ -133,7 +134,8 @@ impl RecommendationEvidenceGraphBuilder {
 
             let activity_node_id = format!("activity:{}", hit.activity_id.as_str());
             if self.graph.has_node(&activity_node_id) {
-                let edge = SemanticEdge::new(&node_id, &activity_node_id, EdgeConcept::TargetsActivity);
+                let edge =
+                    SemanticEdge::new(&node_id, &activity_node_id, EdgeConcept::TargetsActivity);
                 self.graph.add_edge(edge);
             }
 
@@ -145,39 +147,57 @@ impl RecommendationEvidenceGraphBuilder {
         match hit.source {
             crate::almanac::recommendation::RecommendationEvidenceSource::Truc => {
                 if let Some(truc_node_id) = &self.day_fact_ids.truc {
-                    let edge = SemanticEdge::new(truc_node_id, hit_node_id, EdgeConcept::OriginatesFrom);
+                    let edge =
+                        SemanticEdge::new(truc_node_id, hit_node_id, EdgeConcept::OriginatesFrom);
                     self.graph.add_edge(edge);
                 }
             }
             crate::almanac::recommendation::RecommendationEvidenceSource::DayDeity => {
                 if let Some(deity_node_id) = &self.day_fact_ids.day_deity {
-                    let edge = SemanticEdge::new(deity_node_id, hit_node_id, EdgeConcept::OriginatesFrom);
+                    let edge =
+                        SemanticEdge::new(deity_node_id, hit_node_id, EdgeConcept::OriginatesFrom);
                     self.graph.add_edge(edge);
                 }
             }
             crate::almanac::recommendation::RecommendationEvidenceSource::Taboo => {
-                let fact_node_id = format!("{}{}", self.day_fact_ids.taboo_prefix,
-                    hit.source_code.strip_prefix("taboo.").unwrap_or("unknown"));
+                let fact_node_id = format!(
+                    "{}{}",
+                    self.day_fact_ids.taboo_prefix,
+                    hit.source_code.strip_prefix("taboo.").unwrap_or("unknown")
+                );
                 if self.graph.has_node(&fact_node_id) {
-                    let edge = SemanticEdge::new(&fact_node_id, hit_node_id, EdgeConcept::OriginatesFrom);
+                    let edge =
+                        SemanticEdge::new(&fact_node_id, hit_node_id, EdgeConcept::OriginatesFrom);
                     self.graph.add_edge(edge);
                 }
             }
             crate::almanac::recommendation::RecommendationEvidenceSource::XungHop => {
                 if self.graph.has_node(&self.day_fact_ids.xung_hop) {
-                    let edge = SemanticEdge::new(&self.day_fact_ids.xung_hop, hit_node_id, EdgeConcept::OriginatesFrom);
+                    let edge = SemanticEdge::new(
+                        &self.day_fact_ids.xung_hop,
+                        hit_node_id,
+                        EdgeConcept::OriginatesFrom,
+                    );
                     self.graph.add_edge(edge);
                 }
             }
             crate::almanac::recommendation::RecommendationEvidenceSource::Travel => {
                 if self.graph.has_node(&self.day_fact_ids.travel) {
-                    let edge = SemanticEdge::new(&self.day_fact_ids.travel, hit_node_id, EdgeConcept::OriginatesFrom);
+                    let edge = SemanticEdge::new(
+                        &self.day_fact_ids.travel,
+                        hit_node_id,
+                        EdgeConcept::OriginatesFrom,
+                    );
                     self.graph.add_edge(edge);
                 }
             }
             crate::almanac::recommendation::RecommendationEvidenceSource::GioHoangDao => {
                 if self.graph.has_node(&self.day_fact_ids.gio_hoang_dao) {
-                    let edge = SemanticEdge::new(&self.day_fact_ids.gio_hoang_dao, hit_node_id, EdgeConcept::OriginatesFrom);
+                    let edge = SemanticEdge::new(
+                        &self.day_fact_ids.gio_hoang_dao,
+                        hit_node_id,
+                        EdgeConcept::OriginatesFrom,
+                    );
                     self.graph.add_edge(edge);
                 }
             }
@@ -241,11 +261,15 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
@@ -275,11 +299,15 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
@@ -290,10 +318,7 @@ mod tests {
             .filter(|n| matches!(n.concept, NodeConcept::RecommendationHit))
             .collect();
 
-        assert!(
-            !hit_nodes.is_empty(),
-            "graph should contain hit nodes"
-        );
+        assert!(!hit_nodes.is_empty(), "graph should contain hit nodes");
     }
 
     #[test]
@@ -309,11 +334,15 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );
@@ -322,7 +351,9 @@ mod tests {
             if matches!(node.concept, NodeConcept::RecommendationHit) {
                 let outgoing = graph.outgoing_edges(node_id);
                 assert!(
-                    outgoing.iter().any(|e| matches!(e.label.concept, EdgeConcept::TargetsActivity)),
+                    outgoing
+                        .iter()
+                        .any(|e| matches!(e.label.concept, EdgeConcept::TargetsActivity)),
                     "hit node {} should have TargetsActivity edge",
                     node_id
                 );
@@ -343,11 +374,15 @@ mod tests {
             enabled_pack_ids: &[],
         };
 
-        let recommendations = crate::almanac::recommendation::synthesize_daily_recommendations(&context);
+        let recommendations =
+            crate::almanac::recommendation::synthesize_daily_recommendations(&context);
         let hits = collect_recommendation_hits(&context, &[]).expect("hits should collect");
 
         let graph = build_recommendation_evidence_graph(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
         );

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::semantic_graph::SemanticGraph;
 use serde::{Deserialize, Serialize};
 
-use super::helpers::{NodeViewAccumulator, opt_map};
+use super::helpers::{opt_map, NodeViewAccumulator};
 use super::subgraph::SubgraphView;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -99,11 +99,9 @@ impl LlmGraphSlice {
             .node_refs
             .iter()
             .filter_map(|id| {
-                graph.get_node(id).and_then(|n| {
-                    n.severity
-                        .as_ref()
-                        .map(|sev| (id.clone(), sev.as_str()))
-                })
+                graph
+                    .get_node(id)
+                    .and_then(|n| n.severity.as_ref().map(|sev| (id.clone(), sev.as_str())))
             })
             .collect();
 
@@ -215,13 +213,14 @@ impl LlmConvergenceSlice {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::almanac::recommendation::{
+        collect_recommendation_hits, synthesize_daily_recommendations,
+        RecommendationSynthesisContext,
+    };
+    use crate::calculate_day_snapshot;
     use crate::semantic_graph::builders::{
         build_day_snapshot_graph, build_recommendation_evidence_graph_connected,
     };
-    use crate::almanac::recommendation::{
-        collect_recommendation_hits, synthesize_daily_recommendations, RecommendationSynthesisContext,
-    };
-    use crate::calculate_day_snapshot;
 
     #[test]
     fn llm_graph_slice_has_semantic_kind_counts() {
@@ -289,10 +288,7 @@ mod tests {
         let slice = LlmGraphSlice::from_graph(&graph);
 
         let top = slice.top_severity_nodes(&graph, 5);
-        assert!(
-            top.len() <= 5,
-            "top severity nodes should be limited to 5"
-        );
+        assert!(top.len() <= 5, "top severity nodes should be limited to 5");
     }
 
     #[test]
@@ -313,7 +309,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -347,7 +346,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,
@@ -381,7 +383,10 @@ mod tests {
         let day_graph = build_day_snapshot_graph(&snapshot);
 
         let connected_graph = build_recommendation_evidence_graph_connected(
-            2024, 2, 10, "default",
+            2024,
+            2,
+            10,
+            "default",
             &recommendations.activities,
             &hits,
             &day_graph,

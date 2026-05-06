@@ -1,10 +1,10 @@
+use crate::reasoning::PersonalReasoningInput;
 use crate::semantic_graph::SemanticGraph;
 use crate::DaySnapshot;
-use crate::reasoning::PersonalReasoningInput;
 
 use super::types::{
-    ActionId, DecisionConfidence, ReasoningAxisScore,
-    ReasoningConclusionSemantic, ReasoningNote, RecommendationBucket,
+    ActionId, DecisionConfidence, ReasoningAxisScore, ReasoningConclusionSemantic, ReasoningNote,
+    RecommendationBucket,
 };
 
 #[derive(Debug, Clone)]

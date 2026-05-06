@@ -1,8 +1,8 @@
 use amlich_core::semantic_graph::{
-    ConceptLabel, EdgeConcept, GraphMergeError, GraphOntology, GraphValidationError,
-    NodeConcept, ProvenanceEntry, ProvenanceSource, SemanticEdge, SemanticEdgeLabel,
-    SemanticGraph, SemanticId, SemanticNode, SemanticNodeId, NodeOrigin,
-    SemanticEdgeId, SubgraphView, LlmGraphSlice, VisualizationGraph,
+    ConceptLabel, EdgeConcept, GraphMergeError, GraphOntology, GraphValidationError, LlmGraphSlice,
+    NodeConcept, NodeOrigin, ProvenanceEntry, ProvenanceSource, SemanticEdge, SemanticEdgeId,
+    SemanticEdgeLabel, SemanticGraph, SemanticId, SemanticNode, SemanticNodeId, SubgraphView,
+    VisualizationGraph,
 };
 
 #[test]
@@ -49,7 +49,12 @@ fn test_semantic_id_taboo_with_name() {
 #[test]
 fn test_semantic_node_new() {
     let id = SemanticId::day_root("2024-05-13", "tz+7");
-    let node = SemanticNode::new(id, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node = SemanticNode::new(
+        id,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     assert_eq!(node.node_id, "day:2024-05-13:tz+7");
     assert_eq!(node.concept, NodeConcept::DayCanchi);
     assert_eq!(node.origin, NodeOrigin::Fact);
@@ -60,19 +65,31 @@ fn test_semantic_node_new() {
 fn test_semantic_node_with_provenance() {
     let id = SemanticId::day_root("2024-05-13", "tz+7");
     let prov = ProvenanceEntry::snapshot("day:2024-05-13:tz+7", "amlich-core");
-    let node = SemanticNode::new(id, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13")
-        .with_provenance(prov.clone());
+    let node = SemanticNode::new(
+        id,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    )
+    .with_provenance(prov.clone());
     assert_eq!(node.provenance.len(), 1);
     assert_eq!(node.provenance[0].source, ProvenanceSource::Snapshot);
 }
 
 #[test]
 fn test_semantic_edge_new() {
-    let edge = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     assert_eq!(edge.from_node_id, "day:2024-05-13:tz+7");
     assert_eq!(edge.to_node_id, "truc:day:2024-05-13:tz+7");
     assert_eq!(edge.label.concept, EdgeConcept::Composes);
-    assert_eq!(edge.edge_id, "day:2024-05-13:tz+7->truc:day:2024-05-13:tz+7");
+    assert_eq!(
+        edge.edge_id,
+        "day:2024-05-13:tz+7->truc:day:2024-05-13:tz+7"
+    );
 }
 
 #[test]
@@ -93,7 +110,12 @@ fn test_semantic_graph_new() {
 fn test_semantic_graph_add_node() {
     let mut graph = SemanticGraph::new();
     let id = SemanticId::day_root("2024-05-13", "tz+7");
-    let node = SemanticNode::new(id, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node = SemanticNode::new(
+        id,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     graph.add_node(node);
     assert_eq!(graph.node_count(), 1);
     assert!(graph.has_node("day:2024-05-13:tz+7"));
@@ -112,11 +134,20 @@ fn test_semantic_graph_add_edge_with_nodes() {
     let mut graph = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph.add_node(node1);
     graph.add_node(node2);
-    let edge = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph.add_edge(edge);
     assert_eq!(graph.edge_count(), 1);
 }
@@ -126,11 +157,20 @@ fn test_semantic_graph_validate_ok() {
     let mut graph = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph.add_node(node1);
     graph.add_node(node2);
-    let edge = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph.add_edge(edge);
     assert!(graph.validate().is_ok());
 }
@@ -140,11 +180,20 @@ fn test_semantic_graph_validate_missing_source() {
     let mut graph = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph.add_node(node1);
     graph.add_node(node2);
-    let edge = SemanticEdge::new("nonexistent_node", "day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge = SemanticEdge::new(
+        "nonexistent_node",
+        "day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph.add_edge(edge);
     assert_eq!(graph.edge_count(), 0);
     assert!(graph.validate().is_ok());
@@ -154,7 +203,12 @@ fn test_semantic_graph_validate_missing_source() {
 fn test_semantic_graph_add_edge_drops_dangling_edges() {
     let mut graph = SemanticGraph::new();
     let id = SemanticId::day_root("2024-05-13", "tz+7");
-    let node = SemanticNode::new(id, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node = SemanticNode::new(
+        id,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     graph.add_node(node);
     let edge = SemanticEdge::new("missing", "day:2024-05-13:tz+7", EdgeConcept::Composes);
     graph.add_edge(edge);
@@ -165,7 +219,12 @@ fn test_semantic_graph_add_edge_drops_dangling_edges() {
 fn test_semantic_graph_merge_adds_new_nodes() {
     let mut graph1 = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     graph1.add_node(node1);
 
     let mut graph2 = SemanticGraph::new();
@@ -182,15 +241,25 @@ fn test_semantic_graph_merge_merges_provenance_on_existing_node() {
     let mut graph1 = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let prov1 = ProvenanceEntry::snapshot("day:2024-05-13:tz+7", "method_a");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13")
-        .with_provenance(prov1);
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    )
+    .with_provenance(prov1);
     graph1.add_node(node1);
 
     let mut graph2 = SemanticGraph::new();
     let id2 = SemanticId::day_root("2024-05-13", "tz+7");
     let prov2 = ProvenanceEntry::bazi("bazi_method", "method_b");
-    let node2 = SemanticNode::new(id2, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13")
-        .with_provenance(prov2);
+    let node2 = SemanticNode::new(
+        id2,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    )
+    .with_provenance(prov2);
     graph2.add_node(node2);
 
     graph1.merge(graph2).unwrap();
@@ -202,7 +271,12 @@ fn test_semantic_graph_merge_merges_provenance_on_existing_node() {
 fn test_semantic_graph_merge_rejects_kind_conflict() {
     let mut graph1 = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     graph1.add_node(node1);
 
     let mut graph2 = SemanticGraph::new();
@@ -211,7 +285,10 @@ fn test_semantic_graph_merge_rejects_kind_conflict() {
     graph2.add_node(node2);
 
     let result = graph1.merge(graph2);
-    assert!(matches!(result, Err(GraphMergeError::NodeKindConflict { .. })));
+    assert!(matches!(
+        result,
+        Err(GraphMergeError::NodeKindConflict { .. })
+    ));
 }
 
 #[test]
@@ -219,25 +296,46 @@ fn test_semantic_graph_merge_rejects_edge_conflict() {
     let mut graph1 = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph1.add_node(node1);
     graph1.add_node(node2);
-    let edge1 = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge1 = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph1.add_edge(edge1);
 
     let mut graph2 = SemanticGraph::new();
     let id3 = SemanticId::day_root("2024-05-13", "tz+7");
     let id4 = SemanticId::truc_day("2024-05-13", "tz+7");
-    let node3 = SemanticNode::new(id3, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node3 = SemanticNode::new(
+        id3,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node4 = SemanticNode::new(id4, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph2.add_node(node3);
     graph2.add_node(node4);
-    let edge2 = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Resonates);
+    let edge2 = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Resonates,
+    );
     graph2.add_edge(edge2);
 
     let result = graph1.merge(graph2);
-    assert!(matches!(result, Err(GraphMergeError::EdgePayloadConflict { .. })));
+    assert!(matches!(
+        result,
+        Err(GraphMergeError::EdgePayloadConflict { .. })
+    ));
 }
 
 #[test]
@@ -246,14 +344,27 @@ fn test_semantic_graph_outgoing_edges() {
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
     let id3 = SemanticId::day_deity_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     let node3 = SemanticNode::new(id3, NodeConcept::DayDeity, NodeOrigin::Fact, "Thần bế");
     graph.add_node(node1);
     graph.add_node(node2);
     graph.add_node(node3);
-    let edge1 = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
-    let edge2 = SemanticEdge::new("day:2024-05-13:tz+7", "day_deity:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge1 = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
+    let edge2 = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "day_deity:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph.add_edge(edge1);
     graph.add_edge(edge2);
 
@@ -266,11 +377,20 @@ fn test_semantic_graph_incoming_edges() {
     let mut graph = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph.add_node(node1);
     graph.add_node(node2);
-    let edge = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph.add_edge(edge);
 
     let incoming = graph.incoming_edges("truc:day:2024-05-13:tz+7");
@@ -332,7 +452,12 @@ fn test_graph_ontology_lists() {
 #[test]
 fn test_semantic_node_id_from_node() {
     let id = SemanticId::day_root("2024-05-13", "tz+7");
-    let node = SemanticNode::new(id, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node = SemanticNode::new(
+        id,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node_id: SemanticNodeId = (&node).into();
     assert_eq!(node_id.0, "day:2024-05-13:tz+7");
 }
@@ -356,12 +481,21 @@ fn test_semantic_graph_serde_roundtrip() {
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
     let prov = ProvenanceEntry::snapshot("day:2024-05-13:tz+7", "amlich-core");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13")
-        .with_provenance(prov);
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    )
+    .with_provenance(prov);
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph.add_node(node1);
     graph.add_node(node2);
-    let edge = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph.add_edge(edge);
 
     let serialized = serde_json::to_string(&graph).unwrap();
@@ -376,21 +510,39 @@ fn test_semantic_graph_merge_with_edges() {
     let mut graph1 = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph1.add_node(node1);
     graph1.add_node(node2);
-    let edge1 = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge1 = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph1.add_edge(edge1);
 
     let mut graph2 = SemanticGraph::new();
     let id3 = SemanticId::day_root("2024-05-13", "tz+7");
     let id4 = SemanticId::day_deity_day("2024-05-13", "tz+7");
-    let node3 = SemanticNode::new(id3, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node3 = SemanticNode::new(
+        id3,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node4 = SemanticNode::new(id4, NodeConcept::DayDeity, NodeOrigin::Fact, "Thần bế");
     graph2.add_node(node3);
     graph2.add_node(node4);
-    let edge2 = SemanticEdge::new("day:2024-05-13:tz+7", "day_deity:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge2 = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "day_deity:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph2.add_edge(edge2);
 
     graph1.merge(graph2).unwrap();
@@ -403,11 +555,20 @@ fn test_semantic_graph_get_edge() {
     let mut graph = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph.add_node(node1);
     graph.add_node(node2);
-    let edge = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph.add_edge(edge.clone());
 
     assert!(graph.get_edge(edge.edge_id()).is_some());
@@ -419,11 +580,20 @@ fn test_semantic_graph_has_edge() {
     let mut graph = SemanticGraph::new();
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     graph.add_node(node1);
     graph.add_node(node2);
-    let edge = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph.add_edge(edge.clone());
 
     assert!(graph.has_edge(edge.edge_id()));
@@ -438,8 +608,8 @@ fn test_semantic_edge_label_with_weight() {
 
 #[test]
 fn test_semantic_edge_with_justification() {
-    let edge = SemanticEdge::new("a", "b", EdgeConcept::Composes)
-        .with_justification("test justification");
+    let edge =
+        SemanticEdge::new("a", "b", EdgeConcept::Composes).with_justification("test justification");
     assert_eq!(edge.justification.len(), 1);
     assert_eq!(edge.justification[0], "test justification");
 }
@@ -447,24 +617,33 @@ fn test_semantic_edge_with_justification() {
 #[test]
 fn test_semantic_edge_with_provenance() {
     let prov = ProvenanceEntry::snapshot("a", "method");
-    let edge = SemanticEdge::new("a", "b", EdgeConcept::Composes)
-        .with_provenance(prov);
+    let edge = SemanticEdge::new("a", "b", EdgeConcept::Composes).with_provenance(prov);
     assert_eq!(edge.provenance.len(), 1);
 }
 
 #[test]
 fn test_semantic_node_with_tags() {
     let id = SemanticId::day_root("2024-05-13", "tz+7");
-    let node = SemanticNode::new(id, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13")
-        .with_tags(vec!["test".to_string(), "example".to_string()]);
+    let node = SemanticNode::new(
+        id,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    )
+    .with_tags(vec!["test".to_string(), "example".to_string()]);
     assert_eq!(node.tags.len(), 2);
 }
 
 #[test]
 fn test_semantic_node_with_severity() {
     let id = SemanticId::day_root("2024-05-13", "tz+7");
-    let node = SemanticNode::new(id, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13")
-        .with_severity("hard");
+    let node = SemanticNode::new(
+        id,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    )
+    .with_severity("hard");
     assert_eq!(node.severity, Some("hard".to_string()));
 }
 
@@ -473,14 +652,27 @@ fn make_test_graph() -> SemanticGraph {
     let id1 = SemanticId::day_root("2024-05-13", "tz+7");
     let id2 = SemanticId::truc_day("2024-05-13", "tz+7");
     let id3 = SemanticId::day_deity_day("2024-05-13", "tz+7");
-    let node1 = SemanticNode::new(id1, NodeConcept::DayCanchi, NodeOrigin::Fact, "Ngày 2024-05-13");
+    let node1 = SemanticNode::new(
+        id1,
+        NodeConcept::DayCanchi,
+        NodeOrigin::Fact,
+        "Ngày 2024-05-13",
+    );
     let node2 = SemanticNode::new(id2, NodeConcept::Truc, NodeOrigin::Fact, "Trực");
     let node3 = SemanticNode::new(id3, NodeConcept::DayDeity, NodeOrigin::Fact, "Thần bế");
     graph.add_node(node1);
     graph.add_node(node2);
     graph.add_node(node3);
-    let edge1 = SemanticEdge::new("day:2024-05-13:tz+7", "truc:day:2024-05-13:tz+7", EdgeConcept::Composes);
-    let edge2 = SemanticEdge::new("day:2024-05-13:tz+7", "day_deity:day:2024-05-13:tz+7", EdgeConcept::Composes);
+    let edge1 = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "truc:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
+    let edge2 = SemanticEdge::new(
+        "day:2024-05-13:tz+7",
+        "day_deity:day:2024-05-13:tz+7",
+        EdgeConcept::Composes,
+    );
     graph.add_edge(edge1);
     graph.add_edge(edge2);
     graph
@@ -491,8 +683,12 @@ fn test_subgraph_view_extract() {
     let graph = make_test_graph();
     let view = SubgraphView::extract(&graph, &["day:2024-05-13:tz+7"], 1);
     assert!(view.root_ids.contains(&"day:2024-05-13:tz+7".to_string()));
-    assert!(view.node_ids.contains(&"truc:day:2024-05-13:tz+7".to_string()));
-    assert!(view.node_ids.contains(&"day_deity:day:2024-05-13:tz+7".to_string()));
+    assert!(view
+        .node_ids
+        .contains(&"truc:day:2024-05-13:tz+7".to_string()));
+    assert!(view
+        .node_ids
+        .contains(&"day_deity:day:2024-05-13:tz+7".to_string()));
 }
 
 #[test]
