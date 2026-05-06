@@ -1,7 +1,7 @@
 use chrono::Datelike;
 use crossterm::event::{self, Event, KeyCode, KeyEventKind, KeyModifiers};
 
-use crate::state::{AppState, ExplorerAction, ExplorerField};
+use crate::state::{AppState, ExplorerAction, ExplorerField, UserExplanationLens};
 
 pub fn handle_events(app: &mut AppState) -> Result<bool, Box<dyn std::error::Error>> {
     if event::poll(std::time::Duration::from_millis(50))? {
@@ -115,9 +115,13 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             KeyCode::Char('d') => app.toggle_dev_inspector_mode(),
             KeyCode::Esc => {
                 if !app.dev_inspector_mode {
-                    match app.causality_focus {
-                        crate::state::CausalityFocus::SummaryList => app.running = false,
-                        crate::state::CausalityFocus::DetailFlow(_) => app.causality_go_back(),
+                    if app.explanation_lens == UserExplanationLens::YeuTo {
+                        match app.causality_focus {
+                            crate::state::CausalityFocus::SummaryList => app.running = false,
+                            crate::state::CausalityFocus::DetailFlow(_) => app.causality_go_back(),
+                        }
+                    } else {
+                        app.running = false;
                     }
                 } else {
                     use crate::state::GraphInspectorFocus;
@@ -168,18 +172,21 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             }
             KeyCode::Enter | KeyCode::Char('l') => {
                 if !app.dev_inspector_mode {
-                    let day = app.date.day() as i32;
-                    let month = app.date.month() as i32;
-                    let year = app.date.year();
-                    let inspection = amlich_core::debug_inspect_semantic_graph(
-                        day,
-                        month,
-                        year,
-                        app.show_graph_recommendations,
-                    );
-                    let nodes = crate::view_models::causality::extract_causality_tree(&inspection);
-                    if let Some(node) = nodes.get(app.graph_inspector_cursor) {
-                        app.causality_drill_down(node.node_id.clone());
+                    if app.explanation_lens == UserExplanationLens::YeuTo {
+                        let day = app.date.day() as i32;
+                        let month = app.date.month() as i32;
+                        let year = app.date.year();
+                        let inspection = amlich_core::debug_inspect_semantic_graph(
+                            day,
+                            month,
+                            year,
+                            app.show_graph_recommendations,
+                        );
+                        let nodes =
+                            crate::view_models::causality::extract_causality_tree(&inspection);
+                        if let Some(node) = nodes.get(app.graph_inspector_cursor) {
+                            app.causality_drill_down(node.node_id.clone());
+                        }
                     }
                 } else {
                     use crate::state::GraphInspectorFocus;
@@ -191,7 +198,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             }
             KeyCode::Backspace | KeyCode::Char('h') => {
                 if !app.dev_inspector_mode {
-                    app.causality_go_back();
+                    if app.explanation_lens == UserExplanationLens::YeuTo {
+                        app.causality_go_back();
+                    }
                 } else {
                     use crate::state::GraphInspectorFocus;
                     match &app.graph_inspector_focus {
@@ -505,6 +514,45 @@ mod tests {
         dispatch_key(&mut app, KeyCode::BackTab, KeyModifiers::SHIFT);
 
         assert_eq!(app.active_view, ActiveView::GraphInspector);
+    }
+
+    #[test]
+    fn tab_cycles_explanation_lens_inside_non_dev_graph_inspector() {
+        let mut app = sample_app_state();
+        app.active_view = ActiveView::GraphInspector;
+        app.dev_inspector_mode = false;
+        assert_eq!(
+            app.explanation_lens,
+            crate::state::UserExplanationLens::ViSao
+        );
+
+        dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+        assert_eq!(
+            app.explanation_lens,
+            crate::state::UserExplanationLens::YeuTo
+        );
+
+        dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+        assert_eq!(
+            app.explanation_lens,
+            crate::state::UserExplanationLens::HoatDong
+        );
+    }
+
+    #[test]
+    fn enter_does_not_force_causality_detail_for_non_factor_lenses() {
+        let mut app = sample_app_state();
+        app.active_view = ActiveView::GraphInspector;
+        app.dev_inspector_mode = false;
+        app.explanation_lens = crate::state::UserExplanationLens::ViSao;
+        app.causality_focus = crate::state::CausalityFocus::SummaryList;
+
+        dispatch_key(&mut app, KeyCode::Enter, KeyModifiers::NONE);
+
+        assert_eq!(
+            app.causality_focus,
+            crate::state::CausalityFocus::SummaryList
+        );
     }
 
     #[test]

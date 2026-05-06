@@ -503,12 +503,40 @@ pub struct ReasoningLensEntry {
     pub provenance: Vec<amlich_core::ReasoningEvidenceEnvelope>,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RecommendationLensVerdict {
+    KyManh,
+    Tranh,
+    CoThe,
+    Nen,
+}
+
+impl RecommendationLensVerdict {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::KyManh => "Kỵ mạnh",
+            Self::Tranh => "Tránh",
+            Self::CoThe => "Có thể",
+            Self::Nen => "Nên",
+        }
+    }
+
+    pub fn sort_order(self) -> u8 {
+        match self {
+            Self::KyManh => 0,
+            Self::Tranh => 1,
+            Self::CoThe => 2,
+            Self::Nen => 3,
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecommendationLensEntry {
     pub activity: String,
-    pub reason: String,
-    pub is_favor: bool,
-    pub is_hard_stop: bool,
+    pub verdict: RecommendationLensVerdict,
+    pub headline_reason: String,
+    pub reasons: Vec<String>,
     pub source: String,
     pub provenance: Vec<amlich_core::ReasoningEvidenceEnvelope>,
 }
@@ -1194,6 +1222,8 @@ impl AppState {
             UserExplanationLens::HoatDong => UserExplanationLens::Nguon,
             UserExplanationLens::Nguon => UserExplanationLens::ViSao,
         };
+        self.causality_focus = CausalityFocus::SummaryList;
+        self.graph_inspector_cursor = 0;
     }
 
     pub fn causality_drill_down(&mut self, node_id: String) {
@@ -1483,54 +1513,58 @@ impl AppState {
     ) -> Vec<RecommendationLensEntry> {
         let mut entries = Vec::new();
 
-        for edge in &inspection.visualization.edges {
-            if edge.semantic_kind == "targets_activity" {
-                let from_node = inspection
-                    .visualization
-                    .nodes
-                    .iter()
-                    .find(|n| n.node_id == edge.from_id);
-                let to_node = inspection
-                    .visualization
-                    .nodes
-                    .iter()
-                    .find(|n| n.node_id == edge.to_id);
+        let snapshot = amlich_core::calculate_day_snapshot(
+            inspection.date.day,
+            inspection.date.month,
+            inspection.date.year,
+        );
 
-                if let (Some(from), Some(to)) = (from_node, to_node) {
-                    let is_favor = from.provenance.iter().any(|p| {
-                        p.source_family == amlich_core::ReasoningEvidenceSourceFamily::AlmanacRule
-                    });
-
-                    let is_hard_stop = from.label.to_lowercase().contains("kỵ mạnh")
-                        || from.label.to_lowercase().contains("tam nương")
-                        || from.label.to_lowercase().contains("kiêng");
-
-                    let source = from
-                        .provenance
-                        .first()
-                        .map(|p| format!("{:?}", p.source_family))
-                        .unwrap_or_default();
-
-                    entries.push(RecommendationLensEntry {
-                        activity: to.label.clone(),
-                        reason: from.label.clone(),
-                        is_favor,
-                        is_hard_stop,
-                        source,
-                        provenance: from.provenance.clone(),
-                    });
+        for activity in snapshot.daily_recommendations.activities {
+            let verdict = match activity.bucket {
+                amlich_core::almanac::recommendation::types::RecommendationBucket::KyManh => {
+                    RecommendationLensVerdict::KyManh
                 }
-            }
+                amlich_core::almanac::recommendation::types::RecommendationBucket::Tranh => {
+                    RecommendationLensVerdict::Tranh
+                }
+                amlich_core::almanac::recommendation::types::RecommendationBucket::CoThe => {
+                    RecommendationLensVerdict::CoThe
+                }
+                amlich_core::almanac::recommendation::types::RecommendationBucket::Nen => {
+                    RecommendationLensVerdict::Nen
+                }
+            };
+
+            let reasons: Vec<String> = activity
+                .reasons
+                .iter()
+                .map(|reason| reason.summary_vi.clone())
+                .collect();
+            let headline_reason = reasons
+                .first()
+                .cloned()
+                .unwrap_or_else(|| activity.label.vi.clone());
+            let source = activity
+                .reasons
+                .first()
+                .map(|reason| format!("{:?}", reason.evidence.source))
+                .unwrap_or_default();
+
+            entries.push(RecommendationLensEntry {
+                activity: activity.label.vi,
+                verdict,
+                headline_reason,
+                reasons,
+                source,
+                provenance: Vec::new(),
+            });
         }
 
         entries.sort_by(|a, b| {
-            if a.is_hard_stop != b.is_hard_stop {
-                b.is_hard_stop.cmp(&a.is_hard_stop)
-            } else if a.is_favor != b.is_favor {
-                a.is_favor.cmp(&b.is_favor)
-            } else {
-                a.activity.cmp(&b.activity)
-            }
+            a.verdict
+                .sort_order()
+                .cmp(&b.verdict.sort_order())
+                .then_with(|| a.activity.cmp(&b.activity))
         });
 
         entries

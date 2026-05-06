@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 use ratatui::{
     buffer::Buffer,
@@ -11,12 +11,29 @@ use ratatui::{
 use chrono::Datelike;
 
 use crate::layout::LayoutMode;
-use crate::state::{AppState, GraphInspectorFocus, UserExplanationLens};
+use crate::state::{
+    AppState, GraphInspectorFocus, RecommendationLensVerdict, UserExplanationLens,
+};
 use crate::view_models::decision_stack::DecisionRole;
 
 pub struct GraphInspectorScreenWidget<'a> {
     app: &'a AppState,
     mode: LayoutMode,
+}
+
+#[derive(Debug, Clone)]
+struct DecisionHeaderSummary {
+    primary_conclusion: String,
+    bucket_label: String,
+    confidence_label: String,
+}
+
+#[derive(Debug, Clone)]
+struct SourceLensGroup {
+    family: String,
+    source_id: String,
+    method: String,
+    factors: Vec<String>,
 }
 
 impl<'a> GraphInspectorScreenWidget<'a> {
@@ -1753,13 +1770,15 @@ fn render_recommendation_lens_entries(
             } else {
                 Style::default().fg(Color::White)
             };
-            let direction_color = if entry.is_favor {
-                Color::Green
-            } else {
-                Color::Red
+            let direction_color = match entry.verdict {
+                RecommendationLensVerdict::Nen => Color::Green,
+                RecommendationLensVerdict::CoThe => Color::Yellow,
+                RecommendationLensVerdict::Tranh | RecommendationLensVerdict::KyManh => {
+                    Color::Red
+                }
             };
-            let hard_stop_marker = if entry.is_hard_stop {
-                " [KỶ MẠNH]"
+            let hard_stop_marker = if entry.verdict == RecommendationLensVerdict::KyManh {
+                " [KỴ MẠNH]"
             } else {
                 ""
             };
@@ -1767,7 +1786,7 @@ fn render_recommendation_lens_entries(
             lines.push(Line::from(vec![
                 Span::styled(format!("{} ", marker), style),
                 Span::styled(
-                    format!("{}", if entry.is_favor { "NÊN" } else { "TRÁNH" }),
+                    entry.verdict.label(),
                     Style::default().fg(direction_color),
                 ),
                 Span::raw(" "),
@@ -1785,7 +1804,7 @@ fn render_recommendation_lens_entries(
                 lines.push(Line::from(vec![
                     Span::raw("     "),
                     Span::styled(
-                        format!("{} ", truncate_label(&entry.reason, 40)),
+                        format!("{} ", truncate_label(&entry.headline_reason, 40)),
                         Style::default().fg(Color::DarkGray),
                     ),
                 ]));
@@ -2262,7 +2281,13 @@ mod tests {
         app.dev_inspector_mode = false;
         app.explanation_lens = UserExplanationLens::HoatDong;
         let text = render_text(&app);
-        assert!(text.contains("Không có hoạt động cho ngày này"));
+        assert!(!text.contains("Không có hoạt động cho ngày này"));
+        assert!(
+            text.contains("Kỵ mạnh")
+                || text.contains("Tránh")
+                || text.contains("Có thể")
+                || text.contains("Nên")
+        );
     }
 
     #[test]
@@ -2300,6 +2325,8 @@ mod tests {
         app.explanation_lens = UserExplanationLens::ViSao;
         let text = render_text(&app);
         assert!(text.contains("Vì Sao Kết Luận"));
+        assert!(text.contains("Kết luận:"));
+        assert!(text.contains("Tin cậy:"));
     }
 
     #[test]
@@ -2351,9 +2378,14 @@ impl GraphInspectorScreenWidget<'_> {
         block.render(area, buf);
 
         let entries = crate::view_models::decision_stack::extract_decision_stack(inspection);
+        let decision = build_decision_header_summary(
+            inspection.date.day,
+            inspection.date.month,
+            inspection.date.year,
+        );
 
         let rows = Layout::vertical([
-            Constraint::Length(3),
+            Constraint::Length(5),
             Constraint::Min(6),
             Constraint::Length(2),
         ])
@@ -2395,6 +2427,35 @@ impl GraphInspectorScreenWidget<'_> {
                 Span::raw("  "),
                 Span::styled(format!("{} rủi ro", risk), Style::default().fg(Color::Red)),
             ]),
+            Line::from(vec![
+                Span::styled("  Kết luận: ", Style::default().fg(Color::Cyan)),
+                Span::styled(
+                    decision
+                        .as_ref()
+                        .map(|item| truncate_label(&item.primary_conclusion, 52))
+                        .unwrap_or_else(|| "Chưa có kết luận".to_string()),
+                    Style::default().fg(Color::White),
+                ),
+            ]),
+            Line::from(vec![
+                Span::styled("  Phân loại: ", Style::default().fg(Color::Cyan)),
+                Span::styled(
+                    decision
+                        .as_ref()
+                        .map(|item| item.bucket_label.clone())
+                        .unwrap_or_else(|| "Chưa rõ".to_string()),
+                    Style::default().fg(Color::Yellow),
+                ),
+                Span::raw("   "),
+                Span::styled("Tin cậy: ", Style::default().fg(Color::Cyan)),
+                Span::styled(
+                    decision
+                        .as_ref()
+                        .map(|item| item.confidence_label.clone())
+                        .unwrap_or_else(|| "Chưa rõ".to_string()),
+                    Style::default().fg(Color::White),
+                ),
+            ]),
             Line::from(vec![Span::styled(
                 format!(
                     "  Góc nhìn: {}",
@@ -2419,8 +2480,20 @@ impl GraphInspectorScreenWidget<'_> {
         let body_inner = body_block.inner(rows[1]);
         body_block.render(rows[1], buf);
 
+        let body_panes = if body_inner.width < 84 {
+            Layout::vertical([Constraint::Percentage(48), Constraint::Percentage(52)])
+                .split(body_inner)
+        } else {
+            Layout::horizontal([Constraint::Percentage(44), Constraint::Percentage(56)])
+                .split(body_inner)
+        };
+
         let mut lines = Vec::new();
         let mut current_role = None;
+        let selected_idx = self
+            .app
+            .graph_inspector_cursor
+            .min(entries.len().saturating_sub(1));
 
         for (idx, entry) in entries.iter().enumerate() {
             if current_role != Some(entry.role) {
@@ -2466,7 +2539,10 @@ impl GraphInspectorScreenWidget<'_> {
             lines.push(Line::from(vec![
                 Span::styled(if selected { ">" } else { " " }, style),
                 Span::raw(" "),
-                Span::styled(truncate_label(&entry.label, body_inner.width as usize - 6), style),
+                Span::styled(
+                    truncate_label(&entry.label, body_panes[0].width.saturating_sub(8) as usize),
+                    style,
+                ),
                 impact_span,
             ]));
         }
@@ -2480,7 +2556,9 @@ impl GraphInspectorScreenWidget<'_> {
 
         Paragraph::new(lines)
             .wrap(Wrap { trim: true })
-            .render(body_inner, buf);
+            .render(body_panes[0], buf);
+
+        render_vi_sao_detail(entries.get(selected_idx), body_panes[1], buf);
 
         render_causality_footer(
             "Tab: đổi góc nhìn  d: chế độ debug  ←/→: đổi ngày",
@@ -2511,8 +2589,23 @@ impl GraphInspectorScreenWidget<'_> {
         ])
         .split(inner);
 
-        let nen = entries.iter().filter(|e| e.is_favor).count();
-        let khong_nen = entries.iter().filter(|e| !e.is_favor).count();
+        let nen = entries
+            .iter()
+            .filter(|e| e.verdict == RecommendationLensVerdict::Nen)
+            .count();
+        let tranh = entries
+            .iter()
+            .filter(|e| {
+                matches!(
+                    e.verdict,
+                    RecommendationLensVerdict::KyManh | RecommendationLensVerdict::Tranh
+                )
+            })
+            .count();
+        let co_the = entries
+            .iter()
+            .filter(|e| e.verdict == RecommendationLensVerdict::CoThe)
+            .count();
 
         let header_lines = vec![
             Line::from(vec![
@@ -2534,7 +2627,12 @@ impl GraphInspectorScreenWidget<'_> {
                 Span::raw("   "),
                 Span::styled(format!("{} nên", nen), Style::default().fg(Color::Green)),
                 Span::raw("  "),
-                Span::styled(format!("{} tránh", khong_nen), Style::default().fg(Color::Red)),
+                Span::styled(format!("{} tránh", tranh), Style::default().fg(Color::Red)),
+                Span::raw("  "),
+                Span::styled(
+                    format!("{} cân nhắc", co_the),
+                    Style::default().fg(Color::Yellow),
+                ),
             ]),
             Line::from(vec![Span::styled(
                 format!(
@@ -2561,7 +2659,7 @@ impl GraphInspectorScreenWidget<'_> {
             let body_inner = body_block.inner(rows[1]);
             body_block.render(rows[1], buf);
             Paragraph::new(Line::from(Span::styled(
-                "  Không có hoạt động cho ngày này",
+                "  Không có hoạt động cho ngày này.",
                 Style::default().fg(Color::DarkGray),
             )))
             .wrap(Wrap { trim: true })
@@ -2600,26 +2698,7 @@ impl GraphInspectorScreenWidget<'_> {
             .border_style(Style::default().fg(Color::Cyan));
         let inner = block.inner(area);
         block.render(area, buf);
-
-        let mut source_groups: HashMap<String, Vec<&amlich_core::semantic_graph::VisualizationNode>> =
-            HashMap::new();
-
-        for node in &inspection.visualization.nodes {
-            if node.provenance.is_empty() {
-                source_groups
-                    .entry("(không rõ)".to_string())
-                    .or_default()
-                    .push(node);
-            } else {
-                for prov in &node.provenance {
-                    let family = provenance_source_family_label(prov).to_string();
-                    source_groups
-                        .entry(family)
-                        .or_default()
-                        .push(node);
-                }
-            }
-        }
+        let source_groups = collect_source_groups(inspection);
 
         let rows = Layout::vertical([
             Constraint::Length(3),
@@ -2674,65 +2753,21 @@ impl GraphInspectorScreenWidget<'_> {
             .border_style(Style::default().fg(Color::DarkGray));
         let body_inner = body_block.inner(rows[1]);
         body_block.render(rows[1], buf);
-
-        let mut lines = Vec::new();
-
-        if source_groups.is_empty() {
-            lines.push(Line::from(Span::styled(
-                "  Không có nguồn dữ liệu",
-                Style::default().fg(Color::DarkGray),
-            )));
+        let body_panes = if body_inner.width < 92 {
+            Layout::vertical([Constraint::Percentage(44), Constraint::Percentage(56)])
+                .split(body_inner)
         } else {
-            let mut sorted_groups: Vec<_> = source_groups.into_iter().collect();
-            sorted_groups.sort_by(|a, b| b.1.len().cmp(&a.1.len()));
+            Layout::horizontal([Constraint::Percentage(42), Constraint::Percentage(58)])
+                .split(body_inner)
+        };
 
-            for (idx, (family, nodes)) in sorted_groups.iter().enumerate() {
-                let selected = idx == self.app.graph_inspector_cursor.min(sorted_groups.len().saturating_sub(1));
-                let style = if selected {
-                    Style::default()
-                        .fg(Color::Yellow)
-                        .add_modifier(Modifier::BOLD)
-                } else {
-                    Style::default().fg(Color::White)
-                };
-                let count_style = if selected {
-                    Style::default()
-                        .fg(Color::Cyan)
-                        .add_modifier(Modifier::BOLD)
-                } else {
-                    Style::default().fg(Color::Yellow)
-                };
-                let marker = if selected { ">" } else { " " };
-
-                lines.push(Line::from(vec![
-                    Span::styled(format!("{} ", marker), style),
-                    Span::styled(format!("{:<20}", truncate_label(family, 20)), style),
-                    Span::styled(format!("{:>4} yếu tố", nodes.len()), count_style),
-                ]));
-
-                if selected {
-                    for node in nodes.iter().take(5) {
-                        lines.push(Line::from(vec![
-                            Span::raw("     "),
-                            Span::styled(
-                                truncate_label(&node.label, body_inner.width.saturating_sub(10) as usize),
-                                Style::default().fg(Color::DarkGray),
-                            ),
-                        ]));
-                    }
-                    if nodes.len() > 5 {
-                        lines.push(Line::from(vec![Span::styled(
-                            format!("     ... +{} more", nodes.len() - 5),
-                            Style::default().fg(Color::DarkGray),
-                        )]));
-                    }
-                }
-            }
-        }
-
-        Paragraph::new(lines)
-            .wrap(Wrap { trim: true })
-            .render(body_inner, buf);
+        render_nguon_master_list(&source_groups, self.app.graph_inspector_cursor, body_panes[0], buf);
+        let selected = source_groups.get(
+            self.app
+                .graph_inspector_cursor
+                .min(source_groups.len().saturating_sub(1)),
+        );
+        render_nguon_detail(selected, body_panes[1], buf);
 
         render_causality_footer(
             "Tab: đổi góc nhìn  d: debug mode  ←/→: đổi ngày",
@@ -3209,16 +3244,20 @@ fn render_hoat_dong_master_list(
     block.render(area, buf);
 
     let mut lines = Vec::new();
-    let mut current_bucket: Option<bool> = None;
+    let mut current_bucket: Option<RecommendationLensVerdict> = None;
 
     for (idx, entry) in entries.iter().enumerate() {
-        if current_bucket != Some(entry.is_favor) {
-            current_bucket = Some(entry.is_favor);
+        if current_bucket != Some(entry.verdict) {
+            current_bucket = Some(entry.verdict);
             if !lines.is_empty() {
                 lines.push(Line::from(""));
             }
-            let bucket_label = if entry.is_favor { "NÊN" } else { "KHÔNG NÊN" };
-            let bucket_color = if entry.is_favor { Color::Green } else { Color::Red };
+            let (bucket_label, bucket_color) = match entry.verdict {
+                RecommendationLensVerdict::KyManh => ("KỴ MẠNH", Color::Red),
+                RecommendationLensVerdict::Tranh => ("TRÁNH", Color::Red),
+                RecommendationLensVerdict::CoThe => ("CÂN NHẮC", Color::Yellow),
+                RecommendationLensVerdict::Nen => ("NÊN", Color::Green),
+            };
             lines.push(Line::from(vec![Span::styled(
                 format!("  {}", bucket_label),
                 Style::default()
@@ -3236,7 +3275,11 @@ fn render_hoat_dong_master_list(
         } else {
             Style::default().fg(Color::White)
         };
-        let hard_stop_marker = if entry.is_hard_stop { " !" } else { "" };
+        let hard_stop_marker = if entry.verdict == RecommendationLensVerdict::KyManh {
+            " !"
+        } else {
+            ""
+        };
 
         lines.push(Line::from(vec![
             Span::styled(format!("{} ", marker), style),
@@ -3284,8 +3327,12 @@ fn render_hoat_dong_detail(
         return;
     };
 
-    let bucket_label = if entry.is_favor { "Nên" } else { "Tránh" };
-    let bucket_color = if entry.is_favor { Color::Green } else { Color::Red };
+    let (bucket_label, bucket_color) = match entry.verdict {
+        RecommendationLensVerdict::KyManh => ("Kỵ mạnh", Color::Red),
+        RecommendationLensVerdict::Tranh => ("Tránh", Color::Red),
+        RecommendationLensVerdict::CoThe => ("Có thể", Color::Yellow),
+        RecommendationLensVerdict::Nen => ("Nên", Color::Green),
+    };
 
     let mut lines = vec![
         Line::from(vec![
@@ -3300,17 +3347,38 @@ fn render_hoat_dong_detail(
         Line::from(vec![
             Span::styled("  Phân loại: ", Style::default().fg(Color::Cyan)),
             Span::styled(bucket_label, Style::default().fg(bucket_color)),
-            Span::raw(if entry.is_hard_stop { "  [KỶ MẠNH]" } else { "" }),
+            Span::raw(if entry.verdict == RecommendationLensVerdict::KyManh {
+                "  [KỴ MẠNH]"
+            } else {
+                ""
+            }),
         ]),
         Line::from(""),
         Line::from(vec![
             Span::styled("  Lý do: ", Style::default().fg(Color::Cyan)),
             Span::styled(
-                truncate_label(&entry.reason, inner.width.saturating_sub(12) as usize),
+                truncate_label(&entry.headline_reason, inner.width.saturating_sub(12) as usize),
                 Style::default().fg(Color::White),
             ),
         ]),
     ];
+
+    if entry.reasons.len() > 1 {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![Span::styled(
+            "  Tín hiệu liên quan:",
+            Style::default().fg(Color::Cyan),
+        )]));
+        for reason in entry.reasons.iter().take(4) {
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(
+                    truncate_label(reason, inner.width.saturating_sub(8) as usize),
+                    Style::default().fg(Color::White),
+                ),
+            ]));
+        }
+    }
 
     if !entry.source.is_empty() {
         lines.push(Line::from(vec![
@@ -3357,4 +3425,281 @@ fn causality_severity_badge(severity: Option<&str>) -> (&'static str, Color, &'s
         Some("critical") | Some("caution") => ("XẤU", Color::Red, "!"),
         _ => ("BÌNH", Color::DarkGray, "~"),
     }
+}
+
+fn build_decision_header_summary(day: i32, month: i32, year: i32) -> Option<DecisionHeaderSummary> {
+    let snapshot = amlich_core::calculate_day_snapshot(day, month, year);
+    let bundle = amlich_core::build_initiation_opening_reasoning_bundle(&snapshot, None).ok()?;
+    Some(DecisionHeaderSummary {
+        primary_conclusion: bundle.decision_export.primary_conclusion,
+        bucket_label: match bundle.decision_export.recommendation_bucket {
+            amlich_core::RecommendationBucket::Avoid => "Tránh".to_string(),
+            amlich_core::RecommendationBucket::Cautious => "Thận trọng".to_string(),
+            amlich_core::RecommendationBucket::Mixed => "Trái chiều".to_string(),
+            amlich_core::RecommendationBucket::Favorable => "Thuận".to_string(),
+        },
+        confidence_label: match bundle.decision_export.confidence {
+            amlich_core::DecisionConfidence::Low => "Thấp".to_string(),
+            amlich_core::DecisionConfidence::Medium => "Trung bình".to_string(),
+            amlich_core::DecisionConfidence::High => "Cao".to_string(),
+        },
+    })
+}
+
+fn render_vi_sao_detail(
+    entry: Option<&crate::view_models::decision_stack::DecisionStackEntry>,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Chi Tiết ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(entry) = entry else {
+        Paragraph::new(Line::from(Span::styled(
+            "  Chọn một yếu tố để xem chi tiết.",
+            Style::default().fg(Color::DarkGray),
+        )))
+        .render(inner, buf);
+        return;
+    };
+
+    let role_label = match entry.role {
+        DecisionRole::Override => "Lấn át",
+        DecisionRole::Resistance => "Cản trở",
+        DecisionRole::Conflict => "Xung đột",
+        DecisionRole::Support => "Hỗ trợ",
+        DecisionRole::Refinement => "Bổ sung",
+    };
+
+    let mut lines = vec![
+        Line::from(vec![
+            Span::styled("  Yếu tố: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                truncate_label(&entry.label, inner.width.saturating_sub(12) as usize),
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD),
+            ),
+        ]),
+        Line::from(vec![
+            Span::styled("  Vai trò: ", Style::default().fg(Color::Cyan)),
+            Span::styled(role_label, Style::default().fg(Color::White)),
+        ]),
+    ];
+
+    if let Some(impact) = &entry.impact {
+        lines.push(Line::from(vec![
+            Span::styled("  Ảnh hưởng: ", Style::default().fg(Color::Cyan)),
+            Span::styled(impact, Style::default().fg(Color::White)),
+        ]));
+    }
+
+    if !entry.outgoing_targets.is_empty() {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![Span::styled(
+            "  Dẫn tới:",
+            Style::default().fg(Color::Cyan),
+        )]));
+        for target in entry.outgoing_targets.iter().take(4) {
+            lines.push(Line::from(vec![
+                Span::raw("    -> "),
+                Span::styled(
+                    truncate_label(&target.target_label, inner.width.saturating_sub(14) as usize),
+                    Style::default().fg(Color::White),
+                ),
+                Span::styled(
+                    format!(" <{}>", truncate_label(&target.edge_label, 16)),
+                    Style::default().fg(Color::DarkGray),
+                ),
+            ]));
+        }
+    }
+
+    if let Some(first) = entry.provenance.first() {
+        lines.push(Line::from(""));
+        lines.push(Line::from(vec![
+            Span::styled("  Nguồn: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("[{}] {}", provenance_source_family_label(first), first.source_id),
+                Style::default().fg(Color::DarkGray),
+            ),
+        ]));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn collect_source_groups(
+    inspection: &amlich_core::DebugSemanticGraphInspection,
+) -> Vec<SourceLensGroup> {
+    let mut groups: BTreeMap<(String, String, String), BTreeMap<String, String>> = BTreeMap::new();
+
+    for node in &inspection.visualization.nodes {
+        if node.provenance.is_empty() {
+            groups
+                .entry((
+                    "(không rõ)".to_string(),
+                    "(không rõ)".to_string(),
+                    "(không rõ)".to_string(),
+                ))
+                .or_default()
+                .insert(node.node_id.clone(), node.label.clone());
+            continue;
+        }
+
+        for prov in &node.provenance {
+            groups
+                .entry((
+                    provenance_source_family_label(prov).to_string(),
+                    prov.source_id.clone(),
+                    prov.method.clone(),
+                ))
+                .or_default()
+                .insert(node.node_id.clone(), node.label.clone());
+        }
+    }
+
+    let mut groups: Vec<_> = groups
+        .into_iter()
+        .map(|((family, source_id, method), factors)| SourceLensGroup {
+            family,
+            source_id,
+            method,
+            factors: factors.into_values().collect(),
+        })
+        .collect();
+
+    groups.sort_by(|a, b| {
+        b.factors
+            .len()
+            .cmp(&a.factors.len())
+            .then_with(|| a.family.cmp(&b.family))
+            .then_with(|| a.source_id.cmp(&b.source_id))
+            .then_with(|| a.method.cmp(&b.method))
+    });
+    groups
+}
+
+fn render_nguon_master_list(
+    groups: &[SourceLensGroup],
+    cursor: usize,
+    area: Rect,
+    buf: &mut Buffer,
+) {
+    let block = Block::default()
+        .title(" Các Nguồn ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let mut lines = Vec::new();
+
+    if groups.is_empty() {
+        lines.push(Line::from(Span::styled(
+            "  Không có nguồn dữ liệu.",
+            Style::default().fg(Color::DarkGray),
+        )));
+    } else {
+        for (idx, group) in groups.iter().enumerate() {
+            let selected = idx == cursor.min(groups.len().saturating_sub(1));
+            let style = if selected {
+                Style::default()
+                    .fg(Color::Yellow)
+                    .add_modifier(Modifier::BOLD)
+            } else {
+                Style::default().fg(Color::White)
+            };
+
+            lines.push(Line::from(vec![
+                Span::styled(if selected { "> " } else { "  " }, style),
+                Span::styled(
+                    truncate_label(&group.family, inner.width.saturating_sub(18) as usize),
+                    style,
+                ),
+                Span::styled(
+                    format!(" {:>3} yếu tố", group.factors.len()),
+                    Style::default().fg(Color::Cyan),
+                ),
+            ]));
+            lines.push(Line::from(vec![
+                Span::raw("    "),
+                Span::styled(
+                    truncate_label(&group.source_id, inner.width.saturating_sub(8) as usize),
+                    Style::default().fg(Color::DarkGray),
+                ),
+            ]));
+        }
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
+}
+
+fn render_nguon_detail(entry: Option<&SourceLensGroup>, area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Chi Tiết Nguồn ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    let Some(entry) = entry else {
+        Paragraph::new(Line::from(Span::styled(
+            "  Chọn một nguồn để xem chi tiết.",
+            Style::default().fg(Color::DarkGray),
+        )))
+        .render(inner, buf);
+        return;
+    };
+
+    let mut lines = vec![
+        Line::from(vec![
+            Span::styled("  Family: ", Style::default().fg(Color::Cyan)),
+            Span::styled(&entry.family, Style::default().fg(Color::White)),
+        ]),
+        Line::from(vec![
+            Span::styled("  Source ID: ", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                truncate_label(&entry.source_id, inner.width.saturating_sub(14) as usize),
+                Style::default().fg(Color::White),
+            ),
+        ]),
+        Line::from(vec![
+            Span::styled("  Method: ", Style::default().fg(Color::Cyan)),
+            Span::styled(&entry.method, Style::default().fg(Color::White)),
+        ]),
+        Line::from(""),
+        Line::from(vec![Span::styled(
+            "  Yếu tố liên quan:",
+            Style::default().fg(Color::Cyan),
+        )]),
+    ];
+
+    for factor in entry.factors.iter().take(8) {
+        lines.push(Line::from(vec![
+            Span::raw("    "),
+            Span::styled(
+                truncate_label(factor, inner.width.saturating_sub(8) as usize),
+                Style::default().fg(Color::White),
+            ),
+        ]));
+    }
+    if entry.factors.len() > 8 {
+        lines.push(Line::from(vec![Span::styled(
+            format!("    ... +{} yếu tố nữa", entry.factors.len() - 8),
+            Style::default().fg(Color::DarkGray),
+        )]));
+    }
+
+    Paragraph::new(lines)
+        .wrap(Wrap { trim: true })
+        .render(inner, buf);
 }
