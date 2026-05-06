@@ -358,7 +358,12 @@ fn matrix_summary_lines(matrix: &amlich_api::PersonalDayMatrixReportDto) -> Vec<
             .entries
             .iter()
             .max_by_key(|entry| entry.net_score)
-            .map(|entry| format!("Hướng nổi bật: {} (điểm {})", entry.direction, entry.net_score))
+            .map(|entry| {
+                format!(
+                    "Hướng nổi bật: {} (điểm {})",
+                    entry.direction, entry.net_score
+                )
+            })
     });
     let best_hour = matrix.personal_hours.as_ref().and_then(|hours| {
         hours
@@ -372,7 +377,12 @@ fn matrix_summary_lines(matrix: &amlich_api::PersonalDayMatrixReportDto) -> Vec<
             .entries
             .iter()
             .max_by(|a, b| a.boosted_score.total_cmp(&b.boosted_score))
-            .map(|entry| format!("Miền nổi bật: {} ({:.0})", entry.domain, entry.boosted_score))
+            .map(|entry| {
+                format!(
+                    "Miền nổi bật: {} ({:.0})",
+                    entry.domain, entry.boosted_score
+                )
+            })
     });
 
     let mut lines: Vec<Line<'static>> = vec![
@@ -528,7 +538,8 @@ mod tests {
 
     #[test]
     fn matrix_summary_surfaces_day_person_and_element_resonance() {
-        let matrix = get_personal_day_matrix_report(&sample_birth(), &sample_date()).expect("matrix");
+        let matrix =
+            get_personal_day_matrix_report(&sample_birth(), &sample_date()).expect("matrix");
         let lines = matrix_summary_lines(&matrix);
         let rendered = lines
             .iter()
@@ -542,7 +553,8 @@ mod tests {
 
     #[test]
     fn matrix_summary_keeps_best_direction_hour_and_domain_when_available() {
-        let matrix = get_personal_day_matrix_report(&sample_birth(), &sample_date()).expect("matrix");
+        let matrix =
+            get_personal_day_matrix_report(&sample_birth(), &sample_date()).expect("matrix");
         let lines = matrix_summary_lines(&matrix);
         let rendered = lines
             .iter()

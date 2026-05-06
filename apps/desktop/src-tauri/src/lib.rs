@@ -351,13 +351,22 @@ mod tests {
 
     #[test]
     fn parse_gender_accepts_supported_aliases_and_rejects_unknown_values() {
-        assert_eq!(parse_gender(Some("male".to_string())), Ok(Some(amlich_core::Gender::Male)));
-        assert_eq!(parse_gender(Some("nam".to_string())), Ok(Some(amlich_core::Gender::Male)));
+        assert_eq!(
+            parse_gender(Some("male".to_string())),
+            Ok(Some(amlich_core::Gender::Male))
+        );
+        assert_eq!(
+            parse_gender(Some("nam".to_string())),
+            Ok(Some(amlich_core::Gender::Male))
+        );
         assert_eq!(
             parse_gender(Some("female".to_string())),
             Ok(Some(amlich_core::Gender::Female))
         );
-        assert_eq!(parse_gender(Some("nữ".to_string())), Ok(Some(amlich_core::Gender::Female)));
+        assert_eq!(
+            parse_gender(Some("nữ".to_string())),
+            Ok(Some(amlich_core::Gender::Female))
+        );
         assert!(parse_gender(Some("other".to_string())).is_err());
     }
 
