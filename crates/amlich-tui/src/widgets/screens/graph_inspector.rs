@@ -2296,7 +2296,7 @@ mod tests {
         app.dev_inspector_mode = false;
         app.explanation_lens = UserExplanationLens::Nguon;
         let text = render_text(&app);
-        assert!(text.contains("Nguồn"));
+        assert!(text.contains("Xuất Xứ"));
     }
 
     #[test]
@@ -2305,7 +2305,7 @@ mod tests {
         app.dev_inspector_mode = false;
         app.explanation_lens = UserExplanationLens::Nguon;
         let text = render_text(&app);
-        assert!(text.contains("nguồn dữ liệu") || text.contains("Không có nguồn dữ liệu"));
+        assert!(text.contains("nhóm xuất xứ") || text.contains("Không có dấu vết xuất xứ"));
     }
 
     #[test]
@@ -2693,7 +2693,7 @@ impl GraphInspectorScreenWidget<'_> {
         buf: &mut Buffer,
     ) {
         let block = Block::default()
-            .title(" Nguồn ")
+            .title(" Xuất Xứ ")
             .borders(Borders::ALL)
             .border_style(Style::default().fg(Color::Cyan));
         let inner = block.inner(area);
@@ -2721,7 +2721,7 @@ impl GraphInspectorScreenWidget<'_> {
                 ),
                 Span::raw("   "),
                 Span::styled(
-                    format!("{} nguồn dữ liệu", source_groups.len()),
+                    format!("{} nhóm xuất xứ", source_groups.len()),
                     Style::default().fg(Color::White),
                 ),
                 Span::raw("   "),
@@ -3593,7 +3593,7 @@ fn render_nguon_master_list(
     buf: &mut Buffer,
 ) {
     let block = Block::default()
-        .title(" Các Nguồn ")
+        .title(" Các Nhóm Xuất Xứ ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
@@ -3603,7 +3603,7 @@ fn render_nguon_master_list(
 
     if groups.is_empty() {
         lines.push(Line::from(Span::styled(
-            "  Không có nguồn dữ liệu.",
+            "  Không có dấu vết xuất xứ.",
             Style::default().fg(Color::DarkGray),
         )));
     } else {
@@ -3645,7 +3645,7 @@ fn render_nguon_master_list(
 
 fn render_nguon_detail(entry: Option<&SourceLensGroup>, area: Rect, buf: &mut Buffer) {
     let block = Block::default()
-        .title(" Chi Tiết Nguồn ")
+        .title(" Chi Tiết Xuất Xứ ")
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::DarkGray));
     let inner = block.inner(area);
@@ -3653,7 +3653,7 @@ fn render_nguon_detail(entry: Option<&SourceLensGroup>, area: Rect, buf: &mut Bu
 
     let Some(entry) = entry else {
         Paragraph::new(Line::from(Span::styled(
-            "  Chọn một nguồn để xem chi tiết.",
+            "  Chọn một nhóm xuất xứ để xem chi tiết.",
             Style::default().fg(Color::DarkGray),
         )))
         .render(inner, buf);
@@ -3662,23 +3662,23 @@ fn render_nguon_detail(entry: Option<&SourceLensGroup>, area: Rect, buf: &mut Bu
 
     let mut lines = vec![
         Line::from(vec![
-            Span::styled("  Family: ", Style::default().fg(Color::Cyan)),
+            Span::styled("  Loại nguồn: ", Style::default().fg(Color::Cyan)),
             Span::styled(&entry.family, Style::default().fg(Color::White)),
         ]),
         Line::from(vec![
-            Span::styled("  Source ID: ", Style::default().fg(Color::Cyan)),
+            Span::styled("  Mã nguồn: ", Style::default().fg(Color::Cyan)),
             Span::styled(
                 truncate_label(&entry.source_id, inner.width.saturating_sub(14) as usize),
                 Style::default().fg(Color::White),
             ),
         ]),
         Line::from(vec![
-            Span::styled("  Method: ", Style::default().fg(Color::Cyan)),
+            Span::styled("  Cách suy ra: ", Style::default().fg(Color::Cyan)),
             Span::styled(&entry.method, Style::default().fg(Color::White)),
         ]),
         Line::from(""),
         Line::from(vec![Span::styled(
-            "  Yếu tố liên quan:",
+            "  Các yếu tố được suy ra:",
             Style::default().fg(Color::Cyan),
         )]),
     ];

@@ -44,7 +44,7 @@ impl UserExplanationLens {
             Self::ViSao => "Vì Sao",
             Self::YeuTo => "Yếu Tố",
             Self::HoatDong => "Hoạt Động",
-            Self::Nguon => "Nguồn",
+            Self::Nguon => "Xuất Xứ",
         }
     }
 
