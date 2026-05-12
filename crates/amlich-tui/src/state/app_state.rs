@@ -157,7 +157,6 @@ pub enum ActiveView {
     Today,
     DayDetail,
     Hours,
-    Calendar,
     Personal,
     GraphInspector,
 }
@@ -168,7 +167,6 @@ impl ActiveView {
             Self::Today => "Hôm Nay",
             Self::DayDetail => "Chi Tiết Ngày",
             Self::Hours => "Giờ Tốt",
-            Self::Calendar => "Lịch",
             Self::Personal => "Cá Nhân",
             Self::GraphInspector => "Đồ Thị Ngữ Nghĩa",
         }
@@ -179,12 +177,12 @@ impl ActiveView {
             Self::Today => "Today",
             Self::DayDetail => "Ngày",
             Self::Hours => "Giờ",
-            Self::Calendar => "Lịch",
-            Self::Personal => "Nhân",
-            Self::GraphInspector => "Graph",
+            Self::Personal => "Cá Nhân",
+            Self::GraphInspector => "Debug",
         }
     }
 }
+
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AppMode {
@@ -193,6 +191,7 @@ pub enum AppMode {
     ContextModal,
     HelpModal,
     PersonalProfileModal,
+    CalendarModal,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -845,14 +844,16 @@ impl AppState {
     }
 
     pub fn available_views(&self) -> Vec<ActiveView> {
-        vec![
+        let mut views = vec![
             ActiveView::Today,
             ActiveView::DayDetail,
             ActiveView::Hours,
-            ActiveView::Calendar,
             ActiveView::Personal,
-            ActiveView::GraphInspector,
-        ]
+        ];
+        if self.dev_inspector_mode {
+            views.push(ActiveView::GraphInspector);
+        }
+        views
     }
 
     pub fn next_view(&mut self) {
@@ -918,7 +919,7 @@ impl AppState {
     }
 
     pub fn is_calendar_view(&self) -> bool {
-        self.active_view == ActiveView::Calendar
+        self.app_mode == AppMode::CalendarModal
     }
 
     pub fn toggle_calendar_view(&mut self) {
@@ -930,17 +931,13 @@ impl AppState {
     }
 
     pub fn open_calendar_view(&mut self) {
-        self.go_to_view(ActiveView::Calendar);
+        self.app_mode = AppMode::CalendarModal;
         self.calendar_cursor = self.date;
     }
 
     pub fn close_calendar_view(&mut self) {
-        if self.active_view == ActiveView::Calendar {
-            if let Some(prev) = self.view_history.pop() {
-                self.active_view = prev;
-            } else {
-                self.active_view = ActiveView::Today;
-            }
+        if self.app_mode == AppMode::CalendarModal {
+            self.app_mode = AppMode::Normal;
         }
     }
 

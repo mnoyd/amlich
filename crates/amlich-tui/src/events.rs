@@ -66,14 +66,10 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             return false;
         }
         KeyCode::Char('4') => {
-            app.go_to_view(crate::state::ActiveView::Calendar);
-            return false;
-        }
-        KeyCode::Char('5') => {
             app.go_to_view(crate::state::ActiveView::Personal);
             return false;
         }
-        KeyCode::Char('6') => {
+        KeyCode::Char('5') => {
             app.go_to_view(crate::state::ActiveView::GraphInspector);
             return false;
         }
@@ -393,7 +389,6 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         }
         KeyCode::Char('e') => app.toggle_evidence(),
         KeyCode::Char('v') => app.toggle_verbosity(),
-        KeyCode::Char('m') => app.open_calendar_view(),
         KeyCode::Char('w') => app.toggle_week_strip(),
         KeyCode::Char('o') => app.toggle_context_modal(),
         KeyCode::Char('p') if app.active_view == crate::state::ActiveView::Personal => {
@@ -402,7 +397,7 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::Char('?') => app.toggle_help_modal(),
         KeyCode::Char('g') => app.toggle_search(),
         KeyCode::Char('u') => app.undo_navigation(),
-        KeyCode::Char(' ') | KeyCode::Char('c') => app.toggle_calendar_view(),
+        KeyCode::Char('m') | KeyCode::Char('c') => app.toggle_calendar_view(),
         KeyCode::Char('/') | KeyCode::Char('s') => app.toggle_search(),
         _ => {}
     }
@@ -518,7 +513,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::BackTab, KeyModifiers::SHIFT);
 
-        assert_eq!(app.active_view, ActiveView::GraphInspector);
+        assert_eq!(app.active_view, ActiveView::Personal);
     }
 
     #[test]
@@ -529,7 +524,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_view, ActiveView::Today);
+        assert_eq!(app.active_view, ActiveView::DayDetail);
         assert_eq!(
             app.explanation_lens,
             crate::state::UserExplanationLens::ViSao

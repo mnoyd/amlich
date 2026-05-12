@@ -10,7 +10,6 @@ use crate::layout::LayoutMode;
 use crate::state::{AppState, PageSection};
 
 use super::{
-    calendar::CalendarViewWidget,
     screens::{
         day_detail::DayDetailScreenWidget, graph_inspector::GraphInspectorScreenWidget,
         hours::HoursScreenWidget, today::TodayScreenWidget,
@@ -39,7 +38,6 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
         (crate::state::ActiveView::Hours, _, VerbosityMode::Compact) => 24, // 6+8+10
         (crate::state::ActiveView::Hours, _, VerbosityMode::Verbose) => 38, // 6+8+6+8+10
 
-        (crate::state::ActiveView::Calendar, _, _) => 40,
         (crate::state::ActiveView::Personal, _, _) => personal_natural_height(app, mode),
         (crate::state::ActiveView::GraphInspector, _, _) => 28,
     }
@@ -70,7 +68,6 @@ pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: 
             DayDetailScreenWidget::new(app, mode).render(area, buf)
         }
         crate::state::ActiveView::Hours => HoursScreenWidget::new(app, mode).render(area, buf),
-        crate::state::ActiveView::Calendar => CalendarViewWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Personal => {
             crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode)
                 .render(area, buf)
@@ -138,11 +135,6 @@ impl Widget for PageWidget<'_> {
             return;
         }
 
-        if self.app.is_calendar_view() {
-            CalendarViewWidget::new(self.app, self.mode).render(area, buf);
-            return;
-        }
-
         let content_area = if self.app.show_week_strip {
             let chunks = Layout::vertical([Constraint::Length(4), Constraint::Min(1)]).split(area);
             WeekStripWidget::new(self.app).render(chunks[0], buf);
@@ -160,9 +152,6 @@ impl Widget for PageWidget<'_> {
             }
             crate::state::ActiveView::Hours => {
                 HoursScreenWidget::new(self.app, self.mode).render(content_area, buf)
-            }
-            crate::state::ActiveView::Calendar => {
-                CalendarViewWidget::new(self.app, self.mode).render(area, buf)
             }
             crate::state::ActiveView::Personal => {
                 crate::widgets::screens::personal::PersonalScreenWidget::new(self.app, self.mode)
@@ -370,15 +359,6 @@ mod tests {
         let text = render_text(&app);
 
         assert!(text.contains("Âm lịch"));
-    }
-
-    #[test]
-    fn page_routes_to_calendar_screen_widget() {
-        let mut app = sample_app_state();
-        app.bundle = Some(sample_bundle());
-        app.active_view = ActiveView::Calendar;
-
-        let _text = render_text(&app);
     }
 
     #[test]
