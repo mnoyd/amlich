@@ -1,6 +1,3 @@
-// Re-export or define DTOs here
-// These mirror the amlich-api Rust DTOs
-
 export interface SolarDateDto {
     day: number;
     month: number;
@@ -24,7 +21,7 @@ export interface CanChiItemDto {
     full: string;
 }
 
-export interface CanChiDto {
+export interface CanChiInfoDto {
     day: CanChiItemDto;
     month: CanChiItemDto;
     year: CanChiItemDto;
@@ -40,13 +37,94 @@ export interface NguHanhDto {
 export interface DayInfoDto {
     solar: SolarDateDto;
     lunar: LunarDateDto;
-    canchi: CanChiDto;
+    canchi: CanChiInfoDto;
     tiet_khi: any;
     gio_hoang_dao: any;
 }
 
+export interface TietKhiDto {
+    name: string;
+    season: string;
+    description: string;
+    jd: number;
+    date: string;
+}
+
+export interface GioHoangDaoDto {
+    good_hours: any[];
+}
+
+export type RecommendationBucketDto = 'Nen' | 'CoThe' | 'Tranh' | 'KyManh';
+export type RecommendationSeverityDto = 'Primary' | 'Secondary' | 'Tertiary';
+
+export interface ActivityLabelDto {
+    vi: string;
+    en: string;
+}
+
+export interface RecommendationEvidenceSourceDto {
+    source_family: string;
+    source_id: string;
+}
+
+export interface RecommendationEvidenceDto {
+    source: RecommendationEvidenceSourceDto;
+    code: string;
+    note: string;
+}
+
+export interface RecommendationReasonDto {
+    rule_id: string;
+    severity: RecommendationSeverityDto;
+    summary_vi: string;
+    summary_en: string;
+    evidence: RecommendationEvidenceDto;
+}
+
+export interface SynthesizedRecommendationDto {
+    activity_id: string;
+    label: ActivityLabelDto;
+    bucket: RecommendationBucketDto;
+    reasons: RecommendationReasonDto[];
+}
+
+export interface DailyRecommendationsDto {
+    ruleset_id: string;
+    ruleset_version: string;
+    profile: string;
+    version: string;
+    summary_vi: string;
+    summary_en: string;
+    activities: SynthesizedRecommendationDto[];
+}
+
+export interface DayBundleDto {
+    schema_version: string;
+    ruleset_id: string;
+    ruleset_version: string;
+    profile: string;
+    generated_at: string;
+    solar: SolarDateDto;
+    lunar: LunarDateDto;
+    jd: number;
+    canchi?: CanChiInfoDto;
+    tiet_khi?: TietKhiDto;
+    gio_hoang_dao?: GioHoangDaoDto;
+    day_fortune?: DayFortuneDto;
+    daily_recommendations?: DailyRecommendationsDto;
+    contextual_recommendations?: DailyRecommendationsDto;
+    holidays?: HolidayDto[];
+}
+
+export interface DayInsightDto {
+    [key: string]: any;
+}
+
+export interface DayFortuneDto {
+    [key: string]: any;
+}
+
 export interface BaziReportDto {
-    // Fill in as needed
     [key: string]: any;
 }
 
@@ -55,13 +133,6 @@ export interface BaziDerivedReportDto {
 }
 
 export interface HourSelectionReportDto {
-    [key: string]: any;
-}
-
-export interface DayBundleDto {
-    info: DayInfoDto;
-    insight?: any;
-    fortune?: any;
     [key: string]: any;
 }
 
@@ -97,12 +168,4 @@ export interface PersonalDayMatrixReportDto {
 export interface TietKhiYearDto {
     year: number;
     tiet_khi_list: any[];
-}
-
-export interface DayInsightDto {
-    [key: string]: any;
-}
-
-export interface DayFortuneDto {
-    [key: string]: any;
 }
