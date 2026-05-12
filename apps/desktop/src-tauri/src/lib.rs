@@ -6,7 +6,12 @@ use amlich_api::{
     get_personal_day_matrix_report as api_get_personal_day_matrix_report,
     get_personal_day_report as api_get_personal_day_report, BaziQuery, DateQuery, DayInfoDto,
     DayInsightDto, HolidayDto, PersonalDayMatrixReportDto, PersonalDayReportDto,
+    get_bazi_report as api_get_bazi_report, get_bazi_derived_report as api_get_bazi_derived_report,
+    get_hour_selection_report as api_get_hour_selection_report, BaziReportDto, BaziDerivedReportDto, HourSelectionReportDto,
+    get_ruleset_catalog as api_get_ruleset_catalog, get_recommendation_pack_catalog as api_get_recommendation_pack_catalog,
+    RulesetCatalogEntryDto, RecommendationPackCatalogEntryDto,
 };
+use amlich_api::v2::{DayBundleDto, get_day_bundle_for_date, get_tiet_khi_for_year as api_get_tiet_khi_for_year, TietKhiYearDto};
 
 #[derive(Debug, Serialize, Clone)]
 struct GoodHour {
@@ -214,6 +219,101 @@ fn get_day_info(day: i32, month: i32, year: i32) -> Result<DayInfoDto, String> {
     get_day_info_for_date(day, month, year)
 }
 
+
+
+#[tauri::command]
+fn get_day_bundle(day: i32, month: i32, year: i32) -> Result<DayBundleDto, String> {
+    if !(1..=12).contains(&month) {
+        return Err("month must be 1-12".to_string());
+    }
+    if !(1..=31).contains(&day) {
+        return Err("day must be 1-31".to_string());
+    }
+    get_day_bundle_for_date(day, month, year, &[], None)
+}
+
+#[tauri::command]
+fn get_bazi_report(
+    year: i32,
+    month: i32,
+    day: i32,
+    hour: u8,
+    minute: u8,
+    gender: Option<String>,
+) -> Result<BaziReportDto, String> {
+    let query = BaziQuery {
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        timezone: None,
+        longitude: None,
+        use_solar_time: false,
+        gender,
+    };
+    api_get_bazi_report(&query, None)
+}
+
+#[tauri::command]
+fn get_bazi_derived_report(
+    year: i32,
+    month: i32,
+    day: i32,
+    hour: u8,
+    minute: u8,
+    gender: Option<String>,
+) -> Result<BaziDerivedReportDto, String> {
+    let query = BaziQuery {
+        year,
+        month,
+        day,
+        hour,
+        minute,
+        timezone: None,
+        longitude: None,
+        use_solar_time: false,
+        gender,
+    };
+    api_get_bazi_derived_report(&query)
+}
+
+#[tauri::command]
+fn get_hour_selection_report(day: i32, month: i32, year: i32) -> Result<HourSelectionReportDto, String> {
+    let query = DateQuery {
+        day,
+        month,
+        year,
+        timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
+    };
+    api_get_hour_selection_report(&query, None, None, None, None)
+}
+
+#[tauri::command]
+fn get_tiet_khi_for_year(year: i32) -> Result<TietKhiYearDto, String> {
+    api_get_tiet_khi_for_year(year, None)
+}
+
+
+
+#[tauri::command]
+fn get_ruleset_catalog() -> Vec<RulesetCatalogEntryDto> {
+    api_get_ruleset_catalog()
+}
+
+#[tauri::command]
+fn get_recommendation_pack_catalog() -> Vec<RecommendationPackCatalogEntryDto> {
+    api_get_recommendation_pack_catalog()
+}
+
+#[tauri::command]
+fn get_holidays_list(year: i32, major_only: bool) -> Vec<HolidayDto> {
+    get_holidays(year, major_only)
+}
+
 #[tauri::command]
 fn get_personal_day_report(
     day: i32,
@@ -337,6 +437,14 @@ pub fn run() {
             get_day_detail,
             get_day_insight,
             get_day_info,
+            get_day_bundle,
+            get_bazi_report,
+            get_bazi_derived_report,
+            get_hour_selection_report,
+            get_tiet_khi_for_year,
+            get_ruleset_catalog,
+            get_recommendation_pack_catalog,
+            get_holidays_list,
             get_personal_day_report,
             get_personal_day_matrix_report,
             get_install_context

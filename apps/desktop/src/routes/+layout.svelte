@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte';
   import '../app.css';
   import { checkForAppUpdates } from '$lib/updater';
@@ -8,4 +8,6 @@
   });
 </script>
 
-<slot />
+<div class="h-screen w-screen overflow-hidden flex flex-col bg-parchment text-ink">
+  <slot />
+</div>
