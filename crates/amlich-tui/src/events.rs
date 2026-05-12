@@ -58,14 +58,10 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             return false;
         }
         KeyCode::Char('2') => {
-            app.go_to_view(crate::state::ActiveView::DayDetail);
-            return false;
-        }
-        KeyCode::Char('3') => {
             app.go_to_view(crate::state::ActiveView::Personal);
             return false;
         }
-        KeyCode::Char('4') => {
+        KeyCode::Char('3') => {
             app.go_to_view(crate::state::ActiveView::GraphInspector);
             return false;
         }
@@ -509,7 +505,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_view, ActiveView::DayDetail);
+        assert_eq!(app.active_view, ActiveView::Personal);
     }
 
     #[test]
@@ -530,7 +526,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_view, ActiveView::DayDetail);
+        assert_eq!(app.active_view, ActiveView::Personal);
         assert_eq!(
             app.explanation_lens,
             crate::state::UserExplanationLens::ViSao

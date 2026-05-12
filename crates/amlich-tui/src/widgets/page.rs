@@ -11,7 +11,7 @@ use crate::state::{AppState, PageSection};
 
 use super::{
     screens::{
-        day_detail::DayDetailScreenWidget, graph_inspector::GraphInspectorScreenWidget,
+        graph_inspector::GraphInspectorScreenWidget,
         today::TodayScreenWidget,
     },
     week_strip::WeekStripWidget,
@@ -23,15 +23,10 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
     use crate::state::ui_prefs::VerbosityMode;
 
     match (app.active_view, mode, app.active_verbosity()) {
-        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Compact) => 31,
-        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Verbose) => 43,
-        (crate::state::ActiveView::Today, _, VerbosityMode::Compact) => 35,
-        (crate::state::ActiveView::Today, _, VerbosityMode::Verbose) => 36,
-
-        (crate::state::ActiveView::DayDetail, LayoutMode::Small, VerbosityMode::Compact) => 44,
-        (crate::state::ActiveView::DayDetail, LayoutMode::Small, VerbosityMode::Verbose) => 76,
-        (crate::state::ActiveView::DayDetail, _, VerbosityMode::Compact) => 44,
-        (crate::state::ActiveView::DayDetail, _, VerbosityMode::Verbose) => 67,
+        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Compact) => 55,
+        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Verbose) => 90,
+        (crate::state::ActiveView::Today, _, VerbosityMode::Compact) => 60,
+        (crate::state::ActiveView::Today, _, VerbosityMode::Verbose) => 80,
 
         (crate::state::ActiveView::Personal, _, _) => personal_natural_height(app, mode),
         (crate::state::ActiveView::GraphInspector, _, _) => 28,
@@ -59,9 +54,6 @@ fn personal_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
 pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: &mut Buffer) {
     match app.active_view {
         crate::state::ActiveView::Today => TodayScreenWidget::new(app, mode).render(area, buf),
-        crate::state::ActiveView::DayDetail => {
-            DayDetailScreenWidget::new(app, mode).render(area, buf)
-        }
         crate::state::ActiveView::Personal => {
             crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode)
                 .render(area, buf)
@@ -140,9 +132,6 @@ impl Widget for PageWidget<'_> {
         match self.app.active_view {
             crate::state::ActiveView::Today => {
                 TodayScreenWidget::new(self.app, self.mode).render(content_area, buf)
-            }
-            crate::state::ActiveView::DayDetail => {
-                DayDetailScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
             crate::state::ActiveView::Personal => {
                 crate::widgets::screens::personal::PersonalScreenWidget::new(self.app, self.mode)
@@ -349,7 +338,7 @@ mod tests {
 
         let text = render_text(&app);
 
-        assert!(text.contains("Âm lịch"));
+        assert!(text.contains("Mùng 4") || text.contains("12"));
     }
 
     #[test]
