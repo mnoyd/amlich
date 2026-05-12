@@ -1,1 +1,1 @@
-pub use super::{context, help, ribbon, search, week_strip};
+pub use super::{context, header_tabs, help, search, status_footer, week_strip};

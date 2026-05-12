@@ -7,9 +7,9 @@ use ratatui::{
 
 use crate::state::AppState;
 use crate::widgets::{
-    context::ContextModalWidget, help::HelpModalWidget, page::render_screen_content,
-    page::screen_natural_height, page::PageWidget, ribbon::RibbonWidget,
-    search::SearchOverlayWidget, week_strip::WeekStripWidget,
+    context::ContextModalWidget, header_tabs::HeaderTabsWidget, help::HelpModalWidget, page::render_screen_content,
+    page::screen_natural_height, page::PageWidget, search::SearchOverlayWidget,
+    status_footer::StatusFooterWidget, week_strip::WeekStripWidget,
 };
 
 const MIN_TERM_W: u16 = 40;
@@ -50,13 +50,15 @@ pub fn draw(frame: &mut Frame, app: &mut AppState) {
 
     // Main vertical layout: Page area (scrollable) + Ribbon area (fixed bottom)
     let main_layout = Layout::vertical([
+        Constraint::Length(1), // Top Header Tabs
         Constraint::Min(10),   // Main scrolling page
-        Constraint::Length(2), // Fixed bottom ribbon (includes top padding line)
+        Constraint::Length(1), // Fixed bottom status
     ])
     .split(size);
 
-    let page_area = main_layout[0];
-    let ribbon_area = main_layout[1];
+    let header_area = main_layout[0];
+    let page_area = main_layout[1];
+    let footer_area = main_layout[2];
 
     let mode = layout_mode(size.width);
     let content_area = page_content_area(page_area, mode);
@@ -138,8 +140,9 @@ pub fn draw(frame: &mut Frame, app: &mut AppState) {
         frame.render_widget(PageWidget::new(app, mode), page_render_area);
     }
 
-    // Render the fixed ribbon at the bottom
-    frame.render_widget(RibbonWidget::new(app, mode), ribbon_area);
+    // Render the fixed header and footer
+    frame.render_widget(HeaderTabsWidget::new(app, mode), header_area);
+    frame.render_widget(StatusFooterWidget::new(app), footer_area);
 
     // Render overlays (Search, Context, Help) on top if active
     match app.app_mode {
