@@ -1,14 +1,24 @@
 import { invoke } from '@tauri-apps/api/core';
 import type {
-    DayInfoDto, DayInsightDto, DayBundleDto,
+    ApiInclude, DateQuery, DayInfoDto, DayInsightDto, DayBundleDto, DayRangeDto,
     BaziReportDto, BaziDerivedReportDto, HourSelectionReportDto,
     RulesetCatalogEntryDto, RecommendationPackCatalogEntryDto,
     HolidayDto, PersonalDayReportDto, PersonalDayMatrixReportDto,
     TietKhiYearDto
 } from './types';
 
+export type DayRangeRequest = {
+    start: DateQuery;
+    end: DateQuery;
+    includes?: ApiInclude[];
+};
+
 export async function fetchDayBundle(day: number, month: number, year: number): Promise<DayBundleDto> {
     return invoke('get_day_bundle', { day, month, year });
+}
+
+export async function fetchDayRange(request: DayRangeRequest): Promise<DayRangeDto> {
+    return invoke('get_day_range', request);
 }
 
 export async function fetchDayInfo(day: number, month: number, year: number): Promise<DayInfoDto> {

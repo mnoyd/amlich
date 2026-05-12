@@ -1,17 +1,23 @@
 use serde::Serialize;
 use std::collections::HashMap;
 
-use amlich_api::{
-    get_day_info_for_date, get_day_insight_for_date, get_holidays,
-    get_personal_day_matrix_report as api_get_personal_day_matrix_report,
-    get_personal_day_report as api_get_personal_day_report, BaziQuery, DateQuery, DayInfoDto,
-    DayInsightDto, HolidayDto, PersonalDayMatrixReportDto, PersonalDayReportDto,
-    get_bazi_report as api_get_bazi_report, get_bazi_derived_report as api_get_bazi_derived_report,
-    get_hour_selection_report as api_get_hour_selection_report, BaziReportDto, BaziDerivedReportDto, HourSelectionReportDto,
-    get_ruleset_catalog as api_get_ruleset_catalog, get_recommendation_pack_catalog as api_get_recommendation_pack_catalog,
-    RulesetCatalogEntryDto, RecommendationPackCatalogEntryDto,
+use amlich_api::v2::{
+    get_day_bundle_for_date, get_day_range as api_get_day_range,
+    get_tiet_khi_for_year as api_get_tiet_khi_for_year, DayBundleDto, DayRangeDto, Include,
+    TietKhiYearDto,
 };
-use amlich_api::v2::{DayBundleDto, get_day_bundle_for_date, get_tiet_khi_for_year as api_get_tiet_khi_for_year, TietKhiYearDto};
+use amlich_api::{
+    get_bazi_derived_report as api_get_bazi_derived_report, get_bazi_report as api_get_bazi_report,
+    get_day_info_for_date, get_day_insight_for_date, get_holidays,
+    get_hour_selection_report as api_get_hour_selection_report,
+    get_personal_day_matrix_report as api_get_personal_day_matrix_report,
+    get_personal_day_report as api_get_personal_day_report,
+    get_recommendation_pack_catalog as api_get_recommendation_pack_catalog,
+    get_ruleset_catalog as api_get_ruleset_catalog, BaziDerivedReportDto, BaziQuery, BaziReportDto,
+    DateQuery, DayInfoDto, DayInsightDto, HolidayDto, HourSelectionReportDto,
+    PersonalDayMatrixReportDto, PersonalDayReportDto, RecommendationPackCatalogEntryDto,
+    RulesetCatalogEntryDto,
+};
 
 #[derive(Debug, Serialize, Clone)]
 struct GoodHour {
@@ -135,6 +141,16 @@ fn parse_gender(gender: Option<String>) -> Result<Option<amlich_core::Gender>, S
     }
 }
 
+fn validate_date_parts(day: i32, month: i32) -> Result<(), String> {
+    if !(1..=12).contains(&month) {
+        return Err("month must be 1-12".to_string());
+    }
+    if !(1..=31).contains(&day) {
+        return Err("day must be 1-31".to_string());
+    }
+    Ok(())
+}
+
 #[tauri::command]
 fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
     if !(1..=12).contains(&month) {
@@ -178,12 +194,7 @@ fn get_month_data(month: u32, year: i32) -> Result<MonthData, String> {
 
 #[tauri::command]
 fn get_day_detail(day: i32, month: i32, year: i32) -> Result<DayCell, String> {
-    if !(1..=12).contains(&month) {
-        return Err("month must be 1-12".to_string());
-    }
-    if !(1..=31).contains(&day) {
-        return Err("day must be 1-31".to_string());
-    }
+    validate_date_parts(day, month)?;
 
     let holidays = get_holidays(year, false)
         .into_iter()
@@ -199,37 +210,29 @@ fn get_day_detail(day: i32, month: i32, year: i32) -> Result<DayCell, String> {
 
 #[tauri::command]
 fn get_day_insight(day: i32, month: i32, year: i32) -> Result<DayInsightDto, String> {
-    if !(1..=12).contains(&month) {
-        return Err("month must be 1-12".to_string());
-    }
-    if !(1..=31).contains(&day) {
-        return Err("day must be 1-31".to_string());
-    }
+    validate_date_parts(day, month)?;
     get_day_insight_for_date(day, month, year)
 }
 
 #[tauri::command]
 fn get_day_info(day: i32, month: i32, year: i32) -> Result<DayInfoDto, String> {
-    if !(1..=12).contains(&month) {
-        return Err("month must be 1-12".to_string());
-    }
-    if !(1..=31).contains(&day) {
-        return Err("day must be 1-31".to_string());
-    }
+    validate_date_parts(day, month)?;
     get_day_info_for_date(day, month, year)
 }
 
-
-
 #[tauri::command]
 fn get_day_bundle(day: i32, month: i32, year: i32) -> Result<DayBundleDto, String> {
-    if !(1..=12).contains(&month) {
-        return Err("month must be 1-12".to_string());
-    }
-    if !(1..=31).contains(&day) {
-        return Err("day must be 1-31".to_string());
-    }
+    validate_date_parts(day, month)?;
     get_day_bundle_for_date(day, month, year, &[], None)
+}
+
+#[tauri::command]
+fn get_day_range(
+    start: DateQuery,
+    end: DateQuery,
+    includes: Option<Vec<Include>>,
+) -> Result<DayRangeDto, String> {
+    api_get_day_range(start, end, includes.as_deref().unwrap_or(&[]))
 }
 
 #[tauri::command]
@@ -279,7 +282,12 @@ fn get_bazi_derived_report(
 }
 
 #[tauri::command]
-fn get_hour_selection_report(day: i32, month: i32, year: i32) -> Result<HourSelectionReportDto, String> {
+fn get_hour_selection_report(
+    day: i32,
+    month: i32,
+    year: i32,
+) -> Result<HourSelectionReportDto, String> {
+    validate_date_parts(day, month)?;
     let query = DateQuery {
         day,
         month,
@@ -296,8 +304,6 @@ fn get_hour_selection_report(day: i32, month: i32, year: i32) -> Result<HourSele
 fn get_tiet_khi_for_year(year: i32) -> Result<TietKhiYearDto, String> {
     api_get_tiet_khi_for_year(year, None)
 }
-
-
 
 #[tauri::command]
 fn get_ruleset_catalog() -> Vec<RulesetCatalogEntryDto> {
@@ -324,12 +330,7 @@ fn get_personal_day_report(
     birth_day: Option<i32>,
     gender: Option<String>,
 ) -> Result<PersonalDayReportDto, String> {
-    if !(1..=12).contains(&month) {
-        return Err("month must be 1-12".to_string());
-    }
-    if !(1..=31).contains(&day) {
-        return Err("day must be 1-31".to_string());
-    }
+    validate_date_parts(day, month)?;
 
     api_get_personal_day_report(
         &DateQuery {
@@ -360,12 +361,7 @@ fn get_personal_day_matrix_report(
     birth_minute: u8,
     gender: Option<String>,
 ) -> Result<PersonalDayMatrixReportDto, String> {
-    if !(1..=12).contains(&month) {
-        return Err("month must be 1-12".to_string());
-    }
-    if !(1..=31).contains(&day) {
-        return Err("day must be 1-31".to_string());
-    }
+    validate_date_parts(day, month)?;
 
     api_get_personal_day_matrix_report(
         &BaziQuery {
@@ -438,6 +434,7 @@ pub fn run() {
             get_day_insight,
             get_day_info,
             get_day_bundle,
+            get_day_range,
             get_bazi_report,
             get_bazi_derived_report,
             get_hour_selection_report,
@@ -520,5 +517,31 @@ mod tests {
         assert!(report.personal_hours.is_some());
         assert!(report.direction_merge.is_some());
         assert!(report.domain_day_boost.is_some());
+    }
+
+    #[test]
+    fn day_range_command_exposes_bundles() {
+        let range = get_day_range(
+            DateQuery {
+                day: 10,
+                month: 2,
+                year: 2024,
+                ..Default::default()
+            },
+            DateQuery {
+                day: 12,
+                month: 2,
+                year: 2024,
+                ..Default::default()
+            },
+            Some(vec![Include::Base, Include::CanChi, Include::TietKhi]),
+        )
+        .expect("day range");
+
+        assert_eq!(range.start, "2024-02-10");
+        assert_eq!(range.end, "2024-02-12");
+        assert_eq!(range.days.len(), 3);
+        assert!(range.days[0].canchi.is_some());
+        assert!(range.days[0].tiet_khi.is_some());
     }
 }

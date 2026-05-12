@@ -113,7 +113,25 @@ export interface DayBundleDto {
     day_fortune?: DayFortuneDto;
     daily_recommendations?: DailyRecommendationsDto;
     contextual_recommendations?: DailyRecommendationsDto;
-    holidays?: HolidayDto[];
+    insight?: DayInsightDto;
+    upcoming_events: UpcomingEventDto[];
+}
+
+export interface DayRangeDto {
+    schema_version: string;
+    ruleset_id: string;
+    ruleset_version: string;
+    profile: string;
+    generated_at: string;
+    start: string;
+    end: string;
+    days: DayBundleDto[];
+}
+
+export interface UpcomingEventDto {
+    name: string;
+    days_left: number;
+    is_lunar: boolean;
 }
 
 export interface DayInsightDto {
@@ -167,5 +185,29 @@ export interface PersonalDayMatrixReportDto {
 
 export interface TietKhiYearDto {
     year: number;
-    tiet_khi_list: any[];
+    transitions: TietKhiTransitionDto[];
+}
+
+export interface TietKhiTransitionDto {
+    date: string;
+    term: TietKhiDto;
+}
+
+export type ApiInclude =
+    | 'base'
+    | 'can_chi'
+    | 'tiet_khi'
+    | 'hours'
+    | 'fortune'
+    | 'insight'
+    | 'evidence';
+
+export interface DateQuery {
+    day: number;
+    month: number;
+    year: number;
+    timezone?: number | null;
+    ruleset_id?: string | null;
+    event_kind?: string | null;
+    enabled_pack_ids?: string[];
 }
