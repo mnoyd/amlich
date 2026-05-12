@@ -515,7 +515,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::BackTab, KeyModifiers::SHIFT);
 
-        assert_eq!(app.active_view, ActiveView::Personal);
+        assert_eq!(app.active_view, ActiveView::GraphInspector);
     }
 
     #[test]
@@ -526,7 +526,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_view, ActiveView::Personal);
+        assert_eq!(app.active_view, ActiveView::Today);
         assert_eq!(
             app.explanation_lens,
             crate::state::UserExplanationLens::ViSao

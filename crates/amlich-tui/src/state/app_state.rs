@@ -839,11 +839,7 @@ impl AppState {
     }
 
     pub fn available_views(&self) -> Vec<ActiveView> {
-        let mut views = vec![ActiveView::Today, ActiveView::Personal];
-        if self.dev_inspector_mode {
-            views.push(ActiveView::GraphInspector);
-        }
-        views
+        vec![ActiveView::Today, ActiveView::Personal, ActiveView::GraphInspector]
     }
 
     pub fn next_view(&mut self) {
