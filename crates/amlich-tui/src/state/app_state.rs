@@ -156,7 +156,6 @@ impl FocusLens {
 pub enum ActiveView {
     Today,
     DayDetail,
-    Hours,
     Personal,
     GraphInspector,
 }
@@ -166,7 +165,6 @@ impl ActiveView {
         match self {
             Self::Today => "Hôm Nay",
             Self::DayDetail => "Chi Tiết Ngày",
-            Self::Hours => "Giờ Tốt",
             Self::Personal => "Cá Nhân",
             Self::GraphInspector => "Đồ Thị Ngữ Nghĩa",
         }
@@ -176,7 +174,6 @@ impl ActiveView {
         match self {
             Self::Today => "Today",
             Self::DayDetail => "Ngày",
-            Self::Hours => "Giờ",
             Self::Personal => "Cá Nhân",
             Self::GraphInspector => "Debug",
         }
@@ -192,6 +189,7 @@ pub enum AppMode {
     HelpModal,
     PersonalProfileModal,
     CalendarModal,
+    HoursModal,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -847,7 +845,6 @@ impl AppState {
         let mut views = vec![
             ActiveView::Today,
             ActiveView::DayDetail,
-            ActiveView::Hours,
             ActiveView::Personal,
         ];
         if self.dev_inspector_mode {
@@ -1878,6 +1875,14 @@ impl AppState {
         }
         self.personal_focus = PersonalField::BirthYear;
         self.app_mode = AppMode::PersonalProfileModal;
+    }
+
+    pub fn toggle_hours_modal(&mut self) {
+        if self.app_mode == AppMode::HoursModal {
+            self.app_mode = AppMode::Normal;
+        } else {
+            self.app_mode = AppMode::HoursModal;
+        }
     }
 
     pub fn personal_insert_char(&mut self, ch: char) {

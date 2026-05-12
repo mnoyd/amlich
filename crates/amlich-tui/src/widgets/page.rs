@@ -12,7 +12,7 @@ use crate::state::{AppState, PageSection};
 use super::{
     screens::{
         day_detail::DayDetailScreenWidget, graph_inspector::GraphInspectorScreenWidget,
-        hours::HoursScreenWidget, today::TodayScreenWidget,
+        today::TodayScreenWidget,
     },
     week_strip::WeekStripWidget,
 };
@@ -32,11 +32,6 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
         (crate::state::ActiveView::DayDetail, LayoutMode::Small, VerbosityMode::Verbose) => 76,
         (crate::state::ActiveView::DayDetail, _, VerbosityMode::Compact) => 44,
         (crate::state::ActiveView::DayDetail, _, VerbosityMode::Verbose) => 67,
-
-        (crate::state::ActiveView::Hours, LayoutMode::Small, VerbosityMode::Compact) => 24, // 6+8+10
-        (crate::state::ActiveView::Hours, LayoutMode::Small, VerbosityMode::Verbose) => 32, // 6+8+8+10
-        (crate::state::ActiveView::Hours, _, VerbosityMode::Compact) => 24, // 6+8+10
-        (crate::state::ActiveView::Hours, _, VerbosityMode::Verbose) => 38, // 6+8+6+8+10
 
         (crate::state::ActiveView::Personal, _, _) => personal_natural_height(app, mode),
         (crate::state::ActiveView::GraphInspector, _, _) => 28,
@@ -67,7 +62,6 @@ pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: 
         crate::state::ActiveView::DayDetail => {
             DayDetailScreenWidget::new(app, mode).render(area, buf)
         }
-        crate::state::ActiveView::Hours => HoursScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::Personal => {
             crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode)
                 .render(area, buf)
@@ -149,9 +143,6 @@ impl Widget for PageWidget<'_> {
             }
             crate::state::ActiveView::DayDetail => {
                 DayDetailScreenWidget::new(self.app, self.mode).render(content_area, buf)
-            }
-            crate::state::ActiveView::Hours => {
-                HoursScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
             crate::state::ActiveView::Personal => {
                 crate::widgets::screens::personal::PersonalScreenWidget::new(self.app, self.mode)

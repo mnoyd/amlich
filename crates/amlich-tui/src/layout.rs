@@ -7,8 +7,9 @@ use ratatui::{
 
 use crate::state::AppState;
 use crate::widgets::{
-    calendar::CalendarViewWidget, context::ContextModalWidget, header_tabs::HeaderTabsWidget, help::HelpModalWidget, page::render_screen_content,
-    page::screen_natural_height, page::PageWidget, search::SearchOverlayWidget,
+    calendar::CalendarViewWidget, context::ContextModalWidget, header_tabs::HeaderTabsWidget,
+    help::HelpModalWidget, page::render_screen_content, page::screen_natural_height,
+    page::PageWidget, screens::hours::HoursScreenWidget, search::SearchOverlayWidget,
     status_footer::StatusFooterWidget, week_strip::WeekStripWidget,
 };
 
@@ -160,6 +161,9 @@ pub fn draw(frame: &mut Frame, app: &mut AppState) {
         }
         crate::state::AppMode::CalendarModal => {
             frame.render_widget(CalendarViewWidget::new(app, mode), size);
+        }
+        crate::state::AppMode::HoursModal => {
+            frame.render_widget(HoursScreenWidget::new(app, mode), size);
         }
         crate::state::AppMode::HelpModal => {
             frame.render_widget(HelpModalWidget::new(app, mode), size);

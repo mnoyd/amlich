@@ -62,14 +62,10 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             return false;
         }
         KeyCode::Char('3') => {
-            app.go_to_view(crate::state::ActiveView::Hours);
-            return false;
-        }
-        KeyCode::Char('4') => {
             app.go_to_view(crate::state::ActiveView::Personal);
             return false;
         }
-        KeyCode::Char('5') => {
+        KeyCode::Char('4') => {
             app.go_to_view(crate::state::ActiveView::GraphInspector);
             return false;
         }
@@ -92,6 +88,15 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                 app.calendar_prev_month()
             }
             KeyCode::Char('t') => app.calendar_go_today(),
+            _ => {}
+        }
+        return false;
+    }
+
+    if app.app_mode == crate::state::AppMode::HoursModal {
+        match code {
+            KeyCode::Char('q') => app.running = false,
+            KeyCode::Char('h') | KeyCode::Esc => app.toggle_hours_modal(),
             _ => {}
         }
         return false;
@@ -349,7 +354,8 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
         KeyCode::Char('q') | KeyCode::Esc => app.running = false,
         KeyCode::Char('r') if app.error_msg.is_some() => app.retry_load(),
         KeyCode::Right | KeyCode::Char('l') => app.navigate_days(1),
-        KeyCode::Left | KeyCode::Char('h') => app.navigate_days(-1),
+        KeyCode::Left => app.navigate_days(-1),
+        KeyCode::Char('h') => app.toggle_hours_modal(),
         KeyCode::Char('L') => app.navigate_months(1),
         KeyCode::Char('H') => app.navigate_months(-1),
         KeyCode::Char(']') => app.navigate_months(1),

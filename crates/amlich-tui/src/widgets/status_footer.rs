@@ -23,12 +23,12 @@ impl Widget for StatusFooterWidget<'_> {
         if self.app.is_calendar_view() {
             let line = Line::from(vec![
                 Span::styled(
-                    "h/l, j/k: di chuyển  ",
+                    "j/k: di chuyển  ",
                     Style::default().fg(Color::DarkGray),
                 ),
                 Span::styled("[ ]: đổi tháng  ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
-                    "Enter: chọn  m/Esc: đóng",
+                    "Enter: chọn  Esc: đóng",
                     Style::default().fg(Color::DarkGray),
                 ),
             ]);
@@ -37,8 +37,18 @@ impl Widget for StatusFooterWidget<'_> {
             return;
         }
 
+        if self.app.app_mode == crate::state::AppMode::HoursModal {
+            let line = Line::from(vec![Span::styled(
+                "h/Esc: đóng",
+                Style::default().fg(Color::DarkGray),
+            )]);
+
+            Paragraph::new(line).alignment(Alignment::Center).render(area, buf);
+            return;
+        }
+
         let hotkey_line = Line::from(vec![Span::styled(
-            "Tab: màn  1-6: chọn  ←/→: ngày  t: hôm nay  ?: trợ giúp",
+            "Tab: màn  h: giờ  m: lịch  ←/→: ngày  t: hôm nay  ?: trợ giúp",
             Style::default().fg(Color::DarkGray),
         )]);
 
