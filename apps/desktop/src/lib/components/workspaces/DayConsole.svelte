@@ -22,21 +22,21 @@
             const m = date.getMonth() + 1;
             const y = date.getFullYear();
             bundle = await fetchDayBundle(d, m, y);
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error("Failed to load day bundle", e);
-            error = e.message || "Failed to load data for selected date";
+            error = e instanceof Error ? e.message : "Failed to load data for selected date";
         } finally {
             loading = false;
         }
     }
 
     function groupRecommendations(activities: SynthesizedRecommendationDto[] | undefined) {
-        if (!activities) return { Nen: [], CoThe: [], Tranh: [], KyManh: [] };
+        if (!activities) return { nen: [], coThe: [], tranh: [], kyManh: [] };
         const grouped = {
-            Nen: activities.filter(a => a.bucket === 'Nen'),
-            CoThe: activities.filter(a => a.bucket === 'CoThe'),
-            Tranh: activities.filter(a => a.bucket === 'Tranh'),
-            KyManh: activities.filter(a => a.bucket === 'KyManh'),
+            nen: activities.filter(a => a.bucket === 'nen'),
+            coThe: activities.filter(a => a.bucket === 'co_the'),
+            tranh: activities.filter(a => a.bucket === 'tranh'),
+            kyManh: activities.filter(a => a.bucket === 'ky_manh'),
         };
         return grouped;
     }
@@ -108,9 +108,9 @@
             <div class="space-y-4">
                 <h4 class="font-mono font-bold text-nen uppercase border-b-2 border-nen pb-2 flex items-center justify-between">
                     Nên
-                    <span class="text-xs bg-nen/10 px-2 py-0.5 rounded">{groupedRecs.Nen.length}</span>
+                    <span class="text-xs bg-nen/10 px-2 py-0.5 rounded">{groupedRecs.nen.length}</span>
                 </h4>
-                {#each groupedRecs.Nen as rec}
+                {#each groupedRecs.nen as rec}
                     <div class="border border-ink-border p-3 bg-parchment-dark/30 hover:border-nen/50 transition-colors">
                         <div class="font-bold text-sm mb-2">{rec.label.vi}</div>
                         {#if rec.reasons.length > 0}
@@ -126,9 +126,9 @@
             <div class="space-y-4">
                 <h4 class="font-mono font-bold text-ink-light uppercase border-b-2 border-ink-border pb-2 flex items-center justify-between">
                     Có thể
-                    <span class="text-xs bg-ink/5 px-2 py-0.5 rounded">{groupedRecs.CoThe.length}</span>
+                    <span class="text-xs bg-ink/5 px-2 py-0.5 rounded">{groupedRecs.coThe.length}</span>
                 </h4>
-                {#each groupedRecs.CoThe as rec}
+                {#each groupedRecs.coThe as rec}
                     <div class="border border-ink-border p-3 bg-parchment-dark/30">
                         <div class="font-bold text-sm mb-2">{rec.label.vi}</div>
                         {#if rec.reasons.length > 0}
@@ -144,9 +144,9 @@
             <div class="space-y-4">
                 <h4 class="font-mono font-bold text-orange-600 uppercase border-b-2 border-orange-600 pb-2 flex items-center justify-between">
                     Tránh
-                    <span class="text-xs bg-orange-600/10 px-2 py-0.5 rounded">{groupedRecs.Tranh.length}</span>
+                    <span class="text-xs bg-orange-600/10 px-2 py-0.5 rounded">{groupedRecs.tranh.length}</span>
                 </h4>
-                {#each groupedRecs.Tranh as rec}
+                {#each groupedRecs.tranh as rec}
                     <div class="border border-ink-border p-3 bg-parchment-dark/30">
                         <div class="font-bold text-sm mb-2">{rec.label.vi}</div>
                         {#if rec.reasons.length > 0}
@@ -162,9 +162,9 @@
             <div class="space-y-4">
                 <h4 class="font-mono font-bold text-ky uppercase border-b-2 border-ky pb-2 flex items-center justify-between">
                     Kỵ Mạnh
-                    <span class="text-xs bg-ky/10 px-2 py-0.5 rounded">{groupedRecs.KyManh.length}</span>
+                    <span class="text-xs bg-ky/10 px-2 py-0.5 rounded">{groupedRecs.kyManh.length}</span>
                 </h4>
-                {#each groupedRecs.KyManh as rec}
+                {#each groupedRecs.kyManh as rec}
                     <div class="border border-ink-border p-3 bg-ky/5 border-ky/30 hover:border-ky/50 transition-colors">
                         <div class="font-bold text-sm mb-2 text-ky">{rec.label.vi}</div>
                         {#if rec.reasons.length > 0}

@@ -1,18 +1,15 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
+  import { fetchDayInfo, fetchDayInsight } from "$lib/api/invoke";
   import type {
-    BilingualList,
-    BilingualText,
     DailyRecommendationsDto,
-    DayForInsight,
     DayInfoDto,
     DayInsightDto,
-    Lang,
     RecommendationBucketDto,
     RecommendationEvidenceSourceDto,
     RecommendationReasonDto,
     SynthesizedRecommendationDto,
-  } from "$lib/insights/types";
+  } from "$lib/api/types";
+  import type { BilingualList, BilingualText, DayForInsight, Lang } from "$lib/insights/types";
 
   let { day }: { day: DayForInsight | null } = $props();
 
@@ -129,16 +126,8 @@
     error = null;
 
     Promise.all([
-      invoke<DayInsightDto>("get_day_insight", {
-        day: day.day,
-        month: day.month,
-        year: day.year,
-      }),
-      invoke<DayInfoDto>("get_day_info", {
-        day: day.day,
-        month: day.month,
-        year: day.year,
-      }),
+      fetchDayInsight(day.day, day.month, day.year),
+      fetchDayInfo(day.day, day.month, day.year),
     ])
       .then(([insightData, dayInfoData]) => {
         if (!canceled) {

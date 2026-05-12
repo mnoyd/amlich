@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { invoke } from "@tauri-apps/api/core";
+  import { fetchPersonalDayMatrixReport, fetchPersonalDayReport } from "$lib/api/invoke";
   import type {
-    DayForInsight,
     DomainDayBoostEntryDto,
     InitiationOpeningDecisionExportDto,
     PersonalDayMatrixReportDto,
     PersonalDayReportDto,
     PersonalHourEntryDto,
     UnavailableSectionDto,
-  } from "$lib/insights/types";
+  } from "$lib/api/types";
+  import type { DayForInsight } from "$lib/insights/types";
 
   let { day }: { day: DayForInsight | null } = $props();
 
@@ -110,15 +110,15 @@
     loadingReport = true;
     reportError = null;
 
-    invoke<PersonalDayReportDto>("get_personal_day_report", {
-      day: day.day,
-      month: day.month,
-      year: day.year,
-      birthYear: parsedBirthYear,
-      birthMonth: parsedBirthMonth,
-      birthDay: parsedBirthDay,
-      gender: normalizedGender,
-    })
+    fetchPersonalDayReport(
+      day.day,
+      day.month,
+      day.year,
+      parsedBirthYear ?? undefined,
+      parsedBirthMonth ?? undefined,
+      parsedBirthDay ?? undefined,
+      normalizedGender ?? undefined,
+    )
       .then((value) => {
         if (token !== loadToken) return;
         report = value;
@@ -160,17 +160,17 @@
 
     loadingMatrix = true;
     matrixError = null;
-    invoke<PersonalDayMatrixReportDto>("get_personal_day_matrix_report", {
-      day: day.day,
-      month: day.month,
-      year: day.year,
-      birthYear: birthYearValue,
-      birthMonth: birthMonthValue,
-      birthDay: birthDayValue,
-      birthHour: birthHourValue,
-      birthMinute: birthMinuteValue,
-      gender: normalizedGender,
-    })
+    fetchPersonalDayMatrixReport(
+      day.day,
+      day.month,
+      day.year,
+      birthYearValue,
+      birthMonthValue,
+      birthDayValue,
+      birthHourValue,
+      birthMinuteValue,
+      normalizedGender ?? undefined,
+    )
       .then((value) => {
         if (token !== loadToken) return;
         matrix = value;
@@ -253,11 +253,12 @@
 
         {#if reportError}
           <p class="error">{reportError}</p>
-        {:else if report}
-          <p class="summary">{report.decision_export.primary_conclusion}</p>
+        {:else if report?.decision_export}
+          {@const decision = report.decision_export}
+          <p class="summary">{decision.primary_conclusion}</p>
 
           <div class="pill-row">
-            {#each explanationMeta(report.decision_export) as detail}
+            {#each explanationMeta(decision) as detail}
               <span class="pill">{detail}</span>
             {/each}
           </div>
@@ -266,7 +267,7 @@
             <section>
               <h4>Điểm đang nâng đỡ</h4>
               <ul>
-                {#each helpNotes(report.decision_export) as note}
+                {#each helpNotes(decision) as note}
                   <li>{note}</li>
                 {/each}
               </ul>
@@ -274,18 +275,18 @@
             <section>
               <h4>Điểm cần giữ chừng mực</h4>
               <ul>
-                {#each watchNotes(report.decision_export) as note}
+                {#each watchNotes(decision) as note}
                   <li>{note}</li>
                 {/each}
               </ul>
             </section>
           </div>
 
-          {#if nextMoves(report.decision_export).length}
+          {#if nextMoves(decision).length}
             <section>
               <h4>Nếu vẫn tiến hành</h4>
               <ul>
-                {#each nextMoves(report.decision_export) as step}
+                {#each nextMoves(decision) as step}
                   <li>{step}</li>
                 {/each}
               </ul>
@@ -295,9 +296,9 @@
           <section class="details-block">
             <h4>Chi tiết & bằng chứng</h4>
             <p class="card-note">{evidenceSummary(report)}</p>
-            {#if report.decision_export.axis_scores.length}
+            {#if decision.axis_scores.length}
               <div class="axis-grid">
-                {#each report.decision_export.axis_scores as axis}
+                {#each decision.axis_scores as axis}
                   <div class="axis-row">
                     <span>{formatAxis(axis.axis)}</span>
                     <strong>{axis.score.toFixed(2)}</strong>
@@ -310,6 +311,9 @@
           {#if report.analysis.unavailable_sections.length}
             <p class="card-note">{formatUnavailable(report.analysis.unavailable_sections)}</p>
           {/if}
+        {:else if report}
+          <p class="summary">{report.summary}</p>
+          <p class="card-note">Chưa có lớp giải thích cá nhân cho dữ liệu hiện tại.</p>
         {/if}
       </article>
 

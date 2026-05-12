@@ -1,3 +1,25 @@
+export interface DateQuery {
+    day: number;
+    month: number;
+    year: number;
+    timezone?: number | null;
+    ruleset_id?: string | null;
+    event_kind?: string | null;
+    enabled_pack_ids?: string[];
+}
+
+export interface BaziQuery {
+    day: number;
+    month: number;
+    year: number;
+    hour: number;
+    minute: number;
+    timezone?: number | null;
+    longitude?: number | null;
+    use_solar_time?: boolean;
+    gender?: string | null;
+}
+
 export interface SolarDateDto {
     day: number;
     month: number;
@@ -15,56 +37,206 @@ export interface LunarDateDto {
     date_string: string;
 }
 
+export interface NguHanhDto {
+    can: string;
+    chi: string;
+}
+
 export interface CanChiItemDto {
+    can_index: number;
+    chi_index: number;
     can: string;
     chi: string;
     full: string;
+    con_giap: string;
+    ngu_hanh: NguHanhDto;
 }
 
 export interface CanChiInfoDto {
     day: CanChiItemDto;
     month: CanChiItemDto;
     year: CanChiItemDto;
-    hour: CanChiItemDto;
-}
-
-export interface NguHanhDto {
-    element: string;
-    color: string;
-    direction: string;
-}
-
-export interface DayInfoDto {
-    solar: SolarDateDto;
-    lunar: LunarDateDto;
-    canchi: CanChiInfoDto;
-    tiet_khi: any;
-    gio_hoang_dao: any;
+    full: string;
 }
 
 export interface TietKhiDto {
+    index: number;
     name: string;
-    season: string;
     description: string;
-    jd: number;
-    date: string;
+    longitude: number;
+    current_longitude: number;
+    season: string;
+}
+
+export interface HourInfoDto {
+    hour_index: number;
+    hour_chi: string;
+    time_range: string;
+    star: string;
+    is_good: boolean;
 }
 
 export interface GioHoangDaoDto {
-    good_hours: any[];
+    day_chi: string;
+    good_hour_count: number;
+    good_hours: HourInfoDto[];
+    all_hours: HourInfoDto[];
+    summary: string;
 }
 
-export type RecommendationBucketDto = 'Nen' | 'CoThe' | 'Tranh' | 'KyManh';
-export type RecommendationSeverityDto = 'Primary' | 'Secondary' | 'Tertiary';
+export interface RuleEvidenceDto {
+    source_id: string;
+    method: string;
+    profile: string;
+}
+
+export interface DayElementDto {
+    na_am: string;
+    element: string;
+    can_element: string;
+    chi_element: string;
+    evidence?: RuleEvidenceDto | null;
+}
+
+export interface DayConflictDto {
+    opposing_chi: string;
+    opposing_con_giap: string;
+    tuoi_xung: string[];
+    sat_huong: string;
+    evidence?: RuleEvidenceDto | null;
+}
+
+export interface TravelDirectionDto {
+    xuat_hanh_huong: string;
+    tai_than: string;
+    hy_than: string;
+    evidence?: RuleEvidenceDto | null;
+}
+
+export interface DayStarDto {
+    system: string;
+    index: number;
+    name: string;
+    quality: string;
+    evidence?: RuleEvidenceDto | null;
+}
+
+export interface StarRuleEvidenceDto {
+    name: string;
+    quality: string;
+    category: string;
+    source_id: string;
+    method: string;
+    profile: string;
+}
+
+export interface DayStarsDto {
+    cat_tinh: string[];
+    sat_tinh: string[];
+    day_star?: DayStarDto | null;
+    star_system?: string | null;
+    evidence?: RuleEvidenceDto | null;
+    matched_rules: StarRuleEvidenceDto[];
+}
+
+export interface DayDeityDto {
+    name: string;
+    classification: string;
+    evidence?: RuleEvidenceDto | null;
+}
+
+export interface XungHopDto {
+    luc_xung: string;
+    tam_hop: string[];
+    tu_hanh_xung: string[];
+    liu_he?: string | null;
+    xiang_hai?: string | null;
+    xiang_xing?: string[] | null;
+}
+
+export interface TangCanDto {
+    main: string;
+    central: string;
+    residual: string;
+    strength: [number, number, number];
+}
+
+export interface TrucDto {
+    index: number;
+    name: string;
+    quality: string;
+    evidence?: RuleEvidenceDto | null;
+}
+
+export interface ThapThanResultDto {
+    label: string;
+    relation: string;
+    same_polarity: boolean;
+    evidence: RuleEvidenceDto;
+}
+
+export interface DayTenGodsDto {
+    to_year_stem?: ThapThanResultDto | null;
+    to_self?: ThapThanResultDto | null;
+}
+
+export interface DayTabooDto {
+    rule_id: string;
+    name: string;
+    severity: string;
+    reason: string;
+    evidence?: RuleEvidenceDto | null;
+}
+
+export interface KuaResultDto {
+    kua: number;
+    group: string;
+    favorable_directions: string[];
+    unfavorable_directions: string[];
+    convention: ConventionMetadataDto;
+}
+
+export interface ConventionMetadataDto {
+    year_basis: string;
+    kua_five_resolution: string;
+    gender_encoding: string;
+}
+
+export interface DayFortuneDto {
+    ruleset_id: string;
+    ruleset_version: string;
+    profile: string;
+    day_element: DayElementDto;
+    conflict: DayConflictDto;
+    travel: TravelDirectionDto;
+    stars: DayStarsDto;
+    day_deity?: DayDeityDto | null;
+    taboos: DayTabooDto[];
+    xung_hop: XungHopDto;
+    truc: TrucDto;
+    tang_can?: TangCanDto | null;
+    ten_gods?: DayTenGodsDto | null;
+    tu_menh?: KuaResultDto | null;
+}
+
+export type RecommendationScopeDto = 'general_day';
+export type RecommendationBucketDto = 'nen' | 'co_the' | 'tranh' | 'ky_manh';
+export type RecommendationSeverityDto = 'primary' | 'supporting' | 'override';
+export type RecommendationEvidenceSourceDto =
+    | 'day_guidance'
+    | 'truc'
+    | 'stars'
+    | 'day_deity'
+    | 'taboo'
+    | 'xung_hop'
+    | 'tiet_khi'
+    | 'gio_hoang_dao'
+    | 'travel'
+    | 'product_rule';
 
 export interface ActivityLabelDto {
     vi: string;
     en: string;
-}
-
-export interface RecommendationEvidenceSourceDto {
-    source_family: string;
-    source_id: string;
 }
 
 export interface RecommendationEvidenceDto {
@@ -88,44 +260,95 @@ export interface SynthesizedRecommendationDto {
     reasons: RecommendationReasonDto[];
 }
 
+export interface ActiveRecommendationPackDto {
+    pack_id: string;
+    version: string;
+    source_family: string;
+    mode: string;
+}
+
 export interface DailyRecommendationsDto {
     ruleset_id: string;
     ruleset_version: string;
     profile: string;
+    scope: RecommendationScopeDto;
     version: string;
     summary_vi: string;
     summary_en: string;
+    active_packs: ActiveRecommendationPackDto[];
     activities: SynthesizedRecommendationDto[];
 }
 
-export interface DayBundleDto {
-    schema_version: string;
+export interface DayInfoDto {
     ruleset_id: string;
     ruleset_version: string;
     profile: string;
-    generated_at: string;
     solar: SolarDateDto;
     lunar: LunarDateDto;
     jd: number;
-    canchi?: CanChiInfoDto;
-    tiet_khi?: TietKhiDto;
-    gio_hoang_dao?: GioHoangDaoDto;
-    day_fortune?: DayFortuneDto;
-    daily_recommendations?: DailyRecommendationsDto;
-    contextual_recommendations?: DailyRecommendationsDto;
-    insight?: DayInsightDto;
-    upcoming_events: UpcomingEventDto[];
+    canchi: CanChiInfoDto;
+    tiet_khi: TietKhiDto;
+    gio_hoang_dao: GioHoangDaoDto;
+    day_fortune?: DayFortuneDto | null;
+    daily_recommendations: DailyRecommendationsDto;
+    contextual_recommendations?: DailyRecommendationsDto | null;
 }
 
-export interface DayRangeDto {
-    schema_version: string;
-    ruleset_id: string;
-    ruleset_version: string;
-    profile: string;
-    generated_at: string;
-    start: string;
-    end: string;
-    days: DayBundleDto[];
+export interface LocalizedTextDto {
+    vi: string;
+    en: string;
+}
+
+export interface LocalizedListDto {
+    vi: string[];
+    en: string[];
+}
+
+export interface FoodInsightDto {
+    name: LocalizedTextDto;
+    description: LocalizedTextDto;
+}
+
+export interface TabooInsightDto {
+    action: LocalizedTextDto;
+    reason: LocalizedTextDto;
+}
+
+export interface ProverbInsightDto {
+    text: string;
+    meaning: LocalizedTextDto;
+}
+
+export interface RegionsInsightDto {
+    north: LocalizedTextDto;
+    central: LocalizedTextDto;
+    south: LocalizedTextDto;
+}
+
+export interface FestivalInsightDto {
+    names: LocalizedListDto;
+    origin?: LocalizedTextDto | null;
+    activities?: LocalizedListDto | null;
+    food: FoodInsightDto[];
+    taboos: TabooInsightDto[];
+    proverbs: ProverbInsightDto[];
+    regions?: RegionsInsightDto | null;
+    category: string;
+    is_major: boolean;
+}
+
+export interface HolidayInsightDto {
+    names: LocalizedListDto;
+    origin?: LocalizedTextDto | null;
+    significance?: LocalizedTextDto | null;
+    activities?: LocalizedListDto | null;
+    traditions?: LocalizedListDto | null;
+    food: FoodInsightDto[];
+    taboos: TabooInsightDto[];
+    proverbs: ProverbInsightDto[];
+    regions?: RegionsInsightDto | null;
+    category: string;
+    is_major: boolean;
 }
 
 export interface UpcomingEventDto {
@@ -134,40 +357,512 @@ export interface UpcomingEventDto {
     is_lunar: boolean;
 }
 
-export interface DayInsightDto {
-    [key: string]: any;
+export interface ElementInsightDto {
+    key: string;
+    name: LocalizedTextDto;
+    nature: LocalizedTextDto;
 }
 
-export interface DayFortuneDto {
-    [key: string]: any;
+export interface CanInsightDto {
+    name: string;
+    element: string;
+    meaning: LocalizedTextDto;
+    nature: LocalizedTextDto;
+}
+
+export interface ChiInsightDto {
+    name: string;
+    animal: LocalizedTextDto;
+    element: string;
+    meaning: LocalizedTextDto;
+    hours: string;
+}
+
+export interface CanChiInsightDto {
+    can: CanInsightDto;
+    chi: ChiInsightDto;
+    element?: ElementInsightDto | null;
+}
+
+export interface DayGuidanceDto {
+    good_for: LocalizedListDto;
+    avoid_for: LocalizedListDto;
+}
+
+export interface TietKhiInsightDto {
+    id: string;
+    name: LocalizedTextDto;
+    longitude: number;
+    meaning: LocalizedTextDto;
+    astronomy: LocalizedTextDto;
+    agriculture: LocalizedListDto;
+    health: LocalizedListDto;
+    weather: LocalizedTextDto;
+}
+
+export interface NaAmInsightDto {
+    na_am: string;
+    element: string;
+    meaning: LocalizedTextDto;
+}
+
+export interface TrucInsightDto {
+    name: string;
+    quality: string;
+    meaning: LocalizedTextDto;
+    good_for: LocalizedListDto;
+    avoid_for: LocalizedListDto;
+}
+
+export interface DayDeityInsightDto {
+    name: string;
+    classification: string;
+    classification_meaning: LocalizedTextDto;
+    deity_meaning?: LocalizedTextDto | null;
+}
+
+export interface StarsInsightDto {
+    cat_tinh: string[];
+    sat_tinh: string[];
+    day_star?: string | null;
+    day_star_quality?: string | null;
+}
+
+export interface TabooInsightItemDto {
+    name: string;
+    severity: string;
+    reason: string;
+}
+
+export interface TravelInsightDto {
+    xuat_hanh_huong: string;
+    tai_than: string;
+    hy_than: string;
+}
+
+export interface XungHopInsightDto {
+    luc_xung: string;
+    tam_hop: string[];
+    liu_he?: string | null;
+    xiang_hai?: string | null;
+}
+
+export interface TangCanInsightDto {
+    main: string;
+    central: string;
+    residual: string;
+    strength: [number, number, number];
+}
+
+export interface TenGodsEntryInsightDto {
+    label: string;
+    name: LocalizedTextDto;
+    meaning: LocalizedTextDto;
+    relation: string;
+    same_polarity: boolean;
+}
+
+export interface TenGodsInsightDto {
+    to_year_stem?: TenGodsEntryInsightDto | null;
+    to_self?: TenGodsEntryInsightDto | null;
+}
+
+export interface HourInsightEntryDto {
+    chi: string;
+    time_range: string;
+    star: string;
+}
+
+export interface HoursInsightDto {
+    good_hour_count: number;
+    good_hours: HourInsightEntryDto[];
+}
+
+export interface TuMenhInsightDto {
+    kua: number;
+    group: string;
+    trigram: LocalizedTextDto;
+    direction: LocalizedTextDto;
+    meaning: LocalizedTextDto;
+    group_meaning: LocalizedTextDto;
+    favorable_directions: string[];
+    unfavorable_directions: string[];
+}
+
+export interface DaiVanPillarInsightDto {
+    index: number;
+    can_chi: string;
+    start_age: number;
+    end_age: number;
+    element: string;
+    element_meaning: LocalizedTextDto;
+}
+
+export interface DaiVanInsightDto {
+    direction: string;
+    direction_meaning: LocalizedTextDto;
+    start_age: string;
+    current_pillar?: DaiVanPillarInsightDto | null;
+    all_pillars: DaiVanPillarInsightDto[];
+    phases_meaning: LocalizedTextDto;
+}
+
+export interface CuuDieuInsightDto {
+    star_index: number;
+    star_name: string;
+    quality: string;
+    is_han: boolean;
+    element: string;
+}
+
+export interface TamTaiInsightDto {
+    in_tam_tai: boolean;
+    year_position?: number | null;
+    severity?: string | null;
+    tam_hop_group: string[];
+    tai_years: string[];
+}
+
+export interface KimLauInsightDto {
+    in_kim_lau: boolean;
+    category?: string | null;
+    remainder: number;
+    tuoi_mu: number;
+}
+
+export interface HoangOcInsightDto {
+    position: number;
+    position_name: string;
+    is_good: boolean;
+    tuoi_mu: number;
+}
+
+export interface ThaiTueConflictDto {
+    kind: string;
+    description: string;
+}
+
+export interface ThaiTueInsightDto {
+    conflicts: ThaiTueConflictDto[];
+    has_conflict: boolean;
+}
+
+export interface YearlyHanInsightDto {
+    sao_han: CuuDieuInsightDto;
+    tam_tai: TamTaiInsightDto;
+    kim_lau: KimLauInsightDto;
+    hoang_oc: HoangOcInsightDto;
+    thai_tue: ThaiTueInsightDto;
+    han_count: number;
+    is_chong_han: boolean;
+    severity: string;
+}
+
+export interface DayInsightDto {
+    solar: SolarDateDto;
+    lunar: LunarDateDto;
+    festival?: FestivalInsightDto | null;
+    holiday?: HolidayInsightDto | null;
+    canchi?: CanChiInsightDto | null;
+    day_guidance?: DayGuidanceDto | null;
+    tiet_khi?: TietKhiInsightDto | null;
+    na_am?: NaAmInsightDto | null;
+    truc?: TrucInsightDto | null;
+    day_deity?: DayDeityInsightDto | null;
+    stars?: StarsInsightDto | null;
+    taboos?: TabooInsightItemDto[] | null;
+    travel?: TravelInsightDto | null;
+    xung_hop?: XungHopInsightDto | null;
+    tang_can?: TangCanInsightDto | null;
+    ten_gods?: TenGodsInsightDto | null;
+    hours?: HoursInsightDto | null;
+    tu_menh?: TuMenhInsightDto | null;
+    dai_van?: DaiVanInsightDto | null;
+    yearly_han?: YearlyHanInsightDto | null;
+}
+
+export interface BaziCanChiDto {
+    can: string;
+    chi: string;
+    full: string;
+    can_index: number;
+    chi_index: number;
+}
+
+export interface BaziLunarDateDto {
+    day: number;
+    month: number;
+    year: number;
+    is_leap: boolean;
+}
+
+export interface HiddenStemEntryDto {
+    stem_symbol: string;
+    stem_name?: string | null;
+    strength: number;
+    ten_god_to_day_master?: ThapThanResultDto | null;
+}
+
+export interface BaziPillarDto {
+    kind: string;
+    can_chi: BaziCanChiDto;
+    hidden_stems: HiddenStemEntryDto[];
+    na_am?: string | null;
+    stem_relation_to_day_master?: ThapThanResultDto | null;
+}
+
+export interface BaziChartMetadataDto {
+    timezone: number;
+    use_solar_time: boolean;
+    year_basis: string;
+    month_basis: string;
+    day_basis: string;
+    hour_basis: string;
+    hour_evidence?: RuleEvidenceDto | null;
+}
+
+export type BirthDataTierDto = 'anonymous' | 'date' | 'datetime';
+
+export interface BaziChartDto {
+    input: BaziQuery;
+    tier: BirthDataTierDto;
+    lunar_date: BaziLunarDateDto;
+    day_master: BaziCanChiDto;
+    pillars: BaziPillarDto[];
+    metadata: BaziChartMetadataDto;
+}
+
+export interface ElementDistributionDto {
+    moc: number;
+    hoa: number;
+    tho: number;
+    kim: number;
+    thuy: number;
+}
+
+export interface DayMasterStrengthDto {
+    score: number;
+    label: string;
+    reasons: string[];
+}
+
+export interface ChartInteractionDto {
+    kind: string;
+    participants: string[];
+    summary_vi: string;
+}
+
+export interface TenGodDistributionDto {
+    ty_kien: number;
+    kiep_tai: number;
+    thuc_than: number;
+    thuong_quan: number;
+    chinh_tai: number;
+    thien_tai: number;
+    chinh_quan: number;
+    that_sat: number;
+    chinh_an: number;
+    thien_an: number;
+}
+
+export interface UnavailableSectionDto {
+    section: string;
+    reason: string;
+    required_fields: string[];
+}
+
+export interface BaziAnalysisDto {
+    tier: BirthDataTierDto;
+    element_distribution: ElementDistributionDto;
+    day_master_strength: DayMasterStrengthDto;
+    interactions: ChartInteractionDto[];
+    ten_god_distribution: TenGodDistributionDto;
+    unavailable_sections: UnavailableSectionDto[];
+}
+
+export interface BaziLuckPillarDto {
+    index: number;
+    can_chi: string;
+    start_age: number;
+    end_age: number;
+    ten_god_to_day_master?: ThapThanResultDto | null;
+}
+
+export interface AnnualPillarDto {
+    year: number;
+    can_chi: string;
+    branch: string;
+    ten_god_to_day_master?: ThapThanResultDto | null;
+    interactions: string[];
+}
+
+export interface MonthlyPillarDto {
+    year: number;
+    month: number;
+    can_chi: string;
+    branch: string;
+    ten_god_to_day_master?: ThapThanResultDto | null;
+    interactions: string[];
+}
+
+export interface BaziTimingDto {
+    dai_van: BaziLuckPillarDto[];
+    active_dai_van?: BaziLuckPillarDto | null;
+    annual: AnnualPillarDto;
+    monthly: MonthlyPillarDto[];
+}
+
+export interface UsefulGodDto {
+    favorable_elements: string[];
+    unfavorable_elements: string[];
+    tentative_yong_shen?: string | null;
+    tentative_xi_shen?: string | null;
+    confidence: string;
+    reasons: string[];
+}
+
+export interface BaziAdvisoryDomainsDto {
+    career: string[];
+    wealth: string[];
+    relationship: string[];
+    health: string[];
+    timing: string[];
+}
+
+export interface BaziAdvisoryDto {
+    summary: string;
+    severity: string;
+    top_signals: string[];
+    why_this_matters: string[];
+    recommended_actions: string[];
+    priority_order: string[];
+    useful_god_analysis: UsefulGodDto;
+    summary_vi: string;
+    warnings: string[];
+    domains: BaziAdvisoryDomainsDto;
+}
+
+export interface BaziInteractionMetricDto {
+    kind: string;
+    participants: string[];
+    impact: number;
+}
+
+export interface BaziScoreContributorDto {
+    signal: string;
+    delta: number;
+}
+
+export interface BaziDomainScoreDto {
+    score: number;
+    label: string;
+    confidence: number;
+    contributors: BaziScoreContributorDto[];
+}
+
+export interface BaziDomainScoresDto {
+    career: BaziDomainScoreDto;
+    wealth: BaziDomainScoreDto;
+    relationship: BaziDomainScoreDto;
+    health: BaziDomainScoreDto;
+    timing: BaziDomainScoreDto;
+}
+
+export interface BaziTimingWindowScoreDto {
+    month: number;
+    score: number;
+    label: string;
+}
+
+export interface BaziTimingMetricsDto {
+    current_dai_van_alignment?: number | null;
+    annual_alignment?: number | null;
+    monthly_windows: BaziTimingWindowScoreDto[];
+    activation_summary: string[];
+}
+
+export interface BaziCoreMetricsDto {
+    day_master_strength_score: number;
+    day_master_strength_label: string;
+    season_support_score: number;
+    same_element_score: number;
+    resource_support_score: number;
+    drain_pressure_score: number;
+    control_pressure_score: number;
+    element_balance_score: number;
+}
+
+export interface BaziStructureMetricsDto {
+    dominant_elements: string[];
+    weak_elements: string[];
+    dominant_ten_gods: string[];
+    interaction_score: number;
+    notable_interactions: BaziInteractionMetricDto[];
+    confidence: number;
+}
+
+export interface BaziComputedMetricsDto {
+    tier: BirthDataTierDto;
+    core_metrics: BaziCoreMetricsDto;
+    structure_metrics: BaziStructureMetricsDto;
+    domain_scores: BaziDomainScoresDto;
+    timing_metrics: BaziTimingMetricsDto;
+    unavailable_sections: UnavailableSectionDto[];
 }
 
 export interface BaziReportDto {
-    [key: string]: any;
+    summary: string;
+    severity: string;
+    top_signals: string[];
+    why_this_matters: string[];
+    recommended_actions: string[];
+    priority_order: string[];
+    chart: BaziChartDto;
+    analysis: BaziAnalysisDto;
+    timing?: BaziTimingDto | null;
+    computed_metrics: BaziComputedMetricsDto;
+    advisory: BaziAdvisoryDto;
 }
 
-export interface BaziDerivedReportDto {
-    [key: string]: any;
+export interface RulesetDefaultsDto {
+    tz_offset: number;
+    meridian?: string | null;
 }
 
-export interface HourSelectionReportDto {
-    [key: string]: any;
+export interface RulesetSourceNoteDto {
+    family: string;
+    source_id: string;
+    note: string;
 }
 
 export interface RulesetCatalogEntryDto {
-    [key: string]: any;
+    id: string;
+    canonical_id: string;
+    version: string;
+    region: string;
+    profile: string;
+    schema_version: string;
+    is_default: boolean;
+    aliases: string[];
+    defaults: RulesetDefaultsDto;
+    source_notes: RulesetSourceNoteDto[];
 }
 
 export interface RecommendationPackCatalogEntryDto {
-    [key: string]: any;
+    pack_id: string;
+    request_field: string;
+    version: string;
+    source_family: string;
+    mode: string;
 }
 
 export interface HolidayDto {
     name: string;
     description: string;
     is_solar: boolean;
-    lunar_day?: number;
-    lunar_month?: number;
+    lunar_day?: number | null;
+    lunar_month?: number | null;
+    lunar_year?: number | null;
     solar_day: number;
     solar_month: number;
     solar_year: number;
@@ -175,22 +870,480 @@ export interface HolidayDto {
     is_major: boolean;
 }
 
+export type ActionIdDto = 'initiation_opening';
+export type NodeKindDto = 'fact' | 'interpreted_signal' | 'decision_target';
+export type InterpretedAxisDto =
+    | 'support'
+    | 'resistance'
+    | 'stability'
+    | 'personal_alignment'
+    | 'timing_fit'
+    | 'context_clarity';
+export type EdgeEffectDto = 'supports' | 'weakens' | 'overrides' | 'conflicts_with' | 'conditions';
+export type DecisionConfidenceDto = 'low' | 'medium' | 'high';
+export type InitiationRecommendationBucketDto = 'avoid' | 'cautious' | 'mixed' | 'favorable';
+export type ReasoningConclusionSemanticDto =
+    | 'override_avoid'
+    | 'override_cautious'
+    | 'conflicted_cautious'
+    | 'resistance_led_cautious'
+    | 'favorable_clear'
+    | 'favorable_contextual';
+export type ReasoningEvidenceSourceFamilyDto =
+    | 'snapshot'
+    | 'interaction'
+    | 'bazi'
+    | 'axis'
+    | 'almanac_rule'
+    | 'insight'
+    | 'derived';
+export type ReasoningNodeSeverityDto =
+    | 'auspicious'
+    | 'inauspicious'
+    | 'hard_taboo'
+    | 'soft_taboo'
+    | 'hoang_dao'
+    | 'hac_dao';
+export type ReasoningEdgeJustificationDto =
+    | 'favorable_day_signal'
+    | 'truc_activity_support'
+    | 'truc_activity_conflict'
+    | 'day_deity_support'
+    | 'star_support'
+    | 'taboo_pressure'
+    | 'taboo_stability_penalty'
+    | 'taboo_context_penalty'
+    | 'clash_pressure'
+    | 'clash_stability_penalty'
+    | 'hoang_dao_hour_support'
+    | 'personal_day_alignment'
+    | 'personal_hour_alignment'
+    | 'mixed_signal_conflict'
+    | 'available_context_support';
+
+export interface InitiationOpeningDecisionDto {
+    primary_conclusion: string;
+    recommendation_bucket: InitiationRecommendationBucketDto;
+    strongest_supports: string[];
+    strongest_resistances: string[];
+    override_factors: string[];
+    conflict_notes: string[];
+    confidence: DecisionConfidenceDto;
+    context_is_clear: boolean;
+    suggested_hours: string[];
+    suggested_directions: string[];
+}
+
+export interface ReasoningEvidenceEnvelopeDto {
+    source_family: ReasoningEvidenceSourceFamilyDto;
+    source_id: string;
+    method: string;
+    note?: string | null;
+}
+
+export interface ReasoningNoteDto {
+    node_id?: string | null;
+    summary_vi: string;
+    tags: string[];
+    provenance: ReasoningEvidenceEnvelopeDto[];
+}
+
+export interface ReasoningNodeExportDto {
+    id: string;
+    kind: NodeKindDto;
+    axis?: InterpretedAxisDto | null;
+    severity?: ReasoningNodeSeverityDto | null;
+    tags: string[];
+    summary_vi: string;
+    evidence: ReasoningEvidenceEnvelopeDto[];
+}
+
+export interface ReasoningEdgeExportDto {
+    from_node_id: string;
+    to_node_id: string;
+    effect: EdgeEffectDto;
+    weight: number;
+    justification: ReasoningEdgeJustificationDto;
+    evidence: ReasoningEvidenceEnvelopeDto[];
+    tags: string[];
+}
+
+export interface ReasoningGraphExportDto {
+    action_id: ActionIdDto;
+    nodes: ReasoningNodeExportDto[];
+    edges: ReasoningEdgeExportDto[];
+}
+
+export interface ReasoningAxisScoreDto {
+    axis: InterpretedAxisDto;
+    score: number;
+    strongest_node_id?: string | null;
+    strongest_summary_vi?: string | null;
+}
+
+export interface InitiationOpeningDecisionExportDto {
+    primary_conclusion: string;
+    recommendation_bucket: InitiationRecommendationBucketDto;
+    confidence: DecisionConfidenceDto;
+    context_is_clear: boolean;
+    semantic: ReasoningConclusionSemanticDto;
+    strongest_supports: ReasoningNoteDto[];
+    strongest_resistances: ReasoningNoteDto[];
+    override_factors: ReasoningNoteDto[];
+    conflict_notes: ReasoningNoteDto[];
+    suggested_hours: string[];
+    suggested_directions: string[];
+    axis_scores: ReasoningAxisScoreDto[];
+}
+
+export interface PersonalDayQueryDto {
+    date: DateQuery;
+    birth_year?: number | null;
+    birth_month?: number | null;
+    birth_day?: number | null;
+    gender?: string | null;
+}
+
+export interface PersonalDayChartDto {
+    input: PersonalDayQueryDto;
+    tier: BirthDataTierDto;
+    solar: SolarDateDto;
+    lunar: LunarDateDto;
+    canchi?: CanChiInsightDto | null;
+    tiet_khi?: TietKhiInsightDto | null;
+}
+
+export interface PersonalDayAnalysisDto {
+    tier: BirthDataTierDto;
+    decision?: InitiationOpeningDecisionDto | null;
+    decision_export?: InitiationOpeningDecisionExportDto | null;
+    graph?: ReasoningGraphExportDto | null;
+    ten_gods?: TenGodsInsightDto | null;
+    xung_hop?: XungHopInsightDto | null;
+    tang_can?: TangCanInsightDto | null;
+    tu_menh?: TuMenhInsightDto | null;
+    dai_van?: DaiVanInsightDto | null;
+    yearly_han?: YearlyHanInsightDto | null;
+    unavailable_sections: UnavailableSectionDto[];
+}
+
+export interface PersonalDayMetricsDto {
+    tier: BirthDataTierDto;
+    profile_completeness: number;
+    available_sections: string[];
+    unavailable_sections: UnavailableSectionDto[];
+    has_personal_recommendations: boolean;
+}
+
+export interface PersonalDayAdvisoryDto {
+    summary: string;
+    severity: string;
+    top_signals: string[];
+    why_this_matters: string[];
+    recommended_actions: string[];
+    priority_order: string[];
+    highlights: string[];
+    cautions: string[];
+    reasoning_bucket?: string | null;
+    reasoning_confidence?: string | null;
+}
+
 export interface PersonalDayReportDto {
-    [key: string]: any;
+    summary: string;
+    severity: string;
+    top_signals: string[];
+    chart: PersonalDayChartDto;
+    decision?: InitiationOpeningDecisionDto | null;
+    decision_export?: InitiationOpeningDecisionExportDto | null;
+    graph?: ReasoningGraphExportDto | null;
+    analysis: PersonalDayAnalysisDto;
+    computed_metrics: PersonalDayMetricsDto;
+    advisory: PersonalDayAdvisoryDto;
+}
+
+export type PillarKindDto = 'year' | 'month' | 'day' | 'hour';
+export type ElementInteractionDto =
+    | 'same'
+    | 'day_generates_pillar'
+    | 'pillar_generates_day'
+    | 'day_controls_pillar'
+    | 'pillar_controls_day';
+export type DirectionSignalDto =
+    | 'kua_favorable'
+    | 'kua_unfavorable'
+    | 'tai_than'
+    | 'hy_than'
+    | 'phuc_than'
+    | 'sat_phuong';
+
+export interface BranchRelationDto {
+    luc_xung: boolean;
+    luc_hop: boolean;
+    tam_hop: boolean;
+    tuong_hai: boolean;
+    tuong_hinh: boolean;
+}
+
+export interface PillarInteractionDto {
+    pillar: PillarKindDto;
+    pillar_canchi: string;
+    thap_than: ThapThanResultDto;
+    branch_relation: BranchRelationDto;
+    element_interaction: ElementInteractionDto;
+}
+
+export interface DayPersonMatrixDto {
+    day_canchi: string;
+    day_master: string;
+    day_to_day_master: ThapThanResultDto;
+    pillars: PillarInteractionDto[];
+    evidence: RuleEvidenceDto;
+}
+
+export interface ElementResonanceEntryDto {
+    element: string;
+    personal_score: number;
+    relation_to_day: number;
+    season_factor: number;
+    effective_resonance: number;
+    is_deficit: boolean;
+    day_helps_deficit: boolean;
+}
+
+export interface ElementResonanceMatrixDto {
+    day_canchi: string;
+    day_element: string;
+    month_chi: string;
+    season_factor: number;
+    entries: ElementResonanceEntryDto[];
+    net_resonance: number;
+    evidence: RuleEvidenceDto;
+}
+
+export interface PersonalHourEntryDto {
+    chi_index: number;
+    chi: string;
+    canchi: string;
+    time_range: string;
+    is_hoang_dao: boolean;
+    star_name: string;
+    thap_than_to_day_master: ThapThanResultDto;
+    branch_relation_to_birth_hour: BranchRelationDto;
+    element_interaction: ElementInteractionDto;
+    supports_weak_element: boolean;
+    score: number;
+}
+
+export interface PersonalHourMatrixDto {
+    day_canchi: string;
+    day_master: string;
+    birth_hour_chi: string;
+    weak_element: string;
+    hours: PersonalHourEntryDto[];
+    evidence: RuleEvidenceDto;
+}
+
+export interface DirectionEntryDto {
+    direction: string;
+    signals: DirectionSignalDto[];
+    favorable_count: number;
+    unfavorable_count: number;
+    net_score: number;
+}
+
+export interface DirectionMergeMatrixDto {
+    day_canchi: string;
+    kua_number: number;
+    entries: DirectionEntryDto[];
+    evidence: RuleEvidenceDto;
+}
+
+export interface DomainDayBoostEntryDto {
+    domain: string;
+    base_score: number;
+    day_modifier: number;
+    han_penalty: number;
+    boosted_score: number;
+}
+
+export interface DomainDayBoostMatrixDto {
+    day_canchi: string;
+    entries: DomainDayBoostEntryDto[];
+    evidence: RuleEvidenceDto;
+}
+
+export interface PersonalDayMatrixQueryDto {
+    birth: BaziQuery;
+    date: DateQuery;
 }
 
 export interface PersonalDayMatrixReportDto {
-    [key: string]: any;
+    input: PersonalDayMatrixQueryDto;
+    tier: BirthDataTierDto;
+    day_person: DayPersonMatrixDto;
+    element_resonance: ElementResonanceMatrixDto;
+    personal_hours?: PersonalHourMatrixDto | null;
+    direction_merge?: DirectionMergeMatrixDto | null;
+    domain_day_boost?: DomainDayBoostMatrixDto | null;
+    unavailable_sections: UnavailableSectionDto[];
 }
 
-export interface TietKhiYearDto {
-    year: number;
-    transitions: TietKhiTransitionDto[];
+export interface HourSelectionQueryDto {
+    date: DateQuery;
+}
+
+export interface HourSelectionChartDto {
+    input: HourSelectionQueryDto;
+    solar: SolarDateDto;
+    lunar: LunarDateDto;
+    gio_hoang_dao: GioHoangDaoDto;
+}
+
+export interface RankedHourCandidateDto {
+    chi_name: string;
+    time_range: string;
+    is_auspicious: boolean;
+    score: number;
+    note_vi: string;
+}
+
+export interface HourSelectionEvidenceDto {
+    source_family: string;
+    source_id: string;
+    method: string;
+    note?: string | null;
+}
+
+export interface HourSelectionReasoningExportDto {
+    intent: string;
+    birth_data_tier: BirthDataTierDto;
+    summary_vi: string;
+    summary_en: string;
+    top_recommendation?: RankedHourCandidateDto | null;
+    ranked_hours: RankedHourCandidateDto[];
+    auspicious_count: number;
+    total_hours: number;
+    evidence: HourSelectionEvidenceDto[];
+}
+
+export interface HourSelectionAnalysisDto {
+    intent: string;
+    summary_vi: string;
+    summary_en: string;
+    good_hours: HourInfoDto[];
+    bad_hours: HourInfoDto[];
+    top_recommendation?: HourInfoDto | null;
+    canonical?: HourSelectionReasoningExportDto | null;
+}
+
+export interface HourSelectionMetricsDto {
+    good_hour_count: number;
+    bad_hour_count: number;
+    good_hour_ratio: number;
+}
+
+export interface HourSelectionAdvisoryDto {
+    intent: string;
+    summary_vi: string;
+    summary_en: string;
+    best_windows: string[];
+    caution_windows: string[];
+    canonical?: HourSelectionReasoningExportDto | null;
+}
+
+export interface HourSelectionReportDto {
+    chart: HourSelectionChartDto;
+    analysis: HourSelectionAnalysisDto;
+    computed_metrics: HourSelectionMetricsDto;
+    advisory: HourSelectionAdvisoryDto;
+}
+
+export interface ThaiNguyenDto {
+    can_chi: BaziCanChiDto;
+    evidence: RuleEvidenceDto;
+}
+
+export interface MenhCungDto {
+    menh_cung: BaziCanChiDto;
+    than_cung: BaziCanChiDto;
+    evidence: RuleEvidenceDto;
+}
+
+export interface KhongVongPairDto {
+    branch_indices: [number, number];
+    branch_names: [string, string];
+}
+
+export interface KhongVongPillarEntryDto {
+    pillar: string;
+    void_pair: KhongVongPairDto;
+    hits: string[];
+}
+
+export interface KhongVongAnalysisDto {
+    entries: KhongVongPillarEntryDto[];
+    evidence: RuleEvidenceDto;
+}
+
+export interface ThanSatEntryDto {
+    name: string;
+    source: string;
+    target_branch: number;
+    target_branch_name: string;
+    present_in: string[];
+}
+
+export interface ThanSatResultDto {
+    stars: ThanSatEntryDto[];
+    evidence: RuleEvidenceDto;
+}
+
+export interface BaziDerivedReportDto {
+    input: BaziQuery;
+    tier: BirthDataTierDto;
+    thai_nguyen: ThaiNguyenDto;
+    menh_cung?: MenhCungDto | null;
+    khong_vong: KhongVongAnalysisDto;
+    than_sat: ThanSatResultDto;
+    unavailable_sections: UnavailableSectionDto[];
+}
+
+export interface ApiMetaDto {
+    schema_version: string;
+    ruleset_id: string;
+    ruleset_version: string;
+    profile: string;
+    generated_at: string;
+}
+
+export interface DayBundleDto extends ApiMetaDto {
+    solar: SolarDateDto;
+    lunar: LunarDateDto;
+    jd: number;
+    canchi?: CanChiInfoDto | null;
+    tiet_khi?: TietKhiDto | null;
+    gio_hoang_dao?: GioHoangDaoDto | null;
+    day_fortune?: DayFortuneDto | null;
+    daily_recommendations?: DailyRecommendationsDto | null;
+    contextual_recommendations?: DailyRecommendationsDto | null;
+    insight?: DayInsightDto | null;
+    upcoming_events: UpcomingEventDto[];
+}
+
+export interface DayRangeDto extends ApiMetaDto {
+    start: string;
+    end: string;
+    days: DayBundleDto[];
 }
 
 export interface TietKhiTransitionDto {
     date: string;
     term: TietKhiDto;
+}
+
+export interface TietKhiYearDto {
+    year: number;
+    transitions: TietKhiTransitionDto[];
 }
 
 export type ApiInclude =
@@ -199,15 +1352,6 @@ export type ApiInclude =
     | 'tiet_khi'
     | 'hours'
     | 'fortune'
+    | 'recommendations'
     | 'insight'
     | 'evidence';
-
-export interface DateQuery {
-    day: number;
-    month: number;
-    year: number;
-    timezone?: number | null;
-    ruleset_id?: string | null;
-    event_kind?: string | null;
-    enabled_pack_ids?: string[];
-}
