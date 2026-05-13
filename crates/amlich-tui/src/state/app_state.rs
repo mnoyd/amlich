@@ -570,6 +570,163 @@ pub struct ConvergenceLensEntry {
     pub provenance: Vec<amlich_core::ReasoningEvidenceEnvelope>,
 }
 
+#[derive(Debug, Clone)]
+struct GraphRecommendationActivity {
+    label_vi: String,
+    reasons: Vec<GraphRecommendationReason>,
+}
+
+#[derive(Debug, Clone)]
+struct GraphRecommendationReason {
+    summary: String,
+    severity: Option<String>,
+    provenance: Vec<amlich_core::ReasoningEvidenceEnvelope>,
+}
+
+fn enrich_recommendation_entries_from_graph(
+    entries: &mut Vec<RecommendationLensEntry>,
+    inspection: &amlich_core::DebugSemanticGraphInspection,
+) {
+    let graph_activities = collect_graph_recommendation_activities(inspection);
+    if graph_activities.is_empty() {
+        return;
+    }
+
+    for graph_activity in &graph_activities {
+        let Some(entry) = entries
+            .iter_mut()
+            .find(|entry| entry.activity == graph_activity.label_vi)
+        else {
+            entries.push(recommendation_entry_from_graph_activity(graph_activity));
+            continue;
+        };
+
+        let reasons: Vec<String> = graph_activity
+            .reasons
+            .iter()
+            .map(|reason| reason.summary.clone())
+            .collect();
+        if !reasons.is_empty() {
+            entry.headline_reason = reasons[0].clone();
+            entry.reasons = reasons;
+        }
+
+        entry.provenance = graph_activity
+            .reasons
+            .iter()
+            .flat_map(|reason| reason.provenance.clone())
+            .collect();
+        entry.source = summarize_graph_sources(&entry.provenance);
+    }
+}
+
+fn collect_graph_recommendation_activities(
+    inspection: &amlich_core::DebugSemanticGraphInspection,
+) -> Vec<GraphRecommendationActivity> {
+    let nodes_by_id: std::collections::HashMap<_, _> = inspection
+        .visualization
+        .nodes
+        .iter()
+        .map(|node| (node.node_id.as_str(), node))
+        .collect();
+    let mut activities = Vec::new();
+
+    for activity in inspection
+        .visualization
+        .nodes
+        .iter()
+        .filter(|node| node.semantic_kind == "activity")
+    {
+        let mut reasons: Vec<GraphRecommendationReason> = inspection
+            .visualization
+            .edges
+            .iter()
+            .filter(|edge| {
+                edge.to_id == activity.node_id && edge.semantic_kind == "targets_activity"
+            })
+            .filter_map(|edge| nodes_by_id.get(edge.from_id.as_str()).copied())
+            .filter(|node| node.semantic_kind == "recommendation_hit")
+            .map(|node| GraphRecommendationReason {
+                summary: node.label.clone(),
+                severity: node.severity.clone(),
+                provenance: node.provenance.clone(),
+            })
+            .collect();
+
+        reasons.sort_by(|a, b| {
+            recommendation_reason_sort_key(a)
+                .cmp(&recommendation_reason_sort_key(b))
+                .then_with(|| a.summary.cmp(&b.summary))
+        });
+
+        activities.push(GraphRecommendationActivity {
+            label_vi: activity
+                .label
+                .split(" / ")
+                .next()
+                .unwrap_or(&activity.label)
+                .to_string(),
+            reasons,
+        });
+    }
+
+    activities.sort_by(|a, b| a.label_vi.cmp(&b.label_vi));
+    activities
+}
+
+fn recommendation_entry_from_graph_activity(
+    activity: &GraphRecommendationActivity,
+) -> RecommendationLensEntry {
+    let verdict = if activity
+        .reasons
+        .iter()
+        .any(|reason| reason.severity.as_deref() == Some("Override"))
+    {
+        RecommendationLensVerdict::KyManh
+    } else {
+        RecommendationLensVerdict::Nen
+    };
+    let reasons: Vec<String> = activity
+        .reasons
+        .iter()
+        .map(|reason| reason.summary.clone())
+        .collect();
+    let provenance: Vec<_> = activity
+        .reasons
+        .iter()
+        .flat_map(|reason| reason.provenance.clone())
+        .collect();
+
+    RecommendationLensEntry {
+        activity: activity.label_vi.clone(),
+        verdict,
+        headline_reason: reasons
+            .first()
+            .cloned()
+            .unwrap_or_else(|| "Chưa có lý do nổi bật.".to_string()),
+        reasons,
+        source: summarize_graph_sources(&provenance),
+        provenance,
+    }
+}
+
+fn recommendation_reason_sort_key(reason: &GraphRecommendationReason) -> u8 {
+    match reason.severity.as_deref() {
+        Some("Override") => 0,
+        Some("Primary") => 1,
+        Some("Supporting") => 2,
+        _ => 3,
+    }
+}
+
+fn summarize_graph_sources(provenance: &[amlich_core::ReasoningEvidenceEnvelope]) -> String {
+    let mut sources = BTreeSet::new();
+    for item in provenance {
+        sources.insert(format!("{:?}:{}", item.source_family, item.method));
+    }
+    sources.into_iter().collect::<Vec<_>>().join(", ")
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 enum PersistedProfileGender {
@@ -1593,6 +1750,8 @@ impl AppState {
                 provenance: Vec::new(),
             });
         }
+
+        enrich_recommendation_entries_from_graph(&mut entries, inspection);
 
         entries.sort_by(|a, b| {
             a.verdict
@@ -3288,6 +3447,27 @@ mod tests {
         assert_eq!(layers[1].kind, RecommendationLayerKind::Baseline);
         assert_eq!(layers[1].label, "Nền tham chiếu");
         assert_eq!(layers[1].profile, "baseline");
+    }
+
+    #[test]
+    fn recommendation_lens_entries_reuse_graph_hit_reasons_and_provenance() {
+        let app = sample_app_state();
+        let inspection = amlich_core::debug_inspect_semantic_graph(12, 3, 2026, true);
+
+        let entries = app.recommendation_lens_entries(&inspection);
+
+        assert!(!entries.is_empty());
+        assert!(
+            entries.iter().any(|entry| !entry.provenance.is_empty()),
+            "graph-backed recommendation entries should carry hit provenance"
+        );
+        assert!(
+            entries
+                .iter()
+                .flat_map(|entry| entry.provenance.iter())
+                .any(|provenance| provenance.method == "recommendation_hit_v1"),
+            "recommendation hit provenance should be visible in the activity lens"
+        );
     }
 
     #[test]

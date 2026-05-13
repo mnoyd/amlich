@@ -48,11 +48,18 @@ impl Widget for GraphInspectorScreenWidget<'_> {
         let month = self.app.date.month() as i32;
         let year = self.app.date.year();
 
+        let include_recommendations = self.app.show_graph_recommendations
+            || (!self.app.dev_inspector_mode
+                && matches!(
+                    self.app.explanation_lens,
+                    UserExplanationLens::HoatDong | UserExplanationLens::Nguon
+                ));
+
         let inspection = amlich_core::debug_inspect_semantic_graph(
             day,
             month,
             year,
-            self.app.show_graph_recommendations,
+            include_recommendations,
         );
 
         if !self.app.dev_inspector_mode {
