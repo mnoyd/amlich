@@ -7,6 +7,7 @@
   import BaziLab from '$lib/components/workspaces/BaziLab.svelte';
   import HourStudio from '$lib/components/workspaces/HourStudio.svelte';
   import PersonalLab from '$lib/components/workspaces/PersonalLab.svelte';
+  import SeasonTimeline from '$lib/components/workspaces/SeasonTimeline.svelte';
   
   import { activeWorkspace } from '$lib/stores';
 </script>
@@ -25,6 +26,8 @@
       <BaziLab />
     {:else if $activeWorkspace === 'personal_lab'}
       <PersonalLab />
+    {:else if $activeWorkspace === 'season_timeline'}
+      <SeasonTimeline />
     {:else}
       <div class="p-8 flex items-center justify-center h-full text-ink-light font-mono italic">
         Workspace "{$activeWorkspace}" is under construction.
