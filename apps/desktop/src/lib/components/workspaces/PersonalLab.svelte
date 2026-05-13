@@ -13,6 +13,15 @@
         UnavailableSectionDto,
     } from '$lib/api/types';
 
+    type PersonalLabProfile = {
+        birthYear?: number;
+        birthMonth?: number;
+        birthDay?: number;
+        birthHour?: number;
+        birthMinute?: number;
+        gender?: string;
+    };
+
     let birthYear = '';
     let birthMonth = '';
     let birthDay = '';
@@ -27,6 +36,7 @@
     let error: string | null = null;
     let matrixError: string | null = null;
     let loadToken = 0;
+    let profileInput: PersonalLabProfile = {};
 
     $: parsedBirthYear = parseOptionalInt(birthYear);
     $: parsedBirthMonth = parseOptionalInt(birthMonth);
@@ -41,17 +51,19 @@
     $: topDomains = sortDomains(matrix?.domain_day_boost?.entries ?? []);
     $: topPersonalHours = sortHours(matrix?.personal_hours?.hours ?? []);
 
-    $: userProfile.set({
+    $: profileInput = {
         birthYear: parsedBirthYear ?? undefined,
         birthMonth: parsedBirthMonth ?? undefined,
         birthDay: parsedBirthDay ?? undefined,
         birthHour: parsedBirthHour ?? undefined,
         birthMinute: parsedBirthMinute ?? undefined,
         gender: gender || undefined,
-    });
+    };
+
+    $: userProfile.set(profileInput);
 
     $: if ($selectedDate) {
-        loadPersonalReports($selectedDate);
+        loadPersonalReports($selectedDate, profileInput);
     }
 
     function parseOptionalInt(value: string): number | null {
@@ -68,12 +80,16 @@
         };
     }
 
-    async function loadPersonalReports(date: Date) {
+    async function loadPersonalReports(date: Date, profile: PersonalLabProfile) {
         const token = ++loadToken;
         const { day, month, year } = currentDayParts(date);
+        const profileHasBirthDate =
+            profile.birthYear !== undefined && profile.birthMonth !== undefined && profile.birthDay !== undefined;
+        const profileHasBirthTime = profile.birthHour !== undefined && profile.birthMinute !== undefined;
+        const profileCanLoadMatrix = profileHasBirthDate && profileHasBirthTime;
 
         loadingReport = true;
-        loadingMatrix = canLoadMatrix;
+        loadingMatrix = profileCanLoadMatrix;
         error = null;
         matrixError = null;
 
@@ -82,10 +98,10 @@
                 day,
                 month,
                 year,
-                parsedBirthYear ?? undefined,
-                parsedBirthMonth ?? undefined,
-                parsedBirthDay ?? undefined,
-                gender || undefined,
+                profile.birthYear,
+                profile.birthMonth,
+                profile.birthDay,
+                profile.gender,
             );
         } catch (e: unknown) {
             if (token !== loadToken) return;
@@ -97,18 +113,18 @@
 
         if (token !== loadToken) return;
 
-        if (!canLoadMatrix) {
+        if (!profileCanLoadMatrix) {
             matrix = null;
             loadingMatrix = false;
             return;
         }
 
         if (
-            parsedBirthYear === null ||
-            parsedBirthMonth === null ||
-            parsedBirthDay === null ||
-            parsedBirthHour === null ||
-            parsedBirthMinute === null
+            profile.birthYear === undefined ||
+            profile.birthMonth === undefined ||
+            profile.birthDay === undefined ||
+            profile.birthHour === undefined ||
+            profile.birthMinute === undefined
         ) {
             matrix = null;
             loadingMatrix = false;
@@ -120,12 +136,12 @@
                 day,
                 month,
                 year,
-                parsedBirthYear,
-                parsedBirthMonth,
-                parsedBirthDay,
-                parsedBirthHour,
-                parsedBirthMinute,
-                gender || undefined,
+                profile.birthYear,
+                profile.birthMonth,
+                profile.birthDay,
+                profile.birthHour,
+                profile.birthMinute,
+                profile.gender,
             );
         } catch (e: unknown) {
             if (token !== loadToken) return;
