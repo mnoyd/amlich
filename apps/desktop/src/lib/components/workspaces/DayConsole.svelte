@@ -108,10 +108,10 @@
             <div class="space-y-4">
                 <h4 class="font-mono font-bold text-nen uppercase border-b-2 border-nen pb-2 flex items-center justify-between">
                     Nên
-                    <span class="text-xs bg-nen/10 px-2 py-0.5 rounded">{groupedRecs.nen.length}</span>
+                    <span class="badge-nen">{groupedRecs.nen.length}</span>
                 </h4>
                 {#each groupedRecs.nen as rec}
-                    <div class="border border-ink-border p-3 bg-parchment-dark/30 hover:border-nen/50 transition-colors">
+                    <div class="card-nen">
                         <div class="font-bold text-sm mb-2">{rec.label.vi}</div>
                         {#if rec.reasons.length > 0}
                             <div class="text-xs text-ink-light border-t border-ink-border pt-2 mt-2">
@@ -124,12 +124,12 @@
 
             <!-- CÓ THỂ -->
             <div class="space-y-4">
-                <h4 class="font-mono font-bold text-ink-light uppercase border-b-2 border-ink-border pb-2 flex items-center justify-between">
+                <h4 class="font-mono font-bold text-cothe uppercase border-b-2 border-cothe pb-2 flex items-center justify-between">
                     Có thể
-                    <span class="text-xs bg-ink/5 px-2 py-0.5 rounded">{groupedRecs.coThe.length}</span>
+                    <span class="badge-cothe">{groupedRecs.coThe.length}</span>
                 </h4>
                 {#each groupedRecs.coThe as rec}
-                    <div class="border border-ink-border p-3 bg-parchment-dark/30">
+                    <div class="card-cothe">
                         <div class="font-bold text-sm mb-2">{rec.label.vi}</div>
                         {#if rec.reasons.length > 0}
                             <div class="text-xs text-ink-light border-t border-ink-border pt-2 mt-2">
@@ -142,15 +142,15 @@
 
             <!-- TRÁNH -->
             <div class="space-y-4">
-                <h4 class="font-mono font-bold text-orange-600 uppercase border-b-2 border-orange-600 pb-2 flex items-center justify-between">
+                <h4 class="font-mono font-bold text-tranh uppercase border-b-2 border-tranh pb-2 flex items-center justify-between">
                     Tránh
-                    <span class="text-xs bg-orange-600/10 px-2 py-0.5 rounded">{groupedRecs.tranh.length}</span>
+                    <span class="badge-tranh">{groupedRecs.tranh.length}</span>
                 </h4>
                 {#each groupedRecs.tranh as rec}
-                    <div class="border border-ink-border p-3 bg-parchment-dark/30">
+                    <div class="card-tranh">
                         <div class="font-bold text-sm mb-2">{rec.label.vi}</div>
                         {#if rec.reasons.length > 0}
-                            <div class="text-xs text-ink-light border-t border-ink-border pt-2 mt-2">
+                            <div class="text-xs text-ink-light border-t border-tranh/20 pt-2 mt-2">
                                 {rec.reasons[0].summary_vi}
                             </div>
                         {/if}
@@ -162,10 +162,10 @@
             <div class="space-y-4">
                 <h4 class="font-mono font-bold text-ky uppercase border-b-2 border-ky pb-2 flex items-center justify-between">
                     Kỵ Mạnh
-                    <span class="text-xs bg-ky/10 px-2 py-0.5 rounded">{groupedRecs.kyManh.length}</span>
+                    <span class="badge-ky">{groupedRecs.kyManh.length}</span>
                 </h4>
                 {#each groupedRecs.kyManh as rec}
-                    <div class="border border-ink-border p-3 bg-ky/5 border-ky/30 hover:border-ky/50 transition-colors">
+                    <div class="card-ky">
                         <div class="font-bold text-sm mb-2 text-ky">{rec.label.vi}</div>
                         {#if rec.reasons.length > 0}
                             <div class="text-xs text-ky/80 border-t border-ky/20 pt-2 mt-2">

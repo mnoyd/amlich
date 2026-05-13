@@ -28,7 +28,7 @@
             {#each workspaces as ws}
                 <li>
                     <button 
-                        class="w-full text-left px-3 py-2 rounded font-mono text-sm uppercase transition-colors"
+                        class="w-full text-left px-3 py-2 rounded font-mono text-sm uppercase transition-colors focus-ring"
                         class:bg-ink={ws.id === $activeWorkspace}
                         class:text-parchment={ws.id === $activeWorkspace}
                         class:hover:bg-ink-border={ws.id !== $activeWorkspace}

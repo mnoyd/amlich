@@ -4,6 +4,7 @@
   import BottomStrip from '$lib/components/layout/BottomStrip.svelte';
   import DayConsole from '$lib/components/workspaces/DayConsole.svelte';
   import BaziLab from '$lib/components/workspaces/BaziLab.svelte';
+  import HourStudio from '$lib/components/workspaces/HourStudio.svelte';
   
   import { activeWorkspace } from '$lib/stores';
 </script>
@@ -14,6 +15,8 @@
   <main class="flex-grow overflow-y-auto">
     {#if $activeWorkspace === 'day_console'}
       <DayConsole />
+    {:else if $activeWorkspace === 'hour_studio'}
+      <HourStudio />
     {:else if $activeWorkspace === 'bazi_lab'}
       <BaziLab />
     {:else}

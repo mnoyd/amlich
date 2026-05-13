@@ -7,3 +7,61 @@
     @apply bg-parchment text-ink font-sans antialiased;
   }
 }
+
+@layer components {
+  /* Dense but legible cards for the Observatory feel */
+  .card-dense {
+    @apply border border-ink-border p-3 bg-parchment-dark/30 transition-colors duration-200;
+  }
+  
+  .card-dense:hover {
+    @apply border-ink-light bg-parchment-dark/50;
+  }
+
+  /* Specific signal cards */
+  .card-nen {
+    @apply card-dense hover:border-nen/50 border-l-2 border-l-nen;
+  }
+  
+  .card-cothe {
+    @apply card-dense hover:border-cothe/50 border-l-2 border-l-cothe;
+  }
+
+  .card-tranh {
+    @apply card-dense hover:border-tranh/50 border-l-2 border-l-tranh bg-tranh/5;
+  }
+
+  .card-ky {
+    @apply card-dense hover:border-ky/50 border-l-2 border-l-ky bg-ky/5;
+  }
+
+  /* Accessible focus states */
+  .focus-ring {
+    @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 focus-visible:ring-offset-parchment rounded-sm;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-mono font-bold tracking-wide;
+  }
+  
+  .badge-nen {
+    @apply badge bg-nen/10 text-nen;
+  }
+
+  .badge-cothe {
+    @apply badge bg-ink/5 text-ink-light;
+  }
+
+  .badge-tranh {
+    @apply badge bg-tranh/10 text-tranh;
+  }
+
+  .badge-ky {
+    @apply badge bg-ky/10 text-ky;
+  }
+
+  .badge-evidence {
+    @apply badge bg-evidence/10 text-evidence border border-evidence/20;
+  }
+}
