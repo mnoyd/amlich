@@ -3,6 +3,7 @@
   import RightRail from '$lib/components/layout/RightRail.svelte';
   import BottomStrip from '$lib/components/layout/BottomStrip.svelte';
   import DayConsole from '$lib/components/workspaces/DayConsole.svelte';
+  import AlmanacInspector from '$lib/components/workspaces/AlmanacInspector.svelte';
   import BaziLab from '$lib/components/workspaces/BaziLab.svelte';
   import HourStudio from '$lib/components/workspaces/HourStudio.svelte';
   import PersonalLab from '$lib/components/workspaces/PersonalLab.svelte';
@@ -18,6 +19,8 @@
       <DayConsole />
     {:else if $activeWorkspace === 'hour_studio'}
       <HourStudio />
+    {:else if $activeWorkspace === 'almanac_inspector'}
+      <AlmanacInspector />
     {:else if $activeWorkspace === 'bazi_lab'}
       <BaziLab />
     {:else if $activeWorkspace === 'personal_lab'}
