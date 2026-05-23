@@ -1,1270 +1,568 @@
-# Architecture Research: Dai Van Integration
+# Architecture Research: v1.5 Eastern Knowledge Expansion (P1 Văn khấn + P4 Phi Tinh thời gian)
 
-**Domain:** Vietnamese Almanac (Đại Vân/Major Luck period calculation)
-**Researched:** 2026-03-03
-**Confidence:** HIGH
+**Domain:** Vietnamese Almanac — ritual content lookup + time-based Flying Stars
+**Researched:** 2026-05-23
+**Confidence:** HIGH for both pillars (every integration point grounded in current source).
 
 ## Executive Summary
 
-Dai Van (Đại Vân/大运) is a 10-year luck cycle calculation that requires new computation components but integrates cleanly with the existing DayFortune architecture using the established optional field pattern. The implementation follows the same additive-only integration approach used for Ten Gods and Kua in v1.2, ensuring backward compatibility while adding birth-based capabilities.
+v1.5 adds two **content-and-lookup-shaped** pillars to the existing `amlich-core` Rust workspace. Neither requires algorithmic novelty: P1 Văn khấn is a corpus-with-rules pillar (lookup by event/date → ritual entries) and P4 Phi Tinh thời gian is a finite-table pillar (Vận/Năm/Tháng → 3×3 palace assignment of the nine stars). Both are **Tier 0** (no birth data) so they must be reachable from `DaySnapshot` alone.
 
-**Key architectural insight:** Dai Van introduces a new input type (birth date + gender) that is semantically distinct from the day-based almanac calculations. The recommended approach creates a separate calculation pathway that can optionally populate DayFortune when birth context is provided, rather than modifying the core day-fortune calculation logic.
+Architectural shape:
 
----
+1. **P1 Văn khấn** — new sibling crate-internal module `crates/amlich-core/src/rituals/`, JSON corpus under `crates/amlich-core/data/rituals/`, embedded via `include_str!` + `OnceLock` (same as `golden_loader.rs`). Holiday integration is **read-only**: rituals discover events from existing `holidays::Holiday.name + category + lunar_date`. Holiday module is NOT modified in v1.5 — the ritual module imports holidays, not vice-versa, to keep the dependency arrow one-way and the v1.0–v1.4 surface frozen.
+2. **P4 Phi Tinh thời gian** — new submodule **folder** `crates/amlich-core/src/almanac/fengshui/` containing `mod.rs` + `flying_stars.rs`. Use a folder (not a single file) because (a) Huyền Không has multiple table layers (Vận base palace, yearly, monthly, daily) and (b) the §3.3 Tier-3 expansion will add `spatial_compose` siblings without restructuring. Base palace tables stay as `const` Rust arrays (Vận 1–9 is a fully-known finite set of 9 × 9 = 81 cells with stable mathematical structure); the JSON file `crates/amlich-core/data/almanac/flying_stars.json` holds only star metadata (name, element, polarity, default interpretation) — i.e. the part that humans actually edit.
+3. **Boundary with existing direction modules** is crystal clear once stated:
+   - `sat_phuong.rs` / `than_huong.rs` / `thai_tue.rs` answer **"which cardinal direction is auspicious / forbidden TODAY?"** Output is a *direction string* tagged by `source_id = "khcbppt"`.
+   - `flying_stars.rs` answers **"which star occupies each of the 9 palaces in the Lo Shu grid for this time period?"** Output is a *palace-to-star map* (9 cells) tagged by `source_id = "huyen-khong"`. It is a *spatial layout descriptor*, not a single direction recommendation.
+   - There is zero overlap because the output cardinality differs (1 direction vs 9 palaces) and the source traditions are disjoint (Hiệp Kỷ vs Thẩm Thị Huyền Không).
+4. **Semantic graph** receives two new `NodeConcept`s (`Ritual`, `FlyingStar`) and at minimum two new `EdgeConcept`s (`PrescribedFor`, `OccupiesPalace`). The `EventType` concept is *not* a new node — events are reused from existing `Holiday` records (festival id) and a small ritual-only `RitualEventKey` enum embedded inside ritual node payload. This avoids polluting the ontology with a 2nd holiday-shaped node kind.
+5. **Build order:** schema lock for ritual JSON → ritual corpus + module → ritual semantic graph wiring → Phi Tinh tables → Phi Tinh module + tests → Phi Tinh semantic graph wiring → snapshot integration (both pillars read-only consumers of `DaySnapshot`). Schema lock first because the JSON shape gates corpus production cost; once locked, corpus authoring and Phi Tinh table work parallelise.
 
-## Current Architecture Context
-
-### Existing Component Structure
-
-```
-amlich-core/src/almanac/
-├── types.rs          # Core type definitions (DayFortune, Ten Gods, Kua)
-├── calc.rs           # Main entry point: calculate_day_fortune()
-├── thap_than.rs      # Ten Gods calculation (v1.2)
-├── tu_menh.rs        # Kua/Tu Mệnh calculation (v1.2)
-├── canchi.rs         # Can/Chi utilities
-├── tietkhi.rs        # Tiết Khí (solar term) calculations
-├── data.rs           # Golden dataset and rules
-├── [other modules]   # Stars, taboos, Xung/Hop, etc.
-└── mod.rs            # Module exports
-```
-
-### DayFortune Structure (v1.2)
-
-```rust
-pub struct DayFortune {
-    // Core day-based fields (v1.0)
-    pub ruleset_id: String,
-    pub ruleset_version: String,
-    pub profile: String,
-    pub day_element: DayElement,
-    pub conflict: DayConflict,
-    pub travel: TravelDirection,
-    pub stars: DayStars,
-    pub day_deity: Option<DayDeity>,
-    pub taboos: Vec<DayTaboo>,
-    pub xung_hop: XungHopResult,
-    pub truc: TrucInfo,
-    pub tang_can: Option<TangCan>,
-
-    // v1.2 additions (optional fields)
-    pub ten_gods: Option<DayTenGods>,     // Populated when day stem available
-    pub tu_menh: Option<super::tu_menh::KuaResult>, // Populated when birth context provided
-
-    // v1.3 addition (this milestone)
-    pub dai_van: Option<DaYunResult>,      // Populated when birth date + gender provided
-}
-```
-
-### Integration Pattern from v1.2
-
-Both Ten Gods and Kua followed the same pattern:
-
-1. **New module created** (`thap_than.rs`, `tu_menh.rs`)
-2. **Optional field added to DayFortune**
-3. **`calculate_day_fortune()` modified** to conditionally compute new feature
-4. **Input expansion** (year_can for Ten Gods, birth_year+gender for Kua)
-5. **API layer updated** with matching DTO types
-6. **Tests added** to verify optional field population logic
-
-Dai Van should follow this same pattern.
+**Key architectural principle (carried from v1.0–v1.4):** Additive-only. No existing public type changes. No existing JSON files mutate. No existing `source_id` reused. Every new node carries a `ProvenanceEntry { source: AlmanacRule, source_id: "vn-folk-ritual" | "huyen-khong", method, ... }`.
 
 ---
 
-## Recommended Architecture for Dai Van
+## Current Architecture Context (verified against source)
 
-### System Overview
+### Module hierarchy
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    API / CLI Layer                         │
-├─────────────────────────────────────────────────────────────┤
-│  Date Query → calculate_day_fortune(date)                 │
-│  Birth Query → calculate_day_fortune(date, birth_ctx)      │
-└─────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────┐
-│              Calculation Layer (calc.rs)                    │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │ Day-based   │  │ Ten Gods    │  │ Kua         │     │
-│  │ calculation │  │ (optional)  │  │ (optional)  │     │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘     │
-│         │                 │                 │              │
-│         └─────────────────┴─────────────────┘              │
-│                           ↓                               │
-│  ┌─────────────────────────────────────────────┐           │
-│  │      Dai Van (NEW, optional)             │           │
-│  │  - Requires: birth_date + gender          │           │
-│  │  - Reuses: Can Chi, Tiết Khí modules     │           │
-│  │  - Integrates: Ten Gods, Kua results     │           │
-│  └─────────────────────────────────────────────┘           │
-└─────────────────────────────────────────────────────────────┘
-                            ↓
-┌─────────────────────────────────────────────────────────────┐
-│           Foundation Modules (no changes)                  │
-├─────────────────────────────────────────────────────────────┤
-│  canchi.rs          │ tietkhi.rs   │ julian.rs          │
-│  lunar.rs           │ types.rs      │ data.rs            │
-└─────────────────────────────────────────────────────────────┘
-```
+`crates/amlich-core/src/lib.rs:10-26` — top-level modules already include `almanac`, `holidays`, `holiday_data`, `interaction`, `reasoning`, `semantic_graph`. Adding `pub mod rituals;` is one additive line; adding `pub mod almanac::fengshui` requires registering a submodule inside `almanac/mod.rs:1-28`.
 
-### Component Responsibilities
+`crates/amlich-core/src/almanac/mod.rs:1-28` — flat list of 27 calculator submodules. Pattern: each calculator gets its own file at this level. Phi Tinh deviates intentionally by introducing a **folder** because the long-term §3.3 plan needs multiple sibling files (`flying_stars.rs`, future `nine_palaces.rs`, future `spatial_compose.rs`).
 
-| Component | Responsibility | Typical Implementation |
-|-----------|----------------|------------------------|
-| `dai_van.rs` (NEW) | Core Dai Van calculation logic | Pure functions, deterministic, testable in isolation |
-| `calc.rs` (MODIFIED) | Orchestrate all calculations including Dai Van | Conditionally call dai_van::calculate when inputs provided |
-| `types.rs` (MODIFIED) | Add dai_van optional field to DayFortune | Add new Dai Van type definitions |
-| `thap_than.rs` (REUSED) | Ten Gods calculation for each pillar | Called from Dai Van pillar correlation |
-| `tu_menh.rs` (REUSED) | Kua calculation for birth context | Called from Dai Van for directional analysis |
+### Provenance & evidence
+
+`crates/amlich-core/src/semantic_graph/provenance.rs:65-67` — `Provenance::almanac_rule(source_id, method)` is the constructor both new pillars use. Both `vn-folk-ritual` and `huyen-khong` flow through this exact path because they are *almanac-rule* in nature (date-driven content / table lookups), not interaction outputs.
+
+`reasoning/personal.rs:176-192` — pattern for emitting `ReasoningEvidenceEnvelope` shows the simple struct shape (source_family + source_id + method + note). New pillars use `ReasoningEvidenceSourceFamily::AlmanacRule` (already exists, no enum extension needed).
+
+### Holiday detection (P1 dependency, read-only)
+
+`holidays.rs:14-25` — `Holiday { name, lunar_date, solar_day/month/year, is_solar, category, is_major }`. Categories observed in current code: `"festival"`, `"social"`, `"lunar-cycle"` (lines 179, 210, 237). Mùng 1 (lunar day 1) and Rằm (lunar day 15) holidays are auto-generated at `holidays.rs:228-260` with `category = "lunar-cycle"` — this is the **natural join key** for monthly Sóc/Vọng ritual lookups.
+
+`crates/amlich-core/data/holidays/lunar-festivals.json` — each festival has stable `id` field (e.g. `"tet-nguyen-dan"`). P1 corpus references these IDs in its `event_keys` array, never the localised name string. This survives translation/rename of `names.vi`.
+
+### Direction modules (P4 boundary check)
+
+`almanac/sat_phuong.rs:1-104` — input `chi_index: usize` → output `SatPhuongResult { direction: String }`. **One direction, daily resolution, source = KHCBPPT.**
+
+`almanac/than_huong.rs:1-117` — input `can: &str` → output `TravelDirection { xuat_hanh_huong, tai_than, hy_than }`. **Three named directions, daily resolution, source = Khâm Định Hiệp Kỷ Biện Phương Thư.**
+
+`almanac/thai_tue.rs:53-112` — input `(birth_chi_index, current_year_chi_index)` → output `ThaiTueResult { conflicts: Vec<…> }`. **Conflict list, yearly resolution, source = KHCBPPT + folk.** Note: this is technically Tier 1 (uses birth year) — but does NOT take spatial input.
+
+**Confirmed:** none of these modules produce a 9-palace layout. None use a Vận period. Phi Tinh has zero output overlap.
+
+### Semantic graph ontology
+
+`semantic_graph/ontology.rs:5-40` — current `NodeConcept` enum has 34 variants (DayCanchi, Truc, Direction, Recommendation, Taboo, etc.). Extensions are additive single-line entries inside the enum + `label()` match + the static `node_concepts()` slice at line 278.
+
+`semantic_graph/ontology.rs:85-111` — `EdgeConcept` enum has 25 variants. Same pattern for additions.
+
+### JSON loading convention
+
+`almanac/golden_loader.rs:5-21` — pattern: `const X_JSON: &str = include_str!("../../data/...");` + `static X: OnceLock<T> = OnceLock::new();` + `pub fn load_x() -> &'static T { X.get_or_init(|| { … validate(&dataset); dataset }) }`. Both new pillars **must** follow this exact pattern (panic on validation failure — the data is a test oracle, not user-faceable).
 
 ---
 
-## Detailed Integration Analysis
+## P1 Văn khấn — Module Design
 
-### 1. Integration Point with DayFortune
+### 1.1 Module location
 
-**Decision:** Add optional field following v1.2 pattern
-
-```rust
-// crates/amlich-core/src/almanac/types.rs
-
-pub struct DayFortune {
-    // ... existing fields ...
-
-    /// Dai Van (Major Luck) result (populated only when birth date and gender provided)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dai_van: Option<DaYunResult>,
-}
-```
+**Decision:** `crates/amlich-core/src/rituals/` (new top-level submodule), NOT under `almanac/`.
 
 **Rationale:**
-- ✅ Consistent with ten_gods and tu_menh pattern (proven in v1.2)
-- ✅ Backward compatible (existing clients see None)
-- ✅ Single return type for both date-only and date+birth queries
-- ✅ Matches "additive-only integration" project decision
+- `almanac/` is reserved for **rule calculators** that consume a day's Can-Chi/Tiết-Khí/lunar coordinates and emit *computed* almanac outputs (truc, deity, na am, …). Văn khấn is a **content corpus retriever** — it does not compute, it filters and returns prose. Conceptually closer to `holiday_data.rs` (which is also a top-level submodule) than to `truc.rs`.
+- Future ritual sub-pillars (lễ vật trình tự, văn tế gia tiên, văn cúng đầu năm) belong here. Putting them under `almanac/` would corrupt the "almanac = computed" invariant that v1.0–v1.4 carefully maintained.
+- The EXPANSION_FRAMEWORK at line 65 explicitly proposes `crates/amlich-core/src/rituals/` — this matches.
 
-**Alternative Considered and Rejected:**
-- Separate `BirthFortune` type from research report
-  - ❌ Creates API fragmentation (clients need to know which type to request)
-  - ❌ Breaks unified query model
-  - ❌ More complex for existing consumers
-- New API function `calculate_birth_fortune()`
-  - ❌ Unnecessary for current scope (DayFortune works with optional fields)
-  - ❌ Can be added later if needed for optimization
+**Module layout:**
 
-### 2. New Components Required
+```
+crates/amlich-core/src/rituals/
+├── mod.rs              # public API: find_van_khan, list_events_on, RitualEntry types
+├── corpus.rs           # OnceLock + include_str! + validation (mirrors golden_loader)
+├── event_match.rs      # day → Vec<RitualEventKey> resolver (joins holidays.rs)
+├── types.rs            # RitualEntry, RitualEventKey, LunarDateMatch, RitualMetadata
+└── tests.rs            # golden coverage tests
+```
 
-#### Component 1: dai_van.rs (NEW MODULE)
+### 1.2 JSON corpus structure
 
-**File location:** `crates/amlich-core/src/almanac/dai_van.rs`
+**Decision:** **One file per event category, plus a manifest.** Not one big file. Not one per individual ritual.
 
-**Responsibilities:**
-- Core Dai Van calculation algorithm
-- 6-step computation: lunar conversion → year/month Can Chi → chieuthu → start age → pillars
-- Ten Gods correlation for each pillar
-- Kua integration for directional analysis
+Layout under `crates/amlich-core/data/rituals/`:
 
-**Key types:**
-```rust
-pub enum Gender { Male, Female }
-pub enum ChieuThu { Thuan, Nghich }  // Direction of progression
-pub struct DaYunPillar {
-    pub thu_tu: u8,              // Pillar number (1-8)
-    pub start_age: u8,
-    pub end_age: u8,
-    pub can: HeavenlyStem,
-    pub chi: EarthlyBranch,
-    pub can_chi_name: String,
-    pub ten_gods: Option<ThapThanResult>,  // Correlation with day stem
-}
-pub struct DaYunResult {
-    pub chieu_thu: ChieuThu,
-    pub start_age: u8,
-    pub num_pillars: u8,
-    pub pillars: Vec<DaYunPillar>,
-    pub convention: ConventionMetadata,
+```
+data/rituals/
+├── manifest.json                       # registry + corpus-level metadata
+├── tet_nguyen_dan.json                 # all rituals for Tết
+├── soc_vong_monthly.json               # Mùng 1 / Rằm monthly cycles
+├── thanh_minh.json
+├── trung_thu.json
+├── vu_lan.json
+├── ong_cong_ong_tao.json               # 23 tháng Chạp
+├── thuong_nguyen.json                  # Rằm tháng Giêng
+├── doan_ngo.json
+├── ha_nguyen.json                      # Rằm tháng Mười
+├── household_general.json              # Cúng gia tiên generic, không gắn event
+├── life_events_dong_tho.json           # Động thổ (groundbreaking)
+├── life_events_cuoi_hoi.json
+├── life_events_khai_truong.json
+└── life_events_an_tang.json
+```
+
+**Why one-per-event-category:**
+- Each file is small enough to review in one diff (typically 5–20 entries), large enough to provide useful context (related variants, regional differences).
+- File boundaries match the **authoring & verification unit** — a contributor cross-checks one event family against the source book at a time.
+- Avoids the giant-file merge-conflict trap (one 50KB file = constant rebase pain).
+- `manifest.json` provides O(1) discovery without scanning all files.
+
+**Frontmatter / per-entry schema** (locked in this milestone — gates corpus authoring):
+
+```jsonc
+{
+  "$schema_version": "rituals-v1",
+  "source_id": "vn-folk-ritual",
+  "source_citation": {
+    "title": "Văn khấn cổ truyền Việt Nam",
+    "publisher": "NXB Văn Hóa Dân Tộc",
+    "edition": "2018",
+    "page": "115-118"
+  },
+  "category": "festival" | "lunar-cycle" | "life-event" | "ancestor" | "deity-worship",
+  "entries": [
+    {
+      "ritual_id": "van-khan-giao-thua",                 // stable, kebab-case, globally unique
+      "title_vi": "Văn khấn Giao thừa ngoài trời",
+      "title_en": "New Year's Eve outdoor invocation",
+      "event_keys": [                                    // any-of match — empty list means "always available"
+        { "kind": "holiday_id", "value": "tet-nguyen-dan" },
+        { "kind": "lunar_date", "month": 12, "day": 30, "leap_ok": false },
+        { "kind": "lunar_date", "month": 1,  "day": 1,  "leap_ok": false }
+      ],
+      "time_of_day": "giao-thua" | "morning" | "noon" | "afternoon" | "evening" | "any",
+      "offerings": [
+        { "vi": "Mâm ngũ quả", "en": "Five-fruit tray" },
+        ...
+      ],
+      "preparation_steps": [
+        { "vi": "Bày bàn thờ hướng ra ngoài cửa", "en": "Set the altar facing outward" },
+        ...
+      ],
+      "invocation_text_vi": "...full prayer body...",
+      "invocation_text_en_summary": "...short English gloss, NOT a translation...",
+      "notes": [],
+      "confidence": "primary" | "regional-variant" | "synthesized"
+    }
+  ]
 }
 ```
 
-**Key functions:**
+**Schema-locking decisions (must be ADR'd before corpus authoring starts):**
+
+- `event_keys` is an **any-of** list of typed match clauses. This is the load-bearing piece: it must support (a) named holiday ids, (b) raw lunar dates (Mùng 1, Rằm of every month), (c) tiet-khi anchors (Thanh Minh, Đông Chí), and (d) life-event tags (always-available, picked manually by app). Treating it as a typed enum keeps the matcher exhaustive in Rust.
+- `confidence` is REQUIRED. Per §7 of EXPANSION_FRAMEWORK: cross-check ≥ 2 sources; mark divergences instead of "fixing" them.
+- `invocation_text_en` is intentionally a *gloss summary*, not a literal translation. Translating ritual prayer text into English is out of scope and frankly risky (different liturgical register). Locked decision: VN-only liturgy, EN summary.
+- NO `valid_year_range` field. Văn khấn is timeless; year-gating belongs in the holiday detector, not the ritual entry.
+
+### 1.3 API shape
+
 ```rust
-pub fn calculate_dai_yun(
-    birth_date: NaiveDate,
-    gender: Gender,
-    day_stem: Option<HeavenlyStem>,  // For Ten Gods correlation
-) -> DaYunResult
+// crates/amlich-core/src/rituals/types.rs
 
-pub fn get_current_pillar(dai_yun: &DaYunResult, current_age: u8) -> Option<&DaYunPillar>
-```
-
-**Estimated LOC:** 400-600 lines (including tests)
-
-#### Component 2: API DTO Types (NEW)
-
-**File location:** `crates/amlich-api/src/dto.rs`
-
-**Additions:**
-```rust
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DaYunPillarDto {
-    pub thu_tu: u8,
-    pub start_age: u8,
-    pub end_age: u8,
-    pub can: String,
-    pub chi: String,
-    pub can_chi_name: String,
-    pub ten_gods: Option<ThapThanResultDto>,
+pub enum RitualEventKey {
+    HolidayId(String),                            // matches holidays/*.json `id` field
+    LunarDate { month: i32, day: i32, leap_ok: bool },
+    TietKhiAnchor(String),                        // matches tietkhi name
+    LifeEvent(LifeEventKind),                     // Dong Tho, Cuoi Hoi, Khai Truong, An Tang
+    Always,                                       // household_general entries
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DaYunResultDto {
-    pub chieu_thu: String,
-    pub start_age: u8,
-    pub num_pillars: u8,
-    pub pillars: Vec<DaYunPillarDto>,
-    pub convention: ConventionMetadataDto,
+pub struct RitualEntry {
+    pub ritual_id: String,
+    pub title_vi: String,
+    pub title_en: String,
+    pub category: RitualCategory,
+    pub event_keys: Vec<RitualEventKey>,
+    pub time_of_day: TimeOfDay,
+    pub offerings: Vec<BilingualText>,
+    pub preparation_steps: Vec<BilingualText>,
+    pub invocation_text_vi: String,
+    pub invocation_text_en_summary: String,
+    pub notes: Vec<BilingualText>,
+    pub confidence: RitualConfidence,
+    pub source_citation: SourceCitation,
 }
+
+// crates/amlich-core/src/rituals/mod.rs — public API
+
+pub fn find_van_khan_for_snapshot(snapshot: &DaySnapshot) -> Vec<&'static RitualEntry>;
+pub fn find_van_khan_for_event(event: &RitualEventKey) -> Vec<&'static RitualEntry>;
+pub fn find_van_khan_for_life_event(kind: LifeEventKind) -> Vec<&'static RitualEntry>;
+pub fn get_ritual_by_id(ritual_id: &str) -> Option<&'static RitualEntry>;
+pub fn all_rituals() -> &'static [RitualEntry];
 ```
 
-**Add to DayFortuneDto:**
+**API shape choices:**
+
+- **NOT** `find_van_khan(date, event_type)` — that signature is fragile (what's the type of `event_type`? a free string?). The `snapshot`-based call is canonical because it lets the matcher consult `holidays`, `lunar_date`, and `tiet_khi` in one place. The `_for_event` and `_for_life_event` variants give callers explicit control when they want a single event (e.g. UI shows "rituals for Tết Nguyên Đán").
+- **Return type is `&'static`.** Corpus is `OnceLock`-loaded and never mutated. This matches `golden_loader.rs` and `holiday_data.rs:lunar_festivals()` patterns.
+- **Vec, not Option.** Multiple rituals routinely apply to one day (e.g. Giao Thừa indoor + outdoor + ông Công ông Táo wrap-up). Ranking/filtering is the caller's job.
+
+### 1.4 Holiday integration — read-only consumer pattern
+
+**Decision:** Rituals depend on `holidays`; `holidays` does NOT depend on rituals. Holidays module stays untouched in v1.5.
+
+**Why one-way:**
+- Keeps the v1.0–v1.4 surface frozen (PROJECT.md "Additive-only integration changes").
+- The "holiday detection auto-recommends prayers" UX lives in the **caller layer** (CLI/desktop), not inside `holidays.rs`. The library exposes both APIs side-by-side; the app composes them.
+- A future v1.6 could introduce a thin façade `compute_day_with_rituals()` in `lib.rs` if needed without touching `holidays.rs`.
+
+**Concrete integration recipe:**
+
 ```rust
-pub struct DayFortuneDto {
-    // ... existing fields ...
+// In rituals/event_match.rs
 
-    /// Dai Van result (populated only when birth date and gender provided)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dai_van: Option<DaYunResultDto>,
-}
-```
+fn resolve_event_keys_for_day(snapshot: &DaySnapshot) -> Vec<RitualEventKey> {
+    let mut keys = Vec::new();
+    let solar_year = snapshot.context.solar.year;
 
-#### Component 3: Conversion Layer (NEW)
+    // 1. Named holidays via crate::holidays::get_vietnamese_holidays(solar_year)
+    //    Filter to those whose (solar_day, solar_month, solar_year) match snapshot.context.solar.
+    //    Map name → holiday_id by joining against holiday_data::lunar_festivals().
+    //    (Note: `Holiday` struct does NOT carry `id` today — see "Modified files" below.)
 
-**File location:** `crates/amlich-api/src/convert.rs`
-
-**Additions:**
-```rust
-impl From<almanac::dai_van::DaYunResult> for DaYunResultDto {
-    fn from(result: almanac::dai_van::DaYunResult) -> Self {
-        // Conversion logic
+    // 2. Raw lunar Mùng 1 / Rằm from snapshot.context.lunar.day
+    if snapshot.context.lunar.day == 1 {
+        keys.push(RitualEventKey::LunarDate { month: snapshot.context.lunar.month, day: 1, leap_ok: true });
     }
-}
-
-impl From<almanac::dai_van::DaYunPillar> for DaYunPillarDto {
-    fn from(pillar: almanac::dai_van::DaYunPillar) -> Self {
-        // Conversion logic
+    if snapshot.context.lunar.day == 15 {
+        keys.push(RitualEventKey::LunarDate { month: snapshot.context.lunar.month, day: 15, leap_ok: true });
     }
-}
-```
 
-### 3. Modified Components
+    // 3. Tiết Khí anchor (Thanh Minh, Đông Chí, Hạ Chí, …)
+    keys.push(RitualEventKey::TietKhiAnchor(snapshot.context.tiet_khi.name.clone()));
 
-#### Component 1: calc.rs (MODIFIED)
-
-**Changes:**
-1. Add new optional parameters to `calculate_day_fortune()`:
-```rust
-pub fn calculate_day_fortune(
-    jd: i32,
-    day_canchi: &CanChi,
-    lunar_day: i32,
-    lunar_month: i32,
-    year_can: &str,
-    tiet_khi_name: &str,
-    // NEW optional parameters for Dai Van
-    birth_date: Option<NaiveDate>,  // Birth date (solar)
-    birth_year: Option<i32>,          // Birth year (solar, for Kua)
-    gender: Option<Gender>,           // Gender (for Dai Van and Kua)
-) -> DayFortune
-```
-
-2. Add Dai Van computation logic:
-```rust
-// After existing calculations, add:
-
-dai_van: {
-    match (birth_date, gender) {
-        (Some(bd), Some(g)) => {
-            // Calculate day stem for Ten Gods correlation
-            let day_stem = HeavenlyStem::try_from(day_canchi.can.as_str()).ok();
-
-            Some(dai_van::calculate_dai_yun(bd, g, day_stem))
-        }
-        _ => None,
-    }
-},
-```
-
-3. Update Kua computation to use new parameters (simplifies existing logic):
-```rust
-tu_menh: {
-    match (birth_year, gender) {
-        (Some(by), Some(g)) => Some(tu_menh::compute_kua(by, g)),
-        _ => None,
-    }
-},
-```
-
-**Rationale for signature change:**
-- ⚠️ This is a **breaking change** to `calculate_day_fortune()`
-- Mitigation: Update all call sites in one PR
-- Call sites to update:
-  - `crates/amlich-core/tests/*.rs` (test files)
-  - `crates/amlich-api/src/convert.rs` (API conversion)
-  - Any other direct consumers
-
-**Alternative:** Add overloaded function
-```rust
-// Keep original signature for backward compatibility
-pub fn calculate_day_fortune_v1(...) -> DayFortune { /* original */ }
-
-// New signature with birth context
-pub fn calculate_day_fortune(
-    /* ... new signature ... */
-) -> DayFortune { /* calls v1 internally */ }
-```
-- ❌ Creates confusion (which version to call?)
-- ❌ Breaks "additive-only" pattern
-- ✅ **Better:** Update signature in coordinated PR
-
-#### Component 2: types.rs (MODIFIED)
-
-**Changes:**
-1. Add Dai Van type definitions (can be in separate file, but exported from types.rs for convenience):
-```rust
-// At end of types.rs
-pub use crate::almanac::dai_van::{
-    Gender, ChieuThu, DaYunPillar, DaYunResult, ConventionMetadata
-};
-```
-
-2. Add dai_van field to DayFortune (already shown above)
-
-#### Component 3: almanac/mod.rs (MODIFIED)
-
-**Changes:**
-```rust
-mod dai_van;  // New module
-pub use dai_van::*;  // Export public types
-```
-
-#### Component 4: API Layer (MODIFIED)
-
-**Files:**
-- `crates/amlich-api/src/lib.rs` - Update exports
-- `crates/amlich-api/src/convert.rs` - Add Dai Van conversion logic
-- `crates/amlich-api/tests/almanac_contract.rs` - Add Dai Van contract tests
-
-### 4. Data Flow Changes
-
-#### Current Data Flow (v1.2)
-
-```
-Date Query (day, month, year)
-    ↓
-calculate_day_fortune()
-    ↓
-┌─────────────────────────────────────┐
-│ Day-based calculations (v1.0)      │
-│ - DayElement                      │
-│ - Conflict, Travel, Stars         │
-│ - Taboos, Xung/Hop, Truc        │
-└─────────────────────────────────────┘
-    ↓
-┌─────────────────────────────────────┐
-│ Optional: Ten Gods (v1.2)        │
-│ Input: day_stem, year_stem        │
-│ Output: DayTenGods                │
-└─────────────────────────────────────┘
-    ↓
-┌─────────────────────────────────────┐
-│ Optional: Kua (v1.2)            │
-│ Input: birth_year, gender         │
-│ Output: KuaResult                 │
-└─────────────────────────────────────┘
-    ↓
-DayFortune { all fields }
-```
-
-#### New Data Flow (v1.3)
-
-```
-Date + Birth Query
-  ├─ Date: day, month, year
-  └─ Birth: birth_date, gender
-         ↓
-    calculate_day_fortune()
-         ↓
-┌─────────────────────────────────────┐
-│ Day-based calculations (unchanged)  │
-│ - DayElement, Conflict, etc.       │
-└─────────────────────────────────────┘
-         ↓
-┌─────────────────────────────────────┐
-│ Optional: Ten Gods (unchanged)    │
-│ Input: day_stem, year_stem        │
-│ Output: DayTenGods                │
-└─────────────────────────────────────┘
-         ↓
-┌─────────────────────────────────────┐
-│ Optional: Kua (unchanged)         │
-│ Input: birth_year, gender         │
-│ Output: KuaResult                 │
-└─────────────────────────────────────┘
-         ↓
-┌─────────────────────────────────────┐
-│ Optional: Dai Van (NEW)           │
-│ Input: birth_date, gender        │
-│         ↓                         │
-│ Step 1: Lunar conversion          │
-│         ↓                         │
-│ Step 2: Year/month Can Chi        │
-│         ↓                         │
-│ Step 3: Chieuthu calculation     │
-│         ↓                         │
-│ Step 4: Days to nearest Tiet Khi │
-│         ↓                         │
-│ Step 5: Start age calculation    │
-│         ↓                         │
-│ Step 6: Generate 8 pillars      │
-│         ↓                         │
-│ Step 7: Ten Gods correlation     │
-│   (calls thap_than::get_thap_than)│
-│         ↓                         │
-│ Output: DaYunResult              │
-└─────────────────────────────────────┘
-         ↓
-    DayFortune { all fields including dai_van: Option<DaYunResult> }
-```
-
-#### Dependency Flow (Module Level)
-
-```
-dai_van.rs
-    ├── uses: canchi.rs (get_year_canchi, get_month_canchi)
-    ├── uses: tietkhi.rs (get_days_to_nearest_tiet_khi)
-    ├── uses: lunar.rs (get_lunar_date)
-    ├── uses: julian.rs (jd_from_date)
-    ├── uses: thap_than.rs (get_thap_than) ← REUSE
-    └── uses: tu_menh.rs (compute_kua) ← REUSE
-
-calc.rs
-    ├── calls: dai_van::calculate_dai_yun()
-    ├── calls: thap_than::get_thap_than()
-    ├── calls: tu_menh::compute_kua()
-    └── assembles: DayFortune
-```
-
-### 5. Relationship with Ten Gods
-
-**Approach:** Direct reuse of existing `get_thap_than()` function
-
-**How it works:**
-```rust
-// In dai_van.rs pillar generation
-
-for thu_tu in 1..=8 {
-    // ... calculate pillar.can and pillar.chi ...
-
-    // Correlate with day stem (if available)
-    let ten_gods = day_stem.map(|ds| {
-        thap_than::get_thap_than(ds, pillar.can)  // ← REUSE
-    });
-
-    pillars.push(DaYunPillar {
-        thu_tu,
-        start_age,
-        end_age,
-        can: pillar.can,
-        chi: pillar.chi,
-        can_chi_name,
-        ten_gods,  // Option<ThapThanResult>
-    });
+    keys
 }
 ```
 
-**Integration points:**
-- **Input:** Day stem from birth date (optional, depends on birth hour)
-- **Call:** `thap_than::get_thap_than(day_stem, pillar.can)`
-- **Output:** Ten Gods label, relation, polarity for each pillar
-- **Reuse:** No modification to `thap_than.rs` required
+**Required tiny modification to `holidays.rs`:** add a stable `id: Option<String>` field to `Holiday` so the ritual matcher can join by id rather than by Vietnamese display name (which is fragile — `"Mùng 1 tháng 3"` is a generated label, not a stable key). The `lunar_festivals()` source data already has `id` (e.g. `"tet-nguyen-dan"`); it just isn't propagated into the `Holiday` struct today. This is the only existing file modification in v1.5.
 
-**Example correlation:**
-```
-Day Stem: Giáp (甲)
-Pillar 1 Can: Mậu (戊)
-  → get_thap_than(Giáp, Mậu) = Thiên Tài (Day Generates Target)
+### 1.5 Semantic graph wiring (P1)
 
-Pillar 2 Can: Đinh (丁)
-  → get_thap_than(Giáp, Đinh) = Thục Thần (Day Generates Target)
-```
+**New `NodeConcept` (one):** `Ritual` — a node that points at an applicable ritual for the day.
 
-### 6. Relationship with Kua
+**Reused `NodeConcept`s:** `DayCanchi` (existing), `SolarTerm` (existing). No `EventType` node — the event match key is stored *inside* the Ritual node's payload, not as a separate node, because it has no behavior of its own and creating cardinality-12 event nodes for each Mùng-1/Rằm would explode the graph.
 
-**Approach:** Direct reuse of existing `compute_kua()` function
+**New `EdgeConcept`s (two):**
+- `PrescribedFor` — `Ritual --PrescribedFor--> DayCanchi` (or `SolarTerm` when matched via tiet khi). Direction: ritual is *prescribed for* this day's context.
+- `RecommendsOffering` — currently no offering node exists; defer to v1.6. v1.5 keeps offerings inside the ritual node payload as a flat string list.
 
-**How it works:**
+**Provenance contract:**
+
 ```rust
-// In dai_van.rs calculate_dai_yun()
-
-let kua = tu_menh::compute_kua(birth_date.year(), gender);  // ← REUSE
-
-// Can be used for directional analysis per pillar
-// (optional enhancement for future milestone)
+ProvenanceEntry::almanac_rule("vn-folk-ritual", "rituals.find_van_khan_for_snapshot")
+    .with_note(format!("matched via {match_kind}"))
 ```
 
-**Integration points:**
-- **Input:** Birth year (from birth_date), gender
-- **Call:** `tu_menh::compute_kua(birth_year, gender)`
-- **Output:** Kua number, group, favorable/unfavorable directions
-- **Reuse:** No modification to `tu_menh.rs` required
-
-**Potential enhancement (future):**
-- Correlate pillar elements with Kua directions
-- Example: "Pillar 1 (Mộc) is favorable for your Kua 9 (East Group)"
-- This would require additional logic beyond current scope
+The `source_id = "vn-folk-ritual"` is a NEW id (DEC-0015 discipline — not `vn-folk`, which is in use by Hoàng Ốc). Add to the source taxonomy memory doc.
 
 ---
 
-## Build Order and Dependencies
+## P4 Phi Tinh thời gian — Module Design
 
-### Dependency Graph
+### 2.1 Folder vs single file
 
-```
-dai_van.rs (NEW)
-    ├── canchi.rs (exists)
-    ├── tietkhi.rs (exists)
-    ├── lunar.rs (exists)
-    ├── julian.rs (exists)
-    ├── thap_than.rs (exists, v1.2)
-    └── tu_menh.rs (exists, v1.2)
-
-calc.rs (MODIFIED)
-    ├── dai_van.rs (NEW)
-    ├── thap_than.rs (exists)
-    └── tu_menh.rs (exists)
-
-types.rs (MODIFIED)
-    ├── dai_van.rs types (NEW)
-    └── DayFortune (MODIFIED)
-
-API Layer (MODIFIED)
-    ├── calc.rs (MODIFIED)
-    ├── types.rs (MODIFIED)
-    └── dto.rs (NEW DTO types)
-
-Tests (MODIFIED/NEW)
-    ├── unit tests for dai_van.rs
-    ├── integration tests for calc.rs
-    └── contract tests for API
-```
-
-### Recommended Build Order
-
-**Phase 1: Core Dai Van Module (can happen in parallel with nothing)**
-```markdown
-Priority: CRITICAL (blocks all other phases)
-
-Tasks:
-1. Create crates/amlich-core/src/almanac/dai_van.rs
-2. Implement core types (Gender, ChieuThu, DaYunPillar, DaYunResult)
-3. Implement 6-step calculation algorithm
-4. Implement Ten Gods correlation (call thap_than::get_thap_than)
-5. Implement helper functions (get_current_pillar, etc.)
-6. Write comprehensive unit tests
-
-Estimated effort: 12-16 hours
-Dependencies: None (uses existing modules)
-
-Deliverables:
-- dai_van.rs module (400-600 LOC)
-- Unit tests passing
-- Manual verification with sample calculations
-```
-
-**Phase 2: Integration into calc.rs (blocks Phase 3)**
-```markdown
-Priority: CRITICAL (blocks API layer)
-
-Tasks:
-1. Update calculate_day_fortune() signature (add birth_date, birth_year, gender)
-2. Update all call sites (test files, API conversion)
-3. Add Dai Van computation logic
-4. Simplify Kua computation using new parameters
-5. Update Tu Mệnh computation in same refactor
-6. Write integration tests
-
-Estimated effort: 8-10 hours
-Dependencies: Phase 1 complete
-
-Deliverables:
-- Updated calc.rs
-- All call sites updated
-- Integration tests passing
-- No regressions in existing tests
-```
-
-**Phase 3: Type System Updates (blocks Phase 4)**
-```markdown
-Priority: HIGH (blocks API layer)
-
-Tasks:
-1. Add dai_van field to DayFortune struct
-2. Add type re-exports in types.rs
-3. Update almanac/mod.rs exports
-4. Run type checker (cargo check)
-5. Update serialization tests
-
-Estimated effort: 4-6 hours
-Dependencies: Phase 1, 2 complete
-
-Deliverables:
-- Updated types.rs
-- Updated mod.rs
-- Type-safe compilation
-```
-
-**Phase 4: API Layer Updates (blocks Phase 5)**
-```markdown
-Priority: HIGH (blocks CLI and consumers)
-
-Tasks:
-1. Create DaiYunResultDto and DaYunPillarDto in dto.rs
-2. Add dai_van field to DayFortuneDto
-3. Implement From<> conversion traits
-4. Update API lib.rs exports
-5. Update API contract tests
-
-Estimated effort: 6-8 hours
-Dependencies: Phase 1, 2, 3 complete
-
-Deliverables:
-- Updated dto.rs
-- Updated convert.rs
-- API contract tests passing
-```
-
-**Phase 5: Test Coverage and Validation (can happen after Phase 4)**
-```markdown
-Priority: MEDIUM (can be parallel with some Phase 4 work)
-
-Tasks:
-1. Write golden fixture tests for Dai Van (10+ cases)
-2. Verify Ten Gods correlation for each pillar
-3. Verify Kua integration
-4. Run full test suite (cargo test --package amlich-core)
-5. Run API tests (cargo test --package amlich-api)
-6. Check for regressions in KHCBPPT validators
-
-Estimated effort: 8-12 hours
-Dependencies: Phase 1, 2, 3, 4 complete
-
-Deliverables:
-- Golden fixture file
-- All tests passing
-- Zero regressions
-```
-
-### What Can Happen in Parallel
-
-**Parallel Track A: Test Fixtures**
-- Can start after Phase 1 (need calculation logic to generate fixtures)
-- Independent of Phase 2, 3, 4
-- Can be developed while API layer work happens
-
-**Parallel Track B: Documentation**
-- Can start after Phase 1 (module documentation)
-- Can continue through all phases
-- Independent of implementation details
-
-**Parallel Track C: Golden Dataset Validation**
-- Can happen after Phase 5 (or manually in parallel)
-- Depends only on calculation correctness (Phase 1)
-
-### Critical Path (minimum time to production-ready)
-
-```
-Phase 1 (16h) → Phase 2 (10h) → Phase 3 (6h) → Phase 4 (8h) → Phase 5 (12h)
-    │             │             │             │             │
-    └─────────────┴─────────────┴─────────────┴─────────────┘
-                    Sequential dependencies only
-                    Total: 52 hours minimum
-
-With parallel tracks:
-- Parallel test fixtures: -8h (overlap with Phase 2-4)
-- Parallel documentation: -4h (overlap with all phases)
-- Effective total: ~40 hours
-```
-
----
-
-## Code Boundaries and Modularity
-
-### Clear Boundaries
-
-**Boundary 1: Dai Van Module (dai_van.rs)**
-- **Responsibility:** Core Dai Van calculation only
-- **Inputs:** birth_date, gender, optional day_stem
-- **Outputs:** DaYunResult (pure calculation result)
-- **Does NOT:**
-  - ❌ Know about DayFortune structure
-  - ❌ Handle API serialization
-  - ❌ Manage business logic beyond calculation
-- **Does:**
-  - ✅ Call other calculation modules (canchi, tietkhi, thap_than, tu_menh)
-  - ✅ Provide deterministic, testable functions
-  - ✅ Include evidence metadata (convention)
-
-**Boundary 2: Calculation Orchestration (calc.rs)**
-- **Responsibility:** Assemble all calculations into DayFortune
-- **Inputs:** Raw date components, optional birth context
-- **Outputs:** Complete DayFortune struct
-- **Does NOT:**
-  - ❌ Implement calculation logic (delegates to modules)
-  - ❌ Handle API concerns (serialization, DTOs)
-- **Does:**
-  - ✅ Call all calculation modules in correct order
-  - ✅ Handle optional field population logic
-  - ✅ Ensure backward compatibility
-
-**Boundary 3: API Layer (amlich-api)**
-- **Responsibility:** Public API surface and DTOs
-- **Inputs:** Public API types (DateQuery, etc.)
-- **Outputs:** Serialized DTOs (JSON)
-- **Does NOT:**
-  - ❌ Implement calculation logic
-  - ❌ Know about internal module details
-- **Does:**
-  - ✅ Convert core types to DTOs
-  - ✅ Handle API-specific concerns
-  - ✅ Provide public interface
-
-### Data Flow Across Boundaries
-
-```
-Public API (DateQuery + BirthContext)
-    ↓
-API Layer (convert.rs) → converts inputs
-    ↓
-calc.rs (calculate_day_fortune) → orchestrates
-    ↓
-    ├── dai_van.rs → pure calculation → DaYunResult
-    ├── thap_than.rs → pure calculation → ThapThanResult
-    ├── tu_menh.rs → pure calculation → KuaResult
-    └── [other modules] → pure calculations
-    ↓
-calc.rs → assembles DayFortune
-    ↓
-API Layer (convert.rs) → converts DayFortune → DayFortuneDto
-    ↓
-Public API (JSON output)
-```
-
-### Separation of Concerns
-
-| Concern | Owner | Location |
-|---------|-------|----------|
-| Calculation logic | Individual modules | dai_van.rs, thap_than.rs, tu_menh.rs, etc. |
-| Orchestration | calc.rs | calc.rs |
-| Type definitions | types.rs | types.rs |
-| API contracts | amlich-api | dto.rs, lib.rs |
-| Serialization | amlich-api | convert.rs |
-| Testing | test files | tests/*.rs |
-
----
-
-## Architectural Patterns
-
-### Pattern 1: Optional Field Additive Integration
-
-**What:** Adding new features to DayFortune as optional fields rather than breaking existing API
-
-**When to use:**
-- Adding features that require additional inputs
-- Maintaining backward compatibility
-- Extending existing output types
-
-**Trade-offs:**
-- ✅ Pros:
-  - No breaking changes to existing clients
-  - Single return type for all queries
-  - Consistent with project "additive-only" decision
-- ❌ Cons:
-  - Function signatures can get long (many optional parameters)
-  - Optional fields require runtime null checks in consumers
-  - Type system doesn't enforce presence of required inputs
-
-**Example (Dai Van):**
-```rust
-// Bad: Breaking change
-pub fn calculate_day_fortune_with_dai_van(
-    // ... new required parameters ...
-) -> DayFortuneWithDaiVan
-
-// Good: Additive integration
-pub struct DayFortune {
-    // ... existing fields ...
-
-    // NEW: Optional field
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dai_van: Option<DaYunResult>,
-}
-
-pub fn calculate_day_fortune(
-    // ... existing parameters ...
-
-    // NEW: Optional parameters
-    birth_date: Option<NaiveDate>,
-    birth_year: Option<i32>,
-    gender: Option<Gender>,
-) -> DayFortune {
-    // Conditionally compute dai_van based on inputs
-    dai_van: match (birth_date, gender) {
-        (Some(bd), Some(g)) => Some(dai_van::calculate_dai_yun(bd, g, day_stem)),
-        _ => None,
-    },
-}
-```
-
-**Pattern used by:** Ten Gods (v1.2), Kua (v1.2), Dai Van (v1.3)
-
-### Pattern 2: Pure Calculation Modules
-
-**What:** Isolate calculation logic in pure functions with no side effects
-
-**When to use:**
-- Core almanac calculations
-- Deterministic, testable logic
-- Functions that don't depend on external state
-
-**Trade-offs:**
-- ✅ Pros:
-  - Easy to test (no mocking required)
-  - Deterministic (same input = same output)
-  - No hidden dependencies
-  - Easy to reason about
-- ❌ Cons:
-  - Requires input/output struct definitions
-  - More boilerplate (types, conversions)
-
-**Example (Dai Van):**
-```rust
-// Pure function - no side effects, no I/O
-pub fn calculate_dai_yun(
-    birth_date: NaiveDate,
-    gender: Gender,
-    day_stem: Option<HeavenlyStem>,
-) -> DaYunResult {
-    // All calculations are deterministic
-    // All dependencies are explicit (passed as parameters or called via functions)
-    // No global state, no external I/O
-
-    let lunar_date = get_lunar_date(...);  // Pure function
-    let year_canchi = get_year_canchi(...);  // Pure function
-    // ... etc ...
-
-    DaYunResult { /* ... */ }
-}
-
-// Testable without mocking
-#[test]
-fn test_dai_yun_calculation() {
-    let result = calculate_dai_yun(
-        NaiveDate::from_ymd(1990, 3, 15),
-        Gender::Male,
-        Some(HeavenlyStem::Giap),
-    );
-
-    assert_eq!(result.chieu_thu, ChieuThu::Nghich);
-    // ... more assertions ...
-}
-```
-
-**Pattern used by:** All core calculation modules (canchi, tietkhi, thap_than, tu_menh, dai_van)
-
-### Pattern 3: Evidence Metadata for Traceability
-
-**What:** Every calculation result includes metadata about how it was computed (source, method, profile)
-
-**When to use:**
-- Auditability requirements
-- Multiple calculation methods or sources
-- Need to trace output to specific input rules
-
-**Trade-offs:**
-- ✅ Pros:
-  - Full audit trail for every output
-  - Debugging assistance
-  - Verification against reference sources
-- ❌ Cons:
-  - More boilerplate (metadata structs)
-  - Larger output size
-  - Must be maintained with every calculation
-
-**Example (Dai Van):**
-```rust
-pub struct ConventionMetadata {
-    pub year_basis: String,           // "lunar" or "solar"
-    pub start_age_method: String,      // "3-days-per-year"
-    pub gender_encoding: String,       // "enum(Male,Female)"
-    pub source_id: String,            // "khcbppt" or other
-    pub method: String,               // "bai-quyet" or other
-}
-
-pub struct DaYunResult {
-    // ... calculation results ...
-
-    pub convention: ConventionMetadata,  // ← Evidence metadata
-}
-
-// Use in calculation
-let convention = ConventionMetadata {
-    year_basis: "lunar".to_string(),
-    start_age_method: "3-days-per-year".to_string(),
-    gender_encoding: "enum(Male,Female)".to_string(),
-    source_id: "khcbppt".to_string(),  // Tracked for audit
-    method: "bai-quyet".to_string(),    // Tracked for audit
-};
-```
-
-**Pattern used by:** All major outputs (DayFortune, Ten Gods, Kua, Dai Van)
-
-### Pattern 4: Module-Level Reuse Without Modification
-
-**What:** New features call existing module functions directly without modifying those modules
-
-**When to use:**
-- Features that depend on existing calculations
-- No need to modify existing calculation logic
-- Existing module is stable and correct
-
-**Trade-offs:**
-- ✅ Pros:
-  - No risk of breaking existing functionality
-  - Clear module boundaries
-  - Easier to maintain (changes isolated)
-  - Existing tests continue to pass
-- ❌ Cons:
-  - Must work within existing API
-  - May need wrapper functions if API doesn't fit exact need
-
-**Example (Ten Gods in Dai Van):**
-```rust
-// thap_than.rs exists, is stable, tested
-// NO modifications needed
-
-// dai_van.rs reuses it directly
-use crate::almanac::thap_than::get_thap_than;
-
-pub fn calculate_dai_yun(
-    birth_date: NaiveDate,
-    gender: Gender,
-    day_stem: Option<HeavenlyStem>,
-) -> DaYunResult {
-    // ... calculate pillars ...
-
-    for pillar in &mut pillars {
-        // Reuse existing function - NO modification to thap_than.rs
-        pillar.ten_gods = day_stem.map(|ds| get_thap_than(ds, pillar.can));
-    }
-
-    // ...
-}
-```
-
-**Pattern used by:**
-- Dai Van → Ten Gods (get_thap_than)
-- Dai Van → Kua (compute_kua)
-- Any future features can reuse existing modules
-
----
-
-## Scaling Considerations
-
-### Current Scale Requirements
-
-**Date range:** 1899-2100 (201 years)
-**Queries:**
-- Day-based almanac: ~73,000 possible dates
-- Birth-based queries: ~73,000 × 2 genders = ~146,000 combinations
-- Dai Van calculations: ~146,000 unique results
-
-**Performance characteristics:**
-- Day fortune calculation: < 1ms per date (measured in v1.2)
-- Kua calculation: < 0.1ms per birth (measured in v1.2)
-- Dai Van calculation: Estimated < 5ms per birth (8 pillars × Ten Gods correlation)
-
-### No Scaling Required
+**Decision:** Folder `crates/amlich-core/src/almanac/fengshui/` with explicit `mod.rs`.
 
 **Rationale:**
-- Almanac calculations are **stateless** (no database, no shared state)
-- Calculations are **deterministic** (same input = same output)
-- **Read-only** workload (no mutations)
-- **Client-side** use case (API, CLI, not server-side serving millions)
+- EXPANSION_FRAMEWORK §2.3 already calls out two files inside the namespace: `almanac/fengshui/flying_stars.rs` (this milestone) and future `interaction/spatial_compose.rs` (Tier 3, deferred). Even within the time-only scope of v1.5, the Phi Tinh code splits naturally into ≥ 3 files:
+  ```
+  almanac/fengshui/
+  ├── mod.rs                    # re-exports + glue
+  ├── lo_shu.rs                 # the Lo Shu 3×3 grid abstraction (palace ↔ direction mapping)
+  ├── flying_stars.rs           # Vận / yearly / monthly star computation
+  ├── star_meta.rs              # star metadata loader (name, element, polarity)
+  └── tests/                    # golden tests
+  ```
+- The Lo Shu grid is a **reusable primitive**. Other future feng-shui modules (Bát Trạch's 8 zones, Cửu Cung) will reuse it. Burying it inside `flying_stars.rs` would force a later refactor.
 
-**Scaling strategy if needed:**
-1. **Caching:** Precompute and cache all Dai Van results (146k entries)
-   - Cache key: birth_date + gender
-   - Cache hit rate: 100% for repeated queries
-   - Cache size: ~10-20 MB (estimated)
+### 2.2 Tables: `const` arrays vs JSON
 
-2. **Lazy computation:** Calculate on-demand only when requested
-   - Date-only queries: No Dai Van computation
-   - Birth queries: Compute Dai Van once, cache result
+**Decision: HYBRID.**
 
-3. **Precomputation:** Generate all Dai Van results at build time
-   - Create static lookup table
-   - Include in binary (small enough)
-   - Zero runtime cost for Dai Van
+| Data | Form | Why |
+|---|---|---|
+| Vận 1–9 base palace tables (which star sits in center for each Vận) | **`const` Rust array `[u8; 9]`** | Mathematically determined (Lo Shu permutation rotated by Vận). 9 vận × 1 center = 9 numbers. Never edited. Encoding as JSON would lie about its derived nature. |
+| Yearly star (年紫白): which star is center for year N | **`const` table or pure function** | Closed-form: `center_star = 11 - (year - 1864) % 9` for upper men (上元) with full formula spanning 上中下元. Pure function, no JSON. |
+| Monthly star (月紫白): which star is center for lunar month M of year-stem-branch | **`const` 24-element lookup table** | Driven by year-branch group (4 groups × 12 months = 48 entries, but most groups collapse). |
+| Daily star (日紫白) | **DEFERRED to v1.6** | Adds complexity (冬至/夏至 reversal); not in EXPANSION_FRAMEWORK §2.3 scope for "Tier 0". |
+| Star metadata: name (一白貪狼水), element, polarity, default polarity, interpretation text | **JSON: `data/almanac/flying_stars.json`** | Human-edited, bilingual, citation-bearing. Exactly the case `golden_loader.rs` solves. |
 
-**Recommendation:** Start with lazy computation (no caching). Add caching if performance issues arise.
+**Why not all-JSON:** The Vận tables are not data — they are a deterministic permutation. Putting them in JSON invites typos that the type system can't catch, and forces a runtime load for what should be a `const`. The metadata IS data (different sources use slightly different star names, different element associations), so it goes to JSON where citations live.
 
----
+**Why not all-const:** Interpretation text is exactly the kind of content that the corpus contributor edits without recompiling. Forcing it into `const &str` arrays would couple data edits to Rust releases.
 
-## Anti-Patterns to Avoid
+### 2.3 API shape
 
-### Anti-Pattern 1: Modifying Existing Calculation Modules
-
-**What people do:** Modify `thap_than.rs` or `tu_menh.rs` to add Dai Van-specific logic
-
-**Why it's wrong:**
-- Breaks existing functionality and tests
-- Violates module boundaries
-- Creates tight coupling between features
-- Makes debugging harder (changes not isolated)
-
-**Do this instead:**
 ```rust
-// BAD: Modifying thap_than.rs
-impl ThapThanResult {
-    pub fn to_dai_van_pillar(...) { /* Dai Van logic */ }
-}
-
-// GOOD: Using existing function from dai_van.rs
-use crate::almanac::thap_than::get_thap_than;
-
-pub fn calculate_dai_yun(...) -> DaYunResult {
-    pillar.ten_gods = day_stem.map(|ds| get_thap_than(ds, pillar.can));
-}
-```
-
-### Anti-Pattern 2: Creating Separate BirthFortune Type
-
-**What people do:** Create new `BirthFortune` type separate from `DayFortune`
-
-**Why it's wrong:**
-- API fragmentation (clients need to know which type to request)
-- Breaks unified query model
-- More complex for existing consumers
-- Requires two separate code paths (maintenance burden)
-
-**Do this instead:**
-```rust
-// BAD: Separate type
-pub struct BirthFortune {
-    pub day_fortune: DayFortune,
-    pub dai_van: DaYunResult,
-}
-
-// GOOD: Additive optional field
-pub struct DayFortune {
-    // ... existing fields ...
-    pub dai_van: Option<DaYunResult>,  // Works for both cases
-}
-
-// Single function handles both cases
-pub fn calculate_day_fortune(
-    // ... parameters ...
-    birth_date: Option<NaiveDate>,  // Optional
-) -> DayFortune {
-    dai_van: match (birth_date, gender) {
-        (Some(bd), Some(g)) => Some(calculate_dai_yun(bd, g, day_stem)),
-        _ => None,  // Date-only query
-    },
-}
-```
-
-### Anti-Pattern 3: Skipping Evidence Metadata
-
-**What people do:** Omit `convention` metadata from Dai Van result to save time
-
-**Why it's wrong:**
-- Breaks auditability requirement
-- Makes verification impossible
-- Violates project pattern (all other features have evidence)
-- Cannot trace output to source (KHCBPPT)
-
-**Do this instead:**
-```rust
-// BAD: No metadata
-pub struct DaYunResult {
-    pub chieu_thu: ChieuThu,
-    pub start_age: u8,
-    pub pillars: Vec<DaYunPillar>,
-    // Missing: convention
-}
-
-// GOOD: Include evidence
-pub struct DaYunResult {
-    pub chieu_thu: ChieuThu,
-    pub start_age: u8,
-    pub pillars: Vec<DaYunPillar>,
-    pub convention: ConventionMetadata,  // Source, method, profile
-}
-```
-
-### Anti-Pattern 4: Mixing Concerns in Calculation Logic
-
-**What people do:** Add API serialization logic inside `dai_van.rs` calculation functions
-
-**Why it's wrong:**
-- Violates single responsibility principle
-- Makes testing harder (need to mock serialization)
-- Tight coupling between layers
-- Cannot reuse calculation logic for other purposes (CLI, tests)
-
-**Do this instead:**
-```rust
-// BAD: Serialization in calculation module
-pub fn calculate_dai_yun(...) -> String {
-    let result = DaYunResult { /* ... */ };
-    serde_json::to_string(&result).unwrap()  // API concern here
-}
-
-// GOOD: Separation of concerns
-pub fn calculate_dai_yun(...) -> DaYunResult {
-    // Pure calculation only
-    DaYunResult { /* ... */ }
-}
-
-// Serialization in API layer
-impl From<DaYunResult> for DaYunResultDto {
-    fn from(result: DaYunResult) -> Self {
-        // Conversion logic here
-    }
-}
-```
-
-### Anti-Pattern 5: Hardcoding Gender and Date Types
-
-**What people do:** Use `bool` for gender, custom date types instead of standard types
-
-**Why it's wrong:**
-- Type-unsafe (bool is unclear: true=male or true=female?)
-- Non-standard (creates confusion)
-- Harder to serialize (need custom serializers)
-- Violates project conventions (use enums, chrono)
-
-**Do this instead:**
-```rust
-// BAD: Non-standard types
-pub fn calculate_dai_yun(
-    birth_date: (u32, u32, u32),  // Tuple is unclear
-    gender: bool,                   // Is true=male or true=female?
-) -> DaYunResult
-
-// GOOD: Standard types
-pub fn calculate_dai_yun(
-    birth_date: chrono::NaiveDate,  // Clear, standard
-    gender: Gender,                 // Enum is clear
-) -> DaYunResult
+// crates/amlich-core/src/almanac/fengshui/flying_stars.rs
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Gender {
-    Male,
-    Female,
+pub enum FlyingStar {
+    NhatBach = 1, NhiHac = 2, TamBich = 3,
+    TuLuc = 4,   NguHoang = 5, LucBach = 6,
+    ThatXich = 7, BatBach = 8, CuuTu = 9,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Palace {
+    Center, North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct FlyingStarLayout {
+    pub period: FlyingStarPeriod,        // Yearly | Monthly | Van
+    pub period_index: i32,               // year number, lunar month, or vận number
+    pub palaces: [FlyingStar; 9],        // index = Palace as usize
+    pub center_star: FlyingStar,
+    pub evidence: RuleEvidence,          // source_id = "huyen-khong"
+}
+
+pub fn compute_van_layout(van: u8) -> FlyingStarLayout;            // Vận 1..=9
+pub fn compute_yearly_flying_stars(year: i32) -> FlyingStarLayout;
+pub fn compute_monthly_flying_stars(lunar_year_branch_index: usize, lunar_month: i32) -> FlyingStarLayout;
+
+// Convenience: snapshot-based
+pub fn compute_flying_stars_for_snapshot(snapshot: &DaySnapshot) -> FlyingStarsForDay;
+
+#[derive(Debug, Clone)]
+pub struct FlyingStarsForDay {
+    pub van: FlyingStarLayout,        // current Vận 9 (2024-2043)
+    pub yearly: FlyingStarLayout,
+    pub monthly: FlyingStarLayout,
 }
 ```
 
----
+**API shape choices:**
+- **`[FlyingStar; 9]`** not `[u8; 9]` (the question proposed `[u8; 9]`). Typed enum prevents callers from mistreating star numbers as raw bytes; serde gives identical JSON shape (1..=9) for free.
+- **`Palace as usize` indexing** with a fixed order (Center, N, NE, E, SE, S, SW, W, NW) — this order matches the Lo Shu number canonical layout (5 center, 1 N, 8 NE, 3 E, 4 SE, 9 S, 2 SW, 7 W, 6 NW). Document this loudly in `lo_shu.rs` so callers don't index by direction-name string.
+- **Three separate `FlyingStarLayout` outputs** (Vận / yearly / monthly) rather than one merged 9×3 grid — they are semantically different time scales and combining them obscures which scale a given star comes from.
 
-## Integration Points Summary
+### 2.4 Boundary statement (load-bearing — must be in module docs)
 
-### Internal Module Dependencies
+Document this verbatim at the top of `almanac/fengshui/mod.rs`:
 
-| Module | Depends On | Type of Dependency |
-|--------|-----------|-------------------|
-| `dai_van.rs` | `canchi.rs` | Function calls (get_year_canchi, get_month_canchi) |
-| `dai_van.rs` | `tietkhi.rs` | Function call (get_days_to_nearest_tiet_khi) |
-| `dai_van.rs` | `lunar.rs` | Function call (get_lunar_date) |
-| `dai_van.rs` | `julian.rs` | Function call (jd_from_date) |
-| `dai_van.rs` | `thap_than.rs` | Function call (get_thap_than) - REUSE |
-| `dai_van.rs` | `tu_menh.rs` | Function call (compute_kua) - REUSE |
-| `calc.rs` | `dai_van.rs` | Function call (calculate_dai_yun) |
-| `calc.rs` | `thap_than.rs` | Function call (get_thap_than) |
-| `calc.rs` | `tu_menh.rs` | Function call (compute_kua) |
-| `convert.rs` | `calc.rs` | Uses DayFortune output |
+```rust
+//! # Boundary with other direction-bearing almanac modules
+//!
+//! This module computes **9-palace star layouts** for time periods (Vận / Năm /
+//! Tháng). Its output is a *spatial assignment* — which of the nine stars sits
+//! in each of the nine palaces (8 cardinals + center) of the Lo Shu grid for
+//! the queried period.
+//!
+//! This is **disjoint from** the following existing modules:
+//!
+//! - `almanac::sat_phuong`  — one "killing direction" per day (input: day chi).
+//! - `almanac::than_huong`  — three named directions per day (Xuất hành / Tài /
+//!   Hỷ) keyed on day stem. Source: Khâm Định Hiệp Kỷ Biện Phương Thư.
+//! - `almanac::thai_tue`    — yearly conflict list keyed on year branch +
+//!   birth-year branch. Source: KHCBPPT + folk.
+//!
+//! These modules answer "which compass direction is auspicious today?". This
+//! module answers "what is the time-period's Lo Shu palace layout?".
+//! They are NOT alternatives. They are NOT substitutable. Their `source_id`s
+//! are disjoint (`khcbppt` vs `huyen-khong`). Composing them is the job of
+//! `interaction::direction_merge` (existing) and the future
+//! `interaction::spatial_compose` (Tier 3, deferred).
+```
 
-### External Dependencies
+This docstring is the operational definition of "no overlap, no duplication" that the quality gate demands.
 
-| Dependency | Used By | Purpose |
-|------------|----------|---------|
-| `chrono` | `dai_van.rs`, `calc.rs` | Date types (NaiveDate) |
-| `serde` | All types | Serialization (Serialize, Deserialize) |
+### 2.5 Semantic graph wiring (P4)
 
-### API Surface Changes
+**New `NodeConcept` (one):** `FlyingStar`. One node per (period, palace) pair that the calling builder decides to materialize (usually 9 cells × 3 period layers = 27 nodes per day's snapshot — but builders may choose only Vận and yearly for compact graphs).
 
-| File | Change | Type |
-|------|---------|------|
-| `calc.rs` | Function signature update | Breaking |
-| `types.rs` | Add dai_van field | Additive |
-| `dto.rs` | Add DaiYunResultDto, DaYunPillarDto | New |
-| `convert.rs` | Add From<> implementations | Additive |
-| `lib.rs` (core) | Export dai_van module | Additive |
-| `lib.rs` (api) | Export new DTO types | Additive |
+**Reused `NodeConcept`s:** `Direction` (existing — each Palace except Center maps to a Direction). `Element` (existing — each star has an element association).
 
-### Backward Compatibility
+**New `EdgeConcept`s (two):**
+- `OccupiesPalace` — `FlyingStar --OccupiesPalace--> Direction` (the Palace's compass-direction node).
+- `CarriesElement` — `FlyingStar --CarriesElement--> Element`. Reuses the existing `Element` node.
 
-**What breaks:**
-- ⚠️ `calculate_day_fortune()` signature change (breaking)
-  - All call sites must be updated in coordinated PR
-  - Impact: ~5-10 call sites in test files and API layer
+**Provenance:**
 
-**What's compatible:**
-- ✅ DayFortune type is extended, not replaced (additive)
-- ✅ JSON serialization is additive (new optional fields)
-- ✅ Existing calculations are unchanged
-- ✅ No changes to canchi, tietkhi, thap_than, tu_menh modules
+```rust
+ProvenanceEntry::almanac_rule("huyen-khong", "fengshui.compute_yearly_flying_stars")
+    .with_note(format!("center_star={center}, year={year}"))
+```
 
----
-
-## Sources
-
-- **DAI_VAN_RESEARCH.md** (project research file) - Comprehensive Dai Van formulas and implementation details
-- **v1.2-REQUIREMENTS.md** - Ten Gods and Kua integration patterns
-- **crates/amlich-core/src/almanac/** - Existing implementation analysis (types.rs, calc.rs, thap_than.rs, tu_menh.rs)
-- **crates/amlich-api/src/dto.rs** - API DTO patterns
-- **Project decision record** - "Additive-only integration changes" (v1.2)
+Add `huyen-khong` to the source taxonomy memory doc.
 
 ---
 
-## Confidence Assessment
+## Integration Points (at file:line granularity)
 
-| Area | Confidence | Reason |
-|------|------------|--------|
-| Integration points | HIGH | Clear analysis of existing DayFortune patterns from v1.2 |
-| New components | HIGH | Detailed specification from DAI_VAN_RESEARCH.md |
-| Data flow changes | HIGH | Direct analysis of calc.rs and module dependencies |
-| Ten Gods relationship | HIGH | Direct reuse pattern proven in v1.2 |
-| Kua relationship | HIGH | Direct reuse pattern proven in v1.2 |
-| Build order | HIGH | Clear dependency graph with sequential phases |
-| Code boundaries | HIGH | Well-defined module responsibilities from existing code |
-| Backward compatibility | HIGH | Breaking change identified and mitigated |
+### New files
 
-**Overall Confidence: HIGH**
+| Path | Purpose |
+|---|---|
+| `crates/amlich-core/src/rituals/mod.rs` | Public ritual API |
+| `crates/amlich-core/src/rituals/corpus.rs` | OnceLock-backed corpus loader (mirrors `golden_loader.rs`) |
+| `crates/amlich-core/src/rituals/event_match.rs` | Day → event-key resolver |
+| `crates/amlich-core/src/rituals/types.rs` | `RitualEntry`, `RitualEventKey`, `LifeEventKind`, … |
+| `crates/amlich-core/src/rituals/tests.rs` | Golden coverage tests |
+| `crates/amlich-core/src/almanac/fengshui/mod.rs` | Sub-folder root + boundary docstring |
+| `crates/amlich-core/src/almanac/fengshui/lo_shu.rs` | Lo Shu grid primitive (Palace enum, direction mapping) |
+| `crates/amlich-core/src/almanac/fengshui/flying_stars.rs` | Vận/yearly/monthly computations |
+| `crates/amlich-core/src/almanac/fengshui/star_meta.rs` | Star metadata loader |
+| `crates/amlich-core/data/rituals/manifest.json` | Corpus manifest |
+| `crates/amlich-core/data/rituals/*.json` | Per-event-category corpora (~14 files) |
+| `crates/amlich-core/data/almanac/flying_stars.json` | Star metadata + interpretations |
 
-**Key Assumptions:**
-- KHCBPPT source verification will follow Dai Van implementation (as noted in research)
-- No additional birth-based features planned for v1.3 beyond Dai Van
-- Team accepts calculate_day_fortune() signature change as breaking but necessary
+### Modified files (additive only)
 
-**Gaps:**
-- None identified - all integration points analyzed
+| Path:line | Change | Risk |
+|---|---|---|
+| `crates/amlich-core/src/lib.rs:11` (alphabetical) | Add `pub mod rituals;` | None — pure addition |
+| `crates/amlich-core/src/lib.rs:36-50` re-exports block | Add `pub use crate::rituals::{find_van_khan_for_snapshot, RitualEntry, ...};` | None |
+| `crates/amlich-core/src/lib.rs:41` (sorted with other almanac re-exports) | Add `pub use crate::almanac::fengshui::{compute_yearly_flying_stars, FlyingStarLayout, FlyingStar, Palace, ...};` | None |
+| `crates/amlich-core/src/almanac/mod.rs:1-28` | Add `pub mod fengshui;` line | None |
+| `crates/amlich-core/src/holidays.rs:14-25` (`Holiday` struct) | Add `pub id: Option<String>` field; populate from `lunar_festivals[].id` and from solar_holidays. Default `None` for generated Mùng 1/Rằm entries. | LOW — additive field; existing downstream consumers ignore it; serde with `#[serde(default)]` keeps JSON snapshots compatible |
+| `crates/amlich-core/src/holidays.rs:148-198` (creation sites) | Populate the new `id` field from the source JSON's `id` | LOW |
+| `crates/amlich-core/src/semantic_graph/ontology.rs:5-40` `NodeConcept` | Add `Ritual`, `FlyingStar` variants + `label()` arms + `node_concepts()` slice entries | LOW — exhaustive match enforced by compiler |
+| `crates/amlich-core/src/semantic_graph/ontology.rs:85-111` `EdgeConcept` | Add `PrescribedFor`, `OccupiesPalace`, `CarriesElement` variants + `label()` arms + `edge_concepts()` slice entries | LOW |
+| `crates/amlich-core/src/semantic_graph/ontology.rs:145-273` `ConceptLabel` + `as_str()` | Add matching label variants + string forms | LOW |
+| `crates/amlich-core/src/semantic_graph/builders/day_snapshot.rs` (or new sibling) | Wire ritual + flying-star nodes into the day snapshot graph build | MEDIUM — first time non-`khcbppt` nodes co-exist in the day graph; verify provenance separation |
+
+### Not modified (deliberately frozen)
+
+| Path | Why kept untouched |
+|---|---|
+| `interaction/direction_merge.rs` | Tier 0 milestone; spatial merge is Tier 3 (v1.7+) |
+| `interaction/personal_hour.rs` | No personal layer in v1.5 |
+| `reasoning/personal.rs` | Both pillars are Tier 0; nothing to wire through personal reasoning yet |
+| `almanac/calc.rs` (DayFortune assembly) | DayFortune semantics frozen since v1.2; v1.5 outputs surface beside DaySnapshot, not inside DayFortune |
+| All existing `almanac/*.rs` calculators | Frozen — no source-tradition cross-contamination |
 
 ---
 
-*Architecture research for: Dai Van Integration (v1.3 milestone)*
-*Researched: 2026-03-03*
-*Confidence: HIGH*
+## Semantic Graph Extension Plan
+
+### New nodes (2)
+
+| Node | Concept | Stable id format | Provenance source_id |
+|---|---|---|---|
+| Ritual | `NodeConcept::Ritual` | `ritual.{ritual_id}` (e.g. `ritual.van-khan-giao-thua`) | `vn-folk-ritual` |
+| FlyingStar | `NodeConcept::FlyingStar` | `flying_star.{period}.{period_index}.{palace}` (e.g. `flying_star.yearly.2026.east`) | `huyen-khong` |
+
+### New edges (3)
+
+| Edge | From → To | Concept | Meaning |
+|---|---|---|---|
+| PrescribedFor | Ritual → DayCanchi or Ritual → SolarTerm | `EdgeConcept::PrescribedFor` | "This ritual is prescribed for this day-coordinate." |
+| OccupiesPalace | FlyingStar → Direction | `EdgeConcept::OccupiesPalace` | "This star sits in this compass direction for the queried period." |
+| CarriesElement | FlyingStar → Element | `EdgeConcept::CarriesElement` | "This star carries this Five-Element nature." |
+
+### Reused nodes (zero new code in these)
+
+- `DayCanchi` — already produced by `builders/day_snapshot.rs`. Rituals link to it.
+- `SolarTerm` — same.
+- `Direction` — already used by `direction_merge`. FlyingStars link to existing direction nodes (verify dedup via `ProvenanceTracker` — same Direction node may now carry both KHCBPPT and Huyền Không provenance entries; the tracker handles this with its multi-entry vector at `provenance.rs:130-135`).
+- `Element` — same.
+
+### Builder placement
+
+New builder file `crates/amlich-core/src/semantic_graph/builders/expansion_v15.rs` (or extend `day_snapshot.rs` — TBD by orchestrator based on builder-file size budget). Pattern follows existing builders. Critical: emit ProvenanceEntry with the **correct** new source_id; never reuse `khcbppt`.
+
+---
+
+## Build Order (with dependencies)
+
+Each numbered item is a discrete chunk; (deps) lists what must be done first. Items at the same indent without deps can parallelise.
+
+```
+1. SCHEMA LOCK (gates everything downstream)
+   1a. ADR: ritual JSON schema (event_keys enum, confidence levels, citation shape)
+   1b. ADR: source_id additions ("vn-folk-ritual", "huyen-khong") to taxonomy doc
+   1c. Add Holiday.id field + propagate from JSON (small, low-risk modification of holidays.rs)
+
+2. P1 VÃN KHÂN MODULE (deps: 1a, 1c)
+   2a. rituals/types.rs + rituals/corpus.rs (mirror golden_loader pattern)
+   2b. rituals/event_match.rs (joins holidays.rs)
+   2c. rituals/mod.rs public API
+   2d. Authoring: ritual corpus JSON files (the long-pole work; ≥ 60 entries to start)
+   2e. Tests: golden coverage tests, deterministic loader tests
+
+3. P1 SEMANTIC GRAPH WIRING (deps: 2c, ontology additions)
+   3a. Add Ritual NodeConcept + PrescribedFor EdgeConcept to ontology.rs
+   3b. Builder: ritual node materialization in day_snapshot graph build
+   3c. Provenance verification tests
+
+4. P4 PHI TINH PRIMITIVES (deps: 1b; can parallel with 2*)
+   4a. almanac/fengshui/lo_shu.rs (Palace enum, Lo Shu canonical ordering, direction mapping)
+   4b. almanac/fengshui/star_meta.rs (JSON loader for metadata)
+   4c. data/almanac/flying_stars.json authoring
+
+5. P4 PHI TINH COMPUTATION (deps: 4a, 4b)
+   5a. almanac/fengshui/flying_stars.rs — Vận layout
+   5b. almanac/fengshui/flying_stars.rs — yearly star
+   5c. almanac/fengshui/flying_stars.rs — monthly star
+   5d. snapshot convenience wrapper
+   5e. Golden tests cross-checked with fengshui.net / phongthuyhomemy.com per §7
+
+6. P4 SEMANTIC GRAPH WIRING (deps: 5*, ontology additions)
+   6a. Add FlyingStar NodeConcept + OccupiesPalace, CarriesElement EdgeConcept
+   6b. Builder: flying-star node materialization
+   6c. Provenance separation tests (huyen-khong nodes must NEVER carry khcbppt provenance)
+
+7. INTEGRATION TESTS (deps: 3*, 6*)
+   7a. Day snapshot includes ritual + flying-star nodes
+   7b. LLM view / debug inspector handles new node concepts cleanly
+   7c. End-to-end: 2026 calendar smoke test on at least 30 representative dates
+```
+
+**Schema lock first because:** corpus authoring (2d) is the longest-pole item by far (an editorial task with ≥ 60 ritual entries). It cannot start until the schema is locked. If the schema slips after authoring starts, every entry needs revision.
+
+**P1 and P4 parallelisable from step 2 onwards** because they share no code paths. They first re-converge at step 7 (integration) and at the ontology PR (steps 3a + 6a should ideally land in one commit to keep `ConceptLabel` exhaustive matches clean).
+
+**Phi Tinh primitives (4a Lo Shu) precede computation (5)** because the computation depends on a well-defined palace ordering. Authoring `flying_stars.json` (4c) parallelises with 5* once `star_meta.rs` declares the schema.
+
+---
+
+## Risks & Mitigations
+
+| Risk | Severity | Mitigation |
+|---|---|---|
+| Ritual JSON schema churns after corpus authoring starts | HIGH | Lock schema with ADR (step 1a) before any 2d work. Treat schema as a frozen v1; deprecation requires `$schema_version` bump. |
+| `Holiday.id` field break downstream consumers (CLI, desktop) | LOW | Field is `Option<String>`, default `None`, serde `#[serde(default)]`. Existing consumers see no change. |
+| Phi Tinh yearly formula 上中下元 boundary errors | MEDIUM | Golden tests at known transition dates (1864/1923/1984/2043). Cross-check ≥ 2 sources per §7. |
+| Lo Shu palace ordering disagreement across sources | MEDIUM | Pick Sòng-canon (5 center, 1 N…) and document it in `lo_shu.rs` header. Mark any divergence in metadata JSON as `KnownDivergence`. |
+| `source_id` typo silently mints a fake source | HIGH | Add compile-time const `pub const SOURCE_RITUAL: &str = "vn-folk-ritual";` in each module; ban string literals at the `Provenance::almanac_rule(...)` callsite via a lint or test. |
+| Semantic graph provenance dedup collapses different sources | MEDIUM | `ProvenanceTracker::track()` (provenance.rs:130) appends to a vector — confirmed it does NOT dedup, so multi-source nodes are safe. Add a test that asserts a Direction node carries BOTH `khcbppt` and `huyen-khong` provenance entries when both apply. |
+| Ritual content quality varies by region (Bắc/Trung/Nam) | LOW | `confidence: regional-variant` schema field flags this. Keep regional variants as separate entries; the matcher returns them all; UI ranks. |
+
+---
+
+## Validation References
+
+- **Văn khấn:** *Văn khấn cổ truyền Việt Nam* (NXB Văn Hóa Dân Tộc, 2018). Cross-check ≥ 2 traditional household editions per entry per EXPANSION_FRAMEWORK §7.
+- **Phi Tinh:** *Thẩm Thị Huyền Không Học*. Online cross-check: fengshui.net for yearly tables, phongthuyhomemy.com for VN-language interpretation.
+
+Golden test minimum: 10 cases per pillar, ≥ 2 independent sources per case (§7). Divergences logged as `KnownDivergence`, NOT "fixed" toward either source.
+
+---
+
+## Open Questions for Orchestrator / Future Decisions
+
+1. **Builder file size budget.** Should expansion v1.5 nodes live in a new builder file (`builders/expansion_v15.rs`) or extend `builders/day_snapshot.rs`? Either works; depends on team style.
+2. **Mùng 1 / Rằm leap-month behavior.** When lunar month is leap, should Sóc/Vọng rituals still apply? Default proposed: `leap_ok: true` in `RitualEventKey::LunarDate`. Confirm during schema-lock ADR.
+3. **Daily flying star (日紫白) inclusion.** EXPANSION_FRAMEWORK §2.3 lists "Vận/Năm/Tháng" only. Confirm daily is deferred to v1.6 (recommended) or pulled in (adds 1–2 weeks).
+4. **Should `find_van_khan_for_snapshot` rank/score the returned rituals**, or strictly return all matches and let callers rank? Recommended: return all, no ranking inside the library (avoids premature opinion).
+
+---
+
+*Sources: PROJECT.md, EXPANSION_FRAMEWORK.md §2.3 §2.4 §3 §5 §7, current source files at `crates/amlich-core/src/lib.rs`, `almanac/mod.rs`, `almanac/sat_phuong.rs`, `almanac/than_huong.rs`, `almanac/thai_tue.rs`, `almanac/golden_loader.rs`, `holidays.rs`, `holiday_data.rs`, `semantic_graph/provenance.rs`, `semantic_graph/ontology.rs`, `reasoning/personal.rs`. All file:line references verified against working-tree source on 2026-05-23.*

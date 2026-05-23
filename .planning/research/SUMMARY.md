@@ -1,198 +1,214 @@
 # Project Research Summary
 
-**Project:** amlich v1.3 - Dai Van Core
-**Domain:** Vietnamese Almanac (Đại Vân/10-Year Major Luck Cycles)
-**Researched:** 2026-03-03
-**Confidence:** HIGH
+**Project:** amlich v1.5 — Eastern Knowledge Expansion (P1 Văn khấn + P4 Phi Tinh thời gian)
+**Domain:** Vietnamese Almanac — ritual content corpus + time-based Huyền Không Flying Stars
+**Researched:** 2026-05-23
+**Confidence:** HIGH (system integration); MEDIUM (a few domain conventions need ADR-locking during execution)
 
 ## Executive Summary
 
-Dai Van (Đại Vân/大運) is a deterministic 10-year luck cycle calculation system in Vietnamese Bazi astrology that projects life phases from birth date and gender. The integration follows the same additive-only pattern used successfully for Ten Gods and Kua in v1.2: create a pure calculation module (`dai_van.rs`), expose results through an optional `dai_van` field in `DayFortune`, and reuse existing modules (canchi, tietkhi, thap_than, tu_menh) without modification. No new dependencies are needed—all required capabilities exist in the workspace (Rust stdlib, serde, chrono).
+v1.5 adds two **Tier 0** pillars to the existing deterministic `amlich-core` Rust workspace shipped through v1.0–v1.4: **P1 Văn khấn cổ truyền** (`source_id: vn-folk-ritual`) is a content corpus + lookup pillar that surfaces Vietnamese ritual prayers, offerings, and procedure by event/date; **P4 Phi Tinh thời gian** (`source_id: huyen-khong`) is a finite-table pillar that emits 9-palace Lo Shu star layouts for the queried Vận/Năm/Tháng with **no spatial input**. Neither pillar requires algorithmic novelty and neither requires new crate dependencies — the existing `serde` / `serde_json` / `chrono` trio plus the `include_str!` + `OnceLock` pattern from `almanac/golden_loader.rs` covers both pillars end-to-end. P1 and P4 share no code paths and can ship in parallel within the milestone; they reconverge only at semantic-graph wiring and integration tests.
 
-The recommended approach uses standard Bazi formulas: 8-pillar generation from month Can Chi with chieuthu direction (forward/backward based on year polarity × gender), start age calculated as |days_to_nearest_tiết_khi| / 3, and optional Ten Gods correlation per pillar (pillar Can → birth day Can). Key risks include off-by-one errors in age ranges, incorrect Ten Gods target stem (must use birth day stem, not pillar Can), and potential KHCBPPT source verification gaps. Mitigation: comprehensive golden fixtures with edge cases (Tiết Khí boundaries, leap months, Kua 5), property-based tests for invariants (contiguous age ranges), and transparent documentation of source uncertainty.
+The recommended approach mirrors v1.2's proven additive-only playbook: new top-level module `crates/amlich-core/src/rituals/` for P1, new sub-folder `crates/amlich-core/src/almanac/fengshui/` for P4 (folder, not file, to leave room for the Tier-3 `spatial_compose` work explicitly deferred to P5). All new fields on shared DTOs (`DaySnapshot`, `DayFortune`) must be `Option<T>` per v1.2 precedent. The single load-bearing **boundary rule** is that Phi Tinh outputs under `huyen-khong` must NEVER merge with the existing KHCBPPT direction modules (`sat_phuong.rs`, `than_huong.rs`, `thai_tue.rs`) — they answer different questions (palace layout vs. single auspicious/inauspicious direction) and carry disjoint source provenance per DEC-0015/0016. Three risks drive sequencing: (a) **schema-lock for the ritual JSON must precede corpus authoring** because corpus production (~60 entries) is the longest-pole work and re-editing entries after a schema slip is prohibitively expensive; (b) **Vận 8 → Vận 9 transition aligns with Lập Xuân 2024-02-04 16:27 ICT, not calendar 2024-01-01** — naïve `year >= 2024` checks corrupt every January/early-February output and must reuse the v1.1.2 real-Tiết-Khi boundary scanner; (c) **Phi Tinh base palace tables are validated by Lo Shu invariants (sum=45, each 1-9 once, center=Vận)** plus a golden dataset mirroring the v1.0 KHCBPPT methodology — there is no canonical software to cross-check against, so the validation strategy is multi-source-with-tiebreaker (classical *Thẩm Thị Huyền Không Học*) per EXPANSION_FRAMEWORK §7.
 
 ## Key Findings
 
 ### Recommended Stack
 
-No new dependencies required. All capabilities exist in the existing Rust workspace.
+**No new crate dependencies required.** Existing workspace pins suffice. Stack delta for v1.5 is the *embedding pattern*, not the dependency list.
 
-**Core technologies:**
-- **Rust workspace (edition 2021)** — Deterministic Dai Van calculation engine; no FFI/language boundary needed for correctness-critical milestone
-- **serde (workspace)** — Serialize/deserialize Dai Van types and evidence metadata; follows existing DTO/JSON contract patterns
-- **chrono (workspace)** — Birth date handling and Tiết Khí distance calculation; date conversion and day difference logic needed for start age
-- **Existing modules** — canchi (year/month Can Chi), tietkhi (days to nearest solar term), thap_than (Ten Gods), tu_menh (Kua calculator)
+**Core technologies (already in `crates/amlich-core/Cargo.toml`):**
+- **`serde` 1.0 (derive)** — Derive `Serialize`/`Deserialize` for `RitualEntry`, `RitualCorpus`, `FlyingStarLayout`, `Palace`, `FlyingStar`. Matches existing `GoldenDataset` / `GoldenEntry` patterns.
+- **`serde_json` 1.0** — Parse `data/rituals/*.json` and `data/almanac/flying_stars.json` at first-call. Exact pattern used by `golden_loader::load_golden_dataset`.
+- **`chrono` 0.4** — `NaiveDate` inputs for ritual lookups and Vận/Năm/Tháng resolution. Deterministic — `Utc::now()` remains forbidden by project policy in v1.5.
 
-**Why no new dependencies:** All needed calculation logic is pure deterministic algorithms (stem/branch progression, chieuthu matrix, age range calculations). Database not needed—Dai Van computed on-demand from birth inputs. Infrastructure unchanged—use existing module structure.
+**Standard library (load-bearing for both pillars):**
+- **`include_str!`** — Embed all corpus JSON into the compiled binary; matches `golden_loader.rs:5` and the WASM target's zero-runtime-IO constraint.
+- **`std::sync::OnceLock`** — One-time parse + validate cache; matches `golden_loader.rs:6`; stable since Rust 1.70.
+- **`BTreeMap` / `HashMap`** — Index rituals by event key; index Phi Tinh tables by `(vận, năm)` and `(vận, năm, tháng)`. `BTreeMap` preferred where iteration order touches golden tests.
+
+**Why no new dependencies:** Hand-rolled validators (mirror `golden_loader::validate_*`) catch richer invariants than `jsonschema` documents; văn khấn text is plain UTF-8 prayer scripts (no Markdown rendering needed in core — UI's job); `OnceLock` removes the `once_cell`/`lazy_static` case; `phf` would force a `build.rs` we have deliberately avoided; Flying Stars math is integer-pure (no float libs); async runtimes, web frameworks, runtime file IO, and Markdown engines are all explicit non-goals for the v1.5 stack.
 
 ### Expected Features
 
-**Must have (table stakes):**
-- 8-pillar Dai Van calculation with Chieuthu (Thuận/Nghịch) direction determination
-- Start age calculation from Tiết Khí distance (3 days = 1 year conversion)
-- Pillar generation with contiguous 10-year age ranges
-- Optional Ten Gods correlation per pillar (lazy, on-demand)
-- Backward-compatible DayFortune/API integration (optional field with skip_serializing_if)
-- Convention metadata with evidence traceability (source_id, method, year_basis, etc.)
+**Must have (table stakes — v1.5 MVP gate):**
 
-**Should have (differentiators):**
-- Kua-based directional analysis per pillar (links 10-year cycles with feng-shui directions)
-- Helper functions: get_current_pillar(), years_to_next_transition(), get_pillar_at_age()
-- Current pillar identification for any age
-- Convention-tagged metadata (auditable calculation assumptions)
+*P1 Văn khấn — corpus + lookup:*
+- `Ritual` (a.k.a. `RitualEntry`) struct + JSON schema with `ritual_id`, `event_keys[]`, `category`, `offerings`, `preparation_steps`, `invocation_text_vi`, `source_id: "vn-folk-ritual"`, `original_citation`, `confidence`.
+- Closed `event_type` / `RitualEventKey` enum covering at minimum: Sóc/Vọng (Mùng 1, Rằm), 8 major lunar festivals (Tết Nguyên Đán, Khai Hạ, Thượng Nguyên, Thanh Minh, Đoan Ngọ, Vu Lan, Trung Thu, Ông Công Ông Táo), life events (Động thổ, Nhập trạch, Khai trương, Cưới, Giỗ, Đầy tháng).
+- Corpus content: ≥ 20 entries minimum, target ~60 for first release.
+- Lookup APIs: `find_van_khan_for_snapshot(&DaySnapshot)`, `find_van_khan_for_event(&RitualEventKey)`, `find_van_khan_for_life_event(LifeEventKind)`, `get_ritual_by_id(&str)`, `all_rituals()`.
+- Per-record source citation validated by golden test; loader rejects entries missing `source_id` or `original_citation`.
+- Additive integration: holiday JSON entries optionally gain `ritual_ids: ["<id>", ...]`; `Holiday` struct gains `id: Option<String>` so the matcher can join by stable id (one tiny existing-file modification — the only one in v1.5).
 
-**Defer (v2+):**
-- Tiểu Vận (yearly/decadal luck) — different calculation rules, unclear KHCBPPT coverage
-- Human-language fortune interpretation paragraphs — non-deterministic, outside correctness scope
-- Separate public API for birth fortune — optional field approach keeps API minimal
-- Composite "fortune score" — pseudo-precision, heavy source ambiguity
+*P4 Phi Tinh — time-based 9-palace layout:*
+- `Period` determination from year (Vận 8: 2004–2023, Vận 9: 2024–2043) — boundary at **Lập Xuân**, not Jan 1.
+- 9-star metadata table (name Nhất Bạch…Cửu Tử, element, polarity, auspice, palace_color).
+- Annual center star + full 9-palace grid via formula (`center = ((11 - digit_sum(year)) mod 9)`, 0→9), golden-tested for 2020–2030.
+- Monthly center star + full 9-palace grid via year-branch-group rule (groups start at 8/5/2, descend mod-9), golden-tested for ≥ 24 month-points.
+- Static `Palace ↔ Direction` mapping (Lạc Thư canonical: N=1, NE=8, E=3, SE=4, S=9, SW=2, W=7, NW=6, Center=5).
+- `DaySnapshot.flying_stars: Option<FlyingStarsSummary>` additive field (year + month layers; combined overlay deferred).
+- Year boundary = Lập Xuân (~Feb 4); month boundary = solar terms (tiết) — **both decisions ADR'd** during execution.
+
+**Should have (differentiators, schedule if scope permits):**
+- Combined annual+monthly overlay grid (`year_star + month_star` per palace).
+- 81-cell 2-star combination aspect table (e.g., 1-6 → Văn Xương) from *Thẩm Thị Huyền Không Học* — DEFER if digitization effort underestimated.
+- Star avoidance flags (`is_danger_palace`) + element-hint cures (Ngũ Hoàng → metal) — never product names.
+- Cross-link of Phi Tinh to existing Thái Tuế / Tam Sát directional warnings (read-only join in reasoning layer; no boundary merge).
+- Ritual variants per event (simple/full/Buddhist/folk) via shared `event_type` + `variant` field.
+- Bilingual `body_en` — schema reserves field; content authoring deferred.
+
+**Defer (v1.6+ / future milestones):**
+- Spatial Phi Tinh (Tier 3, Sơn-Hướng, `Direction24` input) — explicit P5 deliverable, OUT of scope this milestone.
+- Daily / Hourly Phi Tinh (Lưu Nhật, Lưu Thời) — boundary semantics need ADR; corpus reliability lower.
+- AI-generated / auto-personalized prayer text — violates source provenance.
+- Audio prayer recordings, full-text search across `khan_text`, per-user prayer history, user-editable corpus — all UI/app concerns, not engine.
+- "Cure" product recommendations, Vận-transition alerts — out of scope (commercial/stateful).
 
 ### Architecture Approach
 
-Dai Van introduces a new computation pathway for birth-based context that integrates cleanly into the existing DayFortune architecture using the established optional field pattern from v1.2. The architecture follows four key patterns: (1) Optional field additive integration (no breaking changes to DayFortune consumers), (2) Pure calculation modules (deterministic, testable, no side effects), (3) Evidence metadata for traceability (source_id, method, convention fields), and (4) Module-level reuse without modification (dai_van calls thap_than::get_thap_than() and tu_menh::compute_kua() directly).
+v1.5 introduces two computation pathways into the existing additive-only architecture (same playbook as v1.2 Ten Gods + Kua) with one critical refinement: this is the first milestone where **two distinct source_id traditions** (`vn-folk-ritual` and `huyen-khong`) coexist as new code alongside the entrenched `khcbppt` family. The architecture follows five patterns: (1) **Additive top-level module for P1** (`rituals/`) and **additive sub-folder for P4** (`almanac/fengshui/`) — folder for P4 because future Tier-3 work (`spatial_compose`) will join it; (2) **Pure lookup / pure computation** — neither pillar mutates state, both load-once via `OnceLock`; (3) **Hybrid data form for Phi Tinh** — Vận base palace tables as `const` Rust arrays (mathematically determined Lo Shu permutations), star metadata as JSON (human-edited, citation-bearing); (4) **One-way dependency** — `rituals` reads `holidays`, never the reverse; `holidays.rs` frozen apart from one new `id: Option<String>` field; (5) **Distinct provenance per pillar** — `ProvenanceEntry::almanac_rule("vn-folk-ritual", ...)` and `ProvenanceEntry::almanac_rule("huyen-khong", ...)` with module-level `pub const SOURCE_* : &str` to prevent typo-minted fake sources.
 
 **Major components:**
-1. **dai_van.rs (NEW)** — Core Dai Van calculation logic (6-step: lunar conversion → year/month Can Chi → chieuthu → start age → 8 pillars → Ten Gods correlation). 400-600 LOC estimated.
-2. **calc.rs (MODIFIED)** — Orchestrate all calculations including Dai Van; add optional birth_date, birth_year, gender parameters; conditionally call dai_van::calculate when inputs provided.
-3. **types.rs (MODIFIED)** — Add dai_van optional field to DayFortune with #[serde(skip_serializing_if = "Option::is_none")]; export new types.
-4. **API Layer (MODIFIED)** — Add DaYunResultDto and DaYunPillarDto in dto.rs; implement From<> conversion traits; update exports and contract tests.
+1. **`crates/amlich-core/src/rituals/{mod,corpus,event_match,types,tests}.rs` (NEW)** — Public ritual API; OnceLock-backed corpus loader; `DaySnapshot` → `Vec<RitualEventKey>` resolver joining `holidays.rs`; types (`RitualEntry`, `RitualEventKey`, `LifeEventKind`, `LunarDateMatch`, `RitualConfidence`); golden coverage tests.
+2. **`crates/amlich-core/src/almanac/fengshui/{mod,lo_shu,flying_stars,star_meta}.rs` (NEW)** — Sub-folder root with **boundary docstring** (verbatim in `mod.rs`) explicitly disjoining Phi Tinh from `sat_phuong` / `than_huong` / `thai_tue`; `Palace` enum + Lo Shu canonical ordering + direction mapping; Vận/Năm/Tháng layouts; star-metadata loader.
+3. **`crates/amlich-core/data/rituals/*.json` (NEW)** — `manifest.json` + ~14 per-event-category files (`tet_nguyen_dan.json`, `soc_vong_monthly.json`, `life_events_dong_tho.json`, …). One-file-per-event-category trades giant-file merge-conflicts for review-sized diffs.
+4. **`crates/amlich-core/data/almanac/flying_stars.json` (NEW)** — Star metadata (name, element, polarity, default interpretation); bilingual; citation-bearing. NOT the Vận tables themselves — those stay as `const` Rust arrays validated by Lo Shu invariants at load.
+5. **`semantic_graph/ontology.rs` (MODIFIED, additive)** — Add `NodeConcept::Ritual`, `NodeConcept::FlyingStar`; add `EdgeConcept::PrescribedFor`, `EdgeConcept::OccupiesPalace`, `EdgeConcept::CarriesElement`; matching `label()` arms + slice entries; exhaustive matches enforced by compiler.
+6. **`holidays.rs` (MODIFIED, one additive field)** — `Holiday { ..., id: Option<String> }` with `#[serde(default)]`; populated from existing `lunar_festivals[].id` so the ritual matcher can join by stable id rather than fragile display name. Default `None` for generated Mùng 1/Rằm entries.
+7. **Day snapshot builder (MODIFIED, additive)** — Materializes ritual + flying-star nodes; first time non-`khcbppt` nodes co-exist in the day graph; provenance separation tests required.
 
-**Key architectural insight:** Dai Van requires birth date + gender (semantically distinct from day-based almanac). Create separate calculation pathway that optionally populates DayFortune when birth context provided, rather than modifying core day-fortune calculation logic.
+**Key architectural insight:** This milestone is the codebase's first stress-test of the source_id discipline established in DEC-0015/0016. The two new pillars exist precisely *because* they have different traditions than KHCBPPT, and they must demonstrate clean coexistence — separate `source_id`s, separate node kinds (`FlyingStar` is a palace-layout descriptor, NOT a bare direction string), and separate evidence envelopes. The boundary docstring in `almanac/fengshui/mod.rs` is the operational definition of "no overlap, no duplication" that future contributors will use as precedent.
 
 ### Critical Pitfalls
 
-**1. Period transition boundary errors** — Off-by-one errors in age range calculations cause wrong pillar assignments. Avoid: use start_age inclusive, end_age exclusive bounds; correct modulo arithmetic for Nghich direction (-1); verify age ranges contiguous with property-based tests. (Phase 1)
+**1. Source-ID cross-contamination between `vn-folk-ritual` / `vn-folk` / `khcbppt`** — Văn khấn entry copied from a KHCBPPT-derived calendar or Chinese ceremonial corpus gets uniformly tagged `vn-folk-ritual`, leaking foreign provenance. Avoid: Rust enum `RitualSourceId` (not free string); required `original_citation` field; per-entry `provenance_audit.md` ledger; CI grep guard for traditional/simplified Chinese characters. (Phase 1)
 
-**2. Ten Gods correlation uses wrong stem** — Must use birth day stem → pillar Can, not pillar Can → pillar Can (always ty_kien) or query day stem → pillar Can (dynamic, not birth-based). Avoid: explicit field naming (`ten_gods_vs_day_stem`); integration fixtures assert correct target stem. (Phase 2)
+**2. Phi Tinh Vận 8 → Vận 9 boundary off-by-one** — Naïve `year >= 2024 → Vận 9` is wrong; boundary is Lập Xuân 2024-02-04 16:27 ICT. Avoid: reuse v1.1.2 real-Tiết-Khi boundary scanner; golden cases at 2024-01-31 / 2024-02-04 06:00 / 2024-02-04 16:27 / 2024-02-05. (Phase 4)
 
-**3. KHCBPPT source verification gap** — Dai Van KHCBPPT coverage uncertain (no explicit section found in online search). Avoid: use standard Bazi formulas from vietnamese_lunar_engine_tables.md Section 15 as primary source; document source_id as "khcbppt" placeholder with TODO comment; create tracking issue for manual KHCBPPT verification. (Phase 1)
+**3. Phi Tinh / KHCBPPT directional output conflation** — `sat_phuong.rs`, `than_huong.rs`, `thai_tue.rs` emit `direction: String`; Phi Tinh emits palace layouts. Avoid: `FlyingStar { palace, star_number, polarity, period }` node kind, NEVER bare direction string; `pub const SOURCE_HUYEN_KHONG`; contract test asserts node IDs disjoint; **do NOT** wire Phi Tinh into `direction_merge.rs` this milestone (Tier-3 work for P5). (Phase 4)
 
-**4. Start age calculation uses wrong Tiết Khí** — Must use nearest (previous or next), signed distance, lunar month/year for lookup, correct 3-days-per-year conversion. Avoid: edge case fixtures for births on/within ±1, ±2, ±5, ±10, ±30 days of Tiết Khí; document rounding convention explicitly. (Phase 1)
+**4. Phi Tinh base palace table typos catastrophic and silent** — Single transposition in a 9-cell Vận grid corrupts every derived star. Avoid: Lo Shu invariants enforced at load (sum=45, each 1-9 once, center=Vận); Phi Tinh golden dataset mirroring v1.0 KHCBPPT methodology (≥ 10 cross-checked dates per Vận); divergences logged as `KnownDivergence`. (Phase 4)
 
-**5. Chiều rule matrix errors** — (Year Yang/Âm × Gender) → Thuận/Nghịch counterintuitive matrix. Avoid: unit tests for all 4 combinations; document Yang Chi indices (Tý, Dần, Thìn, Ngọ, Thân, Tuất = even indices 0,2,4,6,8,10). (Phase 1)
+**5. Lễ vật / trình tự stored as freeform strings** — Blocks vegetarian filtering, checklist UI, semantic-graph extraction. Avoid: schema-first — `offerings: Vec<Offering { category, item, optional }>`, `preparation_steps: Vec<ProcedureStep>`; `#[serde(deny_unknown_fields)]`. (Phase 1)
 
-**6. Backward compatibility broken** — Adding birth inputs as required fields breaks existing calculate_day_fortune() callers. Avoid: keep existing function unchanged OR add optional parameters with backward-compatible defaults; contract tests assert old API still works. (Phase 3)
+**6. Lunar/solar date matching ambiguity** — `lunar_date: "23/12"` misses tháng-12-nhuận years. Avoid: structured `LunarDateMatch { MonthDay { month, day, leap_month_policy }, SolarTerm(...), GregorianFixed { month, day } }`; default `LeapPolicy::CanonicalMonthOnly`. (Phase 1)
 
-**7. Determinism violations** — Using Utc::now() as default or floating-point without rounding causes non-deterministic results. Avoid: require explicit reference date; integer arithmetic with documented rounding convention; determinism tests (run 1000x with same inputs). (Phase 1)
+**7. Monthly Phi Tinh anchor convention** — Lập Xuân vs lunar Giêng vs civil January — wrong anchor offsets every monthly star by 1. Avoid: explicit DEC picking solar-term boundaries per *Thẩm Thị Huyền Không Học*; reuse v1.1.2 Tiết Khí scanner. (Phase 4; ADR in Phase 1)
 
-**8. Core/API schema mismatch** — Core type updated but DTO/convert layer missing fields. Avoid: update core+DTO+convert in one PR; add conversion completeness test; warning: field exists in core JSON but missing from API JSON. (Phase 3)
+**8. Niên Tử Bạch direction (Thuận/Nghịch) inverted by Yuan** — Depends on Tam Nguyên + year polarity; 2024 (Hạ Nguyên) hides bug because current outputs look right. Avoid: encode as table keyed by (Yuan × polarity); golden dataset spans multiple Vận. (Phase 4; ADR in Phase 1)
+
+**9. Vietnamese diacritic encoding drift in văn khấn JSON** — NFC vs NFD, pre-1975 South Vietnamese orthography. Avoid: NFC-normalize-on-load; CI lint via `unicode-normalization`; pick one tone-position convention. (Phase 1/2)
+
+**10. Evidence metadata holes on Phi Tinh aggregate outputs** — Sub-stars (Vận / Niên / Nguyệt) not separately attributed. Avoid: per-sub-star `Provenance::almanac_rule("huyen-khong", "vận")`, `..."niên"`, `..."nguyệt"`; aggregate carries separate `rule.composite.flying_stars` envelope. (Phase 4)
+
+**11. Backward-compat break: new DTO fields not `Option<T>`** — Breaks desktop workspaces (Personal Lab, Season Timeline, Almanac Inspector). Avoid: every new field is `Option<T>` with `#[serde(default, skip_serializing_if = "Option::is_none")]`; round-trip contract test loads `tests/fixtures/v1.4-*.json` into v1.5 struct. (Phase 5)
 
 ## Implications for Roadmap
 
-Based on combined research, suggested 3-phase implementation matching FEATURES.md recommendation:
+**6 phases recommended.** Phase 1 is a hard gate (schema-lock for both pillars + 2 ADRs). Phases 2-3 (P1) and Phase 4 (P4) parallelize. Phase 5 unifies the ontology. Phase 6 is the integration + validation gate.
 
-### Phase 1: Core Dai Van Module (Weeks 1-2)
-**Rationale:** Implements deterministic calculation logic in isolation before connecting to other systems. This is the foundation that all other phases depend on. Avoids period transition boundary errors, chieuthu matrix errors, start age Tiết Khí errors, and determinism violations.
+### Phase 1: Schema Lock + Source-ID Registration (Foundation — gates everything)
 
-**Delivers:** dai_van.rs module (400-600 LOC) with core types (Gender, ChieuThu, DaYunPillar, DaYunResult), 6-step calculation algorithm, chieuthu rule matrix, start age from Tiết Khí, 8-pillar generation, unit tests for all calculation steps.
+**Delivers:** ADR ritual JSON schema v1; ADR monthly Phi Tinh anchor convention; ADR Niên Tử Bạch direction rule per Yuan; source-taxonomy memory doc updated with `vn-folk-ritual` and `huyen-khong`; `Holiday.id: Option<String>` field; compile-time source-id constants.
 
-**Addresses:** 8-pillar Dai Van calculation (P1), Chieuthu direction determination (P1), Start age calculation (P1), Pillar generation (P1), Convention metadata (P1).
+**Addresses:** Schema-lock gating; CRIT-1, CRIT-3, MOD-2, MOD-3, MOD-6.
 
-**Avoids:** Period transition boundary errors (Pitfall 1), Chiều rule matrix errors (Pitfall 6), Start age Tiết Khí errors (Pitfall 5), Determinism violations (Pitfall 8).
+**Research flags:** LOW.
 
-**Stack elements:** Rust stdlib, chrono (dates), serde (serialization), existing modules (canchi, tietkhi, lunar, julian).
+### Phase 2: P1 Văn khấn Module + Lookup APIs (parallelizable with Phase 4)
 
-**Architecture components:** dai_van.rs (pure calculation module).
+**Delivers:** `crates/amlich-core/src/rituals/` full public API; OnceLock-backed loader; NFC normalization; `RitualEventKey` enum; loader lints.
 
-**Research flags:** LOW research risk — standard Bazi formulas, well-documented algorithms, existing v1.2 integration patterns to follow. No `/gsd-research-phase` needed.
+**Addresses:** P1 table-stakes; CRIT-5, MOD-1, MOD-4, MIN-1, MIN-3, MIN-5.
 
-### Phase 2: Ten Gods Integration and Helpers (Weeks 3-4)
-**Rationale:** Connects Dai Van with existing Ten Gods engine once core calculation is verified correct. Leverages proven v1.2 thap_than module without modification. Avoids Ten Gods wrong target stem errors.
+**Research flags:** LOW.
 
-**Delivers:** Lazy Ten Gods correlation per pillar (`get_ten_gods_for_pillar(thu_tu, day_stem)`), helper functions (`get_current_pillar`, `years_to_next_transition`, `get_pillar_at_age`), integration tests between dai_van and thap_than modules, comprehensive golden fixtures (15+ edge cases), property-based tests for invariants.
+### Phase 3: P1 Corpus Authoring (longest-pole content work)
 
-**Addresses:** Ten Gods correlation per pillar (P2), Helper functions (P2), Testing coverage gaps (Pitfall 11).
+**Delivers:** `data/rituals/manifest.json` + ~14 per-event-category JSON files; ≥ 20 (target ~60) entries; per-entry `source_id` + `original_citation` + `confidence`; `provenance_audit.md` ledger.
 
-**Uses:** thap_than::get_thap_than() (existing, no modification), dai_van.rs core calculation.
+**Addresses:** P1 corpus content; CRIT-1, MOD-4.
 
-**Implements:** Architecture pattern "Module-level reuse without modification" — dai_van calls thap_than directly.
+**Research flags:** MEDIUM — editorial domain-expert work.
 
-**Avoids:** Ten Gods wrong target stem errors (Pitfall 2), Testing gaps (Pitfall 11).
+### Phase 4: P4 Phi Tinh Primitives + Algorithm (parallelizable with Phases 2-3)
 
-**Research flags:** LOW research risk — existing ThapThan module proven in v1.2, integration pattern clear. No `/gsd-research-phase` needed.
+**Delivers:** `crates/amlich-core/src/almanac/fengshui/` with boundary docstring; `Palace` + `FlyingStar` enums; `FlyingStarLayout`; Vận 1-9 base palace `const` tables validated by Lo Shu invariants; `data/almanac/flying_stars.json` star metadata; Vận 8 → 9 boundary via v1.1.2 Tiết Khí scanner; per-sub-star evidence envelopes; Phi Tinh golden dataset with ≥ 10 dates per Vận and `KnownDivergence` log.
 
-### Phase 3: API Integration and Kua Analysis (Weeks 5-6)
-**Rationale:** Last to integrate to ensure no breaking changes until everything works internally. Adds public API exposure and optional Kua directional analysis. Ensures zero regressions in existing v1.2 features.
+**Addresses:** P4 table-stakes; CRIT-2, CRIT-3, CRIT-4, MOD-2, MOD-3, MOD-5, MIN-2, MIN-4.
 
-**Delivers:** Backward-compatible DayFortune integration (optional dai_van field with skip_serializing_if), calculate_day_fortune() signature update (add birth_date, birth_year, gender as optional), DaYunResultDto and DaYunPillarDto in API layer, From<> conversion implementations, Kua-based directional analysis per pillar (optional), convention metadata documentation, full regression suite including all subsystems, backward compatibility contract tests.
+**Research flags:** MEDIUM-HIGH — Phi Tinh has no canonical software cross-check.
 
-**Addresses:** Backward-compatible DayFortune/API integration (P1), Kua-based directional analysis per pillar (P3), Convention metadata (P1).
+### Phase 5: Semantic Graph Wiring (Both Pillars)
 
-**Uses:** tu_menh::compute_kua() (existing, no modification), calc.rs orchestrator, API layer types.
+**Delivers:** `NodeConcept::Ritual`, `NodeConcept::FlyingStar`; `EdgeConcept::PrescribedFor`, `EdgeConcept::OccupiesPalace`, `EdgeConcept::CarriesElement`; builder additions; provenance verification tests (multi-source `Direction` nodes).
 
-**Implements:** Architecture pattern "Optional field additive integration" and "Evidence metadata for traceability".
+**Addresses:** Semantic-graph extension; MOD-5, CRIT-3.
 
-**Avoids:** Backward compatibility breaks (Pitfall 7), Core/API schema mismatch (Pitfall 9), Kua integration mismatched (Pitfall 3).
+**Research flags:** LOW.
 
-**Research flags:** MEDIUM research risk — API design decision (optional field vs. separate API), breaking change to calculate_day_fortune() signature requires coordinated update of ~5-10 call sites. Consider `/gsd-research-phase` for API design validation.
+### Phase 6: DTO Integration + End-to-End Validation
+
+**Delivers:** `DaySnapshot.flying_stars: Option<FlyingStarsSummary>` additive field; optional ritual surfacing in `DaySnapshot`; round-trip test with v1.4 fixtures; 2026 smoke test on ≥ 30 representative dates.
+
+**Addresses:** MOD-6; P1 + P4 cross-pillar integration.
+
+**Research flags:** LOW.
 
 ### Phase Ordering Rationale
 
-- **Core calculation first → ensures algorithm is correct** before connecting to other systems. Errors in chieuthu, age ranges, or start age propagate to all integration points.
-- **Ten Gods second → builds on working core**, adds deterministic integration with proven v1.2 module. Most users only need current pillar; lazy calculation is more efficient.
-- **API/Kua third → last to integrate**, ensures no breaking changes until everything works. Kua integration is birth-level, not pillar-level (computed once per person, applied to all pillars).
-
-**Why this grouping based on architecture patterns:**
-- Phase 1 implements pure calculation module pattern (dai_van.rs isolated)
-- Phase 2 implements module-level reuse pattern (calls thap_than without modification)
-- Phase 3 implements optional field additive integration pattern (DayFortune optional field)
-
-**How this avoids pitfalls:**
-- Phase 1: Adds age range validation, chieuthu matrix tests, determinism tests, edge case fixtures
-- Phase 2: Adds explicit Ten Gods field naming, integration fixtures asserting correct target stem
-- Phase 3: Adds backward compatibility tests, DTO conversion completeness test, Kua convention compliance
-
-### Research Flags
-
-**Phases likely needing deeper research during planning:**
-- **Phase 3:** API design decision (optional field vs. separate API) — MEDIUM risk. Breaking change to calculate_day_fortune() signature requires coordinated update. Consider running `/gsd-research-phase` to validate API design and backward compatibility strategy.
-
-**Phases with standard patterns (skip research-phase):**
-- **Phase 1:** Core Dai Van calculation — standard Bazi formulas, well-documented algorithms, existing v1.2 integration patterns to follow. LOW research risk.
-- **Phase 2:** Ten Gods integration — existing ThapThan module proven in v1.2, integration pattern clear. LOW research risk.
+- **Phase 1 first** — schema lock + ADRs gate everything.
+- **Phases 2-3 (P1) and Phase 4 (P4) parallelize** — zero shared code paths.
+- **Phase 5 unifies the ontology** — exhaustive-match boundaries best landed together.
+- **Phase 6 last** — backward-compat verification meaningful only once both pillars wired.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All dependencies exist in workspace; no new infrastructure needed; pure deterministic calculation well-understood. |
-| Features | HIGH | Core features (8-pillar, chieuthu, start age, pillar generation) clearly defined with high confidence from DAI_VAN_RESEARCH.md. KHCBPPT verification gap noted but mitigated with placeholder source_id and tracking issue. |
-| Architecture | HIGH | Clear analysis of existing DayFortune patterns from v1.2; detailed component specification from ARCHITECTURE.md; proven additive integration approach. Breaking change to calculate_day_fortune() identified and mitigated. |
-| Pitfalls | HIGH | 11 detailed pitfalls with concrete examples, prevention strategies, and phase assignments. Integration gotchas, performance traps, and anti-patterns documented. KHCBPPT uncertainty acknowledged. |
+| Stack | HIGH | No new deps; pattern directly confirmed in `golden_loader.rs:5-21`. |
+| Features | HIGH (P1) / MEDIUM-HIGH (P4) | P1 taxonomy well-documented; P4 formulas cross-verified; monthly anchor + Niên direction need ADR-lock. |
+| Architecture | HIGH | All file:line refs verified; boundary discipline encoded as docstring + module-level `const`. |
+| Pitfalls | HIGH | 11 pitfalls anchored in concrete code refs and v1.0/v1.1.2/v1.2 lessons. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **KHCBPPT source verification gap:** Dai Van KHCBPPT coverage uncertain (no explicit section found in online search). Mitigation: use standard Bazi formulas from vietnamese_lunar_engine_tables.md Section 15 as primary source; document source_id as "khcbppt" placeholder with TODO comment; create tracking issue for manual KHCBPPT verification during or after v1.3 implementation.
-
-- **Start age rounding convention:** Different schools may round differently (truncate vs. nearest integer) for days-to-years conversion. Mitigation: pick one convention (truncate/floor) and document explicitly in ConventionMetadata and code comments; add edge case fixtures showing chosen convention.
-
-- **Ten Gods birth hour dependency:** Ten Gods correlation requires birth hour for complete day stem extraction. Mitigation: support unknown birth hour gracefully (ten_gods = None or day_fortune-based targets); document limitation in API docs.
-
-These gaps are manageable and do not block v1.3 implementation. Mitigation strategies are clear and documented.
+- Phi Tinh validation has no canonical reference (mitigated by multi-source golden + classical tiebreaker)
+- Monthly anchor convention school-dependent (mitigated by Phase 1 ADR)
+- Niên direction across Tam Nguyên needs polarity matrix (mitigated by Phase 1 ADR + table encoding)
+- Văn khấn single-author-risk (mitigated by per-entry citation + audit ledger)
+- Daily/Hourly Phi Tinh deferral needs explicit DEC
+- Builder file size budget — orchestrator decides
 
 ## Sources
 
-### Primary (HIGH confidence)
-- **.planning/research/DAI_VAN_RESEARCH.md** — Comprehensive Dai Van calculation formulas, 6-step algorithm, types, and integration approach
-- **.planning/research/STACK.md** — Detailed Rust code templates and data structures for dai_van.rs, integration points with existing systems
-- **.planning/research/FEATURES.md** — Table stakes, differentiators, anti-features, MVP definition, recommended 3-phase structure
-- **.planning/research/ARCHITECTURE.md** — Component responsibilities, data flow changes, integration patterns, build order
-- **.planning/research/PITFALLS.md** — 11 detailed pitfalls with concrete examples and prevention strategies
-- **crates/amlich-core/src/almanac/** — Existing implementation analysis (types.rs, calc.rs, thap_than.rs, tu_menh.rs, canchi.rs, tietkhi.rs)
-- **v1.2 integration patterns** — Ten Gods and Kua additive integration proven in v1.2
-- **Cargo.toml (workspace)** — Existing dependencies: serde 1.0, serde_json 1.0, chrono 0.4
+### Primary (HIGH confidence, in-repo)
+- `.planning/research/STACK.md`
+- `.planning/research/FEATURES.md`
+- `.planning/research/ARCHITECTURE.md`
+- `.planning/research/PITFALLS.md`
+- `.planning/research/EXPANSION_FRAMEWORK.md` (pillar source-of-truth)
+- `.planning/PROJECT.md` (DEC-0015/0016/0022, additive-only policy from v1.2)
+- `crates/amlich-core/src/almanac/golden_loader.rs:5-21, 153-237` (embedding + validation pattern)
+- `crates/amlich-core/src/almanac/sat_phuong.rs:38-43`, `than_huong.rs:20-32`, `thai_tue.rs:53-112` (boundary disjoint)
+- `crates/amlich-core/src/semantic_graph/provenance.rs:65-67, 130-135`
+- `crates/amlich-core/src/semantic_graph/ontology.rs:5-40, 85-111`
+- `crates/amlich-core/src/holidays.rs:14-25, 148-198, 228-260`
+- `crates/amlich-core/Cargo.toml:13, 16-19`
 
-### Secondary (MEDIUM confidence)
-- **vietnamese_lunar_engine_tables.md Section 15** — Dai Van calculation formulas and code templates (used as primary source until KHCBPPT verified)
-- **Wikipedia "Four Pillars of Destiny"** — Mentions 10-year luck cycle and shows example with 8 pillars
-- **Wikipedia "Sexagenary cycle"** — Explains Can Chi system of 10 Heavenly Stems + 12 Earthly Branches
+### Secondary (MEDIUM confidence, external)
+- Vietnamese ritual corpus references: chuabavang.com, sachhayonline.com, luatminhkhue.vn, tuhuyen.com, Lịch Vạn Niên 2026, Lịch Ngày Tốt.
+- Phi Tinh algorithm references: phongthuydathanh.com, lichngaytot.com, lykhi.com, phongthuycaivan.org, phongthuyvietnam.com, fengshuidiy.com, uniquefengshui.com.
+- Vận 8→9 boundary: phongthuykhaitoan.com (2024-02-04 16:27 ICT).
+- *Thẩm Thị Huyền Không Học* — classical text, designated tiebreaker per EXPANSION_FRAMEWORK §7.
 
-### Tertiary (LOW confidence)
-- **KHCBPPT classical reference: 卷六 (Volume 6) or Quyển 12-13** — Cited in DAI_VAN_RESEARCH.md but requires manual lookup to verify exact calculation rules. Placeholder source_id used with TODO comment.
-- **Modern Vietnamese numerology sites** — Often have simplified explanations but should be cross-checked against classical sources
+### Tertiary (LOW confidence, validation hooks)
+- 81-cell 2-star combination corpus from *Thẩm Thị Huyền Không Học* — scheduled as P2 differentiator, deferrable.
+- Pre-1975 South Vietnamese orthography in older văn khấn — mitigated via NFC + tone-position convention.
 
 ---
-*Research completed: 2026-03-03*
+*Research completed: 2026-05-23*
 *Ready for roadmap: yes*

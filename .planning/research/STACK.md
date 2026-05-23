@@ -1,424 +1,126 @@
-# Technology Stack
+# Technology Stack — v1.5 Eastern Knowledge Expansion
 
-**Project:** amlich v1.3 - Dai Van Core
-**Researched:** 2026-03-03
-**Overall confidence:** HIGH
+**Project:** amlich-core v1.5 (P1 Văn khấn cổ truyền + P4 Phi Tinh thời gian)
+**Researched:** 2026-05-23
+**Scope:** Stack delta for the two NEW pillars only. Existing workspace deps and patterns from v1.0–v1.4 are assumed.
+**Overall confidence:** HIGH (no new crates required; recommendation is to reuse the established pattern verbatim)
+
+---
+
+## TL;DR — Recommended Stack
+
+**No new crate dependencies are needed for v1.5.** The existing trio (`serde` 1.0, `serde_json` 1.0, `chrono` 0.4) plus the in-tree `include_str!` + `OnceLock` pattern already used by `almanac/golden_loader.rs` covers both P1 (ritual JSON corpus) and P4 (Flying Stars time-based tables) completely.
+
+Adding any of the candidates considered (schema validators, markdown parsers, embed/asset helpers, `once_cell`, `phf`, `lazy_static`) would violate the project's "deterministic and library-flat" posture without delivering load-bearing value at v1.5 scope.
+
+---
 
 ## Recommended Stack
 
-### Core Framework
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| Rust workspace (`edition = 2021`) | existing baseline | Implement Dai Van calculation logic in `amlich-core` | Already project's correctness-critical execution layer; no FFI/language boundary needed for deterministic Dai Van rule engine. |
-| `serde` | 1.0 (workspace) | Serialize/deserialize Dai Van types + evidence metadata | Existing DTO/JSON contract already depends on serde; adding Dai Van fields follows established patterns. |
-| `serde_json` | 1.0 (workspace) | Fixture loading and golden-style testing for Dai Van | Existing test strategy uses JSON fixtures; reuse keeps tests consistent and auditable. |
-| `chrono` | 0.4 (workspace) | Birth date handling and Tiết Khí distance calculation | Already available in workspace; date conversion and day difference logic needed for start age calculation. |
+### Core (already in `crates/amlich-core/Cargo.toml`)
 
-### Database
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| None | — | Dai Van is computed, not stored | Calculation is deterministic from birth date + gender; no persistence needed. |
+| Technology   | Version (workspace pin) | Purpose for v1.5                                                    | Why |
+|--------------|-------------------------|---------------------------------------------------------------------|-----|
+| `serde`      | `1.0` (derive)          | Derive `Serialize`/`Deserialize` for `Ritual`, `RitualCorpus`, `FlyingStarChart`, `PalaceLayout` structs | Already the project-wide serialization contract; matches `GoldenDataset`, `GoldenEntry` patterns. |
+| `serde_json` | `1.0`                   | Parse `data/rituals/*.json` and `data/almanac/flying_stars.json` at first-call | Exact pattern already used by `golden_loader::load_golden_dataset` (`serde_json::from_str(GOLDEN_JSON)`). Keeps loader code mechanically identical across modules — important for reviewability. |
+| `chrono`     | `0.4`                   | `NaiveDate` inputs for ritual event lookups and Vận/Năm/Tháng resolution for Flying Stars | Already used across `lunar.rs`, `julian.rs`. Deterministic — `Utc::now()` is forbidden by project policy and remains forbidden in v1.5. |
 
-### Infrastructure
-| Technology | Version | Purpose | Why |
-|------------|---------|---------|-----|
-| None | — | No new infrastructure | Use existing Rust module structure; Dai Van computed on-demand from birth inputs. |
+### Standard Library (no Cargo entry; load-bearing for both pillars)
 
-### Supporting Libraries
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| None required | — | All dependencies exist | Use standard Rust + existing workspace dependencies only. |
+| Facility | Purpose for v1.5 | Why |
+|---|---|---|
+| `include_str!` | Embed `rituals/*.json` and `flying_stars.json` into the compiled binary at build time | Matches `golden_loader.rs:5` exactly (`const GOLDEN_JSON: &str = include_str!("../../data/almanac/khcbppt-golden.json");`). Zero-runtime-IO, zero filesystem dependency — critical for WASM target (`crates/amlich-wasm`) and deterministic tests. |
+| `std::sync::OnceLock` | One-time parse + validate cache for corpus and Flying Stars tables | Matches `golden_loader.rs:6` exactly. Stable since Rust 1.70 (April 2023); no need for `once_cell` or `lazy_static`. |
+| `std::collections::HashMap` / `BTreeMap` | Index rituals by `event_type` / `lunar_date`; index flying-star tables by `(vận, năm)` / `(vận, năm, tháng)` | Already used throughout `almanac/`. For small finite domains (24 Tiết khí, 9 Vận, 12 tháng, ~50–200 rituals), `BTreeMap` gives deterministic iteration order — preferred for any output that touches golden tests. |
 
-## Stack Additions/Changes for Dai Van Integration
+### Data Layout (new files, no new dependencies)
 
-### 1) New Data Structures in `amlich-core`
+| Path | Format | Purpose |
+|------|--------|---------|
+| `crates/amlich-core/data/rituals/<event>.json` (or single `rituals.json`) | JSON | Văn khấn corpus entries, each carrying `event_type`, `season`, `lunar_date`, `source`, `body` fields, plus `source_id: "vn-folk-ritual"`. |
+| `crates/amlich-core/data/almanac/flying_stars.json` | JSON | Phi Tinh tables: Vận 1–9 base palace charts, year-star offsets, month-star offsets. Bounded, fully enumerable (≤ a few KB). |
 
-**Create module:** `crates/amlich-core/src/almanac/dai_van.rs`
+Both files must be reachable via `include_str!` and listed under the package `include` array (already covers `"data/**"` in current `Cargo.toml:13`).
 
-**Add to `almanac/types.rs`:**
-```rust
-/// Chiều (Direction) of Đại Vân progression
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ChieuThu {
-    Thuan,   // Forward (+1)
-    Nghich,  // Backward (-1)
-}
+---
 
-impl ChieuThu {
-    pub fn to_i32(&self) -> i32 {
-        match self {
-            ChieuThu::Thuan => 1,
-            ChieuThu::Nghich => -1,
-        }
-    }
-}
+## Alternatives Considered (and rejected)
 
-/// Individual Đại Vân pillar (10-year period)
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DaYunPillar {
-    /// Pillar number (1-8)
-    pub thu_tu: u8,
-    /// Age when this pillar begins
-    pub start_age: u8,
-    /// Age when this pillar ends
-    pub end_age: u8,
-    /// Heavenly Stem (Can)
-    pub can: HeavenlyStem,
-    /// Earthly Branch (Chi)
-    pub chi: EarthlyBranch,
-    /// Full Can Chi name in Vietnamese (e.g., "Giáp Tý")
-    pub can_chi_name: String,
-    /// Optional: Ten Gods relationship to Day Stem
-    pub ten_gods: Option<crate::almanac::thap_than::ThapThanResult>,
-}
+| Capability | Recommended | Alternative Considered | Why Not (for v1.5) |
+|---|---|---|---|
+| JSON schema validation | Hand-rolled `validate_*` functions in module (mirrors `golden_loader::validate_golden_dataset`, lines 153–237) | `jsonschema` crate | Adds a transitive dep tree (`fancy-regex`, `url`, `ahash`). The golden dataset's hand-rolled validator catches richer invariants (e.g., "must cover all 24 Tiết khí", "must cover all 9 Vận") than a JSON Schema document can express tersely. Project pattern is to assert invariants in Rust, not JSON Schema. |
+| Markdown rendering for Văn khấn prose | Store Vietnamese prayer text as plain UTF-8 strings (with `\n` separators) inside the JSON `body` field; render at the UI layer (`amlich-tui`, `apps/desktop`) if needed | `pulldown-cmark`, `comrak` | Văn khấn texts are line-oriented prayer scripts, not Markdown documents. They have no headings, links, or code spans — only line breaks. Rendering belongs at the UI boundary, not in `amlich-core`. `amlich-core` must remain a calculation/lookup library; introducing a Markdown parser would leak presentation concerns into the kernel and violate the WASM-friendly posture. |
+| Asset embedding helper | `include_str!` (std macro) | `rust-embed`, `include_dir` | A single macro per file is fine for the small, finite corpus envisioned (P1: tens to low hundreds of prayers; P4: ≤ ~30 numeric tables). `rust-embed` shines for hundreds of files of varying types — we have neither volume nor heterogeneity. |
+| Static lookup tables | `OnceLock<HashMap<…>>` or `BTreeMap` constructed from parsed JSON | `phf` (perfect hash function) crate | `phf` is a compile-time optimization; the JSON corpus is parsed once on first call and cached. Lookup cost is irrelevant compared to library-flatness. Also: `phf` requires `phf_codegen` in `build.rs`, which we have deliberately avoided. |
+| Lazy statics | `std::sync::OnceLock` (stable since Rust 1.70) | `once_cell`, `lazy_static` | `OnceLock` is std; no extra dep. Already adopted in `golden_loader.rs`. |
+| Pre-compiled binary tables for Flying Stars | JSON parsed via `serde_json` | `bincode`, `postcard`, `rkyv` | Flying-star tables are tiny (Vận 8 + Vận 9 base charts = 2 × 9 cells; year/month offsets are simple modular formulas). Human-readable JSON is invaluable for KHCBPPT-style cross-check audits; binary formats hide a content corpus that classical-text reviewers must be able to read. |
+| Internationalization / Vietnamese diacritics handling | UTF-8 strings + serde defaults | `unicode-normalization`, `icu` | Văn khấn text is stored verbatim. Normalization (NFC vs NFD) should be enforced at corpus-author time via a fixture-builder script (out of crate scope), not at parse time. |
+| Async file IO for corpus loading | None — synchronous `include_str!` at build time | `tokio::fs` | Project policy: no async runtime in `amlich-core`. WASM and TUI consumers expect a sync API surface. |
+| Float math for any angular/period calculation | Integer modular arithmetic (Vận = `((year - 1864) / 20) + 1` style; month offsets via mod-9 wheel) | `num` / `bigdecimal` | Project policy: no floating point. All Flying Stars period math is integer-pure. |
 
-/// Complete Đại Vân calculation result
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DaYunResult {
-    /// Chiều of progression (Thuận or Nghịch)
-    pub chieu_thu: ChieuThu,
-    /// Age when first Đại Vân pillar begins
-    pub start_age: u8,
-    /// Number of pillars generated (typically 8)
-    pub num_pillars: u8,
-    /// All 8 trụ (pillars)
-    pub pillars: Vec<DaYunPillar>,
-    /// Convention metadata documenting calculation method
-    pub convention: ConventionMetadata,
-}
-
-/// Convention metadata for Đại Vân calculation
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct ConventionMetadata {
-    /// Year basis convention used
-    pub year_basis: String,
-    /// How start age is calculated
-    pub start_age_method: String,
-    /// Gender encoding scheme
-    pub gender_encoding: String,
-    /// Source of calculation rules
-    pub source_id: String,
-    /// Method citation
-    pub method: String,
-}
-
-impl ConventionMetadata {
-    pub fn project_default() -> Self {
-        Self {
-            year_basis: "lunar".to_string(),
-            start_age_method: "3-days-per-year".to_string(),
-            gender_encoding: "enum(Male,Female)".to_string(),
-            source_id: "khcbppt".to_string(),
-            method: "bai-quyet".to_string(),
-        }
-    }
-}
-```
-
-**Why these structures:**
-- Follow existing patterns from `thap_than.rs` and `tu_menh.rs`
-- Type-safe enums for ChieuThu (like KuaGroup)
-- Comprehensive result structure with evidence metadata
-- Optional Ten Gods integration in each pillar
-- Convention metadata for auditability (matches existing RuleEvidence pattern)
-
-### 2) Integration with Existing Systems
-
-**Reuse existing types:**
-- `Gender` enum: Already exists in `tu_menh.rs`, reuse directly
-- `HeavenlyStem`, `EarthlyBranch`: Already in `types.rs`, use directly
-- `ThapThanResult`: Already in `thap_than.rs`, embed as optional field
-
-**Integration points:**
-```rust
-// In dai_van.rs - main calculation function
-use crate::almanac::thap_than;
-use crate::almanac::tu_menh;
-use crate::canchi;      // For year/month Can Chi
-use crate::tietkhi;    // For days to nearest solar term
-
-pub fn calculate_dai_yun(
-    birth_date: chrono::NaiveDate,
-    gender: tu_menh::Gender,  // Reuse existing Gender enum
-) -> DaYunResult {
-    // Step 1: Get lunar date
-    let lunar_date = get_lunar_date(birth_date);
-
-    // Step 2: Get year Can Chi
-    let year_canchi = canchi::get_year_canchi(lunar_date.lunar_year);
-    let is_yang_year = year_canchi.chi_index % 2 == 0;
-
-    // Step 3: Determine chieuthu (year polarity × gender)
-    let chieu_thu = determine_chieuthu(is_yang_year, gender);
-
-    // Step 4: Get month Can Chi (base pillar)
-    let month_canchi = canchi::get_month_canchi(
-        lunar_date.lunar_month,
-        lunar_date.lunar_year,
-        lunar_date.is_leap_month
-    );
-
-    // Step 5: Calculate days to nearest Tiết Khí
-    let birth_jd = jd_from_date(birth_date);
-    let days_to_tiet_khi = tietkhi::get_days_to_nearest_tiet_khi(birth_jd);
-
-    // Step 6: Calculate start age
-    let start_age = (days_to_tiet_khi.abs() / 3) as u8;
-
-    // Step 7: Generate 8 pillars
-    let pillars = generate_pillars(month_canchi, chieu_thu, start_age);
-
-    // Step 8: Add Ten Gods correlation (optional, compute on demand)
-    for pillar in &mut pillars {
-        if let Some(day_stem) = get_birth_day_stem(birth_date) {
-            pillar.ten_gods = Some(thap_than::get_thap_than(day_stem, pillar.can));
-        }
-    }
-
-    DaYunResult { chieu_thu, start_age, num_pillars: 8, pillars, convention }
-}
-```
-
-### 3) Computation Algorithms
-
-**Algorithm 1: Year Polarity Determination**
-```rust
-fn is_yang_year(year_chi_index: usize) -> bool {
-    // Yang years: Tý (0), Dần (2), Thìn (4), Ngọ (6), Thân (8), Tuất (10)
-    year_chi_index % 2 == 0
-}
-```
-
-**Algorithm 2: Chiều (Direction) Determination**
-```rust
-fn determine_chieuthu(is_yang_year: bool, gender: tu_menh::Gender) -> ChieuThu {
-    match (is_yang_year, gender) {
-        (true, tu_menh::Gender::Male) | (false, tu_menh::Gender::Female) => ChieuThu::Thuan,
-        _ => ChieuThu::Nghich,
-    }
-}
-```
-
-**Algorithm 3: Start Age Calculation**
-```rust
-fn calculate_start_age(days_to_nearest_tiet_khi: i32) -> u8 {
-    // 3 days = 1 year (standard conversion)
-    (days_to_nearest_tiet_khi.abs() / 3) as u8
-}
-```
-
-**Algorithm 4: Pillar Generation**
-```rust
-fn generate_pillars(
-    month_pillar: CanChi,
-    chieu_thu: i32,
-    start_age: u8
-) -> Vec<DaYunPillar> {
-    let mut pillars = Vec::with_capacity(8);
-    let mut current_stem = month_pillar.stem_index;
-    let mut current_branch = month_pillar.branch_index;
-
-    for thu_tu in 1..=8 {
-        // Apply chieuthu (add +1 or -1)
-        current_stem = (current_stem as i32 + chieu_thu + 10) as usize % 10;
-        current_branch = (current_branch as i32 + chieu_thu + 12) as usize % 12;
-
-        let pillar = DaYunPillar {
-            thu_tu,
-            start_age: start_age + (thu_tu - 1) * 10,
-            end_age: start_age + thu_tu * 10,
-            can: HeavenlyStem::from_index(current_stem),
-            chi: EarthlyBranch::from_index(current_branch),
-            can_chi_name: format!("{} {}",
-                HeavenlyStem::VN_NAME[current_stem],
-                EarthlyBranch::VN_NAME[current_branch]
-            ),
-            ten_gods: None,  // Calculate separately if needed
-        };
-
-        pillars.push(pillar);
-    }
-
-    pillars
-}
-```
-
-**Why these algorithms:**
-- Pure deterministic logic (no randomness or I/O)
-- Modular and testable (each step is a pure function)
-- Follows existing patterns (canchi, tietkhi modules)
-- Leverages existing validated capabilities (Ten Gods, Kua)
-
-### 4) External Dependencies
-
-**No new dependencies required.**
-
-All needed capabilities exist in the workspace:
-- **Rust stdlib**: Core data structures, algorithms
-- **serde**: Serialization for DTOs and fixtures
-- **chrono**: Date handling for birth date and Tiết Khí calculations
-- **Existing modules**:
-  - `canchi`: Year/month Can Chi calculation
-  - `tietkhi`: Days to nearest solar term
-  - `thap_than`: Ten Gods correlation
-  - `tu_menh`: Kua calculation and Gender enum
-
-### 5) What NOT to Add
-
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| New dependencies (date crates, numerics, etc.) | Existing stack (chrono, serde) is sufficient; adds maintenance risk and complexity to correctness-critical milestone. | Use chrono for dates, Rust stdlib for algorithms. |
-| BirthFortune API surface | Milestone context specifies "Dai Van period transitions, Ten Gods correlation, and Kua integration" - not new public API. | Add Dai Van as optional field to existing DayFortune, keep API minimal. |
-| Non-deterministic runtime features | Weakens auditability for correctness milestone; adds complexity. | Pure deterministic calculation functions. |
-| Database or persistence | Dai Van is computed on-demand from birth date + gender; no storage needed. | Compute when requested from birth inputs. |
-| Breaking DTO changes | Violates backward compatibility; breaks existing consumers. | Add optional fields with `#[serde(skip_serializing_if = "Option::is_none")]`. |
-| External rule engines or scripting | Adds non-deterministic surface; harder to audit. | Compile-time Rust mapping logic with explicit evidence metadata. |
-
-## Alternatives Considered
-
-| Category | Recommended | Alternative | Why Not |
-|----------|-------------|-------------|---------|
-| API Design | Optional field in DayFortune | Separate BirthFortune API | Milestone scope is Dai Van integration, not new API surface; optional field keeps changes minimal and backward-compatible. |
-| Ten Gods Integration | Lazy calculation on demand | Pre-calculate all 8 pillars | Most users only need current pillar; lazy calculation reduces unnecessary computation. |
-| Kua Integration | Analyze pillar elements against Kua directions | Store Kua in each pillar | Kua is birth-level, not pillar-level; analyze on-demand without bloating data structure. |
+---
 
 ## Installation
 
-```bash
-# No new packages to install - use existing workspace dependencies
+**No `cargo add` invocations are required.** The existing `crates/amlich-core/Cargo.toml` already declares the three workspace deps (lines 17–19):
 
-# Run tests for Dai Van module
-cargo test --package amlich-core --lib almanac::dai_van
-
-# Run integration tests with existing subsystems
-cargo test --package amlich-core --lib dai_van_integration
-
-# Verify no regressions in existing tests
-cargo test --package amlich-core
+```toml
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
 ```
 
-## Integration with Existing Types
+Confirm the package `include` array still picks up the new data directories (it does — `"data/**"` on line 13 already covers `data/rituals/` and any new files under `data/almanac/`).
 
-### Extend `DayFortune` in `almanac/types.rs`
+---
 
-```rust
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DayFortune {
-    // ... existing fields ...
+## Integration Points with Existing Modules
 
-    /// Đại Vân (Major Luck) result (populated only when birth date and gender provided)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dai_van: Option<super::dai_van::DaYunResult>,
-}
-```
+| New module | Mirrors pattern from | Touchpoints |
+|---|---|---|
+| `crates/amlich-core/src/rituals/mod.rs` + `loader.rs` | `almanac/golden_loader.rs` (line-for-line: `const X: &str = include_str!(…); static X: OnceLock<…>; load_x() -> &'static X`) | Read `DaySnapshot.event_type` (existing); emit lookup results tagged `source_id: "vn-folk-ritual"` via `semantic_graph::provenance::Provenance::almanac_rule` (existing constructor). |
+| `crates/amlich-core/src/almanac/fengshui/mod.rs` + `flying_stars.rs` | `almanac/cuu_dieu.rs` and `almanac/thai_tue.rs` (Vận/year-based tables, integer arithmetic) | Pure time inputs (`year: i32`, `lunar_month: i32`); returns `FlyingStarChart { period: u8, year_star: u8, month_star: u8, base_palaces: [[u8; 3]; 3] }`. Source-tag every emission with `source_id: "huyen-khong"`. Do NOT touch `sat_phuong.rs`, `than_huong.rs`, `thai_tue.rs` (those stay on `khcbppt`). |
+| `interaction/` matrices | n/a for v1.5 | Phi Tinh tables remain Tier 0; no spatial composition until P5. Ritual lookup feeds the Domain-Day Boost narrative layer only if downstream chooses to wire it — not required by v1.5 scope. |
+| `semantic_graph/provenance.rs` | Existing source-id discipline | Register two new `source_id` constants if a registry exists; otherwise inline-literal them at emission sites and add cases to whatever exhaustive match exists today. DEC-0015/0016 forbids ad-hoc `source_id` creation outside this registry. |
 
-### Extend `DayFortuneDto` in `amlich-api/src/dto.rs`
+---
 
-```rust
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DayFortuneDto {
-    // ... existing fields ...
+## Explicit Non-Goals — Do NOT Add to v1.5
 
-    /// Đại Vân (Major Luck) result (populated only when birth date and gender provided)
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub dai_van: Option<DaYunResultDto>,
-}
+The following are explicitly out of scope for the v1.5 stack to prevent bloat and preserve the deterministic / library-flat invariants:
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DaYunResultDto {
-    pub chieu_thu: String,
-    pub start_age: u8,
-    pub num_pillars: u8,
-    pub pillars: Vec<DaYunPillarDto>,
-    pub convention: ConventionMetadataDto,
-}
+- **No async runtime** (`tokio`, `async-std`, `smol`). `amlich-core` is sync; WASM target requires it.
+- **No floating-point math libraries** (`num-traits`, `bigdecimal`, `rust_decimal`). All Flying Stars math is integer-modular.
+- **No web/HTTP framework** (`axum`, `actix`, `reqwest`). Corpus is embedded; no fetch.
+- **No filesystem IO at runtime** (`std::fs::read_to_string`, `walkdir`). Use `include_str!`.
+- **No Markdown / templating engine** (`pulldown-cmark`, `tera`, `handlebars`). Văn khấn text is plain UTF-8.
+- **No schema-validation crate** (`jsonschema`, `valico`). Hand-rolled validators match `golden_loader.rs` precedent.
+- **No build-script codegen** (`build.rs`, `phf_codegen`, `prost-build`). Keep build flat.
+- **No `Utc::now()` or any wall-clock read** anywhere in v1.5 code paths. All inputs flow from `BirthInput`, `DaySnapshot`, or explicit caller-supplied `NaiveDate`.
+- **No spatial / `Direction24` types yet** — Tier 3 model is deferred to P5 per EXPANSION_FRAMEWORK §3.3.
+- **No Tử Vi (P6), Kinh Dịch (P2), Y học (P3)** — out of scope per PROJECT.md current milestone.
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DaYunPillarDto {
-    pub thu_tu: u8,
-    pub start_age: u8,
-    pub end_age: u8,
-    pub can: String,
-    pub chi: String,
-    pub can_chi_name: String,
-    pub ten_gods: Option<ThapThanResultDto>,
-}
-```
+---
 
-## Testing Strategy
+## Confidence Notes
 
-### Unit Tests
-```rust
-#[cfg(test)]
-mod tests {
-    use super::*;
+| Decision | Confidence | Basis |
+|---|---|---|
+| `serde` / `serde_json` / `chrono` sufficient | HIGH | Direct inspection of `golden_loader.rs` confirms the same input shape (date-keyed JSON corpus + structured records + invariant validation) works end-to-end today across all v1.0–v1.4 subsystems. |
+| `include_str!` + `OnceLock` is the right embedding pattern | HIGH | Confirmed in-repo (`almanac/golden_loader.rs:5–6, 14–21`). Stable since Rust 1.70 (April 2023). |
+| No Markdown renderer needed in core | HIGH | Văn khấn entries are line-broken prayer scripts; presentation belongs at UI boundary (`amlich-tui`, `apps/desktop`). |
+| No schema validator needed | HIGH | Hand-rolled validators already exceed schema-doc expressivity (see `validate_coverage`, lines 188–237 of `golden_loader.rs`). |
+| Flying Stars period math fits in integer modular arithmetic | MEDIUM | Classical formulas for Vận (20-year periods), year-star (descending mod-9), and month-star (mod-9 with seasonal offset) are integer-pure in every reference reviewed. To be re-confirmed against *Thẩm Thị Huyền Không Học* during the architecture pass — but does NOT change the stack recommendation either way. |
+| Workspace dep versions (`serde 1.0`, `serde_json 1.0`, `chrono 0.4`) remain current as of 2026-05-23 | MEDIUM | These are major-version-stable release lines maintained for years; the workspace already pins them. Network verification was not available during this research pass, but the pins are consistent with the pre-v1.5 milestone deliveries and unchanged risk profile. |
 
-    #[test]
-    fn test_chieuthu_rules() {
-        // Yang year + Male = Thuan
-        assert_eq!(determine_chieuthu(true, tu_menh::Gender::Male), ChieuThu::Thuan);
-        // Yang year + Female = Nghich
-        assert_eq!(determine_chieuthu(true, tu_menh::Gender::Female), ChieuThu::Nghich);
-        // Yin year + Male = Nghich
-        assert_eq!(determine_chieuthu(false, tu_menh::Gender::Male), ChieuThu::Nghich);
-        // Yin year + Female = Thuan
-        assert_eq!(determine_chieuthu(false, tu_menh::Gender::Female), ChieuThu::Thuan);
-    }
-
-    #[test]
-    fn test_pillar_progression() {
-        // Verify stems and branches advance correctly by chieuthu
-        // Test both Thuan (+1) and Nghich (-1) directions
-    }
-
-    #[test]
-    fn test_ten_gods_integration() {
-        // Verify Ten Gods calculation for each pillar
-        let birth_date = chrono::NaiveDate::from_ymd(1990, 3, 15);
-        let result = calculate_dai_yun(birth_date, tu_menh::Gender::Male);
-
-        for pillar in &result.pillars {
-            assert!(pillar.ten_gods.is_some(), "Each pillar should have Ten Gods");
-        }
-    }
-}
-```
-
-### Golden Fixture Tests
-Create `crates/amlich-core/tests/fixtures/dai_van_fixtures.json`:
-```json
-{
-  "fixtures": [
-    {
-      "id": "dv_001",
-      "description": "Male born 1990, Yin year case",
-      "input": {
-        "birth_date": "1990-03-15",
-        "gender": "Male"
-      },
-      "expected": {
-        "chieu_thu": "nghich",
-        "start_age": 2,
-        "num_pillars": 8,
-        "pillars": [...]
-      }
-    }
-  ]
-}
-```
+---
 
 ## Sources
 
-- Workspace dependencies: `/home/noy/Work/junks/amlich/Cargo.toml` (HIGH)
-- Core crate structure: `/home/noy/Work/junks/amlich/crates/amlich-core/Cargo.toml`, `src/almanac/mod.rs` (HIGH)
-- Existing Ten Gods implementation: `/home/noy/Work/junks/amlich/crates/amlich-core/src/almanac/thap_than.rs` (HIGH)
-- Existing Kua implementation: `/home/noy/Work/junks/amlich/crates/amlich-core/src/almanac/tu_menh.rs` (HIGH)
-- Existing DTO patterns: `/home/noy/Work/junks/amlich/crates/amlich-api/src/dto.rs` (HIGH)
-- Existing types: `/home/noy/Work/junks/amlich/crates/amlich-core/src/almanac/types.rs` (HIGH)
-- Dai Van research: `/home/noy/Work/junks/amlich/.planning/research/DAI_VAN_RESEARCH.md` (HIGH)
-- Milestone context: `/home/noy/Work/junks/amlich/.planning/PROJECT.md` (HIGH)
-
----
-*Stack research for: v1.3 Dai Van Core*
-*Researched: 2026-03-03*
+- `crates/amlich-core/Cargo.toml` (lines 16–19) — current deps
+- `crates/amlich-core/src/almanac/golden_loader.rs` (lines 1–50, 153–237) — embedding + validation pattern to mirror
+- `Cargo.toml` workspace root (lines 20–24) — pinned versions for `serde`, `serde_json`, `chrono`
+- `.planning/research/EXPANSION_FRAMEWORK.md` §2.3 (Phi Tinh), §2.4 (Văn khấn), §3.1 (provenance), §5 (P1/P4 sequencing)
+- `.planning/PROJECT.md` (v1.5 milestone scope, DEC-0015/0016 source-id discipline)
+- Rust stdlib `std::sync::OnceLock` — stabilized in Rust 1.70 (April 2023)
