@@ -25,16 +25,19 @@ Canonical status and acceptance evidence are archived in milestone artifacts:
 
 Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020-2030 date range, with test-backed and traceable evidence.
 
-## Next Milestone Goals
+## Current Milestone: v1.5 Eastern Knowledge Expansion
 
-- Define fresh milestone-scoped requirements in a new `.planning/REQUIREMENTS.md`.
-- Prioritize next subsystem parity targets and dependency order in a new `.planning/ROADMAP.md`.
-- Preserve deterministic behavior, evidence metadata coverage, and contract-level regression testing.
-- Resolve any lingering documentation/traceability drift during next milestone setup.
+**Goal:** Extend amlich-core beyond pure calendar correctness with the first two Expansion Framework pillars — ritual content lookup (Văn khấn) and time-based Flying Stars (Phi Tinh) — both Tier 0 and source-tagged per DEC-0015/0016.
+
+**Target pillars (from `.planning/research/EXPANSION_FRAMEWORK.md`):**
+- **P1 Văn khấn cổ truyền** — `source_id: vn-folk-ritual`, Tier 0, new `rituals/` module + JSON corpus, event-driven lookup.
+- **P4 Phi Tinh thời gian** — `source_id: huyen-khong`, Tier 0, new `almanac/fengshui/flying_stars.rs`, Vận/Năm/Tháng tables (no spatial input yet).
+
+**Out of scope this milestone:** Tử Vi (P6), Kinh Dịch (P2), Y học (P3), Spatial Phi Tinh + Tier 3 model (P5) — deferred to later milestones.
 
 ## Current Focus
 
-Milestone `v1.4` is archived and tagged. The project is ready to start next-milestone definition (`/gsd-new-milestone`).
+Milestone `v1.5` started 2026-05-23 (Eastern Knowledge Expansion). Defining requirements next.
 
 ## Key Decisions
 
@@ -69,4 +72,4 @@ Milestone `v1.4` is archived and tagged. The project is ready to start next-mile
 </details>
 
 ---
-*Last updated: 2026-03-04 after v1.4 milestone completion*
+*Last updated: 2026-05-23 after starting v1.5 milestone (Eastern Knowledge Expansion)*

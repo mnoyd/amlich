@@ -1,44 +1,40 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: milestone
-status: completed
-last_updated: "2026-03-03T17:57:42.220Z"
+milestone: v1.5
+milestone_name: Eastern Knowledge Expansion
+status: defining_requirements
+last_updated: "2026-05-23T00:00:00.000Z"
 progress:
-  total_phases: 14
-  completed_phases: 14
-  total_plans: 31
-  completed_plans: 31
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-04)
+See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching KHCBPPT for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** Planning next milestone after v1.4 archival
+**Current focus:** Defining v1.5 Eastern Knowledge Expansion requirements (Văn khấn + Phi Tinh thời gian)
 
 ## Current Position
 
-Milestone: v1.4 Lunar Engine Table Parity
-Phase: Phase 9 - Na Am API Surfaces and Contracts
-Plans: 2/2 complete
-Status: Phase 9 verified and complete (Na Am API with contract tests, traceability, and full verification)
-Last activity: 2026-03-04T00:50:00Z — Phase 9 verification passed (8/8 must-haves verified, all requirements satisfied)
+Milestone: v1.5 Eastern Knowledge Expansion
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-23 — Milestone v1.5 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
-### Milestone Status: v1.4 Complete
+### Milestone Status: v1.5 Started
 
-**Goal:** Deliver hour pillar parity, full 60-cycle parity, and Na Am API surfaces with validator evidence
+**Goal:** Ship the first two pillars from `.planning/research/EXPANSION_FRAMEWORK.md` — ritual content lookup (P1 Văn khấn, `source_id: vn-folk-ritual`) and time-based Flying Stars (P4 Phi Tinh, `source_id: huyen-khong`). Both Tier 0; no spatial input this milestone.
 
-**Completed Requirements:** All v1.4 requirements complete (HP-01..05, SC-01..05, NAM-API-01..06, PAR-01..04)
-
-**Pending Requirements:** None
-
-**Status:** v1.4 milestone complete
+**Pending Requirements:** To be defined after research synthesis.
 
 ## Performance Metrics
 
@@ -188,4 +184,4 @@ Resume file: None
 - Existing modules: canchi, data, calc, api DTO conversion layer
 
 ---
-*State updated: 2026-03-04 after v1.4 milestone archival and completion*
+*State updated: 2026-05-23 after starting v1.5 milestone (Eastern Knowledge Expansion)*
