@@ -85,56 +85,54 @@
 
 ## Traceability
 
-Empty initially — populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | TBD | Pending |
-| FND-02 | TBD | Pending |
-| FND-03 | TBD | Pending |
-| FND-04 | TBD | Pending |
-| FND-05 | TBD | Pending |
-| FND-06 | TBD | Pending |
-| RIT-01 | TBD | Pending |
-| RIT-02 | TBD | Pending |
-| RIT-03 | TBD | Pending |
-| RIT-04 | TBD | Pending |
-| RIT-05 | TBD | Pending |
-| RIT-06 | TBD | Pending |
-| RIT-07 | TBD | Pending |
-| RIT-08 | TBD | Pending |
-| RIT-09 | TBD | Pending |
-| RIT-10 | TBD | Pending |
-| RIT-11 | TBD | Pending |
-| RIT-12 | TBD | Pending |
-| RIT-13 | TBD | Pending |
-| FS-01 | TBD | Pending |
-| FS-02 | TBD | Pending |
-| FS-03 | TBD | Pending |
-| FS-04 | TBD | Pending |
-| FS-05 | TBD | Pending |
-| FS-06 | TBD | Pending |
-| FS-07 | TBD | Pending |
-| FS-08 | TBD | Pending |
-| FS-09 | TBD | Pending |
-| FS-10 | TBD | Pending |
-| FS-11 | TBD | Pending |
-| FS-12 | TBD | Pending |
-| FS-13 | TBD | Pending |
-| FS-14 | TBD | Pending |
-| FS-15 | TBD | Pending |
-| INT-01 | TBD | Pending |
-| INT-02 | TBD | Pending |
-| INT-03 | TBD | Pending |
-| INT-04 | TBD | Pending |
-| INT-05 | TBD | Pending |
-| INT-06 | TBD | Pending |
+| FND-01 | Phase 10 | Pending |
+| FND-02 | Phase 10 | Pending |
+| FND-03 | Phase 10 | Pending |
+| FND-04 | Phase 10 | Pending |
+| FND-05 | Phase 10 | Pending |
+| FND-06 | Phase 10 | Pending |
+| RIT-01 | Phase 11 | Pending |
+| RIT-02 | Phase 11 | Pending |
+| RIT-03 | Phase 11 | Pending |
+| RIT-04 | Phase 11 | Pending |
+| RIT-05 | Phase 11 | Pending |
+| RIT-06 | Phase 11 | Pending |
+| RIT-07 | Phase 11 | Pending |
+| RIT-08 | Phase 11 | Pending |
+| RIT-09 | Phase 12 | Pending |
+| RIT-10 | Phase 12 | Pending |
+| RIT-11 | Phase 12 | Pending |
+| RIT-12 | Phase 12 | Pending |
+| RIT-13 | Phase 12 | Pending |
+| FS-01 | Phase 13 | Pending |
+| FS-02 | Phase 13 | Pending |
+| FS-03 | Phase 13 | Pending |
+| FS-04 | Phase 13 | Pending |
+| FS-05 | Phase 13 | Pending |
+| FS-06 | Phase 13 | Pending |
+| FS-07 | Phase 13 | Pending |
+| FS-08 | Phase 13 | Pending |
+| FS-09 | Phase 13 | Pending |
+| FS-10 | Phase 13 | Pending |
+| FS-11 | Phase 14 | Pending |
+| FS-12 | Phase 14 | Pending |
+| FS-13 | Phase 14 | Pending |
+| FS-14 | Phase 14 | Pending |
+| FS-15 | Phase 14 | Pending |
+| INT-01 | Phase 15 | Pending |
+| INT-02 | Phase 15 | Pending |
+| INT-03 | Phase 15 | Pending |
+| INT-04 | Phase 15 | Pending |
+| INT-05 | Phase 15 | Pending |
+| INT-06 | Phase 15 | Pending |
 
 **Coverage:**
 - v1.5 requirements: 40 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 40 ⚠️
+- Mapped to phases: 40 ✓
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-25*
-*Last updated: 2026-05-25 after initial definition (post-research)*
+*Last updated: 2026-05-25 after v1.5 roadmap creation (traceability filled with phase mappings)*

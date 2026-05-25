@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Eastern Knowledge Expansion
-status: defining_requirements
-last_updated: "2026-05-23T00:00:00.000Z"
+status: roadmap_complete
+last_updated: "2026-05-25T00:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,30 +17,43 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-05-23)
 
-**Core value:** Every almanac subsystem in amlich must produce output matching KHCBPPT for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** Defining v1.5 Eastern Knowledge Expansion requirements (Văn khấn + Phi Tinh thời gian)
+**Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source for 2020-2030 with test-backed, traceable evidence.
+**Current focus:** v1.5 Eastern Knowledge Expansion — roadmap complete, ready to plan Phase 10.
 
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
-Phase: Not started (defining requirements)
+Phase: 10 (Foundation — Schema Lock + ADRs + Source-ID Registration) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-05-23 — Milestone v1.5 started
+Status: Roadmap complete; awaiting `/gsd:plan-phase 10`
+Last activity: 2026-05-25 — Roadmap written (6 phases, 40/40 requirements mapped)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 
-### Milestone Status: v1.5 Started
+### Milestone Status: v1.5 Roadmap Complete
 
 **Goal:** Ship the first two pillars from `.planning/research/EXPANSION_FRAMEWORK.md` — ritual content lookup (P1 Văn khấn, `source_id: vn-folk-ritual`) and time-based Flying Stars (P4 Phi Tinh, `source_id: huyen-khong`). Both Tier 0; no spatial input this milestone.
 
-**Pending Requirements:** To be defined after research synthesis.
+**Phases (6 total, numbered 10-15, continuing from v1.4's last phase 9):**
+
+| Phase | Name | Requirements | Status |
+|-------|------|--------------|--------|
+| 10 | Foundation — Schema Lock + ADRs + Source-ID Registration | FND-01..06 | Not started |
+| 11 | Văn khấn Module + Lookup APIs | RIT-01..08 | Not started |
+| 12 | Văn khấn Corpus Authoring | RIT-09..13 | Not started |
+| 13 | Phi Tinh Primitives + Period + Annual/Monthly | FS-01..10 | Not started |
+| 14 | Phi Tinh 81-cell Aspects + Safety Hints | FS-11..15 | Not started |
+| 15 | Semantic Graph Wiring + DTO Integration + E2E Validation | INT-01..06 | Not started |
+
+**Parallelization:** Phase 11+12 (Văn khấn) and Phase 13+14 (Phi Tinh) share no code paths and may execute concurrently after Phase 10 lands. Phase 15 is the join point.
+
+**Hard gate:** Phase 10 must complete before any corpus authoring (Phase 12) or algorithm work (Phase 13) begins — re-editing 60 entries after a schema slip is prohibitively expensive (PITFALLS CRIT-1, CRIT-5).
 
 ## Performance Metrics
 
 **Velocity:**
-- v1.4 plans completed: 6/6 (Phase 7 complete, Phase 8 complete, Phase 9 complete)
-- Milestone status: v1.4 complete (all phases executed and verified)
+- v1.4 plans completed: 6/6
+- v1.5 plans completed: 0/? (planning has not begun)
 
 **By Milestone:**
 
@@ -49,139 +62,95 @@ Progress: [░░░░░░░░░░] 0%
 | v1.2 | 3/3 | 29 min | 9.7 min |
 | v1.3 | 5/5 | n/a | n/a |
 | v1.4 | 6/6 | 24 min | 4.0 min |
+| v1.5 | 0/? | — | — |
 
 **Recent Trend:**
-- v1.3 execution closed with stable contract-driven tests and synchronized artifacts.
-- v1.4 Phase 7 delivered deterministic hour-pillar core and integration parity validators.
-- v1.4 Phase 8 delivered sexagenary cycle utilities and full-table parity validators.
-- v1.4 Phase 9-01 delivered core Na Am lookup APIs with TDD and type-safe error handling.
-- v1.4 Phase 9-02 delivered comprehensive contract tests (18 tests) and traceability artifacts.
+- v1.4 closed clean; v1.5 milestone defined 2026-05-23.
+- Research synthesis complete: ARCHITECTURE.md, PITFALLS.md, SUMMARY.md, EXPANSION_FRAMEWORK.md.
+- Requirements defined 2026-05-25 (40 v1.5 requirements across FND / RIT / FS / INT categories).
+- Roadmap written 2026-05-25 (6 phases, 100% coverage validated).
 
 ## Accumulated Context
 
 ### Decisions
 
-Decisions are logged in PROJECT.md Key Decisions table.
-Key decisions from v1.2 and v1.3:
+Project-wide decisions live in PROJECT.md Key Decisions table.
 
-- Ten Gods mapping uses five-element relation + yin/yang polarity split.
-- Evidence metadata uses khcbppt source_id and five-element-polarity-matrix method.
-- Kua calculator uses solar year basis (Gregorian calendar) as Vietnamese feng-shui convention.
-- Kua 5 resolution: male→8, female→2 (frozen project policy).
-- East/West group assignment: odd Kua (1,3,4,9) = East, even Kua (2,6,7,8) = West.
-- Ten Gods computed deterministically from day stem to predefined targets (year stem, self) using get_thap_than.
-- Kua field remains None for date-only requests (birth context required for population).
-- All new fields are Option<T> to preserve backward compatibility.
-- JSON field names use snake_case for stable serialization.
-- [Phase 05]: Use deterministic in-memory DaiVanResult fixtures to lock helper boundary and transition contracts independent of lunar conversion variability.
-- [Phase 05]: Keep Ten Gods out of DaiVanResult and derive through helper calls only to preserve lazy behavior.
-- [Checkpoint]: Treat phase-complete verification artifacts as source of truth for retrospective/state/requirements sync.
-- [Phase 06]: Compute birth Kua once per analysis run, then reuse for all per-pillar direction intersections.
-- [Phase 08-01]: Fixed canchi_to_cycle_index formula using Chinese Remainder Theorem for moduli 10 and 12 (k = ((can_idx - chi_idx) / 2).rem_euclid(6), i = (can_idx + 10*k) % 60) to correctly map stem-branch pairs to cycle positions.
-- [Phase 09-02]: Na Am source uses actual baseline data source_id "tam-menh-thong-hoi" (not placeholder "khcbppt") for accurate attribution.
-- [Phase 09-02]: Contract testing pattern validates schema stability via serialize → deserialize → assert equality.
+**v1.5-scoped decisions baked into the roadmap (to be ADR'd in Phase 10):**
+
+- **Schema-lock-before-corpus-authoring** — Hard ordering: Phase 10 ADRs precede Phases 12 and 13 (PITFALLS CRIT-1, CRIT-5).
+- **Phi Tinh node kind disjoint from KHCBPPT direction modules** — `FlyingStar` is a palace-layout descriptor with `pub const SOURCE_HUYEN_KHONG`, never a bare direction string; NOT wired into `interaction/direction_merge.rs` this milestone (PITFALLS CRIT-3).
+- **Vận boundary via Tiết Khí scanner** — Reuse v1.1.2 real Tiết Khí boundary scanner for Lập Xuân instants; naïve `year >= 2024` rejected (PITFALLS CRIT-2).
+- **Lo Shu invariants enforced at load** — Vận tables validated for sum=45, each 1-9 once, center=Vận (PITFALLS CRIT-4).
+- **Additive-only DTO modifications** — all new `DaySnapshot`/`DayFortune` fields are `Option<T>` with `#[serde(default, skip_serializing_if = "Option::is_none")]` (v1.2 precedent; PITFALLS MOD-6).
+- **Two new source_ids registered** — `vn-folk-ritual` and `huyen-khong`, each with module-level `pub const SOURCE_*` to prevent typo-minted fake sources (DEC-0015/0016).
 
 ### Research Insights (from research/SUMMARY.md)
 
-**Recommended Stack:**
-- Rust workspace (edition 2021) — Deterministic Dai Van calculation engine
-- serde (workspace) — Serialize/deserialize Dai Van types and evidence metadata
-- chrono (workspace) — Birth date handling and Tiết Khí distance calculation
-- Existing modules — canchi (year/month Can Chi), tietkhi (days to nearest solar term), thap_than (Ten Gods), tu_menh (Kua calculator)
+**Recommended stack:** No new crate dependencies. Existing `serde` + `serde_json` + `chrono` + `OnceLock` + `include_str!` pattern from `golden_loader.rs` suffices for both pillars.
 
-**Critical Pitfalls:**
-1. Period transition boundary errors — Off-by-one errors in age range calculations
-2. Ten Gods correlation uses wrong stem — Must use birth day stem → pillar Can
-3. KHCBPPT source verification gap — Use standard Bazi formulas with placeholder source_id
-4. Start age calculation uses wrong Tiết Khí — Must use nearest (previous or next), signed distance
-5. Chiều rule matrix errors — (Year Yang/Âm × Gender) → Thuận/Nghịch matrix
-6. Backward compatibility broken — Adding birth inputs as required fields breaks existing API
-7. Determinism violations — Using Utc::now() or floating-point causes non-deterministic results
-8. Core/API schema mismatch — Core type updated but DTO/convert layer missing fields
+**Pillar-shared architecture:**
+- **P1 Văn khấn** → new top-level `crates/amlich-core/src/rituals/` module + JSON corpus under `data/rituals/`.
+- **P4 Phi Tinh** → new sub-folder `crates/amlich-core/src/almanac/fengshui/` (folder, not file — Tier-3 `spatial_compose` will join it later).
+- Zero shared code paths between P1 and P4; they reconverge only at semantic-graph wiring (Phase 15).
 
-**Architecture Pattern:**
-
-**Phase 4 (Core Dai Van Module):**
-- Implements pure calculation module pattern (dai_van.rs isolated)
-- 6-step calculation algorithm:
-  1. Lunar conversion
-  2. Year/month Can Chi
-  3. Chieuthu direction
-  4. Start age from Tiết Khí
-  5. 8-pillar generation
-  6. Metadata generation
-
-**Phase 5 (Ten Gods Integration and Helpers):**
-- Implements module-level reuse pattern (calls thap_than without modification)
-- Lazy Ten Gods correlation per pillar
-- Helper functions: get_current_pillar(), years_to_next_transition(), get_pillar_at_age()
-
-**Phase 6 (Kua Analysis):**
-- Implements optional field additive integration pattern
-- Kua-based directional analysis per pillar
-- Birth Kua calculated once and reused
+**Critical pitfalls anchored in PITFALLS.md:**
+1. Source-ID cross-contamination between `vn-folk-ritual` / `vn-folk` / `khcbppt` (Phase 10/12).
+2. Vận 8 → Vận 9 boundary off-by-one (Lập Xuân 2024-02-04 16:27 ICT, not Jan 1) (Phase 13).
+3. Phi Tinh vs KHCBPPT directional conflation (Phase 13/15).
+4. Phi Tinh base palace table typos catastrophic + silent — Lo Shu invariants at load (Phase 13).
+5. Lễ vật / trình tự stored as freeform strings — schema-first (Phase 10).
+6. Lunar/solar date matching ambiguity — typed `LunarDateMatch` (Phase 10/11).
+7. Monthly Phi Tinh anchor convention — ADR in Phase 10.
+8. Niên Tử Bạch direction inverted by Yuan — polarity matrix ADR in Phase 10.
+9. Vietnamese diacritic NFC drift — normalize-on-load (Phase 11).
+10. Evidence metadata holes — per-sub-star envelopes (Phase 13).
+11. Backward-compat break — `Option<T>` only (Phase 15).
 
 ### Known Gaps
 
-**KHCBPPT source verification gap:**
-- Dai Van KHCBPPT coverage uncertain (no explicit section found in online search)
-- Mitigation: Use standard Bazi formulas from vietnamese_lunar_engine_tables.md Section 15 as primary source
-- Document source_id as "khcbppt" placeholder with TODO comment
-- Create tracking issue for manual KHCBPPT verification
-
-**Start age rounding convention:**
-- Different schools may round differently (truncate vs. nearest integer)
-- Mitigation: Pick one convention (truncate/floor) and document explicitly
-- Add edge case fixtures showing chosen convention
-
-**Ten Gods birth hour dependency:**
-- Ten Gods correlation requires birth hour for complete day stem extraction
-- Mitigation: Support unknown birth hour gracefully (ten_gods = None or day_fortune-based targets)
+- **Phi Tinh has no canonical software cross-check** — mitigated by multi-source golden (≥ 2 references per case) with *Thẩm Thị Huyền Không Học* as tiebreaker; divergences logged as `KnownDivergence` not silently corrected.
+- **Monthly anchor convention school-dependent** — mitigated by Phase 10 ADR.
+- **Niên direction across Tam Nguyên needs polarity matrix** — mitigated by Phase 10 ADR + table encoding.
+- **Văn khấn single-author risk** — mitigated by per-entry citation + audit ledger (Phase 12).
+- **Daily/Hourly Phi Tinh deferral** — explicit OUT-OF-SCOPE in REQUIREMENTS.md.
 
 ### Pending Todos
 
-- Start next milestone requirements + roadmap flow (`/gsd-new-milestone`)
+- `/gsd:plan-phase 10` — decompose Foundation phase into plans.
 
 ### Blockers/Concerns
 
-None active.
-
-**Previously addressed:**
-- Kua convention ambiguity: Frozen in v1.2-02 with explicit documentation and fixture coverage.
-- Person-context input requirements: Handled via optional Kua field (populates only when birth context provided) in v1.2-03.
-- Backward compatibility concerns: Addressed by additive-only changes and Option<T> fields.
-- Na Am source_id mismatch: Corrected test to use actual "tam-menh-thong-hoi" source_id from baseline data.
+None active. All prior blockers (Kua convention, person-context input, backward compat, Na Am source_id) resolved in v1.2-v1.4.
 
 ## Session Continuity
 
-Last session: 2026-03-04T00:50:00Z
-Stopped at: Phase 9 verified and complete, v1.4 milestone complete
+Last session: 2026-05-25T00:00:00Z
+Stopped at: Roadmap written; 40/40 requirements mapped; awaiting plan-phase 10.
 Resume file: None
 
 ### Active TODOs
 
-- Create fresh `.planning/REQUIREMENTS.md` for the next milestone
-- Define next milestone scope and phase plan
+- Plan Phase 10 (Foundation — Schema Lock + ADRs + Source-ID Registration).
+- Confirm Phase 10 ADRs land before Phase 12 / Phase 13 execution.
 
 ### Context Handoff
 
-**Focus Area:** Transition from v1.4 completion to next milestone definition
+**Focus Area:** Phase 10 Foundation — the hard gate for the rest of v1.5.
 
 **Key Constraints:**
-- Must use deterministic algorithms (no Utc::now(), no floating-point without rounding)
-- Must include convention and evidence metadata
-- Must handle edge cases (Tiết Khí boundaries, leap months, year polarity transitions)
-
-**v1.4 Completion Criteria:**
-1. Hour pillar outputs match canonical table mappings across all day-stem groups and boundaries ✓
-2. 60-cycle conversion/progression utilities pass full-table parity validators ✓
-3. Na Am APIs (pair/index lookup) ship with stable schema, metadata, and explicit validation errors ✓
+- All new types `Option<T>`, `#[serde(deny_unknown_fields)]` on JSON entries.
+- Reuse v1.1.2 Tiết Khí scanner for any Lập Xuân instant resolution.
+- Phi Tinh node kind never wired into `direction_merge.rs` in v1.5.
+- Source-id constants are compile-time `pub const`, not free strings at call-sites.
 
 **Resources:**
-- .planning/ENGINE_EXPANSION_ANALYSIS.md — Earlier engine parity context and subsystem map
-- .planning/milestones/v1.4-REQUIREMENTS.md — Archived v1.4 requirements and outcomes
-- .planning/milestones/v1.4-ROADMAP.md — Archived v1.4 scope, phases, and details
-- Existing modules: canchi, data, calc, api DTO conversion layer
+- .planning/research/SUMMARY.md — architectural narrative and 6-phase recommendation.
+- .planning/research/ARCHITECTURE.md — file:line integration points and module layout.
+- .planning/research/PITFALLS.md — CRIT/MOD/MIN catalogue mapped to phases.
+- .planning/research/EXPANSION_FRAMEWORK.md — pillar source-of-truth, source_id taxonomy.
+- .planning/REQUIREMENTS.md — 40 v1.5 requirements with traceability table.
+- .planning/ROADMAP.md — 6-phase plan with success criteria per phase.
 
 ---
-*State updated: 2026-05-23 after starting v1.5 milestone (Eastern Knowledge Expansion)*
+*State updated: 2026-05-25 after v1.5 roadmap creation*

@@ -3,10 +3,167 @@
 ## Milestones
 
 - ✅ **v1.4 Lunar Engine Table Parity** - shipped 2026-03-04 (Phases 7-9, 6/6 plans), archived in `.planning/milestones/v1.4-ROADMAP.md`
+- 🚧 **v1.5 Eastern Knowledge Expansion** - started 2026-05-23 (Phases 10-15)
 
 ## Current Focus
 
-- Start next milestone planning and define fresh milestone-scoped requirements in `.planning/REQUIREMENTS.md`.
+- Execute v1.5 phases: Văn khấn (`vn-folk-ritual`) + Phi Tinh thời gian (`huyen-khong`).
+- Schema-lock first (Phase 10) gates all corpus authoring downstream.
 
 ---
-*Last updated: 2026-03-04 after v1.4 milestone completion*
+
+# v1.5 Eastern Knowledge Expansion
+
+**Milestone goal:** Add two Tier-0 pillars to `amlich-core` — P1 Văn khấn cổ truyền (`source_id: vn-folk-ritual`) and P4 Phi Tinh thời gian (`source_id: huyen-khong`) — coexisting as new code beside the entrenched `khcbppt` family per DEC-0015/0016.
+
+**Phase numbering:** Continues from v1.4 (last phase 9 — `09-na-am-api-surfaces`). v1.5 starts at Phase 10.
+
+**Depth:** quick (compressed; 6 phases for 40 requirements).
+
+**Coverage:** 40 / 40 requirements mapped ✓
+
+## Phases
+
+- [ ] **Phase 10: Foundation — Schema Lock + ADRs + Source-ID Registration** - Lock ritual + Flying Star schemas, register two new source_ids, write the three blocking ADRs.
+- [ ] **Phase 11: Văn khấn Module + Lookup APIs** - Ship the `rituals/` module with closed event enum, structured matchers, and the five public lookup APIs.
+- [ ] **Phase 12: Văn khấn Corpus Authoring** - Author ≥60 entries across ≤14 per-event-category JSON files with full provenance audit and 4+ event-variant coverage.
+- [ ] **Phase 13: Phi Tinh Primitives + Period + Annual/Monthly** - Ship `almanac/fengshui/` with Lo Shu validators, Vận 7-9 tables, and annual/monthly/combined layout APIs.
+- [ ] **Phase 14: Phi Tinh 81-cell Aspects + Safety Hints** - Digitize the 81 star-pair aspects from *Thẩm Thị Huyền Không Học* and ship the advisory danger/element-hint APIs.
+- [ ] **Phase 15: Semantic Graph Wiring + DTO Integration + E2E Validation** - Add `Ritual` and `FlyingStar` node concepts, wire additive `DaySnapshot` fields, run 2026 smoke + v1.4 round-trip.
+
+## Phase Details
+
+### Phase 10: Foundation — Schema Lock + ADRs + Source-ID Registration
+
+**Goal**: User-of-API can rely on frozen v1 schemas for both pillars and a documented source-taxonomy so corpus authoring and algorithm work can begin without churn risk.
+
+**Depends on**: Nothing (first phase of milestone — hard gate per PITFALLS research).
+
+**Requirements**: FND-01, FND-02, FND-03, FND-04, FND-05, FND-06
+
+**Success Criteria** (what must be TRUE):
+  1. A caller can deserialize a sample `RitualEntry` JSON with the v1 schema (typed `event_keys[]`, structured `offerings[]`, structured `preparation_steps[]`, required `source_id`, `original_citation`, `confidence`) and any extra field is rejected by `#[serde(deny_unknown_fields)]`.
+  2. A caller can construct a `FlyingStarLayout { period, palaces: [FlyingStar; 9], center_star, evidence }` value and the shape is frozen by an ADR before any Vận table work begins.
+  3. A code reader can find `pub const SOURCE_VN_FOLK_RITUAL: &str = "vn-folk-ritual"` and `pub const SOURCE_HUYEN_KHONG: &str = "huyen-khong"` at module level, with both ids also documented in the source-taxonomy memory.
+  4. A reader can find three ADRs in `.planning/`: ritual JSON schema v1, monthly Phi Tinh anchor convention (solar-term per *Thẩm Thị Huyền Không Học*, reusing the v1.1.2 Tiết Khí scanner), and Niên Tử Bạch direction rule per Tam Nguyên × year polarity (with the polarity matrix).
+  5. A v1.4 JSON fixture loads into the v1.5 `Holiday` struct (now carrying `id: Option<String>` with `#[serde(default)]`) and re-serializes round-trip without unexpected fields.
+
+**Plans**: TBD
+
+### Phase 11: Văn khấn Module + Lookup APIs
+
+**Goal**: User can call five public APIs from `crates/amlich-core/src/rituals/` to look up rituals by snapshot, event key, or life event — backed by an `OnceLock` corpus loader with NFC normalization and Hán-character guard.
+
+**Depends on**: Phase 10 (ritual schema must be locked; `Holiday.id` must exist).
+
+**Requirements**: RIT-01, RIT-02, RIT-03, RIT-04, RIT-05, RIT-06, RIT-07, RIT-08
+
+**Success Criteria** (what must be TRUE):
+  1. A caller can pass a `DaySnapshot` for the Tết Nguyên Đán date and `find_van_khan_for_snapshot(&snapshot)` returns the matching ritual entries (joined via `Holiday.id` + `RitualEntry.event_keys[]`).
+  2. A caller can resolve `find_van_khan_for_event(&RitualEventKey)`, `find_van_khan_for_life_event(LifeEventKind)`, `get_ritual_by_id(&str)`, and `all_rituals()` against the loaded corpus.
+  3. A code reader can find a closed `RitualEventKey` enum covering Sóc/Vọng, the 8 major lunar festivals, Tiết Khí anchors, life events, and `Always` — with the matcher's exhaustiveness enforced by the compiler.
+  4. A caller can rely on `LunarDateMatch` having `MonthDay { month, day, leap_month_policy }`, `SolarTerm`, and `GregorianFixed` variants, with leap-month policy defaulting to `CanonicalMonthOnly`.
+  5. CI rejects any ritual JSON whose body contains Hán characters above the configured threshold; loaded text is NFC-normalized and verifiable via a round-trip byte-equal test.
+
+**Plans**: TBD
+
+### Phase 12: Văn khấn Corpus Authoring
+
+**Goal**: User can find at least 60 traceable, peer-reviewed ritual entries shipped under `data/rituals/` with full citation discipline and variant coverage for at least 4 events.
+
+**Depends on**: Phases 10 (schema lock) and 11 (module + loader). Can parallelize with Phase 13.
+
+**Requirements**: RIT-09, RIT-10, RIT-11, RIT-12, RIT-13
+
+**Success Criteria** (what must be TRUE):
+  1. A reader can find ≥ 60 entries under `data/rituals/` spread across ≤ 14 per-event-category files plus `manifest.json`.
+  2. A reader can open any entry and find `source_id: "vn-folk-ritual"`, an `original_citation` (book + page), and a `confidence` tier of `primary` / `regional-variant` / `synthesized`.
+  3. A reviewer can find a `provenance_audit.md` ledger in `data/rituals/` recording the classical reference and independent reviewer for every entry.
+  4. A caller can iterate `all_rituals()` and find ≥ 4 events with multiple variants sharing the same `event_type` and discriminated by a `variant` field on `RitualEntry` (e.g., Tết: simple / full / Buddhist / folk).
+  5. A code reader can find a reserved `body_en: Option<String>` field on `RitualEntry`, deserialized via `#[serde(default)]`, content authoring deferred.
+
+**Plans**: TBD
+
+### Phase 13: Phi Tinh Primitives + Period + Annual/Monthly
+
+**Goal**: User can call `compute_period`, `compute_yearly_flying_stars`, `compute_monthly_flying_stars`, and `compute_combined_overlay` from `almanac/fengshui/`, with Vận 7-9 covered and per-sub-star evidence envelopes attached.
+
+**Depends on**: Phase 10 (Flying Star schema + monthly anchor + Niên direction ADRs). Parallelizable with Phases 11-12 (zero shared code paths).
+
+**Requirements**: FS-01, FS-02, FS-03, FS-04, FS-05, FS-06, FS-07, FS-08, FS-09, FS-10
+
+**Success Criteria** (what must be TRUE):
+  1. A caller can invoke `compute_period(2024, &term_scanner)` and receives Vận 8 for any instant before Lập Xuân 2024-02-04 16:27 ICT and Vận 9 thereafter (boundary scanned via the v1.1.2 Tiết Khí scanner, never via naïve `year >= 2024`).
+  2. A caller can find Vận 7 (1984-2003), Vận 8 (2004-2023), and Vận 9 (2024-2043) all populated and golden-tested at boundary instants; every base palace passes Lo Shu invariant checks (sum=45, each 1-9 once, center=Vận).
+  3. A caller can invoke `compute_yearly_flying_stars` and `compute_monthly_flying_stars` against ≥ 10 dates per Vận with multi-source verification (≥ 2 sources per case; *Thẩm Thị Huyền Không Học* as tiebreaker; divergences logged as `KnownDivergence`).
+  4. A caller can invoke `compute_combined_overlay(year, month, &term_scanner)` and receives `[(annual_star, monthly_star); 9]` per palace.
+  5. A reader inspecting any aggregate result finds separate `ReasoningEvidenceEnvelope` entries for Vận, Niên, and Nguyệt, plus a composite `rule.composite.flying_stars` envelope on the aggregate output.
+
+**Plans**: TBD
+
+### Phase 14: Phi Tinh 81-cell Aspects + Safety Hints
+
+**Goal**: User can look up the digitized 2-star aspect for any of the 81 ordered star pairs and receive citation-bearing advisory hints (danger predicate + Ngũ-Hành element hint) — never product names.
+
+**Depends on**: Phase 13 (combined overlay must exist so `compute_palace_aspects` can derive per-palace pairs).
+
+**Requirements**: FS-11, FS-12, FS-13, FS-14, FS-15
+
+**Success Criteria** (what must be TRUE):
+  1. A caller can invoke `lookup_star_pair_aspect(star_a, star_b)` for any of the 81 ordered pairs and receive a `StarPairAspect { name, ngu_hanh_relation, auspice, original_citation }`.
+  2. A reader can open any `StarPairAspect` and find `source_id: "huyen-khong"` plus an `original_citation` pointing to a specific chapter of *Thẩm Thị Huyền Không Học*, with a `confidence` tier.
+  3. A caller can invoke `compute_palace_aspects(year, month, &term_scanner)` and receive `[StarPairAspect; 9]` derived from the combined overlay.
+  4. A caller can call `is_danger_palace(star)` on `FlyingStar` and receive `true` exactly for Ngũ Hoàng (5) and Nhị Hắc (2) per classical tradition.
+  5. A caller can call `element_hint_for_palace(star)` and receive an `Option<RemedyHint>` referencing Ngũ-Hành (kim/mộc/thủy/hỏa/thổ) with a classical citation — and the test suite verifies no product names appear anywhere in the hint corpus.
+
+**Plans**: TBD
+
+### Phase 15: Semantic Graph Wiring + DTO Integration + E2E Validation
+
+**Goal**: User of `DaySnapshot` can observe ritual + flying-star surfaces additively, and a 2026 smoke test confirms the milestone holds end-to-end across Tết, Sóc/Vọng, Vận transitions, leap months, and all 24 Tiết Khí boundaries.
+
+**Depends on**: Phases 11, 12, 13, 14 (all pillar code must exist before graph/DTO wiring).
+
+**Requirements**: INT-01, INT-02, INT-03, INT-04, INT-05, INT-06
+
+**Success Criteria** (what must be TRUE):
+  1. A caller can deserialize a v1.5 `DaySnapshot` and find new optional `flying_stars: Option<FlyingStarsSummary>` and ritual-surfacing fields (both `#[serde(default, skip_serializing_if = "Option::is_none")]`) — additive only.
+  2. A semantic-graph reader can find new `NodeConcept::Ritual` and `NodeConcept::FlyingStar` variants and new `EdgeConcept::PrescribedFor`, `EdgeConcept::OccupiesPalace`, `EdgeConcept::CarriesElement` edges with exhaustive matches enforced by the compiler.
+  3. A reader can inspect a `FlyingStar` node and find it carries only `source_id: "huyen-khong"`; a ritual node only `source_id: "vn-folk-ritual"`; and a shared `Direction` node carrying both `khcbppt` and `huyen-khong` provenance entries (multi-source dedup verified). Phi Tinh remains absent from `interaction/direction_merge.rs`.
+  4. A caller can load any v1.4 JSON fixture into v1.5 structs and re-serialize without unexpected fields (backward-compat round-trip).
+  5. The end-to-end 2026 calendar smoke test passes on ≥ 30 representative dates covering Tết Nguyên Đán, Sóc/Vọng × 12, Vận 8 → 9 transition dates, leap-month dates, and all 24 Tiết Khí boundaries.
+
+**Plans**: TBD
+
+## Progress Table
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 10. Foundation — Schema Lock + ADRs + Source-ID Registration | 0/? | Not started | - |
+| 11. Văn khấn Module + Lookup APIs | 0/? | Not started | - |
+| 12. Văn khấn Corpus Authoring | 0/? | Not started | - |
+| 13. Phi Tinh Primitives + Period + Annual/Monthly | 0/? | Not started | - |
+| 14. Phi Tinh 81-cell Aspects + Safety Hints | 0/? | Not started | - |
+| 15. Semantic Graph Wiring + DTO Integration + E2E Validation | 0/? | Not started | - |
+
+## Requirement Coverage
+
+| Phase | Requirements | Count |
+|-------|--------------|-------|
+| 10 | FND-01, FND-02, FND-03, FND-04, FND-05, FND-06 | 6 |
+| 11 | RIT-01, RIT-02, RIT-03, RIT-04, RIT-05, RIT-06, RIT-07, RIT-08 | 8 |
+| 12 | RIT-09, RIT-10, RIT-11, RIT-12, RIT-13 | 5 |
+| 13 | FS-01, FS-02, FS-03, FS-04, FS-05, FS-06, FS-07, FS-08, FS-09, FS-10 | 10 |
+| 14 | FS-11, FS-12, FS-13, FS-14, FS-15 | 5 |
+| 15 | INT-01, INT-02, INT-03, INT-04, INT-05, INT-06 | 6 |
+| **Total** | | **40 / 40** ✓ |
+
+## Cross-Cutting Constraints
+
+- **Additive-only DTOs** — all new fields are `Option<T>` with `#[serde(default, skip_serializing_if = "Option::is_none")]` (v1.2 precedent).
+- **Source-id discipline** — every new module declares `pub const SOURCE_*` for its tradition; provenance call-sites never use string literals.
+- **No `direction_merge.rs` wiring** — Phi Tinh node kind stays disjoint from `sat_phuong` / `than_huong` / `thai_tue`; spatial composition is Tier-3 / P5 work, out of scope for v1.5.
+- **Tiết Khí scanner reuse** — Vận and monthly anchors reuse the v1.1.2 real-Tiết-Khí boundary scanner; no naïve year arithmetic.
+
+---
+*Last updated: 2026-05-25 after v1.5 roadmap creation*
