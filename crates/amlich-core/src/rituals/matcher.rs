@@ -96,8 +96,15 @@ fn derive_event_keys(snapshot: &DaySnapshot) -> Vec<RitualEventKey> {
     keys
 }
 
-/// Symmetric matcher: returns true when the two keys denote the same event,
-/// honouring leap-month policy semantics for LunarDate pairs.
+/// Asymmetric matcher: returns true when the haystack (entry-side key) matches
+/// the needle (query-side key), honouring leap-month policy semantics for
+/// LunarDate pairs.
+///
+/// `Always` is intentionally asymmetric:
+///   - `Always` as haystack means "this entry fires on every day" — matches
+///     any needle.
+///   - `Always` as needle means "find entries tagged Always" — only matches an
+///     `Always` haystack (covered by the first arm when both are Always).
 ///
 /// Cross-variant non-matches collapse to a single `_ => false` arm. This is
 /// safe today because the RitualEventKey variant set is locked by ADR-0001 and
@@ -107,7 +114,7 @@ fn derive_event_keys(snapshot: &DaySnapshot) -> Vec<RitualEventKey> {
 fn event_key_matches(haystack: &RitualEventKey, needle: &RitualEventKey) -> bool {
     use RitualEventKey::*;
     match (haystack, needle) {
-        (Always, _) | (_, Always) => true,
+        (Always, _) => true,
         (HolidayId { value: a }, HolidayId { value: b }) => a == b,
         (SolarTerm { name: a }, SolarTerm { name: b }) => a == b,
         (LifeEvent { event: a }, LifeEvent { event: b }) => a == b,
@@ -180,12 +187,28 @@ mod tests {
         assert!(get_ritual_by_id("does-not-exist").is_none());
     }
 
-    // RIT-06: Always sentinel matches every needle, in both directions.
+    // RIT-06: Always sentinel — asymmetric semantic.
+    //   - Always as haystack matches any needle (daily-fire entry).
+    //   - Always as needle only matches an Always haystack (query for daily entries).
     #[test]
     fn always_sentinel_matches_anything() {
-        assert!(event_key_matches(&RitualEventKey::Always, &RitualEventKey::HolidayId { value: "x".to_string() }));
-        assert!(event_key_matches(&RitualEventKey::HolidayId { value: "x".to_string() }, &RitualEventKey::Always));
-        // The "fall-through" Always-entry from fixtures.json:
+        // Haystack-side Always matches any needle.
+        assert!(event_key_matches(
+            &RitualEventKey::Always,
+            &RitualEventKey::HolidayId { value: "x".to_string() }
+        ));
+        // Needle-side Always must NOT match a non-Always haystack — that would
+        // cause every entry to fire on every snapshot (Phase 11 integration
+        // test `vong_snapshot_returns_ram_thang_gieng_via_snapshot_path` is the
+        // falsifier).
+        assert!(!event_key_matches(
+            &RitualEventKey::HolidayId { value: "x".to_string() },
+            &RitualEventKey::Always
+        ));
+        // Always ↔ Always still matches.
+        assert!(event_key_matches(&RitualEventKey::Always, &RitualEventKey::Always));
+        // The "fall-through" Always-entry from fixtures.json is reachable by
+        // querying with an Always needle.
         let hits = find_van_khan_for_event(&RitualEventKey::Always);
         assert!(hits.iter().any(|r| r.ritual_id == "van-khan-gia-tien-hang-ngay"));
     }
