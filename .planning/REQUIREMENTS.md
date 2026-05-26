@@ -17,13 +17,13 @@
 
 ### P1 Văn khấn — Module & Lookup APIs
 
-- [ ] **RIT-01**: User can resolve `find_van_khan_for_snapshot(&DaySnapshot) -> Vec<RitualEntry>` to discover all rituals matching the day's lunar date, Tiết Khí anchor, and active holidays.
-- [ ] **RIT-02**: User can resolve `find_van_khan_for_event(&RitualEventKey) -> Vec<RitualEntry>` for direct event-based lookup (Sóc/Vọng, 8 lunar festivals, life events).
-- [ ] **RIT-03**: User can resolve `find_van_khan_for_life_event(LifeEventKind) -> Vec<RitualEntry>` for life-cycle events (Động thổ, Nhập trạch, Khai trương, Cưới, Giỗ, Đầy tháng).
-- [ ] **RIT-04**: User can call `get_ritual_by_id(&str) -> Option<RitualEntry>` to fetch a single ritual by stable id.
+- [x] **RIT-01**: User can resolve `find_van_khan_for_snapshot(&DaySnapshot) -> Vec<RitualEntry>` to discover all rituals matching the day's lunar date, Tiết Khí anchor, and active holidays.
+- [x] **RIT-02**: User can resolve `find_van_khan_for_event(&RitualEventKey) -> Vec<RitualEntry>` for direct event-based lookup (Sóc/Vọng, 8 lunar festivals, life events).
+- [x] **RIT-03**: User can resolve `find_van_khan_for_life_event(LifeEventKind) -> Vec<RitualEntry>` for life-cycle events (Động thổ, Nhập trạch, Khai trương, Cưới, Giỗ, Đầy tháng).
+- [x] **RIT-04**: User can call `get_ritual_by_id(&str) -> Option<RitualEntry>` to fetch a single ritual by stable id.
 - [x] **RIT-05**: User can call `all_rituals() -> &'static [RitualEntry]` to iterate the entire corpus.
-- [ ] **RIT-06**: User can rely on a closed `RitualEventKey` enum covering Sóc/Vọng (Mùng 1, Rằm), the 8 major lunar festivals (Tết Nguyên Đán, Khai Hạ, Thượng Nguyên, Thanh Minh, Đoan Ngọ, Vu Lan, Trung Thu, Ông Công Ông Táo), Tiết Khí anchors, life events, and `Always`.
-- [ ] **RIT-07**: User can rely on `LunarDateMatch` variants (`MonthDay { month, day, leap_month_policy }`, `SolarTerm`, `GregorianFixed`) — leap-month policy defaults to `CanonicalMonthOnly`.
+- [x] **RIT-06**: User can rely on a closed `RitualEventKey` enum covering Sóc/Vọng (Mùng 1, Rằm), the 8 major lunar festivals (Tết Nguyên Đán, Khai Hạ, Thượng Nguyên, Thanh Minh, Đoan Ngọ, Vu Lan, Trung Thu, Ông Công Ông Táo), Tiết Khí anchors, life events, and `Always`.
+- [x] **RIT-07**: User can rely on `LunarDateMatch` variants (`MonthDay { month, day, leap_month_policy }`, `SolarTerm`, `GregorianFixed`) — leap-month policy defaults to `CanonicalMonthOnly`.
 - [x] **RIT-08**: User-of-corpus can be confident every entry's text is NFC-normalized at load and that the loader rejects Hán-character pollution above a CI-enforced threshold.
 
 ### P1 Văn khấn — Corpus Authoring (Editorial)
@@ -93,13 +93,13 @@
 | FND-04 | Phase 10 | Pending |
 | FND-05 | Phase 10 | Pending |
 | FND-06 | Phase 10 | Pending |
-| RIT-01 | Phase 11 | Pending |
-| RIT-02 | Phase 11 | Pending |
-| RIT-03 | Phase 11 | Pending |
-| RIT-04 | Phase 11 | Pending |
+| RIT-01 | Phase 11 | Complete |
+| RIT-02 | Phase 11 | Complete |
+| RIT-03 | Phase 11 | Complete |
+| RIT-04 | Phase 11 | Complete |
 | RIT-05 | Phase 11 | Complete |
-| RIT-06 | Phase 11 | Pending |
-| RIT-07 | Phase 11 | Pending |
+| RIT-06 | Phase 11 | Complete |
+| RIT-07 | Phase 11 | Complete |
 | RIT-08 | Phase 11 | Complete |
 | RIT-09 | Phase 12 | Pending |
 | RIT-10 | Phase 12 | Pending |

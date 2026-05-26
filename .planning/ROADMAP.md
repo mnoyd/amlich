@@ -149,7 +149,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 10. Foundation — Schema Lock + ADRs + Source-ID Registration | 5/5 | Complete    | 2026-05-26 |
-| 11. Văn khấn Module + Lookup APIs | 2/4 | In Progress|  |
+| 11. Văn khấn Module + Lookup APIs | 3/4 | In Progress|  |
 | 12. Văn khấn Corpus Authoring | 0/? | Not started | - |
 | 13. Phi Tinh Primitives + Period + Annual/Monthly | 0/? | Not started | - |
 | 14. Phi Tinh 81-cell Aspects + Safety Hints | 0/? | Not started | - |
