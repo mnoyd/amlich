@@ -354,6 +354,27 @@ mod tests {
     }
 
     #[test]
+    fn tet_nguyen_dan_carries_stable_id() {
+        let holidays = super::get_vietnamese_holidays(2024);
+        let tet = holidays
+            .iter()
+            .find(|h| h.id.as_deref() == Some("tet-nguyen-dan"))
+            .expect("Expected at least one holiday with id == Some(\"tet-nguyen-dan\") in 2024");
+        assert_eq!(tet.id, Some("tet-nguyen-dan".to_string()));
+        assert!(!tet.name.is_empty());
+    }
+
+    #[test]
+    fn auto_generated_soc_vong_have_no_id() {
+        let holidays = super::get_vietnamese_holidays(2024);
+        let has_idless = holidays.iter().any(|h| h.id.is_none());
+        assert!(
+            has_idless,
+            "Expected at least one auto-generated holiday (Mùng 1 / Rằm / Thanh Minh) with id: None"
+        );
+    }
+
+    #[test]
     fn test_get_major_holidays() {
         let all = get_vietnamese_holidays(2024);
         let major = get_major_holidays(2024);
