@@ -70,7 +70,11 @@
   4. A caller can rely on `LunarDateMatch` having `MonthDay { month, day, leap_month_policy }`, `SolarTerm`, and `GregorianFixed` variants, with leap-month policy defaulting to `CanonicalMonthOnly`.
   5. CI rejects any ritual JSON whose body contains Hán characters above the configured threshold; loaded text is NFC-normalized and verifiable via a round-trip byte-equal test.
 
-**Plans**: TBD
+**Plans**: 4 plans across 4 waves
+- [ ] 11-01-PLAN.md — Wave 1 — unicode-normalization dep + data/rituals/fixtures.json (5–8 stub entries) + tests/ritual_han_guard.rs CI guard (RIT-08)
+- [ ] 11-02-PLAN.md — Wave 2 — rituals/corpus.rs OnceLock loader + NFC normalize-at-load + source_id discipline; registers `mod corpus;` in rituals/mod.rs (RIT-05, RIT-08)
+- [ ] 11-03-PLAN.md — Wave 3 — rituals/matcher.rs four lookup APIs (find_van_khan_for_snapshot/event/life_event, get_ritual_by_id) + derive_event_keys + leap-aware event_key_matches; rituals/mod.rs re-exports (RIT-01, RIT-02, RIT-03, RIT-04, RIT-06, RIT-07)
+- [ ] 11-04-PLAN.md — Wave 4 — tests/rituals_integration.rs 6 black-box tests (Tết snapshot, Vọng path, Thanh Minh via SolarTerm, HolidayId cross-ref, NFC byte-equal round-trip, leap-policy semantics) (RIT-01, RIT-07, RIT-08)
 
 ### Phase 12: Văn khấn Corpus Authoring
 
@@ -145,7 +149,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 10. Foundation — Schema Lock + ADRs + Source-ID Registration | 5/5 | Complete    | 2026-05-26 |
-| 11. Văn khấn Module + Lookup APIs | 0/? | Not started | - |
+| 11. Văn khấn Module + Lookup APIs | 0/4 | Planned | - |
 | 12. Văn khấn Corpus Authoring | 0/? | Not started | - |
 | 13. Phi Tinh Primitives + Period + Annual/Monthly | 0/? | Not started | - |
 | 14. Phi Tinh 81-cell Aspects + Safety Hints | 0/? | Not started | - |
@@ -171,4 +175,4 @@
 - **Tiết Khí scanner reuse** — Vận and monthly anchors reuse the v1.1.2 real-Tiết-Khí boundary scanner; no naïve year arithmetic.
 
 ---
-*Last updated: 2026-05-26 after 10-05 completion (Phase 10 complete — ADR cross-references registered in MILESTONES.md; DEC-0023/0024/0025)*
+*Last updated: 2026-05-26 after Phase 11 planning (4 plans across 4 waves; RIT-01..08 distributed)*
