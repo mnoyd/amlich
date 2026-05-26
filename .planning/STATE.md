@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Eastern Knowledge Expansion
 status: in_progress
-last_updated: "2026-05-26T14:51:00.000Z"
+last_updated: "2026-05-26T15:07:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -18,15 +18,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** v1.5 Eastern Knowledge Expansion — Phase 10 in progress (3/5 plans complete).
+**Current focus:** v1.5 Eastern Knowledge Expansion — Phase 10 in progress (4/5 plans complete).
 
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
 Phase: 10 (Foundation — Schema Lock + ADRs + Source-ID Registration) — in progress
-Plan: 10-01, 10-02, 10-04 complete; next: 10-03 (ADR 0001 ritual schema v1 + rituals/schema.rs)
-Status: 10-04 complete (FND-02, FND-04, FND-05 satisfied — ADR-0002, ADR-0003, fengshui type stubs)
-Last activity: 2026-05-26 — 10-04 complete: ADR-0002 monthly anchor, ADR-0003 polarity matrix, FlyingStarLayout frozen types
+Plan: 10-01, 10-02, 10-04, 10-03 complete; next: 10-05 (MILESTONES.md ADR cross-references)
+Status: 10-03 complete (FND-01 satisfied — ADR-0001 ritual schema v1, RitualEntry type stubs)
+Last activity: 2026-05-26 — 10-03 complete: ADR-0001 locked, 10 Rust ritual schema types, 5 behavioral tests
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases complete; 3/5 Phase 10 plans done)
 
@@ -89,6 +89,12 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - **ADR-0002 locked: solar-term month boundaries** — monthly Phi Tinh uses tháng tiết khí per Tham Thi Huyen Khong Hoc; get_all_tiet_khi_for_year is the boundary resolver.
 - **ADR-0003 locked: polarity matrix not bool flag** — Nien Tu Bach direction is (Tam Nguyen yuan, year polarity) -> (starting star, direction); Thuong/Trung Nguyen rows MEDIUM confidence pending Phase 13 cross-check.
 
+**v1.5 Phase 10 plan 10-03 decisions (2026-05-26):**
+
+- **RitualEventKey::LunarDate as struct variant** — Changed from plan's `LunarDate(LunarDateMatch)` newtype to `LunarDate { month, day, leap_month_policy }` to avoid serde internally-tagged enum nesting conflict; `LunarDateMatch` preserved standalone for Phase 11 RIT-07 API.
+- **English fields Option<String> with skip_serializing** — `title_en`, `name_en`, `description_en` are optional and serialization-skipped when None; v1.5 corpus leaves unpopulated.
+- **ADR-0001 locked: RitualEntry v1 schema** — 10 types, deny_unknown_fields, closed enums, source_id always "vn-folk-ritual"; Phase 12 corpus changes require superseding ADR.
+
 **v1.5 Phase 10 plan 10-02 decisions (2026-05-26):**
 
 - **SolarHolidayData gets id: String** — solar-holidays.json has id on every entry; exposing it costs nothing and provides symmetry for Phase 15 if needed (additive, no scope creep).
@@ -136,8 +142,7 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-- Execute 10-03-PLAN.md (ADR 0001 ritual schema v1 + rituals/schema.rs — FND-01).
-- Execute 10-05-PLAN.md (MILESTONES.md ADR cross-references — depends on ADR-0001, ADR-0002, ADR-0003 all landed).
+- Execute 10-05-PLAN.md (MILESTONES.md ADR cross-references — all three ADRs now landed: ADR-0001, ADR-0002, ADR-0003).
 
 ### Blockers/Concerns
 
@@ -145,14 +150,13 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-26T14:51:00Z
-Stopped at: Completed 10-04-PLAN.md (FND-02, FND-04, FND-05 — ADR-0002 monthly anchor, ADR-0003 polarity matrix, fengshui type stubs).
+Last session: 2026-05-26T15:07:00Z
+Stopped at: Completed 10-03-PLAN.md (FND-01 — ADR-0001 ritual schema v1, RitualEntry locked types).
 Resume file: None
 
 ### Active TODOs
 
-- Execute 10-03-PLAN.md (ADR 0001 ritual schema v1 + rituals/schema.rs — FND-01).
-- Execute 10-05-PLAN.md (MILESTONES.md ADR cross-references — depends on all three ADRs).
+- Execute 10-05-PLAN.md (MILESTONES.md ADR cross-references — all three ADRs now landed).
 - Confirm Phase 10 ADRs land before Phase 12 / Phase 13 execution.
 
 ### Context Handoff
