@@ -25,7 +25,7 @@
 ## Phases
 
 - [x] **Phase 10: Foundation — Schema Lock + ADRs + Source-ID Registration** - Lock ritual + Flying Star schemas, register two new source_ids, write the three blocking ADRs.
-- [ ] **Phase 11: Văn khấn Module + Lookup APIs** - Ship the `rituals/` module with closed event enum, structured matchers, and the five public lookup APIs.
+- [x] **Phase 11: Văn khấn Module + Lookup APIs** - Ship the `rituals/` module with closed event enum, structured matchers, and the five public lookup APIs. (completed 2026-05-26)
 - [ ] **Phase 12: Văn khấn Corpus Authoring** - Author ≥60 entries across ≤14 per-event-category JSON files with full provenance audit and 4+ event-variant coverage.
 - [ ] **Phase 13: Phi Tinh Primitives + Period + Annual/Monthly** - Ship `almanac/fengshui/` with Lo Shu validators, Vận 7-9 tables, and annual/monthly/combined layout APIs.
 - [ ] **Phase 14: Phi Tinh 81-cell Aspects + Safety Hints** - Digitize the 81 star-pair aspects from *Thẩm Thị Huyền Không Học* and ship the advisory danger/element-hint APIs.
@@ -149,7 +149,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 10. Foundation — Schema Lock + ADRs + Source-ID Registration | 5/5 | Complete    | 2026-05-26 |
-| 11. Văn khấn Module + Lookup APIs | 3/4 | In Progress|  |
+| 11. Văn khấn Module + Lookup APIs | 4/4 | Complete   | 2026-05-26 |
 | 12. Văn khấn Corpus Authoring | 0/? | Not started | - |
 | 13. Phi Tinh Primitives + Period + Annual/Monthly | 0/? | Not started | - |
 | 14. Phi Tinh 81-cell Aspects + Safety Hints | 0/? | Not started | - |
