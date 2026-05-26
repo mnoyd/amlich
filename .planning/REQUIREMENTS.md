@@ -24,7 +24,7 @@
 - [ ] **RIT-05**: User can call `all_rituals() -> &'static [RitualEntry]` to iterate the entire corpus.
 - [ ] **RIT-06**: User can rely on a closed `RitualEventKey` enum covering Sóc/Vọng (Mùng 1, Rằm), the 8 major lunar festivals (Tết Nguyên Đán, Khai Hạ, Thượng Nguyên, Thanh Minh, Đoan Ngọ, Vu Lan, Trung Thu, Ông Công Ông Táo), Tiết Khí anchors, life events, and `Always`.
 - [ ] **RIT-07**: User can rely on `LunarDateMatch` variants (`MonthDay { month, day, leap_month_policy }`, `SolarTerm`, `GregorianFixed`) — leap-month policy defaults to `CanonicalMonthOnly`.
-- [ ] **RIT-08**: User-of-corpus can be confident every entry's text is NFC-normalized at load and that the loader rejects Hán-character pollution above a CI-enforced threshold.
+- [x] **RIT-08**: User-of-corpus can be confident every entry's text is NFC-normalized at load and that the loader rejects Hán-character pollution above a CI-enforced threshold.
 
 ### P1 Văn khấn — Corpus Authoring (Editorial)
 
@@ -100,7 +100,7 @@
 | RIT-05 | Phase 11 | Pending |
 | RIT-06 | Phase 11 | Pending |
 | RIT-07 | Phase 11 | Pending |
-| RIT-08 | Phase 11 | Pending |
+| RIT-08 | Phase 11 | Complete |
 | RIT-09 | Phase 12 | Pending |
 | RIT-10 | Phase 12 | Pending |
 | RIT-11 | Phase 12 | Pending |

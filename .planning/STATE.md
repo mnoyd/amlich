@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
-status: unknown
-last_updated: "2026-05-26T15:16:53.758Z"
+status: in-progress
+last_updated: "2026-05-26T16:36:55.055Z"
 progress:
   total_phases: 15
   completed_phases: 15
-  total_plans: 36
-  completed_plans: 36
+  total_plans: 40
+  completed_plans: 37
 ---
 
 # Project State
@@ -18,17 +18,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** v1.5 Eastern Knowledge Expansion — Phase 10 in progress (4/5 plans complete).
+**Current focus:** v1.5 Eastern Knowledge Expansion — Phase 11 (Văn khấn Module + Lookup APIs) in progress (1/4 plans complete).
 
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
-Phase: 10 (Foundation — Schema Lock + ADRs + Source-ID Registration) — in progress
-Plan: 10-01, 10-02, 10-03, 10-04, 10-05 complete; Phase 10 COMPLETE
-Status: 10-05 complete (MILESTONES.md ADR Cross-References subsection added — DEC-0023/0024/0025 registered)
-Last activity: 2026-05-26 — 10-05 complete: ADR cross-references registered in MILESTONES.md; Phase 10 Foundation gate closed
+Phase: 11 (Văn khấn Module + Lookup APIs) — in progress
+Plan: 11-01 complete (wave 1); 11-02, 11-03, 11-04 pending
+Status: 11-01 complete (unicode-normalization dep, 6-entry fixtures.json, Hán-character CI guard)
+Last activity: 2026-05-26 — 11-01 complete: wave-1 ritual corpus foundation landed; unblocks waves 2-4
 
-Progress: [█░░░░░░░░░] 17% (1/6 phases complete; 5/5 Phase 10 plans done)
+Progress: [██░░░░░░░░] 17% (1/6 phases complete; 1/4 Phase 11 plans done)
 
 ### Milestone Status: v1.5 Roadmap Complete
 
@@ -39,7 +39,7 @@ Progress: [█░░░░░░░░░] 17% (1/6 phases complete; 5/5 Phase 1
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 10 | Foundation — Schema Lock + ADRs + Source-ID Registration | FND-01..06 | Complete |
-| 11 | Văn khấn Module + Lookup APIs | RIT-01..08 | Not started |
+| 11 | Văn khấn Module + Lookup APIs | RIT-01..08 | In progress (1/4 plans) |
 | 12 | Văn khấn Corpus Authoring | RIT-09..13 | Not started |
 | 13 | Phi Tinh Primitives + Period + Annual/Monthly | FS-01..10 | Not started |
 | 14 | Phi Tinh 81-cell Aspects + Safety Hints | FS-11..15 | Not started |
@@ -69,12 +69,24 @@ Progress: [█░░░░░░░░░] 17% (1/6 phases complete; 5/5 Phase 1
 - Research synthesis complete: ARCHITECTURE.md, PITFALLS.md, SUMMARY.md, EXPANSION_FRAMEWORK.md.
 - Requirements defined 2026-05-25 (40 v1.5 requirements across FND / RIT / FS / INT categories).
 - Roadmap written 2026-05-25 (6 phases, 100% coverage validated).
+- Phase 10 (Foundation) closed clean 2026-05-26; Phase 11 wave 1 (plan 11-01) landed 2026-05-26 — fixtures + Hán guard + unicode-normalization dep.
+
+**Per-plan log:**
+| Phase 11 P01 | 18min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
 ### Decisions
 
 Project-wide decisions live in PROJECT.md Key Decisions table.
+
+**v1.5 Phase 11 plan 11-01 decisions (2026-05-26):**
+
+- **Inline char-range Hán detection over external crate** — `matches!(c, '\u{4E00}'..='\u{9FFF}' | ...)` covers 4 CJK blocks (base + Ext-A + Ext-B + Compatibility); zero new transitive deps per 11-RESEARCH.md §Don't Hand-Roll.
+- **No manifest.json this wave** — research Q2 defers manifest to Phase 12; single fixtures.json suffices for stub corpus.
+- **unicode-normalization 0.1.25 landed before loader** — Cargo accepts unused deps; declaring early prevents transient build break when 11-02 lands in parallel wave.
+- **Hán guard no-ops on missing data/rituals/ dir** — defensive ordering pattern preserved for Phase 12 file additions even though wave-1 plan ships fixtures + guard atomically.
+- **TDD validated via ephemeral RED check** — injected `{"han_test":"中文"}` ad-hoc file, confirmed `2 Hán code points found` panic, removed before commit.
 
 **v1.5 Phase 10 plan 10-01 decisions (2026-05-26):**
 
@@ -148,7 +160,7 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-- Phase 10 complete. Begin Phase 11 (Van khan Module + Lookup APIs) and/or Phase 13 (Phi Tinh Primitives) — may execute concurrently; Phase 15 is the join point.
+- Phase 11 wave 1 complete (plan 11-01). Next: 11-02 (corpus loader), 11-03 (matcher), 11-04 (integration tests). May overlap with Phase 13 (Phi Tinh) which shares no code paths.
 
 ### Blockers/Concerns
 
@@ -156,13 +168,14 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-26T15:04:00Z
-Stopped at: Completed 10-05-PLAN.md (MILESTONES.md ADR cross-references — DEC-0023/0024/0025 registered; Phase 10 complete).
+Last session: 2026-05-26T16:34:42Z
+Stopped at: Completed 11-01-PLAN.md (Phase 11 wave 1 — unicode-normalization dep, 6-entry fixtures.json, Hán-character CI guard).
 Resume file: None
 
 ### Active TODOs
 
-- Phase 10 complete. Execute Phase 11 (Van khan) and/or Phase 13 (Phi Tinh) — may run concurrently. Phase 15 is the join point.
+- Phase 11 wave 2: execute 11-02 (corpus loader with NFC-at-load enforcement, RitualFile envelope deserialization). 11-03 + 11-04 follow.
+- Phase 13 (Phi Tinh Primitives) may run concurrently — no shared code paths.
 
 ### Context Handoff
 
