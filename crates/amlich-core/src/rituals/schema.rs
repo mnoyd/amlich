@@ -1,1 +1,278 @@
-// PLACEHOLDER — plan 10-03 (rituals/schema.rs) lands the full schema-locked types here.
+//! Locked v1 ritual entry schema. See ADR-0001.
+//!
+//! Every change to a public type in this file requires a superseding ADR
+//! per the schema-lock discipline (PITFALLS CRIT-1, CRIT-5).
+
+use serde::{Deserialize, Serialize};
+
+/// Confidence tier for a ritual entry's provenance (per ADR-0001).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum RitualConfidenceTier {
+    Primary,
+    RegionalVariant,
+    Synthesized,
+}
+
+/// Leap-month inclusion policy for lunar date matching (RIT-07).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum LeapPolicy {
+    #[default]
+    CanonicalMonthOnly,
+    LeapMonthOnly,
+    Either,
+}
+
+/// Discriminated union for matching a day against a lunar date pattern (RIT-07).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum LunarDateMatch {
+    MonthDay {
+        month: u8,
+        day: u8,
+        #[serde(default)]
+        leap_month_policy: LeapPolicy,
+    },
+    SolarTerm {
+        name: String,
+    },
+    GregorianFixed {
+        month: u8,
+        day: u8,
+    },
+}
+
+/// Life-event kinds (RIT-03).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum LifeEventKind {
+    DongTho,
+    NhapTrach,
+    KhaiTruong,
+    Cuoi,
+    Gio,
+    DayThang,
+}
+
+/// Event key — discriminated union for `event_keys[]` (RIT-06).
+///
+/// Note: `LunarDate` embeds month/day/leap_month_policy directly rather than wrapping
+/// `LunarDateMatch` as a newtype. This avoids the serde internally-tagged enum conflict that
+/// would arise from nesting two `#[serde(tag = "kind")]` enums (the outer `kind: "lunar_date"`
+/// would be consumed before the inner `LunarDateMatch` could read its own `kind` field).
+/// `LunarDateMatch` is kept as a standalone type for direct use cases (e.g., RIT-07 query API).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum RitualEventKey {
+    HolidayId { value: String },
+    LunarDate {
+        month: u8,
+        day: u8,
+        #[serde(default)]
+        leap_month_policy: LeapPolicy,
+    },
+    SolarTerm { name: String },
+    LifeEvent { event: LifeEventKind },
+    Always,
+}
+
+/// Variant discriminator for rituals sharing an event (RIT-12, CONTEXT.md locked).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RitualVariantTag {
+    Simple,
+    Full,
+    Buddhist,
+    Folk,
+    Regional(String),
+}
+
+/// Citation pointing at the classical reference for an entry.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SourceCitation {
+    pub title: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub publisher: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub edition: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub page: Option<String>,
+}
+
+/// Structured offering (lễ vật).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct Offering {
+    pub name_vi: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_en: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub quantity: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
+}
+
+/// Structured preparation step (trình tự).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PreparationStep {
+    pub order: u8,
+    pub description_vi: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description_en: Option<String>,
+}
+
+/// Locked v1 ritual entry. See ADR-0001.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RitualEntry {
+    pub ritual_id: String,
+    pub title_vi: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub title_en: Option<String>,
+    pub event_keys: Vec<RitualEventKey>,
+    pub variant: RitualVariantTag,
+    pub offerings: Vec<Offering>,
+    pub preparation_steps: Vec<PreparationStep>,
+    pub invocation_text_vi: String,
+    /// Reserved per RIT-13. Always null in v1.5 corpus.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub body_en: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub notes: Vec<String>,
+    /// Must always equal `crate::sources::SOURCE_VN_FOLK_RITUAL` for ritual entries.
+    /// Phase 11 corpus loader enforces this; Phase 10 type stub only declares the field.
+    pub source_id: String,
+    pub original_citation: SourceCitation,
+    pub confidence: RitualConfidenceTier,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Test 1: A sample valid RitualEntry JSON (Tết simple-variant) deserializes
+    // successfully and entry.source_id == "vn-folk-ritual".
+    #[test]
+    fn sample_ritual_entry_json_deserializes() {
+        let json = r#"{
+            "ritual_id": "van-khan-tet-don-gian",
+            "title_vi": "Văn Khấn Tết Nguyên Đán (Đơn Giản)",
+            "event_keys": [
+                {"kind": "holiday_id", "value": "tet-nguyen-dan"},
+                {"kind": "lunar_date", "month": 1, "day": 1}
+            ],
+            "variant": "simple",
+            "offerings": [
+                {"name_vi": "Hương", "quantity": "3 nén"},
+                {"name_vi": "Hoa tươi", "quantity": "1 bình"}
+            ],
+            "preparation_steps": [
+                {"order": 1, "description_vi": "Tắm rửa sạch sẽ, mặc quần áo chỉnh tề"},
+                {"order": 2, "description_vi": "Bày lễ vật lên bàn thờ gia tiên"}
+            ],
+            "invocation_text_vi": "Nam mô a di đà phật! Con lạy chín phương trời...",
+            "source_id": "vn-folk-ritual",
+            "original_citation": {
+                "title": "Văn Khấn Cổ Truyền Việt Nam",
+                "publisher": "NXB Văn Hóa Thông Tin",
+                "page": "12"
+            },
+            "confidence": "primary"
+        }"#;
+
+        let entry: RitualEntry = serde_json::from_str(json).expect("should deserialize");
+        assert_eq!(entry.source_id, "vn-folk-ritual");
+        assert_eq!(entry.ritual_id, "van-khan-tet-don-gian");
+        assert_eq!(entry.variant, RitualVariantTag::Simple);
+        assert_eq!(entry.offerings.len(), 2);
+        assert_eq!(entry.preparation_steps.len(), 2);
+        assert_eq!(entry.confidence, RitualConfidenceTier::Primary);
+        // Verify event_keys decoded correctly
+        assert_eq!(entry.event_keys.len(), 2);
+        assert_eq!(entry.event_keys[1], RitualEventKey::LunarDate { month: 1, day: 1, leap_month_policy: LeapPolicy::CanonicalMonthOnly });
+    }
+
+    // Test 2: A JSON with an unknown field fails to deserialize.
+    #[test]
+    fn unknown_field_fails_deserialization() {
+        let json = r#"{
+            "ritual_id": "van-khan-tet-don-gian",
+            "title_vi": "Văn Khấn Tết Nguyên Đán",
+            "event_keys": [{"kind": "holiday_id", "value": "tet-nguyen-dan"}],
+            "variant": "simple",
+            "offerings": [],
+            "preparation_steps": [],
+            "invocation_text_vi": "Nam mô...",
+            "source_id": "vn-folk-ritual",
+            "original_citation": {"title": "Test"},
+            "confidence": "primary",
+            "unexpected_field": "x"
+        }"#;
+
+        let result: Result<RitualEntry, _> = serde_json::from_str(json);
+        assert!(result.is_err(), "unknown field should fail deserialization");
+        let err_msg = result.unwrap_err().to_string();
+        assert!(
+            err_msg.contains("unexpected_field") || err_msg.contains("unknown field"),
+            "error should mention unknown field, got: {err_msg}"
+        );
+    }
+
+    // Test 3: RitualVariantTag round-trips all five variants via serde JSON.
+    #[test]
+    fn variant_tag_roundtrip_all_five() {
+        // Simple
+        let simple: RitualVariantTag = serde_json::from_str(r#""simple""#).unwrap();
+        assert_eq!(simple, RitualVariantTag::Simple);
+        assert_eq!(serde_json::to_string(&simple).unwrap(), r#""simple""#);
+
+        // Full
+        let full: RitualVariantTag = serde_json::from_str(r#""full""#).unwrap();
+        assert_eq!(full, RitualVariantTag::Full);
+        assert_eq!(serde_json::to_string(&full).unwrap(), r#""full""#);
+
+        // Buddhist
+        let buddhist: RitualVariantTag = serde_json::from_str(r#""buddhist""#).unwrap();
+        assert_eq!(buddhist, RitualVariantTag::Buddhist);
+        assert_eq!(serde_json::to_string(&buddhist).unwrap(), r#""buddhist""#);
+
+        // Folk
+        let folk: RitualVariantTag = serde_json::from_str(r#""folk""#).unwrap();
+        assert_eq!(folk, RitualVariantTag::Folk);
+        assert_eq!(serde_json::to_string(&folk).unwrap(), r#""folk""#);
+
+        // Regional
+        let regional: RitualVariantTag =
+            serde_json::from_str(r#"{"regional":"mien-bac"}"#).unwrap();
+        assert_eq!(regional, RitualVariantTag::Regional("mien-bac".to_string()));
+        assert_eq!(
+            serde_json::to_string(&regional).unwrap(),
+            r#"{"regional":"mien-bac"}"#
+        );
+    }
+
+    // Test 4: An unknown variant tag fails to deserialize.
+    #[test]
+    fn unknown_variant_tag_fails() {
+        let result: Result<RitualVariantTag, _> = serde_json::from_str(r#""unknown""#);
+        assert!(result.is_err(), "unknown variant tag should fail deserialization");
+    }
+
+    // Test 5: LunarDateMatch::MonthDay defaults leap_month_policy to CanonicalMonthOnly when absent.
+    #[test]
+    fn lunar_date_month_day_defaults_leap_policy_to_canonical_month_only() {
+        let json = r#"{"kind":"month_day","month":1,"day":1}"#;
+        let result: LunarDateMatch = serde_json::from_str(json).expect("should deserialize");
+        assert_eq!(
+            result,
+            LunarDateMatch::MonthDay {
+                month: 1,
+                day: 1,
+                leap_month_policy: LeapPolicy::CanonicalMonthOnly,
+            }
+        );
+    }
+}
