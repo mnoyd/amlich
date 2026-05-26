@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5
-milestone_name: Eastern Knowledge Expansion
-status: in-progress
-last_updated: "2026-05-26T16:53:08Z"
+milestone: v1.4
+milestone_name: milestone
+status: unknown
+last_updated: "2026-05-26T16:59:17.557Z"
 progress:
-  total_phases: 15
-  completed_phases: 15
+  total_phases: 16
+  completed_phases: 16
   total_plans: 40
   completed_plans: 40
 ---
