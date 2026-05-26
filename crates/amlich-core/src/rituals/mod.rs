@@ -7,3 +7,4 @@
 //! Schema is locked by ADR-0001 (`.planning/adrs/0001-ritual-schema-v1.md`).
 
 pub mod schema;
+mod corpus;
