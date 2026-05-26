@@ -218,6 +218,16 @@ The amlich almanac implementation is now fully aligned with KHCBPPT reference fo
 5. **Collect-then-assert pattern** — Provides comprehensive divergence reports with clear actionability
 6. **Metadata correction** — Updated `star_meta.source_id` for proper KHCBPPT attribution
 
+### ADR Cross-References
+
+Architectural decisions recorded in `.planning/adrs/` using the Nygard short-form. Each decision below carries a stable DEC-NNNN id for project-wide reference.
+
+| Decision ID | Date | Description | ADR |
+|-------------|------|-------------|-----|
+| DEC-0023 | 2026-05-26 | Ritual JSON schema v1 locked (typed `event_keys[]`, structured `offerings[]`/`preparation_steps[]`, closed `RitualVariantTag`, `#[serde(deny_unknown_fields)]`) | [adrs/0001-ritual-schema-v1.md](adrs/0001-ritual-schema-v1.md) |
+| DEC-0024 | 2026-05-26 | Phi Tinh monthly anchor uses solar-term boundaries per *Thẩm Thị Huyền Không Học*, resolved by the v1.1.2 Tiết Khí scanner | [adrs/0002-phi-tinh-monthly-anchor.md](adrs/0002-phi-tinh-monthly-anchor.md) |
+| DEC-0025 | 2026-05-26 | Niên Tử Bạch direction rule is a Tam Nguyên × year-polarity matrix (dương → nghịch hành; âm → thuận hành); Thượng/Trung Nguyên rows MEDIUM confidence pending Phase 13 cross-check | [adrs/0003-nien-tu-bach-polarity.md](adrs/0003-nien-tu-bach-polarity.md) |
+
 ### Files Created/Modified
 
 **Reference Documentation:**

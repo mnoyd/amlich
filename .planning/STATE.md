@@ -8,7 +8,7 @@ progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 
 Milestone: v1.5 Eastern Knowledge Expansion
 Phase: 10 (Foundation — Schema Lock + ADRs + Source-ID Registration) — in progress
-Plan: 10-01, 10-02, 10-04, 10-03 complete; next: 10-05 (MILESTONES.md ADR cross-references)
-Status: 10-03 complete (FND-01 satisfied — ADR-0001 ritual schema v1, RitualEntry type stubs)
-Last activity: 2026-05-26 — 10-03 complete: ADR-0001 locked, 10 Rust ritual schema types, 5 behavioral tests
+Plan: 10-01, 10-02, 10-03, 10-04, 10-05 complete; Phase 10 COMPLETE
+Status: 10-05 complete (MILESTONES.md ADR Cross-References subsection added — DEC-0023/0024/0025 registered)
+Last activity: 2026-05-26 — 10-05 complete: ADR cross-references registered in MILESTONES.md; Phase 10 Foundation gate closed
 
-Progress: [░░░░░░░░░░] 0% (0/6 phases complete; 3/5 Phase 10 plans done)
+Progress: [█░░░░░░░░░] 17% (1/6 phases complete; 5/5 Phase 10 plans done)
 
 ### Milestone Status: v1.5 Roadmap Complete
 
@@ -38,7 +38,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete; 3/5 Phase 10
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 10 | Foundation — Schema Lock + ADRs + Source-ID Registration | FND-01..06 | Not started |
+| 10 | Foundation — Schema Lock + ADRs + Source-ID Registration | FND-01..06 | Complete |
 | 11 | Văn khấn Module + Lookup APIs | RIT-01..08 | Not started |
 | 12 | Văn khấn Corpus Authoring | RIT-09..13 | Not started |
 | 13 | Phi Tinh Primitives + Period + Annual/Monthly | FS-01..10 | Not started |
@@ -88,6 +88,12 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - **ReasoningEvidenceEnvelope imported via crate::reasoning** — `reasoning::types` is private; types re-exported from `reasoning/mod.rs`; correct import is `use crate::reasoning::{ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily}`.
 - **ADR-0002 locked: solar-term month boundaries** — monthly Phi Tinh uses tháng tiết khí per Tham Thi Huyen Khong Hoc; get_all_tiet_khi_for_year is the boundary resolver.
 - **ADR-0003 locked: polarity matrix not bool flag** — Nien Tu Bach direction is (Tam Nguyen yuan, year polarity) -> (starting star, direction); Thuong/Trung Nguyen rows MEDIUM confidence pending Phase 13 cross-check.
+
+**v1.5 Phase 10 plan 10-05 decisions (2026-05-26):**
+
+- **TABLE subsection for ADR registry** — `### ADR Cross-References` uses markdown TABLE format (not narrative list) appended after Key Decisions; keeps v1.0-v1.4 history intact, gives Phase 10+ decisions their own structured shape per CONTEXT.md §specifics.
+- **DEC-0023 is next safe id** — DEC-0015, 0016, 0022 referenced in planning docs; DEC-0017-0021 unreferenced; 0023 confirmed safe starting point for Phase 10 ADRs.
+- **Relative links from .planning/MILESTONES.md** — `adrs/000X-name.md` resolves to `.planning/adrs/`; no absolute paths needed.
 
 **v1.5 Phase 10 plan 10-03 decisions (2026-05-26):**
 
@@ -142,7 +148,7 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-- Execute 10-05-PLAN.md (MILESTONES.md ADR cross-references — all three ADRs now landed: ADR-0001, ADR-0002, ADR-0003).
+- Phase 10 complete. Begin Phase 11 (Van khan Module + Lookup APIs) and/or Phase 13 (Phi Tinh Primitives) — may execute concurrently; Phase 15 is the join point.
 
 ### Blockers/Concerns
 
@@ -150,14 +156,13 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-26T15:07:00Z
-Stopped at: Completed 10-03-PLAN.md (FND-01 — ADR-0001 ritual schema v1, RitualEntry locked types).
+Last session: 2026-05-26T15:04:00Z
+Stopped at: Completed 10-05-PLAN.md (MILESTONES.md ADR cross-references — DEC-0023/0024/0025 registered; Phase 10 complete).
 Resume file: None
 
 ### Active TODOs
 
-- Execute 10-05-PLAN.md (MILESTONES.md ADR cross-references — all three ADRs now landed).
-- Confirm Phase 10 ADRs land before Phase 12 / Phase 13 execution.
+- Phase 10 complete. Execute Phase 11 (Van khan) and/or Phase 13 (Phi Tinh) — may run concurrently. Phase 15 is the join point.
 
 ### Context Handoff
 

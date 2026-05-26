@@ -24,7 +24,7 @@
 
 ## Phases
 
-- [ ] **Phase 10: Foundation — Schema Lock + ADRs + Source-ID Registration** - Lock ritual + Flying Star schemas, register two new source_ids, write the three blocking ADRs.
+- [x] **Phase 10: Foundation — Schema Lock + ADRs + Source-ID Registration** - Lock ritual + Flying Star schemas, register two new source_ids, write the three blocking ADRs.
 - [ ] **Phase 11: Văn khấn Module + Lookup APIs** - Ship the `rituals/` module with closed event enum, structured matchers, and the five public lookup APIs.
 - [ ] **Phase 12: Văn khấn Corpus Authoring** - Author ≥60 entries across ≤14 per-event-category JSON files with full provenance audit and 4+ event-variant coverage.
 - [ ] **Phase 13: Phi Tinh Primitives + Period + Annual/Monthly** - Ship `almanac/fengshui/` with Lo Shu validators, Vận 7-9 tables, and annual/monthly/combined layout APIs.
@@ -53,7 +53,7 @@
 - [x] 10-02-PLAN.md — Wave 1 — Holiday.id additive field + LunarFestivalData.id exposure (FND-06)
 - [x] 10-03-PLAN.md — Wave 2 — ADR 0001 ritual schema v1 + rituals/schema.rs locked types (depends on 10-01 placeholders) (FND-01)
 - [x] 10-04-PLAN.md — Wave 1 — ADR 0002 monthly anchor + ADR 0003 polarity matrix + almanac/fengshui/types.rs (FND-02, FND-04, FND-05)
-- [ ] 10-05-PLAN.md — Wave 3 — MILESTONES.md ADR Cross-References subsection (DEC-0023/0024/0025) (depends on all three ADRs)
+- [x] 10-05-PLAN.md — Wave 3 — MILESTONES.md ADR Cross-References subsection (DEC-0023/0024/0025) (depends on all three ADRs)
 
 ### Phase 11: Văn khấn Module + Lookup APIs
 
@@ -144,7 +144,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 10. Foundation — Schema Lock + ADRs + Source-ID Registration | 4/5 | In progress | - |
+| 10. Foundation — Schema Lock + ADRs + Source-ID Registration | 5/5 | Complete | 2026-05-26 |
 | 11. Văn khấn Module + Lookup APIs | 0/? | Not started | - |
 | 12. Văn khấn Corpus Authoring | 0/? | Not started | - |
 | 13. Phi Tinh Primitives + Period + Annual/Monthly | 0/? | Not started | - |
@@ -171,4 +171,4 @@
 - **Tiết Khí scanner reuse** — Vận and monthly anchors reuse the v1.1.2 real-Tiết-Khí boundary scanner; no naïve year arithmetic.
 
 ---
-*Last updated: 2026-05-26 after 10-03 completion (ADR-0001 ritual schema v1, RitualEntry locked types)*
+*Last updated: 2026-05-26 after 10-05 completion (Phase 10 complete — ADR cross-references registered in MILESTONES.md; DEC-0023/0024/0025)*
