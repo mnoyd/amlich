@@ -1,0 +1,131 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-tet-don-gian",
+      "title_vi": "Văn Khấn Tết Nguyên Đán (Đơn Giản)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-dan"},
+        {"kind": "lunar_date", "month": 1, "day": 1}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tắm rửa sạch sẽ, mặc quần áo chỉnh tề"},
+        {"order": 2, "description_vi": "Bày lễ vật lên bàn thờ gia tiên"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Con lạy chín phương trời, mười phương chư phật. Hôm nay là ngày mồng một Tết Nguyên Đán, con xin kính lễ.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "12"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-ram-thang-gieng",
+      "title_vi": "Văn Khấn Rằm Tháng Giêng (Tết Nguyên Tiêu)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-tieu"},
+        {"kind": "lunar_date", "month": 1, "day": 15}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"},
+        {"name_vi": "Mâm cỗ chay", "quantity": "1"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Bày lễ vật lên bàn thờ gia tiên và bàn thờ Phật"},
+        {"order": 2, "description_vi": "Thắp hương và đọc văn khấn"}
+      ],
+      "invocation_text_vi": "Nam mô A Di Đà Phật! Hôm nay là ngày Rằm tháng Giêng, tiết Tết Nguyên Tiêu, con kính cẩn dâng lễ và cầu nguyện tổ tiên phù hộ độ trì.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {"title": "Văn Khấn Cổ Truyền Việt Nam", "page": "30"},
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-thanh-minh",
+      "title_vi": "Văn Khấn Tiết Thanh Minh",
+      "event_keys": [
+        {"kind": "solar_term", "name": "Thanh Minh"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tảo mộ, dọn dẹp phần mộ tổ tiên"}
+      ],
+      "invocation_text_vi": "Nam mô A Di Đà Phật! Hôm nay là tiết Thanh Minh, con xin tảo mộ và kính lễ tổ tiên.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {"title": "Văn Khấn Cổ Truyền Việt Nam", "page": "45"},
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-dong-tho",
+      "title_vi": "Văn Khấn Động Thổ",
+      "event_keys": [
+        {"kind": "life_event", "event": "dong_tho"}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Mâm ngũ quả", "quantity": "1"},
+        {"name_vi": "Xôi gấc", "quantity": "1 đĩa"},
+        {"name_vi": "Gà luộc", "quantity": "1 con"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chọn ngày giờ hoàng đạo"},
+        {"order": 2, "description_vi": "Chuẩn bị lễ vật và bày tại nơi động thổ"}
+      ],
+      "invocation_text_vi": "Nam mô A Di Đà Phật! Con xin kính lễ Thổ Công, Thổ Địa, xin phép động thổ khởi công.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {"title": "Văn Khấn Cổ Truyền Việt Nam", "page": "120"},
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-gia-tien-hang-ngay",
+      "title_vi": "Văn Khấn Gia Tiên Hàng Ngày",
+      "event_keys": [
+        {"kind": "always"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "1 nén"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Thắp hương trước bàn thờ gia tiên"}
+      ],
+      "invocation_text_vi": "Nam mô A Di Đà Phật! Con kính lễ tổ tiên hàng ngày.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {"title": "Văn Khấn Cổ Truyền Việt Nam", "page": "8"},
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-doan-ngo",
+      "title_vi": "Văn Khấn Tết Đoan Ngọ",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-doan-ngo"},
+        {"kind": "lunar_date", "month": 5, "day": 5, "leap_month_policy": "canonical_month_only"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Rượu nếp", "quantity": "1 chén"},
+        {"name_vi": "Hoa quả", "quantity": "1 mâm"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuẩn bị rượu nếp và hoa quả từ sáng sớm"}
+      ],
+      "invocation_text_vi": "Nam mô A Di Đà Phật! Hôm nay là Tết Đoan Ngọ mùng năm tháng năm, con xin kính lễ.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {"title": "Văn Khấn Cổ Truyền Việt Nam", "page": "60"},
+      "confidence": "primary"
+    }
+  ]
+}
