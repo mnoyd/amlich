@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.5
 milestone_name: Eastern Knowledge Expansion
-status: roadmap_complete
-last_updated: "2026-05-25T00:00:00.000Z"
+status: in_progress
+last_updated: "2026-05-26T14:51:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 5
+  completed_plans: 3
 ---
 
 # Project State
@@ -18,17 +18,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** v1.5 Eastern Knowledge Expansion — roadmap complete, ready to plan Phase 10.
+**Current focus:** v1.5 Eastern Knowledge Expansion — Phase 10 in progress (3/5 plans complete).
 
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
-Phase: 10 (Foundation — Schema Lock + ADRs + Source-ID Registration) — not started
-Plan: —
-Status: Roadmap complete; awaiting `/gsd:plan-phase 10`
-Last activity: 2026-05-25 — Roadmap written (6 phases, 40/40 requirements mapped)
+Phase: 10 (Foundation — Schema Lock + ADRs + Source-ID Registration) — in progress
+Plan: 10-01, 10-02, 10-04 complete; next: 10-03 (ADR 0001 ritual schema v1 + rituals/schema.rs)
+Status: 10-04 complete (FND-02, FND-04, FND-05 satisfied — ADR-0002, ADR-0003, fengshui type stubs)
+Last activity: 2026-05-26 — 10-04 complete: ADR-0002 monthly anchor, ADR-0003 polarity matrix, FlyingStarLayout frozen types
 
-Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
+Progress: [░░░░░░░░░░] 0% (0/6 phases complete; 3/5 Phase 10 plans done)
 
 ### Milestone Status: v1.5 Roadmap Complete
 
@@ -62,7 +62,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 | v1.2 | 3/3 | 29 min | 9.7 min |
 | v1.3 | 5/5 | n/a | n/a |
 | v1.4 | 6/6 | 24 min | 4.0 min |
-| v1.5 | 0/? | — | — |
+| v1.5 | 1/? | — | — |
 
 **Recent Trend:**
 - v1.4 closed clean; v1.5 milestone defined 2026-05-23.
@@ -75,6 +75,25 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 ### Decisions
 
 Project-wide decisions live in PROJECT.md Key Decisions table.
+
+**v1.5 Phase 10 plan 10-01 decisions (2026-05-26):**
+
+- **No SourceId enum — pure pub const &str** — `pub const SOURCE_*: &str` matches CONVENTIONS.md `SCREAMING_SNAKE_CASE` pattern; enum explicitly rejected in CONTEXT.md. New source_ids added to sources.rs, never as bare literals.
+- **CI guard uses brace-depth heuristic** — Integration test walks src/, excludes `sources.rs` by name, tracks `#[cfg(test)]` block depth to skip test assertions; no external AST parser needed for amlich-core's consistent layout.
+- **Stub rituals/ files in 10-01** — rituals/mod.rs + schema.rs placeholder created by 10-01 to avoid transient lib.rs compile break in Wave 1 parallel execution; plan 10-03 overwrites with real content without touching lib.rs.
+
+**v1.5 Phase 10 plan 10-04 decisions (2026-05-26):**
+
+- **Single parameterized FlyingStarLayout struct** — one struct with FlyingStarPeriod discriminator (Van/Yearly/Monthly) chosen over three distinct types; simpler API, single Phase 15 DTO path.
+- **ReasoningEvidenceEnvelope imported via crate::reasoning** — `reasoning::types` is private; types re-exported from `reasoning/mod.rs`; correct import is `use crate::reasoning::{ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily}`.
+- **ADR-0002 locked: solar-term month boundaries** — monthly Phi Tinh uses tháng tiết khí per Tham Thi Huyen Khong Hoc; get_all_tiet_khi_for_year is the boundary resolver.
+- **ADR-0003 locked: polarity matrix not bool flag** — Nien Tu Bach direction is (Tam Nguyen yuan, year polarity) -> (starting star, direction); Thuong/Trung Nguyen rows MEDIUM confidence pending Phase 13 cross-check.
+
+**v1.5 Phase 10 plan 10-02 decisions (2026-05-26):**
+
+- **SolarHolidayData gets id: String** — solar-holidays.json has id on every entry; exposing it costs nothing and provides symmetry for Phase 15 if needed (additive, no scope creep).
+- **Serde derive on Holiday deferred to Phase 15** — Holiday derives only Debug, Clone today; adding serde would reach DTO conversion code outside Phase 10 scope.
+- **Thanh Minh id: None** — code path reads from Tiet Khi scanner, not corpus; no corpus id reachable at construction time.
 
 **v1.5-scoped decisions baked into the roadmap (to be ADR'd in Phase 10):**
 
@@ -110,14 +129,15 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 ### Known Gaps
 
 - **Phi Tinh has no canonical software cross-check** — mitigated by multi-source golden (≥ 2 references per case) with *Thẩm Thị Huyền Không Học* as tiebreaker; divergences logged as `KnownDivergence` not silently corrected.
-- **Monthly anchor convention school-dependent** — mitigated by Phase 10 ADR.
-- **Niên direction across Tam Nguyên needs polarity matrix** — mitigated by Phase 10 ADR + table encoding.
+- **Monthly anchor convention school-dependent** — mitigated by ADR-0002 (Accepted 2026-05-26): solar-term month boundaries, get_all_tiet_khi_for_year resolver.
+- **Niên direction across Tam Nguyên needs polarity matrix** — mitigated by ADR-0003 (Accepted 2026-05-26): (Tam Nguyen, year_polarity) -> (starting_star, direction) matrix; Thuong/Trung Nguyen MEDIUM confidence pending Phase 13 cross-check.
 - **Văn khấn single-author risk** — mitigated by per-entry citation + audit ledger (Phase 12).
 - **Daily/Hourly Phi Tinh deferral** — explicit OUT-OF-SCOPE in REQUIREMENTS.md.
 
 ### Pending Todos
 
-- `/gsd:plan-phase 10` — decompose Foundation phase into plans.
+- Execute 10-03-PLAN.md (ADR 0001 ritual schema v1 + rituals/schema.rs — FND-01).
+- Execute 10-05-PLAN.md (MILESTONES.md ADR cross-references — depends on ADR-0001, ADR-0002, ADR-0003 all landed).
 
 ### Blockers/Concerns
 
@@ -125,13 +145,14 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-25T00:00:00Z
-Stopped at: Roadmap written; 40/40 requirements mapped; awaiting plan-phase 10.
+Last session: 2026-05-26T14:51:00Z
+Stopped at: Completed 10-04-PLAN.md (FND-02, FND-04, FND-05 — ADR-0002 monthly anchor, ADR-0003 polarity matrix, fengshui type stubs).
 Resume file: None
 
 ### Active TODOs
 
-- Plan Phase 10 (Foundation — Schema Lock + ADRs + Source-ID Registration).
+- Execute 10-03-PLAN.md (ADR 0001 ritual schema v1 + rituals/schema.rs — FND-01).
+- Execute 10-05-PLAN.md (MILESTONES.md ADR cross-references — depends on all three ADRs).
 - Confirm Phase 10 ADRs land before Phase 12 / Phase 13 execution.
 
 ### Context Handoff

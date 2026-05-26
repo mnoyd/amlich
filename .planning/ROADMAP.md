@@ -48,7 +48,12 @@
   4. A reader can find three ADRs in `.planning/`: ritual JSON schema v1, monthly Phi Tinh anchor convention (solar-term per *Thẩm Thị Huyền Không Học*, reusing the v1.1.2 Tiết Khí scanner), and Niên Tử Bạch direction rule per Tam Nguyên × year polarity (with the polarity matrix).
   5. A v1.4 JSON fixture loads into the v1.5 `Holiday` struct (now carrying `id: Option<String>` with `#[serde(default)]`) and re-serializes round-trip without unexpected fields.
 
-**Plans**: TBD
+**Plans**: 5 plans across 3 waves
+- [x] 10-01-PLAN.md — Wave 1 — sources.rs registry + migration sweep + CI grep guard + rituals/ stubs + lib.rs registration (FND-03)
+- [x] 10-02-PLAN.md — Wave 1 — Holiday.id additive field + LunarFestivalData.id exposure (FND-06)
+- [ ] 10-03-PLAN.md — Wave 2 — ADR 0001 ritual schema v1 + rituals/schema.rs locked types (depends on 10-01 placeholders) (FND-01)
+- [x] 10-04-PLAN.md — Wave 1 — ADR 0002 monthly anchor + ADR 0003 polarity matrix + almanac/fengshui/types.rs (FND-02, FND-04, FND-05)
+- [ ] 10-05-PLAN.md — Wave 3 — MILESTONES.md ADR Cross-References subsection (DEC-0023/0024/0025) (depends on all three ADRs)
 
 ### Phase 11: Văn khấn Module + Lookup APIs
 
@@ -139,7 +144,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 10. Foundation — Schema Lock + ADRs + Source-ID Registration | 0/? | Not started | - |
+| 10. Foundation — Schema Lock + ADRs + Source-ID Registration | 3/5 | In progress | - |
 | 11. Văn khấn Module + Lookup APIs | 0/? | Not started | - |
 | 12. Văn khấn Corpus Authoring | 0/? | Not started | - |
 | 13. Phi Tinh Primitives + Period + Annual/Monthly | 0/? | Not started | - |
@@ -166,4 +171,4 @@
 - **Tiết Khí scanner reuse** — Vận and monthly anchors reuse the v1.1.2 real-Tiết-Khí boundary scanner; no naïve year arithmetic.
 
 ---
-*Last updated: 2026-05-25 after v1.5 roadmap creation*
+*Last updated: 2026-05-26 after 10-04 completion (ADR-0002, ADR-0003, fengshui type stubs)*
