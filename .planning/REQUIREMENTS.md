@@ -21,7 +21,7 @@
 - [ ] **RIT-02**: User can resolve `find_van_khan_for_event(&RitualEventKey) -> Vec<RitualEntry>` for direct event-based lookup (Sóc/Vọng, 8 lunar festivals, life events).
 - [ ] **RIT-03**: User can resolve `find_van_khan_for_life_event(LifeEventKind) -> Vec<RitualEntry>` for life-cycle events (Động thổ, Nhập trạch, Khai trương, Cưới, Giỗ, Đầy tháng).
 - [ ] **RIT-04**: User can call `get_ritual_by_id(&str) -> Option<RitualEntry>` to fetch a single ritual by stable id.
-- [ ] **RIT-05**: User can call `all_rituals() -> &'static [RitualEntry]` to iterate the entire corpus.
+- [x] **RIT-05**: User can call `all_rituals() -> &'static [RitualEntry]` to iterate the entire corpus.
 - [ ] **RIT-06**: User can rely on a closed `RitualEventKey` enum covering Sóc/Vọng (Mùng 1, Rằm), the 8 major lunar festivals (Tết Nguyên Đán, Khai Hạ, Thượng Nguyên, Thanh Minh, Đoan Ngọ, Vu Lan, Trung Thu, Ông Công Ông Táo), Tiết Khí anchors, life events, and `Always`.
 - [ ] **RIT-07**: User can rely on `LunarDateMatch` variants (`MonthDay { month, day, leap_month_policy }`, `SolarTerm`, `GregorianFixed`) — leap-month policy defaults to `CanonicalMonthOnly`.
 - [x] **RIT-08**: User-of-corpus can be confident every entry's text is NFC-normalized at load and that the loader rejects Hán-character pollution above a CI-enforced threshold.
@@ -97,7 +97,7 @@
 | RIT-02 | Phase 11 | Pending |
 | RIT-03 | Phase 11 | Pending |
 | RIT-04 | Phase 11 | Pending |
-| RIT-05 | Phase 11 | Pending |
+| RIT-05 | Phase 11 | Complete |
 | RIT-06 | Phase 11 | Pending |
 | RIT-07 | Phase 11 | Pending |
 | RIT-08 | Phase 11 | Complete |

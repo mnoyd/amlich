@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: in-progress
-last_updated: "2026-05-26T16:36:55.055Z"
+last_updated: "2026-05-26T16:40:42Z"
 progress:
   total_phases: 15
   completed_phases: 15
   total_plans: 40
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 # Project State
@@ -18,17 +18,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-23)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source for 2020-2030 with test-backed, traceable evidence.
-**Current focus:** v1.5 Eastern Knowledge Expansion — Phase 11 (Văn khấn Module + Lookup APIs) in progress (1/4 plans complete).
+**Current focus:** v1.5 Eastern Knowledge Expansion — Phase 11 (Văn khấn Module + Lookup APIs) in progress (2/4 plans complete).
 
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
 Phase: 11 (Văn khấn Module + Lookup APIs) — in progress
-Plan: 11-01 complete (wave 1); 11-02, 11-03, 11-04 pending
-Status: 11-01 complete (unicode-normalization dep, 6-entry fixtures.json, Hán-character CI guard)
-Last activity: 2026-05-26 — 11-01 complete: wave-1 ritual corpus foundation landed; unblocks waves 2-4
+Plan: 11-01, 11-02 complete (waves 1-2); 11-03, 11-04 pending
+Status: 11-02 complete (corpus.rs OnceLock loader with NFC-at-load + source_id discipline; `mod corpus;` registered; 588 lib tests green)
+Last activity: 2026-05-26 — 11-02 complete: corpus loader (all_rituals() entry point) landed via TDD; unblocks waves 3-4
 
-Progress: [██░░░░░░░░] 17% (1/6 phases complete; 1/4 Phase 11 plans done)
+Progress: [██░░░░░░░░] 17% (1/6 phases complete; 2/4 Phase 11 plans done)
 
 ### Milestone Status: v1.5 Roadmap Complete
 
@@ -39,7 +39,7 @@ Progress: [██░░░░░░░░] 17% (1/6 phases complete; 1/4 Phase 1
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 10 | Foundation — Schema Lock + ADRs + Source-ID Registration | FND-01..06 | Complete |
-| 11 | Văn khấn Module + Lookup APIs | RIT-01..08 | In progress (1/4 plans) |
+| 11 | Văn khấn Module + Lookup APIs | RIT-01..08 | In progress (2/4 plans) |
 | 12 | Văn khấn Corpus Authoring | RIT-09..13 | Not started |
 | 13 | Phi Tinh Primitives + Period + Annual/Monthly | FS-01..10 | Not started |
 | 14 | Phi Tinh 81-cell Aspects + Safety Hints | FS-11..15 | Not started |
@@ -53,7 +53,7 @@ Progress: [██░░░░░░░░] 17% (1/6 phases complete; 1/4 Phase 1
 
 **Velocity:**
 - v1.4 plans completed: 6/6
-- v1.5 plans completed: 0/? (planning has not begun)
+- v1.5 plans completed: Phase 10 (5/5) + Phase 11 (2/4 — 11-01, 11-02) = 7 plans
 
 **By Milestone:**
 
@@ -62,7 +62,7 @@ Progress: [██░░░░░░░░] 17% (1/6 phases complete; 1/4 Phase 1
 | v1.2 | 3/3 | 29 min | 9.7 min |
 | v1.3 | 5/5 | n/a | n/a |
 | v1.4 | 6/6 | 24 min | 4.0 min |
-| v1.5 | 1/? | — | — |
+| v1.5 | 7/? | — | — |
 
 **Recent Trend:**
 - v1.4 closed clean; v1.5 milestone defined 2026-05-23.
@@ -70,15 +70,25 @@ Progress: [██░░░░░░░░] 17% (1/6 phases complete; 1/4 Phase 1
 - Requirements defined 2026-05-25 (40 v1.5 requirements across FND / RIT / FS / INT categories).
 - Roadmap written 2026-05-25 (6 phases, 100% coverage validated).
 - Phase 10 (Foundation) closed clean 2026-05-26; Phase 11 wave 1 (plan 11-01) landed 2026-05-26 — fixtures + Hán guard + unicode-normalization dep.
+- Phase 11 wave 2 (plan 11-02) landed 2026-05-26 — corpus.rs OnceLock loader; RIT-05 complete; NFC-at-load and source_id discipline both enforced at first access.
 
 **Per-plan log:**
 | Phase 11 P01 | 18min | 3 tasks | 3 files |
+| Phase 11 P02 | 3min | 2 tasks (RED+GREEN) | 2 files |
 
 ## Accumulated Context
 
 ### Decisions
 
 Project-wide decisions live in PROJECT.md Key Decisions table.
+
+**v1.5 Phase 11 plan 11-02 decisions (2026-05-26):**
+
+- **TDD round-trip in 2 commits (RED + GREEN)** — RED commit shipped corpus.rs with `todo!()` stub + 5 inline tests + the `mod corpus;` registration (registration required for tests to compile, so Task 2's mod.rs edit landed in the RED commit). GREEN commit narrowed to swapping corpus.rs body with the full loader; mod.rs untouched in the GREEN phase.
+- **RitualFile envelope kept private** — Loader-internal struct; only `pub fn all_rituals()` crosses module boundary. Helpers (`normalize_and_validate`, `nfc`, JSON/version consts, OnceLock) all stay module-private per plan constraint #5.
+- **Constant-only source_id comparison** — `assert_eq!(entry.source_id, SOURCE_VN_FOLK_RITUAL, ...)` imported via `use crate::sources::SOURCE_VN_FOLK_RITUAL;`. Zero bare `"vn-folk-ritual"` literals in corpus.rs verified by grep; source_id_guard.rs CI green post-merge.
+- **NFC short-circuit via `is_nfc()`** — `nfc(s) { if is_nfc(s) { s.to_string() } else { s.nfc().collect() } }` avoids the decomposition pipeline for canonical input (the common case since fixtures.json was pre-normalized by plan 11-01).
+- **Dead-code warnings deferred to plan 11-03** — `all_rituals`, `normalize_and_validate`, `nfc` are flagged unused at `cargo build -p amlich-core` because corpus is private and not yet re-exported. Resolves automatically when 11-03 lands `pub use corpus::all_rituals;`.
 
 **v1.5 Phase 11 plan 11-01 decisions (2026-05-26):**
 
@@ -160,7 +170,7 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-- Phase 11 wave 1 complete (plan 11-01). Next: 11-02 (corpus loader), 11-03 (matcher), 11-04 (integration tests). May overlap with Phase 13 (Phi Tinh) which shares no code paths.
+- Phase 11 waves 1-2 complete (plans 11-01, 11-02). Next: 11-03 (matcher), 11-04 (integration tests). May overlap with Phase 13 (Phi Tinh) which shares no code paths.
 
 ### Blockers/Concerns
 
@@ -168,13 +178,14 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-26T16:34:42Z
-Stopped at: Completed 11-01-PLAN.md (Phase 11 wave 1 — unicode-normalization dep, 6-entry fixtures.json, Hán-character CI guard).
+Last session: 2026-05-26T16:40:42Z
+Stopped at: Completed 11-02-PLAN.md (Phase 11 wave 2 — corpus.rs OnceLock loader with NFC-at-load + source_id discipline; `mod corpus;` registered; 5 inline tests + 588 lib tests pass).
 Resume file: None
 
 ### Active TODOs
 
-- Phase 11 wave 2: execute 11-02 (corpus loader with NFC-at-load enforcement, RitualFile envelope deserialization). 11-03 + 11-04 follow.
+- Phase 11 wave 3: execute 11-03 (matcher) — consume `corpus::all_rituals()` via `pub use corpus::all_rituals;` re-export, implement lookup APIs.
+- Phase 11 wave 4: execute 11-04 (integration tests).
 - Phase 13 (Phi Tinh Primitives) may run concurrently — no shared code paths.
 
 ### Context Handoff
