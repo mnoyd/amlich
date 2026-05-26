@@ -3,6 +3,7 @@ pub mod cuu_dieu;
 pub mod dai_van;
 pub mod data;
 pub mod day_deity;
+pub mod fengshui;
 pub mod golden_loader;
 pub mod hoang_oc;
 pub mod hour_pillar;
