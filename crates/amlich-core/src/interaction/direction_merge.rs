@@ -79,7 +79,7 @@ pub fn compute_direction_merge(
         kua_number: kua.kua,
         entries,
         evidence: RuleEvidence {
-            source_id: "khcbppt".to_string(),
+            source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
             method: "direction-merge-matrix".to_string(),
             profile: "baseline".to_string(),
         },

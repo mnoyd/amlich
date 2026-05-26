@@ -12,7 +12,7 @@ pub fn get_thap_than(day_can: HeavenlyStem, target_can: HeavenlyStem) -> ThapTha
         relation,
         same_polarity,
         evidence: RuleEvidence {
-            source_id: "khcbppt".to_string(),
+            source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
             method: "five-element-polarity-matrix".to_string(),
             profile: "baseline".to_string(),
         },

@@ -65,7 +65,7 @@ pub struct DaiVanEvidence {
 impl DaiVanEvidence {
     pub fn project_default() -> Self {
         Self {
-            source_id: "khcbppt".to_string(),
+            source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
             method: "bai-quyet".to_string(),
             source_note: "TODO: verify exact KHCBPPT chapter for Dai Van formula mapping"
                 .to_string(),

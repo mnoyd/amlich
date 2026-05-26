@@ -54,7 +54,7 @@ pub fn compute_domain_day_boost(
         ),
         entries,
         evidence: RuleEvidence {
-            source_id: "khcbppt".to_string(),
+            source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
             method: "domain-day-boost-matrix".to_string(),
             profile: "baseline".to_string(),
         },

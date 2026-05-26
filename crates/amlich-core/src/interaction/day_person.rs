@@ -29,7 +29,7 @@ pub fn compute_day_person_matrix(day_canchi: &CanChi, chart: &BaziChart) -> DayP
         day_to_day_master,
         pillars,
         evidence: RuleEvidence {
-            source_id: "khcbppt".to_string(),
+            source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
             method: "day-person-interaction-matrix".to_string(),
             profile: "baseline".to_string(),
         },

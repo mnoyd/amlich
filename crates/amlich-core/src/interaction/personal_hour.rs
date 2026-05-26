@@ -85,7 +85,7 @@ pub fn compute_personal_hour_matrix(
         weak_element: weak,
         hours,
         evidence: RuleEvidence {
-            source_id: "khcbppt".to_string(),
+            source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
             method: "personal-hour-matrix".to_string(),
             profile: "baseline".to_string(),
         },

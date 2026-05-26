@@ -221,12 +221,12 @@ impl RulesetDescriptor {
             source_notes: vec![
                 RuleSetSourceNote {
                     family: "travel".to_string(),
-                    source_id: "khcbppt".to_string(),
+                    source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
                     note: "Direction table and bai quyet mapping".to_string(),
                 },
                 RuleSetSourceNote {
                     family: "taboo_rules".to_string(),
-                    source_id: "khcbppt".to_string(),
+                    source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
                     note: "Tam Nuong/Nguyet Ky/Sat Chu/Tho Tu frozen for v1".to_string(),
                 },
             ],

@@ -64,7 +64,7 @@ pub fn compute_hour_pillar(
         can_chi: CanChi::new(stem_index, slot.branch_index),
         slot,
         evidence: RuleEvidence {
-            source_id: "khcbppt".to_string(),
+            source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
             method: "hour-pillar-seed-table".to_string(),
             profile: "baseline".to_string(),
         },

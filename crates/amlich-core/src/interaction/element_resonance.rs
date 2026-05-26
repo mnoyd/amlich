@@ -48,7 +48,7 @@ pub fn compute_element_resonance(
         entries,
         net_resonance,
         evidence: RuleEvidence {
-            source_id: "khcbppt".to_string(),
+            source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
             method: "element-resonance-matrix".to_string(),
             profile: "baseline".to_string(),
         },
