@@ -1,0 +1,19 @@
+{
+  "$schema_version": "rituals-manifest-v1",
+  "corpus_files": [
+    "tet-nguyen-dan.json",
+    "nguyen-tieu.json",
+    "han-thuc.json",
+    "thanh-minh.json",
+    "doan-ngo.json",
+    "phat-dan.json",
+    "vu-lan.json",
+    "trung-thu.json",
+    "trung-cuu-ha-nguyen.json",
+    "ong-tao.json",
+    "life-events.json",
+    "soc-vong.json",
+    "gia-tien-thuong-nhat.json"
+  ],
+  "note": "Tooling and documentation artifact. Not parsed at runtime. The include_str! constants in corpus.rs must exactly match this list."
+}
