@@ -1,0 +1,106 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-trung-cuu-don-gian",
+      "title_vi": "Van Khan Tet Trung Cuu Mung 9 Thang 9 (Don Gian)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-trung-cuu"},
+        {"kind": "lunar_date", "month": 9, "day": 9}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Tra hoa cuc", "quantity": "1 am"},
+        {"name_vi": "Trai cay theo mua thu", "quantity": "1 mam"},
+        {"name_vi": "Banh cao", "quantity": "1 cai"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuan bi tra hoa cuc va banh cao"},
+        {"order": 2, "description_vi": "Bay le vat len ban tho"},
+        {"order": 3, "description_vi": "Thap huong, doc van khan"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat. Hom nay la ngay mung 9 thang 9 am lich, Tet Trung Cuu, con xin kinh le to tien. Con dang len tra hoa cuc va banh cao de bay to long hieu thao. Cau xin to tien phu ho do tri cho ca gia dinh duoc truong tho, suc khoe, hanh phuc.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "95"
+      },
+      "confidence": "regional-variant",
+      "notes": [
+        "Tet Trung Cuu it pho bien o Viet Nam hon Trung Quoc. Nghi le chu yeu do nguoi goc Hoa hoac nhung gia dinh theo truyen thong Dong A gin giu."
+      ]
+    },
+    {
+      "ritual_id": "van-khan-ha-nguyen-don-gian",
+      "title_vi": "Van Khan Tet Ha Nguyen Ram Thang Muoi (Don Gian)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-ha-nguyen"},
+        {"kind": "lunar_date", "month": 10, "day": 15}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Com gao moi", "quantity": "1 bat"},
+        {"name_vi": "Xoi nep moi", "quantity": "1 dia"},
+        {"name_vi": "Trai cay tuoi", "quantity": "1 mam"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Nau com tu gao nep moi vua thu hoach"},
+        {"order": 2, "description_vi": "Bay le vat len ban tho gia tien"},
+        {"order": 3, "description_vi": "Thap huong va doc van khan"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat. Hom nay la ngay Ram thang Muoi am lich, Tet Ha Nguyen, con xin kinh le to tien noi ngoai. Con dang len bat com gao moi vua thu hoach, bieu tuong cua mua mang boi thu. Con xin ta on troi dat, than linh va to tien da phu ho cho ruong dong tot tuoi, mua mang day du. Cau xin to tien tiep tuc che cho, phu ho do tri cho ca gia dinh duoc no am, binh an.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "102"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-ha-nguyen-com-moi-day-du",
+      "title_vi": "Van Khan Ha Nguyen Tet Com Moi (Day Du)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-ha-nguyen"},
+        {"kind": "lunar_date", "month": 10, "day": 15}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "5 nen"},
+        {"name_vi": "Com gao moi", "quantity": "1 nieu co nap"},
+        {"name_vi": "Xoi nep moi gac", "quantity": "1 xang"},
+        {"name_vi": "Ga luoc", "quantity": "1 con"},
+        {"name_vi": "Mam ngu qua theo mua", "quantity": "1 mam"},
+        {"name_vi": "Ruou trang", "quantity": "1 be"},
+        {"name_vi": "Nuoc sach", "quantity": "3 chen"},
+        {"name_vi": "Vang ma", "quantity": "1 bo"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Don dep ban tho, lau chui sach se truoc mot ngay"},
+        {"order": 2, "description_vi": "Chon gao nep moi tot nhat de nau xoi gac do"},
+        {"order": 3, "description_vi": "Lam thit ga luoc va bay cac le vat len ban tho"},
+        {"order": 4, "description_vi": "Thap den nen va huong"},
+        {"order": 5, "description_vi": "Doc van khan day du, bay to long biet on"},
+        {"order": 6, "description_vi": "Hoa vang ma sau khi huong tan het"},
+        {"order": 7, "description_vi": "Ca gia dinh cung nhau dung bua com moi"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, chu Than chu Thanh, chung giam le vat. Hom nay la ngay Ram thang Muoi am lich, Tet Ha Nguyen, Tet Com Moi. Gia dinh con kính can xin kinh le to tien noi ngoai va cac vi than linh cai quan vung nay. Con xin dang len nieu com gao moi, xoi nep moi gac, ga luoc cung voi ngu qua tinh khiet. Day la mua mang boi thu, chung con xin ta on troi dat da ban cho mua mang tot lanh. Xin ta on to tien da khai pha ruong dong, de lai gia nghiep cho con chau. Cau xin cac vi than linh, to tien tiep tuc phu ho do tri cho gia dinh con duoc mua mang phat, lam an hanh thong, an khang thinh vuong. Cau cho ca gia dinh duoc manh khoe, hanh phuc, con chau hoc hanh goi nganh. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "105"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Tet Com Moi la bien the Viet Nam cua Tet Ha Nguyen, gan voi le ta on mua mang thu hoach. Thuong to chuc vao buoi sang ngay Ram thang Muoi."
+      ]
+    }
+  ]
+}

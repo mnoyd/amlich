@@ -1,0 +1,72 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-trung-thu-don-gian",
+      "title_vi": "Van Khan Tet Trung Thu (Don Gian)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-trung-thu"},
+        {"kind": "lunar_date", "month": 8, "day": 15}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Banh trung thu", "quantity": "1 hop"},
+        {"name_vi": "Buoi", "quantity": "1 qua"},
+        {"name_vi": "Trai cay tuoi", "quantity": "1 mam"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Bay mam trai cay va banh trung thu len ban tho"},
+        {"order": 2, "description_vi": "Thap huong va doc van khan"},
+        {"order": 3, "description_vi": "Cho tre em ruoc den sau khi hoan thanh le"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat. Hom nay la ngay Ram thang Tam, Tet Trung Thu doan vien, con xin kinh le to tien. Con dang len mam banh trai cay tinh khiet de cung gia tien. Cau xin to tien phu ho do tri cho ca gia dinh duoc vui ve, hanh phuc, tre em duoc khoe manh, hoc hanh tan toi.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "88"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-trung-thu-day-du",
+      "title_vi": "Van Khan Tet Trung Thu (Day Du)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-trung-thu"},
+        {"kind": "lunar_date", "month": 8, "day": 15}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "5 nen"},
+        {"name_vi": "Banh trung thu nuong va deo", "quantity": "2 hop"},
+        {"name_vi": "Buoi", "quantity": "2 qua"},
+        {"name_vi": "Mam ngu qua", "quantity": "1 mam"},
+        {"name_vi": "Che troi nuoc", "quantity": "1 noi"},
+        {"name_vi": "Den long", "quantity": "2 cai"},
+        {"name_vi": "Nuoc sach", "quantity": "3 chen"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Don dep ban tho, lau sach lu huong"},
+        {"order": 2, "description_vi": "Bay mam ngu qua theo hinh thuc truyen thong"},
+        {"order": 3, "description_vi": "Xep banh trung thu va de buoi, trai cay"},
+        {"order": 4, "description_vi": "Thap den long hai ben ban tho"},
+        {"order": 5, "description_vi": "Thap huong va doc van khan day du"},
+        {"order": 6, "description_vi": "Sau le, cho ca gia dinh cung nhau pha co ngam trang"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, chu Than chu Thanh. Hom nay la ngay Ram thang Tam am lich, Tet Trung Thu doan vien. Gia dinh con kính can xin kinh le to tien noi ngoai. Con xin dang len mam banh trung thu, ngu qua, che troi nuoc tinh khiet de to long biet on va hieu thao voi to tien. Cau xin to tien chung giam, phu ho cho ca nha con duoc manh khoe, hanh phuc, lam an phat dat. Cau cho tre nho trong gia dinh duoc khanh kinh no luc hoc tap, lon khon thanh nguoi. Trong dem trang Ram thang Tam, ca gia dinh doan tu, con xin bay to tam long tri an voi to tien da hy sinh va gian kho de xay dung nen tang cho con chau mai sau. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "91"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Trung Thu la dip doan vien gia dinh duoi trang Ram. Le cung gia tien duoc thuc hien truoc khi pha co ngam trang."
+      ]
+    }
+  ]
+}
