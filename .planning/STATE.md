@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T18:37:02.877Z"
+last_updated: "2026-05-27T18:41:23.296Z"
 progress:
   total_phases: 19
-  completed_phases: 18
+  completed_phases: 19
   total_plans: 51
-  completed_plans: 50
+  completed_plans: 51
 ---
 
 # Project State
@@ -23,12 +23,12 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
-Phase: 14 (Phi Tinh 81-cell Aspects + Safety Hints) — In Progress (2/3 plans)
-Plan: 14-02 complete (safety.rs is_danger_palace+RemedyHint+element_hint_for_palace; flying_stars_safety.json 4-row corpus; FS-14/FS-15 complete)
-Status: FS-11/FS-12/FS-13/FS-14/FS-15 complete. Phase 14 plan 14-03 (no-product-names validation + final checks) is next.
-Last activity: 2026-05-28 — 14-02 complete: is_danger_palace predicate; RemedyHint type reusing FsCitation; element_hint_for_palace OnceLock loader; 4-row safety JSON corpus (stars 2/3/5/7); FS-14/FS-15 marked complete
+Phase: 14 (Phi Tinh 81-cell Aspects + Safety Hints) — COMPLETE (3/3 plans)
+Plan: 14-03 complete (black-box integration tests for FS-11..FS-15 + no-product-names corpus guard; Phase 14 complete)
+Status: FS-11..FS-15 all verified through public API. Phase 14 complete. Phase 15 (Semantic Graph Wiring + DTO Integration) is next.
+Last activity: 2026-05-28 — 14-03 complete: 6 integration tests in fengshui_aspects.rs; no_product_names_in_corpora corpus guard; all 5 FS requirements closed
 
-Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 done)
+Progress: [████░░░░░░] 50% (3/6 phases complete; Phase 11+13+14 done)
 
 ### Milestone Status: v1.5 Roadmap Complete
 
@@ -90,6 +90,8 @@ Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 do
 | Phase 13-phi-tinh-primitives-period-annual-monthly P04 | 6 | 2 tasks | 4 files |
 | Phase 14-phi-tinh-81-cell-aspects-safety-hints P01 | 4 | 2 tasks | 3 files |
 | Phase 14-phi-tinh-81-cell-aspects-safety-hints P02 | 2 | 2 tasks | 3 files |
+| Phase 14-phi-tinh-81-cell-aspects-safety-hints P03 | 2 | 2 tasks | 1 files |
+| Phase 14-phi-tinh-81-cell-aspects-safety-hints P03 | 2 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -194,6 +196,7 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: is_danger_palace is a free function (not a method on frozen FlyingStar) — types.rs untouched per PITFALLS Pitfall 1
 - [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: RemedyHint reuses FsCitation from aspects.rs (intra-fengshui-pillar reuse); NOT cross-pillar rituals coupling per PITFALLS Pitfall 4
 - [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: 4-row safety corpus: stars 2(kim), 3(hoa), 5(kim), 7(thuy) — classical Ngu Hanh drain logic; auspicious stars 1/4/6/8/9 return None
+- [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: FORBIDDEN_PRODUCT_TERMS corpus guard: const &[&str] of commercial patterns scanned case-insensitively against all 9 hints and 81 aspect names; violations collected and asserted empty — standing CI regression gate
 
 ### Research Insights (from research/SUMMARY.md)
 
@@ -235,14 +238,14 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-27T18:36:08Z
-Stopped at: Completed 14-02-PLAN.md (safety.rs is_danger_palace+RemedyHint+element_hint_for_palace; flying_stars_safety.json 4-row corpus; FS-14/FS-15 complete).
+Last session: 2026-05-27T18:40:11Z
+Stopped at: Completed 14-03-PLAN.md (black-box integration tests for FS-11..FS-15 + no-product-names corpus guard; Phase 14 complete).
 Resume file: None
 
 ### Active TODOs
 
 - Phase 12 plan 12-03 (wave 2) — wire loader to read per-category files via include_str! constants (only remaining Phase 12 plan).
-- Phase 14 plan 14-03 (no-product-names validation + final Phase 14 checks) is the last plan in Phase 14.
+- Phase 15 (Semantic Graph Wiring + DTO Integration + E2E Validation) is the next phase. Phase 14 complete.
 
 ### Context Handoff
 
