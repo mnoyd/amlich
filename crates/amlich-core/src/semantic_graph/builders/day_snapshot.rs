@@ -38,6 +38,8 @@ impl DaySnapshotGraphBuilder {
         builder.add_xung_hop_facts(snapshot);
         builder.add_travel_direction_fact(snapshot);
         builder.add_hoang_dao_hours_fact(snapshot);
+        builder.add_flying_star_facts(snapshot);
+        builder.add_ritual_facts(snapshot);
 
         builder
     }
@@ -469,6 +471,75 @@ impl DaySnapshotGraphBuilder {
         self.graph.add_edge(edge);
     }
 
+    fn add_flying_star_facts(&mut self, snapshot: &DaySnapshot) {
+        let Some(fs) = &snapshot.flying_stars else {
+            return;
+        };
+
+        let summary = format!(
+            "Phi Tinh Vận {}: trung cung {:?}, {} cung chồng",
+            fs.van,
+            fs.center_star,
+            fs.palace_overlays.len()
+        );
+
+        let node_id =
+            SemanticId::new("flying_star", format!("day:{}:flying_stars", self.tz_suffix))
+                .to_node_id();
+        let prov = ProvenanceEntry::almanac_rule(SOURCE_HUYEN_KHONG, "phi_tinh.combined_overlay");
+        let node = SemanticNode::new(
+            SemanticId::new("flying_star", format!("day:{}:flying_stars", self.tz_suffix)),
+            NodeConcept::FlyingStar,
+            NodeOrigin::Fact,
+            summary,
+        )
+        .with_provenance(prov);
+
+        self.graph.add_node(node);
+        self.graph
+            .add_edge(SemanticEdge::new(&self.day_root_id, &node_id, EdgeConcept::Composes));
+
+        // OccupiesPalace edge from FlyingStar to Direction node — exercises new edge concept (INT-04)
+        let direction_id =
+            SemanticId::new("direction", format!("travel:day:{}:all", self.tz_suffix))
+                .to_node_id();
+        self.graph.add_edge(SemanticEdge::new(
+            &node_id,
+            &direction_id,
+            EdgeConcept::OccupiesPalace,
+        ));
+    }
+
+    fn add_ritual_facts(&mut self, snapshot: &DaySnapshot) {
+        let Some(rituals) = &snapshot.applicable_rituals else {
+            return;
+        };
+        if rituals.is_empty() {
+            return;
+        }
+
+        let summary = format!("Văn khấn áp dụng: {}", rituals.join(", "));
+        let node_id =
+            SemanticId::new("ritual", format!("day:{}:rituals", self.tz_suffix)).to_node_id();
+        let prov =
+            ProvenanceEntry::almanac_rule(SOURCE_VN_FOLK_RITUAL, "find_van_khan_for_snapshot");
+        let node = SemanticNode::new(
+            SemanticId::new("ritual", format!("day:{}:rituals", self.tz_suffix)),
+            NodeConcept::Ritual,
+            NodeOrigin::Fact,
+            summary,
+        )
+        .with_provenance(prov);
+
+        self.graph.add_node(node);
+        // Ritual prescribed FOR the day
+        self.graph.add_edge(SemanticEdge::new(
+            &node_id,
+            &self.day_root_id,
+            EdgeConcept::PrescribedFor,
+        ));
+    }
+
     pub fn build(self) -> SemanticGraph {
         self.graph
     }
@@ -681,6 +752,102 @@ mod tests {
             node_ids.len(),
             unique_ids.len(),
             "node IDs should be unique"
+        );
+    }
+
+    #[test]
+    fn v15_pillar_nodes_carry_disjoint_source_ids_and_direction_is_multi_source() {
+        // Use Tết 2026 (2026-02-17) — rituals + flying stars are populated for this date.
+        let snap = crate::calculate_day_snapshot(17, 2, 2026);
+        let graph = build_day_snapshot_graph(&snap);
+
+        // --- FlyingStar node: must exist with ONLY huyen-khong provenance ---
+        let flying_star_node = graph
+            .nodes()
+            .values()
+            .find(|n| matches!(n.concept, NodeConcept::FlyingStar))
+            .expect("FlyingStar node must exist in graph for a day with flying_stars populated");
+
+        assert_eq!(
+            flying_star_node.provenance.len(),
+            1,
+            "FlyingStar node must have exactly 1 provenance entry (huyen-khong only); got: {:?}",
+            flying_star_node.provenance
+        );
+        assert_eq!(
+            flying_star_node.provenance[0].source_id.as_str(),
+            "huyen-khong",
+            "FlyingStar node provenance must be huyen-khong"
+        );
+
+        // --- Ritual node: must exist with ONLY vn-folk-ritual provenance ---
+        let ritual_node = graph
+            .nodes()
+            .values()
+            .find(|n| matches!(n.concept, NodeConcept::Ritual))
+            .expect("Ritual node must exist in graph for Tết 2026 (applicable_rituals populated)");
+
+        assert_eq!(
+            ritual_node.provenance.len(),
+            1,
+            "Ritual node must have exactly 1 provenance entry (vn-folk-ritual only); got: {:?}",
+            ritual_node.provenance
+        );
+        assert_eq!(
+            ritual_node.provenance[0].source_id.as_str(),
+            "vn-folk-ritual",
+            "Ritual node provenance must be vn-folk-ritual"
+        );
+
+        // --- Direction node: must carry BOTH khcbppt-family AND huyen-khong (len==2) ---
+        let direction_id = SemanticId::new("direction", "travel:day:+7:all").to_node_id();
+        let direction_node = graph
+            .nodes()
+            .get(&direction_id)
+            .expect("Direction node must exist");
+
+        assert_eq!(
+            direction_node.provenance.len(),
+            2,
+            "Direction node must carry 2 provenance entries (khcbppt-family + huyen-khong); got: {:?}",
+            direction_node.provenance
+        );
+
+        let dir_source_ids: Vec<&str> = direction_node
+            .provenance
+            .iter()
+            .map(|p| p.source_id.as_str())
+            .collect();
+        assert!(
+            dir_source_ids.contains(&"huyen-khong"),
+            "Direction node must include huyen-khong provenance; got: {:?}",
+            dir_source_ids
+        );
+        // Also verify the first entry is NOT huyen-khong (khcbppt-family)
+        assert_ne!(
+            direction_node.provenance[0].source_id.as_str(),
+            "huyen-khong",
+            "First Direction provenance entry should be the khcbppt-family (travel evidence), not huyen-khong"
+        );
+
+        // --- Verify PrescribedFor edge: Ritual node connects to day root ---
+        let has_prescribed_for_edge = graph
+            .edges()
+            .values()
+            .any(|e| matches!(e.label.concept, EdgeConcept::PrescribedFor));
+        assert!(
+            has_prescribed_for_edge,
+            "Graph must contain a PrescribedFor edge from Ritual node to day root"
+        );
+
+        // --- Verify OccupiesPalace edge: FlyingStar node connects to Direction node ---
+        let has_occupies_palace_edge = graph
+            .edges()
+            .values()
+            .any(|e| matches!(e.label.concept, EdgeConcept::OccupiesPalace));
+        assert!(
+            has_occupies_palace_edge,
+            "Graph must contain an OccupiesPalace edge from FlyingStar node to Direction node"
         );
     }
 
