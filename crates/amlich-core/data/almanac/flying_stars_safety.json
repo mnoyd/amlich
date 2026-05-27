@@ -1,5 +1,46 @@
 {
   "schema_version": "safety-v1",
   "source": "Thẩm Thị Huyền Không Học",
-  "hints": []
+  "hints": [
+    {
+      "star": 2,
+      "element": "kim",
+      "hint_text_vi": "Dùng vật phẩm thuộc hành Kim để hóa giải sát khí của sao Nhị Hắc. Đặt vật bằng kim loại để tiết khí Thổ theo nguyên tắc Thổ sinh Kim.",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương hóa giải Ngũ Hành"
+      }
+    },
+    {
+      "star": 3,
+      "element": "hỏa",
+      "hint_text_vi": "Dùng vật phẩm thuộc hành Hỏa để hóa giải sát khí của sao Tam Bích. Đặt vật sắc đỏ hoặc ánh sáng để tiết khí Mộc theo nguyên tắc Mộc sinh Hỏa.",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương hóa giải Ngũ Hành"
+      }
+    },
+    {
+      "star": 5,
+      "element": "kim",
+      "hint_text_vi": "Dùng vật phẩm thuộc hành Kim để hóa giải sát khí của sao Ngũ Hoàng — hung tinh nguy hiểm nhất. Đặt vật bằng kim loại để tiết khí Thổ theo nguyên tắc Thổ sinh Kim, tránh dùng vật thuộc hành Thổ.",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương hóa giải Ngũ Hành"
+      }
+    },
+    {
+      "star": 7,
+      "element": "thủy",
+      "hint_text_vi": "Dùng vật phẩm thuộc hành Thủy để hóa giải sát khí của sao Thất Xích. Đặt vật liên quan đến nước hoặc màu đen để tiết khí Kim theo nguyên tắc Kim sinh Thủy.",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương hóa giải Ngũ Hành"
+      }
+    }
+  ]
 }
