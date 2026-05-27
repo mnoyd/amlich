@@ -12,6 +12,7 @@
 
 pub mod annual;
 pub mod combined;
+pub mod golden;
 pub mod monthly;
 pub mod period;
 pub mod scanner;
@@ -21,6 +22,7 @@ pub mod types;
 // Re-exports — public API surface for fengshui module consumers.
 pub use annual::{compute_yearly_flying_stars, YearPolarity};
 pub use combined::{compute_combined_overlay, CombinedFlyingStarLayout};
+pub use golden::{load_flying_stars_golden, KnownDivergence, PhiTinhGoldenCase, PhiTinhGoldenDataset};
 pub use monthly::compute_monthly_flying_stars;
 pub use period::{
     base_palaces_for_van, compute_period, compute_period_for_year, load_flying_stars_base, Period,

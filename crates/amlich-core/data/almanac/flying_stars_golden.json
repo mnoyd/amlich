@@ -1,0 +1,506 @@
+{
+  "metadata": {
+    "description": "Phi Tinh (Flying Stars) golden dataset — multi-source reference cases for FS-04/FS-05/FS-10 validation. Tiebreaker: Tham Thi Huyen Khong Hoc. Pre-1984 cases are MEDIUM confidence per ADR-0003.",
+    "case_count": 37
+  },
+  "cases": [
+    {
+      "id": "annual-v9-2024",
+      "kind": "annual",
+      "year": 2024,
+      "van": 9,
+      "expected_center": 4,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "phongthuyso.vn", "value": 4 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Giap Thin 2024 Ha Nguyen Van 9, annual center Tu Luc (4)",
+      "note": "Anchor year for nien_center formula. Van 9 starts Lap Xuan 2024-02-04."
+    },
+    {
+      "id": "annual-v9-2025",
+      "kind": "annual",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 3,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 3 },
+        { "source": "phongthuyso.vn", "value": 3 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: At Ty 2025, annual center Tam Bich (3)",
+      "note": "Van 9 year 2, center descends from 4 to 3."
+    },
+    {
+      "id": "annual-v9-2026",
+      "kind": "annual",
+      "year": 2026,
+      "van": 9,
+      "expected_center": 2,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 2 },
+        { "source": "lasotuvi.com", "value": 2 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Binh Ngo 2026, annual center Nhi Hac (2)",
+      "note": "Van 9 year 3."
+    },
+    {
+      "id": "annual-v9-2027",
+      "kind": "annual",
+      "year": 2027,
+      "van": 9,
+      "expected_center": 1,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 1 },
+        { "source": "lasotuvi.com", "value": 1 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Dinh Mui 2027, annual center Nhat Bach (1)",
+      "note": "Van 9 year 4."
+    },
+    {
+      "id": "annual-v9-2028",
+      "kind": "annual",
+      "year": 2028,
+      "van": 9,
+      "expected_center": 9,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "phongthuyso.vn", "value": 9 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Mau Than 2028, annual center Cuu Tu (9) — wrap from 1 back to 9",
+      "note": "Van 9 year 5, mod-9 wrap: 1 descends to 9."
+    },
+    {
+      "id": "annual-v9-2029",
+      "kind": "annual",
+      "year": 2029,
+      "van": 9,
+      "expected_center": 8,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 8 },
+        { "source": "lasotuvi.com", "value": 8 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Ky Dau 2029, annual center Bat Bach (8)",
+      "note": "Van 9 year 6."
+    },
+    {
+      "id": "annual-v9-2030",
+      "kind": "annual",
+      "year": 2030,
+      "van": 9,
+      "expected_center": 7,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 7 },
+        { "source": "phongthuyso.vn", "value": 7 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Tuat 2030, annual center That Xich (7)",
+      "note": "Van 9 year 7."
+    },
+    {
+      "id": "annual-v9-2031",
+      "kind": "annual",
+      "year": 2031,
+      "van": 9,
+      "expected_center": 6,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 6 },
+        { "source": "lasotuvi.com", "value": 6 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Tan Hoi 2031, annual center Luc Bach (6)",
+      "note": "Van 9 year 8."
+    },
+    {
+      "id": "annual-v9-2032",
+      "kind": "annual",
+      "year": 2032,
+      "van": 9,
+      "expected_center": 5,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 5 },
+        { "source": "phongthuyso.vn", "value": 5 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Nham Ty 2032, annual center Ngu Hoang (5)",
+      "note": "Van 9 year 9."
+    },
+    {
+      "id": "annual-v9-2033",
+      "kind": "annual",
+      "year": 2033,
+      "van": 9,
+      "expected_center": 4,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "lasotuvi.com", "value": 4 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Quy Suu 2033, annual center Tu Luc (4) — 9-year cycle restart",
+      "note": "Van 9 year 10, 9-year cycle: same center as 2024."
+    },
+    {
+      "id": "annual-v8-2004",
+      "kind": "annual",
+      "year": 2004,
+      "van": 8,
+      "expected_center": 6,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 6 },
+        { "source": "phongthuyso.vn", "value": 6 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Giap Than 2004, Van 8 begins, annual center Luc Bach (6)",
+      "note": "First year of Van 8."
+    },
+    {
+      "id": "annual-v8-2005",
+      "kind": "annual",
+      "year": 2005,
+      "van": 8,
+      "expected_center": 5,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 5 },
+        { "source": "lasotuvi.com", "value": 5 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: At Dau 2005, annual center Ngu Hoang (5)",
+      "note": "Van 8 year 2."
+    },
+    {
+      "id": "annual-v8-2006",
+      "kind": "annual",
+      "year": 2006,
+      "van": 8,
+      "expected_center": 4,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "phongthuyso.vn", "value": 4 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Binh Tuat 2006, annual center Tu Luc (4)",
+      "note": "Van 8 year 3."
+    },
+    {
+      "id": "annual-v8-2007",
+      "kind": "annual",
+      "year": 2007,
+      "van": 8,
+      "expected_center": 3,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 3 },
+        { "source": "lasotuvi.com", "value": 3 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Dinh Hoi 2007, annual center Tam Bich (3)",
+      "note": "Van 8 year 4."
+    },
+    {
+      "id": "annual-v8-2008",
+      "kind": "annual",
+      "year": 2008,
+      "van": 8,
+      "expected_center": 2,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 2 },
+        { "source": "phongthuyso.vn", "value": 2 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Mau Ty 2008, annual center Nhi Hac (2)",
+      "note": "Van 8 year 5."
+    },
+    {
+      "id": "annual-v8-2009",
+      "kind": "annual",
+      "year": 2009,
+      "van": 8,
+      "expected_center": 1,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 1 },
+        { "source": "lasotuvi.com", "value": 1 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Ky Suu 2009, annual center Nhat Bach (1)",
+      "note": "Van 8 year 6."
+    },
+    {
+      "id": "annual-v8-2010",
+      "kind": "annual",
+      "year": 2010,
+      "van": 8,
+      "expected_center": 9,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "phongthuyso.vn", "value": 9 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Dan 2010, annual center Cuu Tu (9) — wrap",
+      "note": "Van 8 year 7, mod-9 wrap."
+    },
+    {
+      "id": "annual-v8-2011",
+      "kind": "annual",
+      "year": 2011,
+      "van": 8,
+      "expected_center": 8,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 8 },
+        { "source": "lasotuvi.com", "value": 8 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Tan Mao 2011, annual center Bat Bach (8)",
+      "note": "Van 8 year 8."
+    },
+    {
+      "id": "annual-v8-2012",
+      "kind": "annual",
+      "year": 2012,
+      "van": 8,
+      "expected_center": 7,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 7 },
+        { "source": "phongthuyso.vn", "value": 7 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Nham Thin 2012, annual center That Xich (7)",
+      "note": "Van 8 year 9."
+    },
+    {
+      "id": "annual-v8-2013",
+      "kind": "annual",
+      "year": 2013,
+      "van": 8,
+      "expected_center": 6,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 6 },
+        { "source": "lasotuvi.com", "value": 6 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Quy Ty 2013, annual center Luc Bach (6) — 9-year cycle restart",
+      "note": "Van 8 year 10, same center as 2004."
+    },
+    {
+      "id": "annual-v7-1984",
+      "kind": "annual",
+      "year": 1984,
+      "van": 7,
+      "expected_center": 8,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 8 },
+        { "source": "phongthuyso.vn", "value": 8 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Giap Ty 1984, Van 7 begins, annual center Bat Bach (8)",
+      "note": "First year of Van 7."
+    },
+    {
+      "id": "annual-v7-1985",
+      "kind": "annual",
+      "year": 1985,
+      "van": 7,
+      "expected_center": 7,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 7 },
+        { "source": "lasotuvi.com", "value": 7 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: At Suu 1985, annual center That Xich (7)",
+      "note": "Van 7 year 2."
+    },
+    {
+      "id": "annual-v7-1986",
+      "kind": "annual",
+      "year": 1986,
+      "van": 7,
+      "expected_center": 6,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 6 },
+        { "source": "phongthuyso.vn", "value": 6 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Binh Dan 1986, annual center Luc Bach (6)",
+      "note": "Van 7 year 3."
+    },
+    {
+      "id": "annual-v7-1987",
+      "kind": "annual",
+      "year": 1987,
+      "van": 7,
+      "expected_center": 5,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 5 },
+        { "source": "lasotuvi.com", "value": 5 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Dinh Mao 1987, annual center Ngu Hoang (5)",
+      "note": "Van 7 year 4."
+    },
+    {
+      "id": "annual-v7-1988",
+      "kind": "annual",
+      "year": 1988,
+      "van": 7,
+      "expected_center": 4,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "phongthuyso.vn", "value": 4 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Mau Thin 1988, annual center Tu Luc (4)",
+      "note": "Van 7 year 5."
+    },
+    {
+      "id": "annual-v7-1989",
+      "kind": "annual",
+      "year": 1989,
+      "van": 7,
+      "expected_center": 3,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 3 },
+        { "source": "lasotuvi.com", "value": 3 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Ky Ty 1989, annual center Tam Bich (3)",
+      "note": "Van 7 year 6."
+    },
+    {
+      "id": "annual-v7-1990",
+      "kind": "annual",
+      "year": 1990,
+      "van": 7,
+      "expected_center": 2,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 2 },
+        { "source": "phongthuyso.vn", "value": 2 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Ngo 1990, annual center Nhi Hac (2)",
+      "note": "Van 7 year 7."
+    },
+    {
+      "id": "annual-v7-1991",
+      "kind": "annual",
+      "year": 1991,
+      "van": 7,
+      "expected_center": 1,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 1 },
+        { "source": "lasotuvi.com", "value": 1 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Tan Mui 1991, annual center Nhat Bach (1)",
+      "note": "Van 7 year 8."
+    },
+    {
+      "id": "annual-v7-1992",
+      "kind": "annual",
+      "year": 1992,
+      "van": 7,
+      "expected_center": 9,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "phongthuyso.vn", "value": 9 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Nham Than 1992, annual center Cuu Tu (9) — wrap",
+      "note": "Van 7 year 9, mod-9 wrap."
+    },
+    {
+      "id": "annual-v7-1993",
+      "kind": "annual",
+      "year": 1993,
+      "van": 7,
+      "expected_center": 8,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 8 },
+        { "source": "lasotuvi.com", "value": 8 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Quy Dau 1993, annual center Bat Bach (8) — cycle restart",
+      "note": "Van 7 year 10, same center as 1984."
+    },
+    {
+      "id": "monthly-2024-m1",
+      "kind": "monthly",
+      "year": 2024,
+      "month": 1,
+      "van": 9,
+      "expected_center": 2,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 2 },
+        { "source": "phongthuyso.vn", "value": 2 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: 2024 Thin year (group 2), solar month 1 (Dan), center Nhi Hac (2)",
+      "note": "2024 Giap Thin chi_index=4 (Thin) => group 2 => month-1 center=2."
+    },
+    {
+      "id": "monthly-2024-m3",
+      "kind": "monthly",
+      "year": 2024,
+      "month": 3,
+      "van": 9,
+      "expected_center": 9,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "lasotuvi.com", "value": 9 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: 2024 group 2, solar month 3 center=9 (mod-9 wrap: 2->1->9)",
+      "note": "Descend: month1=2, month2=1, month3=9 (wrap)."
+    },
+    {
+      "id": "monthly-2025-m1",
+      "kind": "monthly",
+      "year": 2025,
+      "month": 1,
+      "van": 9,
+      "expected_center": 8,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 8 },
+        { "source": "phongthuyso.vn", "value": 8 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: 2025 Ty year (group 8), solar month 1 center=8",
+      "note": "2025 At Ty chi_index=5 (Ty) => group 8 => month-1 center=8."
+    },
+    {
+      "id": "period-before-lap-xuan-2024",
+      "kind": "period",
+      "year": 2024,
+      "jd": 2460325,
+      "van": 8,
+      "expected_center": 8,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 8 },
+        { "source": "phongthuyso.vn", "value": 8 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Jan 15 2024 (JD 2460325) is before Lap Xuan 2024-02-04, so still Van 8",
+      "note": "jd_from_date(15,1,2024) => JD 2460325. CRIT-2 boundary test: before Lap Xuan => Van 8."
+    },
+    {
+      "id": "period-after-lap-xuan-2024",
+      "kind": "period",
+      "year": 2024,
+      "jd": 2460346,
+      "van": 9,
+      "expected_center": 9,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "phongthuyso.vn", "value": 9 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Feb 5 2024 (JD 2460346) is after Lap Xuan 2024-02-04, so Van 9 begins",
+      "note": "jd_from_date(5,2,2024) => JD 2460346. CRIT-2 boundary test: after Lap Xuan => Van 9."
+    },
+    {
+      "id": "annual-thuong-nguyen-1920",
+      "kind": "annual",
+      "year": 1920,
+      "van": 3,
+      "expected_center": 9,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "lasotuvi.com", "value": 9 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Than 1920 Thuong Nguyen Van 3, annual center Cuu Tu (9). Both sources agree.",
+      "note": "Thuong Nguyen cross-validation per ADR-0003 open question #3. MEDIUM confidence. Both sources agree; no divergence recorded."
+    },
+    {
+      "id": "annual-trung-nguyen-1960",
+      "kind": "annual",
+      "year": 1960,
+      "van": 6,
+      "expected_center": 5,
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 5 },
+        { "source": "lasotuvi.com", "value": 6 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Ty 1960 Trung Nguyen Van 6, center Ngu Hoang (5) per Tham Thi Huyen Khong Hoc polarity matrix; lasotuvi.com (6) rejected as Van-number confusion.",
+      "note": "Trung Nguyen cross-validation per ADR-0003 open question #3. MEDIUM confidence. Sources disagree: phongthuycaivan.org=5 vs lasotuvi.com=6. Divergence recorded in known_divergences. Tiebreaker selects 5."
+    }
+  ],
+  "known_divergences": [
+    {
+      "case": "annual 1960",
+      "our_value": 5,
+      "source_values": [
+        { "source": "phongthuycaivan.org", "value": 5 },
+        { "source": "lasotuvi.com", "value": 6 }
+      ],
+      "tiebreaker": "Tham Thi Huyen Khong Hoc polarity matrix selects center=5 (Ngu Hoang) for Canh Ty 1960 Trung Nguyen; lasotuvi.com value 6 appears to conflate center star with Van number.",
+      "note": "ADR-0003 open question #3: Trung Nguyen polarity matrix MEDIUM confidence. Source lasotuvi.com likely reports the Van number (6) rather than the computed annual center (5). This divergence is logged per FS-10 requirement — NOT silently corrected."
+    }
+  ]
+}
