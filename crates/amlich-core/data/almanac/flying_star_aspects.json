@@ -1,5 +1,1059 @@
 {
   "schema_version": "aspects-v1",
   "source": "Thẩm Thị Huyền Không Học",
-  "aspects": []
+  "aspects": [
+    {
+      "star_a": 1,
+      "star_b": 1,
+      "name": "Nhất Bạch gặp Nhất Bạch — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 1,
+      "star_b": 2,
+      "name": "Nhất Bạch gặp Nhị Hắc — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 1,
+      "star_b": 3,
+      "name": "Nhất Bạch gặp Tam Bích — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 1,
+      "star_b": 4,
+      "name": "Nhất Bạch gặp Tứ Lục — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 1,
+      "star_b": 5,
+      "name": "Nhất Bạch gặp Ngũ Hoàng — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 1,
+      "star_b": 6,
+      "name": "Nhất Bạch gặp Lục Bạch — Kim sinh Thủy, cát tinh tương ngộ",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ — Tiết Kim Thủy tương sinh"
+      },
+      "confidence": "primary"
+    },
+    {
+      "star_a": 1,
+      "star_b": 7,
+      "name": "Nhất Bạch gặp Thất Xích — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "conditional",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 1,
+      "star_b": 8,
+      "name": "Nhất Bạch gặp Bát Bạch — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 1,
+      "star_b": 9,
+      "name": "Nhất Bạch gặp Cửu Tử — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 2,
+      "star_b": 1,
+      "name": "Nhị Hắc gặp Nhất Bạch — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 2,
+      "star_b": 2,
+      "name": "Nhị Hắc gặp Nhị Hắc — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 2,
+      "star_b": 3,
+      "name": "Nhị Hắc gặp Tam Bích — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 2,
+      "star_b": 4,
+      "name": "Nhị Hắc gặp Tứ Lục — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 2,
+      "star_b": 5,
+      "name": "Nhị Hắc gặp Ngũ Hoàng — Song Thổ tương tụ, đại hung",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ — Tiết Thổ hung tinh"
+      },
+      "confidence": "primary"
+    },
+    {
+      "star_a": 2,
+      "star_b": 6,
+      "name": "Nhị Hắc gặp Lục Bạch — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 2,
+      "star_b": 7,
+      "name": "Nhị Hắc gặp Thất Xích — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 2,
+      "star_b": 8,
+      "name": "Nhị Hắc gặp Bát Bạch — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 2,
+      "star_b": 9,
+      "name": "Nhị Hắc gặp Cửu Tử — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 3,
+      "star_b": 1,
+      "name": "Tam Bích gặp Nhất Bạch — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "conditional",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 3,
+      "star_b": 2,
+      "name": "Tam Bích gặp Nhị Hắc — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 3,
+      "star_b": 3,
+      "name": "Tam Bích gặp Tam Bích — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 3,
+      "star_b": 4,
+      "name": "Tam Bích gặp Tứ Lục — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 3,
+      "star_b": 5,
+      "name": "Tam Bích gặp Ngũ Hoàng — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 3,
+      "star_b": 6,
+      "name": "Tam Bích gặp Lục Bạch — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 3,
+      "star_b": 7,
+      "name": "Tam Bích gặp Thất Xích — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 3,
+      "star_b": 8,
+      "name": "Tam Bích gặp Bát Bạch — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 3,
+      "star_b": 9,
+      "name": "Tam Bích gặp Cửu Tử — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 4,
+      "star_b": 1,
+      "name": "Tứ Lục gặp Nhất Bạch — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "conditional",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 4,
+      "star_b": 2,
+      "name": "Tứ Lục gặp Nhị Hắc — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 4,
+      "star_b": 3,
+      "name": "Tứ Lục gặp Tam Bích — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 4,
+      "star_b": 4,
+      "name": "Tứ Lục gặp Tứ Lục — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 4,
+      "star_b": 5,
+      "name": "Tứ Lục gặp Ngũ Hoàng — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 4,
+      "star_b": 6,
+      "name": "Tứ Lục gặp Lục Bạch — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 4,
+      "star_b": 7,
+      "name": "Tứ Lục gặp Thất Xích — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 4,
+      "star_b": 8,
+      "name": "Tứ Lục gặp Bát Bạch — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 4,
+      "star_b": 9,
+      "name": "Tứ Lục gặp Cửu Tử — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 5,
+      "star_b": 1,
+      "name": "Ngũ Hoàng gặp Nhất Bạch — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 5,
+      "star_b": 2,
+      "name": "Ngũ Hoàng gặp Nhị Hắc — Song Thổ tương tụ, hung thần hội ngộ",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ — Tiết Thổ hung tinh"
+      },
+      "confidence": "primary"
+    },
+    {
+      "star_a": 5,
+      "star_b": 3,
+      "name": "Ngũ Hoàng gặp Tam Bích — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 5,
+      "star_b": 4,
+      "name": "Ngũ Hoàng gặp Tứ Lục — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 5,
+      "star_b": 5,
+      "name": "Ngũ Hoàng gặp Ngũ Hoàng — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 5,
+      "star_b": 6,
+      "name": "Ngũ Hoàng gặp Lục Bạch — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 5,
+      "star_b": 7,
+      "name": "Ngũ Hoàng gặp Thất Xích — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 5,
+      "star_b": 8,
+      "name": "Ngũ Hoàng gặp Bát Bạch — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 5,
+      "star_b": 9,
+      "name": "Ngũ Hoàng gặp Cửu Tử — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 6,
+      "star_b": 1,
+      "name": "Lục Bạch gặp Nhất Bạch — Kim sinh Thủy, cát tinh tương hội",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ — Tiết Kim Thủy tương sinh"
+      },
+      "confidence": "primary"
+    },
+    {
+      "star_a": 6,
+      "star_b": 2,
+      "name": "Lục Bạch gặp Nhị Hắc — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 6,
+      "star_b": 3,
+      "name": "Lục Bạch gặp Tam Bích — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 6,
+      "star_b": 4,
+      "name": "Lục Bạch gặp Tứ Lục — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 6,
+      "star_b": 5,
+      "name": "Lục Bạch gặp Ngũ Hoàng — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 6,
+      "star_b": 6,
+      "name": "Lục Bạch gặp Lục Bạch — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 6,
+      "star_b": 7,
+      "name": "Lục Bạch gặp Thất Xích — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 6,
+      "star_b": 8,
+      "name": "Lục Bạch gặp Bát Bạch — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "conditional",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 6,
+      "star_b": 9,
+      "name": "Lục Bạch gặp Cửu Tử — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 7,
+      "star_b": 1,
+      "name": "Thất Xích gặp Nhất Bạch — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 7,
+      "star_b": 2,
+      "name": "Thất Xích gặp Nhị Hắc — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 7,
+      "star_b": 3,
+      "name": "Thất Xích gặp Tam Bích — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 7,
+      "star_b": 4,
+      "name": "Thất Xích gặp Tứ Lục — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 7,
+      "star_b": 5,
+      "name": "Thất Xích gặp Ngũ Hoàng — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 7,
+      "star_b": 6,
+      "name": "Thất Xích gặp Lục Bạch — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 7,
+      "star_b": 7,
+      "name": "Thất Xích gặp Thất Xích — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 7,
+      "star_b": 8,
+      "name": "Thất Xích gặp Bát Bạch — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "conditional",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 7,
+      "star_b": 9,
+      "name": "Thất Xích gặp Cửu Tử — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 8,
+      "star_b": 1,
+      "name": "Bát Bạch gặp Nhất Bạch — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 8,
+      "star_b": 2,
+      "name": "Bát Bạch gặp Nhị Hắc — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 8,
+      "star_b": 3,
+      "name": "Bát Bạch gặp Tam Bích — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 8,
+      "star_b": 4,
+      "name": "Bát Bạch gặp Tứ Lục — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 8,
+      "star_b": 5,
+      "name": "Bát Bạch gặp Ngũ Hoàng — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 8,
+      "star_b": 6,
+      "name": "Bát Bạch gặp Lục Bạch — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 8,
+      "star_b": 7,
+      "name": "Bát Bạch gặp Thất Xích — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 8,
+      "star_b": 8,
+      "name": "Bát Bạch gặp Bát Bạch — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 8,
+      "star_b": 9,
+      "name": "Bát Bạch gặp Cửu Tử — Hỏa sinh Thổ, vượng khí Vận 9",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ — Tiết Thổ Hỏa Vận 9"
+      },
+      "confidence": "primary"
+    },
+    {
+      "star_a": 9,
+      "star_b": 1,
+      "name": "Cửu Tử gặp Nhất Bạch — bị khắc",
+      "ngu_hanh_relation": "bị khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 9,
+      "star_b": 2,
+      "name": "Cửu Tử gặp Nhị Hắc — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 9,
+      "star_b": 3,
+      "name": "Cửu Tử gặp Tam Bích — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "conditional",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 9,
+      "star_b": 4,
+      "name": "Cửu Tử gặp Tứ Lục — bị sinh",
+      "ngu_hanh_relation": "bị sinh",
+      "auspice": "conditional",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 9,
+      "star_b": 5,
+      "name": "Cửu Tử gặp Ngũ Hoàng — sinh",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 9,
+      "star_b": 6,
+      "name": "Cửu Tử gặp Lục Bạch — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 9,
+      "star_b": 7,
+      "name": "Cửu Tử gặp Thất Xích — khắc",
+      "ngu_hanh_relation": "khắc",
+      "auspice": "inauspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    },
+    {
+      "star_a": 9,
+      "star_b": 8,
+      "name": "Cửu Tử gặp Bát Bạch — Hỏa sinh Thổ, tương sinh đắc lực",
+      "ngu_hanh_relation": "sinh",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ — Tiết Thổ Hỏa Vận 9"
+      },
+      "confidence": "primary"
+    },
+    {
+      "star_a": 9,
+      "star_b": 9,
+      "name": "Cửu Tử gặp Cửu Tử — tỳ hòa",
+      "ngu_hanh_relation": "tỳ hòa",
+      "auspice": "auspicious",
+      "source_id": "huyen-khong",
+      "original_citation": {
+        "title": "Thẩm Thị Huyền Không Học",
+        "page": "Chương Phi Tinh tương ngộ"
+      },
+      "confidence": "synthesized"
+    }
+  ]
 }
