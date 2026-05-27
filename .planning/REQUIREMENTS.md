@@ -52,9 +52,9 @@
 
 ### P4 Phi Tinh — 2-Star Aspects (81-cell)
 
-- [ ] **FS-11**: User can call `lookup_star_pair_aspect(star_a: FlyingStar, star_b: FlyingStar) -> StarPairAspect` returning the digitized interpretation (name, ngũ-hành relation, auspice, classical citation) for all 81 ordered pairs.
-- [ ] **FS-12**: User can rely on `StarPairAspect` carrying `source_id: "huyen-khong"`, an `original_citation` pointing to a specific chapter of *Thẩm Thị Huyền Không Học*, and a `confidence` tier.
-- [ ] **FS-13**: User-of-Phi-Tinh can call `compute_palace_aspects(year, month, term_scanner) -> [StarPairAspect; 9]` returning the per-palace aspect derived from the combined overlay (FS-08).
+- [x] **FS-11**: User can call `lookup_star_pair_aspect(star_a: FlyingStar, star_b: FlyingStar) -> StarPairAspect` returning the digitized interpretation (name, ngũ-hành relation, auspice, classical citation) for all 81 ordered pairs.
+- [x] **FS-12**: User can rely on `StarPairAspect` carrying `source_id: "huyen-khong"`, an `original_citation` pointing to a specific chapter of *Thẩm Thị Huyền Không Học*, and a `confidence` tier.
+- [x] **FS-13**: User-of-Phi-Tinh can call `compute_palace_aspects(year, month, term_scanner) -> [StarPairAspect; 9]` returning the per-palace aspect derived from the combined overlay (FS-08).
 
 ### P4 Phi Tinh — Safety / Cures (advisory only)
 
@@ -116,9 +116,9 @@
 | FS-08 | Phase 13 | Complete |
 | FS-09 | Phase 13 | Complete |
 | FS-10 | Phase 13 | Complete |
-| FS-11 | Phase 14 | Pending |
-| FS-12 | Phase 14 | Pending |
-| FS-13 | Phase 14 | Pending |
+| FS-11 | Phase 14 | Complete |
+| FS-12 | Phase 14 | Complete |
+| FS-13 | Phase 14 | Complete |
 | FS-14 | Phase 14 | Pending |
 | FS-15 | Phase 14 | Pending |
 | INT-01 | Phase 15 | Pending |
