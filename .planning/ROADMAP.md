@@ -155,7 +155,11 @@ Plans:
   4. A caller can load any v1.4 JSON fixture into v1.5 structs and re-serialize without unexpected fields (backward-compat round-trip).
   5. The end-to-end 2026 calendar smoke test passes on ≥ 30 representative dates covering Tết Nguyên Đán, Sóc/Vọng × 12, Vận 8 → 9 transition dates, leap-month dates, and all 24 Tiết Khí boundaries.
 
-**Plans**: TBD
+**Plans**: 4 plans across 2 waves
+- [ ] 15-01-PLAN.md — Wave 1 — serde-derive sweep on DaySnapshot chain + FlyingStarsSummary DTO + additive flying_stars/applicable_rituals fields, populated by default (INT-01, INT-02)
+- [ ] 15-02-PLAN.md — Wave 1 — ontology: NodeConcept::Ritual/FlyingStar + EdgeConcept::PrescribedFor/OccupiesPalace/CarriesElement across all six locations + GraphOntology completeness test (INT-03)
+- [ ] 15-03-PLAN.md — Wave 2 — builder wiring: add_flying_star_facts + add_ritual_facts (disjoint source_ids) + dual-provenance Direction node; direction_merge.rs untouched (INT-04) (depends on 15-01, 15-02)
+- [ ] 15-04-PLAN.md — Wave 2 — INT-05 v1.4 backward-compat round-trip + INT-06 2026 E2E smoke (≥30 dates: Tết, Sóc/Vọng×12, Vận boundary, leap month, 24 Tiết Khí) (depends on 15-01)
 
 ## Progress Table
 
@@ -166,7 +170,7 @@ Plans:
 | 12. Văn khấn Corpus Authoring | 4/4 | Complete    | 2026-05-27 |
 | 13. Phi Tinh Primitives + Period + Annual/Monthly | 4/4 | Complete    | 2026-05-27 |
 | 14. Phi Tinh 81-cell Aspects + Safety Hints | 3/3 | Complete    | 2026-05-27 |
-| 15. Semantic Graph Wiring + DTO Integration + E2E Validation | 0/? | Not started | - |
+| 15. Semantic Graph Wiring + DTO Integration + E2E Validation | 0/4 | Not started | - |
 
 ## Requirement Coverage
 
