@@ -37,6 +37,8 @@ pub enum NodeConcept {
     RecommendationHit,
     RecommendationLayer,
     RecommendationSummary,
+    Ritual,
+    FlyingStar,
 }
 
 impl NodeConcept {
@@ -76,6 +78,8 @@ impl NodeConcept {
             Self::RecommendationHit => ConceptLabel::RecommendationHit,
             Self::RecommendationLayer => ConceptLabel::RecommendationLayer,
             Self::RecommendationSummary => ConceptLabel::RecommendationSummary,
+            Self::Ritual => ConceptLabel::Ritual,
+            Self::FlyingStar => ConceptLabel::FlyingStar,
         }
     }
 }
@@ -108,6 +112,9 @@ pub enum EdgeConcept {
     TargetsActivity,
     ProducedByLayer,
     Aggregates,
+    PrescribedFor,
+    OccupiesPalace,
+    CarriesElement,
 }
 
 impl EdgeConcept {
@@ -138,6 +145,9 @@ impl EdgeConcept {
             Self::TargetsActivity => ConceptLabel::TargetsActivity,
             Self::ProducedByLayer => ConceptLabel::ProducedByLayer,
             Self::Aggregates => ConceptLabel::Aggregates,
+            Self::PrescribedFor => ConceptLabel::PrescribedFor,
+            Self::OccupiesPalace => ConceptLabel::OccupiesPalace,
+            Self::CarriesElement => ConceptLabel::CarriesElement,
         }
     }
 }
@@ -204,6 +214,11 @@ pub enum ConceptLabel {
     TargetsActivity,
     ProducedByLayer,
     Aggregates,
+    Ritual,
+    FlyingStar,
+    PrescribedFor,
+    OccupiesPalace,
+    CarriesElement,
 }
 
 impl ConceptLabel {
@@ -268,6 +283,11 @@ impl ConceptLabel {
             Self::TargetsActivity => "targets_activity",
             Self::ProducedByLayer => "produced_by_layer",
             Self::Aggregates => "aggregates",
+            Self::Ritual => "ritual",
+            Self::FlyingStar => "flying_star",
+            Self::PrescribedFor => "prescribed_for",
+            Self::OccupiesPalace => "occupies_palace",
+            Self::CarriesElement => "carries_element",
         }
     }
 }

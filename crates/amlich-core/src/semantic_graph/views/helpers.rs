@@ -41,6 +41,8 @@ pub(crate) fn cluster_for_node_id(_node_id: &str, concept: NodeConcept) -> Strin
         | NodeConcept::RecommendationSummary => "recommendation-evidence".to_string(),
 
         NodeConcept::Recommendation => "recommendation-summary".to_string(),
+
+        NodeConcept::Ritual | NodeConcept::FlyingStar => "day-core".to_string(),
     }
 }
 
