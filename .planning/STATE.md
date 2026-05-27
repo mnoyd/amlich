@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T17:15:04.596Z"
+last_updated: "2026-05-27T17:23:17.470Z"
 progress:
   total_phases: 18
-  completed_phases: 17
+  completed_phases: 18
   total_plans: 48
-  completed_plans: 47
+  completed_plans: 48
 ---
 
 # Project State
@@ -23,10 +23,10 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
-Phase: 12 (Văn khấn Corpus Authoring) — In Progress (3/4 plans complete)
-Plan: 12-04 complete (RIT-11 provenance audit ledger — 60 unique ritual_ids across 13 event categories)
-Status: 12-04 complete (provenance_audit.md: classical reference + page + confidence + reviewer per entry; 4 classical works enumerated; 1:1 coverage verified; plan 12-03 loader wiring remaining)
-Last activity: 2026-05-27 — 12-04 complete: RIT-11 provenance ledger shipped; all 60 unique ritual_ids covered from 13 event category files; reviewer pending per research Q4; plan 12-03 (loader wiring) is the only remaining phase-12 plan
+Phase: 13 (Phi Tinh Primitives + Period + Annual/Monthly) — COMPLETE (4/4 plans)
+Plan: 13-04 complete (golden dataset + KnownDivergence + fengshui_invariants integration tests)
+Status: Phase 13 closed. FS-01..FS-10 all complete. Phase 14 (Phi Tinh Aspects + Safety Hints, FS-11..15) is next.
+Last activity: 2026-05-28 — 13-04 complete: flying_stars_golden.json (37 cases, 10/Van 7/8/9), golden.rs KnownDivergence loader, fengshui_invariants.rs 9 black-box tests; FS-10 requirement marked complete
 
 Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 done)
 
@@ -87,6 +87,7 @@ Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 do
 | Phase 13 P01 | 4 | 2 tasks | 6 files |
 | Phase 13-phi-tinh-primitives-period-annual-monthly P02 | 3 | 2 tasks | 3 files |
 | Phase 13-phi-tinh-primitives-period-annual-monthly P03 | 2 | 1 tasks | 2 files |
+| Phase 13-phi-tinh-primitives-period-annual-monthly P04 | 6 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,8 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - [Phase 13-phi-tinh-primitives-period-annual-monthly]: Pure composition — compute_combined_overlay delegates to existing sub-functions; no star arithmetic in combined.rs
 - [Phase 13-phi-tinh-primitives-period-annual-monthly]: palace_overlays fixed array [(FlyingStar, FlyingStar); 9] — serde handles fixed arrays of tuples up to 32 elements; no Vec fallback needed; type-enforces exactly-9 invariant
 - [Phase 13-phi-tinh-primitives-period-annual-monthly]: Four evidence envelopes on CombinedFlyingStarLayout: phi_tinh.van, phi_tinh.nien, phi_tinh.nguyet from sub-layouts plus rule.composite.flying_stars on aggregate
+- [Phase 13-phi-tinh-primitives-period-annual-monthly]: nien_center golden values use formula outputs (1984->8, 2004->6) not plan text approximations — Rust rem_euclid is ground truth
+- [Phase 13-phi-tinh-primitives-period-annual-monthly]: KnownDivergence for 1960 Trung Nguyen: lasotuvi.com=6 rejected (Van confusion), phongthuycaivan.org=5 wins via Tham Thi Huyen Khong Hoc tiebreaker — divergence logged, not silently corrected
 
 ### Research Insights (from research/SUMMARY.md)
 
@@ -223,14 +226,14 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-27T17:09:48Z
-Stopped at: Completed 13-02-PLAN.md (annual.rs: compute_yearly_flying_stars + YearPolarity + nien_center + fill_palaces(pub(crate)); monthly.rs: compute_monthly_flying_stars + month_group + monthly_center; fill_palaces shared; 36 tests all green; FS-06, FS-07, FS-09 complete).
+Last session: 2026-05-28T17:21:58Z
+Stopped at: Completed 13-04-PLAN.md (golden.rs KnownDivergence+PhiTinhGoldenDataset loader; flying_stars_golden.json 37 cases; fengshui_invariants.rs 9 black-box tests; FS-05/FS-10 complete. Phase 13 CLOSED.).
 Resume file: None
 
 ### Active TODOs
 
 - Phase 12 plan 12-03 (wave 2) — wire loader to read per-category files via include_str! constants (only remaining Phase 12 plan).
-- Phase 13 (Phi Tinh Primitives) may run concurrently — no shared code paths with Phase 12.
+- Phase 14 (Phi Tinh Aspects + Safety Hints, FS-11..15) ready to begin.
 
 ### Context Handoff
 

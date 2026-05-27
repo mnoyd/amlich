@@ -27,7 +27,7 @@
 - [x] **Phase 10: Foundation — Schema Lock + ADRs + Source-ID Registration** - Lock ritual + Flying Star schemas, register two new source_ids, write the three blocking ADRs.
 - [x] **Phase 11: Văn khấn Module + Lookup APIs** - Ship the `rituals/` module with closed event enum, structured matchers, and the five public lookup APIs. (completed 2026-05-26)
 - [x] **Phase 12: Văn khấn Corpus Authoring** - Author ≥60 entries across ≤14 per-event-category JSON files with full provenance audit and 4+ event-variant coverage. (completed 2026-05-27)
-- [ ] **Phase 13: Phi Tinh Primitives + Period + Annual/Monthly** - Ship `almanac/fengshui/` with Lo Shu validators, Vận 7-9 tables, and annual/monthly/combined layout APIs.
+- [x] **Phase 13: Phi Tinh Primitives + Period + Annual/Monthly** - Ship `almanac/fengshui/` with Lo Shu validators, Vận 7-9 tables, and annual/monthly/combined layout APIs. (completed 2026-05-27)
 - [ ] **Phase 14: Phi Tinh 81-cell Aspects + Safety Hints** - Digitize the 81 star-pair aspects from *Thẩm Thị Huyền Không Học* and ship the advisory danger/element-hint APIs.
 - [ ] **Phase 15: Semantic Graph Wiring + DTO Integration + E2E Validation** - Add `Ritual` and `FlyingStar` node concepts, wire additive `DaySnapshot` fields, run 2026 smoke + v1.4 round-trip.
 
@@ -161,7 +161,7 @@ Plans:
 | 10. Foundation — Schema Lock + ADRs + Source-ID Registration | 5/5 | Complete    | 2026-05-26 |
 | 11. Văn khấn Module + Lookup APIs | 4/4 | Complete    | 2026-05-26 |
 | 12. Văn khấn Corpus Authoring | 4/4 | Complete    | 2026-05-27 |
-| 13. Phi Tinh Primitives + Period + Annual/Monthly | 3/4 | In Progress|  |
+| 13. Phi Tinh Primitives + Period + Annual/Monthly | 4/4 | Complete   | 2026-05-27 |
 | 14. Phi Tinh 81-cell Aspects + Safety Hints | 0/? | Not started | - |
 | 15. Semantic Graph Wiring + DTO Integration + E2E Validation | 0/? | Not started | - |
 
