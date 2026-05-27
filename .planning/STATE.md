@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T16:29:47.590Z"
+last_updated: "2026-05-27T16:35:06.055Z"
 progress:
   total_phases: 17
-  completed_phases: 16
+  completed_phases: 17
   total_plans: 44
-  completed_plans: 42
+  completed_plans: 44
 ---
 
 # Project State
@@ -23,10 +23,10 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
-Phase: 12 (Văn khấn Corpus Authoring) — In Progress (2/4 plans complete)
-Plan: 12-02 complete (wave 1 — 34 ritual entries across 7 autumn/winter + life-event + daily JSON files)
-Status: 12-02 complete (vu-lan 4 variants, trung-thu 3, trung-cuu-ha-nguyen 5, ong-tao 4, life-events 11, soc-vong 3, gia-tien 4; all 6 LifeEventKind covered; 3 RIT-12 multi-variant groups; zero Han chars)
-Last activity: 2026-05-27 — 12-02 complete: corpus batch 2 (autumn/winter festivals + life events + daily gia-tien) shipped; combined with 12-01 corpus has ≥ 5 multi-variant events; plans 12-03 (loader wiring) and 12-04 (provenance ledger) to follow
+Phase: 12 (Văn khấn Corpus Authoring) — In Progress (3/4 plans complete)
+Plan: 12-04 complete (RIT-11 provenance audit ledger — 60 unique ritual_ids across 13 event categories)
+Status: 12-04 complete (provenance_audit.md: classical reference + page + confidence + reviewer per entry; 4 classical works enumerated; 1:1 coverage verified; plan 12-03 loader wiring remaining)
+Last activity: 2026-05-27 — 12-04 complete: RIT-11 provenance ledger shipped; all 60 unique ritual_ids covered from 13 event category files; reviewer pending per research Q4; plan 12-03 (loader wiring) is the only remaining phase-12 plan
 
 Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 done)
 
@@ -81,6 +81,9 @@ Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 do
 | Phase 11 P04 | 2min | 1 task | 2 files |
 | Phase 12 P01 | 9 | 2 tasks | 6 files |
 | Phase 12-van-khan-corpus-authoring P02 | 10 | 2 tasks | 7 files |
+| Phase 12-van-khan-corpus-authoring P04 | 5 | 1 task | 1 file |
+| Phase 12 P04 | 5 | 1 tasks | 1 files |
+| Phase 12 P03 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -163,6 +166,10 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - [Phase 12-02]: Vu Lan 4 entries: added folk cung-co-hon alongside simple/full/buddhist RIT-12 variants to cover Ghost Festival dual purpose
 - [Phase 12-02]: van-khan-dong-tho (full) ritual_id preserved exactly to match fixtures.json reference and test suite
 - [Phase 12-02]: Giao Thua: 2 entries (indoor simple + outdoor full) capturing both le-cung sub-types with identical event_keys
+- [Phase 12]: Fixtures.json duplicates excluded from provenance ledger: 6 ritual_ids appear in both fixtures.json and canonical category files; ledger uses canonical source for 60 unique rows
+- [Phase 12]: Provenance reviewer field set to pending for all 60 entries per research Q4; peer review deferred post-v1.5 but citation coordinates enable future independent review
+- [Phase 12]: fixtures.json absorbed (deleted): all 6 ritual_ids confirmed migrated to category files in 12-01/12-02; no 14th file needed
+- [Phase 12]: Multi-file include_str! loader pattern: one const per file, ALL_CORPUS_JSONS array, loop-merge in OnceLock initializer; manifest.json is documentation-only artifact
 
 ### Research Insights (from research/SUMMARY.md)
 
@@ -204,14 +211,13 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-27T16:26:36Z
-Stopped at: Completed 12-01-PLAN.md (Phase 12 wave 1 — 26 ritual entries across 6 spring/summer JSON files; tet-nguyen-dan 4 variants, doan-ngo 3 variants, nguyen-tieu 5 variants, han-thuc 5 variants, thanh-minh 5 entries, phat-dan 4 entries; all integration test anchor ritual_ids preserved; zero Han chars).
+Last session: 2026-05-27T16:35:00Z
+Stopped at: Completed 12-04-PLAN.md (RIT-11 provenance audit ledger: 60 unique ritual_ids across 13 event categories; classical reference + page + confidence + reviewer (pending) per entry; 4 classical works enumerated; 1:1 coverage verified).
 Resume file: None
 
 ### Active TODOs
 
-- Phase 12 plan 12-02 — author autumn/winter festivals + life events corpus batch.
-- Phase 12 plan 12-03 (wave 2) — wire loader to read per-category files via include_str! constants.
+- Phase 12 plan 12-03 (wave 2) — wire loader to read per-category files via include_str! constants (only remaining Phase 12 plan).
 - Phase 13 (Phi Tinh Primitives) may run concurrently — no shared code paths with Phase 12.
 
 ### Context Handoff
