@@ -132,6 +132,24 @@ pub struct DayContext {
     pub gio_hoang_dao: GioHoangDao,
 }
 
+/// Slim DTO summarising the Phi Tinh (Flying Stars) overlay for a snapshot day.
+///
+/// Contains only scalar/array fields — no nested evidence envelopes — per research Q1.
+/// Derived from `compute_combined_overlay` inside `calculate_day_snapshot_internal`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FlyingStarsSummary {
+    /// Active Vận period number (1-9).
+    pub van: u8,
+    /// Solar year the layout was computed for.
+    pub year: i32,
+    /// Solar month (1-based) the monthly layer was computed for.
+    pub month: u8,
+    /// Center palace star from the annual (Niên) layer.
+    pub center_star: crate::almanac::fengshui::types::FlyingStar,
+    /// Per-palace (annual, monthly) star pairs, Palace::ALL order.
+    pub palace_overlays: [(crate::almanac::fengshui::types::FlyingStar, crate::almanac::fengshui::types::FlyingStar); 9],
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DaySnapshot {
     pub ruleset_id: String,
@@ -141,6 +159,12 @@ pub struct DaySnapshot {
     pub day_fortune: DayFortune,
     pub daily_recommendations: DailyRecommendations,
     pub contextual_recommendations: Option<DailyRecommendations>,
+    /// Additive optional Phi Tinh (Flying Stars) overlay. Absent in JSON when None.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub flying_stars: Option<FlyingStarsSummary>,
+    /// Additive optional list of matching ritual ids from the Văn khấn corpus.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub applicable_rituals: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -281,7 +305,8 @@ fn calculate_day_snapshot_internal(
         None
     };
 
-    Ok(DaySnapshot {
+    // Build snapshot first without additive fields so we can pass it to find_van_khan_for_snapshot.
+    let mut snap = DaySnapshot {
         ruleset_id: day_fortune.ruleset_id.clone(),
         ruleset_version: day_fortune.ruleset_version.clone(),
         profile: day_fortune.profile.clone(),
@@ -289,7 +314,43 @@ fn calculate_day_snapshot_internal(
         day_fortune,
         daily_recommendations,
         contextual_recommendations,
-    })
+        flying_stars: None,
+        applicable_rituals: None,
+    };
+
+    // Populate flying_stars from the combined Phi Tinh overlay.
+    {
+        use crate::almanac::fengshui::{compute_combined_overlay, TietKhiScanner};
+        use crate::almanac::fengshui::types::FlyingStarPeriod;
+        let scanner = TietKhiScanner::new();
+        let lunar_month = snap.context.lunar.month as u8;
+        let solar_year = snap.context.solar.year;
+        let overlay = compute_combined_overlay(solar_year, lunar_month, &scanner);
+        let van = if let FlyingStarPeriod::Van { van } = overlay.van_layout.period {
+            van
+        } else {
+            1 // fallback; period is always Van for a solar year
+        };
+        snap.flying_stars = Some(FlyingStarsSummary {
+            van,
+            year: overlay.year,
+            month: overlay.month,
+            center_star: overlay.annual_layout.center_star,
+            palace_overlays: overlay.palace_overlays,
+        });
+    }
+
+    // Populate applicable_rituals from the ritual corpus.
+    {
+        use crate::rituals::find_van_khan_for_snapshot;
+        let ritual_ids: Vec<String> = find_van_khan_for_snapshot(&snap)
+            .iter()
+            .map(|r| r.ritual_id.clone())
+            .collect();
+        snap.applicable_rituals = Some(ritual_ids);
+    }
+
+    Ok(snap)
 }
 
 #[cfg(test)]
