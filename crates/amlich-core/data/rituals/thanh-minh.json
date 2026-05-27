@@ -1,0 +1,149 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-thanh-minh",
+      "title_vi": "Văn Khấn Tiết Thanh Minh",
+      "event_keys": [
+        {"kind": "solar_term", "name": "Thanh Minh"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tảo mộ, dọn dẹp phần mộ tổ tiên"}
+      ],
+      "invocation_text_vi": "Nam mô A Di Đà Phật! Hôm nay là tiết Thanh Minh, con xin tảo mộ và kính lễ tổ tiên. Con thành tâm dâng hương hoa, cầu nguyện tổ tiên được an nghỉ nơi suối vàng, phù hộ cho con cháu bình an, thịnh vượng.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "45"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-thanh-minh-day-du",
+      "title_vi": "Văn Khấn Tiết Thanh Minh (Đầy Đủ)",
+      "event_keys": [
+        {"kind": "solar_term", "name": "Thanh Minh"}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"},
+        {"name_vi": "Mâm cỗ mặn", "quantity": "1 mâm"},
+        {"name_vi": "Rượu trắng", "quantity": "1 chén"},
+        {"name_vi": "Vàng mã", "quantity": "1 bộ"},
+        {"name_vi": "Trầu cau", "quantity": "1 đĩa"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuẩn bị mâm cỗ đầy đủ mang ra phần mộ"},
+        {"order": 2, "description_vi": "Tảo mộ: nhổ cỏ, dọn dẹp xung quanh phần mộ, đắp lại đất"},
+        {"order": 3, "description_vi": "Bày lễ vật trước phần mộ, thắp hương và đọc văn khấn"},
+        {"order": 4, "description_vi": "Đốt vàng mã sau khi khấn xong"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Con kính lạy chư vị tôn thần bảo vệ phần mộ. Con kính lạy tổ tiên nội ngoại họ... Nhân tiết Thanh Minh, con cháu xa gần về tảo mộ, dâng mâm lễ vật thành kính. Cúi xin các cụ phù hộ cho con cháu sức khỏe dồi dào, học hành đỗ đạt, công danh thành tựu, gia đình hạnh phúc, mọi việc như ý nguyện. Chúng con thành kính dâng lễ, cúi xin gia tiên chứng giám.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "47"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-thanh-minh-mien-trung",
+      "title_vi": "Văn Khấn Tiết Thanh Minh (Miền Trung)",
+      "event_keys": [
+        {"kind": "solar_term", "name": "Thanh Minh"}
+      ],
+      "variant": {"regional": "mien-trung"},
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa cúc vàng", "quantity": "1 bình"},
+        {"name_vi": "Bánh ít", "quantity": "1 đĩa"},
+        {"name_vi": "Trái cây đặc sản địa phương", "quantity": "1 mâm"},
+        {"name_vi": "Rượu gạo", "quantity": "1 chén"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuẩn bị lễ vật theo phong tục miền Trung, gồm bánh ít và đặc sản địa phương"},
+        {"order": 2, "description_vi": "Dọn dẹp và tảo mộ trước ngày tiết Thanh Minh"},
+        {"order": 3, "description_vi": "Bày lễ vật tại phần mộ, thắp hương và đọc văn khấn theo giọng điệu miền Trung"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Con kính lạy tổ tiên nội ngoại họ... Nhân tiết Thanh Minh, con cháu về quê tảo mộ, dâng lễ vật theo phong tục quê nhà. Con thành kính dâng hương hoa và bánh trái đặc sản quê hương. Kính cầu tổ tiên chứng giám, phù hộ gia đình bình an, quê hương xứ sở thịnh vượng, con cháu nơi xa luôn ghi nhớ cội nguồn.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "50"
+      },
+      "confidence": "regional-variant",
+      "notes": ["Phong tục đặc trưng các tỉnh miền Trung Việt Nam, gồm Thừa Thiên Huế, Quảng Nam, Quảng Ngãi"]
+    },
+    {
+      "ritual_id": "van-khan-thanh-minh-dan-gian",
+      "title_vi": "Văn Khấn Tiết Thanh Minh (Dân Gian)",
+      "event_keys": [
+        {"kind": "solar_term", "name": "Thanh Minh"}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"},
+        {"name_vi": "Gà luộc", "quantity": "1 con"},
+        {"name_vi": "Xôi", "quantity": "1 đĩa"},
+        {"name_vi": "Vàng mã", "quantity": "1 bộ"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Cả gia đình cùng nhau ra tảo mộ sáng sớm"},
+        {"order": 2, "description_vi": "Chuẩn bị mâm lễ dân gian mang ra phần mộ"},
+        {"order": 3, "description_vi": "Đọc văn khấn và đốt vàng mã tại phần mộ"}
+      ],
+      "invocation_text_vi": "Con lạy tổ tiên nội ngoại! Nhân tiết Thanh Minh, cả nhà sum họp về quê tảo mộ. Con thành kính dâng gà luộc và xôi, kính mời tổ tiên thụ hưởng. Cầu xin tổ tiên phù hộ gia đình, con cháu mạnh khỏe, đoàn kết, không quên cội nguồn tổ tiên.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "52"
+      },
+      "confidence": "synthesized",
+      "notes": ["Phong tục dân gian phổ biến — cả gia đình tảo mộ và dâng lễ mặn tại phần mộ"]
+    },
+    {
+      "ritual_id": "van-khan-thanh-minh-mien-bac",
+      "title_vi": "Văn Khấn Tiết Thanh Minh (Miền Bắc)",
+      "event_keys": [
+        {"kind": "solar_term", "name": "Thanh Minh"}
+      ],
+      "variant": {"regional": "mien-bac"},
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa cúc trắng", "quantity": "1 bình"},
+        {"name_vi": "Mâm cỗ mặn", "quantity": "1 mâm"},
+        {"name_vi": "Vàng mã", "quantity": "1 bộ"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuẩn bị mâm cỗ mặn theo phong tục miền Bắc"},
+        {"order": 2, "description_vi": "Cả họ tộc cùng tập trung ra mộ phần tổ tiên"},
+        {"order": 3, "description_vi": "Đọc văn khấn theo thứ tự từ mộ phần lớn nhất trong họ"}
+      ],
+      "invocation_text_vi": "Con kính lạy tổ tiên nội ngoại! Tiết Thanh Minh năm nay, cả họ tộc về tụ họp tảo mộ. Chúng con thành kính dâng mâm cỗ và hương hoa. Kính mời tổ tiên thụ hưởng. Cầu xin tổ tiên phù hộ cả họ khỏe mạnh, đoàn kết, hòa thuận, nhà nhà an vui.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "54"
+      },
+      "confidence": "regional-variant",
+      "notes": ["Phong tục tảo mộ theo họ tộc đặc trưng các tỉnh đồng bằng Bắc Bộ"]
+    }
+  ]
+}

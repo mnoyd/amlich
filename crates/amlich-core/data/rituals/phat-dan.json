@@ -1,0 +1,125 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-phat-dan-don-gian",
+      "title_vi": "Văn Khấn Lễ Phật Đản (Đơn Giản)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "phat-dan"},
+        {"kind": "lunar_date", "month": 4, "day": 15}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Hương thơm", "quantity": "3 nén"},
+        {"name_vi": "Hoa sen", "quantity": "1 bình"},
+        {"name_vi": "Trái cây", "quantity": "1 mâm"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tắm rửa sạch sẽ, ăn chay vào ngày Phật Đản"},
+        {"order": 2, "description_vi": "Bày hương hoa và trái cây lên bàn thờ Phật"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Hôm nay là ngày Rằm tháng Tư, Lễ Phật Đản. Con thành tâm dâng hương hoa kính mừng ngày Phật ra đời. Kính cầu Tam Bảo gia hộ cho chúng con thân tâm an lạc, phước huệ song tu. Nam mô bổn sư thích ca mâu ni phật!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "55"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-phat-dan-phat-giao",
+      "title_vi": "Văn Khấn Lễ Phật Đản (Phật Giáo)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "phat-dan"},
+        {"kind": "lunar_date", "month": 4, "day": 15}
+      ],
+      "variant": "buddhist",
+      "offerings": [
+        {"name_vi": "Hương thơm", "quantity": "3 nén"},
+        {"name_vi": "Hoa sen trắng và hoa cúc", "quantity": "2 bình"},
+        {"name_vi": "Mâm cỗ chay thanh tịnh", "quantity": "1 mâm"},
+        {"name_vi": "Trà sen", "quantity": "1 ấm"},
+        {"name_vi": "Nước tắm Phật", "quantity": "1 bát"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Giữ trai giới và ăn chay suốt ngày Phật Đản"},
+        {"order": 2, "description_vi": "Chuẩn bị mâm cỗ chay thanh tịnh và hoa sen"},
+        {"order": 3, "description_vi": "Thực hiện lễ tắm Phật — múc nước thơm rưới lên tượng Phật đản sanh"},
+        {"order": 4, "description_vi": "Niệm Phật và đọc văn khấn với tâm thành kính, thanh tịnh"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Nam mô bổn sư thích ca mâu ni phật! Nam mô quan thế âm bồ tát! Hôm nay là ngày Rằm tháng Tư, ngày Đức Phật Thích Ca Mâu Ni đản sanh. Con cùng đại chúng thành kính dâng hương hoa, lễ phẩm, thực hiện lễ tắm Phật để tưởng niệm ngày Phật ra đời. Con thành kính xưng tán công đức vô lượng của Đức Thế Tôn. Nguyện nương theo ánh sáng Phật pháp để tu tập, chuyển hóa phiền não, hướng đến giải thoát giác ngộ. Nguyện cho chúng sinh trong muôn cõi đều được an lạc. Nam mô a di đà phật!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "57"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-phat-dan-day-du",
+      "title_vi": "Văn Khấn Lễ Phật Đản (Đầy Đủ)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "phat-dan"},
+        {"kind": "lunar_date", "month": 4, "day": 15}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Hương thơm", "quantity": "3 nén"},
+        {"name_vi": "Hoa sen", "quantity": "2 bình"},
+        {"name_vi": "Mâm cỗ chay", "quantity": "1 mâm"},
+        {"name_vi": "Trái cây", "quantity": "1 mâm"},
+        {"name_vi": "Trà và nước sạch", "quantity": "1 bộ"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Ăn chay và tụng kinh vào buổi sáng ngày Phật Đản"},
+        {"order": 2, "description_vi": "Chuẩn bị mâm lễ đầy đủ: hoa sen, cỗ chay, trái cây"},
+        {"order": 3, "description_vi": "Bày lễ vật lên bàn thờ Phật trang nghiêm"},
+        {"order": 4, "description_vi": "Thắp hương và đọc văn khấn đầy đủ"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Con kính lạy Đức Phật Thích Ca Mâu Ni — bổn sư của chúng con. Con kính lạy chư Bồ Tát, chư Thánh Hiền. Hôm nay là ngày Rằm tháng Tư, kỷ niệm ngày Đức Bổn Sư đản sanh. Con thành tâm dâng mâm lễ chay tịnh, hương hoa thanh khiết. Kính cầu Phật pháp soi sáng, Tam Bảo gia hộ cho gia đình con thân tâm an lạc, bệnh tật tiêu trừ, phước huệ tăng trưởng, công đức viên mãn. Nguyện hồi hướng công đức đến tất cả chúng sinh. Nam mô a di đà phật!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "59"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-phat-dan-dan-gian",
+      "title_vi": "Văn Khấn Lễ Phật Đản (Dân Gian)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "phat-dan"},
+        {"kind": "lunar_date", "month": 4, "day": 15}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"},
+        {"name_vi": "Chè đậu trắng", "quantity": "1 bát"},
+        {"name_vi": "Xôi trắng", "quantity": "1 đĩa"},
+        {"name_vi": "Trái cây", "quantity": "1 mâm"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Nấu chè đậu trắng và xôi trắng vào ngày Rằm tháng Tư"},
+        {"order": 2, "description_vi": "Bày lễ vật lên bàn thờ với tâm thành kính"},
+        {"order": 3, "description_vi": "Thắp hương và đọc văn khấn theo phong tục dân gian"}
+      ],
+      "invocation_text_vi": "Con kính lạy Phật, con kính lạy tổ tiên. Hôm nay ngày Rằm tháng Tư, Lễ Phật Đản, con thành tâm dâng chè và xôi trắng theo phong tục. Cầu xin Phật và tổ tiên phù hộ gia đình bình an, khỏe mạnh, làm ăn thuận lợi trong suốt năm.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "61"
+      },
+      "confidence": "synthesized",
+      "notes": ["Kết hợp tín ngưỡng dân gian và Phật giáo phổ thông của người Việt"]
+    }
+  ]
+}

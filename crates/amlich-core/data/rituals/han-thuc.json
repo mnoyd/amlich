@@ -1,0 +1,152 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-han-thuc-don-gian",
+      "title_vi": "Văn Khấn Tết Hàn Thực (Đơn Giản)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-han-thuc"},
+        {"kind": "lunar_date", "month": 3, "day": 3}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Bánh trôi", "quantity": "1 đĩa"},
+        {"name_vi": "Bánh chay", "quantity": "1 đĩa"},
+        {"name_vi": "Hương", "quantity": "3 nén"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Làm bánh trôi và bánh chay từ bột nếp trắng"},
+        {"order": 2, "description_vi": "Bày bánh trôi, bánh chay lên bàn thờ gia tiên"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Hôm nay là ngày mùng ba tháng ba, Tết Hàn Thực. Con thành tâm dâng bánh trôi bánh chay, kính lễ tổ tiên. Cầu xin tổ tiên phù hộ gia đình bình an, mọi sự như ý.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "42"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-han-thuc-day-du",
+      "title_vi": "Văn Khấn Tết Hàn Thực (Đầy Đủ)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-han-thuc"},
+        {"kind": "lunar_date", "month": 3, "day": 3}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Bánh trôi", "quantity": "1 đĩa"},
+        {"name_vi": "Bánh chay", "quantity": "1 đĩa"},
+        {"name_vi": "Hoa quả tươi", "quantity": "1 mâm"},
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Nước sạch", "quantity": "1 bát"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Làm bánh trôi và bánh chay từ bột nếp trắng, nhân đường"},
+        {"order": 2, "description_vi": "Chuẩn bị hoa quả tươi và nước sạch"},
+        {"order": 3, "description_vi": "Bày đủ lễ vật lên bàn thờ gia tiên"},
+        {"order": 4, "description_vi": "Thắp hương và đọc văn khấn"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Con kính lạy chín phương trời, mười phương chư phật. Con kính lạy các vị tổ tiên nội ngoại họ... Nhân ngày mùng ba tháng ba âm lịch, Tết Hàn Thực, con thành tâm sắm sửa bánh trôi bánh chay, hoa quả dâng lên trước án. Kính mời chư vị tổ tiên về thụ hưởng lễ vật. Cúi xin tổ tiên phù hộ độ trì cho toàn gia: thân thể khỏe mạnh, tinh thần vui vẻ, làm ăn phát đạt, gia đình hòa thuận, con cháu học hành tiến bộ.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "44"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-han-thuc-dan-gian",
+      "title_vi": "Văn Khấn Tết Hàn Thực (Dân Gian)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-han-thuc"},
+        {"kind": "lunar_date", "month": 3, "day": 3}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Bánh trôi nước", "quantity": "3 đĩa"},
+        {"name_vi": "Bánh chay", "quantity": "1 đĩa"},
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Vàng mã", "quantity": "1 bộ"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tự tay làm bánh trôi nước, không mua bánh sẵn"},
+        {"order": 2, "description_vi": "Bày ba đĩa bánh trôi và bánh chay lên bàn thờ"},
+        {"order": 3, "description_vi": "Thắp hương và đọc văn khấn theo phong tục cổ truyền"}
+      ],
+      "invocation_text_vi": "Con lạy tổ tiên nội ngoại! Hôm nay mùng ba tháng ba, Tết Hàn Thực, con cháu thành kính tự tay làm bánh trôi nước dâng lên bàn thờ. Kính mời tổ tiên về thụ hưởng. Cầu xin tổ tiên phù hộ con cháu khỏe mạnh, học hành tấn tới, gia đình yên vui, hòa thuận.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "46"
+      },
+      "confidence": "synthesized",
+      "notes": ["Phong tục dân gian tự làm bánh trôi nước, không dùng bánh mua sẵn"]
+    },
+    {
+      "ritual_id": "van-khan-han-thuc-phat-giao",
+      "title_vi": "Văn Khấn Tết Hàn Thực (Phật Giáo)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-han-thuc"},
+        {"kind": "lunar_date", "month": 3, "day": 3}
+      ],
+      "variant": "buddhist",
+      "offerings": [
+        {"name_vi": "Bánh trôi chay", "quantity": "1 đĩa"},
+        {"name_vi": "Hương thơm", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"},
+        {"name_vi": "Trái cây tươi", "quantity": "1 mâm"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Ăn chay và làm bánh trôi chay không có nhân mặn"},
+        {"order": 2, "description_vi": "Bày lễ vật lên bàn thờ Phật"},
+        {"order": 3, "description_vi": "Niệm Phật và đọc văn khấn theo tâm Phật tử"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Hôm nay ngày mùng ba tháng ba, Tết Hàn Thực, con thành kính dâng bánh trôi chay và hương hoa lên bàn thờ Phật. Kính cầu Tam Bảo gia hộ cho con và gia đình thân tâm thanh tịnh, phước huệ tăng trưởng. Nguyện hồi hướng công đức đến tổ tiên và tất cả chúng sinh. Nam mô a di đà phật!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "48"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-han-thuc-mien-bac",
+      "title_vi": "Văn Khấn Tết Hàn Thực (Miền Bắc)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-han-thuc"},
+        {"kind": "lunar_date", "month": 3, "day": 3}
+      ],
+      "variant": {"regional": "mien-bac"},
+      "offerings": [
+        {"name_vi": "Bánh trôi nước nhân đường phèn", "quantity": "1 đĩa"},
+        {"name_vi": "Bánh chay nhân đậu xanh", "quantity": "1 đĩa"},
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa nhài hoặc hoa lan", "quantity": "1 bình"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Làm bánh trôi nhân đường phèn theo đúng truyền thống miền Bắc"},
+        {"order": 2, "description_vi": "Làm bánh chay nhân đậu xanh tán nhuyễn"},
+        {"order": 3, "description_vi": "Bày lễ vật lên bàn thờ gia tiên vào sáng ngày mùng ba tháng ba"}
+      ],
+      "invocation_text_vi": "Con kính lạy tổ tiên nội ngoại! Hôm nay mùng ba tháng ba, chúng con tự tay làm bánh trôi và bánh chay theo đúng phong tục truyền thống miền Bắc dâng lên bàn thờ tổ tiên. Kính mời tổ tiên về thụ hưởng lễ vật. Cầu xin tổ tiên phù hộ gia đình bình an, hạnh phúc.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "50"
+      },
+      "confidence": "regional-variant",
+      "notes": ["Phong tục làm bánh trôi nhân đường phèn đặc trưng các tỉnh đồng bằng Bắc Bộ"]
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-nguyen-tieu-don-gian",
+      "title_vi": "Văn Khấn Tết Nguyên Tiêu (Đơn Giản)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-tieu"},
+        {"kind": "lunar_date", "month": 1, "day": 15}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tắm rửa sạch sẽ, chuẩn bị lễ vật"},
+        {"order": 2, "description_vi": "Bày hương hoa lên bàn thờ gia tiên"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Hôm nay là ngày Rằm tháng Giêng, Tết Nguyên Tiêu. Con thành tâm dâng hương hoa kính lễ tổ tiên, cầu xin phù hộ gia đình bình an, khỏe mạnh trong suốt năm mới.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "28"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-ram-thang-gieng",
+      "title_vi": "Văn Khấn Rằm Tháng Giêng (Tết Nguyên Tiêu)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-tieu"},
+        {"kind": "lunar_date", "month": 1, "day": 15}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"},
+        {"name_vi": "Mâm cỗ chay", "quantity": "1 mâm"},
+        {"name_vi": "Trái cây", "quantity": "1 mâm"},
+        {"name_vi": "Xôi chè", "quantity": "1 đĩa"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Bày lễ vật lên bàn thờ gia tiên và bàn thờ Phật"},
+        {"order": 2, "description_vi": "Thắp hương và đọc văn khấn vào buổi tối Rằm tháng Giêng"}
+      ],
+      "invocation_text_vi": "Nam mô A Di Đà Phật! Hôm nay là ngày Rằm tháng Giêng, tiết Tết Nguyên Tiêu, con kính cẩn dâng lễ và cầu nguyện tổ tiên phù hộ độ trì. Con thành kính dâng lên mâm cỗ chay thanh tịnh, hoa quả tươi thơm. Kính cầu chư vị tổ tiên nội ngoại họ... phù hộ gia đình bình an, phúc lộc dồi dào, học hành tiến tới, công việc hanh thông trong suốt năm mới.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "30"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-thuong-nguyen-phat-giao",
+      "title_vi": "Văn Khấn Tết Thượng Nguyên (Phật Giáo)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-tieu"},
+        {"kind": "lunar_date", "month": 1, "day": 15}
+      ],
+      "variant": "buddhist",
+      "offerings": [
+        {"name_vi": "Hương thơm", "quantity": "3 nén"},
+        {"name_vi": "Hoa sen trắng", "quantity": "1 bình"},
+        {"name_vi": "Mâm cỗ chay thanh tịnh", "quantity": "1 mâm"},
+        {"name_vi": "Trà sen", "quantity": "1 ấm"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Giữ trai giới, ăn chay từ sáng sớm ngày Rằm"},
+        {"order": 2, "description_vi": "Chuẩn bị mâm cỗ chay tinh khiết, hoa sen và hương thơm"},
+        {"order": 3, "description_vi": "Lên chùa lễ Phật hoặc thực hiện tại bàn thờ Phật tại nhà"},
+        {"order": 4, "description_vi": "Niệm Phật và đọc văn khấn với tâm thanh tịnh"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Nam mô quan thế âm bồ tát! Con thành kính đảnh lễ Tam Bảo trong ngày Rằm tháng Giêng — Tết Thượng Nguyên. Con dâng mâm lễ chay thanh tịnh cùng hương hoa thanh khiết. Kính cầu Tam Bảo gia hộ cho con và gia đình thân tâm an lạc, tiêu trừ nghiệp chướng, phát tâm bồ đề. Cầu nguyện cho tất cả chúng sinh được an vui. Nam mô a di đà phật!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "32"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-nguyen-tieu-dan-gian",
+      "title_vi": "Văn Khấn Tết Nguyên Tiêu (Dân Gian)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-tieu"},
+        {"kind": "lunar_date", "month": 1, "day": 15}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"},
+        {"name_vi": "Chè đậu xanh", "quantity": "1 bát"},
+        {"name_vi": "Xôi", "quantity": "1 đĩa"},
+        {"name_vi": "Vàng mã", "quantity": "1 bộ"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Nấu chè đậu xanh theo phong tục dân gian"},
+        {"order": 2, "description_vi": "Bày lễ vật lên bàn thờ tổ tiên vào buổi tối Rằm"},
+        {"order": 3, "description_vi": "Thắp hương và đọc văn khấn theo phong tục địa phương"}
+      ],
+      "invocation_text_vi": "Con lạy tổ tiên nội ngoại! Hôm nay Rằm tháng Giêng, Tết Nguyên Tiêu, con cháu thành kính dâng chè đậu xanh và hương hoa. Kính mời tổ tiên về thụ hưởng. Cầu xin tổ tiên phù hộ gia đình mạnh khỏe, làm ăn phát đạt, con cháu học hành giỏi giang, năm mới gặp nhiều may mắn.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "34"
+      },
+      "confidence": "synthesized",
+      "notes": ["Phong tục dân gian dâng chè đậu xanh trong dịp Rằm tháng Giêng"]
+    },
+    {
+      "ritual_id": "van-khan-nguyen-tieu-mien-nam",
+      "title_vi": "Văn Khấn Tết Nguyên Tiêu (Miền Nam)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-tieu"},
+        {"kind": "lunar_date", "month": 1, "day": 15}
+      ],
+      "variant": {"regional": "mien-nam"},
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa cúc vàng", "quantity": "1 bình"},
+        {"name_vi": "Mâm cỗ chay", "quantity": "1 mâm"},
+        {"name_vi": "Bánh tét chay", "quantity": "2 cái"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuẩn bị mâm cỗ chay theo phong tục miền Nam"},
+        {"order": 2, "description_vi": "Bày bánh tét chay và hoa cúc lên bàn thờ"},
+        {"order": 3, "description_vi": "Thắp hương và đọc văn khấn vào đêm Rằm tháng Giêng"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Hôm nay là Rằm tháng Giêng, con thành kính dâng mâm cỗ chay và bánh tét theo phong tục miền Nam. Kính cầu Tam Bảo và tổ tiên phù hộ gia đình bình an, thịnh vượng, con cháu sum vầy. Nam mô a di đà phật!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "36"
+      },
+      "confidence": "regional-variant",
+      "notes": ["Phong tục đặc trưng các tỉnh Nam Bộ — dâng bánh tét chay thay vì bánh chưng"]
+    }
+  ]
+}
