@@ -170,7 +170,7 @@ Plans:
 | 12. Văn khấn Corpus Authoring | 4/4 | Complete    | 2026-05-27 |
 | 13. Phi Tinh Primitives + Period + Annual/Monthly | 4/4 | Complete    | 2026-05-27 |
 | 14. Phi Tinh 81-cell Aspects + Safety Hints | 3/3 | Complete    | 2026-05-27 |
-| 15. Semantic Graph Wiring + DTO Integration + E2E Validation | 0/4 | Not started | - |
+| 15. Semantic Graph Wiring + DTO Integration + E2E Validation | 1/4 | In Progress|  |
 
 ## Requirement Coverage
 
