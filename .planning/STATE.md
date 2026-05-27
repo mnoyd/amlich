@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T17:11:05.259Z"
+last_updated: "2026-05-27T17:15:04.596Z"
 progress:
   total_phases: 18
   completed_phases: 17
   total_plans: 48
-  completed_plans: 46
+  completed_plans: 47
 ---
 
 # Project State
@@ -86,6 +86,7 @@ Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 do
 | Phase 12 P03 | 3 | 2 tasks | 3 files |
 | Phase 13 P01 | 4 | 2 tasks | 6 files |
 | Phase 13-phi-tinh-primitives-period-annual-monthly P02 | 3 | 2 tasks | 3 files |
+| Phase 13-phi-tinh-primitives-period-annual-monthly P03 | 2 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -178,6 +179,9 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - [Phase 13]: Base palace table: Lo Shu thuận path Center->NW->W->NE->S->N->SW->E->SE; palaces[4]=van, palaces[0]=van+5, etc.
 - [Phase 13]: fill_palaces pub(crate) in annual.rs, imported by monthly.rs — single Lo Shu spiral implementation shared by annual/monthly layers, no copy-paste divergence
 - [Phase 13]: YearPolarity enum (not bool flag) per ADR-0003; nien_center anchored 2024→4 via rem_euclid formula; pre-1984 years annotated confidence=medium in evidence
+- [Phase 13-phi-tinh-primitives-period-annual-monthly]: Pure composition — compute_combined_overlay delegates to existing sub-functions; no star arithmetic in combined.rs
+- [Phase 13-phi-tinh-primitives-period-annual-monthly]: palace_overlays fixed array [(FlyingStar, FlyingStar); 9] — serde handles fixed arrays of tuples up to 32 elements; no Vec fallback needed; type-enforces exactly-9 invariant
+- [Phase 13-phi-tinh-primitives-period-annual-monthly]: Four evidence envelopes on CombinedFlyingStarLayout: phi_tinh.van, phi_tinh.nien, phi_tinh.nguyet from sub-layouts plus rule.composite.flying_stars on aggregate
 
 ### Research Insights (from research/SUMMARY.md)
 

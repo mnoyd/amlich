@@ -46,7 +46,7 @@
 
 - [x] **FS-06**: User can call `compute_yearly_flying_stars(year, term_scanner) -> FlyingStarLayout` returning the 9-palace annual grid. Verified against multiple sources for ≥ 10 dates per Vận.
 - [x] **FS-07**: User can call `compute_monthly_flying_stars(year, month, term_scanner) -> FlyingStarLayout` returning the 9-palace monthly grid using the year-branch-group rule (groups start at 8/5/2, descend mod-9), with solar-term month boundaries per FND-04.
-- [ ] **FS-08**: User can call `compute_combined_overlay(year, month, term_scanner) -> CombinedFlyingStarLayout` returning `[(annual_star, monthly_star); 9]` per palace.
+- [x] **FS-08**: User can call `compute_combined_overlay(year, month, term_scanner) -> CombinedFlyingStarLayout` returning `[(annual_star, monthly_star); 9]` per palace.
 - [x] **FS-09**: User-of-evidence can find per-sub-star `ReasoningEvidenceEnvelope` entries (separate envelopes for Vận, Niên, Nguyệt) plus a composite `rule.composite.flying_stars` envelope on aggregate outputs.
 - [ ] **FS-10**: User-of-validation can find a Phi Tinh golden dataset with ≥ 10 dates per Vận, ≥ 2 reference sources per case, *Thẩm Thị Huyền Không Học* as tiebreaker, and `KnownDivergence` entries logged (not silently corrected).
 
@@ -113,7 +113,7 @@
 | FS-05 | Phase 13 | Complete |
 | FS-06 | Phase 13 | Complete |
 | FS-07 | Phase 13 | Complete |
-| FS-08 | Phase 13 | Pending |
+| FS-08 | Phase 13 | Complete |
 | FS-09 | Phase 13 | Complete |
 | FS-10 | Phase 13 | Pending |
 | FS-11 | Phase 14 | Pending |
