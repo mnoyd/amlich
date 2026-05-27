@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T18:31:38.110Z"
+last_updated: "2026-05-27T18:37:02.877Z"
 progress:
   total_phases: 19
   completed_phases: 18
   total_plans: 51
-  completed_plans: 49
+  completed_plans: 50
 ---
 
 # Project State
@@ -23,10 +23,10 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
-Phase: 14 (Phi Tinh 81-cell Aspects + Safety Hints) — In Progress (1/3 plans)
-Plan: 14-01 complete (aspects.rs types+loader+validator; flying_star_aspects.json 81 ordered pairs; lookup_star_pair_aspect + compute_palace_aspects)
-Status: FS-11/FS-12/FS-13 complete. Phase 14 plan 14-02 (safety hints) is next.
-Last activity: 2026-05-28 — 14-01 complete: StarPairAspect/FsCitation/FsConfidenceTier; 81-cell corpus JSON; lookup_star_pair_aspect order-sensitive; compute_palace_aspects delegates to combined overlay; FS-11/FS-12/FS-13 marked complete
+Phase: 14 (Phi Tinh 81-cell Aspects + Safety Hints) — In Progress (2/3 plans)
+Plan: 14-02 complete (safety.rs is_danger_palace+RemedyHint+element_hint_for_palace; flying_stars_safety.json 4-row corpus; FS-14/FS-15 complete)
+Status: FS-11/FS-12/FS-13/FS-14/FS-15 complete. Phase 14 plan 14-03 (no-product-names validation + final checks) is next.
+Last activity: 2026-05-28 — 14-02 complete: is_danger_palace predicate; RemedyHint type reusing FsCitation; element_hint_for_palace OnceLock loader; 4-row safety JSON corpus (stars 2/3/5/7); FS-14/FS-15 marked complete
 
 Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 done)
 
@@ -89,6 +89,7 @@ Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 do
 | Phase 13-phi-tinh-primitives-period-annual-monthly P03 | 2 | 1 tasks | 2 files |
 | Phase 13-phi-tinh-primitives-period-annual-monthly P04 | 6 | 2 tasks | 4 files |
 | Phase 14-phi-tinh-81-cell-aspects-safety-hints P01 | 4 | 2 tasks | 3 files |
+| Phase 14-phi-tinh-81-cell-aspects-safety-hints P02 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -190,6 +191,9 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: lookup_star_pair_aspect returns owned StarPairAspect (not Option) — validator guarantees all 81 pairs exist; mirrors star_metadata panic discipline
 - [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: 6 primary classical overrides: (1,6)/(6,1) Kim-Thuy auspicious, (8,9)/(9,8) Tho-Hoa Van 9 auspicious, (2,5)/(5,2) double-earth danger inauspicious; confidence=primary; 75 remaining=synthesized
 - [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: Danger-star override: any pair containing star 2 (Nhi Hac) or star 5 (Ngu Hoang) is inauspicious regardless of element relation
+- [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: is_danger_palace is a free function (not a method on frozen FlyingStar) — types.rs untouched per PITFALLS Pitfall 1
+- [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: RemedyHint reuses FsCitation from aspects.rs (intra-fengshui-pillar reuse); NOT cross-pillar rituals coupling per PITFALLS Pitfall 4
+- [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: 4-row safety corpus: stars 2(kim), 3(hoa), 5(kim), 7(thuy) — classical Ngu Hanh drain logic; auspicious stars 1/4/6/8/9 return None
 
 ### Research Insights (from research/SUMMARY.md)
 
@@ -231,14 +235,14 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-27T18:30:28Z
-Stopped at: Completed 14-01-PLAN.md (aspects.rs types+loader+validator; flying_star_aspects.json 81 ordered pairs; lookup_star_pair_aspect+compute_palace_aspects; FS-11/FS-12/FS-13 complete).
+Last session: 2026-05-27T18:36:08Z
+Stopped at: Completed 14-02-PLAN.md (safety.rs is_danger_palace+RemedyHint+element_hint_for_palace; flying_stars_safety.json 4-row corpus; FS-14/FS-15 complete).
 Resume file: None
 
 ### Active TODOs
 
 - Phase 12 plan 12-03 (wave 2) — wire loader to read per-category files via include_str! constants (only remaining Phase 12 plan).
-- Phase 14 (Phi Tinh Aspects + Safety Hints, FS-11..15) ready to begin.
+- Phase 14 plan 14-03 (no-product-names validation + final Phase 14 checks) is the last plan in Phase 14.
 
 ### Context Handoff
 

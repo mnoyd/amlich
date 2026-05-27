@@ -58,8 +58,8 @@
 
 ### P4 Phi Tinh — Safety / Cures (advisory only)
 
-- [ ] **FS-14**: User can find an `is_danger_palace()` predicate on `FlyingStar` (true for Ngũ Hoàng and Nhị Hắc per classical tradition).
-- [ ] **FS-15**: User can call `element_hint_for_palace(star: FlyingStar) -> Option<RemedyHint>` returning a Ngũ-Hành mitigation hint (kim/mộc/thủy/hỏa/thổ) with classical citation — **never** product names.
+- [x] **FS-14**: User can find an `is_danger_palace()` predicate on `FlyingStar` (true for Ngũ Hoàng and Nhị Hắc per classical tradition).
+- [x] **FS-15**: User can call `element_hint_for_palace(star: FlyingStar) -> Option<RemedyHint>` returning a Ngũ-Hành mitigation hint (kim/mộc/thủy/hỏa/thổ) with classical citation — **never** product names.
 
 ### Integration
 
@@ -119,8 +119,8 @@
 | FS-11 | Phase 14 | Complete |
 | FS-12 | Phase 14 | Complete |
 | FS-13 | Phase 14 | Complete |
-| FS-14 | Phase 14 | Pending |
-| FS-15 | Phase 14 | Pending |
+| FS-14 | Phase 14 | Complete |
+| FS-15 | Phase 14 | Complete |
 | INT-01 | Phase 15 | Pending |
 | INT-02 | Phase 15 | Pending |
 | INT-03 | Phase 15 | Pending |
