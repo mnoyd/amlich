@@ -28,10 +28,10 @@
 
 ### P1 Văn khấn — Corpus Authoring (Editorial)
 
-- [ ] **RIT-09**: User can find at least **60 ritual entries** in the shipped corpus, spread across ≤ 14 per-event-category JSON files plus a `manifest.json`.
-- [ ] **RIT-10**: User can verify every ritual entry carries `source_id: "vn-folk-ritual"`, an `original_citation` (book + page), and a `confidence` tier (`primary` / `regional-variant` / `synthesized`).
+- [x] **RIT-09**: User can find at least **60 ritual entries** in the shipped corpus, spread across ≤ 14 per-event-category JSON files plus a `manifest.json`.
+- [x] **RIT-10**: User can verify every ritual entry carries `source_id: "vn-folk-ritual"`, an `original_citation` (book + page), and a `confidence` tier (`primary` / `regional-variant` / `synthesized`).
 - [ ] **RIT-11**: User can find a per-entry `provenance_audit.md` ledger documenting which classical reference each entry was drawn from and which independent reviewer confirmed the citation.
-- [ ] **RIT-12**: User can find ritual **variants** for at least 4 events (e.g., Tết Nguyên Đán: simple / full / Buddhist / folk) — all sharing the same `event_type` with a discriminating `variant` field on `RitualEntry`.
+- [x] **RIT-12**: User can find ritual **variants** for at least 4 events (e.g., Tết Nguyên Đán: simple / full / Buddhist / folk) — all sharing the same `event_type` with a discriminating `variant` field on `RitualEntry`.
 - [ ] **RIT-13**: User-of-schema can rely on a reserved `body_en: Option<String>` field on `RitualEntry` (English content authoring deferred to a future milestone — schema reservation only).
 
 ### P4 Phi Tinh — Primitives & Period
@@ -101,10 +101,10 @@
 | RIT-06 | Phase 11 | Complete |
 | RIT-07 | Phase 11 | Complete |
 | RIT-08 | Phase 11 | Complete |
-| RIT-09 | Phase 12 | Pending |
-| RIT-10 | Phase 12 | Pending |
+| RIT-09 | Phase 12 | Complete |
+| RIT-10 | Phase 12 | Complete |
 | RIT-11 | Phase 12 | Pending |
-| RIT-12 | Phase 12 | Pending |
+| RIT-12 | Phase 12 | Complete |
 | RIT-13 | Phase 12 | Pending |
 | FS-01 | Phase 13 | Pending |
 | FS-02 | Phase 13 | Pending |

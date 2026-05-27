@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-26T16:59:17.557Z"
+last_updated: "2026-05-27T16:27:36.302Z"
 progress:
-  total_phases: 16
+  total_phases: 17
   completed_phases: 16
-  total_plans: 40
-  completed_plans: 40
+  total_plans: 44
+  completed_plans: 41
 ---
 
 # Project State
@@ -23,10 +23,10 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
-Phase: 11 (Văn khấn Module + Lookup APIs) — COMPLETE
-Plan: 11-01, 11-02, 11-03, 11-04 all complete (waves 1-4)
-Status: 11-04 complete (6 black-box integration tests at tests/rituals_integration.rs; fixed Always-needle matcher asymmetry; 597 lib tests + integration tests pass)
-Last activity: 2026-05-26 — 11-04 complete: integration tests landed; Phase 11 closed; Phase 12 (corpus authoring) or Phase 13 (Phi Tinh) may start next
+Phase: 12 (Văn khấn Corpus Authoring) — In Progress (1/4 plans complete)
+Plan: 12-01 complete (wave 1 — 26 ritual entries across 6 spring/summer JSON files)
+Status: 12-01 complete (tet-nguyen-dan 4 variants, doan-ngo 3 variants, nguyen-tieu 5 variants, han-thuc 5 variants, thanh-minh 5 entries, phat-dan 4 entries; zero Han chars; all integration test anchor ritual_ids preserved)
+Last activity: 2026-05-27 — 12-01 complete: corpus batch 1 (spring/summer festivals) shipped; plans 12-02 (autumn/winter + life events) and 12-03 (loader wiring) to follow
 
 Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 done)
 
@@ -79,6 +79,7 @@ Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 do
 | Phase 11 P02 | 3min | 2 tasks (RED+GREEN) | 2 files |
 | Phase 11 P03 | 2min | 2 tasks | 2 files |
 | Phase 11 P04 | 2min | 1 task | 2 files |
+| Phase 12 P01 | 9 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -156,6 +157,8 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - **Lo Shu invariants enforced at load** — Vận tables validated for sum=45, each 1-9 once, center=Vận (PITFALLS CRIT-4).
 - **Additive-only DTO modifications** — all new `DaySnapshot`/`DayFortune` fields are `Option<T>` with `#[serde(default, skip_serializing_if = "Option::is_none")]` (v1.2 precedent; PITFALLS MOD-6).
 - **Two new source_ids registered** — `vn-folk-ritual` and `huyen-khong`, each with module-level `pub const SOURCE_*` to prevent typo-minted fake sources (DEC-0015/0016).
+- [Phase 12]: thanh-minh entries use solar_term key exclusively — no holiday_id consistent with holidays.rs:177 None assignment
+- [Phase 12]: Corpus batch 1 expanded entries to 5 per file for Nguyên Tiêu, Hàn Thực, Thanh Minh to reach >=26 total; RIT-12 coverage broadened to 4 multi-variant events
 
 ### Research Insights (from research/SUMMARY.md)
 
@@ -197,13 +200,14 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-26T16:53:08Z
-Stopped at: Completed 11-04-PLAN.md (Phase 11 wave 4 — 6 black-box integration tests at tests/rituals_integration.rs; auto-fixed Always-needle matcher symmetry; 597 lib tests + 6 new integration tests pass; Phase 11 closes).
+Last session: 2026-05-27T16:26:36Z
+Stopped at: Completed 12-01-PLAN.md (Phase 12 wave 1 — 26 ritual entries across 6 spring/summer JSON files; tet-nguyen-dan 4 variants, doan-ngo 3 variants, nguyen-tieu 5 variants, han-thuc 5 variants, thanh-minh 5 entries, phat-dan 4 entries; all integration test anchor ritual_ids preserved; zero Han chars).
 Resume file: None
 
 ### Active TODOs
 
-- Phase 12 (Văn khấn Corpus Authoring) — author RIT-09..13 entries against the locked schema and the matcher's known behaviors.
+- Phase 12 plan 12-02 — author autumn/winter festivals + life events corpus batch.
+- Phase 12 plan 12-03 (wave 2) — wire loader to read per-category files via include_str! constants.
 - Phase 13 (Phi Tinh Primitives) may run concurrently — no shared code paths with Phase 12.
 
 ### Context Handoff
