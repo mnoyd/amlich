@@ -55,15 +55,17 @@ pub const THU: [&str; 7] = [
     "Thứ Bảy",
 ];
 
+use serde::{Deserialize, Serialize};
+
 /// Represents the Ngũ Hành (Five Elements) for both Can and Chi
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NguHanh {
     pub can: String,
     pub chi: String,
 }
 
 /// Represents a Can Chi combination with full information
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CanChi {
     pub can_index: usize,
     pub chi_index: usize,

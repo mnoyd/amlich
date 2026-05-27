@@ -117,7 +117,7 @@ pub fn get_leap_month_offset(a11: i32, time_zone: f64) -> i32 {
 }
 
 /// Lunar date representation
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct LunarDate {
     pub day: i32,
     pub month: i32,

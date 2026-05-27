@@ -15,7 +15,7 @@ use crate::sun::sun_longitude;
 use std::f64::consts::PI;
 
 /// Information about a solar term
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct SolarTerm {
     pub index: usize,
     pub name: String,

@@ -12,7 +12,7 @@
 use crate::types::CHI;
 
 /// Star type (good or bad)
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum StarType {
     Good,
     Bad,
@@ -134,7 +134,7 @@ pub fn get_hour_time_range(chi_index: usize) -> &'static str {
 }
 
 /// Information about a single hour
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct HourInfo {
     pub hour_index: usize,
     pub hour_chi: String,
@@ -146,7 +146,7 @@ pub struct HourInfo {
 }
 
 /// Complete information about auspicious hours for a day
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct GioHoangDao {
     pub day_chi_index: usize,
     pub day_chi: String,

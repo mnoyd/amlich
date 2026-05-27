@@ -104,7 +104,9 @@ use julian::jd_from_date;
 use lunar::{convert_solar_to_lunar, LunarDate};
 use tietkhi::{get_tiet_khi, SolarTerm};
 
-#[derive(Debug, Clone)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SolarDate {
     pub day: i32,
     pub month: i32,
@@ -112,14 +114,14 @@ pub struct SolarDate {
     pub day_of_week: usize,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CanChiSet {
     pub day: CanChi,
     pub month: CanChi,
     pub year: CanChi,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DayContext {
     pub solar: SolarDate,
     pub lunar: LunarDate,
@@ -130,7 +132,7 @@ pub struct DayContext {
     pub gio_hoang_dao: GioHoangDao,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DaySnapshot {
     pub ruleset_id: String,
     pub ruleset_version: String,
