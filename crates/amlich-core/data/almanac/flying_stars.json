@@ -1,0 +1,76 @@
+{
+  "stars": [
+    {
+      "number": 1,
+      "slug": "nhat_bach",
+      "name_vi": "Nhất Bạch",
+      "element": "water",
+      "polarity": "duong",
+      "auspice": "auspicious"
+    },
+    {
+      "number": 2,
+      "slug": "nhi_hac",
+      "name_vi": "Nhị Hắc",
+      "element": "earth",
+      "polarity": "am",
+      "auspice": "inauspicious"
+    },
+    {
+      "number": 3,
+      "slug": "tam_bich",
+      "name_vi": "Tam Bích",
+      "element": "wood",
+      "polarity": "duong",
+      "auspice": "inauspicious"
+    },
+    {
+      "number": 4,
+      "slug": "tu_luc",
+      "name_vi": "Tứ Lục",
+      "element": "wood",
+      "polarity": "am",
+      "auspice": "auspicious"
+    },
+    {
+      "number": 5,
+      "slug": "ngu_hoang",
+      "name_vi": "Ngũ Hoàng",
+      "element": "earth",
+      "polarity": "neutral",
+      "auspice": "inauspicious"
+    },
+    {
+      "number": 6,
+      "slug": "luc_bach",
+      "name_vi": "Lục Bạch",
+      "element": "metal",
+      "polarity": "duong",
+      "auspice": "auspicious"
+    },
+    {
+      "number": 7,
+      "slug": "that_xich",
+      "name_vi": "Thất Xích",
+      "element": "metal",
+      "polarity": "am",
+      "auspice": "inauspicious"
+    },
+    {
+      "number": 8,
+      "slug": "bat_bach",
+      "name_vi": "Bát Bạch",
+      "element": "earth",
+      "polarity": "duong",
+      "auspice": "auspicious"
+    },
+    {
+      "number": 9,
+      "slug": "cuu_tu",
+      "name_vi": "Cửu Tử",
+      "element": "fire",
+      "polarity": "am",
+      "auspice": "auspicious"
+    }
+  ]
+}
