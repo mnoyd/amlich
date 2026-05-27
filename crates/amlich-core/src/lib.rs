@@ -295,6 +295,18 @@ mod tests {
     use super::*;
 
     #[test]
+    fn day_snapshot_serde_round_trip() {
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
+        let json = serde_json::to_string(&snapshot).expect("serialization failed");
+        let roundtripped: DaySnapshot = serde_json::from_str(&json).expect("deserialization failed");
+        assert_eq!(roundtripped.ruleset_id, snapshot.ruleset_id);
+        assert_eq!(roundtripped.profile, snapshot.profile);
+        assert_eq!(roundtripped.context.solar.day, snapshot.context.solar.day);
+        assert_eq!(roundtripped.context.solar.month, snapshot.context.solar.month);
+        assert_eq!(roundtripped.context.solar.year, snapshot.context.solar.year);
+    }
+
+    #[test]
     fn compute_day_context_exposes_structured_calendar_facts() {
         let context = compute_day_context(10, 2, 2024, VIETNAM_TIMEZONE);
 
