@@ -1,0 +1,49 @@
+{
+  "tables": [
+    {
+      "van": 1,
+      "palaces": [6, 7, 8, 9, 1, 2, 3, 4, 5],
+      "_comment": "Palace order: N SW E SE Center NW W NE S. Center=1(NhatBach). Flying thuận from Center: NW(2) W(3) NE(4) S(5) N(6) SW(7) E(8) SE(9)."
+    },
+    {
+      "van": 2,
+      "palaces": [7, 8, 9, 1, 2, 3, 4, 5, 6],
+      "_comment": "Center=2(NhiHac). Flying thuận from Center: NW(3) W(4) NE(5) S(6) N(7) SW(8) E(9) SE(1)."
+    },
+    {
+      "van": 3,
+      "palaces": [8, 9, 1, 2, 3, 4, 5, 6, 7],
+      "_comment": "Center=3(TamBich). Flying thuận from Center: NW(4) W(5) NE(6) S(7) N(8) SW(9) E(1) SE(2)."
+    },
+    {
+      "van": 4,
+      "palaces": [9, 1, 2, 3, 4, 5, 6, 7, 8],
+      "_comment": "Center=4(TuLuc). Flying thuận from Center: NW(5) W(6) NE(7) S(8) N(9) SW(1) E(2) SE(3)."
+    },
+    {
+      "van": 5,
+      "palaces": [1, 2, 3, 4, 5, 6, 7, 8, 9],
+      "_comment": "Center=5(NguHoang). Flying thuận from Center: NW(6) W(7) NE(8) S(9) N(1) SW(2) E(3) SE(4)."
+    },
+    {
+      "van": 6,
+      "palaces": [2, 3, 4, 5, 6, 7, 8, 9, 1],
+      "_comment": "Center=6(LucBach). Flying thuận from Center: NW(7) W(8) NE(9) S(1) N(2) SW(3) E(4) SE(5)."
+    },
+    {
+      "van": 7,
+      "palaces": [3, 4, 5, 6, 7, 8, 9, 1, 2],
+      "_comment": "Center=7(ThatXich). Flying thuận from Center: NW(8) W(9) NE(1) S(2) N(3) SW(4) E(5) SE(6)."
+    },
+    {
+      "van": 8,
+      "palaces": [4, 5, 6, 7, 8, 9, 1, 2, 3],
+      "_comment": "Center=8(BatBach). Flying thuận from Center: NW(9) W(1) NE(2) S(3) N(4) SW(5) E(6) SE(7)."
+    },
+    {
+      "van": 9,
+      "palaces": [5, 6, 7, 8, 9, 1, 2, 3, 4],
+      "_comment": "Center=9(CuuTu). Flying thuận from Center: NW(1) W(2) NE(3) S(4) N(5) SW(6) E(7) SE(8)."
+    }
+  ]
+}
