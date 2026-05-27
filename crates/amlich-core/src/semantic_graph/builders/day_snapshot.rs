@@ -2,6 +2,7 @@ use crate::semantic_graph::{
     EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, ProvenanceSource, SemanticEdge,
     SemanticGraph, SemanticId, SemanticNode,
 };
+use crate::sources::{SOURCE_HUYEN_KHONG, SOURCE_VN_FOLK_RITUAL};
 use crate::DaySnapshot;
 
 pub struct DaySnapshotGraphBuilder {
@@ -407,6 +408,9 @@ impl DaySnapshotGraphBuilder {
             travel.xuat_hanh_huong, travel.tai_than, travel.hy_than
         );
 
+        let huyen_khong_prov =
+            ProvenanceEntry::almanac_rule(SOURCE_HUYEN_KHONG, "phi_tinh.direction_overlap");
+
         let node = SemanticNode::new(
             SemanticId::new("direction", format!("travel:day:{}:all", self.tz_suffix)),
             NodeConcept::Direction,
@@ -418,7 +422,8 @@ impl DaySnapshotGraphBuilder {
             travel.tai_than.clone(),
             travel.hy_than.clone(),
         ])
-        .with_provenance(provenance);
+        .with_provenance(provenance)        // existing khcbppt-family entry
+        .with_provenance(huyen_khong_prov); // NEW — INT-04 multi-source
 
         self.graph.add_node(node);
 
@@ -676,6 +681,33 @@ mod tests {
             node_ids.len(),
             unique_ids.len(),
             "node IDs should be unique"
+        );
+    }
+
+    #[test]
+    fn direction_node_carries_dual_provenance_khcbppt_and_huyen_khong() {
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
+        let graph = build_day_snapshot_graph(&snapshot);
+
+        // The Direction node has a fixed id
+        let direction_id = SemanticId::new("direction", "travel:day:+7:all").to_node_id();
+        let node = graph
+            .nodes()
+            .get(&direction_id)
+            .expect("Direction node must exist");
+
+        assert_eq!(
+            node.provenance.len(),
+            2,
+            "Direction node must carry exactly 2 provenance entries (khcbppt-family + huyen-khong); got: {:?}",
+            node.provenance
+        );
+
+        let source_ids: Vec<&str> = node.provenance.iter().map(|p| p.source_id.as_str()).collect();
+        assert!(
+            source_ids.contains(&"huyen-khong"),
+            "Direction node must have a huyen-khong provenance entry; got: {:?}",
+            source_ids
         );
     }
 }
