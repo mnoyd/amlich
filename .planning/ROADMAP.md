@@ -29,7 +29,7 @@
 - [x] **Phase 12: Văn khấn Corpus Authoring** - Author ≥60 entries across ≤14 per-event-category JSON files with full provenance audit and 4+ event-variant coverage. (completed 2026-05-27)
 - [x] **Phase 13: Phi Tinh Primitives + Period + Annual/Monthly** - Ship `almanac/fengshui/` with Lo Shu validators, Vận 7-9 tables, and annual/monthly/combined layout APIs. (completed 2026-05-27)
 - [x] **Phase 14: Phi Tinh 81-cell Aspects + Safety Hints** - Digitize the 81 star-pair aspects from *Thẩm Thị Huyền Không Học* and ship the advisory danger/element-hint APIs. (completed 2026-05-27)
-- [ ] **Phase 15: Semantic Graph Wiring + DTO Integration + E2E Validation** - Add `Ritual` and `FlyingStar` node concepts, wire additive `DaySnapshot` fields, run 2026 smoke + v1.4 round-trip.
+- [x] **Phase 15: Semantic Graph Wiring + DTO Integration + E2E Validation** - Add `Ritual` and `FlyingStar` node concepts, wire additive `DaySnapshot` fields, run 2026 smoke + v1.4 round-trip. (completed 2026-05-27)
 
 ## Phase Details
 
@@ -170,7 +170,7 @@ Plans:
 | 12. Văn khấn Corpus Authoring | 4/4 | Complete    | 2026-05-27 |
 | 13. Phi Tinh Primitives + Period + Annual/Monthly | 4/4 | Complete    | 2026-05-27 |
 | 14. Phi Tinh 81-cell Aspects + Safety Hints | 3/3 | Complete    | 2026-05-27 |
-| 15. Semantic Graph Wiring + DTO Integration + E2E Validation | 2/4 | In Progress|  |
+| 15. Semantic Graph Wiring + DTO Integration + E2E Validation | 4/4 | Complete   | 2026-05-27 |
 
 ## Requirement Coverage
 

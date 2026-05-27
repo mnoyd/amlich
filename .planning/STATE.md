@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T19:09:50.803Z"
+last_updated: "2026-05-27T19:14:50.631Z"
 progress:
   total_phases: 20
-  completed_phases: 19
+  completed_phases: 20
   total_plans: 55
-  completed_plans: 53
+  completed_plans: 55
 ---
 
 # Project State
@@ -94,6 +94,8 @@ Progress: [████░░░░░░] 50% (3/6 phases complete; Phase 11+13
 | Phase 14-phi-tinh-81-cell-aspects-safety-hints P03 | 2 | 2 tasks | 1 files |
 | Phase 15 P02 | 5 | 2 tasks | 3 files |
 | Phase 15-semantic-graph-wiring-dto-integration-e2e-validation P01 | 5 | 2 tasks | 5 files |
+| Phase 15 P04 | 137 | 2 tasks | 2 files |
+| Phase 15 P03 | 2 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -204,6 +206,11 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - [Phase 15-semantic-graph-wiring-dto-integration-e2e-validation]: FlyingStarsSummary DTO uses crate::almanac::fengshui::types::FlyingStar path — FlyingStar is not re-exported from fengshui mod.rs directly
 - [Phase 15-semantic-graph-wiring-dto-integration-e2e-validation]: Additive DaySnapshot fields: Option<T> + skip_serializing_if for backward compat (INT-05); build-then-mutate pattern for two-pass population
 - [Phase 15-semantic-graph-wiring-dto-integration-e2e-validation]: No deny_unknown_fields on DaySnapshot — lenient deserialization required for additive forward compat per INT-05
+- [Phase 15]: INT-05 uses None-fielded clone to simulate v1.4 producer payload — exercises serde(default) path without fragile string manipulation
+- [Phase 15]: INT-06 date-set built programmatically via jd cursor over 2026 — Soc/Vong collection by (lunar_month, is_leap) dedup key; leap month 6 via Jun-Sep window scan
+- [Phase 15]: Dual provenance via .with_provenance() chaining on Direction node — second add_node would overwrite HashMap entry
+- [Phase 15]: OccupiesPalace edge always fires from FlyingStar to Direction node (Direction always exists in builder)
+- [Phase 15]: PrescribedFor edge direction: ritual -> day_root (ritual prescribed FOR the day)
 
 ### Research Insights (from research/SUMMARY.md)
 
