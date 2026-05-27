@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T17:05:26.769Z"
+last_updated: "2026-05-27T17:11:05.259Z"
 progress:
   total_phases: 18
   completed_phases: 17
   total_plans: 48
-  completed_plans: 45
+  completed_plans: 46
 ---
 
 # Project State
@@ -85,6 +85,7 @@ Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 do
 | Phase 12 P04 | 5 | 1 tasks | 1 files |
 | Phase 12 P03 | 3 | 2 tasks | 3 files |
 | Phase 13 P01 | 4 | 2 tasks | 6 files |
+| Phase 13-phi-tinh-primitives-period-annual-monthly P02 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,8 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - [Phase 13]: Lo Shu invariants at load: validate_van_table() panics on sum≠45, duplicates, or center≠van — catches JSON typos at startup (CRIT-4)
 - [Phase 13]: van_for_solar_year formula: ((y-1864)/20)+1 clamped 1..=9; Vận 8=2004-2023, Vận 9=2024-2043
 - [Phase 13]: Base palace table: Lo Shu thuận path Center->NW->W->NE->S->N->SW->E->SE; palaces[4]=van, palaces[0]=van+5, etc.
+- [Phase 13]: fill_palaces pub(crate) in annual.rs, imported by monthly.rs — single Lo Shu spiral implementation shared by annual/monthly layers, no copy-paste divergence
+- [Phase 13]: YearPolarity enum (not bool flag) per ADR-0003; nien_center anchored 2024→4 via rem_euclid formula; pre-1984 years annotated confidence=medium in evidence
 
 ### Research Insights (from research/SUMMARY.md)
 
@@ -216,8 +219,8 @@ None active. All prior blockers (Kua convention, person-context input, backward 
 
 ## Session Continuity
 
-Last session: 2026-05-27T16:35:00Z
-Stopped at: Completed 12-04-PLAN.md (RIT-11 provenance audit ledger: 60 unique ritual_ids across 13 event categories; classical reference + page + confidence + reviewer (pending) per entry; 4 classical works enumerated; 1:1 coverage verified).
+Last session: 2026-05-27T17:09:48Z
+Stopped at: Completed 13-02-PLAN.md (annual.rs: compute_yearly_flying_stars + YearPolarity + nien_center + fill_palaces(pub(crate)); monthly.rs: compute_monthly_flying_stars + month_group + monthly_center; fill_palaces shared; 36 tests all green; FS-06, FS-07, FS-09 complete).
 Resume file: None
 
 ### Active TODOs
