@@ -399,4 +399,24 @@ mod tests {
 
         assert_eq!(err, "unknown recommendation pack id: pack.unknown.v1");
     }
+
+    #[test]
+    fn day_snapshot_populates_additive_surfaces() {
+        let snapshot = calculate_day_snapshot(17, 2, 2026);
+
+        // flying_stars must be populated
+        let fs = snapshot.flying_stars.as_ref().expect("flying_stars must be Some");
+        assert_eq!(fs.palace_overlays.len(), 9);
+
+        // applicable_rituals must be populated (may be empty vec but not None)
+        assert!(snapshot.applicable_rituals.is_some());
+
+        // When fields are None, they must not appear in serialized JSON
+        let mut none_snapshot = snapshot.clone();
+        none_snapshot.flying_stars = None;
+        none_snapshot.applicable_rituals = None;
+        let json = serde_json::to_string(&none_snapshot).expect("serialization failed");
+        assert!(!json.contains("\"flying_stars\""), "flying_stars must not appear in JSON when None");
+        assert!(!json.contains("\"applicable_rituals\""), "applicable_rituals must not appear in JSON when None");
+    }
 }
