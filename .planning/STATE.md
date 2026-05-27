@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T16:39:13.913Z"
+last_updated: "2026-05-27T17:05:26.769Z"
 progress:
-  total_phases: 17
+  total_phases: 18
   completed_phases: 17
-  total_plans: 44
-  completed_plans: 44
+  total_plans: 48
+  completed_plans: 45
 ---
 
 # Project State
@@ -84,6 +84,7 @@ Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 do
 | Phase 12-van-khan-corpus-authoring P04 | 5 | 1 task | 1 file |
 | Phase 12 P04 | 5 | 1 tasks | 1 files |
 | Phase 12 P03 | 3 | 2 tasks | 3 files |
+| Phase 13 P01 | 4 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -170,6 +171,10 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - [Phase 12]: Provenance reviewer field set to pending for all 60 entries per research Q4; peer review deferred post-v1.5 but citation coordinates enable future independent review
 - [Phase 12]: fixtures.json absorbed (deleted): all 6 ritual_ids confirmed migrated to category files in 12-01/12-02; no 14th file needed
 - [Phase 12]: Multi-file include_str! loader pattern: one const per file, ALL_CORPUS_JSONS array, loop-merge in OnceLock initializer; manifest.json is documentation-only artifact
+- [Phase 13]: Lập Xuân CRIT-2 fix: compute_period uses jd<lap_xuan_jd to determine effective_year (never year>=2024 naive check)
+- [Phase 13]: Lo Shu invariants at load: validate_van_table() panics on sum≠45, duplicates, or center≠van — catches JSON typos at startup (CRIT-4)
+- [Phase 13]: van_for_solar_year formula: ((y-1864)/20)+1 clamped 1..=9; Vận 8=2004-2023, Vận 9=2024-2043
+- [Phase 13]: Base palace table: Lo Shu thuận path Center->NW->W->NE->S->N->SW->E->SE; palaces[4]=van, palaces[0]=van+5, etc.
 
 ### Research Insights (from research/SUMMARY.md)
 

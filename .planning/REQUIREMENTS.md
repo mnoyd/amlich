@@ -36,11 +36,11 @@
 
 ### P4 Phi Tinh — Primitives & Period
 
-- [ ] **FS-01**: User can call `compute_period(year: i32, term_scanner: &TietKhiScanner) -> Period` returning the active Vận accounting for Lập Xuân, not Jan 1.
-- [ ] **FS-02**: User can rely on a `Palace` enum with canonical Lo Shu numbering (N=1, NE=8, E=3, SE=4, S=9, SW=2, W=7, NW=6, Center=5) and a static `palace_to_direction()` mapping.
-- [ ] **FS-03**: User can rely on a `FlyingStar` enum (NhatBach=1 … CuuTu=9) with associated element + polarity + auspice metadata loaded from `data/almanac/flying_stars.json`.
-- [ ] **FS-04**: User-of-Phi-Tinh can be confident every base palace table (Vận 1-9) is validated at load by Lo Shu invariants (sum=45, each 1-9 once, center = Vận number).
-- [ ] **FS-05**: User can find Vận 7 (1984–2003), Vận 8 (2004–2023), and Vận 9 (2024–2043) all populated and golden-tested at boundary instants.
+- [x] **FS-01**: User can call `compute_period(year: i32, term_scanner: &TietKhiScanner) -> Period` returning the active Vận accounting for Lập Xuân, not Jan 1.
+- [x] **FS-02**: User can rely on a `Palace` enum with canonical Lo Shu numbering (N=1, NE=8, E=3, SE=4, S=9, SW=2, W=7, NW=6, Center=5) and a static `palace_to_direction()` mapping.
+- [x] **FS-03**: User can rely on a `FlyingStar` enum (NhatBach=1 … CuuTu=9) with associated element + polarity + auspice metadata loaded from `data/almanac/flying_stars.json`.
+- [x] **FS-04**: User-of-Phi-Tinh can be confident every base palace table (Vận 1-9) is validated at load by Lo Shu invariants (sum=45, each 1-9 once, center = Vận number).
+- [x] **FS-05**: User can find Vận 7 (1984–2003), Vận 8 (2004–2023), and Vận 9 (2024–2043) all populated and golden-tested at boundary instants.
 
 ### P4 Phi Tinh — Annual & Monthly Computation
 
@@ -106,11 +106,11 @@
 | RIT-11 | Phase 12 | Complete |
 | RIT-12 | Phase 12 | Complete |
 | RIT-13 | Phase 12 | Complete |
-| FS-01 | Phase 13 | Pending |
-| FS-02 | Phase 13 | Pending |
-| FS-03 | Phase 13 | Pending |
-| FS-04 | Phase 13 | Pending |
-| FS-05 | Phase 13 | Pending |
+| FS-01 | Phase 13 | Complete |
+| FS-02 | Phase 13 | Complete |
+| FS-03 | Phase 13 | Complete |
+| FS-04 | Phase 13 | Complete |
+| FS-05 | Phase 13 | Complete |
 | FS-06 | Phase 13 | Pending |
 | FS-07 | Phase 13 | Pending |
 | FS-08 | Phase 13 | Pending |
