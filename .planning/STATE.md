@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T19:09:00.633Z"
+last_updated: "2026-05-27T19:09:50.803Z"
 progress:
   total_phases: 20
   completed_phases: 19
   total_plans: 55
-  completed_plans: 52
+  completed_plans: 53
 ---
 
 # Project State
@@ -93,6 +93,7 @@ Progress: [████░░░░░░] 50% (3/6 phases complete; Phase 11+13
 | Phase 14-phi-tinh-81-cell-aspects-safety-hints P03 | 2 | 2 tasks | 1 files |
 | Phase 14-phi-tinh-81-cell-aspects-safety-hints P03 | 2 | 2 tasks | 1 files |
 | Phase 15 P02 | 5 | 2 tasks | 3 files |
+| Phase 15-semantic-graph-wiring-dto-integration-e2e-validation P01 | 5 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -200,6 +201,9 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - [Phase 14-phi-tinh-81-cell-aspects-safety-hints]: FORBIDDEN_PRODUCT_TERMS corpus guard: const &[&str] of commercial patterns scanned case-insensitively against all 9 hints and 81 aspect names; violations collected and asserted empty — standing CI regression gate
 - [Phase 15]: Ritual and FlyingStar assigned to day-core cluster and box shape_hint — day-level content nodes analogous to Activity/Recommendation
 - [Phase 15]: Silent-bug completeness test pattern: hand-maintained GraphOntology static slices require explicit .contains() test; compiler cannot enforce slice membership
+- [Phase 15-semantic-graph-wiring-dto-integration-e2e-validation]: FlyingStarsSummary DTO uses crate::almanac::fengshui::types::FlyingStar path — FlyingStar is not re-exported from fengshui mod.rs directly
+- [Phase 15-semantic-graph-wiring-dto-integration-e2e-validation]: Additive DaySnapshot fields: Option<T> + skip_serializing_if for backward compat (INT-05); build-then-mutate pattern for two-pass population
+- [Phase 15-semantic-graph-wiring-dto-integration-e2e-validation]: No deny_unknown_fields on DaySnapshot — lenient deserialization required for additive forward compat per INT-05
 
 ### Research Insights (from research/SUMMARY.md)
 

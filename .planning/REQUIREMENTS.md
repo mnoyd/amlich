@@ -63,8 +63,8 @@
 
 ### Integration
 
-- [ ] **INT-01**: User-of-`DaySnapshot` can find a new `flying_stars: Option<FlyingStarsSummary>` field (additive, `#[serde(default, skip_serializing_if = "Option::is_none")]`).
-- [ ] **INT-02**: User-of-`DaySnapshot` can find a new ritual-surfacing field (additive, optional) exposing rituals applicable to the day.
+- [x] **INT-01**: User-of-`DaySnapshot` can find a new `flying_stars: Option<FlyingStarsSummary>` field (additive, `#[serde(default, skip_serializing_if = "Option::is_none")]`).
+- [x] **INT-02**: User-of-`DaySnapshot` can find a new ritual-surfacing field (additive, optional) exposing rituals applicable to the day.
 - [x] **INT-03**: User-of-semantic-graph can find new `NodeConcept::Ritual` and `NodeConcept::FlyingStar` variants with `EdgeConcept::PrescribedFor`, `EdgeConcept::OccupiesPalace`, and `EdgeConcept::CarriesElement`.
 - [ ] **INT-04**: User-of-`semantic_graph` can be confident that `FlyingStar` nodes carry **only** `source_id: "huyen-khong"`, ritual nodes carry **only** `source_id: "vn-folk-ritual"`, and a `Direction` node shared between KHCBPPT direction modules and Huyền Không Phi Tinh carries **both** provenance entries (multi-source dedup verified).
 - [ ] **INT-05**: User-of-`DaySnapshot` can load a v1.4 JSON fixture into v1.5 structs and re-serialize without unexpected fields (backward-compat round-trip).
@@ -121,8 +121,8 @@
 | FS-13 | Phase 14 | Complete |
 | FS-14 | Phase 14 | Complete |
 | FS-15 | Phase 14 | Complete |
-| INT-01 | Phase 15 | Pending |
-| INT-02 | Phase 15 | Pending |
+| INT-01 | Phase 15 | Complete |
+| INT-02 | Phase 15 | Complete |
 | INT-03 | Phase 15 | Complete |
 | INT-04 | Phase 15 | Pending |
 | INT-05 | Phase 15 | Pending |
