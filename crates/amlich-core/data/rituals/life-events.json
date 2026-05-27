@@ -1,0 +1,362 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-dong-tho-don-gian",
+      "title_vi": "Van Khan Dong Tho Khoi Cong (Don Gian)",
+      "event_keys": [
+        {"kind": "life_event", "event": "dong_tho"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh"},
+        {"name_vi": "Trai cay", "quantity": "1 mam nho"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chon ngay gio hoang dao de dong tho"},
+        {"order": 2, "description_vi": "Bay le vat tai noi se khoi cong"},
+        {"order": 3, "description_vi": "Thap huong, doc van khan"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, chu Than Tho Cong, Tho Dia. Hom nay gia dinh con xin phep dong tho khoi cong xay dung. Kinh xin Tho Cong Tho Dia noi day cho phep gia dinh con duoc dong tho. Cau cho cong trinh duoc thuan loi, binh an, khong co su co, hoan thanh tot dep.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "118"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-dong-tho",
+      "title_vi": "Van Khan Dong Tho",
+      "event_keys": [
+        {"kind": "life_event", "event": "dong_tho"}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Mam ngu qua", "quantity": "1"},
+        {"name_vi": "Xoi gac", "quantity": "1 dia"},
+        {"name_vi": "Ga luoc", "quantity": "1 con"},
+        {"name_vi": "Ruou trang", "quantity": "1 be"},
+        {"name_vi": "Vang ma", "quantity": "1 bo"},
+        {"name_vi": "Muoi, gao", "quantity": "1 ong moi loai"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chon ngay gio hoang dao"},
+        {"order": 2, "description_vi": "Chuan bi le vat va bay tai noi dong tho"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con xin kinh le Tho Cong, Tho Dia, xin phep dong tho khoi cong.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "120"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-nhap-trach-don-gian",
+      "title_vi": "Van Khan Nhap Trach Ve Nha Moi (Don Gian)",
+      "event_keys": [
+        {"kind": "life_event", "event": "nhap_trach"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh"},
+        {"name_vi": "Trai cay tuoi", "quantity": "1 mam"},
+        {"name_vi": "Muoi, gao, nuoc", "quantity": "moi loai mot it"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chon ngay gio tot de nhap trach"},
+        {"order": 2, "description_vi": "Mang vao nha truoc: nuoi lua (bep gas hoac den nen), muoi gao"},
+        {"order": 3, "description_vi": "Bay le vat tai gian chinh"},
+        {"order": 4, "description_vi": "Thap huong va doc van khan"},
+        {"order": 5, "description_vi": "Ca gia dinh cung nhau buoc vao nha moi"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, Tho Cong, Tho Dia, va cac vi than linh cai quan vung dat nay. Hom nay gia dinh con xin nhap trach ve nha moi tai dia chi nay. Kinh xin cac vi than linh chap thuan va phu ho cho gia dinh con duoc binh an, manh khoe khi ve cuoc song tai noi o moi. Cau cho ngoi nha moi mang lai hanh phuc, may man va thuong thanh cho moi thanh vien trong gia dinh.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "125"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-nhap-trach-day-du",
+      "title_vi": "Van Khan Nhap Trach Ve Nha Moi (Day Du)",
+      "event_keys": [
+        {"kind": "life_event", "event": "nhap_trach"}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "5 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh lon"},
+        {"name_vi": "Mam ngu qua", "quantity": "1 mam"},
+        {"name_vi": "Ga luoc", "quantity": "1 con"},
+        {"name_vi": "Xoi", "quantity": "1 dia"},
+        {"name_vi": "Ruou trang", "quantity": "1 be"},
+        {"name_vi": "Muoi, gao, nuoc", "quantity": "moi loai mot hu nho"},
+        {"name_vi": "Tien vang", "quantity": "1 bo"},
+        {"name_vi": "Nuoc sach", "quantity": "3 chen"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chon ngay gio tot theo am lich, tranh ngay xau"},
+        {"order": 2, "description_vi": "Don dep nha moi that sach se, lau chui cua so, san nha"},
+        {"order": 3, "description_vi": "Truoc khi nhap trach, mang vao nha: bep lua, muoi gao, nuoc sach"},
+        {"order": 4, "description_vi": "Lap ban tho tam thoi tai gian chinh hoac phong tho"},
+        {"order": 5, "description_vi": "Bay day du le vat: mam ngu qua, hoa, huong, ga luoc, xoi"},
+        {"order": 6, "description_vi": "Chu gia dinh mac ao dai trang nghiem, thap 5 nen huong"},
+        {"order": 7, "description_vi": "Doc van khan day du truoc ban tho"},
+        {"order": 8, "description_vi": "Dot tien vang sau khi huong tan"},
+        {"order": 9, "description_vi": "Moi ban be than thich den cung vui mung ve nha moi"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, chu Than chu Thanh. Con xin kinh le Tho Cong, Tho Dia, Long Than, cac vi Than Linh cai quan moi phia Dong Tay Nam Bac, noi nay va vung dat xung quanh. Hom nay la ngay thanh thien gio tot, gia dinh chung con xin nhap trach ve o tai ngoi nha moi toa lac tai dia chi nay. Chung con la nhung nguoi moi den, kinh xin cac vi than linh tai day chap nhan va che chay cho gia dinh chung con. Xin cac vi than linh phu ho cho ngoi nha nay luon duoc am cung, hanh phuc. Cau cho moi thanh vien trong gia dinh duoc song binh an, manh khoe, lam an phat dat, con chau thanh dat. Cau cho ngoi nha la noi an cu lac nghiep cua ca gia dinh, tro nen phu quy me vang. Chung con xin ta on su uu ai cua cac vi than linh va hoa cac buc. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "128"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Le nhap trach day du co them phan cung Tho Dia noi o moi va cau phu ho cho cuoc song tai nha moi. Nen thuc hien vao buoi sang ngay lanh."
+      ]
+    },
+    {
+      "ritual_id": "van-khan-khai-truong-don-gian",
+      "title_vi": "Van Khan Khai Truong Mo Cua Hang (Don Gian)",
+      "event_keys": [
+        {"kind": "life_event", "event": "khai_truong"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh"},
+        {"name_vi": "Trai cay tuoi", "quantity": "1 mam"},
+        {"name_vi": "Ruou trang", "quantity": "1 be nho"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chon ngay gio tot de khai truong"},
+        {"order": 2, "description_vi": "Bay le vat tai ban tho Than Tai hoac noi chinh"},
+        {"order": 3, "description_vi": "Thap huong, doc van khan"},
+        {"order": 4, "description_vi": "Xe bang khai truong va mo cua kinh doanh"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, Than Tai, Tho Dia, Ong Cong. Hom nay gia dinh con xin khai truong co so kinh doanh. Kinh xin cac vi than linh phu ho cho cua hang duoc buon may ban dat, khach hang dong, lam an thuan loi. Cau cho co so kinh doanh duoc phat trien, thu nhap day du, nuoi song ca gia dinh.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "132"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-khai-truong-day-du",
+      "title_vi": "Van Khan Khai Truong Mo Cua Hang (Day Du)",
+      "event_keys": [
+        {"kind": "life_event", "event": "khai_truong"}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "5 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh lon"},
+        {"name_vi": "Mam ngu qua", "quantity": "1 mam"},
+        {"name_vi": "Ga luoc", "quantity": "1 con"},
+        {"name_vi": "Xoi gac do", "quantity": "1 dia"},
+        {"name_vi": "Teo lon", "quantity": "1 con"},
+        {"name_vi": "Ruou trang", "quantity": "1 be"},
+        {"name_vi": "Vang ma, tien vang", "quantity": "1 bo"},
+        {"name_vi": "Bia hoac nuoc ngot", "quantity": "3 chai"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chon ngay gio tot theo am lich, tranh ngay xung"},
+        {"order": 2, "description_vi": "Trang tri cua hang, treo bang hieu, don dep sach se"},
+        {"order": 3, "description_vi": "Dat ban tho Than Tai Tho Dia tai vi tri thieng trong cua hang"},
+        {"order": 4, "description_vi": "Bay day du le vat: mam ngu qua, hoa, huong, ga, xoi do"},
+        {"order": 5, "description_vi": "Thap 5 nen huong, chu co so doc van khan day du"},
+        {"order": 6, "description_vi": "Dot tien vang sau khi huong tan"},
+        {"order": 7, "description_vi": "Xe bang khai truong va mo cua don khach"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, chu Than chu Thanh. Con xin kinh le Than Tai, Tho Dia, Ong Cong Ong Tao, Long Than Tho Dia noi nay. Hom nay la ngay lanh gio tot, gia dinh chung con xin khai truong co so kinh doanh tai noi nay. Chung con kinh dang le vat tinh khiet: ngu qua, hoa, huong, ga, xoi do, ruou de bay to long thanh kinh va cau mong phat tai. Kinh xin cac vi than linh phu ho do tri cho co so kinh doanh cua chung con duoc buon may ban dat, khach hang ra vao dong duc nhu nuoc, lam an phat tai, thu nhap doi dao. Cau cho moi giao dich duoc thuan loi, hang hoa phat hanh nhanh, khong gap su co. Cau cho ca gia dinh chung con nho co so kinh doanh nay ma sung tuc, khong thieu. Chung con xin ta on su phu ho cua cac vi than linh. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "135"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-cuoi-don-gian",
+      "title_vi": "Van Khan Le Cuoi Hoi (Don Gian)",
+      "event_keys": [
+        {"kind": "life_event", "event": "cuoi"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh"},
+        {"name_vi": "Trai cay", "quantity": "1 mam"},
+        {"name_vi": "Nuoc sach", "quantity": "3 chen"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chon ngay gio tot cuoi hoi theo am lich"},
+        {"order": 2, "description_vi": "Bay le vat tai ban tho gia tien nha trai"},
+        {"order": 3, "description_vi": "Thap huong, doc van khan truoc le cuoi"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat. Hom nay gia dinh con to chuc le cuoi hoi cho con trai (con gai). Con xin kinh le to tien noi ngoai, xin phep to chuc hon le. Cau xin to tien va cac vi than linh chung giam, phu ho cho doi uyen uong duoc hanh phuc, bien duyen tron ven, hoa thuan tram nam, con chau day dan.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "140"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-cuoi-day-du",
+      "title_vi": "Van Khan Le Cuoi Hoi (Day Du)",
+      "event_keys": [
+        {"kind": "life_event", "event": "cuoi"}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "5 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh lon"},
+        {"name_vi": "Mam ngu qua", "quantity": "1 mam"},
+        {"name_vi": "Ga luoc", "quantity": "1 con"},
+        {"name_vi": "Xoi", "quantity": "1 xang"},
+        {"name_vi": "Ruou trang", "quantity": "1 be"},
+        {"name_vi": "Tram nut trau", "quantity": "1 khay"},
+        {"name_vi": "Nuoc sach", "quantity": "3 chen"},
+        {"name_vi": "Vang ma", "quantity": "1 bo"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chon ngay gio tot cuoi hoi tu som, tranh ngay tam nhi hon"},
+        {"order": 2, "description_vi": "Don dep ban tho gia tien that sach se"},
+        {"order": 3, "description_vi": "Bay day du le vat theo truyen thong"},
+        {"order": 4, "description_vi": "Cha me chu ro hoac chu dau cung le tien bao"},
+        {"order": 5, "description_vi": "Thap huong va doc van khan day du"},
+        {"order": 6, "description_vi": "Doi uyen uong cung quay len bai to tien sau le cuoi"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, chu Than chu Thanh. Con kinh le to tien noi ngoai cua ca hai gia dinh. Hom nay la ngay lanh thang tot, hai gia dinh chung con to chuc le thanh hon cho con. Day la moi duyen troi dinh, hai trai gai cuoi nhau ve chung mot mai nha. Chung con kinh dang le vat tinh khiet: ngu qua, hoa, ga, xoi, ruou, tram nut trau de to long kinh trong va xin phep to tien tao dung hon su. Kinh xin to tien noi ngoai chung giam, cho phep doi uyen uong nay nen duyen chong vo. Cau xin phu ho cho doi vo chong moi duoc song hanh phuc, hoa thuan, lam an du ay. Cau cho cac chau sau nay con chau day dan, gia dinh me vang phu quy. Chung con xin ta on su chap thuan va phu ho cua to tien. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "143"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-gio-don-gian",
+      "title_vi": "Van Khan Gio Ky To Tien (Don Gian)",
+      "event_keys": [
+        {"kind": "life_event", "event": "gio"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh"},
+        {"name_vi": "Co man hoac com trang", "quantity": "1 bat"},
+        {"name_vi": "Trai cay tuoi", "quantity": "1 mam"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Nho ngay gio ky cua nguoi than da mat"},
+        {"order": 2, "description_vi": "Bay le vat len ban tho"},
+        {"order": 3, "description_vi": "Thap huong, doc van khan tuong nho"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat. Hom nay la ngay gio ky cua (ten nguoi ma). Con xin kinh le huong hon cua (ten nguoi ma). Con va ca gia dinh khon nguoi, long thuong nho khon nguoi mai. Con dang len mon an nhe nhe, hoa tuoi, huong thom de bay to long tuong nho. Cau xin hoa hon cua (ten nguoi ma) duoc yen nghi, phu ho do tri cho con chau con song manh khoe, hanh phuc, khong ngu quyen.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "175"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-gio-day-du",
+      "title_vi": "Van Khan Gio Ky To Tien (Day Du)",
+      "event_keys": [
+        {"kind": "life_event", "event": "gio"}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "5 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh lon"},
+        {"name_vi": "Mam co man co day du mon", "quantity": "1 mam"},
+        {"name_vi": "Xoi, che", "quantity": "moi loai 1 bat"},
+        {"name_vi": "Ruou trang", "quantity": "1 be"},
+        {"name_vi": "Nuoc sach", "quantity": "3 chen"},
+        {"name_vi": "Trai cay", "quantity": "1 mam ngu qua"},
+        {"name_vi": "Vang ma", "quantity": "1 bo"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Nho ngay gio truoc, chuan bi le vat tu hom truoc"},
+        {"order": 2, "description_vi": "Nau nhung mon ma nguoi qua co khi song yeu thich"},
+        {"order": 3, "description_vi": "Moi ho hang den du gio"},
+        {"order": 4, "description_vi": "Chu gia dinh thap huong, doc van khan day du"},
+        {"order": 5, "description_vi": "Hoa vang ma sau khi huong tan"},
+        {"order": 6, "description_vi": "Ca gia dinh cung nhau an co tuong nho nguoi da mat"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat. Con kinh le ve linh hoa linh cua (ten nguoi mat). Hom nay la ngay gio ky, con chau va ca gia dinh sum hop lai de tuong nho (ten nguoi mat), nguoi than yeu cua chung con. Chung con kinh dang len le vat tinh khiet, nhung mon an ma nguoi yeu thich luc sinh thoi, de bieu to long thuong nho va biet on. Long chung con khon nguyen nho cong on sinh duong, day do cua (ten nguoi mat). Du nguoi da roi xa nhung hinh anh va ki niem ve nguoi mai khac trong trai tim chung con. Kinh xin hoa linh cua (ten nguoi mat) duoc tien ve the gioi ben kia binh an, khong con dau kho. Cau cho hoa linh phu ho do tri cho con chau con song tren doi duoc manh khoe, hanh phuc, thanh dat. Chung con xin ta on su che chua cua nguoi. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "178"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Gio ky la ngay ky niem ngay mat cua nguoi than. Toan the con chau tren duoi cung ve du le gio. Mam co thuong co nhung mon ma nguoi qua co da yeu thich."
+      ]
+    },
+    {
+      "ritual_id": "van-khan-day-thang-don-gian",
+      "title_vi": "Van Khan Day Thang Tre So Sinh (Don Gian)",
+      "event_keys": [
+        {"kind": "life_event", "event": "day_thang"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Xoi gac do", "quantity": "1 dia"},
+        {"name_vi": "Che troi nuoc", "quantity": "1 noi"},
+        {"name_vi": "Trai cay tuoi", "quantity": "1 mam"},
+        {"name_vi": "Banh lon", "quantity": "1 cai"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuan bi xoi gac va che troi nuoc theo truyen thong"},
+        {"order": 2, "description_vi": "Bay le vat len ban tho to tien"},
+        {"order": 3, "description_vi": "Bao hoa ban than va ho hang den mung"},
+        {"order": 4, "description_vi": "Thap huong va doc van khan mung day thang"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat. Hom nay la ngay day thang cua chau (ten chau), chau ngoai (hoac chau noi) cua chung con. Chau da qua thang dau doi binh an, khoe manh, lon nhanh. Con xin kinh le to tien va cau xin cac vi than linh tiep tuc che chay, phu ho cho chau duoc lon khon manh khoe, thong minh, thanh dat. Cau cho chau sau nay co cuoc doi hanh phuc, lam viec thanh cong, lam hieu voi ong ba cha me.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "185"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Le day thang mung cho be so sinh tron 30 ngay tuoi. Xoi gac va che troi nuoc la mon khong the thieu trong le nay."
+      ]
+    }
+  ]
+}

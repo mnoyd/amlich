@@ -1,0 +1,119 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-gia-tien-hang-ngay",
+      "title_vi": "Van Khan Gia Tien Hang Ngay (Chuan)",
+      "event_keys": [
+        {"kind": "always"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "1 nen"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Thap huong truoc ban tho gia tien"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con kinh le to tien hang ngay.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "8"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Van khan hang ngay ngan gon, dung de thap huong buoi sang hoac buoi toi hang ngay. Day la bien the chuan (standard)."
+      ]
+    },
+    {
+      "ritual_id": "van-khan-gia-tien-sang-som",
+      "title_vi": "Van Khan Gia Tien Thuong Nhat Buoi Sang",
+      "event_keys": [
+        {"kind": "always"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Nuoc sach", "quantity": "1 chen"},
+        {"name_vi": "Trai cay (neu co)", "quantity": "vai trai"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Thuc day som, rua mat sach se"},
+        {"order": 2, "description_vi": "Thay nuoc sach tren ban tho (neu can)"},
+        {"order": 3, "description_vi": "Thap 3 nen huong truoc ban tho gia tien"},
+        {"order": 4, "description_vi": "Dung thang bai truoc ban tho, doc van khan buoi sang"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con kinh lay to tien noi ngoai. Hom nay la ngay moi, con xin kinh le to tien buoi sang. Con cam on to tien da phu ho do tri cho gia dinh con trong ngay hom qua duoc binh an, manh khoe. Con xin to tien tiep tuc che chay, phu ho cho ca gia dinh con trong ngay hom nay duoc tot lanh, lam an suon se, cong viec thuan loi, khong gap tai uong. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "9"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Van khan buoi sang thap o dau ngay moi. Thuong doc sau khi thay nuoc va thap huong moi sang."
+      ]
+    },
+    {
+      "ritual_id": "van-khan-gia-tien-buoi-toi",
+      "title_vi": "Van Khan Gia Tien Thuong Nhat Buoi Toi",
+      "event_keys": [
+        {"kind": "always"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "1-3 nen"},
+        {"name_vi": "Trai cay (neu co)", "quantity": "vai trai"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Truoc khi di ngu hoac sau bua com toi"},
+        {"order": 2, "description_vi": "Thap huong truoc ban tho gia tien"},
+        {"order": 3, "description_vi": "Dung thang bai, doc van khan buoi toi"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con kinh lay to tien noi ngoai. Hom nay ngay da tan, mot ngay moi sap ket thuc. Con xin kinh le to tien buoi toi. Con cam on to tien da phu ho cho ca gia dinh con suot ngay hom nay duoc binh an, khoe manh, lam an suon se. Con xin to tien tiep tuc che chay, giu gian cho ca gia dinh con trong dem nay duoc ngu ngon, an giac, sanh mai sang mot ngay moi an lanh. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "11"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Van khan buoi toi ket thuc ngay, ta on to tien va xin bao ve trong dem. Bien the buoi toi ngan gon hon buoi sang."
+      ]
+    },
+    {
+      "ritual_id": "van-khan-gia-tien-truoc-khi-an",
+      "title_vi": "Van Khan Gia Tien Moi Com Truoc Bua An",
+      "event_keys": [
+        {"kind": "always"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Com va cac mon an trong bua", "quantity": "xuat com rieng dat len ban tho"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Truoc khi ca nha an com, xuat mot bat com rieng"},
+        {"order": 2, "description_vi": "Dat bat com len ban tho gia tien"},
+        {"order": 3, "description_vi": "Thap huong va moi to tien cung an com"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con kinh moi to tien noi ngoai xuat ve cung an com voi gia dinh. Hom nay chung con co bua com, con xin moi to tien cung huong. Cau cho to tien duoc no long, tiep tuc phu ho do tri cho ca nha.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "13"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Tap tuc moi to tien truoc bua an hang ngay van con pho bien tai nhieu gia dinh Viet Nam co truyen. Ngan gon hon van khan thuong nhat sang toi."
+      ]
+    }
+  ]
+}

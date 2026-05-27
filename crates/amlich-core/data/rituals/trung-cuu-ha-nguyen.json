@@ -101,6 +101,73 @@
       "notes": [
         "Tet Com Moi la bien the Viet Nam cua Tet Ha Nguyen, gan voi le ta on mua mang thu hoach. Thuong to chuc vao buoi sang ngay Ram thang Muoi."
       ]
+    },
+    {
+      "ritual_id": "van-khan-trung-cuu-leo-nui",
+      "title_vi": "Van Khan Tet Trung Cuu Leo Nui Giang Cao",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-trung-cuu"},
+        {"kind": "lunar_date", "month": 9, "day": 9}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Tra hoa cuc", "quantity": "1 am hot"},
+        {"name_vi": "Ruou hoa cuc", "quantity": "1 chen nho"},
+        {"name_vi": "Banh cao (banh nhieu tang)", "quantity": "1 cai"},
+        {"name_vi": "Hoa cuc vang va trang", "quantity": "1 bo"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuan bi tra hoac ruou ngam hoa cuc tu truoc"},
+        {"order": 2, "description_vi": "Mang theo le vat len dinh nui hoac noi cao"},
+        {"order": 3, "description_vi": "Thap huong tai noi cao, doc van khan"},
+        {"order": 4, "description_vi": "Uong tra hoa cuc, chuc tho cho nhau"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat va cac vi Than Linh tren dinh nui thieng nay. Hom nay la ngay mung 9 thang 9 am lich, Tet Trung Cuu, ngay co y nghia truong tho. Chung con leo len cao de tranh hung tai, xin phuoc lanh tu troi cao dat rong. Con dang tra hoa cuc, ruou hoa cuc va banh cao le phat tay. Cau xin cac vi than linh ban cho gia dinh con suc khoe tuoi xanh nhu hoa cuc, song lau ben vung. Cau cho nguoi cao tuoi trong gia dinh duoc song tho, nguoi tre duoc trang suc manh khoe tien toi cong danh.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Phong Tuc Le Tet Viet Nam",
+        "publisher": "NXB Van Hoa Dan Toc",
+        "edition": "2005",
+        "page": "135"
+      },
+      "confidence": "regional-variant",
+      "notes": [
+        "Bien the dan gian nhan manh tuc leo nui Trung Cuu. Pho bien vung nguoi Hoa o Viet Nam va mot so nguoi Kinh theo truyen thong Dong A."
+      ]
+    },
+    {
+      "ritual_id": "van-khan-ha-nguyen-dao-giao",
+      "title_vi": "Van Khan Ha Nguyen Theo Truyen Thong Dao Giao",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-ha-nguyen"},
+        {"kind": "lunar_date", "month": 10, "day": 15}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Nuoc trong", "quantity": "3 chen"},
+        {"name_vi": "Com gao moi", "quantity": "1 bat"},
+        {"name_vi": "Xoi trang", "quantity": "1 dia"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tau minh (tu chay) truoc ngay le"},
+        {"order": 2, "description_vi": "Don dep ban tho, thay nuoc moi"},
+        {"order": 3, "description_vi": "Bay le vat theo truyen thong Dao giao"},
+        {"order": 4, "description_vi": "Thap huong, doc van khan cau Thuy Quan xa toi"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con kinh lay Thuy Quan Dai De, vi than cai quan nuoc, ngay Ha Nguyen 15 thang Muoi gia hang xuong tran xa toi. Con la nguoi truong duong, du biet minh con nhieu loi lam trong nam qua. Con xin kinh dang le vat com gao moi, nuoc trong, hoa tuoi de bay to long thanh kinh. Kinh xin Thuy Quan Dai De rong long tha toi, xoa di nhung loi lam vo y cua chung con trong nam nay. Cau cho gia dinh con duoc song trong binh an, sach toi khoi nghiep. Nam mo!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Le Hoi Dan Gian Viet Nam",
+        "publisher": "NXB Khoa Hoc Xa Hoi",
+        "edition": "2008",
+        "page": "201"
+      },
+      "confidence": "regional-variant",
+      "notes": [
+        "Bien the theo Dao giao nhan manh vai tro cua Thuy Quan Dai De ngay Ha Nguyen xa toi. It pho bien hon le ta on mua mang nhung con duoc gin giu o mot so gia dinh co truyen thong Dao giao."
+      ]
     }
   ]
 }

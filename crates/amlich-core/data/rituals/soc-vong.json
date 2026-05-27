@@ -1,0 +1,100 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-soc-mung-mot",
+      "title_vi": "Van Khan Mung 1 (Ngay Soc) Dau Thang",
+      "event_keys": [
+        {"kind": "lunar_date", "month": 1, "day": 1}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh"},
+        {"name_vi": "Trai cay tuoi", "quantity": "1 mam nho"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Vao sang som ngay Mung 1 am lich, don dep ban tho"},
+        {"order": 2, "description_vi": "Bay le vat tinh khiet len ban tho gia tien"},
+        {"order": 3, "description_vi": "Thap huong va doc van khan dau thang"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat. Hom nay la ngay Mung 1 am lich, ngay dau thang moi, ngay Soc. Con xin kinh le to tien noi ngoai. Con dang len le vat tinh khiet de bay to long hieu thao va cam ta. Cau xin to tien phu ho do tri cho ca gia dinh con trong thang nay duoc binh an, manh khoe, lam an thuan loi. Cau cho thang moi co nhieu may man va tot lanh.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "8"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Day la van khan mau cho ngay Mung 1 (Soc) cua thang 1 am lich. De tim van khan cho Mung 1 bat ky thang nao, su dung find_van_khan_for_event voi LunarDate key tuong ung (e.g. month=3, day=1 cho Mung 1 thang Ba). Van khan nay dung chung cho moi Mung 1."
+      ]
+    },
+    {
+      "ritual_id": "van-khan-vong-ram-thang",
+      "title_vi": "Van Khan Ngay Ram (Vong) Moi Thang",
+      "event_keys": [
+        {"kind": "lunar_date", "month": 1, "day": 15}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh"},
+        {"name_vi": "Mam co chay hoac man", "quantity": "1 mam nho"},
+        {"name_vi": "Trai cay tuoi", "quantity": "1 mam"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Vao ngay Ram (15) am lich hang thang, don dep ban tho"},
+        {"order": 2, "description_vi": "Bay le vat tinh khiet len ban tho gia tien"},
+        {"order": 3, "description_vi": "Thap huong, doc van khan cung Ram hang thang"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat. Hom nay la ngay Ram thang am lich, ngay Vong, con xin kinh le to tien noi ngoai. Con dang len le vat tinh khiet de bieu to long hieu thao va cam ta. Cau xin to tien phu ho do tri cho ca gia dinh con trong nua thang con lai duoc binh an, manh khoe, giai cong viec thuan loi. Trong anh trang tron sang, con xin bay to long biet on to tien da hi sinh va xay dung nen tang cho doi con.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "10"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Day la van khan mau cho ngay Ram (Vong, ngay 15) cua thang 1 am lich. De tim van khan cho Ram bat ky thang nao, su dung find_van_khan_for_event voi LunarDate key tuong ung (e.g. month=7, day=15 cho Ram thang Bay). Van khan nay dung chung cho moi ngay Ram."
+      ]
+    },
+    {
+      "ritual_id": "van-khan-soc-mung-mot-nha-moi",
+      "title_vi": "Van Khan Cung Mung 1 Dau Nam Moi (Thang Gieng)",
+      "event_keys": [
+        {"kind": "lunar_date", "month": 1, "day": 1}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "5 nen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh lon"},
+        {"name_vi": "Mam ngu qua", "quantity": "1 mam"},
+        {"name_vi": "Che, xoi", "quantity": "moi loai 1 bat"},
+        {"name_vi": "Nuoc sach", "quantity": "3 chen"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Don dep ban tho that sach se vao sang som Mung 1"},
+        {"order": 2, "description_vi": "Thay nuoc moi, hoa tuoi moi tren ban tho"},
+        {"order": 3, "description_vi": "Bay day du le vat cho ngay dau nam"},
+        {"order": 4, "description_vi": "Mac ao dai hoac quan ao chỉnh te"},
+        {"order": 5, "description_vi": "Thap huong va doc van khan day du dau nam moi"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, chu Than chu Thanh. Hom nay la ngay Mung 1 thang Gieng am lich, ngay dau tien cua nam moi. Con xin kinh le to tien noi ngoai buoi dau xuan. Nam moi bat dau, con xin bay to long biet on va hieu thao voi to tien. Con dang le vat tinh khiet: ngu qua, hoa, huong, che xoi de ta on to tien da phu ho trong nam cu va xin tiep tuc che chay trong nam moi. Cau xin to tien ban cho ca gia dinh con mot nam moi binh an, suc khoe, hanh phuc, lam an phat dat. Cau cho moi su tot dep, may man, thuong thanh xay den voi ca nha trong nam moi nay. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "15"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Van khan day du cho Mung 1 thang Gieng (dau nam moi). Trong trong hon van khan Mung 1 hang thang vi day la Mung 1 dac biet cua nam. Thuong doc sau van khan Tet."
+      ]
+    }
+  ]
+}

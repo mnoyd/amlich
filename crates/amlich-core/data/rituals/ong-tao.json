@@ -106,6 +106,47 @@
       "notes": [
         "Le cung giao thua thuong co 2 le: cung ngoai troi (cung Thien Dia, Tao Quan tro ve) va cung trong nha (cung gia tien). Van khan nay danh cho le trong nha."
       ]
+    },
+    {
+      "ritual_id": "van-khan-giao-thua-ngoai-troi",
+      "title_vi": "Van Khan Giao Thua Cung Thien Dia Ngoai Troi",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "giao-thua"},
+        {"kind": "lunar_date", "month": 12, "day": 30}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "5 nen"},
+        {"name_vi": "Ga luoc (hoac vit)", "quantity": "1 con"},
+        {"name_vi": "Xoi gac", "quantity": "1 dia"},
+        {"name_vi": "Mam ngu qua", "quantity": "1 mam"},
+        {"name_vi": "Ruou trang", "quantity": "3 chen"},
+        {"name_vi": "Nuoc tra", "quantity": "3 chen"},
+        {"name_vi": "Hoa tuoi", "quantity": "1 binh"},
+        {"name_vi": "Den nen", "quantity": "2 cay"},
+        {"name_vi": "Vang ma tien vang", "quantity": "1 bo lon"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuan bi ban cung ngoai troi (san truoc nha, san thuong)"},
+        {"order": 2, "description_vi": "Bay day du le vat huong ra phia troi dat"},
+        {"order": 3, "description_vi": "Den nen thap tu truoc, khong de tat trong luc cung"},
+        {"order": 4, "description_vi": "Vao dung khac giao thua (0 gio), chu gia dinh thap huong"},
+        {"order": 5, "description_vi": "Doc van khan cung Thien Dia ngoai troi"},
+        {"order": 6, "description_vi": "Dot vang ma sau khi huong tan"},
+        {"order": 7, "description_vi": "Vao nha cung gia tien trong nha (tiep tuc le thu hai)"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con lay chin phuong troi, muoi phuong chu Phat, Ngoc Hoang Thuong De, chu Than chu Thanh. Hom nay la dem 30 thang Chap am lich, khoang khac Giao Thua thieng lieng nhat trong nam, thoi diem troi dat giao hoa, nam cu qua nam moi toi. Chung con la gia chu noi nay kinh can xin kính le Troi Dat va cac vi Than Linh. Nam cu sap het, chung con ta on Troi Dat, Than Linh da gia ho che chay cho gia dinh chung con trong suot mot nam qua. Chung con xin dang le vat tinh khiet: ga luoc, xoi gac, ngu qua, ruou, tra de bieu to long thanh kinh va biet on. Buoc sang nam moi, chung con kinh xin Troi Dat, cac vi Than Linh tiep tuc ban phuoc lanh cho gia dinh chung con. Cau cho nam moi moi su binh an, manh khoe, hanh phuc, lam an phat dat. Cau cho tam tinh chan thinh nay duoc Troi Dat chap thuan. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Van Khan Co Truyen Viet Nam",
+        "publisher": "NXB Van Hoa Thong Tin",
+        "edition": "2003",
+        "page": "162"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Le cung Giao Thua ngoai troi (cung Thien Dia) duoc thuc hien dung luc 0 gio. Tren toan quoc deu giu tap tuc nay. Sau le ngoai troi moi vao trong nha cung gia tien."
+      ]
     }
   ]
 }

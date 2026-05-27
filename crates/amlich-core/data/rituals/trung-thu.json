@@ -67,6 +67,41 @@
       "notes": [
         "Trung Thu la dip doan vien gia dinh duoi trang Ram. Le cung gia tien duoc thuc hien truoc khi pha co ngam trang."
       ]
+    },
+    {
+      "ritual_id": "van-khan-trung-thu-dan-gian",
+      "title_vi": "Van Khan Tet Trung Thu Theo Phong Tuc Dan Gian",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-trung-thu"},
+        {"kind": "lunar_date", "month": 8, "day": 15}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Buoi (qua hong)", "quantity": "1 qua lon"},
+        {"name_vi": "Ot, muoi, chanh", "quantity": "de an voi buoi"},
+        {"name_vi": "Trai cay theo mua thu", "quantity": "1 mam"},
+        {"name_vi": "Banh deo, banh nuong nhan thap cam", "quantity": "1 hop"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuan bi mam co ngoai san hoac san thuong de ngam trang"},
+        {"order": 2, "description_vi": "Dat huong, hoa, banh trai cay huong ve phia mat trang"},
+        {"order": 3, "description_vi": "Thap huong, doc van khan dan gian"},
+        {"order": 4, "description_vi": "Cho tre em ruoc den rong ruoi quanh xom lang"},
+        {"order": 5, "description_vi": "Ca gia dinh cung nhau pha co, an banh, ngam trang"}
+      ],
+      "invocation_text_vi": "Hom nay la dem Ram thang Tam, trang sang vang tron vien. Chung con kinh dang len ngu qua, banh trung thu, hoa tuoi, huong thom de cung le gia tien va cac vi than linh. Cau cho trang sang soi duong, phu ho cho tre con lon khon, hoc gioi, den van. Cau cho ca gia dinh duoc vui tuoi, khoe manh trong dem trang dep nhat nam.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Phong Tuc Le Tet Viet Nam",
+        "publisher": "NXB Van Hoa Dan Toc",
+        "edition": "2005",
+        "page": "112"
+      },
+      "confidence": "regional-variant",
+      "notes": [
+        "Bien the dan gian nhan manh vao viec ngam trang ngoai troi va ruoc den cho tre em. Dung cho le cung ngoai troi (khac le cung trong nha o cac bien the khac)."
+      ]
     }
   ]
 }

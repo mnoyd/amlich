@@ -103,6 +103,44 @@
       "notes": [
         "Bien the Phat giao nhan manh vao Kinh Vu Lan Bon va cong duc cung duong Tang Bao. Khac bien the dan gian o cho khong co le cung co hon ma tay dung hoi huong cong duc."
       ]
+    },
+    {
+      "ritual_id": "van-khan-vu-lan-co-hon",
+      "title_vi": "Van Khan Cung Co Hon Vu Lan Ram Thang Bay",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "vu-lan"},
+        {"kind": "lunar_date", "month": 7, "day": 15}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Chao loang", "quantity": "1 noi"},
+        {"name_vi": "Gao, muoi", "quantity": "moi loai 1 bat"},
+        {"name_vi": "Keo banh", "quantity": "1 it"},
+        {"name_vi": "Tien vang giay", "quantity": "nhieu to"},
+        {"name_vi": "Huong", "quantity": "3 nen"},
+        {"name_vi": "Nuoc", "quantity": "3 chen"},
+        {"name_vi": "Bap rang, lac rang", "quantity": "1 dia"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Bay mam co co hon o truoc san nha, khong dat trong nha"},
+        {"order": 2, "description_vi": "Vao buoi chieu toi (sau 3h chieu) la thoi diem thich hop"},
+        {"order": 3, "description_vi": "Thap 3 nen huong huong ra ngoai san"},
+        {"order": 4, "description_vi": "Doc van khan cung co hon, moi co hon den nhan le"},
+        {"order": 5, "description_vi": "Rai gao muoi ra ngoai duong, tung keo banh di bon phuong"},
+        {"order": 6, "description_vi": "Dot vang giay de co hon co tien tieu trong am ty"}
+      ],
+      "invocation_text_vi": "Nam mo A Di Da Phat! Con kinh le cac dang co don cu ngu cac noi. Hom nay la ngay Ram thang Bay, xá toi vong nhan, cua dia nguc mo. Chung con kinh dang bat chao loang, it gao muoi, keo banh, mot it tien vang de cac linh hon co don khong noi noi noi thuong co duoc bua an no bung. Chung con moi tat ca cac co hon: nguoi do dan, ke tha huong, nguoi chet duoi, nguoi chet chay, nhung linh hon vo chu khong noi noi thuong... Moi quy vi den day nhan le vat cua chung con. Cau cho quy vi duoc no bung, am long, som sieu thoat tinh do, khong con dau kho. Nam mo A Di Da Phat!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Phong Tuc Le Tet Viet Nam",
+        "publisher": "NXB Van Hoa Dan Toc",
+        "edition": "2005",
+        "page": "98"
+      },
+      "confidence": "primary",
+      "notes": [
+        "Le cung co hon thuc hien ngoai san, khong trong nha. Thoi diem tot nhat la buoi chieu. Sau le rai gao muoi va tung keo de co hon nhat lay."
+      ]
     }
   ]
 }
