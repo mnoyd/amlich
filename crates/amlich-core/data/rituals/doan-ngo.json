@@ -1,0 +1,94 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-doan-ngo",
+      "title_vi": "Văn Khấn Tết Đoan Ngọ",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-doan-ngo"},
+        {"kind": "lunar_date", "month": 5, "day": 5, "leap_month_policy": "canonical_month_only"}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Rượu nếp", "quantity": "1 chén"},
+        {"name_vi": "Hoa quả chua", "quantity": "1 mâm"},
+        {"name_vi": "Hương", "quantity": "3 nén"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuẩn bị rượu nếp và hoa quả từ sáng sớm"},
+        {"order": 2, "description_vi": "Thắp hương và dâng lễ lên bàn thờ gia tiên"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Hôm nay là ngày mùng năm tháng năm, Tết Đoan Ngọ. Con thành tâm dâng rượu nếp và hoa quả, kính cầu tổ tiên phù hộ gia đình mạnh khỏe, trừ bệnh tật, diệt sâu bọ, mùa màng bội thu trong năm này.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "60"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-doan-ngo-dan-gian",
+      "title_vi": "Văn Khấn Tết Đoan Ngọ (Dân Gian)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-doan-ngo"},
+        {"kind": "lunar_date", "month": 5, "day": 5, "leap_month_policy": "canonical_month_only"}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Rượu nếp cái hoa vàng", "quantity": "1 chén"},
+        {"name_vi": "Bánh ú tro", "quantity": "3 cái"},
+        {"name_vi": "Trái cây chua (mận, roi, mơ)", "quantity": "1 mâm"},
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Vàng mã", "quantity": "1 bộ"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Ăn rượu nếp lúc sáng sớm khi chưa đánh răng, súc miệng để giết sâu bọ"},
+        {"order": 2, "description_vi": "Chuẩn bị bánh ú tro và trái cây chua"},
+        {"order": 3, "description_vi": "Bày lễ vật lên bàn thờ tổ tiên và đọc văn khấn"},
+        {"order": 4, "description_vi": "Hái lá thuốc vào giờ Ngọ (12 giờ trưa) để phơi khô làm thuốc"}
+      ],
+      "invocation_text_vi": "Con lạy tổ tiên nội ngoại! Hôm nay mùng năm tháng năm, ngày Tết Đoan Ngọ, con cháu thành kính dâng rượu nếp, bánh ú tro và hoa quả lên bàn thờ. Cầu xin tổ tiên phù hộ cho cả nhà diệt trừ sâu bọ, bệnh tật, mùa màng tốt tươi, gia đình khỏe mạnh, vượng thịnh.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "62"
+      },
+      "confidence": "synthesized",
+      "notes": ["Kết hợp phong tục dân gian nhiều vùng miền Bắc Việt Nam"]
+    },
+    {
+      "ritual_id": "van-khan-doan-ngo-mien-bac",
+      "title_vi": "Văn Khấn Tết Đoan Ngọ (Miền Bắc)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-doan-ngo"},
+        {"kind": "lunar_date", "month": 5, "day": 5, "leap_month_policy": "canonical_month_only"}
+      ],
+      "variant": {"regional": "mien-bac"},
+      "offerings": [
+        {"name_vi": "Rượu nếp cái", "quantity": "1 chén"},
+        {"name_vi": "Hoa quả chua: mận, roi", "quantity": "1 mâm"},
+        {"name_vi": "Bánh tro", "quantity": "3 cái"},
+        {"name_vi": "Hương", "quantity": "3 nén"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Thức dậy sớm trước bình minh, ăn rượu nếp lúc bụng đói"},
+        {"order": 2, "description_vi": "Chuẩn bị hoa quả chua đặc trưng miền Bắc như mận, roi"},
+        {"order": 3, "description_vi": "Bày lễ vật lên bàn thờ và khấn tổ tiên vào giờ Ngọ"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Con kính lạy tổ tiên họ... Nhân ngày mùng năm tháng năm, Tết Đoan Ngọ theo phong tục miền Bắc, con thành tâm dâng rượu nếp cái, hoa quả chua và bánh tro. Kính cầu tổ tiên chứng giám, phù hộ gia đình bình an, xua đuổi bệnh tật, sâu bọ, cả nhà khỏe mạnh, làm ăn phát đạt.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "65"
+      },
+      "confidence": "regional-variant",
+      "notes": ["Phong tục đặc trưng các tỉnh đồng bằng Bắc Bộ"]
+    }
+  ]
+}

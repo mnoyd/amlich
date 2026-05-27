@@ -1,0 +1,122 @@
+{
+  "$schema_version": "rituals-v1",
+  "entries": [
+    {
+      "ritual_id": "van-khan-tet-don-gian",
+      "title_vi": "Văn Khấn Tết Nguyên Đán (Đơn Giản)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-dan"},
+        {"kind": "lunar_date", "month": 1, "day": 1}
+      ],
+      "variant": "simple",
+      "offerings": [
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tắm rửa sạch sẽ, mặc quần áo chỉnh tề"},
+        {"order": 2, "description_vi": "Bày lễ vật lên bàn thờ gia tiên"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Con lạy chín phương trời, mười phương chư phật chư thần. Hôm nay là ngày mồng một tháng giêng, Tết Nguyên Đán. Con thành kính dâng lễ, cầu xin tổ tiên phù hộ gia đình bình an, sức khỏe dồi dào, mọi sự như ý trong năm mới.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "12"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-tet-day-du",
+      "title_vi": "Văn Khấn Tết Nguyên Đán (Đầy Đủ)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-dan"},
+        {"kind": "lunar_date", "month": 1, "day": 1}
+      ],
+      "variant": "full",
+      "offerings": [
+        {"name_vi": "Mâm ngũ quả", "quantity": "1 mâm"},
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Hoa tươi", "quantity": "1 bình"},
+        {"name_vi": "Rượu trắng", "quantity": "1 chén"},
+        {"name_vi": "Trầu cau", "quantity": "1 đĩa"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tắm rửa sạch sẽ, mặc quần áo mới chỉnh tề"},
+        {"order": 2, "description_vi": "Chuẩn bị mâm ngũ quả, hoa tươi và các lễ vật"},
+        {"order": 3, "description_vi": "Bày lễ vật lên bàn thờ gia tiên trước giờ giao thừa"},
+        {"order": 4, "description_vi": "Thắp hương và đọc văn khấn với tâm thành kính"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Con kính lạy chín phương trời, mười phương chư phật, chư vị thần linh. Con kính lạy Hoàng Thiên, Hậu Thổ chư vị tôn thần. Con kính lạy ngài Kim Niên Đương Cai Thái Tuế Chí Đức Tôn Thần, ngài Bản Cảnh Thành Hoàng Chư Vị Đại Vương. Con kính lạy tổ tiên nội ngoại họ... Hôm nay là ngày mồng một tháng giêng, đầu xuân năm mới. Tín chủ con thành tâm sắm sửa hương hoa lễ vật, dâng lên trước án, kính mời chư vị tổ tiên cùng thụ hưởng. Cúi xin chư vị tổ tiên phù hộ độ trì cho toàn gia: tai qua nạn khỏi, bệnh tật tiêu trừ, làm ăn phát đạt, vạn sự bình an trong suốt năm mới.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "14"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-tet-phat-giao",
+      "title_vi": "Văn Khấn Tết Nguyên Đán (Phật Giáo)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-dan"},
+        {"kind": "lunar_date", "month": 1, "day": 1}
+      ],
+      "variant": "buddhist",
+      "offerings": [
+        {"name_vi": "Hương thơm", "quantity": "3 nén"},
+        {"name_vi": "Hoa sen hoặc hoa cúc", "quantity": "1 bình"},
+        {"name_vi": "Mâm cỗ chay", "quantity": "1 mâm"},
+        {"name_vi": "Trái cây", "quantity": "1 mâm"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Tắm rửa sạch sẽ, ăn chay vào sáng mồng một"},
+        {"order": 2, "description_vi": "Bày mâm cỗ chay và hoa quả lên bàn thờ Phật"},
+        {"order": 3, "description_vi": "Thắp hương và niệm Phật trước khi đọc văn khấn"}
+      ],
+      "invocation_text_vi": "Nam mô a di đà phật! Nam mô bổn sư thích ca mâu ni phật! Con thành kính đảnh lễ Tam Bảo. Hôm nay là ngày mồng một tháng giêng, ngày đầu xuân năm mới. Con thành tâm dâng lễ chay tịnh lên trước Phật đài, cầu nguyện Tam Bảo gia hộ cho gia đình con thân tâm an lạc, phước huệ tăng trưởng. Cầu nguyện tổ tiên nội ngoại siêu thoát, được sinh vào cõi lành. Nam mô a di đà phật!",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "18"
+      },
+      "confidence": "primary"
+    },
+    {
+      "ritual_id": "van-khan-tet-dan-gian",
+      "title_vi": "Văn Khấn Tết Nguyên Đán (Dân Gian)",
+      "event_keys": [
+        {"kind": "holiday_id", "value": "tet-nguyen-dan"},
+        {"kind": "lunar_date", "month": 1, "day": 1}
+      ],
+      "variant": "folk",
+      "offerings": [
+        {"name_vi": "Gà luộc", "quantity": "1 con"},
+        {"name_vi": "Xôi gấc", "quantity": "1 đĩa"},
+        {"name_vi": "Bánh chưng", "quantity": "2 cái"},
+        {"name_vi": "Hương", "quantity": "3 nén"},
+        {"name_vi": "Vàng mã", "quantity": "1 bộ"}
+      ],
+      "preparation_steps": [
+        {"order": 1, "description_vi": "Chuẩn bị gà luộc nguyên con, xôi gấc và bánh chưng từ sáng sớm"},
+        {"order": 2, "description_vi": "Bày lễ vật lên bàn thờ tổ tiên"},
+        {"order": 3, "description_vi": "Thắp hương và đọc văn khấn theo phong tục địa phương"}
+      ],
+      "invocation_text_vi": "Con lạy tổ tiên nội ngoại họ... Hôm nay ngày mồng một tháng giêng, đầu năm mới, con cháu sum vầy, kính dâng mâm cỗ lên bàn thờ tổ tiên. Cầu xin tổ tiên chứng giám, phù hộ cho cả nhà năm mới bình an, mùa màng tươi tốt, con cháu học hành giỏi giang, làm ăn thuận lợi.",
+      "source_id": "vn-folk-ritual",
+      "original_citation": {
+        "title": "Văn Khấn Cổ Truyền Việt Nam",
+        "publisher": "NXB Văn Hóa Thông Tin",
+        "edition": "2003",
+        "page": "22"
+      },
+      "confidence": "synthesized",
+      "notes": ["Tổng hợp từ nhiều nguồn dân gian địa phương miền Bắc và miền Trung"]
+    }
+  ]
+}
