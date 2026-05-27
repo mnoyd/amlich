@@ -294,6 +294,25 @@ impl ConceptLabel {
 
 pub struct GraphOntology;
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn v15_concepts_present_in_ontology_slices() {
+        let nodes = GraphOntology::node_concepts();
+        assert!(nodes.contains(&NodeConcept::Ritual), "Ritual missing from node_concepts()");
+        assert!(nodes.contains(&NodeConcept::FlyingStar), "FlyingStar missing from node_concepts()");
+        let edges = GraphOntology::edge_concepts();
+        assert!(edges.contains(&EdgeConcept::PrescribedFor), "PrescribedFor missing from edge_concepts()");
+        assert!(edges.contains(&EdgeConcept::OccupiesPalace), "OccupiesPalace missing from edge_concepts()");
+        assert!(edges.contains(&EdgeConcept::CarriesElement), "CarriesElement missing from edge_concepts()");
+        // Label round-trip sanity:
+        assert_eq!(NodeConcept::FlyingStar.label().as_str(), "flying_star");
+        assert_eq!(EdgeConcept::OccupiesPalace.label().as_str(), "occupies_palace");
+    }
+}
+
 impl GraphOntology {
     pub fn node_concepts() -> &'static [NodeConcept] {
         &[
@@ -331,6 +350,8 @@ impl GraphOntology {
             NodeConcept::RecommendationHit,
             NodeConcept::RecommendationLayer,
             NodeConcept::RecommendationSummary,
+            NodeConcept::Ritual,
+            NodeConcept::FlyingStar,
         ]
     }
 
@@ -361,6 +382,9 @@ impl GraphOntology {
             EdgeConcept::TargetsActivity,
             EdgeConcept::ProducedByLayer,
             EdgeConcept::Aggregates,
+            EdgeConcept::PrescribedFor,
+            EdgeConcept::OccupiesPalace,
+            EdgeConcept::CarriesElement,
         ]
     }
 }
