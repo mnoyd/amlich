@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: milestone
 status: unknown
-last_updated: "2026-05-27T16:27:36.302Z"
+last_updated: "2026-05-27T16:29:47.590Z"
 progress:
   total_phases: 17
   completed_phases: 16
   total_plans: 44
-  completed_plans: 41
+  completed_plans: 42
 ---
 
 # Project State
@@ -23,10 +23,10 @@ See: .planning/PROJECT.md (updated 2026-05-23)
 ## Current Position
 
 Milestone: v1.5 Eastern Knowledge Expansion
-Phase: 12 (Văn khấn Corpus Authoring) — In Progress (1/4 plans complete)
-Plan: 12-01 complete (wave 1 — 26 ritual entries across 6 spring/summer JSON files)
-Status: 12-01 complete (tet-nguyen-dan 4 variants, doan-ngo 3 variants, nguyen-tieu 5 variants, han-thuc 5 variants, thanh-minh 5 entries, phat-dan 4 entries; zero Han chars; all integration test anchor ritual_ids preserved)
-Last activity: 2026-05-27 — 12-01 complete: corpus batch 1 (spring/summer festivals) shipped; plans 12-02 (autumn/winter + life events) and 12-03 (loader wiring) to follow
+Phase: 12 (Văn khấn Corpus Authoring) — In Progress (2/4 plans complete)
+Plan: 12-02 complete (wave 1 — 34 ritual entries across 7 autumn/winter + life-event + daily JSON files)
+Status: 12-02 complete (vu-lan 4 variants, trung-thu 3, trung-cuu-ha-nguyen 5, ong-tao 4, life-events 11, soc-vong 3, gia-tien 4; all 6 LifeEventKind covered; 3 RIT-12 multi-variant groups; zero Han chars)
+Last activity: 2026-05-27 — 12-02 complete: corpus batch 2 (autumn/winter festivals + life events + daily gia-tien) shipped; combined with 12-01 corpus has ≥ 5 multi-variant events; plans 12-03 (loader wiring) and 12-04 (provenance ledger) to follow
 
 Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 done)
 
@@ -80,6 +80,7 @@ Progress: [███░░░░░░░] 33% (2/6 phases complete; Phase 11 do
 | Phase 11 P03 | 2min | 2 tasks | 2 files |
 | Phase 11 P04 | 2min | 1 task | 2 files |
 | Phase 12 P01 | 9 | 2 tasks | 6 files |
+| Phase 12-van-khan-corpus-authoring P02 | 10 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -159,6 +160,9 @@ Project-wide decisions live in PROJECT.md Key Decisions table.
 - **Two new source_ids registered** — `vn-folk-ritual` and `huyen-khong`, each with module-level `pub const SOURCE_*` to prevent typo-minted fake sources (DEC-0015/0016).
 - [Phase 12]: thanh-minh entries use solar_term key exclusively — no holiday_id consistent with holidays.rs:177 None assignment
 - [Phase 12]: Corpus batch 1 expanded entries to 5 per file for Nguyên Tiêu, Hàn Thực, Thanh Minh to reach >=26 total; RIT-12 coverage broadened to 4 multi-variant events
+- [Phase 12-02]: Vu Lan 4 entries: added folk cung-co-hon alongside simple/full/buddhist RIT-12 variants to cover Ghost Festival dual purpose
+- [Phase 12-02]: van-khan-dong-tho (full) ritual_id preserved exactly to match fixtures.json reference and test suite
+- [Phase 12-02]: Giao Thua: 2 entries (indoor simple + outdoor full) capturing both le-cung sub-types with identical event_keys
 
 ### Research Insights (from research/SUMMARY.md)
 
