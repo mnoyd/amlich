@@ -114,7 +114,11 @@ Plans:
   4. A caller can invoke `compute_combined_overlay(year, month, &term_scanner)` and receives `[(annual_star, monthly_star); 9]` per palace.
   5. A reader inspecting any aggregate result finds separate `ReasoningEvidenceEnvelope` entries for Vận, Niên, and Nguyệt, plus a composite `rule.composite.flying_stars` envelope on the aggregate output.
 
-**Plans**: TBD
+**Plans**: 4 plans
+- [ ] 13-01-PLAN.md — Primitives: TietKhiScanner wrapper, FlyingStar metadata loader, Vận base tables + Lo Shu validator, compute_period (FS-01..05)
+- [ ] 13-02-PLAN.md — Annual (Niên polarity matrix) + Monthly (solar-term + 8/5/2 group rule) with per-layer evidence (FS-06, FS-07, FS-09)
+- [ ] 13-03-PLAN.md — Combined overlay + composite rule.composite.flying_stars evidence (FS-08, FS-09)
+- [ ] 13-04-PLAN.md — Golden dataset + KnownDivergence + black-box FS-04/05/10 invariant tests (FS-05, FS-10)
 
 ### Phase 14: Phi Tinh 81-cell Aspects + Safety Hints
 
