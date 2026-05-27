@@ -135,7 +135,10 @@ Plans:
   4. A caller can call `is_danger_palace(star)` on `FlyingStar` and receive `true` exactly for Ngũ Hoàng (5) and Nhị Hắc (2) per classical tradition.
   5. A caller can call `element_hint_for_palace(star)` and receive an `Option<RemedyHint>` referencing Ngũ-Hành (kim/mộc/thủy/hỏa/thổ) with a classical citation — and the test suite verifies no product names appear anywhere in the hint corpus.
 
-**Plans**: TBD
+**Plans**: 3 plans
+- [ ] 14-01-PLAN.md — aspects.rs: 81-cell star-pair corpus + lookup_star_pair_aspect + compute_palace_aspects (FS-11/12/13)
+- [ ] 14-02-PLAN.md — safety.rs: is_danger_palace + element_hint_for_palace + safety hints corpus (FS-14/15)
+- [ ] 14-03-PLAN.md — black-box fengshui_aspects integration tests + no-product-names guard (FS-11..15)
 
 ### Phase 15: Semantic Graph Wiring + DTO Integration + E2E Validation
 
