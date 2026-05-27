@@ -91,7 +91,13 @@
   4. A caller can iterate `all_rituals()` and find ≥ 4 events with multiple variants sharing the same `event_type` and discriminated by a `variant` field on `RitualEntry` (e.g., Tết: simple / full / Buddhist / folk).
   5. A code reader can find a reserved `body_en: Option<String>` field on `RitualEntry`, deserialized via `#[serde(default)]`, content authoring deferred.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Author spring/summer festival corpus batch A (Tết 4 variants, Nguyên Tiêu, Hàn Thực, Thanh Minh, Đoan Ngọ 3 variants, Phật Đản; ≥ 26 entries)
+- [ ] 12-02-PLAN.md — Author autumn/winter + life-event + daily corpus batch B (Vu Lan 3v, Trung Thu, Trùng Cửu/Hạ Nguyên, Ông Táo 2v/Giao Thừa, life-events incl. Nhập trạch 2v, Sóc/Vọng, daily gia-tiên Always; ≥ 34 entries)
+- [ ] 12-03-PLAN.md — Generalize corpus loader to multi-file include_str! + manifest.json + RIT-09/10/12/13 invariant tests
+- [ ] 12-04-PLAN.md — Write provenance_audit.md ledger (RIT-11) — classical reference + reviewer per entry
 
 ### Phase 13: Phi Tinh Primitives + Period + Annual/Monthly
 
