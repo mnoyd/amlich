@@ -1,5 +1,31 @@
 # Milestones: Amlich Almanac Correctness Audit
 
+## v1.5 Eastern Knowledge Expansion (Shipped: 2026-05-28)
+
+**Delivered:** Two Tier-0 pillars shipped beside the entrenched khcbppt family — P1 Văn khấn cổ truyền (`source_id: vn-folk-ritual`, 60-entry corpus + 4 lookup APIs) and P4 Phi Tinh thời gian (`source_id: huyen-khong`, Van/Niên/Nguyệt layered overlays + 81-cell aspect table + safety hints) — wired into `DaySnapshot` via additive `Option<T>` fields and into the semantic graph with `Ritual`/`FlyingStar` nodes plus `PrescribedFor`/`OccupiesPalace`/`CarriesElement` edges.
+
+**Phases completed:** 6 phases (10-15), 24 plans
+
+**Key accomplishments:**
+- **Foundation locked (Phase 10):** ADR-0001 froze `RitualEntry` JSON schema v1 (`deny_unknown_fields`, 10 types); ADR-0002 locked monthly Phi Tinh to solar-term boundaries (reusing v1.1.2 Tiết Khí scanner); ADR-0003 locked Niên Tử Bạch polarity matrix; `vn-folk-ritual` and `huyen-khong` registered as `pub const` source-id constants.
+- **Văn khấn module (Phase 11):** 4 lookup APIs (`find_van_khan_by_id`, `find_van_khan_for_holiday`, `find_van_khan_for_life_event`, `find_van_khan_for_event`) with leap-aware `event_key_matches`; OnceLock corpus loader with NFC-at-load Vietnamese diacritic normalization.
+- **Corpus authored (Phase 12):** 60 ritual entries across 13 category JSON files with per-entry citation provenance and audit ledger; Hán-character guard preventing traditional-character drift; multi-file `include_str!` loader.
+- **Phi Tinh primitives (Phase 13):** `compute_combined_overlay` returning Vận/Niên/Nguyệt layers; Lo Shu invariants enforced at load (sum=45, distinct 1..9, center=Vận); Lập Xuân CRIT-2 fix (jd-vs-Lập-Xuân cutoff for `effective_year`); 2-source golden cross-reference with `KnownDivergence` ledger.
+- **Aspects + safety (Phase 14):** 81-pair star-pair aspect table (6 classical primaries + 75 Ngũ Hành derivations); danger-star override (any pair with star 2 or 5 → inauspicious); 4-row safety-hint corpus gated by `FORBIDDEN_PRODUCT_TERMS` CI guard.
+- **Semantic graph + E2E (Phase 15):** `FlyingStarsSummary` DTO + additive `Option<T>` `DaySnapshot` fields (v1.4 JSON round-trip preserved); ontology extended with `Ritual`/`FlyingStar` nodes and `PrescribedFor`/`OccupiesPalace`/`CarriesElement` edges; dual-provenance Direction node (khcbppt + huyen-khong); 2026 E2E smoke spanning Sóc/Vọng ×12, leap month 6, and all 24 Tiết Khí boundaries.
+
+**Stats:** 84 commits, 64 files changed, +9,476 / −24 lines; 886 tests pass (0 failures); 2026-05-26 → 2026-05-29.
+
+**Git range:** `d8b2a47` → `f54e550`
+
+**Known gaps / tech debt (by-design deferrals, not blockers):**
+- **RIT-11 reviewer field:** All 60 ritual entries show `reviewer: pending` in `provenance_audit.md`. Independent peer review deferred post-v1.5 (research Q4); RIT-11 only requires the field be recorded — conformant.
+- **ADR-0003 confidence:** Pre-1984 Thượng/Trung Nguyên polarity rows MEDIUM-confidence; Hạ Nguyên (Vận 7/8/9) is two-source-confirmed. 1960 Trung Nguyên divergence logged as `KnownDivergence` (lasotuvi.com=6 vs phongthuycaivan.org=5 — Thẩm Thị Huyền Không Học tiebreak picks 5).
+
+**Resolved post-audit:** `EdgeConcept::CarriesElement` was dead code at audit time; wired 2026-05-29 in `add_flying_star_facts` (FlyingStar → Element node tagged with center star's Ngũ Hành; commit `3e6a148`).
+
+---
+
 ## v1.4 Lunar Engine Table Parity (Shipped: 2026-03-04)
 
 **Delivered:** Deterministic hour-pillar and 60-cycle parity with Na Am pair/index APIs and stable contract validation.

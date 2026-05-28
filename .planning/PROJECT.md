@@ -2,13 +2,14 @@
 
 ## Current State
 
-The project has shipped five milestones:
+The project has shipped six milestones:
 
 - `v1.0` KHCBPPT alignment complete (full validator + zero-divergence audit cycle).
 - `v1.1` Foundation extensions complete and accepted (Xung Hop extensions, Tang Can, Tiet Khi regression fix).
 - `v1.2` Ten Gods and Kua Foundation complete (deterministic calculators, typed API, DayFortune integration).
 - `v1.3` Dai Van Core complete (core algorithm, helper contracts, Kua analysis, synchronized verification).
 - `v1.4` Lunar Engine Table Parity complete (hour-pillar parity, full 60-cycle parity, Na Am API contracts).
+- `v1.5` Eastern Knowledge Expansion complete (Văn khấn `vn-folk-ritual` corpus + lookup APIs; Phi Tinh `huyen-khong` Vận/Niên/Nguyệt overlays + 81-cell aspects + safety hints; additive `DaySnapshot` integration; 886 tests pass).
 
 Canonical status and acceptance evidence are archived in milestone artifacts:
 
@@ -20,24 +21,36 @@ Canonical status and acceptance evidence are archived in milestone artifacts:
 - `.planning/milestones/v1.4-ROADMAP.md`
 - `.planning/milestones/v1.4-REQUIREMENTS.md`
 - `.planning/milestones/v1.4-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.5-ROADMAP.md`
+- `.planning/milestones/v1.5-REQUIREMENTS.md`
+- `.planning/milestones/v1.5-MILESTONE-AUDIT.md`
 
 ## Core Value
 
-Every almanac subsystem in amlich must produce output that matches KHCBPPT for the 2020-2030 date range, with test-backed and traceable evidence.
+Every almanac subsystem in amlich must produce output that matches its canonical classical source (KHCBPPT for the original engine; `vn-folk-ritual` for ritual text; *Thẩm Thị Huyền Không Học* for Phi Tinh) for the 2020-2030 date range, with test-backed and traceable evidence. v1.5 expanded "canonical source" from a single text to a registered taxonomy of source_ids, each enforced by module-level `pub const` and CI grep guards.
 
-## Current Milestone: v1.5 Eastern Knowledge Expansion
+## Validated Capabilities (after v1.5)
 
-**Goal:** Extend amlich-core beyond pure calendar correctness with the first two Expansion Framework pillars — ritual content lookup (Văn khấn) and time-based Flying Stars (Phi Tinh) — both Tier 0 and source-tagged per DEC-0015/0016.
+- ✓ KHCBPPT-aligned core calendar (v1.0–v1.1)
+- ✓ Ten Gods + Kua + Dai Van calculators (v1.2–v1.3)
+- ✓ Hour pillar + 60-cycle + Na Am parity (v1.4)
+- ✓ Văn khấn corpus + lookup APIs (v1.5, `vn-folk-ritual`)
+- ✓ Phi Tinh Vận/Niên/Nguyệt overlays + 81-cell aspects + safety hints (v1.5, `huyen-khong`)
+- ✓ Semantic graph wiring with dual-provenance Direction node and additive `DaySnapshot` integration (v1.5)
 
-**Target pillars (from `.planning/research/EXPANSION_FRAMEWORK.md`):**
-- **P1 Văn khấn cổ truyền** — `source_id: vn-folk-ritual`, Tier 0, new `rituals/` module + JSON corpus, event-driven lookup.
-- **P4 Phi Tinh thời gian** — `source_id: huyen-khong`, Tier 0, new `almanac/fengshui/flying_stars.rs`, Vận/Năm/Tháng tables (no spatial input yet).
+## Out of Scope (carry-forward)
 
-**Out of scope this milestone:** Tử Vi (P6), Kinh Dịch (P2), Y học (P3), Spatial Phi Tinh + Tier 3 model (P5) — deferred to later milestones.
+- **P2 Kinh Dịch, P3 Y học, P6 Tử Vi** — deferred per Expansion Framework tiering.
+- **P5 Spatial Phi Tinh / `spatial_compose`** — requires user spatial input (sit/face direction); explicit CRIT-3 isolation forbids wiring `FlyingStar` into `interaction/direction_merge.rs`.
+- **Daily / Hourly Phi Tinh** — explicit OUT-OF-SCOPE in v1.5 requirements; would need a separate per-day starting-star convention ADR.
 
 ## Current Focus
 
-Milestone `v1.5` started 2026-05-23 (Eastern Knowledge Expansion). Defining requirements next.
+Milestone `v1.5` shipped 2026-05-28. Next milestone is unscoped — run `/gsd:new-milestone` to define v1.6 goals.
+
+**Outstanding v1.5 tech debt (carry-forward, by-design):**
+- RIT-11: `provenance_audit.md reviewer: pending` for all 60 ritual entries — independent peer review deferred post-v1.5 by design.
+- ADR-0003: pre-1984 Thượng/Trung Nguyên polarity rows MEDIUM-confidence; Hạ Nguyên rows are two-source-confirmed. 1960 Trung Nguyên divergence logged as `KnownDivergence`.
 
 ## Key Decisions
 
@@ -54,6 +67,14 @@ Milestone `v1.5` started 2026-05-23 (Eastern Knowledge Expansion). Defining requ
 | Hour pillar parity via fixed slot + seed group model | Stable deterministic mapping across 12 windows and day-stem groups | ✓ Confirmed in v1.4 |
 | Sexagenary inversion via CRT-based formula | Correct roundtrip mapping between cycle index and stem-branch pairs | ✓ Confirmed in v1.4 |
 | Na Am API contracts with typed deterministic errors | Stable schema and explicit invalid-input handling for pair/index lookups | ✓ Confirmed in v1.4 |
+| Source-ID taxonomy as `pub const &str` (not enum) | New traditions register without enum churn; CI grep guard prevents bare-literal drift | ✓ Confirmed in v1.5 (DEC-0023) |
+| Schema-lock before corpus authoring | Re-editing 60 corpus entries after a schema slip is prohibitively expensive (PITFALLS CRIT-1/5) | ✓ Confirmed in v1.5 (Phase 10 → 12 ordering) |
+| ADR-0001: `RitualEntry` JSON schema v1 with `deny_unknown_fields` | Frozen 10-type schema gives corpus authors a stable target | ✓ Confirmed in v1.5 |
+| ADR-0002: solar-term boundaries for monthly Phi Tinh | Reuses v1.1.2 Tiết Khí scanner per *Thẩm Thị Huyền Không Học* convention | ✓ Confirmed in v1.5 |
+| ADR-0003: Niên Tử Bạch polarity matrix (Tam Nguyên × year polarity) | Explicit (yuan, polarity) → (start, direction) table over arithmetic; 1960 divergence resolved by tiebreak | ⚠️ Pre-1984 rows MEDIUM-confidence; revisit when external cross-check available |
+| Additive `Option<T>` `DaySnapshot` fields (no `deny_unknown_fields`) | v1.4 producer payloads still deserialize cleanly; v1.5 consumers see new fields when present | ✓ Confirmed in v1.5 (INT-05 round-trip) |
+| CRIT-3 isolation: `FlyingStar` never wired into `direction_merge.rs` | Keeps `huyen-khong` palace layouts disjoint from `khcbppt` `sát_phương`/`thần_hướng` until Tier-3 `spatial_compose` lands | ✓ Confirmed in v1.5 (grep-verified by audit) |
+| Center star carries Ngũ Hành on aggregate FlyingStar node | `CarriesElement` edge gives the FlyingStar node both spatial (palace) and elemental handles per *Thẩm Thị Huyền Không Học* | ✓ Confirmed in v1.5 post-audit (commit 3e6a148) |
 
 <details>
 <summary>Archived initialization snapshot (pre-v1.1)</summary>
@@ -72,4 +93,4 @@ Milestone `v1.5` started 2026-05-23 (Eastern Knowledge Expansion). Defining requ
 </details>
 
 ---
-*Last updated: 2026-05-23 after starting v1.5 milestone (Eastern Knowledge Expansion)*
+*Last updated: 2026-05-29 after v1.5 milestone close-out (Eastern Knowledge Expansion shipped).*
