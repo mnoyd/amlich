@@ -8,12 +8,12 @@
 
 ### Foundation (schema lock + cross-cutting ADRs)
 
-- [ ] **FND-01**: User-of-API can rely on a frozen `RitualEntry` JSON schema v1 (typed `event_keys[]`, structured `offerings[]`, structured `preparation_steps[]`, required `source_id`, `original_citation`, `confidence`) — locked before corpus authoring begins.
-- [ ] **FND-02**: User-of-API can rely on a frozen `FlyingStarLayout` API shape (`Period`, `[FlyingStar; 9]` palace array, `center_star`, `evidence`) — locked before algorithm work begins.
+- [x] **FND-01**: User-of-API can rely on a frozen `RitualEntry` JSON schema v1 (typed `event_keys[]`, structured `offerings[]`, structured `preparation_steps[]`, required `source_id`, `original_citation`, `confidence`) — locked before corpus authoring begins.
+- [x] **FND-02**: User-of-API can rely on a frozen `FlyingStarLayout` API shape (`Period`, `[FlyingStar; 9]` palace array, `center_star`, `evidence`) — locked before algorithm work begins.
 - [x] **FND-03**: User-of-source-taxonomy can find `vn-folk-ritual` and `huyen-khong` registered as distinct source IDs alongside existing `khcbppt` / `ngoc-hap-ky` / `vn-folk` / `cuu-dieu` / `tam-menh-thong-hoi`, with module-level `pub const SOURCE_*` constants preventing typos.
-- [ ] **FND-04**: User-of-Phi-Tinh can rely on a documented decision for monthly anchor convention (solar-term boundaries per *Thẩm Thị Huyền Không Học*, reusing the v1.1.2 Tiết Khí scanner) captured as an ADR.
-- [ ] **FND-05**: User-of-Phi-Tinh can rely on a documented decision for Niên Tử Bạch direction rule per Tam Nguyên × year polarity, captured as an ADR with a polarity matrix.
-- [ ] **FND-06**: User-of-holidays can rely on `Holiday.id: Option<String>` (additive, `#[serde(default)]`) populated from `lunar_festivals[].id` — round-trip compatible with v1.4 JSON fixtures.
+- [x] **FND-04**: User-of-Phi-Tinh can rely on a documented decision for monthly anchor convention (solar-term boundaries per *Thẩm Thị Huyền Không Học*, reusing the v1.1.2 Tiết Khí scanner) captured as an ADR.
+- [x] **FND-05**: User-of-Phi-Tinh can rely on a documented decision for Niên Tử Bạch direction rule per Tam Nguyên × year polarity, captured as an ADR with a polarity matrix.
+- [x] **FND-06**: User-of-holidays can rely on `Holiday.id: Option<String>` (additive, `#[serde(default)]`) populated from `lunar_festivals[].id` — round-trip compatible with v1.4 JSON fixtures.
 
 ### P1 Văn khấn — Module & Lookup APIs
 
@@ -87,12 +87,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | Phase 10 | Pending |
-| FND-02 | Phase 10 | Pending |
+| FND-01 | Phase 10 | Complete (10-03) |
+| FND-02 | Phase 10 | Complete (10-04) |
 | FND-03 | Phase 10 | Complete (10-01) |
-| FND-04 | Phase 10 | Pending |
-| FND-05 | Phase 10 | Pending |
-| FND-06 | Phase 10 | Pending |
+| FND-04 | Phase 10 | Complete (10-04) |
+| FND-05 | Phase 10 | Complete (10-04) |
+| FND-06 | Phase 10 | Complete (10-02) |
 | RIT-01 | Phase 11 | Complete |
 | RIT-02 | Phase 11 | Complete |
 | RIT-03 | Phase 11 | Complete |
@@ -135,4 +135,4 @@
 
 ---
 *Requirements defined: 2026-05-25*
-*Last updated: 2026-05-25 after v1.5 roadmap creation (traceability filled with phase mappings)*
+*Last updated: 2026-05-28 during v1.5 milestone audit — FND-01/02/04/05/06 checkboxes + traceability synced to Phase 10 VERIFICATION (were stale "Pending" despite verified-satisfied).*
