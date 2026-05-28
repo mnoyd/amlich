@@ -1,3 +1,4 @@
+use crate::almanac::fengshui::star_metadata;
 use crate::semantic_graph::{
     EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, ProvenanceSource, SemanticEdge,
     SemanticGraph, SemanticId, SemanticNode,
@@ -508,6 +509,31 @@ impl DaySnapshotGraphBuilder {
             &direction_id,
             EdgeConcept::OccupiesPalace,
         ));
+
+        // CarriesElement edge from FlyingStar to its center star's Ngũ Hành Element node.
+        // The center (trung cung) star is the chart's tonal anchor per Thẩm Thị Huyền Không Học —
+        // its element drives Vận-wide auspice and pairs with the OccupiesPalace edge to give
+        // the aggregate node both a spatial (palace) and an elemental (Ngũ Hành) handle.
+        let element = star_metadata(fs.center_star).element.as_str();
+        let element_node_id_raw =
+            SemanticId::new("element", format!("flying_star:day:{}:center", self.tz_suffix));
+        let element_node_id = element_node_id_raw.clone().to_node_id();
+        let element_prov =
+            ProvenanceEntry::almanac_rule(SOURCE_HUYEN_KHONG, "phi_tinh.center_star.element");
+        let element_node = SemanticNode::new(
+            element_node_id_raw,
+            NodeConcept::Element,
+            NodeOrigin::Fact,
+            format!("Ngũ Hành trung cung: {element}"),
+        )
+        .with_tags(vec![format!("element={element}")])
+        .with_provenance(element_prov);
+        self.graph.add_node(element_node);
+        self.graph.add_edge(SemanticEdge::new(
+            &node_id,
+            &element_node_id,
+            EdgeConcept::CarriesElement,
+        ));
     }
 
     fn add_ritual_facts(&mut self, snapshot: &DaySnapshot) {
@@ -848,6 +874,51 @@ mod tests {
         assert!(
             has_occupies_palace_edge,
             "Graph must contain an OccupiesPalace edge from FlyingStar node to Direction node"
+        );
+
+        // --- Verify CarriesElement edge: FlyingStar node connects to its center-star Element node ---
+        let fs_node_id = flying_star_node.node_id.clone();
+        let element_node_id =
+            SemanticId::new("element", "flying_star:day:+7:center").to_node_id();
+        let carries_element_edge = graph
+            .edges()
+            .values()
+            .find(|e| matches!(e.label.concept, EdgeConcept::CarriesElement))
+            .expect("Graph must contain a CarriesElement edge from FlyingStar to Element node");
+        assert_eq!(
+            &carries_element_edge.from_node_id, &fs_node_id,
+            "CarriesElement must originate at the FlyingStar aggregate node"
+        );
+        assert_eq!(
+            &carries_element_edge.to_node_id, &element_node_id,
+            "CarriesElement must terminate at the center-star Element node"
+        );
+
+        let element_node = graph
+            .nodes()
+            .get(&element_node_id)
+            .expect("Element node for center star must exist");
+        assert!(matches!(element_node.concept, NodeConcept::Element));
+        assert_eq!(
+            element_node.provenance.len(),
+            1,
+            "Element node must have exactly 1 provenance entry (huyen-khong only)"
+        );
+        assert_eq!(
+            element_node.provenance[0].source_id.as_str(),
+            "huyen-khong",
+            "Element node provenance must be huyen-khong"
+        );
+        // Tag must carry one of the five Ngũ Hành element strings.
+        let element_tag = element_node
+            .tags
+            .iter()
+            .find(|t| t.starts_with("element="))
+            .expect("Element node must carry an element=... tag");
+        let value = element_tag.trim_start_matches("element=");
+        assert!(
+            matches!(value, "water" | "earth" | "wood" | "fire" | "metal"),
+            "element tag must be one of the five Ngũ Hành values; got {value:?}"
         );
     }
 
