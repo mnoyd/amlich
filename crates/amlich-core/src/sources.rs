@@ -25,6 +25,21 @@ pub const SOURCE_VN_FOLK_RITUAL: &str = "vn-folk-ritual";
 /// Thẩm Thị Huyền Không Học — Phi Tinh / Flying Stars source (new in v1.5).
 pub const SOURCE_HUYEN_KHONG: &str = "huyen-khong";
 
+/// Typed alias for `source_id` fields on semantic-graph / corpus types.
+///
+/// Zero-cost newtype over `String` introduced in Phase 19-01 to satisfy
+/// INT-07's literal "source_id: SourceId" discipline. The underlying
+/// representation is still `String` (consistent with `tests/source_id_guard.rs`,
+/// which greps for bare-string literals across `src/` — the alias is a
+/// transparent type marker, not a semantic constraint). Future phases MAY
+/// tighten this into a true newtype that enforces `SOURCE_*` membership at
+/// construction, but for now it is documentation-only.
+///
+/// All call-sites continue to use `pub const SOURCE_*: &str` from this module
+/// and `.to_string()` them into `SourceId` values — the discipline is
+/// unchanged.
+pub type SourceId = String;
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -38,5 +53,13 @@ mod tests {
         assert_eq!(SOURCE_TAM_MENH_THONG_HOI, "tam-menh-thong-hoi");
         assert_eq!(SOURCE_VN_FOLK_RITUAL, "vn-folk-ritual");
         assert_eq!(SOURCE_HUYEN_KHONG, "huyen-khong");
+    }
+
+    #[test]
+    fn source_id_alias_is_string() {
+        // Phase 19 INT-07: SourceId is a zero-cost newtype over String.
+        let s: crate::sources::SourceId = crate::sources::SOURCE_VN_FOLK_RITUAL.to_string();
+        let s_str: &str = s.as_str();
+        assert_eq!(s_str, "vn-folk-ritual");
     }
 }

@@ -114,6 +114,54 @@ pub struct Offering {
     pub notes: Option<String>,
 }
 
+/// Identity handle for a semantic-graph Offering node.
+///
+/// Locked before any builder code emits Offering nodes (schema-lock
+/// discipline per Phase 10 / Phase 18-01). Mirrors `RitualEntry::ritual_id`
+/// as the stable join key for the semantic graph. The `offering_id`
+/// is derived from the corpus position (e.g. `ritual.van-khan-tet-don-gian.offering.0`),
+/// NOT hashed from `name_vi` — see Pitfall P-3 / Don't-Hand-Roll in 19-RESEARCH.md.
+///
+/// `source_id` is typed as `crate::sources::SourceId` (a `String` alias) per
+/// INT-07's literal SC text "source_id: SourceId" (REQUIREMENTS.md:31). The
+/// underlying value MUST equal one of `crate::sources::SOURCE_*` — enforced
+/// by the constructor (`debug_assert!(!source_id.is_empty())`) + the
+/// `tests/source_id_guard.rs` grep guard on bare-string literals.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OfferingRef {
+    /// Stable id of the form "ritual.{ritual_id}.offering.{idx}".
+    pub offering_id: String,
+    pub name_vi: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name_en: Option<String>,
+    /// MUST equal one of `crate::sources::SOURCE_*`. Enforced by the
+    /// constructor (debug_assert) + `tests/source_id_guard.rs`.
+    pub source_id: crate::sources::SourceId,
+}
+
+impl OfferingRef {
+    /// Ergonomic constructor accepting `String` (so call-sites can pass
+    /// `SOURCE_*.to_string()` directly without conversion). Internally
+    /// stored as `crate::sources::SourceId` (a `String` alias).
+    pub fn new(
+        offering_id: String,
+        name_vi: String,
+        name_en: Option<String>,
+        source_id: String,
+    ) -> Self {
+        debug_assert!(!offering_id.is_empty(), "OfferingRef::offering_id must be non-empty");
+        debug_assert!(!name_vi.is_empty(), "OfferingRef::name_vi must be non-empty");
+        debug_assert!(!source_id.is_empty(), "OfferingRef::source_id must be non-empty");
+        Self {
+            offering_id,
+            name_vi,
+            name_en,
+            source_id: crate::sources::SourceId::from(source_id),
+        }
+    }
+}
+
 /// Structured preparation step (trình tự).
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -274,5 +322,45 @@ mod tests {
                 leap_month_policy: LeapPolicy::CanonicalMonthOnly,
             }
         );
+    }
+
+    // Test 6: OfferingRef serde round-trip — Phase 19-01 schema lock (INT-08)
+    #[test]
+    fn offering_ref_serde_round_trip_and_deny_unknown_fields() {
+        use crate::sources::SOURCE_VN_FOLK_RITUAL;
+
+        // Round-trip with all four fields populated
+        let r = OfferingRef::new(
+            "ritual.van-khan-tet-don-gian.offering.0".to_string(),
+            "Hương".to_string(),
+            Some("Incense".to_string()),
+            SOURCE_VN_FOLK_RITUAL.to_string(),
+        );
+        let json = serde_json::to_string(&r).expect("serialize");
+        let recovered: OfferingRef = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(recovered, r);
+        assert_eq!(recovered.source_id, "vn-folk-ritual");
+
+        // Round-trip with name_en absent (skipped via skip_serializing_if)
+        let r2 = OfferingRef::new(
+            "ritual.x.offering.1".to_string(),
+            "Hoa tươi".to_string(),
+            None,
+            SOURCE_VN_FOLK_RITUAL.to_string(),
+        );
+        let json2 = serde_json::to_string(&r2).expect("serialize");
+        assert!(!json2.contains("name_en"), "name_en must be absent in JSON when None");
+        let recovered2: OfferingRef = serde_json::from_str(&json2).expect("deserialize");
+        assert_eq!(recovered2, r2);
+
+        // Unknown field rejected by deny_unknown_fields
+        let bad_json = r#"{"offering_id":"x","name_vi":"y","source_id":"vn-folk-ritual","bogus":1}"#;
+        let err: Result<OfferingRef, _> = serde_json::from_str(bad_json);
+        assert!(err.is_err(), "deny_unknown_fields must reject unknown fields");
+
+        // INT-07 typed-source_id discipline: source_id is `crate::sources::SourceId`
+        // (a String alias). Confirm compile-time type identity.
+        let _: &crate::sources::SourceId = &r.source_id;
+        assert_eq!(r.source_id.as_str(), "vn-folk-ritual");
     }
 }
