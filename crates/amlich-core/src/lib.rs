@@ -165,6 +165,11 @@ pub struct DaySnapshot {
     /// Additive optional list of matching ritual ids from the Văn khấn corpus.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub applicable_rituals: Option<Vec<String>>,
+    /// Additive optional daily Phi Tinh (Lưu Nhật / 日紫白) overlay.
+    /// Absent in JSON when None. Phase 18-04 (FS-19). Auto-populated
+    /// alongside `flying_stars` in `calculate_day_snapshot_internal`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub daily_flying_stars: Option<crate::almanac::fengshui::types::DailyFlyingStarLayout>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -316,6 +321,7 @@ fn calculate_day_snapshot_internal(
         contextual_recommendations,
         flying_stars: None,
         applicable_rituals: None,
+        daily_flying_stars: None,
     };
 
     // Populate flying_stars from the combined Phi Tinh overlay.
@@ -338,6 +344,19 @@ fn calculate_day_snapshot_internal(
             center_star: overlay.annual_layout.center_star,
             palace_overlays: overlay.palace_overlays,
         });
+    }
+
+    // Populate daily_flying_stars from the daily Phi Tinh (Lưu Nhật) overlay.
+    {
+        use crate::almanac::fengshui::{compute_daily_flying_stars, TietKhiScanner};
+        let scanner = TietKhiScanner::new();
+        let solar_year = snap.context.solar.year;
+        let solar_month = snap.context.solar.month as u32;
+        let solar_day = snap.context.solar.day as u32;
+        snap.daily_flying_stars = Some(compute_daily_flying_stars(
+            (solar_year, solar_month, solar_day),
+            &scanner,
+        ));
     }
 
     // Populate applicable_rituals from the ritual corpus.
