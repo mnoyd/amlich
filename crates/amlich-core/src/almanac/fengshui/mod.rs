@@ -11,6 +11,7 @@
 //! descriptor and is NEVER wired into `interaction/direction_merge.rs` in v1.5.
 
 pub mod annual;
+pub mod daily;
 pub mod aspects;
 pub mod combined;
 pub mod golden;
@@ -23,6 +24,7 @@ pub mod types;
 
 // Re-exports — public API surface for fengshui module consumers.
 pub use annual::{compute_yearly_flying_stars, YearPolarity};
+pub use daily::compute_daily_flying_stars;
 pub use aspects::{compute_palace_aspects, lookup_star_pair_aspect, FsCitation, FsConfidenceTier, StarPairAspect};
 pub use combined::{compute_combined_overlay, CombinedFlyingStarLayout};
 pub use golden::{
