@@ -4,6 +4,7 @@
 //! - `PhiTinhGoldenDataset` — top-level container
 //! - `PhiTinhGoldenCase` — one dated reference case (annual / monthly / period)
 //! - `KnownDivergence` — logged source disagreement (FS-10: log, do NOT silently correct)
+//! - `GoldenConfidence` — typed per-case confidence tier (HIGH | MEDIUM | LOW)
 //! - `load_flying_stars_golden()` — OnceLock + include_str! loader with coverage validation
 //!
 //! Validation at load time (mirrors `golden_loader.rs` pattern):
@@ -12,8 +13,11 @@
 //! - every case has a non-empty tiebreaker
 //! - per-Vận coverage: >= 10 annual cases each for Vận 7, Vận 8, Vận 9 (FS-05/FS-10)
 //!
-//! ADR-0003 §4: Thượng/Trung Nguyên cases (pre-1984) are MEDIUM confidence;
-//! the >=10-per-Vận gate applies only to Vận 7/8/9.
+//! ADR-0003 §4: matrix structure, Tam Nguyên ranges, year polarity rule (unchanged).
+//! ADR-0003a (2026-07-15, supersedes §6): pre-1984 Thượng/Trung Nguyên polarity rows
+//! promoted to HIGH confidence after dual-source independent secondary modern
+//! verification (phongthuycaivan.org + lasotuvi.com / phongthuyso.vn); the
+//! >=10-per-Vận gate applies only to Vận 7/8/9.
 
 use std::sync::OnceLock;
 
@@ -39,6 +43,26 @@ pub struct SourceValue {
     pub source: String,
     /// The star number reported by this source (1..=9).
     pub value: u8,
+}
+
+/// Confidence tier for a golden-dataset case.
+///
+/// ADR-0003a (2026-07-15) supersedes ADR-0003 §6: pre-1984 Thượng/Trung Nguyên
+/// polarity rows are HIGH after dual-source independent secondary modern
+/// verification (phongthuycaivan.org + lasotuvi.com / phongthuyso.vn). The
+/// `Medium` default is a compatibility shim for legacy JSON that omitted the
+/// field; canonical current cases MUST set `"confidence": "high"` explicitly.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum GoldenConfidence {
+    /// Two-source independent secondary modern verification + classical tiebreaker
+    /// (e.g. *Thẩm Thị Huyền Không Học*).
+    High,
+    /// Compatibility default — used only for legacy JSON that omitted the field.
+    #[default]
+    Medium,
+    /// Single-source only; reserved for future use.
+    Low,
 }
 
 /// A known source divergence — logged, never silently corrected (FS-10).
@@ -90,6 +114,13 @@ pub struct PhiTinhGoldenCase {
     pub tiebreaker: String,
     /// Free-text note for this case.
     pub note: String,
+    /// Confidence tier for this case. Defaults to `Medium` for legacy JSON;
+    /// canonical current cases set `"confidence": "high"` explicitly.
+    ///
+    /// ADR-0003a supersedes ADR-0003 §6: pre-1984 Thượng/Trung Nguyên rows are
+    /// HIGH after dual-source independent secondary modern verification.
+    #[serde(default)]
+    pub confidence: GoldenConfidence,
 }
 
 /// Top-level Phi Tinh golden dataset container.

@@ -90,15 +90,17 @@ pub fn nien_center(year: i32) -> u8 {
 // Yuan annotation (for evidence confidence)
 // ---------------------------------------------------------------------------
 
-/// Return the Tam Nguyên label and whether confidence is MEDIUM.
+/// Return the Tam Nguyên label for `year`.
 ///
-/// - 1864–1983 → Thượng/Trung Nguyên → MEDIUM confidence (ADR-0003 §4).
-/// - 1984–2043 → Hạ Nguyên → HIGH confidence.
-fn yuan_of_year(year: i32) -> (&'static str, bool /* is_medium */) {
+/// ADR-0003a (2026-07-15, supersedes ADR-0003 §6): pre-1984 Thượng/Trung Nguyên
+/// polarity rows are HIGH confidence after dual-source independent secondary
+/// modern verification; the runtime evidence note reports HIGH confidence for
+/// all annual years.
+fn yuan_of_year(year: i32) -> &'static str {
     if year < 1984 {
-        ("pre-1984", true)
+        "pre-1984"
     } else {
-        ("ha_nguyen", false)
+        "ha_nguyen"
     }
 }
 
@@ -153,20 +155,20 @@ pub(crate) fn fill_palaces(center: u8, ascending: bool) -> [FlyingStar; 9] {
 ///
 /// # Evidence
 /// - method: "phi_tinh.nien"
-/// - note: "year={year};center={center};polarity={polarity:?};confidence=high|medium"
+/// - note: "year={year};center={center};polarity={polarity:?};confidence=high"
+///
+/// ADR-0003a (2026-07-15) supersedes ADR-0003 §6: pre-1984 Thượng/Trung Nguyên
+/// polarity rows are HIGH confidence after dual-source independent secondary
+/// modern verification, so the runtime evidence note reports HIGH confidence
+/// for all annual years (not just post-1984).
 pub fn compute_yearly_flying_stars(year: i32, _scanner: &TietKhiScanner) -> FlyingStarLayout {
     let center = nien_center(year);
     let polarity = year_polarity(year);
     let ascending = matches!(polarity, YearPolarity::Am);
     let palaces = fill_palaces(center, ascending);
 
-    let (_yuan_label, is_medium) = yuan_of_year(year);
-    let conf = if is_medium {
-        "confidence=medium"
-    } else {
-        "confidence=high"
-    };
-    let note = format!("year={year};center={center};polarity={polarity:?};{conf}");
+    let _yuan_label = yuan_of_year(year);
+    let note = format!("year={year};center={center};polarity={polarity:?};confidence=high");
 
     let evidence = ReasoningEvidenceEnvelope {
         source_family: ReasoningEvidenceSourceFamily::AlmanacRule,
@@ -334,13 +336,14 @@ mod tests {
         assert_eq!(layout.evidence.source_id, crate::sources::SOURCE_HUYEN_KHONG);
     }
 
-    /// Pre-1984 year (e.g. 1960) has "confidence=medium" in evidence note.
+    /// Pre-1984 year (e.g. 1960) has "confidence=high" in evidence note
+    /// (ADR-0003a supersedes ADR-0003 §6 MEDIUM caveat).
     #[test]
-    fn test_compute_yearly_pre_1984_medium_confidence() {
+    fn test_compute_yearly_pre_1984_high_confidence() {
         let layout = compute_yearly_flying_stars(1960, &scanner());
         let note = layout.evidence.note.as_deref().unwrap_or("");
-        assert!(note.contains("confidence=medium"),
-            "Pre-1984 evidence should contain 'confidence=medium', got: {note:?}");
+        assert!(note.contains("confidence=high"),
+            "Pre-1984 evidence should contain 'confidence=high' after ADR-0003a, got: {note:?}");
     }
 
     /// Post-1984 year (2024) has "confidence=high" in evidence note.

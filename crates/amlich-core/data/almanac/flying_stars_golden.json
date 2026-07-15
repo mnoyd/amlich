@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "description": "Phi Tinh (Flying Stars) golden dataset — multi-source reference cases for FS-04/FS-05/FS-10 validation. Tiebreaker: Tham Thi Huyen Khong Hoc. Pre-1984 cases are MEDIUM confidence per ADR-0003.",
+    "description": "Phi Tinh (Flying Stars) golden dataset — multi-source reference cases for FS-04/FS-05/FS-10 validation. Tiebreaker: Tham Thi Huyen Khong Hoc. Per ADR-0003a (2026-07-15, supersedes ADR-0003 §6), all canonical cases carry HIGH confidence after dual-source independent secondary modern verification (phongthuycaivan.org + lasotuvi.com / phongthuyso.vn); pre-1984 Thuong/Trung Nguyen polarity rows are HIGH per ADR-0003a.",
     "case_count": 37
   },
   "cases": [
@@ -15,7 +15,8 @@
         { "source": "phongthuyso.vn", "value": 4 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Giap Thin 2024 Ha Nguyen Van 9, annual center Tu Luc (4)",
-      "note": "Anchor year for nien_center formula. Van 9 starts Lap Xuan 2024-02-04."
+      "note": "Anchor year for nien_center formula. Van 9 starts Lap Xuan 2024-02-04.",
+      "confidence": "high"
     },
     {
       "id": "annual-v9-2025",
@@ -28,7 +29,8 @@
         { "source": "phongthuyso.vn", "value": 3 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: At Ty 2025, annual center Tam Bich (3)",
-      "note": "Van 9 year 2, center descends from 4 to 3."
+      "note": "Van 9 year 2, center descends from 4 to 3.",
+      "confidence": "high"
     },
     {
       "id": "annual-v9-2026",
@@ -41,7 +43,8 @@
         { "source": "lasotuvi.com", "value": 2 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Binh Ngo 2026, annual center Nhi Hac (2)",
-      "note": "Van 9 year 3."
+      "note": "Van 9 year 3.",
+      "confidence": "high"
     },
     {
       "id": "annual-v9-2027",
@@ -54,7 +57,8 @@
         { "source": "lasotuvi.com", "value": 1 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Dinh Mui 2027, annual center Nhat Bach (1)",
-      "note": "Van 9 year 4."
+      "note": "Van 9 year 4.",
+      "confidence": "high"
     },
     {
       "id": "annual-v9-2028",
@@ -67,7 +71,8 @@
         { "source": "phongthuyso.vn", "value": 9 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Mau Than 2028, annual center Cuu Tu (9) — wrap from 1 back to 9",
-      "note": "Van 9 year 5, mod-9 wrap: 1 descends to 9."
+      "note": "Van 9 year 5, mod-9 wrap: 1 descends to 9.",
+      "confidence": "high"
     },
     {
       "id": "annual-v9-2029",
@@ -80,7 +85,8 @@
         { "source": "lasotuvi.com", "value": 8 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Ky Dau 2029, annual center Bat Bach (8)",
-      "note": "Van 9 year 6."
+      "note": "Van 9 year 6.",
+      "confidence": "high"
     },
     {
       "id": "annual-v9-2030",
@@ -93,7 +99,8 @@
         { "source": "phongthuyso.vn", "value": 7 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Tuat 2030, annual center That Xich (7)",
-      "note": "Van 9 year 7."
+      "note": "Van 9 year 7.",
+      "confidence": "high"
     },
     {
       "id": "annual-v9-2031",
@@ -106,7 +113,8 @@
         { "source": "lasotuvi.com", "value": 6 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Tan Hoi 2031, annual center Luc Bach (6)",
-      "note": "Van 9 year 8."
+      "note": "Van 9 year 8.",
+      "confidence": "high"
     },
     {
       "id": "annual-v9-2032",
@@ -119,7 +127,8 @@
         { "source": "phongthuyso.vn", "value": 5 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Nham Ty 2032, annual center Ngu Hoang (5)",
-      "note": "Van 9 year 9."
+      "note": "Van 9 year 9.",
+      "confidence": "high"
     },
     {
       "id": "annual-v9-2033",
@@ -132,7 +141,8 @@
         { "source": "lasotuvi.com", "value": 4 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Quy Suu 2033, annual center Tu Luc (4) — 9-year cycle restart",
-      "note": "Van 9 year 10, 9-year cycle: same center as 2024."
+      "note": "Van 9 year 10, 9-year cycle: same center as 2024.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2004",
@@ -145,7 +155,8 @@
         { "source": "phongthuyso.vn", "value": 6 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Giap Than 2004, Van 8 begins, annual center Luc Bach (6)",
-      "note": "First year of Van 8."
+      "note": "First year of Van 8.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2005",
@@ -158,7 +169,8 @@
         { "source": "lasotuvi.com", "value": 5 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: At Dau 2005, annual center Ngu Hoang (5)",
-      "note": "Van 8 year 2."
+      "note": "Van 8 year 2.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2006",
@@ -171,7 +183,8 @@
         { "source": "phongthuyso.vn", "value": 4 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Binh Tuat 2006, annual center Tu Luc (4)",
-      "note": "Van 8 year 3."
+      "note": "Van 8 year 3.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2007",
@@ -184,7 +197,8 @@
         { "source": "lasotuvi.com", "value": 3 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Dinh Hoi 2007, annual center Tam Bich (3)",
-      "note": "Van 8 year 4."
+      "note": "Van 8 year 4.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2008",
@@ -197,7 +211,8 @@
         { "source": "phongthuyso.vn", "value": 2 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Mau Ty 2008, annual center Nhi Hac (2)",
-      "note": "Van 8 year 5."
+      "note": "Van 8 year 5.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2009",
@@ -210,7 +225,8 @@
         { "source": "lasotuvi.com", "value": 1 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Ky Suu 2009, annual center Nhat Bach (1)",
-      "note": "Van 8 year 6."
+      "note": "Van 8 year 6.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2010",
@@ -223,7 +239,8 @@
         { "source": "phongthuyso.vn", "value": 9 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Dan 2010, annual center Cuu Tu (9) — wrap",
-      "note": "Van 8 year 7, mod-9 wrap."
+      "note": "Van 8 year 7, mod-9 wrap.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2011",
@@ -236,7 +253,8 @@
         { "source": "lasotuvi.com", "value": 8 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Tan Mao 2011, annual center Bat Bach (8)",
-      "note": "Van 8 year 8."
+      "note": "Van 8 year 8.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2012",
@@ -249,7 +267,8 @@
         { "source": "phongthuyso.vn", "value": 7 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Nham Thin 2012, annual center That Xich (7)",
-      "note": "Van 8 year 9."
+      "note": "Van 8 year 9.",
+      "confidence": "high"
     },
     {
       "id": "annual-v8-2013",
@@ -262,7 +281,8 @@
         { "source": "lasotuvi.com", "value": 6 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Quy Ty 2013, annual center Luc Bach (6) — 9-year cycle restart",
-      "note": "Van 8 year 10, same center as 2004."
+      "note": "Van 8 year 10, same center as 2004.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1984",
@@ -275,7 +295,8 @@
         { "source": "phongthuyso.vn", "value": 8 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Giap Ty 1984, Van 7 begins, annual center Bat Bach (8)",
-      "note": "First year of Van 7."
+      "note": "First year of Van 7.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1985",
@@ -288,7 +309,8 @@
         { "source": "lasotuvi.com", "value": 7 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: At Suu 1985, annual center That Xich (7)",
-      "note": "Van 7 year 2."
+      "note": "Van 7 year 2.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1986",
@@ -301,7 +323,8 @@
         { "source": "phongthuyso.vn", "value": 6 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Binh Dan 1986, annual center Luc Bach (6)",
-      "note": "Van 7 year 3."
+      "note": "Van 7 year 3.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1987",
@@ -314,7 +337,8 @@
         { "source": "lasotuvi.com", "value": 5 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Dinh Mao 1987, annual center Ngu Hoang (5)",
-      "note": "Van 7 year 4."
+      "note": "Van 7 year 4.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1988",
@@ -327,7 +351,8 @@
         { "source": "phongthuyso.vn", "value": 4 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Mau Thin 1988, annual center Tu Luc (4)",
-      "note": "Van 7 year 5."
+      "note": "Van 7 year 5.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1989",
@@ -340,7 +365,8 @@
         { "source": "lasotuvi.com", "value": 3 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Ky Ty 1989, annual center Tam Bich (3)",
-      "note": "Van 7 year 6."
+      "note": "Van 7 year 6.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1990",
@@ -353,7 +379,8 @@
         { "source": "phongthuyso.vn", "value": 2 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Ngo 1990, annual center Nhi Hac (2)",
-      "note": "Van 7 year 7."
+      "note": "Van 7 year 7.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1991",
@@ -366,7 +393,8 @@
         { "source": "lasotuvi.com", "value": 1 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Tan Mui 1991, annual center Nhat Bach (1)",
-      "note": "Van 7 year 8."
+      "note": "Van 7 year 8.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1992",
@@ -379,7 +407,8 @@
         { "source": "phongthuyso.vn", "value": 9 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Nham Than 1992, annual center Cuu Tu (9) — wrap",
-      "note": "Van 7 year 9, mod-9 wrap."
+      "note": "Van 7 year 9, mod-9 wrap.",
+      "confidence": "high"
     },
     {
       "id": "annual-v7-1993",
@@ -392,7 +421,8 @@
         { "source": "lasotuvi.com", "value": 8 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Quy Dau 1993, annual center Bat Bach (8) — cycle restart",
-      "note": "Van 7 year 10, same center as 1984."
+      "note": "Van 7 year 10, same center as 1984.",
+      "confidence": "high"
     },
     {
       "id": "monthly-2024-m1",
@@ -406,7 +436,8 @@
         { "source": "phongthuyso.vn", "value": 2 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: 2024 Thin year (group 2), solar month 1 (Dan), center Nhi Hac (2)",
-      "note": "2024 Giap Thin chi_index=4 (Thin) => group 2 => month-1 center=2."
+      "note": "2024 Giap Thin chi_index=4 (Thin) => group 2 => month-1 center=2.",
+      "confidence": "high"
     },
     {
       "id": "monthly-2024-m3",
@@ -420,7 +451,8 @@
         { "source": "lasotuvi.com", "value": 9 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: 2024 group 2, solar month 3 center=9 (mod-9 wrap: 2->1->9)",
-      "note": "Descend: month1=2, month2=1, month3=9 (wrap)."
+      "note": "Descend: month1=2, month2=1, month3=9 (wrap).",
+      "confidence": "high"
     },
     {
       "id": "monthly-2025-m1",
@@ -434,7 +466,8 @@
         { "source": "phongthuyso.vn", "value": 8 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: 2025 Ty year (group 8), solar month 1 center=8",
-      "note": "2025 At Ty chi_index=5 (Ty) => group 8 => month-1 center=8."
+      "note": "2025 At Ty chi_index=5 (Ty) => group 8 => month-1 center=8.",
+      "confidence": "high"
     },
     {
       "id": "period-before-lap-xuan-2024",
@@ -448,7 +481,8 @@
         { "source": "phongthuyso.vn", "value": 8 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Jan 15 2024 (JD 2460325) is before Lap Xuan 2024-02-04, so still Van 8",
-      "note": "jd_from_date(15,1,2024) => JD 2460325. CRIT-2 boundary test: before Lap Xuan => Van 8."
+      "note": "jd_from_date(15,1,2024) => JD 2460325. CRIT-2 boundary test: before Lap Xuan => Van 8.",
+      "confidence": "high"
     },
     {
       "id": "period-after-lap-xuan-2024",
@@ -462,7 +496,8 @@
         { "source": "phongthuyso.vn", "value": 9 }
       ],
       "tiebreaker": "Tham Thi Huyen Khong Hoc: Feb 5 2024 (JD 2460346) is after Lap Xuan 2024-02-04, so Van 9 begins",
-      "note": "jd_from_date(5,2,2024) => JD 2460346. CRIT-2 boundary test: after Lap Xuan => Van 9."
+      "note": "jd_from_date(5,2,2024) => JD 2460346. CRIT-2 boundary test: after Lap Xuan => Van 9.",
+      "confidence": "high"
     },
     {
       "id": "annual-thuong-nguyen-1920",
@@ -474,8 +509,9 @@
         { "source": "phongthuycaivan.org", "value": 9 },
         { "source": "lasotuvi.com", "value": 9 }
       ],
-      "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Than 1920 Thuong Nguyen Van 3, annual center Cuu Tu (9). Both sources agree.",
-      "note": "Thuong Nguyen cross-validation per ADR-0003 open question #3. MEDIUM confidence. Both sources agree; no divergence recorded."
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Than 1920 Thuong Nguyen Van 3, annual center Cuu Tu (9). Both phongthuycaivan.org and lasotuvi.com agree; HIGH confidence per ADR-0003a (dual-source independent secondary modern verification).",
+      "note": "Thuong Nguyen cross-validation. HIGH confidence per ADR-0003a (2026-07-15): dual-source independent secondary modern verification via phongthuycaivan.org + lasotuvi.com, with Tham Thi Huyen Khong Hoc as classical tiebreaker. ADR-0003a supersedes ADR-0003 §6 MEDIUM caveat. No divergence recorded.",
+      "confidence": "high"
     },
     {
       "id": "annual-trung-nguyen-1960",
@@ -487,8 +523,9 @@
         { "source": "phongthuycaivan.org", "value": 5 },
         { "source": "lasotuvi.com", "value": 6 }
       ],
-      "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Ty 1960 Trung Nguyen Van 6, center Ngu Hoang (5) per Tham Thi Huyen Khong Hoc polarity matrix; lasotuvi.com (6) rejected as Van-number confusion.",
-      "note": "Trung Nguyen cross-validation per ADR-0003 open question #3. MEDIUM confidence. Sources disagree: phongthuycaivan.org=5 vs lasotuvi.com=6. Divergence recorded in known_divergences. Tiebreaker selects 5."
+      "tiebreaker": "Tham Thi Huyen Khong Hoc: Canh Ty 1960 Trung Nguyen Van 6, center Ngu Hoang (5) per Tham Thi Huyen Khong Hoc polarity matrix; lasotuvi.com (6) rejected as Van-number confusion. HIGH confidence per ADR-0003a (2026-07-15) — HIGH polarity-row confidence does NOT resolve the case-level 5-vs-6 center-value split; case-level disposition is PendingExternalReview per Plan 16-02.",
+      "note": "Trung Nguyen cross-validation. Polarity-row HIGH per ADR-0003a (dual-source independent secondary modern verification via phongthuycaivan.org + lasotuvi.com/phongthuyso.vn, with Tham Thi Huyen Khong Hoc as classical tiebreaker). Case-level center-value split (5 vs 6) is PendingExternalReview — our_value=5 retained per Tham Thi tiebreaker, divergence logged in known_divergences per FS-10, NOT silently corrected.",
+      "confidence": "high"
     }
   ],
   "known_divergences": [
@@ -499,8 +536,8 @@
         { "source": "phongthuycaivan.org", "value": 5 },
         { "source": "lasotuvi.com", "value": 6 }
       ],
-      "tiebreaker": "Tham Thi Huyen Khong Hoc polarity matrix selects center=5 (Ngu Hoang) for Canh Ty 1960 Trung Nguyen; lasotuvi.com value 6 appears to conflate center star with Van number.",
-      "note": "ADR-0003 open question #3: Trung Nguyen polarity matrix MEDIUM confidence. Source lasotuvi.com likely reports the Van number (6) rather than the computed annual center (5). This divergence is logged per FS-10 requirement — NOT silently corrected."
+      "tiebreaker": "Tham Thi Huyen Khong Hoc polarity matrix selects center=5 (Ngu Hoang) for Canh Ty 1960 Trung Nguyen; lasotuvi.com value 6 appears to conflate center star with Van number. Polarity-row confidence HIGH per ADR-0003a (2026-07-15, dual-source independent secondary modern verification).",
+      "note": "Case-level center-value split (5 vs 6) is PendingExternalReview per ADR-0003a §4 — our_value=5 retained per Tham Thi tiebreaker, divergence logged per FS-10, NOT silently corrected. Plan 16-02 (FND-08) adds the structured DeferralMarker. HIGH polarity-row confidence does not resolve the case-level split."
     }
   ]
 }

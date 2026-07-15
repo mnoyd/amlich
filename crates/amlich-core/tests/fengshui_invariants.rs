@@ -12,7 +12,7 @@
 use amlich_core::almanac::fengshui::{
     base_palaces_for_van, compute_combined_overlay, compute_monthly_flying_stars,
     compute_period, compute_yearly_flying_stars, load_flying_stars_golden,
-    TietKhiScanner,
+    GoldenConfidence, TietKhiScanner,
 };
 use amlich_core::almanac::fengshui::types::FlyingStarPeriod;
 use amlich_core::julian::jd_from_date;
@@ -347,6 +347,56 @@ fn test_e_combined_overlay_mirrors_components() {
             overlay.palace_overlays[i].1,
             overlay.monthly_layout.palaces[i],
             "palace_overlays[{i}].1 should equal monthly_layout.palaces[{i}]"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Test F — FND-07 gate: pre-1984 golden cases are HIGH confidence
+// ---------------------------------------------------------------------------
+
+/// FND-07 gate: every pre-1984 annual case in the golden dataset carries
+/// `confidence: GoldenConfidence::High` after ADR-0003a supersession.
+///
+/// Pre-1984 Thượng Nguyên (Vận 1–3) and Trung Nguyên (Vận 4–6) cases are
+/// reclassified from MEDIUM to HIGH based on dual-source independent secondary
+/// modern verification (phongthuycaivan.org + lasotuvi.com / phongthuyso.vn),
+/// with *Thẩm Thị Huyền Không Học* retained as classical tiebreaker.
+#[test]
+fn test_f_golden_pre_1984_confidence_is_high() {
+    let ds = load_flying_stars_golden();
+
+    let pre_1984: Vec<_> = ds
+        .cases
+        .iter()
+        .filter(|c| c.kind == "annual" && c.year < 1984)
+        .collect();
+
+    assert!(
+        !pre_1984.is_empty(),
+        "FND-07: expected pre-1984 cross-validation cases in golden dataset, found none"
+    );
+
+    // The two canonical pre-1984 cases (1920 + 1960) must both be present.
+    let ids: std::collections::HashSet<&str> = pre_1984.iter().map(|c| c.id.as_str()).collect();
+    assert!(
+        ids.contains("annual-thuong-nguyen-1920"),
+        "FND-07: canonical Thượng Nguyên case 'annual-thuong-nguyen-1920' must be present"
+    );
+    assert!(
+        ids.contains("annual-trung-nguyen-1960"),
+        "FND-07: canonical Trung Nguyên case 'annual-trung-nguyen-1960' must be present"
+    );
+
+    // Every pre-1984 annual case must carry HIGH confidence (post-ADR-0003a).
+    for case in &pre_1984 {
+        assert_eq!(
+            case.confidence,
+            GoldenConfidence::High,
+            "FND-07: pre-1984 case '{}' (year={}) must be GoldenConfidence::High after ADR-0003a, got {:?}",
+            case.id,
+            case.year,
+            case.confidence,
         );
     }
 }
