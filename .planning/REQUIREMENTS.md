@@ -52,27 +52,35 @@ REQs continue numbering from v1.6 archive (FND-01..08, RIT-01..16, FS-01..19, IN
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-09 | TBD | Pending |
-| FND-10 | TBD | Pending |
-| FND-11 | TBD | Pending |
-| FND-12 | TBD | Pending |
-| ICH-01 | TBD | Pending |
-| ICH-02 | TBD | Pending |
-| ICH-03 | TBD | Pending |
-| ICH-04 | TBD | Pending |
-| ICH-05 | TBD | Pending |
-| XLK-01 | TBD | Pending |
-| XLK-02 | TBD | Pending |
-| XLK-03 | TBD | Pending |
-| INT-11 | TBD | Pending |
-| INT-12 | TBD | Pending |
-| INT-13 | TBD | Pending |
+| FND-09 | 20 | Pending |
+| FND-10 | 20 | Pending |
+| FND-11 | 20 | Pending |
+| FND-12 | 20 | Pending |
+| ICH-01 | 21 | Pending |
+| ICH-02 | 22 | Pending |
+| ICH-03 | 22 | Pending |
+| ICH-04 | 22 | Pending |
+| ICH-05 | 24 | Pending |
+| XLK-01 | 23 | Pending |
+| XLK-02 | 23 | Pending |
+| XLK-03 | 23 | Pending |
+| INT-11 | 24 | Pending |
+| INT-12 | 24 | Pending |
+| INT-13 | 25 | Pending |
 
 **Coverage:**
 - v1.7 requirements: 15 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 15 (pending roadmap)
+- Mapped to phases: 15 / 15 ✓ (no orphans, no duplicates)
+- Unmapped: 0
 - New categories: ICH (I-Ching), XLK (cross-link)
+
+**Phase groupings:**
+- Phase 20 (Foundation, BLOCKING): FND-09, FND-10, FND-11, FND-12
+- Phase 21 (IChing Corpus + Loader): ICH-01
+- Phase 22 (Mai Hoa Casting + Biến Quẻ + Thể/Dụng): ICH-02, ICH-03, ICH-04
+- Phase 23 (Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link, PARALLEL): XLK-01, XLK-02, XLK-03
+- Phase 24 (IChing Evaluator + Semantic-Graph Wiring + DTO): ICH-05, INT-11, INT-12
+- Phase 25 (E2E Validation): INT-13
 
 ---
 *Requirements defined: 2026-07-16*
