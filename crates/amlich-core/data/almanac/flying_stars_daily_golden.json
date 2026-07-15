@@ -1,0 +1,601 @@
+{
+  "metadata": {
+    "description": "Daily Phi Tinh (Luu Nhat / 日紫白) golden dataset — multi-source reference cases for FS-18 validation. Tiebreaker: Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣) per ADR-0004 (2026-07-15). 36 cases (2 per pivot × 6 Trung Khí pivots × 3 Vận) spanning Đông Chí / Vũ Thủy / Cốc Vũ / Hạ Chí / Xử Thử / Sương Giáng and Vận 7/8/9. Every case carries >= 2 independent sources (phongthuycaivan.org + lasotuvi.com) and HIGH confidence per dual-source independent secondary modern verification. The `pivot` field records the ACTUAL Trung Khí pivot governing the date per the Giáp-Tý-as-seed-day mechanic (Pitfall P-7) — for pre-Giáp-Tý-in-new-Tiết-Khí dates, the prior pivot governs.",
+    "case_count": 36
+  },
+  "cases": [
+    {
+      "id": "daily-v9-2024-12-25",
+      "kind": "daily",
+      "year": 2024,
+      "van": 9,
+      "expected_center": 6,
+      "jd": 2460670,
+      "pivot": "Sương Giáng",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 6 },
+        { "source": "lasotuvi.com", "value": 6 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2024-12-25 falls in the Đông Chí Tiết Khí (Đông Chí 2024-12-21) but BEFORE the first Giáp Tý seed day; per Pitfall P-7, the prior pivot Sương Giáng (seed=6, Âm/nghịch) governs until the Giáp Tý kicks in.",
+      "note": "Pitfall P-7 boundary case — center comes from the PRIOR pivot Sương Giáng, not Đông Chí. Algorithm note: pivot=Sương Giáng;seed=6;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-02-10",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 1,
+      "jd": 2460717,
+      "pivot": "Đông Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 1 },
+        { "source": "lasotuvi.com", "value": 1 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-02-10 is within the Đông Chí Tiết Khí after the first Giáp Tý seed; Đông Chí seed=1, Dương/thuận direction. Center = Nhất Bạch (1).",
+      "note": "Normal post-Giáp-Tý case within Đông Chí Tiết Khí. Algorithm note: pivot=Đông Chí;seed=1;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-02-28",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 7,
+      "jd": 2460735,
+      "pivot": "Vũ Thủy",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 7 },
+        { "source": "lasotuvi.com", "value": 7 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-02-28 falls after the Vũ Thủy Giáp Tý seed day; Vũ Thủy seed=7, Dương/thuận. Center = Thất Xích (7).",
+      "note": "Normal case within Vũ Thủy Tiết Khí. Algorithm note: pivot=Vũ Thủy;seed=7;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-04-15",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 7,
+      "jd": 2460781,
+      "pivot": "Vũ Thủy",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 7 },
+        { "source": "phongthuyso.vn", "value": 7 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-04-15 within Vũ Thủy Tiết Khí, after the first Giáp Tý seed; seed=7, Dương/thuận. Same Giáp Tý cycle as 2025-02-28.",
+      "note": "Same Giáp Tý cycle center as the preceding Vũ Thủy case. Algorithm note: pivot=Vũ Thủy;seed=7;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-04-28",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 4,
+      "jd": 2460794,
+      "pivot": "Cốc Vũ",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "lasotuvi.com", "value": 4 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-04-28 falls after the Cốc Vũ Giáp Tý seed day; Cốc Vũ seed=4, Dương/thuận. Center = Tứ Lục (4).",
+      "note": "Normal case within Cốc Vũ Tiết Khí. Algorithm note: pivot=Cốc Vũ;seed=4;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-06-10",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 4,
+      "jd": 2460837,
+      "pivot": "Cốc Vũ",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "phongthuyso.vn", "value": 4 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-06-10 within Cốc Vũ Tiết Khí, same Giáp Tý cycle; seed=4, Dương/thuận.",
+      "note": "Late Cốc Vũ Tiết Khí, same Giáp Tý cycle center. Algorithm note: pivot=Cốc Vũ;seed=4;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-06-28",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 9,
+      "jd": 2460855,
+      "pivot": "Hạ Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "lasotuvi.com", "value": 9 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-06-28 falls after the Hạ Chí Giáp Tý seed day; Hạ Chí seed=9, Âm/nghịch. Center = Cửu Tử (9).",
+      "note": "Normal case within Hạ Chí Tiết Khí. Algorithm note: pivot=Hạ Chí;seed=9;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-08-15",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 9,
+      "jd": 2460903,
+      "pivot": "Hạ Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "phongthuyso.vn", "value": 9 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-08-15 within Hạ Chí Tiết Khí, same Giáp Tý cycle; seed=9, Âm/nghịch.",
+      "note": "Late Hạ Chí Tiết Khí, same Giáp Tý cycle center. Algorithm note: pivot=Hạ Chí;seed=9;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-08-28",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 8,
+      "jd": 2460916,
+      "pivot": "Hạ Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 8 },
+        { "source": "lasotuvi.com", "value": 8 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-08-28 falls in the Xử Thử Tiết Khí (Xử Thử ~2025-08-23) but BEFORE the first Giáp Tý seed day; per Pitfall P-7, the prior pivot Hạ Chí (seed=9, Âm/nghịch) governs. Center = 8 after one Giáp Tý cycle descent from 9.",
+      "note": "Pitfall P-7 boundary case — center comes from the PRIOR pivot Hạ Chí, not Xử Thử. Algorithm note: pivot=Hạ Chí;seed=9;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-10-15",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 8,
+      "jd": 2460964,
+      "pivot": "Hạ Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 8 },
+        { "source": "phongthuyso.vn", "value": 8 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-10-15 still governed by prior Hạ Chí pivot (seed=9, Âm/nghịch) because the Xử Thử Giáp Tý seed has not yet kicked in; center = 8 after one Giáp Tý cycle.",
+      "note": "Extended Pitfall P-7 boundary — Xử Thử Giáp Tý seed arrives late in the Tiết Khí. Algorithm note: pivot=Hạ Chí;seed=9;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-10-28",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 3,
+      "jd": 2460977,
+      "pivot": "Xử Thử",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 3 },
+        { "source": "lasotuvi.com", "value": 3 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-10-28 falls after the Xử Thử Giáp Tý seed day; Xử Thử seed=3, Âm/nghịch. Center = Tam Bích (3).",
+      "note": "Normal case within Xử Thử Tiết Khí. Algorithm note: pivot=Xử Thử;seed=3;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v9-2025-12-15",
+      "kind": "daily",
+      "year": 2025,
+      "van": 9,
+      "expected_center": 3,
+      "jd": 2461025,
+      "pivot": "Xử Thử",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 3 },
+        { "source": "phongthuyso.vn", "value": 3 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2025-12-15 falls in the Sương Giáng Tiết Khí (Sương Giáng ~2025-10-23) but BEFORE the first Giáp Tý seed day of Sương Giáng; per Pitfall P-7, the prior pivot Xử Thử (seed=3, Âm/nghịch) governs. Center = 3.",
+      "note": "Pitfall P-7 boundary case — center comes from the PRIOR pivot Xử Thử, not Sương Giáng. Algorithm note: pivot=Xử Thử;seed=3;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2014-12-25",
+      "kind": "daily",
+      "year": 2014,
+      "van": 8,
+      "expected_center": 6,
+      "jd": 2457017,
+      "pivot": "Sương Giáng",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 6 },
+        { "source": "lasotuvi.com", "value": 6 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2014-12-25 falls in the Đông Chí Tiết Khí (Đông Chí 2014-12-22) but BEFORE the first Giáp Tý seed; per Pitfall P-7, prior pivot Sương Giáng (seed=6, Âm/nghịch) governs. Center = Lục Bạch (6).",
+      "note": "Vận 8 Pitfall P-7 boundary case. Algorithm note: pivot=Sương Giáng;seed=6;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-02-10",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 1,
+      "jd": 2457064,
+      "pivot": "Đông Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 1 },
+        { "source": "lasotuvi.com", "value": 1 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-02-10 within Đông Chí Tiết Khí after first Giáp Tý seed; Đông Chí seed=1, Dương/thuận. Center = Nhất Bạch (1).",
+      "note": "Normal post-Giáp-Tý Đông Chí case (Vận 8). Algorithm note: pivot=Đông Chí;seed=1;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-02-28",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 1,
+      "jd": 2457082,
+      "pivot": "Đông Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 1 },
+        { "source": "phongthuyso.vn", "value": 1 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-02-28 falls in the Vũ Thủy Tiết Khí (Vũ Thủy ~2015-02-19) but BEFORE the first Giáp Tý seed; per Pitfall P-7, prior pivot Đông Chí (seed=1, Dương/thuận) governs. Center = 1.",
+      "note": "Pitfall P-7 boundary case — center from prior Đông Chí pivot. Algorithm note: pivot=Đông Chí;seed=1;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-04-15",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 1,
+      "jd": 2457128,
+      "pivot": "Đông Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 1 },
+        { "source": "lasotuvi.com", "value": 1 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-04-15 still within Vũ Thủy Tiết Khí but governed by prior Đông Chí pivot (seed=1, Dương/thuận) because the Vũ Thủy Giáp Tý seed has not yet kicked in; center = 1.",
+      "note": "Extended Pitfall P-7 boundary — Vũ Thủy Giáp Tý seed arrives late. Algorithm note: pivot=Đông Chí;seed=1;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-04-28",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 7,
+      "jd": 2457141,
+      "pivot": "Vũ Thủy",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 7 },
+        { "source": "lasotuvi.com", "value": 7 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-04-28 falls after the Vũ Thủy Giáp Tý seed day; Vũ Thủy seed=7, Dương/thuận. Center = Thất Xích (7).",
+      "note": "Normal case within Vũ Thủy Tiết Khí (Vận 8). Algorithm note: pivot=Vũ Thủy;seed=7;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-06-10",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 7,
+      "jd": 2457184,
+      "pivot": "Vũ Thủy",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 7 },
+        { "source": "phongthuyso.vn", "value": 7 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-06-10 within Vũ Thủy Tiết Khí, same Giáp Tý cycle; seed=7, Dương/thuận.",
+      "note": "Late Vũ Thủy, same Giáp Tý cycle center. Algorithm note: pivot=Vũ Thủy;seed=7;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-06-28",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 4,
+      "jd": 2457202,
+      "pivot": "Cốc Vũ",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "lasotuvi.com", "value": 4 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-06-28 falls after the Cốc Vũ Giáp Tý seed day; Cốc Vũ seed=4, Dương/thuận. Center = Tứ Lục (4).",
+      "note": "Normal case within Cốc Vũ Tiết Khí (Vận 8). Algorithm note: pivot=Cốc Vũ;seed=4;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-08-15",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 4,
+      "jd": 2457250,
+      "pivot": "Cốc Vũ",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "phongthuyso.vn", "value": 4 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-08-15 within Cốc Vũ Tiết Khí, same Giáp Tý cycle; seed=4, Dương/thuận.",
+      "note": "Late Cốc Vũ, same Giáp Tý cycle center. Algorithm note: pivot=Cốc Vũ;seed=4;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-08-28",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 9,
+      "jd": 2457263,
+      "pivot": "Hạ Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "lasotuvi.com", "value": 9 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-08-28 falls after the Hạ Chí Giáp Tý seed day; Hạ Chí seed=9, Âm/nghịch. Center = Cửu Tử (9).",
+      "note": "Normal case within Hạ Chí Tiết Khí (Vận 8). Algorithm note: pivot=Hạ Chí;seed=9;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-10-15",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 3,
+      "jd": 2457311,
+      "pivot": "Xử Thử",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 3 },
+        { "source": "lasotuvi.com", "value": 3 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-10-15 falls after the Xử Thử Giáp Tý seed day; Xử Thử seed=3, Âm/nghịch. Center = Tam Bích (3).",
+      "note": "Normal case within Xử Thử Tiết Khí (Vận 8). Algorithm note: pivot=Xử Thử;seed=3;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-10-28",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 3,
+      "jd": 2457324,
+      "pivot": "Xử Thử",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 3 },
+        { "source": "phongthuyso.vn", "value": 3 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-10-28 within Xử Thử Tiết Khí, same Giáp Tý cycle; seed=3, Âm/nghịch.",
+      "note": "Late Xử Thử, same Giáp Tý cycle center. Algorithm note: pivot=Xử Thử;seed=3;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v8-2015-12-15",
+      "kind": "daily",
+      "year": 2015,
+      "van": 8,
+      "expected_center": 6,
+      "jd": 2457372,
+      "pivot": "Sương Giáng",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 6 },
+        { "source": "lasotuvi.com", "value": 6 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 2015-12-15 falls after the Sương Giáng Giáp Tý seed day; Sương Giáng seed=6, Âm/nghịch. Center = Lục Bạch (6).",
+      "note": "Normal case within Sương Giáng Tiết Khí (Vận 8). Algorithm note: pivot=Sương Giáng;seed=6;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1994-12-25",
+      "kind": "daily",
+      "year": 1994,
+      "van": 7,
+      "expected_center": 6,
+      "jd": 2449712,
+      "pivot": "Sương Giáng",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 6 },
+        { "source": "lasotuvi.com", "value": 6 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1994-12-25 falls in the Đông Chí Tiết Khí but BEFORE the first Giáp Tý seed; per Pitfall P-7, prior pivot Sương Giáng (seed=6, Âm/nghịch) governs. Center = Lục Bạch (6).",
+      "note": "Vận 7 Pitfall P-7 boundary case. Algorithm note: pivot=Sương Giáng;seed=6;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-02-10",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 1,
+      "jd": 2449759,
+      "pivot": "Đông Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 1 },
+        { "source": "lasotuvi.com", "value": 1 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-02-10 within Đông Chí Tiết Khí after first Giáp Tý seed; Đông Chí seed=1, Dương/thuận. Center = Nhất Bạch (1).",
+      "note": "Normal post-Giáp-Tý Đông Chí case (Vận 7). Algorithm note: pivot=Đông Chí;seed=1;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-02-28",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 1,
+      "jd": 2449777,
+      "pivot": "Đông Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 1 },
+        { "source": "phongthuyso.vn", "value": 1 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-02-28 in Vũ Thủy Tiết Khí but BEFORE first Giáp Tý seed; per Pitfall P-7, prior pivot Đông Chí (seed=1, Dương/thuận) governs. Center = 1.",
+      "note": "Pitfall P-7 boundary case (Vận 7). Algorithm note: pivot=Đông Chí;seed=1;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-04-15",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 7,
+      "jd": 2449823,
+      "pivot": "Vũ Thủy",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 7 },
+        { "source": "lasotuvi.com", "value": 7 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-04-15 falls after the Vũ Thủy Giáp Tý seed day; Vũ Thủy seed=7, Dương/thuận. Center = Thất Xích (7).",
+      "note": "Normal case within Vũ Thủy Tiết Khí (Vận 7). Algorithm note: pivot=Vũ Thủy;seed=7;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-04-28",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 7,
+      "jd": 2449836,
+      "pivot": "Vũ Thủy",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 7 },
+        { "source": "phongthuyso.vn", "value": 7 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-04-28 within Vũ Thủy Tiết Khí, same Giáp Tý cycle; seed=7, Dương/thuận.",
+      "note": "Late Vũ Thủy, same Giáp Tý cycle center (Vận 7). Algorithm note: pivot=Vũ Thủy;seed=7;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-06-10",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 4,
+      "jd": 2449879,
+      "pivot": "Cốc Vũ",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "lasotuvi.com", "value": 4 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-06-10 falls after the Cốc Vũ Giáp Tý seed day; Cốc Vũ seed=4, Dương/thuận. Center = Tứ Lục (4).",
+      "note": "Normal case within Cốc Vũ Tiết Khí (Vận 7). Algorithm note: pivot=Cốc Vũ;seed=4;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-06-28",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 4,
+      "jd": 2449897,
+      "pivot": "Cốc Vũ",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 4 },
+        { "source": "phongthuyso.vn", "value": 4 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-06-28 within Cốc Vũ Tiết Khí, same Giáp Tý cycle; seed=4, Dương/thuận.",
+      "note": "Late Cốc Vũ, same Giáp Tý cycle center (Vận 7). Algorithm note: pivot=Cốc Vũ;seed=4;direction=thuận.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-08-15",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 9,
+      "jd": 2449945,
+      "pivot": "Hạ Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "lasotuvi.com", "value": 9 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-08-15 falls after the Hạ Chí Giáp Tý seed day; Hạ Chí seed=9, Âm/nghịch. Center = Cửu Tử (9).",
+      "note": "Normal case within Hạ Chí Tiết Khí (Vận 7). Algorithm note: pivot=Hạ Chí;seed=9;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-08-28",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 9,
+      "jd": 2449958,
+      "pivot": "Hạ Chí",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "phongthuyso.vn", "value": 9 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-08-28 within Hạ Chí Tiết Khí, same Giáp Tý cycle; seed=9, Âm/nghịch.",
+      "note": "Late Hạ Chí, same Giáp Tý cycle center (Vận 7). Algorithm note: pivot=Hạ Chí;seed=9;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-10-15",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 3,
+      "jd": 2450006,
+      "pivot": "Xử Thử",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 3 },
+        { "source": "lasotuvi.com", "value": 3 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-10-15 falls after the Xử Thử Giáp Tý seed day; Xử Thử seed=3, Âm/nghịch. Center = Tam Bích (3).",
+      "note": "Normal case within Xử Thử Tiết Khí (Vận 7). Algorithm note: pivot=Xử Thử;seed=3;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-10-28",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 3,
+      "jd": 2450019,
+      "pivot": "Xử Thử",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 3 },
+        { "source": "phongthuyso.vn", "value": 3 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-10-28 within Xử Thử Tiết Khí, same Giáp Tý cycle; seed=3, Âm/nghịch.",
+      "note": "Late Xử Thử, same Giáp Tý cycle center (Vận 7). Algorithm note: pivot=Xử Thử;seed=3;direction=nghịch.",
+      "confidence": "high"
+    },
+    {
+      "id": "daily-v7-1995-12-15",
+      "kind": "daily",
+      "year": 1995,
+      "van": 7,
+      "expected_center": 6,
+      "jd": 2450067,
+      "pivot": "Sương Giáng",
+      "sources": [
+        { "source": "phongthuycaivan.org", "value": 6 },
+        { "source": "lasotuvi.com", "value": 6 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): 1995-12-15 falls after the Sương Giáng Giáp Tý seed day; Sương Giáng seed=6, Âm/nghịch. Center = Lục Bạch (6).",
+      "note": "Normal case within Sương Giáng Tiết Khí (Vận 7). Algorithm note: pivot=Sương Giáng;seed=6;direction=nghịch.",
+      "confidence": "high"
+    }
+  ],
+  "known_divergences": [
+    {
+      "case": "daily v9 2025-06-28 (Hạ Chí pivot)",
+      "our_value": 9,
+      "source_values": [
+        { "source": "phongthuycaivan.org", "value": 9 },
+        { "source": "lasotuvi.com", "value": 8 }
+      ],
+      "tiebreaker": "Thẩm Thị Huyền Không Học Tam Nguyên Nhật Bạch Quyết (三元日白訣): Hạ Chí pivot seed = 9, Âm/nghịch direction. our_value=9 retained per Thẩm Thị tiebreaker (algorithm-computed seed value). lasotuvi.com reports 8, possibly using a different Giáp Tý cycle convention or a pre-Giáp-Tý interpretation.",
+      "note": "Source disagreement logged per FS-18 (not silently corrected). Review pending — the algorithm output (9) matches phongthuycaivan.org and the ADR-0004 Hạ Chí seed table.",
+      "deferral": {
+        "reason": "phongthuycaivan.org=9 (matches ADR-0004 Hạ Chí seed) and lasotuvi.com=8 disagree on the daily center for 2025-06-28 (Hạ Chí pivot). The algorithm output follows the ADR-0004 convention (seed=9, first Giáp Tý cycle). lasotuvi.com may use an alternative convention not documented in ADR-0004.",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-huyen-khong-reviewer"
+      }
+    }
+  ]
+}
