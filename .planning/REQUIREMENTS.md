@@ -46,29 +46,28 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 
 ## Traceability
 
-*(Filled by roadmapper after phase mapping)*
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-07 | — | Unmapped |
-| FND-08 | — | Unmapped |
-| RIT-14 | — | Unmapped |
-| RIT-15 | — | Unmapped |
-| RIT-16 | — | Unmapped |
-| FS-16 | — | Unmapped |
-| FS-17 | — | Unmapped |
-| FS-18 | — | Unmapped |
-| FS-19 | — | Unmapped |
-| INT-07 | — | Unmapped |
-| INT-08 | — | Unmapped |
-| INT-09 | — | Unmapped |
-| INT-10 | — | Unmapped |
+| FND-07 | Phase 16 | Pending |
+| FND-08 | Phase 16 | Pending |
+| RIT-14 | Phase 17 | Pending |
+| RIT-15 | Phase 17 | Pending |
+| RIT-16 | Phase 17 | Pending |
+| FS-16 | Phase 18 | Pending |
+| FS-17 | Phase 18 | Pending |
+| FS-18 | Phase 18 | Pending |
+| FS-19 | Phase 18 | Pending |
+| INT-07 | Phase 19 | Pending |
+| INT-08 | Phase 19 | Pending |
+| INT-09 | Phase 19 | Pending |
+| INT-10 | Phase 19 | Pending |
 
 **Coverage:**
 - v1.6 requirements: 12 total
-- Mapped to phases: 0 (pending roadmapper)
-- Unmapped: 12 (pending roadmapper)
+- Mapped to phases: 12 ✓
+- Unmapped: 0 ✓
+- Phases: 4 (16 Foundation, 17 Văn khấn Reviewer Closure, 18 Daily Phi Tinh, 19 RecommendsOffering + Integration)
 
 ---
 *Requirements defined: 2026-07-15*
-*Last updated: 2026-07-15 (initial draft pending roadmapper phase mapping).*
+*Last updated: 2026-07-15 (roadmapper phase mapping complete — 12/12 mapped across Phases 16-19).*
