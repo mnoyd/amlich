@@ -67,7 +67,7 @@
   4. Any entry whose review outcome was `corrected` has its `body_vi` re-verified against the cited `original_citation`, and the corrected entry passes the existing `RitualEntry` JSON-schema + NFC-at-load guards — verifiable by extending the existing `tests/rituals_integration.rs` to enumerate corrected entries and assert each passes schema + NFC round-trip.
 
 **Plans**: 2 plans
-- [ ] 17-01-PLAN.md — Audit-of-record pass: identify reviewer (or `ExternalReviewPending`) for each of the 60 entries; update `provenance_audit.md` with method/date/outcome per row (RIT-14, RIT-15)
+- [x] 17-01-PLAN.md — Audit-of-record pass: identify reviewer (or `ExternalReviewPending`) for each of the 60 entries; update `provenance_audit.md` with method/date/outcome per row (RIT-14, RIT-15) — commit 1777666 (docs)
 - [ ] 17-02-PLAN.md — Corrected-entry `body_vi` re-verification against cited source + NFC round-trip guard test in `tests/rituals_integration.rs` (RIT-16)
 
 ### Phase 18: Daily Phi Tinh (日紫白)
@@ -116,7 +116,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 16. Foundation — ADR-0003 Confidence Closure | 2/2 | Complete    | 2026-07-15 |
-| 17. Văn khấn Reviewer Closure | 0/2 | Not started | - |
+| 17. Văn khấn Reviewer Closure | 1/2 | In Progress | - |
 | 18. Daily Phi Tinh (日紫白) | 0/4 | Not started | - |
 | 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 0/3 | Not started | - |
 

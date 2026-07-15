@@ -15,8 +15,8 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 
 ### P1 Văn khấn — RIT-11 reviewer field closure
 
-- [ ] **RIT-14**: User-of-corpus can find every ritual entry carries a `reviewer` field with one of: an actual reviewer identity (name + date + outcome), or an explicit `ExternalReviewPending` deferral marker with documented reason and expected review date.
-- [ ] **RIT-15**: User-of-audit can find `provenance_audit.md` updated with a per-entry review record: reviewer identity, method-of-review (`independent-peer` / `cross-source` / `desk-check`), date reviewed, and outcome (`confirmed` / `corrected` / `disputed`).
+- [x] **RIT-14**: User-of-corpus can find every ritual entry carries a `reviewer` field with one of: an actual reviewer identity (name + date + outcome), or an explicit `ExternalReviewPending` deferral marker with documented reason and expected review date.
+- [x] **RIT-15**: User-of-audit can find `provenance_audit.md` updated with a per-entry review record: reviewer identity, method-of-review (`independent-peer` / `cross-source` / `desk-check`), date reviewed, and outcome (`confirmed` / `corrected` / `disputed`).
 - [ ] **RIT-16**: User-of-corpus can be confident that any entry whose review outcome was `corrected` has its `body_vi` re-verified against the cited source and that the corrected entry passes the existing `RitualEntry` JSON-schema + NFC-at-load guards.
 
 ### P4 Phi Tinh — Daily layer (Lưu Nhật / 日紫白)
@@ -50,8 +50,8 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 |-------------|-------|--------|
 | FND-07 | Phase 16 | **Complete** (2026-07-15, 16-01) |
 | FND-08 | Phase 16 | **Complete** (2026-07-15, 16-02) |
-| RIT-14 | Phase 17 | Pending |
-| RIT-15 | Phase 17 | Pending |
+| RIT-14 | Phase 17 | **Complete** (2026-07-15, 17-01) |
+| RIT-15 | Phase 17 | **Complete** (2026-07-15, 17-01) |
 | RIT-16 | Phase 17 | Pending |
 | FS-16 | Phase 18 | Pending |
 | FS-17 | Phase 18 | Pending |
@@ -70,4 +70,4 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 
 ---
 *Requirements defined: 2026-07-15*
-*Last updated: 2026-07-15 — FND-07 + FND-08 marked Complete after 16-01 + 16-02 execution (ADR-0003a accepted + Consequences restructured; GoldenConfidence typed + DeferralMarker typed; Test F + Test G gates; 888/888 tests pass).*
+*Last updated: 2026-07-15 — RIT-14 + RIT-15 marked Complete after 17-01 execution (provenance_audit.md expanded to 8-column review record; 60/60 ExternalReviewPending markers; 0/0/0/60 outcome breakdown; ledger remains canonical record; no JSON schema changes; 888/888 tests still pass — 6/6 rituals_integration confirmed).*
