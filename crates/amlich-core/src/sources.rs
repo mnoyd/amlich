@@ -53,6 +53,9 @@ mod tests {
         assert_eq!(SOURCE_TAM_MENH_THONG_HOI, "tam-menh-thong-hoi");
         assert_eq!(SOURCE_VN_FOLK_RITUAL, "vn-folk-ritual");
         assert_eq!(SOURCE_HUYEN_KHONG, "huyen-khong");
+        // v1.7 (Phase 20-01): IChing + Mai Hoa Dịch Số source IDs (FND-09).
+        assert_eq!(SOURCE_KINH_DICH, "kinh-dich");
+        assert_eq!(SOURCE_MAI_HOA_DICH_SO, "mai-hoa-dich-so");
     }
 
     #[test]
