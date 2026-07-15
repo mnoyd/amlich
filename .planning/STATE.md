@@ -109,6 +109,16 @@ Phase 20 foundation is fully locked. Run `/gsd-plan-phase 21` to plan the IChing
 - `ActionId::IChing` + `ReasoningEvidenceSourceFamily::IChing` added as additive-safe variants — `IChing` is a distinct Tier-0 evidence family (NOT a reuse of `AlmanacRule`), per the v1.7 roadmap. Both enums are only constructed (never matched), so variant addition required zero call-site churn. Both serialize to `"i_ching"` via the existing `#[serde(rename_all = "snake_case")]` derive.
 - v1.7 ontology test pattern (`v17_concepts_present_in_ontology_slices`) extends the v1.5/v1.6 test template — 3 successive v1.x bumps now follow the same 6-slice extension + label round-trip assertion discipline.
 
+## v1.7 Plan 20-01 Key Decisions
+
+- FND-09 closed: `SOURCE_KINH_DICH = "kinh-dich"` + `SOURCE_MAI_HOA_DICH_SO = "mai-hoa-dich-so"` registered as `pub const` in `sources.rs` after `SOURCE_HUYEN_KHONG`, following the exact pattern of the existing 7 consts. `tests/source_id_guard.rs::FORBIDDEN_LITERALS` extended to 9 entries (CRIT-6 cross-contamination prevention from day 1). `all_constants_have_expected_values` test now covers 9 consts. Guard test passes.
+- FND-10 closed: three Nygard short-form ADRs accepted (Status: Accepted, Date: 2026-07-16). ADR-0005 (HexagramEntry schema v1) locks the field set + the naming-convention divergence from rituals (`vi_name` prefix vs `body/body_en` suffix) + the `hao_tu` length rule (6 for #3..64; 7 for #1 & #2) + the `reviewer: String` free-text marker + `DeferralMarker` reuse + the `HauThienTrigram` Lo Shu encoding pin. ADR-0006 (Mai Hoa casting convention) pins the Tiên Thiên arrangement (Kiền=1..Khôn=8) + lunar inputs + `((n-1)%k)+1` remainder-zero convention + the worked all-eights boundary example (CRIT-2 self-contained proof) + two-source pin (Thiều Khang Tiết classical + nhantu.net modern). ADR-0007 (cross-link CRIT-3 carve-out) locks placement in read-only `reasoning/direction_composite.rs` (NOT `interaction/direction_merge.rs`) + composite `rule.composite.direction_cross_link` envelope pattern + sibling `tests/thai_tue_cross_link_crit3.rs` grep guard.
+- DEC-0026/0027/0028 added to MILESTONES.md ADR Cross-References table (DEC-0025 was highest registered; v1.6 ADR-0003a/0004 unregistered gap left as separate cleanup per 20-RESEARCH.md Open Question #3).
+- Page-citation deferral pattern (ADR-0006 §5) mirrors ADR-0004 §5 — classical source cited by title + publisher + year + translator; exact page awaits numbered-edition lookup; upgrade lands in superseding ADR (ADR-0006a), not as amendment.
+- Worked boundary example lives in the ADR body itself (ADR-0006 §4) — Phase 22's contract test cites the `((24-1) % 8) + 1 = 7 + 1 = 8` arithmetic directly. CRIT-2 prevention proof is self-contained; a reader does not need to consult the external source to verify the boundary.
+- Naming-convention divergence (ADR-0005 §3) intentionally NOT normalised to rituals' `body`/`body_en` — `vi_name` (language marker prefix for content) vs `thoai_tu`/`hao_tu`/`cat_hung` (romanized VN technical terms unmarked). A future maintainer reverting this would silently break the Phase 21 corpus JSON; ADR body documents the divergence so the audit trail pre-empts the "consistency" refactor.
+- Parallel-execution note: Phase 20 plans 20-01/20-02/20-03 were executed concurrently (config `parallelization: true`). Plan 20-01's verification was impaired by in-flight Plan 20-02/20-03 work (lib crate non-compiling mid-execution); the source_id_guard test (standalone target) passed and the sources.rs consts are mechanically trivial copies of the existing 7-const pattern. See deferred-items.md item #2.
+
 ---
 
 <details>
@@ -154,4 +164,4 @@ Phase 20 foundation is fully locked. Run `/gsd-plan-phase 21` to plan the IChing
 </details>
 
 ---
-*State updated: 2026-07-15 — Plans 20-02 + 20-03 complete (HexagramEntry schema lock + 64-entry composition table + Hexagram/LocatedAt/Transforms ontology + IChing enum variants; FND-11 + FND-12 closed). v1.6 Key Decisions archived into `<details>` (baked into ADRs/code). Next: complete Plan 20-01 (source IDs + ADRs) to close Phase 20.*
+*State updated: 2026-07-15 — Phase 20 fully complete (3/3 plans). Plan 20-01 closed FND-09 + FND-10 (source IDs + ADR-0005/0006/0007 + DEC-0026/0027/0028). v1.6 Key Decisions archived into `<details>` (baked into ADRs/code). Next: `/gsd-plan-phase 21` (IChing Corpus + Loader) against the now-locked HexagramEntry schema.*
