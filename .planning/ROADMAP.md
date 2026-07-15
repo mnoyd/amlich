@@ -115,7 +115,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 16. Foundation — ADR-0003 Confidence Closure | 2/2 | Complete | 2026-07-15 |
+| 16. Foundation — ADR-0003 Confidence Closure | 2/2 | Complete    | 2026-07-15 |
 | 17. Văn khấn Reviewer Closure | 0/2 | Not started | - |
 | 18. Daily Phi Tinh (日紫白) | 0/4 | Not started | - |
 | 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 0/3 | Not started | - |
