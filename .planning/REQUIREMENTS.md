@@ -17,7 +17,7 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 
 - [x] **RIT-14**: User-of-corpus can find every ritual entry carries a `reviewer` field with one of: an actual reviewer identity (name + date + outcome), or an explicit `ExternalReviewPending` deferral marker with documented reason and expected review date.
 - [x] **RIT-15**: User-of-audit can find `provenance_audit.md` updated with a per-entry review record: reviewer identity, method-of-review (`independent-peer` / `cross-source` / `desk-check`), date reviewed, and outcome (`confirmed` / `corrected` / `disputed`).
-- [ ] **RIT-16**: User-of-corpus can be confident that any entry whose review outcome was `corrected` has its `body_vi` re-verified against the cited source and that the corrected entry passes the existing `RitualEntry` JSON-schema + NFC-at-load guards.
+- [x] **RIT-16**: User-of-corpus can be confident that any entry whose review outcome was `corrected` has its `invocation_text_vi` re-verified against the cited source and that the corrected entry passes the existing `RitualEntry` JSON-schema + NFC-at-load guards.
 
 ### P4 Phi Tinh — Daily layer (Lưu Nhật / 日紫白)
 
@@ -52,7 +52,7 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 | FND-08 | Phase 16 | **Complete** (2026-07-15, 16-02) |
 | RIT-14 | Phase 17 | **Complete** (2026-07-15, 17-01) |
 | RIT-15 | Phase 17 | **Complete** (2026-07-15, 17-01) |
-| RIT-16 | Phase 17 | Pending |
+| RIT-16 | Phase 17 | **Complete** (2026-07-15, 17-02) |
 | FS-16 | Phase 18 | Pending |
 | FS-17 | Phase 18 | Pending |
 | FS-18 | Phase 18 | Pending |

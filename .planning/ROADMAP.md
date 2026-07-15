@@ -28,7 +28,7 @@
 ## Phases
 
 - [x] **Phase 16: Foundation — ADR-0003 Confidence Closure** - Promote pre-1984 Thượng/Trung Nguyên polarity rows MEDIUM → HIGH after external cross-check; resolve or explicitly defer the 1960 Trung Nguyên `KnownDivergence`.
-- [ ] **Phase 17: Văn khấn Reviewer Closure** - Populate the `reviewer` field on every ritual entry (identity OR explicit `ExternalReviewPending` marker); re-verify corrected entries pass existing JSON-schema + NFC guards.
+- [x] **Phase 17: Văn khấn Reviewer Closure** - Populate the `reviewer` field on every ritual entry (identity OR explicit `ExternalReviewPending` marker); re-verify corrected entries pass existing JSON-schema + NFC guards.
 - [ ] **Phase 18: Daily Phi Tinh (日紫白)** - Land the deferred daily layer: `compute_daily_flying_stars` with 冬至/夏至 reversal, ADR-0004 daily starting-star convention, multi-source daily golden dataset, additive `DaySnapshot.daily_flying_stars` field.
 - [ ] **Phase 19: `RecommendsOffering` Semantic-Graph Node + v1.6 Integration** - Promote offerings to first-class nodes (Ritual → Offering via `RecommendsOffering` edge with dual-source provenance); v1.5→v1.6 backward-compat round-trip + 2026 E2E smoke.
 
@@ -64,11 +64,11 @@
   1. A reader can open `data/rituals/provenance_audit.md` and find one row per `ritual_id` (all 60 entries) carrying a `reviewer` value that is one of: an actual reviewer identity (name + date + outcome), or an explicit `ExternalReviewPending` marker with documented reason + expected review date.
   2. A reader can find on each row: reviewer identity (or deferral marker), method-of-review (`independent-peer` / `cross-source` / `desk-check`), date reviewed, and outcome (`confirmed` / `corrected` / `disputed`); the `pending` placeholder used in v1.5 is no longer present.
   3. A caller can filter or count entries by review outcome (`confirmed` / `corrected` / `disputed` / `ExternalReviewPending`) and get stable counts matching the audit ledger (no drift between corpus and ledger).
-  4. Any entry whose review outcome was `corrected` has its `body_vi` re-verified against the cited `original_citation`, and the corrected entry passes the existing `RitualEntry` JSON-schema + NFC-at-load guards — verifiable by extending the existing `tests/rituals_integration.rs` to enumerate corrected entries and assert each passes schema + NFC round-trip.
+  4. Any entry whose review outcome was `corrected` has its `invocation_text_vi` re-verified against the cited `original_citation`, and the corrected entry passes the existing `RitualEntry` JSON-schema + NFC-at-load guards — verifiable by extending the existing `tests/rituals_integration.rs` to enumerate corrected entries and assert each passes schema + NFC round-trip.
 
 **Plans**: 2 plans
 - [x] 17-01-PLAN.md — Audit-of-record pass: identify reviewer (or `ExternalReviewPending`) for each of the 60 entries; update `provenance_audit.md` with method/date/outcome per row (RIT-14, RIT-15) — commit 1777666 (docs)
-- [ ] 17-02-PLAN.md — Corrected-entry `body_vi` re-verification against cited source + NFC round-trip guard test in `tests/rituals_integration.rs` (RIT-16)
+- [x] 17-02-PLAN.md — Corrected-entry `invocation_text_vi` re-verification + NFC round-trip guard test in `tests/rituals_integration.rs` (RIT-16) — commits 57496f7 + 0c3d483 (feat)
 
 ### Phase 18: Daily Phi Tinh (日紫白)
 
@@ -116,7 +116,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 16. Foundation — ADR-0003 Confidence Closure | 2/2 | Complete    | 2026-07-15 |
-| 17. Văn khấn Reviewer Closure | 1/2 | In Progress | - |
+| 17. Văn khấn Reviewer Closure | 2/2 | Complete    | 2026-07-15 |
 | 18. Daily Phi Tinh (日紫白) | 0/4 | Not started | - |
 | 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 0/3 | Not started | - |
 
