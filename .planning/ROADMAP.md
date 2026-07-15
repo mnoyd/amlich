@@ -117,7 +117,7 @@
 |-------|----------------|--------|-----------|
 | 16. Foundation — ADR-0003 Confidence Closure | 2/2 | Complete    | 2026-07-15 |
 | 17. Văn khấn Reviewer Closure | 2/2 | Complete    | 2026-07-15 |
-| 18. Daily Phi Tinh (日紫白) | 4/4 | Complete   | 2026-07-15 |
+| 18. Daily Phi Tinh (日紫白) | 4/4 | Complete    | 2026-07-15 |
 | 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 0/3 | Not started | - |
 
 ## Requirement Coverage
