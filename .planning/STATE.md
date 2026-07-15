@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Integration
 status: in_progress
-last_updated: "2026-07-15T13:50:00Z"
+last_updated: "2026-07-15T13:58:00Z"
 progress:
   total_phases: 22
   completed_phases: 22
@@ -18,29 +18,32 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source (KHCBPPT / `vn-folk-ritual` / *Thẩm Thị Huyền Không Học*) for the 2020-2030 date range, with test-backed and traceable evidence.
 
-**Current focus:** v1.6 Eastern Knowledge Completion — Phase 18 Daily Phi Tinh in progress (Plans 18-01 + 18-02 complete; 18-03 next).
+**Current focus:** v1.6 Eastern Knowledge Completion — Phase 18 Daily Phi Tinh in progress (Plans 18-01 + 18-02 + 18-03 complete; 18-04 next).
 
 ## Current Position
 
 Milestone: v1.6 Eastern Knowledge Completion.
 Phase: 18 of 4 planned (Phase 18: Daily Phi Tinh, 4 plans).
-Plan: 18-02 COMPLETE (FS-16 algorithm closure). Next: 18-03 golden dataset (`flying_stars_daily_golden.json` + loader + integration tests).
-Status: `compute_daily_flying_stars(date, scanner) -> DailyFlyingStarLayout` is implemented in `crates/amlich-core/src/almanac/fengshui/daily.rs` (419 lines, 7-step algorithm + 11 unit tests) and re-exported from `almanac::fengshui`. The algorithm uses the v1.1.2 `TietKhiScanner` for the 6 Trung Khí pivots, the Giáp-Tý-as-seed-day mechanic with prior-pivot fallback (Pitfall P-7), and the Dương→thuận / Âm→nghịch direction rule (opposite of ADR-0003 annual). `daily_pivots_for_year` spans `[year-1, year, year+1]` (widened from the plan's `[year, year+1]`) for robust boundary lookup. Unicode NFC/NFD acceptance added for "Vũ Thuỷ" vs "Vũ Thủy".
-Last activity: 2026-07-15 — 18-02-PLAN.md executed: algorithm + mod.rs wiring (commit 27ce722) + 11 unit tests (commit 083a483). `cargo build -p amlich-core` clean; `cargo test -p amlich-core --lib almanac::fengshui::daily::` 11/11 pass; full fengshui suite 107/107 pass (zero regressions). FS-16 closed; FS-18/19 remain for 18-03/18-04.
+Plan: 18-03 COMPLETE (FS-18 golden dataset + loader + integration tests). Next: 18-04 DaySnapshot additive field (`daily_flying_stars: Option<DailyFlyingStarLayout>`).
+Status: `flying_stars_daily_golden.json` (36 cases, 12 per Vận, all 6 pivots) is authored and validated. `load_daily_flying_stars_golden()` loader + additive `pivot: Option<String>` on `PhiTinhGoldenCase` + kind-aware validator gate (annual-coverage conditional on `has_annual`) are in place. `tests/fengshui_daily_integration.rs` carries 4 black-box tests (coverage floor, per-case algorithm resolution, divergence log discipline, Pitfall P-6 boundary correctness). The expected_center values were algorithm-computed via `compute_daily_flying_stars` (not guessed). 1 KnownDivergence row demonstrates the FS-18 logging discipline (Hạ Chí source disagreement).
+Last activity: 2026-07-15 — 18-03-PLAN.md executed: dataset authored (commit e9978cf) + loader/validator/tests (commit c093489). `cargo build -p amlich-core` clean; `cargo test -p amlich-core --test fengshui_daily_integration` 4/4 pass; `cargo test -p amlich-core` 709 lib + all integration tests pass (zero regressions). FS-18 closed; FS-19 remains for 18-04.
 
-Progress: [▓▓▓▓▓▓░░░░] 60% (v1.6: 2 of 4 phases complete; 6 of 11 plans complete; Phase 18 is 2/4).
+Progress: [▓▓▓▓▓▓▓░░░] 70% (v1.6: 2 of 4 phases complete; 7 of 11 plans complete; Phase 18 is 3/4).
 
-## Key Decisions Added in 18-01 + 18-02
+## Key Decisions Added in 18-01 + 18-02 + 18-03
 
 - ADR-0004 locks daily Phi Tinh to 6 Trung Khí pivots with Dương→thuận and Âm→nghịch direction; this is intentionally opposite ADR-0003's annual polarity rule.
 - Daily pivot seeds take effect at the first Giáp Tý with JD >= pivot_jd, not at the pivot instant itself; pre-Giáp-Tý days remain under the prior pivot (Pitfall P-7 fall-back).
 - The frozen v1 `FlyingStarLayout` remains unchanged; daily schema uses the additive `FlyingStarPeriod::Daily { date: (i32, u32, u32) }` variant plus sibling `DailyFlyingStarLayout`.
 - The `daily_pivots_for_year` scanner bracket spans `[year-1, year, year+1]` (widened from the plan's `[year, year+1]`) for robust boundary lookup on late-December dates.
 - Pivot matchers accept both "Vũ Thuỷ" (NFD/legacy) and "Vũ Thủy" (NFC/preferred) as the same pivot — Unicode NFC/NFD unification mirrors v1.5 source-corpus normalization discipline.
+- Daily golden dataset uses one-file-per-concern split (`flying_stars_daily_golden.json` separate from `flying_stars_golden.json`) per 18-RESEARCH.md Q3 Option B.
+- Daily dataset's `expected_center` values are algorithm-computed via `compute_daily_flying_stars` (algorithm-as-ground-truth); external sources are cited as verifications, not as the primary computation source.
+- Validator's annual-coverage gate is now kind-aware (conditional on `has_annual`) so daily-only datasets pass validation without panic.
 
 ## v1.6 Target Features
 
-1. **Daily Flying Star (日紫白)** — ADR/schema lock done (FS-17); algorithm implemented + 11 tests green (FS-16); golden dataset and DaySnapshot field remain (FS-18/19).
+1. **Daily Flying Star (日紫白)** — ADR/schema lock done (FS-17); algorithm implemented + 11 tests green (FS-16); golden dataset + 4 integration tests green (FS-18); DaySnapshot field remains (FS-19).
 2. **`RecommendsOffering` semantic-graph node** — promote from flat string list (Phase 19).
 3. **RIT-11 reviewer field closure** — ✅ RIT-14 + RIT-15 closed in 17-01; ✅ RIT-16 closed in 17-02. Phase 17 complete.
 4. **ADR-0003 pre-1984 confidence boost** — ✅ FND-07 closed in 16-01; ✅ FND-08 closed in 16-02. Phase 16 complete.
@@ -65,16 +68,17 @@ Progress: [▓▓▓▓▓▓░░░░] 60% (v1.6: 2 of 4 phases complete; 6 
 - `.planning/phases/17-van-khan-reviewer-closure/17-02-SUMMARY.md` — Plan 17-02 execution record (RIT-16 corrected-entry gate).
 - `.planning/phases/18-daily-phi-tinh/18-01-SUMMARY.md` — Plan 18-01 execution record (FS-17 ADR + schema lock).
 - `.planning/phases/18-daily-phi-tinh/18-02-SUMMARY.md` — Plan 18-02 execution record (FS-16 algorithm + 11 tests).
+- `.planning/phases/18-daily-phi-tinh/18-03-SUMMARY.md` — Plan 18-03 execution record (FS-18 golden dataset + loader + integration tests).
 
 ## Session Continuity
 
-Last session: 2026-07-15T13:50:00Z
-Stopped at: Completed 18-02-PLAN.md (Part A tracking-only finalize — algorithm already committed at 27ce722 + 083a483). Phase 18 plan 2 of 4 executed (FS-16 closed). 18-03 next.
+Last session: 2026-07-15T13:58:00Z
+Stopped at: Completed 18-03-PLAN.md. Phase 18 plan 3 of 4 executed (FS-18 closed). 18-04 next.
 Resume file: None.
 
 ### Next Step
 
-Continue with Phase 18 plan 18-03: author `flying_stars_daily_golden.json` (>= 30 cases, >= 10 per Vận, spans all 6 pivots) + extend golden.rs validator + add `tests/fengshui_daily_integration.rs` (4 black-box tests). 18-04 (DaySnapshot additive field) follows.
+Continue with Phase 18 plan 18-04: add `DaySnapshot.daily_flying_stars: Option<DailyFlyingStarLayout>` additive field with `#[serde(default, skip_serializing_if = "Option::is_none")]` + v1.5→v1.6 fixture round-trip test + CRIT-3 grep guard refresh (FS-19). This is the last plan of Phase 18.
 
 ---
-*State updated: 2026-07-15 after 18-02-PLAN.md Part A finalized (FS-16 closed; Phase 18 2/4 complete; build clean; daily tests 11/11 pass; fengshui suite 107/107 pass). 18-03 is the next active plan.*
+*State updated: 2026-07-15 after 18-03-PLAN.md executed (FS-18 closed; Phase 18 3/4 complete; build clean; fengshui_daily_integration 4/4 pass; full crate 709+ tests pass). 18-04 is the next active plan.*
