@@ -1,568 +1,700 @@
-# Architecture Research: v1.5 Eastern Knowledge Expansion (P1 Văn khấn + P4 Phi Tinh thời gian)
+# Architecture Research
 
-**Domain:** Vietnamese Almanac — ritual content lookup + time-based Flying Stars
-**Researched:** 2026-05-23
-**Confidence:** HIGH for both pillars (every integration point grounded in current source).
-
-## Executive Summary
-
-v1.5 adds two **content-and-lookup-shaped** pillars to the existing `amlich-core` Rust workspace. Neither requires algorithmic novelty: P1 Văn khấn is a corpus-with-rules pillar (lookup by event/date → ritual entries) and P4 Phi Tinh thời gian is a finite-table pillar (Vận/Năm/Tháng → 3×3 palace assignment of the nine stars). Both are **Tier 0** (no birth data) so they must be reachable from `DaySnapshot` alone.
-
-Architectural shape:
-
-1. **P1 Văn khấn** — new sibling crate-internal module `crates/amlich-core/src/rituals/`, JSON corpus under `crates/amlich-core/data/rituals/`, embedded via `include_str!` + `OnceLock` (same as `golden_loader.rs`). Holiday integration is **read-only**: rituals discover events from existing `holidays::Holiday.name + category + lunar_date`. Holiday module is NOT modified in v1.5 — the ritual module imports holidays, not vice-versa, to keep the dependency arrow one-way and the v1.0–v1.4 surface frozen.
-2. **P4 Phi Tinh thời gian** — new submodule **folder** `crates/amlich-core/src/almanac/fengshui/` containing `mod.rs` + `flying_stars.rs`. Use a folder (not a single file) because (a) Huyền Không has multiple table layers (Vận base palace, yearly, monthly, daily) and (b) the §3.3 Tier-3 expansion will add `spatial_compose` siblings without restructuring. Base palace tables stay as `const` Rust arrays (Vận 1–9 is a fully-known finite set of 9 × 9 = 81 cells with stable mathematical structure); the JSON file `crates/amlich-core/data/almanac/flying_stars.json` holds only star metadata (name, element, polarity, default interpretation) — i.e. the part that humans actually edit.
-3. **Boundary with existing direction modules** is crystal clear once stated:
-   - `sat_phuong.rs` / `than_huong.rs` / `thai_tue.rs` answer **"which cardinal direction is auspicious / forbidden TODAY?"** Output is a *direction string* tagged by `source_id = "khcbppt"`.
-   - `flying_stars.rs` answers **"which star occupies each of the 9 palaces in the Lo Shu grid for this time period?"** Output is a *palace-to-star map* (9 cells) tagged by `source_id = "huyen-khong"`. It is a *spatial layout descriptor*, not a single direction recommendation.
-   - There is zero overlap because the output cardinality differs (1 direction vs 9 palaces) and the source traditions are disjoint (Hiệp Kỷ vs Thẩm Thị Huyền Không).
-4. **Semantic graph** receives two new `NodeConcept`s (`Ritual`, `FlyingStar`) and at minimum two new `EdgeConcept`s (`PrescribedFor`, `OccupiesPalace`). The `EventType` concept is *not* a new node — events are reused from existing `Holiday` records (festival id) and a small ritual-only `RitualEventKey` enum embedded inside ritual node payload. This avoids polluting the ontology with a 2nd holiday-shaped node kind.
-5. **Build order:** schema lock for ritual JSON → ritual corpus + module → ritual semantic graph wiring → Phi Tinh tables → Phi Tinh module + tests → Phi Tinh semantic graph wiring → snapshot integration (both pillars read-only consumers of `DaySnapshot`). Schema lock first because the JSON shape gates corpus production cost; once locked, corpus authoring and Phi Tinh table work parallelise.
-
-**Key architectural principle (carried from v1.0–v1.4):** Additive-only. No existing public type changes. No existing JSON files mutate. No existing `source_id` reused. Every new node carries a `ProvenanceEntry { source: AlmanacRule, source_id: "vn-folk-ritual" | "huyen-khong", method, ... }`.
+**Domain:** Rust Vietnamese-almanac engine (`amlich-core`) — extending an existing multi-tradition reasoning system with the P2 Kinh Dịch (I-Ching) pillar and a Thái Tuế/Tam Sát ⇄ Phi Tinh read-only cross-link.
+**Researched:** 2026-07-16
+**Confidence:** HIGH (every recommendation is grounded in existing v1.5/v1.6 code paths with file:line refs; the v1.5 Văn khấn and Phi Tinh pillars provide direct precedent for both the corpus-driven and algorithm-driven integration patterns this milestone needs).
 
 ---
 
-## Current Architecture Context (verified against source)
+## Standard Architecture
 
-### Module hierarchy
+### System Overview
 
-`crates/amlich-core/src/lib.rs:10-26` — top-level modules already include `almanac`, `holidays`, `holiday_data`, `interaction`, `reasoning`, `semantic_graph`. Adding `pub mod rituals;` is one additive line; adding `pub mod almanac::fengshui` requires registering a submodule inside `almanac/mod.rs:1-28`.
+v1.7 does **not** introduce a new layer. It adds two new leaves into the existing layer cake, then threads them through the established additive surfaces (`DaySnapshot`, semantic graph, reasoning envelope). The diagram below shows where the new code lands — every box marked **NEW** slots into an existing layer without modifying layer boundaries.
 
-`crates/amlich-core/src/almanac/mod.rs:1-28` — flat list of 27 calculator submodules. Pattern: each calculator gets its own file at this level. Phi Tinh deviates intentionally by introducing a **folder** because the long-term §3.3 plan needs multiple sibling files (`flying_stars.rs`, future `nine_palaces.rs`, future `spatial_compose.rs`).
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│  PUBLIC API (lib.rs ~ lines 224-272)                                     │
+│   calculate_day_snapshot  /  build_initiation_opening_reasoning_bundle   │
+│   + NEW: cast_iching(snapshot, IChingQuery)  +  build_direction_cross_link│
+├──────────────────────────────────────────────────────────────────────────┤
+│  REASONING LAYER  (crates/amlich-core/src/reasoning/)                    │
+│   ┌────────────────┐ ┌──────────────────┐ ┌──────────────────────────┐   │
+│   │ personal.rs    │ │ initiation_      │ │ NEW: direction_composite │   │
+│   │ (build_fact_   │ │ opening_         │ │ .rs  (Thai Tue ⇄ Phi     │   │
+│   │  nodes)        │ │ evaluator.rs     │ │  Tinh cross-link,        │   │
+│   │                │ │ (ActionEvaluator │ │  read-only)              │   │
+│   │                │ │  precedent)      │ │                          │   │
+│   └────────────────┘ └──────────────────┘ └──────────────────────────┘   │
+│   ┌──────────────────────────────────────────────────────────────────┐   │
+│   │ NEW: iching/  (mod, schema, corpus, mai_hoa, bien_que, evaluator)│   │
+│   │  impl ActionEvaluator for IChingEvaluator                        │   │
+│   └──────────────────────────────────────────────────────────────────┘   │
+├──────────────────────────────────────────────────────────────────────────┤
+│  ALMANAC LAYER  (crates/amlich-core/src/almanac/)                        │
+│   ┌─────────────────┐ ┌──────────────────┐ ┌─────────────────────────┐   │
+│   │ thai_tue.rs     │ │ sat_phuong.rs    │ │ fengshui/  (Phi Tinh)   │   │
+│   │ (KHCBPPT,       │ │ (KHCBPPT,        │ │ (huyen-khong, CRIT-3    │   │
+│   │  DEC-0021)      │ │  DEC-0018)       │ │  isolated from          │   │
+│   │ *evidence =     │ │ *evidence =      │ │  direction_merge.rs)    │   │
+│   │  None ← BACKFILL│ │  None ← BACKFILL │ │                         │   │
+│   └─────────────────┘ └──────────────────┘ └─────────────────────────┘   │
+│   *MODIFIED (1-line backfill): populate RuleEvidence with SOURCE_KHCBPPT  │
+├──────────────────────────────────────────────────────────────────────────┤
+│  SEMANTIC GRAPH  (crates/amlich-core/src/semantic_graph/)                │
+│   ontology.rs (NodeConcept/EdgeConcept 6-slice pattern)                  │
+│   builders/day_snapshot.rs (+ NEW add_iching_facts builder method)       │
+│   + NEW: Hexagram node concept, LocatedAt + Transforms edge concepts     │
+├──────────────────────────────────────────────────────────────────────────┤
+│  DTO  (crates/amlich-core/src/lib.rs:154 DaySnapshot)                    │
+│   + NEW additive Option<IChingCastSummary> field                        │
+│   + NEW additive Option<DirectionCrossLinkSummary> field                │
+├──────────────────────────────────────────────────────────────────────────┤
+│  CORPUS  (crates/amlich-core/data/)                                      │
+│   data/iching/hexagrams.json   (64 entries, $schema_version "iching-v1") │
+│   data/schemas/iching-schema.json                                        │
+└──────────────────────────────────────────────────────────────────────────┘
+```
 
-### Provenance & evidence
+### Component Responsibilities
 
-`crates/amlich-core/src/semantic_graph/provenance.rs:65-67` — `Provenance::almanac_rule(source_id, method)` is the constructor both new pillars use. Both `vn-folk-ritual` and `huyen-khong` flow through this exact path because they are *almanac-rule* in nature (date-driven content / table lookups), not interaction outputs.
-
-`reasoning/personal.rs:176-192` — pattern for emitting `ReasoningEvidenceEnvelope` shows the simple struct shape (source_family + source_id + method + note). New pillars use `ReasoningEvidenceSourceFamily::AlmanacRule` (already exists, no enum extension needed).
-
-### Holiday detection (P1 dependency, read-only)
-
-`holidays.rs:14-25` — `Holiday { name, lunar_date, solar_day/month/year, is_solar, category, is_major }`. Categories observed in current code: `"festival"`, `"social"`, `"lunar-cycle"` (lines 179, 210, 237). Mùng 1 (lunar day 1) and Rằm (lunar day 15) holidays are auto-generated at `holidays.rs:228-260` with `category = "lunar-cycle"` — this is the **natural join key** for monthly Sóc/Vọng ritual lookups.
-
-`crates/amlich-core/data/holidays/lunar-festivals.json` — each festival has stable `id` field (e.g. `"tet-nguyen-dan"`). P1 corpus references these IDs in its `event_keys` array, never the localised name string. This survives translation/rename of `names.vi`.
-
-### Direction modules (P4 boundary check)
-
-`almanac/sat_phuong.rs:1-104` — input `chi_index: usize` → output `SatPhuongResult { direction: String }`. **One direction, daily resolution, source = KHCBPPT.**
-
-`almanac/than_huong.rs:1-117` — input `can: &str` → output `TravelDirection { xuat_hanh_huong, tai_than, hy_than }`. **Three named directions, daily resolution, source = Khâm Định Hiệp Kỷ Biện Phương Thư.**
-
-`almanac/thai_tue.rs:53-112` — input `(birth_chi_index, current_year_chi_index)` → output `ThaiTueResult { conflicts: Vec<…> }`. **Conflict list, yearly resolution, source = KHCBPPT + folk.** Note: this is technically Tier 1 (uses birth year) — but does NOT take spatial input.
-
-**Confirmed:** none of these modules produce a 9-palace layout. None use a Vận period. Phi Tinh has zero output overlap.
-
-### Semantic graph ontology
-
-`semantic_graph/ontology.rs:5-40` — current `NodeConcept` enum has 34 variants (DayCanchi, Truc, Direction, Recommendation, Taboo, etc.). Extensions are additive single-line entries inside the enum + `label()` match + the static `node_concepts()` slice at line 278.
-
-`semantic_graph/ontology.rs:85-111` — `EdgeConcept` enum has 25 variants. Same pattern for additions.
-
-### JSON loading convention
-
-`almanac/golden_loader.rs:5-21` — pattern: `const X_JSON: &str = include_str!("../../data/...");` + `static X: OnceLock<T> = OnceLock::new();` + `pub fn load_x() -> &'static T { X.get_or_init(|| { … validate(&dataset); dataset }) }`. Both new pillars **must** follow this exact pattern (panic on validation failure — the data is a test oracle, not user-faceable).
+| Component | Responsibility | Typical Implementation |
+|-----------|----------------|------------------------|
+| `reasoning/iching/` (NEW) | Cast hexagram from query time, resolve 64-quẻ table, derive biến quẻ, surface interpretation. Self-contained pillar. | Sibling of `rituals/` (corpus+lookup precedent) and `almanac/fengshui/` (algorithm precedent). |
+| `reasoning/direction_composite.rs` (NEW) | Read-only join of `khcbppt` Thai-Tuế/Sát-Phương with `huyen-khong` palace layout into one directional picture. | Single-purpose reasoning module; emits composite `rule.composite.*` evidence; never mutates either source. |
+| `reasoning/personal.rs` (MODIFIED, additive) | Branch dispatch for IChing intent + new direction-cross-link fact node. | New methods on existing `impl PersonalReasoningInput`; no signature changes to existing methods. |
+| `almanac/thai_tue.rs`, `almanac/sat_phuong.rs` (MODIFIED, 1-line each) | Backfill `RuleEvidence { source_id: SOURCE_KHCBPPT, ... }` so the cross-link can cite them. | Currently `evidence: None` — populate via `.to_string()` from the `SOURCE_*` constant per CI guard. |
+| `semantic_graph/ontology.rs` (MODIFIED) | Add `Hexagram` node + `LocatedAt`, `Transforms` edges per the 6-slice pattern. | Six mechanical edits (see Pattern 1 below). |
+| `sources.rs` (MODIFIED) | Register `SOURCE_KINH_DICH`, `SOURCE_MAI_HOA_DICH_SO`. | Two new `pub const` lines; CI guard FORBIDDEN_LITERALS extended. |
+| `reasoning/types.rs` (MODIFIED) | Add `ReasoningEvidenceSourceFamily::IChing` + `ActionId::IChing`. | Closed-enum additive extension; exhaustive match sites in `initiation_opening_evaluator.rs` updated. |
 
 ---
 
-## P1 Văn khấn — Module Design
-
-### 1.1 Module location
-
-**Decision:** `crates/amlich-core/src/rituals/` (new top-level submodule), NOT under `almanac/`.
-
-**Rationale:**
-- `almanac/` is reserved for **rule calculators** that consume a day's Can-Chi/Tiết-Khí/lunar coordinates and emit *computed* almanac outputs (truc, deity, na am, …). Văn khấn is a **content corpus retriever** — it does not compute, it filters and returns prose. Conceptually closer to `holiday_data.rs` (which is also a top-level submodule) than to `truc.rs`.
-- Future ritual sub-pillars (lễ vật trình tự, văn tế gia tiên, văn cúng đầu năm) belong here. Putting them under `almanac/` would corrupt the "almanac = computed" invariant that v1.0–v1.4 carefully maintained.
-- The EXPANSION_FRAMEWORK at line 65 explicitly proposes `crates/amlich-core/src/rituals/` — this matches.
-
-**Module layout:**
+## Recommended Project Structure
 
 ```
-crates/amlich-core/src/rituals/
-├── mod.rs              # public API: find_van_khan, list_events_on, RitualEntry types
-├── corpus.rs           # OnceLock + include_str! + validation (mirrors golden_loader)
-├── event_match.rs      # day → Vec<RitualEventKey> resolver (joins holidays.rs)
-├── types.rs            # RitualEntry, RitualEventKey, LunarDateMatch, RitualMetadata
-└── tests.rs            # golden coverage tests
+crates/amlich-core/
+├── data/
+│   └── iching/                          # NEW — 64-hexagram corpus (mirrors data/rituals/)
+│       ├── hexagrams.json               # 64 entries, $schema_version "iching-v1"
+│       ├── manifest.json                # file list for tooling (NOT parsed at runtime, per 12-03)
+│       └── provenance_audit.md          # classical reference + reviewer ledger (RIT-11 precedent)
+└── src/
+    ├── sources.rs                       # MODIFIED — +SOURCE_KINH_DICH, +SOURCE_MAI_HOA_DICH_SO
+    ├── lib.rs                           # MODIFIED — +additive DaySnapshot fields, +public API fns
+    ├── advisory.rs                      # UNCHANGED — ConsultationIntent stays Copy (see Pattern 3)
+    ├── almanac/
+    │   ├── thai_tue.rs                  # MODIFIED (1 line) — populate evidence.source_id
+    │   └── sat_phuong.rs                # MODIFIED (1 line) — populate evidence.source_id
+    ├── reasoning/
+    │   ├── mod.rs                       # MODIFIED — pub use iching::* ; pub use direction_composite
+    │   ├── personal.rs                  # MODIFIED — new build_iching_fact_nodes + cross-link fact
+    │   ├── types.rs                     # MODIFIED — +IChing source family, +ActionId::IChing
+    │   ├── iching/                      # NEW — Tier-0 divination pillar
+    │   │   ├── mod.rs                   # public API: cast_iching, all_hexagrams, lookup_hexagram
+    │   │   ├── schema.rs                # ADR-locked HexagramEntry + HexagramLine + IChingCastSummary
+    │   │   ├── corpus.rs                # OnceLock<Vec<HexagramEntry>> loader + NFC + source_id check
+    │   │   ├── mai_hoa.rs               # cast_hexagram_mai_hoa(query_time) -> HexagramCast
+    │   │   ├── bien_que.rs              # derive_transformed_hexagram(cast) -> Hexagram (biến quẻ)
+    │   │   ├── evaluator.rs             # impl ActionEvaluator for IChingEvaluator
+    │   │   └── golden.rs                # 10+ golden cases vs nhantu.net/divination.com (§7)
+    │   └── direction_composite.rs       # NEW — Thai-Tuế ⇄ Phi Tinh read-only join
+    └── semantic_graph/
+        ├── ontology.rs                  # MODIFIED — 6-slice Hexagram + LocatedAt + Transforms
+        └── builders/
+            └── day_snapshot.rs          # MODIFIED — +add_iching_facts(), +add_direction_composite_facts()
+
+.planning/
+├── adrs/
+│   ├── 0005-iching-schema-v1.md         # NEW — locks HexagramEntry field set
+│   ├── 0006-mai-hoa-casting-algorithm.md # NEW — time-number method, động hào derivation
+│   └── 0007-thai-tue-phi-tinh-cross-link.md # NEW — formalizes CRIT-3 carve-out for reasoning layer
+└── research/
+    └── ARCHITECTURE.md                  # THIS FILE
 ```
 
-### 1.2 JSON corpus structure
+### Structure Rationale
 
-**Decision:** **One file per event category, plus a manifest.** Not one big file. Not one per individual ritual.
-
-Layout under `crates/amlich-core/data/rituals/`:
-
-```
-data/rituals/
-├── manifest.json                       # registry + corpus-level metadata
-├── tet_nguyen_dan.json                 # all rituals for Tết
-├── soc_vong_monthly.json               # Mùng 1 / Rằm monthly cycles
-├── thanh_minh.json
-├── trung_thu.json
-├── vu_lan.json
-├── ong_cong_ong_tao.json               # 23 tháng Chạp
-├── thuong_nguyen.json                  # Rằm tháng Giêng
-├── doan_ngo.json
-├── ha_nguyen.json                      # Rằm tháng Mười
-├── household_general.json              # Cúng gia tiên generic, không gắn event
-├── life_events_dong_tho.json           # Động thổ (groundbreaking)
-├── life_events_cuoi_hoi.json
-├── life_events_khai_truong.json
-└── life_events_an_tang.json
-```
-
-**Why one-per-event-category:**
-- Each file is small enough to review in one diff (typically 5–20 entries), large enough to provide useful context (related variants, regional differences).
-- File boundaries match the **authoring & verification unit** — a contributor cross-checks one event family against the source book at a time.
-- Avoids the giant-file merge-conflict trap (one 50KB file = constant rebase pain).
-- `manifest.json` provides O(1) discovery without scanning all files.
-
-**Frontmatter / per-entry schema** (locked in this milestone — gates corpus authoring):
-
-```jsonc
-{
-  "$schema_version": "rituals-v1",
-  "source_id": "vn-folk-ritual",
-  "source_citation": {
-    "title": "Văn khấn cổ truyền Việt Nam",
-    "publisher": "NXB Văn Hóa Dân Tộc",
-    "edition": "2018",
-    "page": "115-118"
-  },
-  "category": "festival" | "lunar-cycle" | "life-event" | "ancestor" | "deity-worship",
-  "entries": [
-    {
-      "ritual_id": "van-khan-giao-thua",                 // stable, kebab-case, globally unique
-      "title_vi": "Văn khấn Giao thừa ngoài trời",
-      "title_en": "New Year's Eve outdoor invocation",
-      "event_keys": [                                    // any-of match — empty list means "always available"
-        { "kind": "holiday_id", "value": "tet-nguyen-dan" },
-        { "kind": "lunar_date", "month": 12, "day": 30, "leap_ok": false },
-        { "kind": "lunar_date", "month": 1,  "day": 1,  "leap_ok": false }
-      ],
-      "time_of_day": "giao-thua" | "morning" | "noon" | "afternoon" | "evening" | "any",
-      "offerings": [
-        { "vi": "Mâm ngũ quả", "en": "Five-fruit tray" },
-        ...
-      ],
-      "preparation_steps": [
-        { "vi": "Bày bàn thờ hướng ra ngoài cửa", "en": "Set the altar facing outward" },
-        ...
-      ],
-      "invocation_text_vi": "...full prayer body...",
-      "invocation_text_en_summary": "...short English gloss, NOT a translation...",
-      "notes": [],
-      "confidence": "primary" | "regional-variant" | "synthesized"
-    }
-  ]
-}
-```
-
-**Schema-locking decisions (must be ADR'd before corpus authoring starts):**
-
-- `event_keys` is an **any-of** list of typed match clauses. This is the load-bearing piece: it must support (a) named holiday ids, (b) raw lunar dates (Mùng 1, Rằm of every month), (c) tiet-khi anchors (Thanh Minh, Đông Chí), and (d) life-event tags (always-available, picked manually by app). Treating it as a typed enum keeps the matcher exhaustive in Rust.
-- `confidence` is REQUIRED. Per §7 of EXPANSION_FRAMEWORK: cross-check ≥ 2 sources; mark divergences instead of "fixing" them.
-- `invocation_text_en` is intentionally a *gloss summary*, not a literal translation. Translating ritual prayer text into English is out of scope and frankly risky (different liturgical register). Locked decision: VN-only liturgy, EN summary.
-- NO `valid_year_range` field. Văn khấn is timeless; year-gating belongs in the holiday detector, not the ritual entry.
-
-### 1.3 API shape
-
-```rust
-// crates/amlich-core/src/rituals/types.rs
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum RitualEventKey {
-    HolidayId(String),                            // matches holidays/*.json `id` field
-    LunarDate { month: i32, day: i32, leap_ok: bool },
-    TietKhiAnchor(String),                        // matches tietkhi name
-    LifeEvent(LifeEventKind),                     // Dong Tho, Cuoi Hoi, Khai Truong, An Tang
-    Always,                                       // household_general entries
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RitualEntry {
-    pub ritual_id: String,
-    pub title_vi: String,
-    pub title_en: String,
-    pub category: RitualCategory,
-    pub event_keys: Vec<RitualEventKey>,
-    pub time_of_day: TimeOfDay,
-    pub offerings: Vec<BilingualText>,
-    pub preparation_steps: Vec<BilingualText>,
-    pub invocation_text_vi: String,
-    pub invocation_text_en_summary: String,
-    pub notes: Vec<BilingualText>,
-    pub confidence: RitualConfidence,
-    pub source_citation: SourceCitation,
-}
-
-// crates/amlich-core/src/rituals/mod.rs — public API
-
-pub fn find_van_khan_for_snapshot(snapshot: &DaySnapshot) -> Vec<&'static RitualEntry>;
-pub fn find_van_khan_for_event(event: &RitualEventKey) -> Vec<&'static RitualEntry>;
-pub fn find_van_khan_for_life_event(kind: LifeEventKind) -> Vec<&'static RitualEntry>;
-pub fn get_ritual_by_id(ritual_id: &str) -> Option<&'static RitualEntry>;
-pub fn all_rituals() -> &'static [RitualEntry];
-```
-
-**API shape choices:**
-
-- **NOT** `find_van_khan(date, event_type)` — that signature is fragile (what's the type of `event_type`? a free string?). The `snapshot`-based call is canonical because it lets the matcher consult `holidays`, `lunar_date`, and `tiet_khi` in one place. The `_for_event` and `_for_life_event` variants give callers explicit control when they want a single event (e.g. UI shows "rituals for Tết Nguyên Đán").
-- **Return type is `&'static`.** Corpus is `OnceLock`-loaded and never mutated. This matches `golden_loader.rs` and `holiday_data.rs:lunar_festivals()` patterns.
-- **Vec, not Option.** Multiple rituals routinely apply to one day (e.g. Giao Thừa indoor + outdoor + ông Công ông Táo wrap-up). Ranking/filtering is the caller's job.
-
-### 1.4 Holiday integration — read-only consumer pattern
-
-**Decision:** Rituals depend on `holidays`; `holidays` does NOT depend on rituals. Holidays module stays untouched in v1.5.
-
-**Why one-way:**
-- Keeps the v1.0–v1.4 surface frozen (PROJECT.md "Additive-only integration changes").
-- The "holiday detection auto-recommends prayers" UX lives in the **caller layer** (CLI/desktop), not inside `holidays.rs`. The library exposes both APIs side-by-side; the app composes them.
-- A future v1.6 could introduce a thin façade `compute_day_with_rituals()` in `lib.rs` if needed without touching `holidays.rs`.
-
-**Concrete integration recipe:**
-
-```rust
-// In rituals/event_match.rs
-
-fn resolve_event_keys_for_day(snapshot: &DaySnapshot) -> Vec<RitualEventKey> {
-    let mut keys = Vec::new();
-    let solar_year = snapshot.context.solar.year;
-
-    // 1. Named holidays via crate::holidays::get_vietnamese_holidays(solar_year)
-    //    Filter to those whose (solar_day, solar_month, solar_year) match snapshot.context.solar.
-    //    Map name → holiday_id by joining against holiday_data::lunar_festivals().
-    //    (Note: `Holiday` struct does NOT carry `id` today — see "Modified files" below.)
-
-    // 2. Raw lunar Mùng 1 / Rằm from snapshot.context.lunar.day
-    if snapshot.context.lunar.day == 1 {
-        keys.push(RitualEventKey::LunarDate { month: snapshot.context.lunar.month, day: 1, leap_ok: true });
-    }
-    if snapshot.context.lunar.day == 15 {
-        keys.push(RitualEventKey::LunarDate { month: snapshot.context.lunar.month, day: 15, leap_ok: true });
-    }
-
-    // 3. Tiết Khí anchor (Thanh Minh, Đông Chí, Hạ Chí, …)
-    keys.push(RitualEventKey::TietKhiAnchor(snapshot.context.tiet_khi.name.clone()));
-
-    keys
-}
-```
-
-**Required tiny modification to `holidays.rs`:** add a stable `id: Option<String>` field to `Holiday` so the ritual matcher can join by id rather than by Vietnamese display name (which is fragile — `"Mùng 1 tháng 3"` is a generated label, not a stable key). The `lunar_festivals()` source data already has `id` (e.g. `"tet-nguyen-dan"`); it just isn't propagated into the `Holiday` struct today. This is the only existing file modification in v1.5.
-
-### 1.5 Semantic graph wiring (P1)
-
-**New `NodeConcept` (one):** `Ritual` — a node that points at an applicable ritual for the day.
-
-**Reused `NodeConcept`s:** `DayCanchi` (existing), `SolarTerm` (existing). No `EventType` node — the event match key is stored *inside* the Ritual node's payload, not as a separate node, because it has no behavior of its own and creating cardinality-12 event nodes for each Mùng-1/Rằm would explode the graph.
-
-**New `EdgeConcept`s (two):**
-- `PrescribedFor` — `Ritual --PrescribedFor--> DayCanchi` (or `SolarTerm` when matched via tiet khi). Direction: ritual is *prescribed for* this day's context.
-- `RecommendsOffering` — currently no offering node exists; defer to v1.6. v1.5 keeps offerings inside the ritual node payload as a flat string list.
-
-**Provenance contract:**
-
-```rust
-ProvenanceEntry::almanac_rule("vn-folk-ritual", "rituals.find_van_khan_for_snapshot")
-    .with_note(format!("matched via {match_kind}"))
-```
-
-The `source_id = "vn-folk-ritual"` is a NEW id (DEC-0015 discipline — not `vn-folk`, which is in use by Hoàng Ốc). Add to the source taxonomy memory doc.
+- **`reasoning/iching/` (not top-level `iching/`):** EXPANSION_FRAMEWORK §2.2 explicitly directs placement under `reasoning/`. Unlike `rituals/` (pure content+lookup, no inference) and `almanac/fengshui/` (algorithm-only, no consultation semantics), IChing spans both: it has a 64-row corpus AND a casting algorithm AND a consultation evaluator. The reasoning layer is the only layer that owns all three concerns. The sub-module pattern keeps the public API surface narrow (`pub use iching::cast_iching`, etc.) and isolates corpus-loading cost from cold-start of other pillars.
+- **`direction_composite.rs` (not `interaction/`):** CRIT-3 isolation (`tests/fengshui_crit3_isolation.rs`) explicitly forbids FlyingStar references inside `interaction/`. The cross-link needs to *read* both `almanac::fengshui` and `almanac::thai_tue`, so it cannot live under `interaction/`. The reasoning layer is the only layer that already imports both families (`personal.rs:1-9` already pulls `almanac::tu_menh`, `bazi`, `interaction::*`). Placing it under `reasoning/` keeps the CRIT-3 boundary at the `interaction/` ↔ `almanac/fengshui/` interface, where the grep guard already enforces it.
+- **No new top-level crate:** All new code lives inside `amlich-core`. The boundary discipline is module-level, not crate-level — consistent with v1.5/v1.6 precedent.
 
 ---
 
-## P4 Phi Tinh thời gian — Module Design
+## Architectural Patterns
 
-### 2.1 Folder vs single file
+### Pattern 1: 6-Slice Ontology Extension (mandatory for semantic-graph additions)
 
-**Decision:** Folder `crates/amlich-core/src/almanac/fengshui/` with explicit `mod.rs`.
+**What:** Every new `NodeConcept` or `EdgeConcept` requires coordinated edits in **six** locations inside `semantic_graph/ontology.rs`. The compiler enforces three of them via `match` exhaustiveness; the runtime enforces the other three via slice-membership tests.
 
-**Rationale:**
-- EXPANSION_FRAMEWORK §2.3 already calls out two files inside the namespace: `almanac/fengshui/flying_stars.rs` (this milestone) and future `interaction/spatial_compose.rs` (Tier 3, deferred). Even within the time-only scope of v1.5, the Phi Tinh code splits naturally into ≥ 3 files:
-  ```
-  almanac/fengshui/
-  ├── mod.rs                    # re-exports + glue
-  ├── lo_shu.rs                 # the Lo Shu 3×3 grid abstraction (palace ↔ direction mapping)
-  ├── flying_stars.rs           # Vận / yearly / monthly star computation
-  ├── star_meta.rs              # star metadata loader (name, element, polarity)
-  └── tests/                    # golden tests
-  ```
-- The Lo Shu grid is a **reusable primitive**. Other future feng-shui modules (Bát Trạch's 8 zones, Cửu Cung) will reuse it. Burying it inside `flying_stars.rs` would force a later refactor.
+**When to use:** Whenever EXPANSION_FRAMEWORK §3.2 mandates a new node/edge (Hexagram, LocatedAt, Transforms are all in scope for v1.7).
 
-### 2.2 Tables: `const` arrays vs JSON
+**The six slices (file:line refs):**
+1. `enum NodeConcept { ... }` (`ontology.rs:5-43`) — add variant `Hexagram`.
+2. `impl NodeConcept { pub fn label(&self) -> ConceptLabel { match self { ... } } }` (`ontology.rs:45-87`) — add `Self::Hexagram => ConceptLabel::Hexagram` arm. **Compiler-enforced.**
+3. `enum ConceptLabel { ... }` (`ontology.rs:159-228`) — add variant `Hexagram`.
+4. `impl ConceptLabel { pub fn as_str(&self) -> &'static str { match self { ... } } }` (`ontology.rs:230-301`) — add `Self::Hexagram => "hexagram"` arm. **Compiler-enforced.**
+5. `impl GraphOntology { pub fn node_concepts() -> &'static [NodeConcept] { &[ ... ] } }` (`ontology.rs:336-377`) — add `NodeConcept::Hexagram` to the slice. **Runtime test enforces** (`v15_concepts_present_in_ontology_slices` at `ontology.rs:310`).
+6. (Mirror 1-5 for each new edge concept — `LocatedAt`, `Transforms` — across `EdgeConcept`, `EdgeConcept::label`, `ConceptLabel`, `ConceptLabel::as_str`, `edge_concepts()` slice at `ontology.rs:379-411`.)
 
-**Decision: HYBRID.**
+**Trade-offs:** Tedious but bullet-proof. Once added, the concept participates in every graph-projection, selector, and reasoning-evaluator automatically (no other code needs to learn about it — it surfaces via `find_node_by_concept(graph, NodeConcept::Hexagram)` like the existing `find_node_by_concept(graph, NodeConcept::Truc)` at `initiation_opening_evaluator.rs:32`).
 
-| Data | Form | Why |
-|---|---|---|
-| Vận 1–9 base palace tables (which star sits in center for each Vận) | **`const` Rust array `[u8; 9]`** | Mathematically determined (Lo Shu permutation rotated by Vận). 9 vận × 1 center = 9 numbers. Never edited. Encoding as JSON would lie about its derived nature. |
-| Yearly star (年紫白): which star is center for year N | **`const` table or pure function** | Closed-form: `center_star = 11 - (year - 1864) % 9` for upper men (上元) with full formula spanning 上中下元. Pure function, no JSON. |
-| Monthly star (月紫白): which star is center for lunar month M of year-stem-branch | **`const` 24-element lookup table** | Driven by year-branch group (4 groups × 12 months = 48 entries, but most groups collapse). |
-| Daily star (日紫白) | **DEFERRED to v1.6** | Adds complexity (冬至/夏至 reversal); not in EXPANSION_FRAMEWORK §2.3 scope for "Tier 0". |
-| Star metadata: name (一白貪狼水), element, polarity, default polarity, interpretation text | **JSON: `data/almanac/flying_stars.json`** | Human-edited, bilingual, citation-bearing. Exactly the case `golden_loader.rs` solves. |
-
-**Why not all-JSON:** The Vận tables are not data — they are a deterministic permutation. Putting them in JSON invites typos that the type system can't catch, and forces a runtime load for what should be a `const`. The metadata IS data (different sources use slightly different star names, different element associations), so it goes to JSON where citations live.
-
-**Why not all-const:** Interpretation text is exactly the kind of content that the corpus contributor edits without recompiling. Forcing it into `const &str` arrays would couple data edits to Rust releases.
-
-### 2.3 API shape
-
+**Example** (the only idiomatic shape — anything else fails CI):
 ```rust
-// crates/amlich-core/src/almanac/fengshui/flying_stars.rs
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum FlyingStar {
-    NhatBach = 1, NhiHac = 2, TamBich = 3,
-    TuLuc = 4,   NguHoang = 5, LucBach = 6,
-    ThatXich = 7, BatBach = 8, CuuTu = 9,
+// ontology.rs — six edits per concept, no shortcuts
+pub enum NodeConcept {
+    // ... existing 38 variants ...
+    Hexagram,         // ← slice 1
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Palace {
-    Center, North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest,
+impl NodeConcept {
+    pub fn label(&self) -> ConceptLabel {
+        match self {
+            // ...
+            Self::Hexagram => ConceptLabel::Hexagram,   // ← slice 2
+        }
+    }
+}
+
+pub enum ConceptLabel {
+    // ...
+    Hexagram,         // ← slice 3
+}
+
+impl ConceptLabel {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            // ...
+            Self::Hexagram => "hexagram",               // ← slice 4
+        }
+    }
+}
+
+impl GraphOntology {
+    pub fn node_concepts() -> &'static [NodeConcept] {
+        &[
+            // ... existing 38 entries ...
+            NodeConcept::Hexagram,                       // ← slice 5
+        ]
+    }
+}
+// Slice 6: a new test `v17_concepts_present_in_ontology_slices` mirroring
+// `v16_concepts_present_in_ontology_slices` at ontology.rs:324.
+```
+
+### Pattern 2: Schema-Lock-Before-Corpus (v1.5 Phase 10 precedent, mandatory)
+
+**What:** Lock the corpus JSON schema (`#[serde(deny_unknown_fields)]` types + ADR) **before** authoring any data file. Re-editing N corpus entries after a schema slip costs O(N); locking first costs O(1).
+
+**When to use:** ANY time the milestone introduces a JSON corpus with ≥10 entries. v1.7 has 64 hexagrams — non-negotiable.
+
+**Trade-offs:** Slows Phase 1 by ~2 days (ADR writing + type stubs + serde round-trip tests). Saves weeks of corpus re-authoring and prevents the CRIT-1/CRIT-5 failures documented in `pitfalls` research.
+
+**Example** (the exact v1.5 sequence, applied to IChing):
+```rust
+// reasoning/iching/schema.rs — locked FIRST, before hexagrams.json exists
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]                 // ← ADR-0005 will reference this attribute
+pub struct HexagramEntry {
+    pub number: u8,                            // 1..=64 (King Wen sequence)
+    pub name_vi: String,                       // NFC-normalized at load
+    pub name_pinyin: String,
+    pub binary: [u8; 6],                       // bottom line first; 0=yin 1=yang
+    pub truc_from: u8,                         // kinh-dich tradition: Ngô Tất Tố thoán từ
+    pub thoan_tu_vi: String,                   // 列傳 — Judgment text
+    pub hao_tu_vi: Vec<HaoTu>,                 // 6 line texts (or fewer for symmetrical quẻ)
+    pub cat_hung: CatHungTier,                 // Closed enum
+    pub source_id: String,                     // Always "kinh-dich" (loader-validated)
+    pub original_citation: SourceCitation,     // re-export from rituals::schema
+    pub confidence: RitualConfidenceTier,      // re-export (closed enum)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct FlyingStarLayout {
-    pub period: FlyingStarPeriod,        // Yearly | Monthly | Van
-    pub period_index: i32,               // year number, lunar month, or vận number
-    pub palaces: [FlyingStar; 9],        // index = Palace as usize
-    pub center_star: FlyingStar,
-    pub evidence: RuleEvidence,          // source_id = "huyen-khong"
+#[serde(rename_all = "snake_case")]
+pub enum CatHungTier { Catt, Hung, TrungBinh } // closed enum — unknown values fail
+```
+
+Then the loader (Phase 3) follows the `OnceLock + include_str!` pattern verbatim from `rituals/corpus.rs:85-117`, asserting `$schema_version == "iching-v1"` and `entry.source_id == SOURCE_KINH_DICH` per the source_id discipline.
+
+### Pattern 3: Sibling-Newtype for Payload-Carrying Intents (avoiding Copy-enum breakage)
+
+**What:** `ConsultationIntent` (`advisory.rs:18-30`) derives `Copy + Eq`. EXPANSION_FRAMEWORK §2.2 specifies `ConsultationIntent::IChing { question }`, but `String` is not `Copy`. **Naively following the framework would require removing `Copy` from `ConsultationIntent` — a cascading break across ~25 call-sites** (every `match intent { ... }` would need `&intent` or `intent.clone()`).
+
+**Recommendation: do NOT extend `ConsultationIntent`.** Instead, introduce a sibling newtype that lives alongside it, mirroring how `DailyFlyingStarLayout` was added as a sibling to `FlyingStarLayout` in v1.6 (`almanac/fengshui/types.rs:136-143`) rather than mutating the frozen v1 layout.
+
+**When to use:** Any new "consultation" surface that carries payload (question text, spatial input, etc.). Existing `ConsultationIntent` stays the closed 9-variant lookup table it is.
+
+**Trade-offs:** Two parallel dispatch surfaces (`ConsultationIntent` for activity-mapping, `IChingQuery` for divination). Cleaner than the alternative because:
+- `ConsultationIntent::primary_activity()` returns `ActivityId` — IChing has no `ActivityId` mapping (divination is not an "activity" in the recommendation engine).
+- `ConsultationIntent::event_kind()` returns a slug consumed by `data/holidays/*.json` join — IChing has no event-key join.
+- The ActionEvaluator trait (`reasoning/action_evaluator.rs:51`) already supports multiple evaluators side-by-side via `InitiationOpeningEvaluator`; an `IChingEvaluator` is the natural second instance.
+
+**Example:**
+```rust
+// reasoning/iching/evaluator.rs
+#[derive(Debug, Clone, PartialEq, Eq)]   // NO Copy — carries String payload
+pub struct IChingQuery {
+    pub question_vi: String,              // NFC-normalized at construction
+    pub query_time: SolarDate,            // sets the hexagram via Mai Hoa time-number method
 }
 
-pub fn compute_van_layout(van: u8) -> FlyingStarLayout;            // Vận 1..=9
-pub fn compute_yearly_flying_stars(year: i32) -> FlyingStarLayout;
-pub fn compute_monthly_flying_stars(lunar_year_branch_index: usize, lunar_month: i32) -> FlyingStarLayout;
-
-// Convenience: snapshot-based
-pub fn compute_flying_stars_for_snapshot(snapshot: &DaySnapshot) -> FlyingStarsForDay;
-
-#[derive(Debug, Clone)]
-pub struct FlyingStarsForDay {
-    pub van: FlyingStarLayout,        // current Vận 9 (2024-2043)
-    pub yearly: FlyingStarLayout,
-    pub monthly: FlyingStarLayout,
+pub struct IChingEvaluator;
+impl ActionEvaluator for IChingEvaluator {
+    fn action_id(&self) -> ActionId { ActionId::IChing }            // NEW variant
+    fn select_subgraph(&self, graph, snapshot, _personal) -> Result<_, String> {
+        // select Hexagram nodes + Truc/DayDeity support nodes
+    }
+    fn evaluate(&self, graph, snapshot, personal) -> Result<ActionEvaluation, String> {
+        // returns ActionEvaluation with bucket = Auspicious/Inauspicious based on cat_hung
+    }
 }
 ```
 
-**API shape choices:**
-- **`[FlyingStar; 9]`** not `[u8; 9]` (the question proposed `[u8; 9]`). Typed enum prevents callers from mistreating star numbers as raw bytes; serde gives identical JSON shape (1..=9) for free.
-- **`Palace as usize` indexing** with a fixed order (Center, N, NE, E, SE, S, SW, W, NW) — this order matches the Lo Shu number canonical layout (5 center, 1 N, 8 NE, 3 E, 4 SE, 9 S, 2 SW, 7 W, 6 NW). Document this loudly in `lo_shu.rs` so callers don't index by direction-name string.
-- **Three separate `FlyingStarLayout` outputs** (Vận / yearly / monthly) rather than one merged 9×3 grid — they are semantically different time scales and combining them obscures which scale a given star comes from.
+### Pattern 4: Composite-Envelope Multi-Source Provenance (for the Thái Tuế ⇄ Phi Tinh cross-link)
 
-### 2.4 Boundary statement (load-bearing — must be in module docs)
+**What:** When a reasoning-layer fact joins two traditions, emit **multiple** `ReasoningEvidenceEnvelope` entries on the same `PersonalFactNode`, each carrying the **distinct** `source_id` of its contributing tradition, plus ONE composite envelope with `source_id: "rule.composite.<topic>"` per EXPANSION_FRAMEWORK §3.2. This is exactly the pattern already used by `add_offering_facts` at `semantic_graph/builders/day_snapshot.rs:697-744` (the INT-09 dual-source `RecommendsOffering` edge).
 
-Document this verbatim at the top of `almanac/fengshui/mod.rs`:
+**When to use:** The Thái Tuế ⇄ Phi Tinh cross-link. CRIT-3 isolation **forbids** merging the traditions at the data layer (no shared `source_id`); the join must be visible only at the reasoning-envelope layer, with each tradition's contribution independently citable.
 
+**Trade-offs:** Slightly more verbose than a single merged envelope. Buys auditability: a downstream consumer can ask "what did KHCBPPT contribute vs. what did Huyền Không contribute?" and get two distinct answers. This is the **only** pattern compatible with the CRIT-3 grep guard.
+
+**Example:**
 ```rust
-//! # Boundary with other direction-bearing almanac modules
-//!
-//! This module computes **9-palace star layouts** for time periods (Vận / Năm /
-//! Tháng). Its output is a *spatial assignment* — which of the nine stars sits
-//! in each of the nine palaces (8 cardinals + center) of the Lo Shu grid for
-//! the queried period.
-//!
-//! This is **disjoint from** the following existing modules:
-//!
-//! - `almanac::sat_phuong`  — one "killing direction" per day (input: day chi).
-//! - `almanac::than_huong`  — three named directions per day (Xuất hành / Tài /
-//!   Hỷ) keyed on day stem. Source: Khâm Định Hiệp Kỷ Biện Phương Thư.
-//! - `almanac::thai_tue`    — yearly conflict list keyed on year branch +
-//!   birth-year branch. Source: KHCBPPT + folk.
-//!
-//! These modules answer "which compass direction is auspicious today?". This
-//! module answers "what is the time-period's Lo Shu palace layout?".
-//! They are NOT alternatives. They are NOT substitutable. Their `source_id`s
-//! are disjoint (`khcbppt` vs `huyen-khong`). Composing them is the job of
-//! `interaction::direction_merge` (existing) and the future
-//! `interaction::spatial_compose` (Tier 3, deferred).
+// reasoning/direction_composite.rs
+use crate::sources::{SOURCE_HUYEN_KHONG, SOURCE_KHCBPPT};
+
+pub fn build_direction_cross_link(
+    snapshot: &DaySnapshot,
+    birth_chi_index: usize,
+) -> PersonalFactNode {
+    // READ huyen-khong (FlyingStar) — never mutate
+    let fs = snapshot.flying_stars.as_ref();
+    // READ khcbppt (Thai Tue + Sat Phuong) — never mutate
+    let thai_tue = crate::almanac::thai_tue::compute_thai_tue(
+        birth_chi_index,
+        snapshot.context.canchi.year.chi_index,
+    );
+    let sat_phuong = crate::almanac::sat_phuong::get_sat_phuong(
+        snapshot.context.canchi.day.chi_index,
+    );
+
+    PersonalFactNode {
+        id: "fact.composite.direction_cross_link".to_string(),
+        summary_vi: format!(
+            "Thái Tuế={:?} | Sát Phương={} | Phi Tinh trung cung={:?}",
+            thai_tue.conflicts.iter().map(|c| c.kind).collect::<Vec<_>>(),
+            sat_phuong.direction,
+            fs.map(|f| f.center_star),
+        ),
+        severity: None,
+        evidence: vec![
+            // Distinct KHCBPPT evidence (Thai Tue + Sat Phuong)
+            ReasoningEvidenceEnvelope {
+                source_family: ReasoningEvidenceSourceFamily::AlmanacRule,
+                source_id: SOURCE_KHCBPPT.to_string(),
+                method: "thai_tue+sat_phuong".to_string(),
+                note: Some(format!("thai_tue_conflicts={};sat_phuong={}",
+                    thai_tue.conflicts.len(), sat_phuong.direction)),
+            },
+            // Distinct huyen-khong evidence (Phi Tinh)
+            ReasoningEvidenceEnvelope {
+                source_family: ReasoningEvidenceSourceFamily::AlmanacRule,
+                source_id: SOURCE_HUYEN_KHONG.to_string(),
+                method: "phi_tinh.palace_layout".to_string(),
+                note: fs.map(|f| format!("van={};center={:?}", f.van, f.center_star)),
+            },
+            // Composite envelope — joins both, prefixed per §3.2
+            ReasoningEvidenceEnvelope {
+                source_family: ReasoningEvidenceSourceFamily::Derived,
+                source_id: "rule.composite.direction_cross_link".to_string(),
+                method: "v17.read_only_join".to_string(),
+                note: Some("read-only join of khcbppt directionals + huyen-khong palace".into()),
+            },
+        ],
+    }
+}
 ```
 
-This docstring is the operational definition of "no overlap, no duplication" that the quality gate demands.
-
-### 2.5 Semantic graph wiring (P4)
-
-**New `NodeConcept` (one):** `FlyingStar`. One node per (period, palace) pair that the calling builder decides to materialize (usually 9 cells × 3 period layers = 27 nodes per day's snapshot — but builders may choose only Vận and yearly for compact graphs).
-
-**Reused `NodeConcept`s:** `Direction` (existing — each Palace except Center maps to a Direction). `Element` (existing — each star has an element association).
-
-**New `EdgeConcept`s (two):**
-- `OccupiesPalace` — `FlyingStar --OccupiesPalace--> Direction` (the Palace's compass-direction node).
-- `CarriesElement` — `FlyingStar --CarriesElement--> Element`. Reuses the existing `Element` node.
-
-**Provenance:**
-
-```rust
-ProvenanceEntry::almanac_rule("huyen-khong", "fengshui.compute_yearly_flying_stars")
-    .with_note(format!("center_star={center}, year={year}"))
-```
-
-Add `huyen-khong` to the source taxonomy memory doc.
+The function signature uses **only `&` references** to the almanac layer — this is what makes CRIT-3 preservation mechanically checkable (see Anti-Pattern 2 below).
 
 ---
 
-## Integration Points (at file:line granularity)
+## Data Flow
 
-### New files
-
-| Path | Purpose |
-|---|---|
-| `crates/amlich-core/src/rituals/mod.rs` | Public ritual API |
-| `crates/amlich-core/src/rituals/corpus.rs` | OnceLock-backed corpus loader (mirrors `golden_loader.rs`) |
-| `crates/amlich-core/src/rituals/event_match.rs` | Day → event-key resolver |
-| `crates/amlich-core/src/rituals/types.rs` | `RitualEntry`, `RitualEventKey`, `LifeEventKind`, … |
-| `crates/amlich-core/src/rituals/tests.rs` | Golden coverage tests |
-| `crates/amlich-core/src/almanac/fengshui/mod.rs` | Sub-folder root + boundary docstring |
-| `crates/amlich-core/src/almanac/fengshui/lo_shu.rs` | Lo Shu grid primitive (Palace enum, direction mapping) |
-| `crates/amlich-core/src/almanac/fengshui/flying_stars.rs` | Vận/yearly/monthly computations |
-| `crates/amlich-core/src/almanac/fengshui/star_meta.rs` | Star metadata loader |
-| `crates/amlich-core/data/rituals/manifest.json` | Corpus manifest |
-| `crates/amlich-core/data/rituals/*.json` | Per-event-category corpora (~14 files) |
-| `crates/amlich-core/data/almanac/flying_stars.json` | Star metadata + interpretations |
-
-### Modified files (additive only)
-
-| Path:line | Change | Risk |
-|---|---|---|
-| `crates/amlich-core/src/lib.rs:11` (alphabetical) | Add `pub mod rituals;` | None — pure addition |
-| `crates/amlich-core/src/lib.rs:36-50` re-exports block | Add `pub use crate::rituals::{find_van_khan_for_snapshot, RitualEntry, ...};` | None |
-| `crates/amlich-core/src/lib.rs:41` (sorted with other almanac re-exports) | Add `pub use crate::almanac::fengshui::{compute_yearly_flying_stars, FlyingStarLayout, FlyingStar, Palace, ...};` | None |
-| `crates/amlich-core/src/almanac/mod.rs:1-28` | Add `pub mod fengshui;` line | None |
-| `crates/amlich-core/src/holidays.rs:14-25` (`Holiday` struct) | Add `pub id: Option<String>` field; populate from `lunar_festivals[].id` and from solar_holidays. Default `None` for generated Mùng 1/Rằm entries. | LOW — additive field; existing downstream consumers ignore it; serde with `#[serde(default)]` keeps JSON snapshots compatible |
-| `crates/amlich-core/src/holidays.rs:148-198` (creation sites) | Populate the new `id` field from the source JSON's `id` | LOW |
-| `crates/amlich-core/src/semantic_graph/ontology.rs:5-40` `NodeConcept` | Add `Ritual`, `FlyingStar` variants + `label()` arms + `node_concepts()` slice entries | LOW — exhaustive match enforced by compiler |
-| `crates/amlich-core/src/semantic_graph/ontology.rs:85-111` `EdgeConcept` | Add `PrescribedFor`, `OccupiesPalace`, `CarriesElement` variants + `label()` arms + `edge_concepts()` slice entries | LOW |
-| `crates/amlich-core/src/semantic_graph/ontology.rs:145-273` `ConceptLabel` + `as_str()` | Add matching label variants + string forms | LOW |
-| `crates/amlich-core/src/semantic_graph/builders/day_snapshot.rs` (or new sibling) | Wire ritual + flying-star nodes into the day snapshot graph build | MEDIUM — first time non-`khcbppt` nodes co-exist in the day graph; verify provenance separation |
-
-### Not modified (deliberately frozen)
-
-| Path | Why kept untouched |
-|---|---|
-| `interaction/direction_merge.rs` | Tier 0 milestone; spatial merge is Tier 3 (v1.7+) |
-| `interaction/personal_hour.rs` | No personal layer in v1.5 |
-| `reasoning/personal.rs` | Both pillars are Tier 0; nothing to wire through personal reasoning yet |
-| `almanac/calc.rs` (DayFortune assembly) | DayFortune semantics frozen since v1.2; v1.5 outputs surface beside DaySnapshot, not inside DayFortune |
-| All existing `almanac/*.rs` calculators | Frozen — no source-tradition cross-contamination |
-
----
-
-## Semantic Graph Extension Plan
-
-### New nodes (2)
-
-| Node | Concept | Stable id format | Provenance source_id |
-|---|---|---|---|
-| Ritual | `NodeConcept::Ritual` | `ritual.{ritual_id}` (e.g. `ritual.van-khan-giao-thua`) | `vn-folk-ritual` |
-| FlyingStar | `NodeConcept::FlyingStar` | `flying_star.{period}.{period_index}.{palace}` (e.g. `flying_star.yearly.2026.east`) | `huyen-khong` |
-
-### New edges (3)
-
-| Edge | From → To | Concept | Meaning |
-|---|---|---|---|
-| PrescribedFor | Ritual → DayCanchi or Ritual → SolarTerm | `EdgeConcept::PrescribedFor` | "This ritual is prescribed for this day-coordinate." |
-| OccupiesPalace | FlyingStar → Direction | `EdgeConcept::OccupiesPalace` | "This star sits in this compass direction for the queried period." |
-| CarriesElement | FlyingStar → Element | `EdgeConcept::CarriesElement` | "This star carries this Five-Element nature." |
-
-### Reused nodes (zero new code in these)
-
-- `DayCanchi` — already produced by `builders/day_snapshot.rs`. Rituals link to it.
-- `SolarTerm` — same.
-- `Direction` — already used by `direction_merge`. FlyingStars link to existing direction nodes (verify dedup via `ProvenanceTracker` — same Direction node may now carry both KHCBPPT and Huyền Không provenance entries; the tracker handles this with its multi-entry vector at `provenance.rs:130-135`).
-- `Element` — same.
-
-### Builder placement
-
-New builder file `crates/amlich-core/src/semantic_graph/builders/expansion_v15.rs` (or extend `day_snapshot.rs` — TBD by orchestrator based on builder-file size budget). Pattern follows existing builders. Critical: emit ProvenanceEntry with the **correct** new source_id; never reuse `khcbppt`.
-
----
-
-## Build Order (with dependencies)
-
-Each numbered item is a discrete chunk; (deps) lists what must be done first. Items at the same indent without deps can parallelise.
+### Request Flow — IChing cast (the 64-hexagram pipeline)
 
 ```
-1. SCHEMA LOCK (gates everything downstream)
-   1a. ADR: ritual JSON schema (event_keys enum, confidence levels, citation shape)
-   1b. ADR: source_id additions ("vn-folk-ritual", "huyen-khong") to taxonomy doc
-   1c. Add Holiday.id field + propagate from JSON (small, low-risk modification of holidays.rs)
-
-2. P1 VÃN KHÂN MODULE (deps: 1a, 1c)
-   2a. rituals/types.rs + rituals/corpus.rs (mirror golden_loader pattern)
-   2b. rituals/event_match.rs (joins holidays.rs)
-   2c. rituals/mod.rs public API
-   2d. Authoring: ritual corpus JSON files (the long-pole work; ≥ 60 entries to start)
-   2e. Tests: golden coverage tests, deterministic loader tests
-
-3. P1 SEMANTIC GRAPH WIRING (deps: 2c, ontology additions)
-   3a. Add Ritual NodeConcept + PrescribedFor EdgeConcept to ontology.rs
-   3b. Builder: ritual node materialization in day_snapshot graph build
-   3c. Provenance verification tests
-
-4. P4 PHI TINH PRIMITIVES (deps: 1b; can parallel with 2*)
-   4a. almanac/fengshui/lo_shu.rs (Palace enum, Lo Shu canonical ordering, direction mapping)
-   4b. almanac/fengshui/star_meta.rs (JSON loader for metadata)
-   4c. data/almanac/flying_stars.json authoring
-
-5. P4 PHI TINH COMPUTATION (deps: 4a, 4b)
-   5a. almanac/fengshui/flying_stars.rs — Vận layout
-   5b. almanac/fengshui/flying_stars.rs — yearly star
-   5c. almanac/fengshui/flying_stars.rs — monthly star
-   5d. snapshot convenience wrapper
-   5e. Golden tests cross-checked with fengshui.net / phongthuyhomemy.com per §7
-
-6. P4 SEMANTIC GRAPH WIRING (deps: 5*, ontology additions)
-   6a. Add FlyingStar NodeConcept + OccupiesPalace, CarriesElement EdgeConcept
-   6b. Builder: flying-star node materialization
-   6c. Provenance separation tests (huyen-khong nodes must NEVER carry khcbppt provenance)
-
-7. INTEGRATION TESTS (deps: 3*, 6*)
-   7a. Day snapshot includes ritual + flying-star nodes
-   7b. LLM view / debug inspector handles new node concepts cleanly
-   7c. End-to-end: 2026 calendar smoke test on at least 30 representative dates
+[User: cast_iching(date, question)]
+    ↓
+lib.rs::cast_iching()
+    ↓
+IChingQuery::new(question, snapshot.context.solar)
+    ↓
+ ┌───────────────────────────────────────────────────────────────────────┐
+ │ reasoning/iching/mai_hoa.rs::cast_hexagram_mai_hoa(query_time)        │
+ │   1. Extract lunar year/month/day + chi-tý hour from SolarDate        │
+ │   2. Upper trigram = (year_branch + month + day) % 8                  │
+ │   3. Lower trigram = (above + hour_chi) % 8                           │
+ │   4. Động hào = (year+month+day+hour) % 6                            │
+ │   Returns: HexagramCast { primary_number, moving_line, time_meta }    │
+ └───────────────────────────────────────────────────────────────────────┘
+    ↓
+ ┌───────────────────────────────────────────────────────────────────────┐
+ │ reasoning/iching/corpus.rs::get_hexagram_by_number(primary_number)    │
+ │   Looks up OnceLock<Vec<HexagramEntry>> (loaded from                   │
+ │   data/iching/hexagrams.json via include_str!)                         │
+ │   Returns: &'static HexagramEntry (thoán từ, hào từ, cat_hung)        │
+ └───────────────────────────────────────────────────────────────────────┘
+    ↓
+ ┌───────────────────────────────────────────────────────────────────────┐
+ │ reasoning/iching/bien_que.rs::derive_transformed_hexagram(cast)       │
+ │   Flip the động hào in primary.binary, re-lookup → biến quẻ            │
+ │   Returns: Hexagram { entry: &'static HexagramEntry, relation: ... }   │
+ └───────────────────────────────────────────────────────────────────────┘
+    ↓
+ ┌───────────────────────────────────────────────────────────────────────┐
+ │ reasoning/iching/evaluator.rs::evaluate()                              │
+ │   impl ActionEvaluator for IChingEvaluator                             │
+ │   Emits ActionEvaluation { bucket: Favorable|Avoid|... based on        │
+ │   primary.cat_hung + biến quẻ cat_hung delta }                         │
+ │   Evidence: ReasoningEvidenceEnvelope {                                 │
+ │     source_family: IChing,                                             │
+ │     source_id: "mai-hoa-dich-so" (casting) + "kinh-dich" (text),      │
+ │     method: "mai_hoa_time_number+bien_que",                            │
+ │   }                                                                    │
+ └───────────────────────────────────────────────────────────────────────┘
+    ↓
+ ┌───────────────────────────────────────────────────────────────────────┐
+ │ lib.rs::calculate_day_snapshot_internal                                │
+ │   Populates additive DaySnapshot.iching_cast:                          │
+ │     Option<IChingCastSummary>                                          │
+ │   ONLY when query is provided — absent in JSON when None               │
+ └───────────────────────────────────────────────────────────────────────┘
+    ↓
+ ┌───────────────────────────────────────────────────────────────────────┐
+ │ semantic_graph/builders/day_snapshot.rs::add_iching_facts()            │
+ │   - Hexagram node for primary quẻ (NodeConcept::Hexagram)              │
+ │   - Hexagram node for biến quẻ (if động hào)                           │
+ │   - EdgeConcept::Transforms: primary → biến                            │
+ │   - EdgeConcept::LocatedAt: primary hexagram → day_root                │
+ │   - EdgeConcept::Composes: day_root → primary hexagram                 │
+ │   Provenance: SOURCE_MAI_HOA_DICH_SO (cast) + SOURCE_KINH_DICH (text)  │
+ └───────────────────────────────────────────────────────────────────────┘
+    ↓
+[Response: DaySnapshot + reasoning graph with Hexagram nodes]
 ```
 
-**Schema lock first because:** corpus authoring (2d) is the longest-pole item by far (an editorial task with ≥ 60 ritual entries). It cannot start until the schema is locked. If the schema slips after authoring starts, every entry needs revision.
+### Request Flow — Thái Tuế ⇄ Phi Tinh cross-link
 
-**P1 and P4 parallelisable from step 2 onwards** because they share no code paths. They first re-converge at step 7 (integration) and at the ontology PR (steps 3a + 6a should ideally land in one commit to keep `ConceptLabel` exhaustive matches clean).
+```
+[User: build_direction_cross_link(snapshot, birth_year_chi)]
+    ↓
+reasoning/direction_composite.rs::build_direction_cross_link()
+    ↓
+ ┌───────────────────────────────────────────────────────────────────────┐
+ │ READ-ONLY: snapshot.flying_stars (huyen-khong provenance already set)  │
+ │ READ-ONLY: compute_thai_tue(birth_chi, year_chi)  [khcbppt]            │
+ │ READ-ONLY: get_sat_phuong(day_chi)                [khcbppt]            │
+ │                                                                        │
+ │ NONE of these calls mutate. All inputs borrowed by shared reference.   │
+ └───────────────────────────────────────────────────────────────────────┘
+    ↓
+[Composite PersonalFactNode with 3 evidence envelopes (see Pattern 4)]
+    ↓
+[Optional: DaySnapshot.direction_cross_link: Option<DirectionCrossLinkSummary>]
+    ↓
+[semantic_graph/builders/day_snapshot.rs::add_direction_composite_facts()]
+    ↓
+[Response: same DaySnapshot, same graph, with one new composite fact node]
+```
 
-**Phi Tinh primitives (4a Lo Shu) precede computation (5)** because the computation depends on a well-defined palace ordering. Authoring `flying_stars.json` (4c) parallelises with 5* once `star_meta.rs` declares the schema.
+### Key Data Flows
 
----
-
-## Risks & Mitigations
-
-| Risk | Severity | Mitigation |
-|---|---|---|
-| Ritual JSON schema churns after corpus authoring starts | HIGH | Lock schema with ADR (step 1a) before any 2d work. Treat schema as a frozen v1; deprecation requires `$schema_version` bump. |
-| `Holiday.id` field break downstream consumers (CLI, desktop) | LOW | Field is `Option<String>`, default `None`, serde `#[serde(default)]`. Existing consumers see no change. |
-| Phi Tinh yearly formula 上中下元 boundary errors | MEDIUM | Golden tests at known transition dates (1864/1923/1984/2043). Cross-check ≥ 2 sources per §7. |
-| Lo Shu palace ordering disagreement across sources | MEDIUM | Pick Sòng-canon (5 center, 1 N…) and document it in `lo_shu.rs` header. Mark any divergence in metadata JSON as `KnownDivergence`. |
-| `source_id` typo silently mints a fake source | HIGH | Add compile-time const `pub const SOURCE_RITUAL: &str = "vn-folk-ritual";` in each module; ban string literals at the `Provenance::almanac_rule(...)` callsite via a lint or test. |
-| Semantic graph provenance dedup collapses different sources | MEDIUM | `ProvenanceTracker::track()` (provenance.rs:130) appends to a vector — confirmed it does NOT dedup, so multi-source nodes are safe. Add a test that asserts a Direction node carries BOTH `khcbppt` and `huyen-khong` provenance entries when both apply. |
-| Ritual content quality varies by region (Bắc/Trung/Nam) | LOW | `confidence: regional-variant` schema field flags this. Keep regional variants as separate entries; the matcher returns them all; UI ranks. |
-
----
-
-## Validation References
-
-- **Văn khấn:** *Văn khấn cổ truyền Việt Nam* (NXB Văn Hóa Dân Tộc, 2018). Cross-check ≥ 2 traditional household editions per entry per EXPANSION_FRAMEWORK §7.
-- **Phi Tinh:** *Thẩm Thị Huyền Không Học*. Online cross-check: fengshui.net for yearly tables, phongthuyhomemy.com for VN-language interpretation.
-
-Golden test minimum: 10 cases per pillar, ≥ 2 independent sources per case (§7). Divergences logged as `KnownDivergence`, NOT "fixed" toward either source.
-
----
-
-## Open Questions for Orchestrator / Future Decisions
-
-1. **Builder file size budget.** Should expansion v1.5 nodes live in a new builder file (`builders/expansion_v15.rs`) or extend `builders/day_snapshot.rs`? Either works; depends on team style.
-2. **Mùng 1 / Rằm leap-month behavior.** When lunar month is leap, should Sóc/Vọng rituals still apply? Default proposed: `leap_ok: true` in `RitualEventKey::LunarDate`. Confirm during schema-lock ADR.
-3. **Daily flying star (日紫白) inclusion.** EXPANSION_FRAMEWORK §2.3 lists "Vận/Năm/Tháng" only. Confirm daily is deferred to v1.6 (recommended) or pulled in (adds 1–2 weeks).
-4. **Should `find_van_khan_for_snapshot` rank/score the returned rituals**, or strictly return all matches and let callers rank? Recommended: return all, no ranking inside the library (avoids premature opinion).
+1. **Backward-compat round-trip:** v1.6 producers of `DaySnapshot` JSON must deserialize cleanly into v1.7. The additive `Option<T>` fields with `#[serde(default, skip_serializing_if = "Option::is_none")]` (pattern at `lib.rs:163-184`) guarantee this — `serde` ignores missing fields on read and omits them on write when `None`. New v1.7 consumers see the new fields when present.
+2. **Source-ID provenance flows end-to-end:** Every fact in the semantic graph carries `ProvenanceEntry` with a `source_id`. The CI guard (`tests/source_id_guard.rs`) ensures no bare string literals appear in `src/` outside `sources.rs`. Adding `SOURCE_KINH_DICH` / `SOURCE_MAI_HOA_DICH_SO` requires extending the `FORBIDDEN_LITERALS` array at `tests/source_id_guard.rs:17-25` — otherwise the new constants would be the only legal form and bare `"kinh-dich"` literals could leak undetected.
+3. **CRIT-3 preservation flow:** The cross-link READS from both `almanac/thai_tue` and `almanac/fengshui`, but does so **only** from inside `reasoning/direction_composite.rs`. The CRIT-3 grep guard (`tests/fengshui_crit3_isolation.rs:14-21`) forbids `FlyingStar` references inside `src/interaction/direction_merge.rs` — it does **not** forbid them inside `reasoning/`. The new module lives outside the CRIT-3 quarantine zone while still preserving the boundary at its original location.
 
 ---
 
-*Sources: PROJECT.md, EXPANSION_FRAMEWORK.md §2.3 §2.4 §3 §5 §7, current source files at `crates/amlich-core/src/lib.rs`, `almanac/mod.rs`, `almanac/sat_phuong.rs`, `almanac/than_huong.rs`, `almanac/thai_tue.rs`, `almanac/golden_loader.rs`, `holidays.rs`, `holiday_data.rs`, `semantic_graph/provenance.rs`, `semantic_graph/ontology.rs`, `reasoning/personal.rs`. All file:line references verified against working-tree source on 2026-05-23.*
+## Scaling Considerations
+
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| Per-day query (1 snapshot) | All v1.7 work fits in-memory. `OnceLock<Vec<HexagramEntry>>` (64 entries, ~few hundred KB) loads once per process. Mai Hoa casting is O(1) arithmetic. Cross-link is O(1) reads + O(1) envelope construction. |
+| Bulk historical scan (2020-2030 = ~4k days) | No architecture change. The 64-hexagram corpus is shared across all days via `OnceLock`. The cross-link is invoked per-day on demand. The only N-scaling concern is the semantic-graph node count per snapshot, which already doubled in v1.5 with FlyingStar + Ritual and stayed well under noisy thresholds. |
+| Future: 1M+ queries/day | Out of scope for v1.7. The next scaling concern is caching `compute_combined_overlay` (annual+monthly Phi Tinh) across same-month queries — that is a v1.8+ concern, not v1.7. |
+
+### Scaling Priorities
+
+1. **First bottleneck (not in v1.7 but worth flagging):** `calculate_day_snapshot_internal` (lib.rs:274-360) recomputes the Phi Tinh overlay on every call even for repeat months. The v1.7 cross-link reads this overlay; if v1.8 adds cross-link-per-call auditing, consider memoizing the monthly overlay. No action needed now.
+2. **Second bottleneck:** The 64-hexagram corpus is small enough that lazy-loading via `OnceLock` is the right choice forever. Do NOT pre-load at module-init time — that would slow cold-start for callers who never cast a hexagram. The current pattern (`rituals/corpus.rs:94-117` — first-call init) is correct and should be mirrored exactly.
+
+---
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Extending `ConsultationIntent` with a payload-carrying variant
+
+**What people do:** Follow EXPANSION_FRAMEWORK §2.2 literally and add `ConsultationIntent::IChing { question: String }`.
+**Why it's wrong:** `ConsultationIntent` derives `Copy` (`advisory.rs:18`). Adding a `String` payload removes `Copy`, which breaks ~25 call-sites: every `match intent { ... }` consumes the value, every function taking `intent: ConsultationIntent` by value now requires `clone()`, every `#[derive(Clone, Copy, PartialEq, Eq)]` on types embedding it (e.g. `advisory.rs:484, 501, 510, 576, 630`) loses `Copy`. The blast radius is large and silent (compile errors mask runtime correctness issues until resolved).
+**Do this instead:** Use Pattern 3 above — sibling `IChingQuery` newtype + separate `IChingEvaluator`. The framework's wording was aspirational pseudo-code; the v1.5/v1.6 codebase already establishes the sibling-not-extend pattern (`DailyFlyingStarLayout` sibling to `FlyingStarLayout`).
+
+### Anti-Pattern 2: Crossing CRIT-3 inside `interaction/direction_merge.rs`
+
+**What people do:** Add Thai Tue or Flying Star consumption to the existing `compute_direction_merge()` function (`interaction/direction_merge.rs:28-87`), since that's "where direction logic lives."
+**Why it's wrong:** The CI guard at `tests/fengshui_crit3_isolation.rs:14-21` will fail the build. It greps for `FlyingStar`, `DailyFlyingStar`, `DailyFlyingStarLayout`, `almanac::fengshui`, `phi_tinh`, `compute_daily_flying_stars` in `src/interaction/direction_merge.rs`. Even a comment containing one of those tokens fails it. This boundary is the project's most-explicitly-enforced discipline.
+**Do this instead:** Put the cross-link in `reasoning/direction_composite.rs` (outside the CRIT-3 quarantine zone). If a future milestone wants to relax CRIT-3 (e.g. v2.0 `spatial_compose` Tier-3 pillar), that requires a new ADR explicitly superseding the CRIT-3 carve-out — never a silent code change.
+
+### Anti-Pattern 3: Skipping the schema-lock phase and authoring corpus directly
+
+**What people do:** Eager to show progress, write `data/iching/hexagrams.json` first using a draft schema, then discover that adding a missing field requires re-editing all 64 entries.
+**Why it's wrong:** This is exactly the CRIT-1/CRIT-5 failure mode documented for v1.5 and codified in the "Schema-lock before corpus authoring" decision (`PROJECT.md:79`). 64 entries is 64× the rework cost of v1.5's 60 ritual entries. The schema MUST be locked by an ADR (ADR-0005) and the Rust types MUST be frozen (`#[serde(deny_unknown_fields)]`) before any data file is created.
+**Do this instead:** Follow the v1.5 Phase 10 → Phase 12 sequence exactly. Phase 1 = sources + ADRs + locked types + serde round-trip tests on a 1-entry fixture. Phase 3 = 64-entry corpus authoring against the now-immutable schema.
+
+### Anti-Pattern 4: Using a single merged `source_id` for the cross-link
+
+**What people do:** Mint a new `source_id: "thai-tue-phi-tinh"` to label cross-link facts.
+**Why it's wrong:** DEC-0015/0016 (`EXPANSION_FRAMEWORK §1`) require per-tradition `source_id` discipline. Minting a hybrid id destroys audit provenance — readers can no longer tell which claim came from which classical text. It also violates the CRIT-3 spirit (the isolation exists precisely so the two traditions' contributions remain distinguishable).
+**Do this instead:** Use Pattern 4 above — emit **two** tradition-specific envelopes (`SOURCE_KHCBPPT` + `SOURCE_HUYEN_KHONG`) plus **one** composite envelope with `source_id: "rule.composite.direction_cross_link"` (the `rule.composite.*` prefix is mandated by EXPANSION_FRAMEWORK §3.2 and is what distinguishes derived joins from primitive traditions).
+
+### Anti-Pattern 5: Authoring hexagram text in English first
+
+**What people do:** Populate `thoan_tu_en` eagerly because it's "easier to review."
+**Why it's wrong:** RIT-13 precedent (rituals `body_en` reserved, always null in v1.5 corpus, `rituals/schema.rs:228-230`) establishes that English translations for cultural text are deferred indefinitely. The discipline protects against half-translated corpora that look "complete" but aren't.
+**Do this instead:** Vietnamese `thoan_tu_vi` + `hao_tu_vi` mandatory; English fields reserved (declared `Option<String>`, default `None`, never populated in v1.7 corpus). Future translation milestone can populate them via additive corpus augmentation.
+
+---
+
+## Integration Points
+
+### External Services
+
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| `nhantu.net` (Mai Hoa reference) | Manual cross-check during golden-case authoring (`reasoning/iching/golden.rs`); not a runtime dependency. | Per EXPANSION_FRAMEWORK §7, ≥2 independent sources per case. Divergences logged as `KnownDivergence` (pattern at `almanac/fengshui/golden.rs`). |
+| `divination.com` (hexagram texts) | Same — golden-case cross-check only. | Used to verify `thoán từ` English-translation parity if/when `title_en` is populated (it is NOT in v1.7). |
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| `reasoning/iching/` ↔ `rituals/` (schema reuse) | Direct type re-export: `use crate::rituals::schema::{SourceCitation, RitualConfidenceTier};` | Both pillars share citation/confidence shapes. Re-export avoids duplicate schema drift. |
+| `reasoning/iching/` ↔ `almanac/` (lunar lookup) | Read-only call: `use crate::lunar::convert_solar_to_lunar;` | IChing casting needs lunar year/month/day + chi-hour from the query time. Reuses existing v1.0 lunar engine. |
+| `reasoning/iching/` ↔ `reasoning/` (evaluator trait) | `impl ActionEvaluator for IChingEvaluator` | Trait defined at `reasoning/action_evaluator.rs:51`. |
+| `reasoning/direction_composite.rs` ↔ `almanac/thai_tue.rs` | Read-only call: `compute_thai_tue(birth_chi_index, current_year_chi_index)` | Returns owned `ThaiTueResult` — no mutation possible. CRIT-3 safe. |
+| `reasoning/direction_composite.rs` ↔ `almanac/sat_phuong.rs` | Read-only call: `get_sat_phuong(chi_index)` | Returns owned `SatPhuongResult` — no mutation possible. CRIT-3 safe. |
+| `reasoning/direction_composite.rs` ↔ `almanac/fengshui/` | Read-only field access: `snapshot.flying_stars.as_ref()` | The cross-link NEVER calls `compute_*` directly — it reads the already-populated DaySnapshot field. This means FlyingStar is computed once per snapshot, not recomputed per cross-link call. CRIT-3 safe (no new `compute_daily_flying_stars` invocation). |
+| `reasoning/direction_composite.rs` ↔ `interaction/direction_merge.rs` | **NO communication.** | The cross-link is a sibling to direction_merge, not a consumer of it. direction_merge stays CRIT-3-quarantined. |
+
+---
+
+## CRIT-3 Isolation Preservation — Explicit Treatment
+
+The brief asks specifically how the Thái Tuế/Tam Sát ⇄ Phi Tinh cross-link preserves CRIT-3. The answer has three mechanical guarantees:
+
+### Guarantee 1: Module placement
+The cross-link lives at `crates/amlich-core/src/reasoning/direction_composite.rs`. The CRIT-3 CI guard (`tests/fengshui_crit3_isolation.rs`) reads only one file: `src/interaction/direction_merge.rs`. Files under `reasoning/` are outside its scope. This is not a loophole — it is the project's intended carve-out. `reasoning/personal.rs:1-9` already imports from both `almanac::tu_menh` and `interaction::*` without violating CRIT-3, establishing that the reasoning layer is the designated join layer.
+
+### Guarantee 2: Read-only signatures
+The cross-link function takes `&DaySnapshot` and `birth_chi_index: usize`, returning an owned `PersonalFactNode`. It calls `compute_thai_tue(...)` and `get_sat_phuong(...)` which themselves return owned values (`ThaiTueResult`, `SatPhuongResult`). It accesses `snapshot.flying_stars.as_ref()` — a shared reference. At no point does it mutate either source's outputs. This makes the read-only-ness mechanically verifiable via grep:
+```bash
+# tests/thai_tue_cross_link_crit3.rs (NEW) — grep guard
+# Asserts direction_composite.rs contains ONLY &-borrow patterns of the
+# CRIT-3-isolated symbols, never &mut or owned mutable handles.
+```
+
+### Guarantee 3: Distinct source_ids on every emitted envelope
+Per Pattern 4, the cross-link emits three envelopes with three distinct source_ids: `SOURCE_KHCBPPT`, `SOURCE_HUYEN_KHONG`, and `"rule.composite.direction_cross_link"`. The first two are unchanged from their home modules — the cross-link does NOT mint a merged tradition id (Anti-Pattern 4). This means a downstream audit can always answer "is this claim from KHCBPPT or Huyền Không?" — the provenance is never lost.
+
+### Required CI Guard Extension
+The existing `tests/fengshui_crit3_isolation.rs` should be **augmented** (not replaced) with a sibling test `tests/thai_tue_cross_link_crit3.rs` that asserts:
+1. `direction_composite.rs` exists under `src/reasoning/` (NOT under `src/interaction/`).
+2. `direction_composite.rs` does not contain `&mut` references to `FlyingStarLayout`, `ThaiTueResult`, or `SatPhuongResult`.
+3. `direction_composite.rs` imports both `crate::almanac::thai_tue` AND `crate::almanac::fengshui` (proving the cross-link is real, not a no-op).
+4. `interaction/direction_merge.rs` still does NOT import `crate::almanac::fengshui` (the original CRIT-3 boundary is intact).
+
+This mirrors the discipline that v1.5 used to extend `source_id_guard.rs` whenever new `SOURCE_*` constants were registered.
+
+---
+
+## Build Order (Dependency-Driven)
+
+The v1.5 milestone established the schema-lock-first precedent (Phase 10 → 11/12/13/14/15). v1.7 follows the same shape with one wrinkle: the Thái Tuế cross-link is **independent** of the IChing pillar and can be parallelised after Phase 1.
+
+### Phase 1 — Foundation: schemas, sources, ADRs, ontology (BLOCKING; everything else depends on this)
+- **Files created:** `.planning/adrs/0005-iching-schema-v1.md`, `.planning/adrs/0006-mai-hoa-casting-algorithm.md`, `.planning/adrs/0007-thai-tue-phi-tinh-cross-link.md`.
+- **Files modified (additive):**
+  - `sources.rs` — `+SOURCE_KINH_DICH`, `+SOURCE_MAI_HOA_DICH_SO`
+  - `tests/source_id_guard.rs` — extend `FORBIDDEN_LITERALS` with `"kinh-dich"`, `"mai-hoa-dich-so"`
+  - `reasoning/types.rs` — `+ReasoningEvidenceSourceFamily::IChing`, `+ActionId::IChing`
+  - `semantic_graph/ontology.rs` — 6-slice additions for `NodeConcept::Hexagram`, `EdgeConcept::LocatedAt`, `EdgeConcept::Transforms`
+  - `crates/amlich-core/data/schemas/iching-schema.json` (JSON Schema mirror of ADR-0005 for tooling)
+- **Files created (stubs only):**
+  - `reasoning/iching/mod.rs`, `reasoning/iching/schema.rs` — locked types, no logic, serde round-trip tests
+- **Why first:** Every downstream phase needs the source_ids registered, the source_family enum extended, and the ontology extended. Doing any of these out-of-order triggers rework.
+
+### Phase 2 — Thái Tuế evidence backfill (CAN PARALLELISE with Phases 3-5)
+- **Files modified (1 line each):**
+  - `almanac/thai_tue.rs:107-111` — populate `evidence: Some(RuleEvidence { source_id: SOURCE_KHCBPPT.to_string(), method: "thai_tue_5_relationships", profile: "baseline" })` instead of `None`.
+  - `almanac/sat_phuong.rs:49-53` — same pattern for `get_sat_phuong`.
+- **Why parallelisable:** Pure additive backfill; existing call-sites ignore the field. No corpus or algorithm work blocks it.
+
+### Phase 3 — IChing corpus + loader (DEPENDS ON Phase 1)
+- **Files created:**
+  - `data/iching/hexagrams.json` — 64 entries
+  - `data/iching/manifest.json`, `data/iching/provenance_audit.md`
+  - `reasoning/iching/corpus.rs` — `OnceLock` loader, mirrors `rituals/corpus.rs:85-117`
+- **Why this order:** Corpus authors need the locked schema from Phase 1 before they can write entries. The loader cannot exist before the schema.
+
+### Phase 4 — Mai Hoa casting algorithm + biến quẻ (DEPENDS ON Phase 3)
+- **Files created:**
+  - `reasoning/iching/mai_hoa.rs` — `cast_hexagram_mai_hoa(query_time) -> HexagramCast`
+  - `reasoning/iching/bien_que.rs` — `derive_transformed_hexagram(cast) -> Hexagram`
+  - `reasoning/iching/golden.rs` — 10+ golden cases vs nhantu.net + divination.com
+- **Why this order:** Algorithm consumes the corpus loader from Phase 3 (`get_hexagram_by_number`). Cannot test without it.
+
+### Phase 5 — IChing evaluator + DaySnapshot integration (DEPENDS ON Phase 4)
+- **Files created:**
+  - `reasoning/iching/evaluator.rs` — `impl ActionEvaluator for IChingEvaluator`
+- **Files modified (additive):**
+  - `lib.rs:154-185` — `+pub iching_cast: Option<IChingCastSummary>` with `#[serde(default, skip_serializing_if = "Option::is_none")]`
+  - `lib.rs:274-360` — populate `iching_cast` when an IChing query is supplied
+  - `reasoning/personal.rs` — `+build_iching_fact_nodes()` method on `PersonalReasoningInput`
+  - `reasoning/mod.rs` — `pub use iching::*` re-exports
+- **Why this order:** The evaluator needs the algorithm (Phase 4) to cast and the corpus (Phase 3) to look up text. The DTO field needs the evaluator to populate it.
+
+### Phase 6 — Thái Tuế ⇄ Phi Tinh cross-link (CAN START after Phase 2; INDEPENDENT of Phases 3-5)
+- **Files created:**
+  - `reasoning/direction_composite.rs` — `build_direction_cross_link(snapshot, birth_chi_index) -> PersonalFactNode`
+  - `tests/thai_tue_cross_link_crit3.rs` — extended CRIT-3 grep guard
+- **Files modified (additive):**
+  - `lib.rs` — `+pub direction_cross_link: Option<DirectionCrossLinkSummary>` on DaySnapshot
+  - `reasoning/personal.rs` — wire cross-link fact into `build_fact_nodes()` as an additive branch
+- **Why independent:** The cross-link consumes `compute_thai_tue`, `get_sat_phuong` (Phase 2 backfill), and `snapshot.flying_stars` (shipped v1.5). It does NOT touch anything in `reasoning/iching/`.
+
+### Phase 7 — Semantic graph wiring (DEPENDS ON Phase 5 and Phase 6)
+- **Files modified:**
+  - `semantic_graph/builders/day_snapshot.rs:42-44` — `+builder.add_iching_facts(snapshot); +builder.add_direction_composite_facts(snapshot);`
+  - New private methods on `DaySnapshotGraphBuilder` emitting Hexagram nodes + Transforms/LocatedAt edges + composite fact node
+- **Why last:** The builder consumes everything produced by Phases 5 and 6. Wiring earlier would compile against stubs and miss integration bugs.
+
+### Phase 8 — E2E validation (DEPENDS ON all above)
+- 2026 smoke test extension (`tests/integration_2026_smoke.rs`)
+- v1.6 backward-compat round-trip (`tests/day_snapshot_v14_compat.rs` pattern) — v1.6 producer JSON must deserialize into v1.7 DaySnapshot
+- 10+ golden IChing cases cross-checked against ≥2 sources per EXPANSION_FRAMEWORK §7
+
+### Dependency Graph Summary
+
+```
+                 ┌──────────────────────────┐
+                 │ Phase 1: Foundation      │
+                 │ (ADRs + sources + enum)  │
+                 └────────┬─────────────────┘
+                          │
+              ┌───────────┴────────────┐
+              ▼                        ▼
+   ┌────────────────────┐    ┌────────────────────┐
+   │ Phase 2: Thai Tue  │    │ Phase 3: Corpus    │
+   │ evidence backfill  │    │ + loader           │
+   └────────┬───────────┘    └────────┬───────────┘
+            │                         ▼
+            │              ┌────────────────────┐
+            │              │ Phase 4: Mai Hoa   │
+            │              │ casting algorithm  │
+            │              └────────┬───────────┘
+            │                       ▼
+            │              ┌────────────────────┐
+            │              │ Phase 5: Evaluator │
+            │              │ + DTO integration  │
+            │              └────────┬───────────┘
+            │                       │
+            ▼                       ▼
+   ┌────────────────────┐          │
+   │ Phase 6: Thai Tuế  │          │
+   │ cross-link module  │          │
+   └────────┬───────────┘          │
+            │                       │
+            └───────────┬───────────┘
+                        ▼
+              ┌────────────────────┐
+              │ Phase 7: Semantic  │
+              │ graph wiring       │
+              └────────┬───────────┘
+                       ▼
+              ┌────────────────────┐
+              │ Phase 8: E2E       │
+              │ validation         │
+              └────────────────────┘
+```
+
+**Critical path:** Phase 1 → 3 → 4 → 5 → 7 → 8 (IChing pillar).
+**Parallel track:** Phase 1 → 2 → 6 (Thái Tuế cross-link), merges at Phase 7.
+
+---
+
+## Summary of New vs Modified Files (Audit Table)
+
+| File | Status | Lines changed (est.) | Notes |
+|------|--------|----------------------|-------|
+| `.planning/adrs/0005-iching-schema-v1.md` | NEW | ~160 | Mirrors ADR-0001 structure exactly. |
+| `.planning/adrs/0006-mai-hoa-casting-algorithm.md` | NEW | ~80 | Locks the time-number formulas + động hào derivation. |
+| `.planning/adrs/0007-thai-tue-phi-tinh-cross-link.md` | NEW | ~60 | Formalises CRIT-3 carve-out for reasoning layer. |
+| `crates/amlich-core/src/sources.rs` | MODIFIED | +6 | Two `pub const` lines + two test assertions. |
+| `crates/amlich-core/tests/source_id_guard.rs` | MODIFIED | +2 | Two new entries in `FORBIDDEN_LITERALS`. |
+| `crates/amlich-core/src/reasoning/types.rs` | MODIFIED | +4 | New `IChing` source family variant + `ActionId::IChing` variant. |
+| `crates/amlich-core/src/semantic_graph/ontology.rs` | MODIFIED | +18 (6-slice) | Three concepts × six slices. |
+| `crates/amlich-core/src/almanac/thai_tue.rs` | MODIFIED | +4 (1 line populated) | Populate `evidence.source_id`. |
+| `crates/amlich-core/src/almanac/sat_phuong.rs` | MODIFIED | +4 (1 line populated) | Populate `evidence.source_id`. |
+| `crates/amlich-core/src/lib.rs` | MODIFIED | +20 | Two additive `Option<T>` DaySnapshot fields + populate blocks + two new public API fns. |
+| `crates/amlich-core/src/reasoning/mod.rs` | MODIFIED | +3 | `pub use iching::*; pub use direction_composite::*;` |
+| `crates/amlich-core/src/reasoning/personal.rs` | MODIFIED | +60 | Two new builder methods on `PersonalReasoningInput`; no signature changes to existing. |
+| `crates/amlich-core/src/semantic_graph/builders/day_snapshot.rs` | MODIFIED | +120 | Two new private builder methods; two new call lines in `new()`. |
+| `crates/amlich-core/src/reasoning/iching/mod.rs` | NEW | ~30 | Public API re-exports. |
+| `crates/amlich-core/src/reasoning/iching/schema.rs` | NEW | ~200 | Locked HexagramEntry + sub-types + serde tests. |
+| `crates/amlich-core/src/reasoning/iching/corpus.rs` | NEW | ~170 | `OnceLock` loader, NFC, source_id discipline. |
+| `crates/amlich-core/src/reasoning/iching/mai_hoa.rs` | NEW | ~150 | Time-number casting algorithm. |
+| `crates/amlich-core/src/reasoning/iching/bien_que.rs` | NEW | ~80 | Biến quẻ derivation. |
+| `crates/amlich-core/src/reasoning/iching/evaluator.rs` | NEW | ~200 | `impl ActionEvaluator for IChingEvaluator`. |
+| `crates/amlich-core/src/reasoning/iching/golden.rs` | NEW | ~150 | 10+ golden cases + `KnownDivergence` support. |
+| `crates/amlich-core/src/reasoning/direction_composite.rs` | NEW | ~180 | Read-only cross-link + composite envelope. |
+| `crates/amlich-core/data/iching/hexagrams.json` | NEW | ~3-5k lines | 64 hexagram entries. |
+| `crates/amlich-core/data/iching/manifest.json` | NEW | ~20 | Tooling-only file list. |
+| `crates/amlich-core/data/iching/provenance_audit.md` | NEW | ~200 | Per-entry citation + reviewer ledger. |
+| `crates/amlich-core/tests/thai_tue_cross_link_crit3.rs` | NEW | ~80 | Extended CRIT-3 grep guard for the new module. |
+| `crates/amlich-core/tests/iching_integration.rs` | NEW | ~250 | 10+ black-box tests for cast + corpus lookup + biến quẻ. |
+| `crates/amlich-core/tests/iching_golden.rs` | NEW | ~150 | Independent golden-case verification (cross-source). |
+
+**Backward-compat invariant:** Every MODIFIED file change is additive. The only enum extensions (`ReasoningEvidenceSourceFamily::IChing`, `ActionId::IChing`, `NodeConcept::Hexagram`, `EdgeConcept::{LocatedAt,Transforms}`) require updating exhaustive `match` sites — those are mechanical and CI-enforced. No existing public function signature changes. No existing JSON output shape changes (additive `Option<T>` with `skip_serializing_if = Option::is_none`).
+
+---
+
+## Sources
+
+### In-repo authoritative references (HIGH confidence)
+- `.planning/PROJECT.md` — v1.0–v1.6 milestone history, validated capabilities, key decisions table.
+- `.planning/research/EXPANSION_FRAMEWORK.md` §2.2 (Kinh Dịch pillar spec), §3.1 (source provenance), §3.2 (semantic graph extension patterns).
+- `.planning/adrs/0001-ritual-schema-v1.md` — ADR template + schema-lock-first precedent.
+- `crates/amlich-core/src/rituals/corpus.rs:85-117` — `OnceLock + include_str!` corpus loader pattern.
+- `crates/amlich-core/src/rituals/schema.rs` — `#[serde(deny_unknown_fields)]` schema-lock pattern + `RitualMetadata` additive extension.
+- `crates/amlich-core/src/almanac/fengshui/types.rs:120-143` — sibling-not-extend pattern for `FlyingStarLayout` / `DailyFlyingStarLayout`.
+- `crates/amlich-core/src/semantic_graph/ontology.rs` — 6-slice ontology discipline (full file).
+- `crates/amlich-core/src/semantic_graph/builders/day_snapshot.rs:476-747` — FlyingStar/Ritual/Offering builder precedent; `add_offering_facts:697-744` INT-09 dual-source provenance precedent.
+- `crates/amlich-core/src/reasoning/types.rs:144-151` — `ReasoningEvidenceEnvelope` shape.
+- `crates/amlich-core/src/reasoning/types.rs:5-7, 11-15` — `ActionId`, `NodeKind` closed enums (extension surface).
+- `crates/amlich-core/src/reasoning/action_evaluator.rs:51-67` — `ActionEvaluator` trait (IChing evaluator target).
+- `crates/amlich-core/src/reasoning/personal.rs:31-107` — `PersonalReasoningInput::build_fact_nodes` integration point.
+- `crates/amlich-core/src/advisory.rs:18-30` — `ConsultationIntent` enum (must NOT be extended; see Anti-Pattern 1).
+- `crates/amlich-core/src/lib.rs:154-185` — `DaySnapshot` additive `Option<T>` discipline.
+- `crates/amlich-core/src/almanac/thai_tue.rs:36-112` — `ThaiTueResult.evidence: Option<RuleEvidence>` (currently `None`, backfill target).
+- `crates/amlich-core/src/almanac/sat_phuong.rs:38-54` — `SatPhuongResult.evidence` (same backfill target).
+- `crates/amlich-core/src/interaction/direction_merge.rs:1-87` — CRIT-3-isolated direction-merge module (NOT to be modified for cross-link).
+- `crates/amlich-core/tests/fengshui_crit3_isolation.rs:14-21` — CRIT-3 grep guard (`FORBIDDEN_TYPE_NAMES`).
+- `crates/amlich-core/tests/source_id_guard.rs:17-25` — source_id literal CI guard (`FORBIDDEN_LITERALS`).
+- `.planning/milestones/v1.5-ROADMAP.md` — schema-lock-first phase ordering (Phase 10 → 11 → 12 → 13 → 14 → 15).
+
+### External references (MEDIUM confidence — used only for golden-case cross-check planning, not for architecture)
+- EXPANSION_FRAMEWORK §7 — `nhantu.net` (Mai Hoa), `divination.com` (hexagram texts) for golden-case validation per the project's ≥2-sources-per-case discipline.
+
+---
+*Architecture research for: amlich-core v1.7 Kinh Dịch pillar + Thái Tuế ⇄ Phi Tinh cross-link*
+*Researched: 2026-07-16*

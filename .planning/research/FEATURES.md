@@ -1,301 +1,388 @@
-# Feature Research — v1.5 Eastern Knowledge Expansion
+# Feature Research
 
-**Domain:** Two NEW pillars on existing Vietnamese almanac engine
-- **P1 Văn khấn cổ truyền** — `source_id: vn-folk-ritual`, Tier 0, content corpus + lookup
-- **P4 Phi Tinh thời gian** — `source_id: huyen-khong`, Tier 0, algorithm-driven (Vận/Năm/Tháng)
+**Domain:** Vietnamese almanac — Kinh Dịch (I-Ching divination) pillar + Thái Tuế/Tam Sát ⇄ Phi Tinh directional cross-link
+**Researched:** 2026-07-16
+**Confidence:** HIGH for Mai Hoa casting algorithm & 64-hexagram data shape; MEDIUM-HIGH for Tam Sát directional conventions (existing-module gap)
+**Milestone:** v1.7 (P2 pillar per `EXPANSION_FRAMEWORK.md` §2.2 + §5)
 
-**Researched:** 2026-05-23
-**Confidence:** MEDIUM-HIGH
-
-Scope boundary: This milestone adds Tier 0 surfaces only. Spatial Phi Tinh (Tier 3, requires `facing_direction`) is explicitly P5 and deferred per EXPANSION_FRAMEWORK §3.3 and PROJECT.md.
+> Scope of this file: **only the NEW features** in v1.7. Core calendar, Ten Gods/Kua/Dai Van, hour pillar/60-cycle/Na Am, Văn khấn, Phi Tinh overlays, semantic-graph provenance — all already shipped v1.0–v1.6, **deliberately not re-researched here**.
 
 ---
 
 ## Feature Landscape
 
-Features are grouped by pillar and category. Each row maps cleanly to a single REQ-ID for downstream requirements.
+### Table Stakes (Users Expect These)
 
-### P1 Văn khấn — Table Stakes (Rituals Corpus)
+A v1.7 Kinh Dịch pillar without these feels incomplete or non-canonical. Every row maps to a downstream REQ-ID.
 
-These define the JSON data model and minimum content coverage that any Vietnamese almanac app shipping `văn khấn` is expected to provide.
+| ID | Feature | Why Expected | Complexity | Tier | Dependencies | Notes |
+|----|---------|--------------|------------|------|--------------|-------|
+| FS-01 | **Mai Hoa time-based casting** (`cast_hexagram_mai_hoa(lunar_year, lunar_month, lunar_day, chi_hour_index) -> CastHexagram`) | Tier-0 entry point; the whole point of "ask a question, get a quẻ". Vietnamese users expect deterministic time-numerology casting, not coin-toss. | **HIGH** | T0 | existing `convert_solar_to_lunar`, `get_day_canchi`, `CHI[12]` for chi-hour index | Algorithm pinned below in §"Mai Hoa Casting Algorithm". No RNG — deterministic. |
+| FS-02 | **Tiên Thiên Bát Quái numerical map** (Càn=1, Đoài=2, Ly=3, Chấn=4, Tốn=5, Khảm=6, Cấn=7, Khôn=8) | Foundational lookup; required by FS-01 upper/lower trigram derivation. | **LOW** | T0 | none | Pure static `const` table. |
+| FS-03 | **64-hexagram lookup corpus** (`HexagramRecord { king_wen_index, vi_name, chinese_name, upper_trigram, lower_trigram, thoai_tu (quái từ), hao_tu[6] (hào từ), tuong_truyen (optional), cat_hung_verdict }`) | Without this, casting produces an empty pointer. `source_id: kinh-dich` (Ngô Tất Tố *Kinh Dịch Trọn Bộ*). | **HIGH** | T0 | none (data-only); frozen via `deny_unknown_fields` schema (mirrors v1.5 ADR-0001) | 64 fixed records; biggest single deliverable. **Schema must be locked before corpus authoring** (per PITFALLS CRIT-1/5 discipline from v1.5). |
+| FS-04 | **Biến quẻ derivation** (`derive_bien_que(primary_index, moving_line_position) -> HexagramRecord`) | Mai Hoa always produces a biến quẻ; users expect "chủ quẻ → biến quẻ" pair. Cát-hùng-over-time reading. | **LOW** | T0 | FS-03 (lookup) | Pure function: flip the moving line (6↔9, yin↔yang), recompute King Wen index. |
+| FS-05 | **Thể / Dụng classification** (`classify_the_dung(upper_trigram, lower_trigram, moving_line_position) -> { body_trigram, application_trigram }`) | Required for Ngũ Hành sinh khắc reading — central to Mai Hoa interpretation per Thiệu Khang Tiết. | **LOW** | T0 | FS-02 (trigram → element) | Rule: the trigram **not containing** the moving line is Thể (body/self); the one containing it is Dụng (application/affair). |
+| FS-06 | **`ConsultationIntent::IChing { question: String }` evaluator branch** in `reasoning/personal.rs` | Provides the API surface for engine consumers; returns `ReasoningEvidenceEnvelope { source_id: "kinh-dich" / "mai-hoa-dich-so", ... }`. | **MED** | T0 | FS-01, FS-03, FS-04, FS-05; existing `ConsultationIntent` enum (`advisory.rs:20`) | Extends `ConsultationIntent` enum (currently 9 activity intents — all activity-based; `IChing` is **query-based**, the first non-activity intent). |
+| FS-07 | **`source_id` registration**: `kinh-dich` (Ngô Tất Tố) + `mai-hoa-dich-so` (Thiệu Khang Tiết) | DEC-0023 discipline (`sources.rs` `pub const`) + CI grep guard forbids bare literals. | **LOW** | T0 | existing `sources.rs` pattern | Two new `pub const SOURCE_KINH_DICH` / `SOURCE_MAI_HOA_DICH_SO`. |
+| FS-08 | **`Hexagram` semantic-graph node + edges** (`Transforms` chủ→biến, `LocatedAt` for moving-line position) | Graph-native provenance per framework §3.2; matches v1.5 `Hexagram` slot already declared in framework. | **MED** | T0 | existing `ReasoningGraphExport`, `ReasoningNodeExport`, `ReasoningEdgeExport` (`reasoning/types.rs`) | Reuses existing edge types; adds new `EdgeJustification::HexagramTransform` variant. |
+| FS-09 | **Thái Tuế directional derivation** (`thai_tue_direction(year_chi_index) -> Direction8`) | The directional aspect of Thái Tuế (year chi position = Thái Tuế direction; "phạm Thái Tuế phương" = sit/facing it). | **LOW** | T0 | `CHI[12]`, existing 8-direction vocabulary | **GAP**: existing `thai_tue.rs` is **personal-conflict only** (5 kinds: Trực/Xung/Hại/Hình/Phá Thái Tuế between birth chi and year chi). The directional aspect is NOT yet computed anywhere — must be added as a new function or module. |
+| FS-10 | **Tam Sát / Sát Phương directional** — **decision required**: (a) reuse existing `sat_phuong.rs` (single direction per chi, `chi % 4` grouping) OR (b) implement full classical Tam Sát (3 directions per year chi from Tam Hợp triad opposition) | The directional cross-link needs a Sát indicator per direction; classical VN almanacs surface all 3 Sát positions. | **MED** | T0 | existing `sat_phuong.rs` OR new `almanac/tam_sat.rs` | **GAP / DECISION**: existing `sat_phuong.rs` returns ONE cardinal direction per chi via a Tam Hợp-simplified mapping (`chi % 4`). Classical Tam Sát (三煞) is **THREE** branches/directions (opposite Tam Hợp triad). Roadmap must pick: (a) document simplification + reuse, or (b) new `tam_sat.rs` with 3-direction classical rule. Recommend (b) for correctness parity with KHCBPPT; keep `sat_phuong.rs` as a separate "Sát Phương by day chi" feature. |
+| FS-11 | **Thái Tuế / Tam Sát ⇄ Phi Tinh read-only cross-link** — directional composite view | Carries "should-have" forward from v1.5 research. Engine consumers want one picture: "this direction has Thái Tuế, Sát at huyền-không palace X with star Y". | **MED-HIGH** | T0 (Tier-0 join: only calendar + palace) | FS-09, FS-10, existing `huyen-khong` palace layout, existing `ReasoningEvidenceEnvelope` | **CRITICAL CONSTRAINT**: CRIT-3 isolation (PROJECT.md, v1.5 audit) — join happens ONLY at reasoning-envelope layer with **distinct source_ids** (`khcbppt` + `huyen-khong`); NEVER wire `FlyingStar` into `interaction/direction_merge.rs`. Composite `source_id` follows `rule.composite.*` pattern per framework §3.2. |
+| FS-12 | **Golden tests** (≥10 casting cases cross-checked against ≥2 independent sources — vi.wikipedia Mai Hoa algorithm + nhantu.net or *Mai Hoa Dịch Số* printed tables) | Framework §6 mandates golden test per pillar with divergence logging as `KnownDivergence`, never silent fix. | **MED** | T0 | FS-01 | Algorithm is deterministic; fixture = `(lunar_ymdh, chi_hour) → expected (upper, lower, moving_line)` triples. |
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| `Ritual` record schema with full prayer text | Every `lichviet`/`lichvansu` app surfaces the exact words to recite | LOW | Fields: `id`, `event_type`, `title_vi`, `title_en`, `body_vi` (multi-paragraph), `source_id: "vn-folk-ritual"`, `source_citation`. Multi-paragraph plain text; no markup beyond newlines. **Confidence: HIGH** |
-| `event_type` taxonomy (enum) | App must trigger correct prayer per occasion; free-text would break lookups | LOW | Closed enum: `SocVong`, `TetNguyenDan`, `TetTrungThu`, `TetThanhMinh`, `TetDoanNgo`, `TetVuLan`, `TetTaoQuan`, `RamThangBay`, `DongTho`, `NhapTrach`, `KhaiTruong`, `Cuoi` (with sub: `DamNgo`/`AnHoi`/`DonDau`), `Gio`, `DayThang`, `ThuongTho`, `CaiTang`, `ThanTai`, `GiaTien`, `ThoCong`. Maps 1:1 to existing `holiday_data.category`. **Confidence: HIGH** |
-| `lễ vật` (offerings) checklist per ritual | Users physically prepare offerings; the words alone are insufficient | LOW | Array of strings (e.g., `["hương", "hoa tươi", "trầu cau", "rượu trắng", "mâm ngũ quả"]`). Plain checklist; no quantities/prices. **Confidence: HIGH** |
-| `trình tự` (procedure) steps | Ritual ordering matters religiously (e.g., light incense BEFORE reciting) | LOW | Ordered array of step strings. Optional but expected for major events (Động thổ, Nhập trạch, Cưới). **Confidence: HIGH** |
-| Source attribution per record | Required by DEC-0015/0016 (source_id discipline) | LOW | Each JSON row carries `source_id`, `source_book`, `source_page` (when known). Validator rejects missing `source_id`. **Confidence: HIGH** |
-| Coverage of Sóc/Vọng (Mùng 1, Rằm) for all 12 months | These trigger 24x/year — highest-frequency use case | LOW | Two ritual records (`soc-vong-mung-1`, `soc-vong-ram`) reused across all 12 months; no per-month variant needed. Generic `Cúng Gia Tiên` body. **Confidence: HIGH** |
-| Coverage of 8 major lunar festivals | Already detected by `holidays.rs` `isMajor=true` set | LOW | One ritual per: Tết Nguyên Đán, Tết Khai Hạ (mùng 7), Rằm tháng Giêng (Thượng Nguyên), Thanh Minh, Đoan Ngọ, Vu Lan, Trung Thu, Ông Công Ông Táo (23/12 ÂL). **Confidence: HIGH** |
-| Coverage of 6+ life-event rituals | Users search by life event, not date | MEDIUM | Động thổ, Nhập trạch, Khai trương, Cưới (3 sub-events), Giỗ (gia tiên), Đầy tháng. **Confidence: HIGH** |
+### Differentiators (Competitive Advantage)
 
-### P1 Văn khấn — Table Stakes (Lookup API)
+Optional high-UX features. v1.7 ships at most one or two; defer the rest to v1.8+.
 
-API surfaces that any consumer (desktop app, mobile, CLI) requires.
+| ID | Feature | Value Proposition | Complexity | Tier | Dependencies | Notes |
+|----|---------|-------------------|------------|------|--------------|-------|
+| DF-01 | **Tier-2 Bazi enrichment of hexagram reading** — overlay Nhật Chủ element on Thể/Dụng trigram-element analysis ("your day-master is Kim, Thể is Kim → vượng; Dụng is Mộc → khắc lợi cho bạn") | Personalizes the otherwise-generic hexagram reading. Closes the gap between Tier-0 divination and Tier-2 Bazi personality. | **MED** | T0 base + **T2 enrich** (T0 path returns `enrichment: None`) | FS-05, existing `bazi::compute_bazi_metrics`, existing `compute_element_distribution` | Pattern mirrors v1.5 Phi Tinh: Tier-0 always works; Tier-2 adds a section. |
+| DF-02 | **Full Ngũ Hành sinh khắc matrix for Thể/Dụng** (Thể sinh Dụng / Dụng sinh Thể / Thể khắc Dụng / Dụng khắc Thể / tỷ hòa) — table-driven verdicts | Saves the consumer from re-deriving five-phase rules; "Thể khắc Dụng = cát" is the kind of one-line verdict users want. | **LOW** | T0 | FS-05, FS-02 | Pure lookup table; 5 × relationship → verdict text. |
+| DF-03 | **Hỗ Quái (nuclear hexagram)** — derive from lines 2-3-4 (lower) + 3-4-5 (upper) of the chủ quẻ | Surfaces the "hidden middle" of the reading; standard Mai Hoa depth technique. | **MED** | T0 | FS-03 | Mentioned in vi.wikipedia Mai Hoa §"Thành quẻ". |
+| DF-04 | **24-sơn directional resolution** for Thái Tuế / Tam Sát (instead of 8-direction) | Matches classical KHCBPPT precision (24 sơn = 15° each). Most consumer apps stop at 8; doing 24 is a differentiator. | **MED-HIGH** | T0 | FS-09, FS-10, new 24-mountain table | Likely defer to v1.8; flag for `Tier 3 SpatialInput` co-design (framework §3.3). |
+| DF-05 | **Pre-cast intent capture** (question text + deterministic time-seed log) | Auditability / "why this quẻ" traceability; lets the user verify the cast was at the right time. | **LOW** | T0 | FS-01 | Store `question` on `ConsultationIntent::IChing` + include in evidence note. Already half-required by FS-06. |
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Lookup by `event_type` | Primary use case: "I need the Khai trương prayer" | LOW | `rituals::get_by_event(EventType::KhaiTruong) -> Vec<&Ritual>`. Returns all matching (e.g., Khai trương may have multiple variants). **Confidence: HIGH** |
-| Lookup by lunar date (Mùng 1 / Rằm trigger) | Calendar UI shows "today's prayer" without knowing event semantics | LOW | `rituals::get_for_lunar_date(lunar_day, lunar_month) -> Vec<&Ritual>`. Returns Sóc/Vọng when day=1/15, lunar festivals when date matches `lunar-festivals.json` entry. **Confidence: HIGH** |
-| Lookup by JD via `DaySnapshot` integration | Calendar drilldown surfaces from existing date pipeline | LOW | `rituals::get_for_day(snapshot: &DaySnapshot) -> Vec<&Ritual>`. Reuses lunar date + holiday detection already in `holidays.rs`. **Confidence: HIGH** |
-| Category filter | Users browse by intent (worship vs. life event vs. seasonal) | LOW | Category coarser than `event_type`: `Worship`, `Seasonal`, `LifeEvent`, `Business`. `rituals::list_by_category(cat)`. **Confidence: HIGH** |
-| Stable IDs | Cross-app deep links and bookmarks | LOW | kebab-case (`soc-vong-mung-1`, `dong-tho-lam-nha`). Documented in schema. **Confidence: HIGH** |
-| List-all (corpus enumeration) | Test/audit and UI "browse all prayers" | LOW | `rituals::all() -> &[Ritual]`. **Confidence: HIGH** |
+### Anti-Features (Commonly Requested, Often Problematic)
 
-### P1 Văn khấn — Differentiators
+Features to **explicitly exclude** from v1.7. Each row prevents scope creep.
 
-Features competitive Vietnamese calendar apps differentiate on. Optional for MVP but high UX leverage.
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| English/bilingual `body_en` translations | International diaspora users (US, AU Vietnamese communities) | MEDIUM | Mark prayer body as `body: Localized { vi, en: Option<String> }`. v1.5 ships `vi` only; schema reserves `en`. **Confidence: HIGH** |
-| Variant rituals per event (e.g., Khai trương đơn giản vs. đầy đủ) | Different households have different ritual depth | LOW | Multiple `Ritual` records share an `event_type`, distinguished by `variant: "simple"\|"full"\|"buddhist"\|"folk"`. **Confidence: MEDIUM** |
-| Cross-link to triggering holiday | "View prayer" button on holiday detail | LOW | Holiday JSON entries gain optional `ritual_ids: ["<id>", ...]`. **Confidence: HIGH** |
-| Auspicious-hour pairing | Suggest hours from existing `hoang-dao` for ritual performance | LOW | Read-only join — no new compute. Belongs in reasoning layer, not rituals module. **Confidence: HIGH** |
-| Search across prayer body | Full-text find ("tìm bài có chữ X") | MEDIUM | Out of scope for amlich-core; consumers (desktop UI) can index. Document as non-goal. **Confidence: HIGH** |
-
-### P1 Văn khấn — Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| AI-generated / auto-personalized prayer text | "Make it match my family's name automatically" | Violates source provenance (DEC-0015); the corpus IS the truth, paraphrasing breaks canonicity; risk of doctrinal errors | Provide template placeholders (`{tín chủ họ tên}`) the consumer UI fills in; never alter text |
-| Audio recordings of prayers | "Easier than reading" | Out of scope for amlich-core (text-only library); copyright on liturgical recordings is murky | Surface text + IPA-ish reading guide for diaspora; let consumer apps optionally bundle audio |
-| Per-user prayer history / journaling | "Track what I prayed for" | User-state belongs in app layer, not engine; storage/sync explosion | Engine remains stateless; consumer apps own user data |
-| Editable corpus from user input | "Add my family's variation" | Source corpus must remain authoritative and validatable; user-edits poison golden tests | Document a community contribution pathway via PR to `data/rituals/*.json` |
-| Spatial direction recommendations in ritual API | "Which way should I face during cúng?" | Belongs to Bát Trạch / Phi Tinh, not văn khấn corpus; coupling them blurs source_id | Consumer composes — call `direction_merge` separately if user requests |
+| ID | Feature | Why Requested | Why Problematic | Alternative |
+|----|---------|---------------|-----------------|-------------|
+| AF-01 | **Stalk / coin / yarrow random casting** (Wen Wang Gua / Lục Dao) | "Real I-Ching users want to toss coins." | (a) Different tradition from Mai Hoa; (b) requires RNG source — violates amlich's deterministic-correctness stance; (c) dilutes `source_id` discipline (would need `wen-wang-gua` source). | Mai Hoa time-numerology only for v1.7. If coin-cast is ever added, it lands as a **separate** milestone with its own `source_id` and an explicit RNG-injection interface. |
+| AF-02 | **LLM-generated free-form interpretation** of hexagrams | "Modern UX — let AI explain the quẻ." | (a) Breaks canonical-source correctness stance (PROJECT.md Core Value); (b) no audit trail; (c) non-deterministic. | The **Ngô Tất Tố corpus IS the interpretation** (thoán từ + hào từ + cát-hùng verdict). Surface verbatim. No prose generation. |
+| AF-03 | **Spatial feng-shui composition** (wire `FlyingStar` into `interaction/direction_merge.rs` to compute per-room layouts) | "If I have palace stars AND Thái Tuế direction, why not merge them per room?" | CRIT-3 isolation (PROJECT.md, v1.5 audit). Merging distinct `source_id` families at the interaction layer destroys provenance. | Cross-link stays at **reasoning-envelope layer only** (FS-11). True spatial composition is Tier-3 `spatial_compose` (framework §3.3), deferred to v1.9+. |
+| AF-04 | **Personalized Thái Tuế conflict rewriting** — modifying the personal Thái Tuế result based on directional cross-link | "If Thái Tuế direction is bad, maybe override the personal verdict." | Cross-link is **read-only** by design; writing back creates cyclic provenance and double-counting. | Keep FS-11 strictly read-only. Personal Thái Tuế (`thai_tue.rs`) and directional Thái Tuế (FS-09) are **independent computations** with independent source_ids; both surface but neither rewrites the other. |
+| AF-05 | **Mixing hexagram corpus sources** (e.g., pull hào từ from a different translator to fill gaps) | "Ngô Tất Tố is sparse in places; can we augment?" | Breaks single-`source_id` discipline (DEC-0015/0016/0023). Mixing translators yields inconsistent terminology/numbering. | Use **only** `kinh-dich` (Ngô Tất Tố) for v1.7. If gaps exist, log as `PendingExternalReview` (mirrors v1.6 RIT-14 pattern) — do not silently fill from another source. |
+| AF-06 | **User-selectable casting variants** (Mai Hoa time vs Mai Hoa số vật vs Mai Hoa âm thanh vs Mai Hoa chữ viết) | "Wikipedia lists 10+ Mai Hoa casting methods." | (a) Time-numerology is the only Tier-0 deterministic method; (b) other methods require user free-form input (counted objects, heard sounds, written words) — Tier-incompatible and untestable. | Ship time-numerology only (FS-01). Other variants documented in research notes as out-of-scope; revisit if/when a `MaiHoaVariant` enum is justified by user demand. |
 
 ---
 
-### P4 Phi Tinh thời gian — Table Stakes (Period Layer / Vận)
+## Mai Hoa Casting Algorithm (Concrete Spec for FS-01)
 
-The fundamental data layer. No spatial input; pure time-based table lookup.
+Verified from vi.wikipedia Mai Hoa Dịch Số (citing Thiệu Khang Tiết, *Mai Hoa Dịch Số*, NXB Văn Hoá Thông tin 2002; cross-checked against Thiệu Vĩ Hoa *Chu Dịch với dự đoán học*). **HIGH confidence on the algorithm; MEDIUM on edge-case tiebreaks (golden test required).**
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Period (Vận) determination from year | Every Phi Tinh consumer needs to know current Vận | LOW | Vận 8: 2004-2023; Vận 9: 2024-2043 (20-year period; 9 periods × 20yr = 180-year cycle). `flying_stars::period_for_year(year) -> Period`. **Confidence: HIGH** |
-| Vận 8 + Vận 9 base charts | This milestone spans both — historical data (2004-2023) for backtest/UX continuity AND current period | LOW | Two static 9-cell grids. Vận 9 center = 9 (Cửu Tử/Fire). Vận 8 center = 8 (Bát Bạch/Earth). Each cell carries a star number 1-9. **Confidence: HIGH** |
-| Period star metadata (element, polarity, auspice) | Downstream interpretations need element + polarity for resonance | LOW | Each of 9 stars: `number`, `name` (Nhất Bạch…Cửu Tử), `element` (Thủy/Mộc/Mộc/Mộc-Kim/Thổ/Kim/Kim/Thổ/Hỏa for 1..9), `auspice` (cát/hung/trung-tính), `palace_color`. Static reference table. **Confidence: HIGH** |
+### Inputs (Tier-0 only)
+```
+lunar_year_branch_index  ∈ 0..12  (Tý=0 .. Hợi=11)   — "số chi năm"
+lunar_month              ∈ 1..13                       — "số tháng" (âm lịch, 13 = nhuận)
+lunar_day                ∈ 1..30                       — "số ngày"
+chi_hour_index           ∈ 0..12  (Tý=0 .. Hợi=11)    — "số chi giờ" (12 chi giờ)
+```
 
-### P4 Phi Tinh thời gian — Table Stakes (Annual Layer / Lưu Niên)
+> **Note on hour index:** the project's `get_gio_hoang_dao` and `hour_pillar` already use a 12-slot chi-hour index; reuse it. The "13th slot" early-Tý/late-Tý split (DEC-0017) is **not** relevant here — Mai Hoa uses the chi identity, not the stem.
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Annual center star (`lưu niên trung cung tinh`) | Headline output every Vietnamese app prints in January | LOW | Formula (sources cite as canonical): center = ((11 - digit_sum(year)) mod 9), with 0→9. Verify against known: 2024→3, 2025→2, 2026→1. **Confidence: HIGH** |
-| Full 9-palace annual grid | Standard published output across all references | LOW | Once center is known, populate 8 remaining palaces by Yang sequence (Center→NW→W→NE→S→N→SW→E→SE) using ascending star numbers mod 9. Deterministic. **Confidence: HIGH** |
-| Palace→Direction mapping | Reader needs "what's in the South this year?" | LOW | Fixed Lạc Thư bagua: N=1, NE=8, E=3, SE=4, S=9, SW=2, W=7, NW=6, Center=5. Static. **Confidence: HIGH** |
-| Star+Palace auspice interpretation | Reader expects "cát/hung" annotation per palace | MEDIUM | Per-star inherent auspice (Nhất Bạch=cát, Nhị Hắc=hung, Tam Bích=hung, Tứ Lục=cát, Ngũ Hoàng=đại hung, Lục Bạch=cát, Thất Xích=hung, Bát Bạch=đại cát, Cửu Tử=cát in Vận 9). Surface as static field on star metadata, not derived. **Confidence: MEDIUM** |
-| Year input via solar year (Gregorian) | Phi Tinh year starts at Lập Xuân in classical practice; users supply Gregorian | LOW | Accept `i32` solar year. Document: year boundary = Lập Xuân (~Feb 4). Edge dates in Jan/early Feb need solar-term check. Reuse existing `tietkhi` module. **Confidence: HIGH** |
+### Step 1 — Thượng quái (upper / outer trigram)
+```
+let raw_upper = year + month + day;                       // single sum, all four are chi/calendar numbers
+let upper_idx = ((raw_upper - 1) % 8) + 1;                // 1..=8, NOT raw % 8 (classical "trừ 8": subtract 8 until ≤ 8)
+let upper_trigram = TIEN_THIEN_BAT_QUAI[upper_idx];       // Càn=1..Khôn=8
+```
+**Edge case (golden-test):** if `raw_upper % 8 == 0`, classical "trừ 8" leaves remainder 8 → Khôn. The `((n-1) % 8) + 1` form achieves this without an `if`. **Verify against a printed table** — some variants use `raw % 8` with 0→8 substitution.
 
-### P4 Phi Tinh thời gian — Table Stakes (Monthly Layer / Lưu Nguyệt)
+### Step 2 — Hạ quái (lower / inner trigram)
+```
+let raw_lower = year + month + day + chi_hour_index;
+let lower_idx = ((raw_lower - 1) % 8) + 1;
+let lower_trigram = TIEN_THIEN_BAT_QUAI[lower_idx];
+```
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Monthly center star (`lưu nguyệt trung cung tinh`) | Standard fine-grained output (every published almanac includes monthly) | MEDIUM | Rule: Year-branch group determines starting star in lunar month 1; subsequent months count DOWN (reverse). Three groups: {Tý, Ngọ, Mão, Dậu} start at Bát Bạch (8); {Thìn, Tuất, Sửu, Mùi} start at Ngũ Hoàng (5); {Dần, Thân, Tỵ, Hợi} start at Nhị Hắc (2). Month N center = ((start - (N-1) - 1) mod 9) + 1. **Confidence: HIGH (multiple sources concur)** |
-| Full 9-palace monthly grid | Same expectation as annual | LOW | Same fill rule as annual once center is known. **Confidence: HIGH** |
-| Month input via lunar-month boundaries | Phi Tinh month uses Tiết Khi boundaries (Tiết, not Nguyệt) | MEDIUM | Month boundary = mid-month solar terms (Lập Xuân, Kinh Trập…). Use existing tietkhi data; document explicitly. **Confidence: MEDIUM — boundary semantics vary by school; need ADR.** |
+### Step 3 — Hào động (moving line position)
+```
+let raw_moving = year + month + day + chi_hour_index;
+let moving_line = ((raw_moving - 1) % 6) + 1;             // 1..=6 (1 = bottom/initial hào, 6 = top hào)
+```
+**Convention:** hào counted from the **bottom** (sơ hào = 1, thượng hào = 6). Same classical "trừ 6" rule.
 
-### P4 Phi Tinh thời gian — Differentiators
+### Step 4 — Thành quẻ (compose hexagram from upper + lower trigram)
+King Wen index = lookup `(upper_trigram, lower_trigram) → king_wen_index 1..=64` via the standard 8×8 King Wen table. This is the **chủ quẻ / bản quẻ** (primary).
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Combined Annual + Monthly overlay grid | Power users want both stars per palace ("year over month") at once | MEDIUM | Output a struct with both star numbers per palace + aspect (e.g., `palace.year=1, palace.month=8 → 1-8 combo`). Major differentiator vs. apps that show only year. **Confidence: HIGH** |
-| Combo aspect interpretations (2-star combinations) | Classical texts catalog 81 combinations (9×9); each has named significance | HIGH | Static lookup table (e.g., "1-6 → Văn Xương — học tập, thi cử"). 81 entries from Thẩm Thị. Maps `(year_star, month_star)` → `CombinationAspect`. **Confidence: MEDIUM — corpus exists, digitization effort is real** |
-| Star avoidance flags ("kiêng kỵ") | Ngũ Hoàng / Nhị Hắc landing in important palaces drives user action | LOW | Surface `is_danger_palace: bool` and `recommended_cure: ElementHint` (e.g., Ngũ Hoàng → metal cure). Static rules from Thẩm Thị. **Confidence: HIGH** |
-| `DaySnapshot` integration field | Calendar drill-down shows year+month Phi Tinh inline | LOW | Additive field `flying_stars: Option<FlyingStarsSummary>`. Backward-compatible per established v1.x pattern. **Confidence: HIGH** |
-| Cross-link to Thái Tuế / Tam Sát directional warnings | Existing direction signals + Phi Tinh in same view = full directional picture | LOW | No new compute — reasoning layer joins. Document boundary: Thái Tuế stays in `almanac/thai_tue.rs` (`source_id: khcbppt`); Phi Tinh stays in `almanac/fengshui/flying_stars.rs` (`source_id: huyen-khong`). Distinct citations even when both touch "Đông" direction. **Confidence: HIGH** |
+### Step 5 — Biến quẻ (transforming hexagram)
+```
+// The moving line lives in either the upper trigram (hào 4/5/6) or lower trigram (hào 1/2/3).
+// Flip that line's polarity (yin↔yang) in the appropriate trigram.
+let bien_que = flip_line(chu_que, moving_line);
+```
+The result is a NEW hexagram with its own King Wen index → its own `HexagramRecord` from FS-03.
 
-### P4 Phi Tinh thời gian — Anti-Features
+### Step 6 — Thể / Dụng (FS-05)
+- The trigram that **contains** the moving line = **Dụng** (application — the affair/other).
+- The trigram that does **not** contain the moving line = **Thể** (body — self).
+- Reading then proceeds via Ngũ Hành sinh khắc between Thể-element and Dụng-element (DF-02):
+  - Thể sinh Dụng → hao tổn (draining)
+  - Dụng sinh Thể → được trợ (supported) — cát
+  - Thể khắc Dụng → được lợi (profitable) — cát
+  - Dụng khắc Thể → bị khắc (suppressed) — hung
+  - Thể/Dụng tỷ hòa (same element) → bình hòa (stable)
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| House-facing input / Sơn-Hướng natal chart | "I want my actual house's stars, not just the year" | This is Tier 3 (spatial) per §3.3; requires `Direction24`, `SpatialInput`, room subdivision — entire Tier-3 design unfinished | Explicitly defer to P5; if API receives spatial fields in v1.5, return `Unsupported` per DEC-0022 |
-| Daily / Hourly Phi Tinh (`Lưu Nhật`, `Lưu Thời`) | Some advanced practitioners want day-grain | Boundary semantics (solar-term vs. midnight) more ambiguous at day grain; corpus reliability lower; very few apps ship it | Document as future (post-v1.5); requirements may include it as a `MAY` not `SHALL` |
-| Personalized Phi Tinh recommendations ("which palace is YOUR best") | "Tell me where to sit/sleep" | Requires user's Kua + house facing (Tier 2 + Tier 3); blurs into Bát Trạch territory | Keep generic — surface star-per-palace facts; let `interaction/spatial_compose.rs` (P5) handle personalization |
-| Visual SVG/PNG grid rendering | "Show the chart" | Rendering is presentation; engine returns data | Return a stable `FlyingStarsGrid` struct; consumers (desktop app) render |
-| "Cures" / remedy product suggestions | Mainstream feng-shui apps push commercial cures | Commercial / cultural risk; no canonical source justifies specific product recommendations | Surface only the classical element hint (e.g., "use Metal element"); never product names |
-| Automatic Vận transition warnings around 2024 boundary | "Alert me when period changes" | Stateful, time-based — belongs in consumer app layer | Engine is pure function of year; caller computes diffs |
+### Trigram → Element (Hậu Thiên attribution, for Thể/Dụng analysis)
+| Trigram | Tiên Thiên# | Element | Direction (Hậu Thiên) |
+|---------|-------------|---------|------------------------|
+| Càn (乾) | 1 | Kim | Tây Bắc (NW) |
+| Đoài (兌) | 2 | Kim | Tây (W) |
+| Ly (離)  | 3 | Hỏa | Nam (S) |
+| Chấn (震) | 4 | Mộc | Đông (E) |
+| Tốn (巽) | 5 | Mộc | Đông Nam (SE) |
+| Khảm (坎) | 6 | Thủy | Bắc (N) |
+| Cấn (艮) | 7 | Thổ | Đông Bắc (NE) |
+| Khôn (坤) | 8 | Thổ | Tây Nam (SW) |
+
+> **Critical distinction (per vi.wikipedia):** the **Tiên Thiên#** (1..8) is used **only** for the casting step (FS-01). The **Hậu Thiên direction/element** is used for Thể/Dụng analysis (FS-05, DF-02) and for the directional cross-link (FS-11). Mixing them is a classic implementation bug.
+
+---
+
+## 64-Hexagram Data Shape (Concrete Spec for FS-03)
+
+```rust
+// crates/amlich-core/src/reasoning/iching/types.rs (sketch)
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[repr(u8)]
+pub enum Trigram {
+    Qian = 1,   // Càn
+    Dui = 2,    // Đoài
+    Li = 3,     // Ly
+    Zhen = 4,   // Chấn
+    Xun = 5,    // Tốn
+    Kan = 6,    // Khảm
+    Gen = 7,    // Cấn
+    Kun = 8,    // Khôn
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum CatHungVerdict {
+    Cat,       // cát (auspicious)
+    Hung,      // hung (inauspicious)
+    CatHungBan, // bán cát bán hung (mixed)
+    TieuCat,   // tiểu cát (slightly auspicious)
+    TieuHung,  // tiểu hung (slightly inauspicious)
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HaoTu {
+    pub position: u8,           // 1..=6 (bottom-to-top), plus 7 for the "dụng" hào of hexagrams 1 & 2 (Wikipedia I Ching §Structure note)
+    pub is_yang: bool,          // true = 9, false = 6
+    pub text_vi: String,        // hào từ (Ngô Tất Tố translation)
+    pub note: Option<String>,   // optional commentary gloss
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct HexagramRecord {
+    pub king_wen_index: u8,     // 1..=64
+    pub vi_name: String,        // "Thiên Trùng Càn" / "Địa Thái" / etc.
+    pub chinese_name: String,   // "乾為天" / "地天泰"
+    pub upper_trigram: Trigram,
+    pub lower_trigram: Trigram,
+    pub thoai_tu: String,       // 彖辭 / 卦辭 — hexagram statement (Ngô Tất Tố)
+    pub tuong_truyen: Option<String>,  //大象傳 — image commentary (optional — Ngô Tất Tố may or may not include)
+    pub hao_tu: Vec<HaoTu>,     // 6 entries (7 for hexagrams 1 & 2 per Wikipedia note)
+    pub cat_hung: CatHungVerdict,
+    pub source_id: String,      // "kinh-dich" (Ngô Tất Tố)
+}
+```
+
+**Schema-lock discipline (carries v1.5 ADR-0001 pattern):** freeze this struct with `#[serde(deny_unknown_fields)]` BEFORE authoring the 64 records. Re-editing 64 corpus entries after a schema slip is the v1.5 PITFALLS CRIT-1/5 failure mode — do not repeat it.
+
+---
+
+## Cross-Link Join Shape (Concrete Spec for FS-11)
+
+Read-only composite; no write-back to either source. Per CRIT-3 isolation (PROJECT.md, v1.5 audit) and `rule.composite.*` discipline (framework §3.2).
+
+```rust
+// crates/amlich-core/src/reasoning/iching/cross_link.rs (sketch)
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DirectionalCrossLinkEntry {
+    pub direction: Direction8,                          // 8-palace directional vocabulary (matches huyen-khong Palace)
+    pub thai_tue_here: bool,                            // from FS-09 (year chi == this direction's branch group)
+    pub sat_phuong_here: bool,                          // from existing sat_phuong.rs (single direction)
+    pub tam_sat_here: Option<bool>,                     // from FS-10 (3 directions) if implemented
+    pub palace: Palace,                                 // from existing huyen-khong FlyingStarLayout
+    pub palace_star: FlyingStar,                        // the annual star at this palace
+    pub safety_hint: Option<&'static str>,              // from existing huyen-khong safety.rs
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DirectionalCrossLink {
+    pub year: i32,
+    pub entries: Vec<DirectionalCrossLinkEntry>,        // 8 entries (one per direction)
+    pub evidence: Vec<ReasoningEvidenceEnvelope>,       // dual source_ids: khcbppt + huyen-khong
+    // NEVER: a "merged_score" or "net_recommendation" — that would re-introduce CRIT-3 violation.
+}
+```
+
+**Provenance envelope:**
+- `khcbppt` evidence: covers `thai_tue_here` + `sat_phuong_here` (+ `tam_sat_here` if FS-10b chosen).
+- `huyen-khong` evidence: covers `palace` + `palace_star` + `safety_hint`.
+- Composite source_id: `rule.composite.directional_cross_link` (per framework §3.2).
+
+**CRITICAL — what NOT to add:** a single merged recommendation score, a "best direction" ranking, or a write-back into `direction_merge.rs`. All of those would collapse the two source_ids and re-introduce the exact CRIT-3 violation v1.5 explicitly forbade. The cross-link is a **view**, not a **reducer**.
 
 ---
 
 ## Feature Dependencies
 
 ```
-P1 Văn khấn
-├── Ritual schema (data) ──> required by ──> All P1 lookup APIs
-├── event_type enum ──> required by ──> get_by_event, get_for_lunar_date
-├── holidays.rs (EXISTING) ──> triggers ──> get_for_lunar_date, get_for_day
-├── DaySnapshot (EXISTING) ──> consumed by ──> get_for_day
-└── Cross-link to holidays ──> ENHANCES ──> existing holiday_data.json (additive)
+[FS-02 Tiên Thiên Bát Quái map] ────required──> [FS-01 Mai Hoa casting] ─┐
+                                                                          │
+[existing lunar + CanChi compute] ──required──> [FS-01] ──────────────────┤
+                                                                          │
+                                                       [FS-03 64-hexagram corpus] ─┐
+                                                                          │           │
+                                          [FS-04 Biến quẻ] <──requires─────┘           │
+                                                                          │           │
+                                          [FS-05 Thể/Dụng] <──requires─[FS-02 element]│
+                                                                          │           │
+                       [FS-06 ConsultationIntent::IChing] <──requires─────┴───┘
+                                                                          │
+                       [FS-07 source_id registration] <──requires──[FS-06 source_id use]
+                                                                          │
+                       [FS-08 Hexagram graph node] <──requires──[FS-06, FS-04]
+                                                                          │
+                       [FS-12 Golden tests] <──requires──[FS-01]
 
-P4 Phi Tinh thời gian
-├── Period (Vận) table (data) ──> required by ──> Annual + Monthly layers
-├── 9-star metadata (data) ──> required by ──> All P4 output enrichment
-├── Lạc Thư palace-direction map (static) ──> required by ──> All grid outputs
-├── tietkhi module (EXISTING) ──> required by ──> year/month boundary semantics
-├── Annual center formula ──> required by ──> Annual grid, Combined overlay
-├── Monthly center formula ──> required by ──> Monthly grid, Combined overlay
-├── Annual + Monthly grids ──> required by ──> Combined overlay (differentiator)
-└── Combined overlay ──> ENHANCES ──> 2-star combination aspects (differentiator)
+[FS-09 Thái Tuế directional] ──┐
+                                ├──requires──> [FS-11 Cross-link] ──requires──> [existing huyen-khong palace layout]
+[FS-10 Tam Sát / Sát Phương] ──┘
 
-CROSS-PILLAR (no dependency between P1 and P4 — they can ship in parallel)
+[DF-01 Bazi enrichment] ──enhances──> [FS-06]   (Tier-2 only; T0 path returns enrichment: None)
+[DF-02 Ngũ Hành matrix] ──enhances──> [FS-05]
+[DF-03 Hỗ Quái]        ──enhances──> [FS-04]
+
+[AF-01 stalk/coin cast] ──conflicts──> [FS-01]   (different tradition; would need different source_id)
+[AF-03 spatial compose] ──conflicts──> [FS-11]   (CRIT-3 violation; deferred to Tier-3 v1.9+)
+[AF-04 personal rewrite] ──conflicts──> [FS-09, thai_tue.rs]   (cross-link is read-only)
 ```
 
 ### Dependency Notes
 
-- **P1 corpus precedes P1 lookup APIs:** Schema and JSON content must be in place before any `rituals::*` function can be tested.
-- **P1 leans on existing `holidays.rs` / `lunar.rs`:** Zero changes required to existing code beyond an additive `ritual_ids: Option<Vec<String>>` field in holiday JSON entries.
-- **P4 layers ordered:** Period → Annual → Monthly → Combined. Each subsequent layer reuses prior structs. Combined aspects (81-cell table) are last and OPTIONAL.
-- **P4 borders existing direction modules:** `thai_tue.rs`, `sat_phuong.rs`, `than_huong.rs`, `phuc_than.rs` stay in `almanac/` under `source_id: khcbppt`. NEW module `almanac/fengshui/flying_stars.rs` under `source_id: huyen-khong`. Distinct citations even when describing the same compass direction. **Critical boundary** (per EXPANSION_FRAMEWORK §2.3).
-- **No P1↔P4 dependency:** Văn khấn never reads Phi Tinh and vice versa. They are independent feature streams within the same milestone.
+- **FS-01 requires FS-02 + existing lunar/CanChi compute**: the casting algorithm sums year+month+day+hour numbers and mods by 8 / 6 — all inputs come from already-shipped modules (`convert_solar_to_lunar`, `get_day_canchi`, `CHI[12]`).
+- **FS-03 (corpus) has no code dependency on FS-01/02**: it is a static lookup table. **Recommended phase order**: lock the `HexagramRecord` schema (ADR-style), then author the 64 records in parallel with FS-01 implementation. This mirrors the v1.5 "schema-lock before corpus" decision (DEC-0023 / ADR-0001).
+- **FS-06 requires FS-01 + FS-03 + FS-04 + FS-05**: it is the integration point — the `ConsultationIntent::IChing` branch composes a cast + lookup + biến quẻ + thể/dụng into one envelope.
+- **FS-09 (Thái Tuế directional) is NOT a modification of `thai_tue.rs`**: the existing module computes personal conflict (birth-year-chi vs current-year-chi). Directional Thái Tuế is a new function — extend `thai_tue.rs` with `pub fn thai_tue_direction(year_chi_index) -> Direction8` (year chi IS the Thái Tuế direction), keep personal-conflict logic untouched.
+- **FS-10 decision blocks FS-11**: until the team picks (a) reuse `sat_phuong.rs` or (b) new `tam_sat.rs`, FS-11's `entries[*].tam_sat_here` field shape is ambiguous. Recommend (b) and a new DEC entry.
+- **DF-01 enhances FS-06**: the Tier-0 path of `ConsultationIntent::IChing` returns `enrichment: None` when no birth data; the Tier-2 path overlays Bazi Nhật Chủ element. Mirrors v1.5 Phi Tinh T0/T2 split exactly.
+- **AF-01 conflicts with FS-01**: stalk/coin casting (Wen Wang Gua / Lục Dao) is a different tradition with a different `source_id`. Allowing it in v1.7 would either pollute `mai-hoa-dich-so` or require a third source_id. Defer.
 
 ---
 
 ## MVP Definition
 
-### Launch With (v1.5 must-ship)
+### Launch With (v1.7)
 
-P1 Văn khấn — **minimum viable corpus + lookup**:
-- [ ] `Ritual` struct + JSON schema (frontmatter validated)
-- [ ] `event_type` closed enum covering at least: SocVong, lunar festival set (8 entries), DongTho, NhapTrach, KhaiTruong, Cuoi, Gio, DayThang
-- [ ] Corpus content: ≥ 20 ritual records (2 Sóc/Vọng + 8 festivals + 10 life events)
-- [ ] `rituals::get_by_event`, `get_for_lunar_date`, `get_for_day`, `all`, `list_by_category`
-- [ ] Source attribution per record validated by golden test
-- [ ] Additive integration: holiday JSON entries gain optional `ritual_ids`
+Minimum viable v1.7 Kinh Dịch pillar + directional cross-link:
 
-P4 Phi Tinh — **minimum viable time-based chart**:
-- [ ] `Period` (Vận 8, Vận 9) determination from year
-- [ ] 9-star metadata table (name, element, polarity, auspice)
-- [ ] Annual center star + full 9-palace grid (formula-driven, golden-tested for 2020-2030)
-- [ ] Monthly center star + full 9-palace grid (golden-tested for at least 24 month-points)
-- [ ] Palace→Direction static mapping
-- [ ] `DaySnapshot.flying_stars: Option<FlyingStarsSummary>` (year + month, no combined yet)
-- [ ] Year/month boundary documented (Lập Xuân = year start; tiết = month start) and ADR'd
+- [ ] **FS-02** Tiên Thiên Bát Quái map — pure static; first commit.
+- [ ] **FS-07** `source_id` registration (`kinh-dich`, `mai-hoa-dich-so`) — small but blocks all downstream evidence envelopes.
+- [ ] **FS-03** 64-hexagram corpus — schema-locked first (ADR-0005), then 64 records authored; biggest single deliverable.
+- [ ] **FS-01** Mai Hoa casting — algorithm per §"Mai Hoa Casting Algorithm"; deterministic, no RNG.
+- [ ] **FS-04** Biến quẻ derivation — pure function of primary + moving line.
+- [ ] **FS-05** Thể / Dụng classification — pure function of trigrams + moving line.
+- [ ] **FS-06** `ConsultationIntent::IChing` evaluator branch — integration point.
+- [ ] **FS-08** `Hexagram` graph node + edges — provenance wiring.
+- [ ] **FS-09** Thái Tuế directional — extends existing `thai_tue.rs`.
+- [ ] **FS-10** Tam Sát directional — DECISION REQUIRED first (recommend option b: new `tam_sat.rs`).
+- [ ] **FS-11** Cross-link composite view — read-only, dual source_id.
+- [ ] **FS-12** Golden tests (≥10 cases, ≥2 independent sources) — framework §6 mandate.
 
-### Add After Validation (v1.5.x patches if scope permits)
+### Add After Validation (v1.8)
 
-- [ ] Combined annual+monthly overlay grid (differentiator) — DEFER if 2-star combo corpus not ready
-- [ ] 81-cell combination aspect table (Văn Xương, Bát Bạch + Lục Bạch etc.) — DEFER pending Thẩm Thị digitization
-- [ ] Ritual variants (simple/full/Buddhist/folk) — DEFER until user feedback requests
-- [ ] Bilingual `body_en` translations — schema reserves field; content deferred
+- [ ] **DF-02** Full Ngũ Hành sinh khắc matrix for Thể/Dụng — LOW complexity, high UX.
+- [ ] **DF-01** Tier-2 Bazi enrichment — depends on validated Tier-0 path.
+- [ ] **DF-05** Pre-cast intent capture (question text in evidence) — auditability polish.
 
-### Future Consideration (v1.6+ / later milestones)
+### Future Consideration (v1.9+)
 
-- [ ] Spatial Phi Tinh (Tier 3) — explicit P5 in framework
-- [ ] Daily / Hourly Phi Tinh (Lưu Nhật / Lưu Thời) — boundary semantics need ADR
-- [ ] Star avoidance + cure recommendations — needs DEC for commercial/cultural posture
-- [ ] Audio prayer recordings — consumer responsibility, not engine
+- [ ] **DF-03** Hỗ Quái (nuclear hexagram) — depth technique.
+- [ ] **DF-04** 24-sơn directional resolution — co-design with Tier-3 `SpatialInput` (framework §3.3).
+- [ ] **AF-01** reconsidered as a separate milestone with its own `source_id` and RNG-injection interface — only if user demand materialises.
 
 ---
 
 ## Feature Prioritization Matrix
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Ritual schema + 20-record corpus | HIGH | LOW | P1 |
-| event_type enum + lookup APIs | HIGH | LOW | P1 |
-| Sóc/Vọng coverage (24× per year hit rate) | HIGH | LOW | P1 |
-| Major festival coverage (8 entries) | HIGH | LOW | P1 |
-| Life-event rituals (Động thổ, Nhập trạch, etc.) | HIGH | MEDIUM | P1 |
-| Holiday→ritual_id cross-link | MEDIUM | LOW | P1 |
-| Period (Vận 8/9) + 9-star metadata | HIGH | LOW | P1 |
-| Annual 9-palace grid | HIGH | LOW | P1 |
-| Monthly 9-palace grid | HIGH | MEDIUM | P1 |
-| Palace↔Direction mapping | HIGH | LOW | P1 |
-| DaySnapshot.flying_stars integration | HIGH | LOW | P1 |
-| Combined annual+monthly overlay | MEDIUM | MEDIUM | P2 |
-| 81-cell combination aspects | MEDIUM | HIGH | P2 |
-| Star avoidance flags + element cures | MEDIUM | LOW | P2 |
-| Ritual variants (simple/full) | LOW | LOW | P3 |
-| Bilingual prayer translations | LOW | MEDIUM | P3 |
-| Spatial Phi Tinh (Tier 3) | HIGH | HIGH | DEFER (P5) |
-| Daily/Hourly Phi Tinh | LOW | MEDIUM | DEFER |
+| Feature | User Value | Implementation Cost | Priority | Phase Order Hint |
+|---------|------------|---------------------|----------|------------------|
+| FS-07 source_id registration | MED | LOW | P1 | 1 (unblocks all evidence) |
+| FS-02 trigram map | LOW (internal) | LOW | P1 | 1 |
+| FS-03 64-hexagram corpus | HIGH | HIGH | P1 | 2 (schema-lock) → 3 (records) |
+| FS-01 Mai Hoa casting | HIGH | HIGH | P1 | 4 |
+| FS-04 biến quẻ | MED | LOW | P1 | 5 |
+| FS-05 thể/dụng | MED | LOW | P1 | 5 |
+| FS-06 ConsultationIntent::IChing | HIGH | MED | P1 | 6 (integration) |
+| FS-08 Hexagram graph node | MED | MED | P1 | 7 |
+| FS-09 Thái Tuế directional | MED | LOW | P1 | 2 (independent of FS-01) |
+| FS-10 Tam Sát directional | MED | MED | P1 | 2 (after DEC) |
+| FS-11 cross-link | HIGH | MED-HIGH | P1 | 8 (last; depends on FS-09 + FS-10 + huyen-khong) |
+| FS-12 golden tests | MED | MED | P1 | interleaved (start after FS-01) |
+| DF-02 Ngũ Hành matrix | MED | LOW | P2 | after v1.7 |
+| DF-01 Bazi enrichment | MED | MED | P2 | after v1.7 |
+| DF-05 intent capture | LOW | LOW | P2 | after v1.7 |
+| DF-03 Hỗ Quái | LOW | MED | P3 | v1.9+ |
+| DF-04 24-sơn | MED | MED-HIGH | P3 | co-design with Tier-3 |
 
 **Priority key:**
-- **P1:** Must have for v1.5 launch (MVP)
-- **P2:** Should have, add if scope permits within v1.5 timebox
-- **P3:** Nice to have, schedule into v1.5.x patches
-- **DEFER:** Explicit non-goal; document in `out_of_scope.md`
+- P1: Must have for v1.7 launch.
+- P2: Should have, add in v1.8 once v1.7 is validated.
+- P3: Nice to have, future consideration v1.9+.
 
 ---
 
-## Competitor / Reference Feature Analysis
+## Competitor Feature Analysis
 
-| Feature | Lịch Vạn Niên (mobile) | Lịch Ngày Tốt | phongthuy.com.vn | Our Approach (amlich v1.5) |
-|---------|-----------------------|---------------|------------------|---------------------------|
-| Văn khấn corpus | 100+ prayers categorized | Full year prayers | N/A | 20+ prayers, closed enum event_type, golden-tested source attribution |
-| Văn khấn surfacing | Daily card + "thư viện" | By holiday detail page | N/A | API-driven (`get_for_day` + `get_by_event`), consumer renders |
-| Annual Phi Tinh grid | Yes, static yearly card | Yes, with palace meanings | Yes, deep analysis | Algorithm-driven; verifiable against Thẩm Thị reference |
-| Monthly Phi Tinh | Rare in mobile apps | Yes | Yes | Algorithm-driven; reuses tietkhi for boundaries |
-| Combined annual+monthly | No | Sometimes | Yes (premium) | Differentiator — schedule for P2 |
-| 81 star-combo interpretations | No | Limited | Yes (premium) | Differentiator — schedule for P2; corpus from Thẩm Thị |
-| Spatial Phi Tinh (Sơn-Hướng) | No | No | Yes | OUT OF SCOPE v1.5 (Tier 3, deferred to P5) |
-| Source attribution | None | Marketing copy | Vague | Per-record `source_id` + book + page (DEC-0015 discipline) |
+Based on framework §7 validation references + manual review of common Vietnamese almanac apps.
 
-**Strategic positioning:** amlich does not compete on UI polish or content volume. It competes on **verifiability** (golden tests against named sources) and **API cleanliness** (consumer-renderable structs, additive integration with existing pipeline). The differentiator vs. mobile apps is "engine that can be embedded in a verifiable agent / desktop app", not "prettiest card".
-
----
-
-## Module / File Mapping (for downstream requirements)
-
-| Feature cluster | Target location | Existing code touched |
-|-----------------|-----------------|----------------------|
-| P1 ritual schema + corpus | `data/rituals/*.json`, `data/schemas/ritual.schema.json` | none (additive) |
-| P1 lookup APIs | `crates/amlich-core/src/rituals/{mod.rs, lookup.rs, types.rs}` | none — new sibling to `almanac/` |
-| P1 ↔ holidays cross-link | `data/holidays/lunar-festivals.json` (add `ritualIds`), `data/holidays/solar-holidays.json` | additive field; no code change required |
-| P1 DaySnapshot integration | `crates/amlich-core/src/almanac/recommendation/` or `lib.rs` aggregator | optional `rituals: Option<Vec<&Ritual>>` field |
-| P4 Period + star metadata | `crates/amlich-core/src/almanac/fengshui/{mod.rs, period.rs, stars.rs}` | new submodule under `almanac/` |
-| P4 Annual grid | `crates/amlich-core/src/almanac/fengshui/flying_stars.rs::annual_chart()` | reuses `tietkhi::Lập Xuân` for year boundary |
-| P4 Monthly grid | same file, `monthly_chart()` | reuses `tietkhi` for month boundaries |
-| P4 DaySnapshot integration | `lib.rs` aggregator | additive `flying_stars: Option<FlyingStarsSummary>` |
-| P4 Data | `data/almanac/flying_stars.json` (Vận tables + star metadata) | new file |
+| Feature | Print almanacs (Cửu Tu, Hằng Phúc) | Apps (lichviet, amlich.vn, tuvi.vn) | nhantu.net (Mai Hoa reference) | Our Approach (v1.7) |
+|---------|------------------------------------|------------------------------------|-------------------------------|---------------------|
+| Mai Hoa casting | Static tables only | Time-of-click RNG casting (non-deterministic) | Manual walkthrough examples | **Deterministic** time-numerology per FS-01 algorithm; no RNG. |
+| 64-hexagram corpus | Sparse (8–16 popular quẻ only) | Often only name + 1-line verdict | Full hào từ + thoán từ | Full 64 with Ngô Tất Tố corpus (FS-03) + cát-hùng verdict. |
+| Biến quẻ | Usually omitted | Sometimes (app-dependent) | Yes, with examples | First-class (FS-04), graph-linked to chủ quẻ (FS-08). |
+| Thể/Dụng analysis | Rarely | Rarely | Yes, classical | Yes (FS-05), table-driven. |
+| Thái Tuế directional | Yearly static table | Year-summary screen | Mentioned | Per-year (FS-09), joined with palace (FS-11). |
+| Tam Sát directional | Yearly static table (3 directions) | Year-summary, often simplified to 1 | Mentioned | New `tam_sat.rs` with classical 3-direction rule (FS-10, decision pending). |
+| Cross-link with Phi Tinh | Never | Sometimes (separate screens, no join) | Never | **Differentiator**: one directional picture joining KHCBPPT warnings + huyen-khong palace layout (FS-11), read-only, dual source_id. |
+| Source provenance | Implicit (book title) | Implicit / absent | Implicit | **Differentiator**: per-record `source_id` + dual-source evidence envelope (DEC-0023 discipline). |
+| Bazi enrichment | Never | Sometimes (separate Tử Vi screen) | Mentioned | DF-01 if v1.8 (Tier-2 path). |
 
 ---
 
-## Confidence Assessment Per Feature Block
+## Tier-0 vs Tier-2 Distinction (Carry-Forward Summary)
 
-| Block | Confidence | Reason |
-|-------|------------|--------|
-| Ritual schema + lookup APIs | HIGH | Standard CRUD-style content corpus; many reference apps |
-| Event type taxonomy | HIGH | Vietnamese ritual taxonomy is well-documented across folk sources |
-| Phi Tinh Period + 9-star metadata | HIGH | Static, canonical Thẩm Thị table; widely published |
-| Phi Tinh annual formula | HIGH | Multiple Vietnamese and English sources agree (digit-sum + reverse mod 9). Verified 2024→3, 2025→2, 2026→1 against published charts |
-| Phi Tinh monthly formula | HIGH | Year-branch-group rule (8/5/2 starting stars + reverse count) attested in 3+ sources |
-| Phi Tinh month boundary (tiết vs. trung khí) | MEDIUM | Schools differ; needs ADR. Recommend tiết-based (节, mid-month transitions like Lập Xuân) |
-| Combined overlay + 81 combinations | MEDIUM | Differentiator only; corpus exists but digitization effort underestimated until samples surveyed |
-| Cross-link discipline (P4 vs. existing direction modules) | HIGH | Already explicit in EXPANSION_FRAMEWORK §2.3; just enforcement |
+Per framework §2.2 and DEC-0022:
+
+| Feature | Tier-0 (anonymous, query time only) | Tier-2 (full Bazi) |
+|---------|-------------------------------------|--------------------|
+| FS-01 casting | ✓ works fully | (n/a — uses query time, not birth time) |
+| FS-03 64-hexagram lookup | ✓ works fully | (n/a) |
+| FS-04 biến quẻ | ✓ works fully | (n/a) |
+| FS-05 Thể/Dụng (trigram-level) | ✓ works fully | (n/a) |
+| FS-06 `ConsultationIntent::IChing` | ✓ returns core envelope | ✓ + DF-01 enrichment overlay |
+| FS-09/10/11 directional cross-link | ✓ works fully (year + palace only) | (n/a — directional is calendar-driven) |
+| DF-01 Bazi enrichment | returns `enrichment: None` | ✓ overlays Nhật Chủ element on Thể/Dụng reading |
+
+**Key invariant:** Tier-0 MUST always produce a complete, sensible answer. Tier-2 only adds an optional `enrichment` section. This mirrors v1.5 Phi Tinh discipline exactly and must be golden-tested.
 
 ---
 
 ## Sources
 
-Vietnamese ritual corpus and event taxonomy:
-- [Tổng hợp các bài văn khấn đầy đủ trong năm 2026 — chuabavang.com](https://chuabavang.com/tong-hop-van-khan-ca-nam-d3852.html)
-- [Văn Khấn Cổ Truyền Việt Nam — SachHayOnline.com](https://www.sachhayonline.com/tua-sach/van-khan-co-truyen-viet-nam)
-- [Bài văn khấn Động thổ làm nhà 2026 chuẩn Thọ Mai Gia Lễ — luatminhkhue.vn](https://luatminhkhue.vn/bai-van-khan-dong-tho-lam-nha-chuan-tho-mai-gia-le.aspx)
-- [12 Bài Văn Khấn Thần Tài Thổ Địa — tuhuyen.com](https://tuhuyen.com/van-khan-than-tai-tho-dia/)
-- [Văn khấn xin gia tiên cầu lộc, cầu con, cưới hỏi, nhập trạch — tuhuyen.com](https://tuhuyen.com/van-khan-xin-gia-tien/)
-- [Lịch Vạn Niên 2026 & Lịch Việt (App Store)](https://apps.apple.com/us/app/l%E1%BB%8Bch-v%E1%BA%A1n-ni%C3%AAn-2026-l%E1%BB%8Bch-vi%E1%BB%87t/id1071624317)
-- [Lịch Vạn Sự — Lich Ngay Tot (App Store)](https://apps.apple.com/vn/app/lich-ngay-tot-lich-van-su/id791061378)
+- **vi.wikipedia — Mai Hoa Dịch Số** (https://vi.wikipedia.org/wiki/Mai_Hoa_D%E1%BB%8Bch_s%E1%BB%91) — citing Thiệu Khang Tiết *Mai Hoa Dịch Số* (NXB Văn Hoá Thông tin 2002, trans. Văn Tùng), Thiệu Vĩ Hoa *Chu Dịch với dự đoán học* (NXB Văn Hoá 1997, trans. Mạnh Hà). **Confidence: HIGH** on casting algorithm (mod-8 / mod-6 / Tiên Thiên numbering); **MEDIUM** on edge-case tiebreaks (raw_upper % 8 == 0 handling).
+- **en.wikipedia — I Ching / I Ching divination** — line number semantics (6=old yin moving, 7=young yang, 8=young yin, 9=old yang moving), hexagram structure (彖 tuàn / 爻辭 yáocí / King Wen sequence). **Confidence: HIGH** (multiple inline citations).
+- **en.wikipedia — Shao Yong** — confirms authorship attribution of Mei Hua Yi numerology to Shao Yong (1011–1077,邵雍 / Thiệu Ung). **Confidence: HIGH**.
+- **Project: `EXPANSION_FRAMEWORK.md` §2.2** — pillar definition, source_id assignment (`kinh-dich`, `mai-hoa-dich-so`), tier-0 baseline.
+- **Project: `EXPANSION_FRAMEWORK.md` §3.2 / §3.3** — `Hexagram` graph-node slot, `rule.composite.*` discipline, CRIT-3 isolation context.
+- **Project: `docs/almanac/decision-log.md` DEC-0018 / DEC-0021 / DEC-0022 / DEC-0023** — direction-family source_id discipline, Tier-0/1/2 model, `pub const` source_id rule.
+- **Project: existing `crates/amlich-core/src/almanac/{thai_tue,sat_phuong,than_huong}.rs`** — confirmed: `thai_tue.rs` is personal-conflict-only (5 kinds), `sat_phuong.rs` returns single direction per chi (NOT classical 3-direction Tam Sát), `than_huong.rs` is per-Can directional deity. No `tam_sat.rs` module exists.
+- **Project: existing `crates/amlich-core/src/almanac/fengshui/types.rs`** — confirmed `Palace`/`FlyingStar`/`FlyingStarLayout`/`DailyFlyingStarLayout` shapes for the cross-link join target.
 
-Phi Tinh algorithms and reference charts:
-- [Cửu cung phi tinh năm 2026 Bính Ngọ — phongthuydathanh.com](https://www.phongthuydathanh.com/tin-tuc/cuu-cung-phi-tinh-2026-nam-binh-ngo.html) — confirms 2026 center = Nhất Bạch
-- [CỬU CUNG PHI TINH 2026 — lichngaytot.com](https://lichngaytot.com/phong-thuy/cuu-cung-phi-tinh-2026-284-231904.html)
-- [Cách tính Cửu cung phi tinh theo năm, tháng, ngày, giờ — lykhi.com](https://lykhi.com/cach-tinh-cuu-cung-phi-tinh-theo-nam-thang-ngay-gio/)
-- [Cách tính Cửu cung phi tinh theo năm, tháng, ngày, giờ — lichngaytot.com](https://lichngaytot.com/phong-thuy/cach-tinh-cuu-cung-phi-tinh-284-216988.html)
-- [Cách tra Phi tinh Niên Nguyệt Nhật Thời — phongthuycaivan.org](https://phongthuycaivan.org/cach-tra-phi-tinh-nien-nguyet-nhat-thoi/)
-- [Huyền không phi tinh vận 9 2024-2043 — phongthuycaivan.org](https://phongthuycaivan.org/huyen-khong-phi-tinh-van-9-2024-2043/)
-- [Lưu Nguyệt Phi Tinh là gì — phongthuyvietnam.com](http://www.phongthuyvietnam.com/2017/04/02/luu-nguyet-phi-tinh-la-gi/)
-- [Yearly and Monthly Flying Star Charts (Master Class Lesson 14) — Feng Shui DIY](https://fengshuidiy.com/yearly-and-monthly-flying-star-charts-flying-star-sequence-master-class-lesson-14/)
-- [Flying Star Feng Shui System + 2026 Annual Chart Guide — uniquefengshui.com](https://uniquefengshui.com/understanding-flying-star-feng-shui/)
+### Gaps to Address in Phase-Level Research
 
-Internal references (already in repo):
-- `.planning/research/EXPANSION_FRAMEWORK.md` §2.3 (Phi Tinh), §2.4 (Văn khấn), §3.1 (provenance), §3.3 (Tier 3 deferral)
-- `crates/amlich-core/src/holidays.rs` (event detection — văn khấn trigger source)
-- `crates/amlich-core/src/almanac/than_huong.rs`, `thai_tue.rs`, `sat_phuong.rs`, `phuc_than.rs` (existing direction modules — boundary with new Phi Tinh module)
-- `data/holidays/lunar-festivals.json`, `solar-holidays.json` (event corpus that triggers văn khấn lookup)
-- DEC-0015 / 0016 (source_id discipline), DEC-0022 (Tier model)
+- **Tam Sát 3-direction classical rule** needs a KHCBPPT-pinned citation before FS-10 implementation (DEC required: option a vs option b).
+- **Edge-case casting tiebreaks** (raw sum mod 8 == 0, hour chi indexing convention with DEC-0017) need at least one printed-table golden case per edge.
+- **Ngô Tất Tố corpus completeness** — does the source include all 64 hexagrams with both thoán từ AND all 6 hào từ, or are some sparse? This affects `HexagramRecord.tuong_truyen: Option<...>` field cardinality and may require `PendingExternalReview` markers (mirrors v1.6 RIT-14 pattern).
+- **Hexagrams 1 & 2 "dụng" hào** (Wikipedia I Ching §Structure: "Hexagrams 1 and 2 have an extra line statement, named yong") — confirm whether Ngô Tất Tố includes this 7th entry; design `hao_tu: Vec<HaoTu>` to allow 7 entries only for those two.
 
 ---
-*Feature research for: v1.5 Eastern Knowledge Expansion (P1 Văn khấn + P4 Phi Tinh time-based)*
-*Researched: 2026-05-23*
+*Feature research for: Vietnamese almanac — Kinh Dịch (P2) + Thái Tuế/Tam Sát ⇄ Phi Tinh cross-link (v1.7 milestone)*
+*Researched: 2026-07-16*
