@@ -62,10 +62,27 @@ The 1960 center-value split is recorded as `PendingExternalReview`:
 
 ## Consequences
 
+### FND-07 (closed in Plan 16-01)
+
 - **FND-07 satisfied.** A reader of this ADR can trace the MEDIUM → HIGH promotion back to dual-source independent secondary modern verification (phongthuycaivan.org + lasotuvi.com / phongthuyso.vn), with the *Thẩm Thị* classical tiebreaker retained for the divergent case.
 - **Plan 16-01 (FND-07) lands** a typed `GoldenConfidence { High, Medium, Low }` enum on `PhiTinhGoldenCase`, explicit `"confidence": "high"` annotations on the two pre-1984 cross-validation cases, an updated `metadata.description`, and an updated runtime evidence-note that emits `confidence=high` for pre-1984 years (mirroring the dataset's HIGH annotation). A new external-crate test `test_f_golden_pre_1984_confidence_is_high` in `tests/fengshui_invariants.rs` gates the typed annotation.
-- **Plan 16-02 (FND-08) lands** the structured `DeferralMarker` field on `KnownDivergence`, applied to the 1960 case to make the `PendingExternalReview` disposition machine-readable. The narrative disposition is fixed by this ADR; the schema work is Plan 16-02.
-- **No future classical reference is promised by this ADR.** The cross-check trail is modern secondary sources only. Any future upgrade to a classical reference beyond *Thẩm Thị* requires a further superseding ADR (ADR-0003b or later) and a new cross-check citation.
+
+### FND-08 (closed in Plan 16-02)
+
+- **1960 Trung Nguyên `KnownDivergence` disposition is `PendingExternalReview`.** The case-level center-value split is **not** thereby resolved by the polarity-row HIGH confidence upgrade. The `KnownDivergence` row at `case == "annual 1960"` carries a typed `DeferralMarker { reason, expected_review_date, assigned_to }`; the literal disposition name `PendingExternalReview` also appears in the row's `note` so human readers can find it.
+- **Why the 1960 split remains unresolved:** `phongthuycaivan.org=5` and `lasotuvi.com=6` disagree on the center-star encoding — the literal `phongthuycaivan.org=5 and lasotuvi.com=6` source disagreement recorded in the ledger's `source_values` array. The two independent secondary modern sources do not settle the question (the discrepancy appears to be a Vận-number vs. computed-center conflation on the lasotuvi.com side). The *Thẩm Thị* classical tiebreaker selects 5, but no additional classical authority beyond *Thẩm Thị* has been obtained, so the divergence is deferred rather than declared resolved.
+- **Review timing:** `expected_review_date = "2026-12-31"`. Review is expected before end-of-2026; if review is not completed by that date, the row must be re-evaluated and either resolved (with source attribution) or re-deferred (with an updated `expected_review_date`).
+- **Review ownership:** `assigned_to = "external-huyen-khong-reviewer"` — review is owned by an external Huyền Không domain reviewer (not an amlich maintainer) because the open question requires classical cross-check authority beyond what the amlich team can independently verify.
+- **Provisional tiebreaker decision is precisely:** `our_value=5` and `expected_center=5` (in `annual-trung-nguyen-1960`) remain the provisional *Thẩm Thị Huyền Không Học* operational value while review is pending. This is **not** a resolved disposition. The values are retained verbatim from the v1.5 baseline; the deferral marker signals that the resolution is provisional, not authoritative.
+- **Matrix confidence vs. case confidence — distinct findings.** HIGH confidence applies to the Thượng/Trung Nguyên polarity matrix (the row-level dương=nghịch / âm=thuận rule and the Tam Nguyên base/starting-star assignments) after independent secondary modern cross-check. It does **not** apply to consensus on the disputed 1960 center value. A reader who interprets the HIGH polarity-row upgrade as resolution of the 1960 case-level split misreads both this ADR and the ledger row.
+- **Plan 16-02 (FND-08) lands** the additive `Option<DeferralMarker>` field on `KnownDivergence` (with `#[serde(default, skip_serializing_if = "Option::is_none")]` so legacy payloads without `deferral` still deserialize cleanly), the populated deferral object on the 1960 row (`reason`, `expected_review_date = "2026-12-31"`, `assigned_to = "external-huyen-khong-reviewer"`), and the `test_g_1960_divergence_deferred` external-crate test in `tests/fengshui_invariants.rs` that gates the typed marker, the populated fields, `our_value == 5`, and the literal `PendingExternalReview` substring in the row's note.
+
+### Backward Compatibility
+
+- **ADR-0003 §§1–5 remain authoritative** (matrix structure, Tam Nguyên ranges, year polarity rule, worked examples, anchoring at Lập Xuân). Only §6 (Confidence Acknowledgment) of ADR-0003 is superseded by this document.
+- **The polarity algorithm (`compute_yearly_flying_stars`) is unchanged.** The matrix inputs are unchanged; only the confidence annotation and the deferral marker are added.
+- **The Hạ Nguyên row (Vận 7–9) remains HIGH** as it was in ADR-0003 §6; this ADR does not alter that classification.
+- **No future classical reference is promised by this ADR.** The cross-check trail is independent secondary modern sources only. Any future upgrade to a classical reference beyond *Thẩm Thị* requires a further superseding ADR (ADR-0003b or later) and a new cross-check citation.
 - **The provenance language in ADR-0003a and downstream artifacts must say "independent secondary modern verification" (or equivalent), not "additional classical authority".** The upgrade rests on independent secondary modern sources, not on any additional classical authority. (See Pitfall 1 of `16-RESEARCH.md`.)
 
 ---
