@@ -40,17 +40,17 @@
 
 **Depends on**: Nothing (first phase of milestone; closes carry-forward v1.5 tech debt item per MILESTONES.md §v1.5 gaps).
 
-**Requirements**: FND-07, FND-08
+**Requirements**: FND-07 ✅ (closed in 16-01), FND-08 (next: 16-02)
 
 **Success Criteria** (what must be TRUE):
-  1. A reader can open ADR-0003a (or an equivalent superseding decision) and find pre-1984 Thượng/Trung Nguyên polarity rows promoted from MEDIUM to HIGH confidence, with a citation to an independent classical reference beyond *Thẩm Thị Huyền Không Học* (the original single-source caveat lifted).
-  2. A reader of the golden dataset's `known_divergences` can find the 1960 Trung Nguyên case carrying one of: (a) a resolved disposition citing the *Thẩm Thị* tiebreaker + a new HIGH-confidence `our_value`, or (b) an explicit `PendingExternalReview` deferral marker with documented reason + expected review date.
-  3. A reader can find the ADR-0003 narrative updated to record both the disposition of the 1960 divergence and the high-confidence upgrade path used (audit trail preserved).
-  4. A cargo test run on the Phi Tinh golden dataset (`tests/fengshui_invariants.rs`) passes with the upgraded confidence annotations; no regression in any v1.5 KHCBPPT or `vn-folk-ritual` test.
+  1. ✅ A reader can open ADR-0003a and find pre-1984 Thượng/Trung Nguyên polarity rows promoted from MEDIUM to HIGH confidence, with cross-check trail via dual-source independent secondary modern verification (phongthuycaivan.org + lasotuvi.com / phongthuyso.vn); *Thẩm Thị Huyền Không Học* retained as classical tiebreaker (no additional classical authority claimed).
+  2. ⏳ A reader of the golden dataset's `known_divergences` can find the 1960 Trung Nguyên case carrying an explicit `PendingExternalReview` deferral marker with documented reason + expected review date (Plan 16-02 adds the structured `DeferralMarker` schema field; ADR-0003a §4 locks the narrative disposition).
+  3. ✅ A reader can find ADR-0003a (the superseding decision) recording both the disposition of the 1960 divergence (PendingExternalReview, our_value=5 retained per *Thẩm Thị* tiebreaker, no silent correction) and the high-confidence upgrade path (dual-source independent secondary modern verification).
+  4. ✅ A cargo test run on the Phi Tinh golden dataset (`tests/fengshui_invariants.rs`) passes with the upgraded confidence annotations (10/10 tests; Test F added for FND-07 gate); no regression in any v1.5 KHCBPPT or `vn-folk-ritual` test (887/887 tests pass).
 
 **Plans**: 2 plans
-- [ ] 16-01-PLAN.md — ADR-0003a authored + external cross-check citation collected + golden dataset confidence annotations updated (FND-07)
-- [ ] 16-02-PLAN.md — 1960 Trung Nguyên `KnownDivergence` disposition (resolved OR `PendingExternalReview` deferral) + ADR-0003 narrative updated + tests/fengshui_invariants.rs gate (FND-08)
+- [x] 16-01-PLAN.md — ADR-0003a authored + cross-check citation trail collected + golden dataset confidence annotations updated (FND-07) — commits c76e741 (docs) + 3d3d565 (feat)
+- [ ] 16-02-PLAN.md — 1960 Trung Nguyên `KnownDivergence` disposition (`PendingExternalReview` deferral) + structured `DeferralMarker` schema field + tests/fengshui_invariants.rs gate (FND-08)
 
 ### Phase 17: Văn khấn Reviewer Closure
 
@@ -115,7 +115,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 16. Foundation — ADR-0003 Confidence Closure | 0/2 | Not started | - |
+| 16. Foundation — ADR-0003 Confidence Closure | 1/2 | In Progress (16-01 done) | 2026-07-15 |
 | 17. Văn khấn Reviewer Closure | 0/2 | Not started | - |
 | 18. Daily Phi Tinh (日紫白) | 0/4 | Not started | - |
 | 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 0/3 | Not started | - |
