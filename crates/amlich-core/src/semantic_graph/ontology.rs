@@ -40,6 +40,7 @@ pub enum NodeConcept {
     Ritual,
     FlyingStar,
     Offering,
+    Hexagram,
 }
 
 impl NodeConcept {
@@ -82,6 +83,7 @@ impl NodeConcept {
             Self::Ritual => ConceptLabel::Ritual,
             Self::FlyingStar => ConceptLabel::FlyingStar,
             Self::Offering => ConceptLabel::Offering,
+            Self::Hexagram => ConceptLabel::Hexagram,
         }
     }
 }
@@ -118,6 +120,8 @@ pub enum EdgeConcept {
     OccupiesPalace,
     CarriesElement,
     RecommendsOffering,
+    LocatedAt,
+    Transforms,
 }
 
 impl EdgeConcept {
@@ -152,6 +156,8 @@ impl EdgeConcept {
             Self::OccupiesPalace => ConceptLabel::OccupiesPalace,
             Self::CarriesElement => ConceptLabel::CarriesElement,
             Self::RecommendsOffering => ConceptLabel::RecommendsOffering,
+            Self::LocatedAt => ConceptLabel::LocatedAt,
+            Self::Transforms => ConceptLabel::Transforms,
         }
     }
 }
@@ -225,6 +231,9 @@ pub enum ConceptLabel {
     OccupiesPalace,
     CarriesElement,
     RecommendsOffering,
+    Hexagram,
+    LocatedAt,
+    Transforms,
 }
 
 impl ConceptLabel {
@@ -296,6 +305,9 @@ impl ConceptLabel {
             Self::OccupiesPalace => "occupies_palace",
             Self::CarriesElement => "carries_element",
             Self::RecommendsOffering => "recommends_offering",
+            Self::Hexagram => "hexagram",
+            Self::LocatedAt => "located_at",
+            Self::Transforms => "transforms",
         }
     }
 }
@@ -396,6 +408,7 @@ impl GraphOntology {
             NodeConcept::Ritual,
             NodeConcept::FlyingStar,
             NodeConcept::Offering,
+            NodeConcept::Hexagram,
         ]
     }
 
@@ -430,6 +443,8 @@ impl GraphOntology {
             EdgeConcept::OccupiesPalace,
             EdgeConcept::CarriesElement,
             EdgeConcept::RecommendsOffering,
+            EdgeConcept::LocatedAt,
+            EdgeConcept::Transforms,
         ]
     }
 }

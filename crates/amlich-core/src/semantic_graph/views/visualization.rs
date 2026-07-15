@@ -114,7 +114,7 @@ fn shape_hint_for_node(concept: NodeConcept) -> Option<String> {
 
         NodeConcept::RecommendationHit => Some("diamond".to_string()),
 
-        NodeConcept::Ritual | NodeConcept::FlyingStar | NodeConcept::Offering => {
+        NodeConcept::Ritual | NodeConcept::FlyingStar | NodeConcept::Offering | NodeConcept::Hexagram => {
             Some("box".to_string())
         }
     }
