@@ -55,9 +55,9 @@
 **Plans**: 3 plans (all Wave 1, parallel — no file conflicts)
 
 Plans:
-- [ ] 20-01-PLAN.md — Registration & Decisions: SOURCE_* consts + source_id_guard + ADRs 0005/0006/0007 + MILESTONES DEC rows (FND-09, FND-10)
-- [ ] 20-02-PLAN.md — IChing Schema Lock: 3 trigram/hexagram newtypes + HexagramEntry + bijective 64-entry composition table + 1-entry serde probe (FND-11)
-- [ ] 20-03-PLAN.md — Ontology 6-Slice Extension: Hexagram node + LocatedAt/Transforms edges + IChing enum variants (FND-12)
+- [x] 20-01-PLAN.md — Registration & Decisions: SOURCE_* consts + source_id_guard + ADRs 0005/0006/0007 + MILESTONES DEC rows (FND-09, FND-10)
+- [x] 20-02-PLAN.md — IChing Schema Lock: 3 trigram/hexagram newtypes + HexagramEntry + bijective 64-entry composition table + 1-entry serde probe (FND-11)
+- [x] 20-03-PLAN.md — Ontology 6-Slice Extension: Hexagram node + LocatedAt/Transforms edges + IChing enum variants (FND-12)
 
 ### Phase 21: IChing Corpus + Loader
 
