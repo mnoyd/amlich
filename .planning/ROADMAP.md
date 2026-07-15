@@ -29,7 +29,7 @@
 
 - [x] **Phase 16: Foundation — ADR-0003 Confidence Closure** - Promote pre-1984 Thượng/Trung Nguyên polarity rows MEDIUM → HIGH after external cross-check; resolve or explicitly defer the 1960 Trung Nguyên `KnownDivergence`.
 - [x] **Phase 17: Văn khấn Reviewer Closure** - Populate the `reviewer` field on every ritual entry (identity OR explicit `ExternalReviewPending` marker); re-verify corrected entries pass existing JSON-schema + NFC guards.
-- [ ] **Phase 18: Daily Phi Tinh (日紫白)** - Land the deferred daily layer: `compute_daily_flying_stars` with 冬至/夏至 reversal, ADR-0004 daily starting-star convention, multi-source daily golden dataset, additive `DaySnapshot.daily_flying_stars` field.
+- [x] **Phase 18: Daily Phi Tinh (日紫白)** - Land the deferred daily layer: `compute_daily_flying_stars` with 冬至/夏至 reversal, ADR-0004 daily starting-star convention, multi-source daily golden dataset, additive `DaySnapshot.daily_flying_stars` field. (completed 2026-07-15)
 - [ ] **Phase 19: `RecommendsOffering` Semantic-Graph Node + v1.6 Integration** - Promote offerings to first-class nodes (Ritual → Offering via `RecommendsOffering` edge with dual-source provenance); v1.5→v1.6 backward-compat round-trip + 2026 E2E smoke.
 
 ## Phase Details
@@ -89,7 +89,7 @@
 - [x] 18-01-PLAN.md — ADR-0004 daily starting-star convention + `DailyFlyingStarLayout` type stub in `almanac/fengshui/types.rs` (FS-17) — commits b2265eb (docs) + a593a13 (feat)
 - [x] 18-02-PLAN.md — `compute_daily_flying_stars` algorithm with 冬至/夏至 reversal via v1.1.2 Tiết Khí scanner (FS-16) — commits 27ce722 (feat algorithm + mod.rs wiring) + 083a483 (feat 11 tests)
 - [x] 18-03-PLAN.md — Daily golden dataset (≥ 10 dates per Vận, ≥ 2 sources per case, `KnownDivergence` log) + tests/fengshui_daily_integration.rs (FS-18) — commits e9978cf (data dataset) + c093489 (feat loader + validator + integration tests)
-- [ ] 18-04-PLAN.md — `DaySnapshot.daily_flying_stars: Option<DailyFlyingStarLayout>` additive field + v1.5 fixture round-trip test + CRIT-3 grep guard refresh (FS-19)
+- [x] 18-04-PLAN.md — `DaySnapshot.daily_flying_stars: Option<DailyFlyingStarLayout>` additive field + v1.5 fixture round-trip test + CRIT-3 grep guard refresh (FS-19) — commits defe59e (feat lib.rs) + e655140 (feat tests)
 
 ### Phase 19: `RecommendsOffering` Semantic-Graph Node + v1.6 Integration
 
@@ -117,7 +117,7 @@
 |-------|----------------|--------|-----------|
 | 16. Foundation — ADR-0003 Confidence Closure | 2/2 | Complete    | 2026-07-15 |
 | 17. Văn khấn Reviewer Closure | 2/2 | Complete    | 2026-07-15 |
-| 18. Daily Phi Tinh (日紫白) | 3/4 | In Progress|  |
+| 18. Daily Phi Tinh (日紫白) | 4/4 | Complete   | 2026-07-15 |
 | 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 0/3 | Not started | - |
 
 ## Requirement Coverage
