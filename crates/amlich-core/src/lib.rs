@@ -15,6 +15,7 @@ pub mod canchi;
 pub mod gio_hoang_dao;
 pub mod holiday_data;
 pub mod holidays;
+pub mod iching;
 pub mod insight_data;
 pub mod interaction;
 pub mod julian;
