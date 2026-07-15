@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 pub enum ActionId {
     InitiationOpening,
+    IChing,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -139,6 +140,7 @@ pub enum ReasoningEvidenceSourceFamily {
     AlmanacRule,
     Insight,
     Derived,
+    IChing,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
