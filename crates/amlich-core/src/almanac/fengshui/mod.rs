@@ -28,8 +28,8 @@ pub use daily::compute_daily_flying_stars;
 pub use aspects::{compute_palace_aspects, lookup_star_pair_aspect, FsCitation, FsConfidenceTier, StarPairAspect};
 pub use combined::{compute_combined_overlay, CombinedFlyingStarLayout};
 pub use golden::{
-    load_flying_stars_golden, DeferralMarker, GoldenConfidence, KnownDivergence,
-    PhiTinhGoldenCase, PhiTinhGoldenDataset,
+    load_daily_flying_stars_golden, load_flying_stars_golden, DeferralMarker, GoldenConfidence,
+    KnownDivergence, PhiTinhGoldenCase, PhiTinhGoldenDataset,
 };
 pub use monthly::compute_monthly_flying_stars;
 pub use period::{

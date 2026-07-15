@@ -32,6 +32,12 @@ const FLYING_STARS_GOLDEN_JSON: &str =
 
 static FLYING_STARS_GOLDEN: OnceLock<PhiTinhGoldenDataset> = OnceLock::new();
 
+// Phase 18-03 (FS-18): daily Phi Tinh golden dataset (separate file per Q3 Option B).
+const FLYING_STARS_DAILY_GOLDEN_JSON: &str =
+    include_str!("../../../data/almanac/flying_stars_daily_golden.json");
+
+static FLYING_STARS_DAILY_GOLDEN: OnceLock<PhiTinhGoldenDataset> = OnceLock::new();
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -123,14 +129,15 @@ pub struct KnownDivergence {
 pub struct PhiTinhGoldenCase {
     /// Unique identifier within the dataset.
     pub id: String,
-    /// Case type: "annual" | "monthly" | "period".
+    /// Case type: "annual" | "monthly" | "period" | "daily" (Phase 18).
     pub kind: String,
     /// Solar year for the case.
     pub year: i32,
     /// Solar month (1-based, ADR-0002 convention). Present for `kind="monthly"`.
     #[serde(default)]
     pub month: Option<u8>,
-    /// Julian Day Number. Present for `kind="period"` boundary tests.
+    /// Julian Day Number. Present for `kind="period"` boundary tests and
+    /// `kind="daily"` pinpoint reproducibility (Phase 18-03).
     #[serde(default)]
     pub jd: Option<i32>,
     /// Expected active Vận number (1..=9).
@@ -140,8 +147,9 @@ pub struct PhiTinhGoldenCase {
     /// For "annual": the Niên Tử Bạch center star.
     /// For "monthly": the Nguyệt Tử Bạch center star.
     /// For "period": equals `van` (tests `compute_period().van`).
+    /// For "daily": the Lưu Nhật center star (per ADR-0004).
     pub expected_center: u8,
-    /// Reference sources — at least 2 required for annual/monthly cases (FS-10).
+    /// Reference sources — at least 2 required for annual/monthly/daily cases (FS-10/FS-18).
     pub sources: Vec<SourceValue>,
     /// Tiebreaker note citing *Thẩm Thị Huyền Không Học*.
     pub tiebreaker: String,
@@ -154,6 +162,14 @@ pub struct PhiTinhGoldenCase {
     /// HIGH after dual-source independent secondary modern verification.
     #[serde(default)]
     pub confidence: GoldenConfidence,
+    /// ADDITIVE (Phase 18-03): daily-pivot Trung Khí name. `None` for
+    /// annual/monthly/period cases. Required for `kind == "daily"` cases.
+    /// Records the ACTUAL pivot governing the date per the Giáp-Tý-as-seed-day
+    /// mechanic (Pitfall P-7) — for pre-Giáp-Tý-in-new-Tiết-Khí dates, the prior
+    /// pivot governs. Uses the additive Option pattern (`#[serde(default)]`);
+    /// missing field on existing annual/monthly/period cases deserializes to `None`.
+    #[serde(default)]
+    pub pivot: Option<String>,
 }
 
 /// Top-level Phi Tinh golden dataset container.
@@ -193,6 +209,27 @@ pub fn load_flying_stars_golden() -> &'static PhiTinhGoldenDataset {
     })
 }
 
+/// Load and validate the daily Phi Tinh golden dataset (FS-18).
+///
+/// Parses the embedded JSON on first call, validates coverage invariants, then
+/// caches via `OnceLock`. Panics on any invariant violation — this is a test
+/// oracle, not user-facing data.
+///
+/// The daily dataset (`flying_stars_daily_golden.json`) is a separate file per
+/// 18-RESEARCH.md Q3 Option B (one-file-per-concern, matching the v1.5
+/// `data/rituals/*.json` per-category split). It reuses the same
+/// `PhiTinhGoldenDataset` schema with `kind: "daily"` cases and an additive
+/// `pivot` field recording the actual Trung Khí pivot governing each date.
+pub fn load_daily_flying_stars_golden() -> &'static PhiTinhGoldenDataset {
+    FLYING_STARS_DAILY_GOLDEN.get_or_init(|| {
+        let dataset: PhiTinhGoldenDataset =
+            serde_json::from_str(FLYING_STARS_DAILY_GOLDEN_JSON)
+                .expect("Failed to parse flying_stars_daily_golden.json");
+        validate_phi_tinh_golden(&dataset);
+        dataset
+    })
+}
+
 // ---------------------------------------------------------------------------
 // Validation
 // ---------------------------------------------------------------------------
@@ -211,9 +248,9 @@ fn validate_phi_tinh_golden(dataset: &PhiTinhGoldenDataset) {
         dataset.cases.len()
     );
 
-    // 2. Per-case invariants for annual/monthly cases.
+    // 2. Per-case invariants for annual/monthly/daily cases.
     for case in &dataset.cases {
-        if case.kind == "annual" || case.kind == "monthly" {
+        if case.kind == "annual" || case.kind == "monthly" || case.kind == "daily" {
             assert!(
                 case.sources.len() >= 2,
                 "case '{}' ({}): must have >= 2 sources, got {}",
@@ -230,37 +267,44 @@ fn validate_phi_tinh_golden(dataset: &PhiTinhGoldenDataset) {
     }
 
     // 3. Per-Vận coverage: >= 10 annual cases each for Vận 7, 8, 9.
-    let van7_count = dataset
-        .cases
-        .iter()
-        .filter(|c| c.kind == "annual" && c.van == 7)
-        .count();
-    let van8_count = dataset
-        .cases
-        .iter()
-        .filter(|c| c.kind == "annual" && c.van == 8)
-        .count();
-    let van9_count = dataset
-        .cases
-        .iter()
-        .filter(|c| c.kind == "annual" && c.van == 9)
-        .count();
+    //    Only enforced when the dataset actually contains annual cases — the
+    //    daily golden dataset (Phase 18-03) has only daily cases and enforces
+    //    its own >= 10 daily-per-Vận gate via the load_daily_flying_stars_golden
+    //    unit test instead.
+    let has_annual = dataset.cases.iter().any(|c| c.kind == "annual");
+    if has_annual {
+        let van7_count = dataset
+            .cases
+            .iter()
+            .filter(|c| c.kind == "annual" && c.van == 7)
+            .count();
+        let van8_count = dataset
+            .cases
+            .iter()
+            .filter(|c| c.kind == "annual" && c.van == 8)
+            .count();
+        let van9_count = dataset
+            .cases
+            .iter()
+            .filter(|c| c.kind == "annual" && c.van == 9)
+            .count();
 
-    assert!(
-        van7_count >= 10,
-        "flying_stars_golden.json: need >= 10 annual cases for Vận 7, got {}",
-        van7_count
-    );
-    assert!(
-        van8_count >= 10,
-        "flying_stars_golden.json: need >= 10 annual cases for Vận 8, got {}",
-        van8_count
-    );
-    assert!(
-        van9_count >= 10,
-        "flying_stars_golden.json: need >= 10 annual cases for Vận 9, got {}",
-        van9_count
-    );
+        assert!(
+            van7_count >= 10,
+            "flying_stars_golden.json: need >= 10 annual cases for Vận 7, got {}",
+            van7_count
+        );
+        assert!(
+            van8_count >= 10,
+            "flying_stars_golden.json: need >= 10 annual cases for Vận 8, got {}",
+            van8_count
+        );
+        assert!(
+            van9_count >= 10,
+            "flying_stars_golden.json: need >= 10 annual cases for Vận 9, got {}",
+            van9_count
+        );
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -349,5 +393,50 @@ mod tests {
         // ADR-0003 open question #3: Thuong/Trung Nguyen cross-validation
         let pre_1984 = ds.cases.iter().filter(|c| c.kind == "annual" && c.year < 1984).count();
         assert!(pre_1984 >= 2, "expected >= 2 pre-1984 cross-validation cases, got {pre_1984}");
+    }
+
+    #[test]
+    fn golden_dataset_daily_loads_and_validates() {
+        let ds = load_daily_flying_stars_golden();
+        assert!(!ds.cases.is_empty(), "daily dataset must not be empty");
+        assert_eq!(
+            ds.metadata.case_count,
+            ds.cases.len(),
+            "daily dataset: case_count mismatch"
+        );
+
+        let daily_count = ds.cases.iter().filter(|c| c.kind == "daily").count();
+        assert!(daily_count >= 30, "expected >= 30 daily cases, got {daily_count}");
+
+        for van in 7u8..=9 {
+            let count = ds
+                .cases
+                .iter()
+                .filter(|c| c.kind == "daily" && c.van == van)
+                .count();
+            assert!(count >= 10, "expected >= 10 daily cases for Van {van}, got {count}");
+        }
+
+        // Every daily case must carry the additive `pivot` field.
+        for case in &ds.cases {
+            if case.kind == "daily" {
+                assert!(
+                    case.pivot.is_some(),
+                    "daily case '{}' must carry the pivot field",
+                    case.id
+                );
+                assert!(
+                    !ds.cases.is_empty(),
+                    "daily case '{}' must have at least one source",
+                    case.id
+                );
+            }
+        }
+
+        // The daily dataset must carry at least one KnownDivergence row (FS-18).
+        assert!(
+            !ds.known_divergences.is_empty(),
+            "daily dataset must have >= 1 KnownDivergence row (FS-18 discipline)"
+        );
     }
 }
