@@ -36,3 +36,10 @@ pub use period::{
 pub use safety::{element_hint_for_palace, is_danger_palace, RemedyHint};
 pub use scanner::TietKhiScanner;
 pub use stars::{flying_star_from_u8, star_metadata};
+// Phase 18-01 (FS-17 schema lock): re-export types for the daily Phi Tinh layer
+// so external-crate test consumers can import the additive `DailyFlyingStarLayout`
+// sibling struct and the extended `FlyingStarPeriod` enum.
+pub use types::{
+    minimal_evidence, DailyFlyingStarLayout, FlyingStar, FlyingStarLayout, FlyingStarPeriod,
+    Palace,
+};

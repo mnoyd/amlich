@@ -95,12 +95,14 @@ pub enum FlyingStar {
 /// - `Van` = era-level base palace (Vận 7 / Vận 8 / Vận 9 …).
 /// - `Yearly` = annual Niên Tử Bạch anchored at Lập Xuân per ADR-0003.
 /// - `Monthly` = monthly Nguyệt Tử Bạch anchored at solar terms per ADR-0002.
+/// - `Daily` = Lưu Nhật Phi Tinh (日紫白) pivoted on 6 Trung Khí (Đông Chí / Vũ Thuỷ / Cốc Vũ / Hạ Chí / Xử Thử / Sương Giáng), seeded at the first Giáp Tý per pivot per ADR-0004.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum FlyingStarPeriod {
     Van { van: u8 },
     Yearly { year: i32 },
     Monthly { year: i32, month: u8 },
+    Daily { date: (i32, u32, u32) },
 }
 
 /// Frozen v1 Phi Tinh layout shape (FND-02).
@@ -117,6 +119,22 @@ pub enum FlyingStarPeriod {
 /// `interaction/direction_merge.rs` in v1.5.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FlyingStarLayout {
+    pub period: FlyingStarPeriod,
+    /// Flying star assigned to each palace, indexed per `Palace::ALL` order.
+    pub palaces: [FlyingStar; 9],
+    pub center_star: FlyingStar,
+    pub evidence: ReasoningEvidenceEnvelope,
+}
+
+/// Sibling layout struct for the daily Phi Tinh (Lưu Nhật / 日紫白) layer.
+///
+/// The locked v1 `FlyingStarLayout` field set (above) is NOT mutated — this sibling
+/// carries the daily-layer-specific period variant while sharing the `palaces` /
+/// `center_star` / `evidence` shape. Phase 18-01 (FS-17) schema-lock step; populated
+/// by `compute_daily_flying_stars` (Plan 18-02) and surfaced via
+/// `DaySnapshot.daily_flying_stars` (Plan 18-04).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DailyFlyingStarLayout {
     pub period: FlyingStarPeriod,
     /// Flying star assigned to each palace, indexed per `Palace::ALL` order.
     pub palaces: [FlyingStar; 9],
@@ -196,13 +214,14 @@ mod tests {
         }
     }
 
-    /// Test 5: FlyingStarPeriod serde round-trip for Van / Yearly / Monthly.
+    /// Test 5: FlyingStarPeriod serde round-trip for Van / Yearly / Monthly / Daily.
     #[test]
     fn test_flying_star_period_serde_round_trip() {
         let cases = [
             FlyingStarPeriod::Van { van: 9 },
             FlyingStarPeriod::Yearly { year: 2025 },
             FlyingStarPeriod::Monthly { year: 2025, month: 3 },
+            FlyingStarPeriod::Daily { date: (2024, 12, 25) },
         ];
         for original in cases {
             let json = serde_json::to_string(&original)
@@ -210,6 +229,25 @@ mod tests {
             let roundtripped: FlyingStarPeriod = serde_json::from_str(&json)
                 .expect("deserialization failed");
             assert_eq!(original, roundtripped, "round-trip failed for {original:?}");
+        }
+    }
+
+    /// Phase 18-01 (FS-17): DailyFlyingStarLayout serde round-trip.
+    #[test]
+    fn test_daily_flying_star_layout_period_serde() {
+        let layout = DailyFlyingStarLayout {
+            period: FlyingStarPeriod::Daily { date: (2024, 12, 25) },
+            palaces: [FlyingStar::NhatBach; 9],
+            center_star: FlyingStar::NhatBach,
+            evidence: minimal_evidence(),
+        };
+        let json = serde_json::to_string(&layout).expect("serialize");
+        let roundtripped: DailyFlyingStarLayout = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(layout.center_star as u8, roundtripped.center_star as u8);
+        if let FlyingStarPeriod::Daily { date: (y, m, d) } = roundtripped.period {
+            assert_eq!((y, m, d), (2024_i32, 12_u32, 25_u32));
+        } else {
+            panic!("Expected Daily period variant");
         }
     }
 }
