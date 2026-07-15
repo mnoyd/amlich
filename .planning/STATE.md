@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Integration
-status: unknown
-last_updated: "2026-07-15T14:15:32.062Z"
+status: in_progress
+last_updated: "2026-07-15T16:52:32.000Z"
 progress:
   total_phases: 23
   completed_phases: 23
   total_plans: 63
-  completed_plans: 63
+  completed_plans: 64
 ---
 
 # Project State
@@ -23,12 +23,12 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 ## Current Position
 
 Milestone: v1.6 Eastern Knowledge Completion.
-Phase: 18 of 4 planned (Phase 18: Daily Phi Tinh, 4 plans) — COMPLETE.
-Plan: 18-04 COMPLETE (FS-19 DaySnapshot additive field). Next: Phase 19 plan 19-01 (`OfferingRef` schema + additive `offering_refs` on Ritual node payload, INT-08).
-Status: `DaySnapshot.daily_flying_stars: Option<DailyFlyingStarLayout>` additive field on the v1.6 DTO with the EXACT serde pattern as `flying_stars` / `applicable_rituals`. `calculate_day_snapshot_internal` auto-populates it via `compute_daily_flying_stars` (solar Y/M/D extracted from `snap.context.solar`). `tests/day_snapshot_v14_compat.rs` extended with 3 round-trip tests (v1.5→v1.6 backward-compat, byte-equal round-trip, None absent in JSON). `tests/fengshui_crit3_isolation.rs` authored with 1 grep guard asserting `interaction/direction_merge.rs` contains none of 6 forbidden Phi Tinh patterns (CRIT-3 / P-1 isolation discipline preserved).
-Last activity: 2026-07-15 — 18-04-PLAN.md executed: DaySnapshot field + auto-populate (commit defe59e) + round-trip tests + CRIT-3 grep guard (commit e655140). `cargo build -p amlich-core` clean; `cargo test -p amlich-core --test day_snapshot_v14_compat` 6/6 pass; `cargo test -p amlich-core --test fengshui_crit3_isolation` 1/1 pass; `cargo test -p amlich-core` 709 lib + all integration tests pass (zero regressions). FS-19 closed; Phase 18 complete (4/4 plans).
+Phase: 19 of 4 planned (Phase 19: Recommends Offering Semantic Graph Node, 3 plans) — IN PROGRESS.
+Plan: 19-01 COMPLETE (INT-08 + INT-07 — OfferingRef schema lock + SourceId alias + DaySnapshot additive fields). Next: Phase 19 plan 19-02 (semantic-graph builder emitting Offering nodes).
+Status: `OfferingRef` struct locked in `crates/amlich-core/src/rituals/schema.rs` with the exact 4-field identity tuple `{ offering_id, name_vi, name_en, source_id }`, `#[serde(deny_unknown_fields)]` (ADR-0001 discipline), and `OfferingRef::new(...)` constructor with `debug_assert!` non-empty enforcement. `source_id` field is typed as `crate::sources::SourceId` (new zero-cost newtype over String alias introduced in 19-01). `DaySnapshot` extended with two additive `Option<T>` fields: `offering_refs: Option<Vec<crate::rituals::OfferingRef>>` (structured preferred) + `offerings: Option<Vec<String>>` (legacy flat-string summary, deduped by `name_vi`) — both carrying `#[serde(default, skip_serializing_if = "Option::is_none")]` matching the EXACT serde pattern as `flying_stars` / `applicable_rituals` / `daily_flying_stars`. `calculate_day_snapshot_internal` populates both fields from `applicable_rituals` via `get_ritual_by_id` with `SOURCE_VN_FOLK_RITUAL` const import (no bare string literal — `source_id_guard` compliant). Schema-lock-before-builder discipline preserved: NO builder code emits `Offering` nodes yet (Plan 19-02's domain).
+Last activity: 2026-07-15 — 19-01-PLAN.md executed: OfferingRef schema lock + SourceId alias + DaySnapshot additive fields (commits eddc51d + 6508f79). `cargo build -p amlich-core` clean; `cargo test -p amlich-core --lib rituals::schema::tests::offering_ref_serde_round_trip_and_deny_unknown_fields sources::tests::source_id_alias_is_string day_snapshot_offering_refs_populated_and_deduped day_snapshot_populates_additive_surfaces` 4/4 pass; `cargo test -p amlich-core --test day_snapshot_v14_compat` 6/6 pass (zero regressions); `cargo test -p amlich-core --test source_id_guard` 1/1 pass; `cargo test -p amlich-core` 712 lib tests + all integration tests pass (zero regressions vs Phase 18-04 baseline of 709 lib tests). INT-08 closed; Phase 19-01 complete (1/3 plans).
 
-Progress: [▓▓▓▓▓▓▓▓░░] 80% (v1.6: 3 of 4 phases complete; 8 of 11 plans complete; Phase 18 is 4/4).
+Progress: [▓▓▓▓▓▓▓▓▓░] 91% (v1.6: 3 of 4 phases complete; 9 of 11 plans complete; Phase 19 is 1/3).
 
 ## Key Decisions Added in 18-01 + 18-02 + 18-03 + 18-04
 
@@ -43,10 +43,19 @@ Progress: [▓▓▓▓▓▓▓▓░░] 80% (v1.6: 3 of 4 phases complete; 8 
 - `DaySnapshot.daily_flying_stars` uses the EXACT serde additive pattern as `flying_stars` / `applicable_rituals`; populate block sits BETWEEN the two existing blocks for readability; solar Y/M/D extracted from `snap.context.solar` to match the snapshot's own context.
 - `tests/fengshui_crit3_isolation.rs` is semantically distinct from `tests/source_id_guard.rs` — the former forbids Phi Tinh TYPE NAMES leaking into `direction_merge.rs`; the latter forbids bare source_id STRING LITERALS. Both guards are complementary.
 
+## Key Decisions Added in 19-01
+
+- `pub type SourceId = String;` is a zero-cost newtype over String (NOT a true newtype enforcing SOURCE_* membership) — preserves DEC-0023's `pub const SOURCE_*: &str` discipline (all 7 consts unchanged) while satisfying INT-07's literal "source_id: SourceId" SC text. The alias is a transparent type marker; future phases MAY tighten into a true newtype that enforces SOURCE_* membership at construction.
+- `OfferingRef::new(...)` accepts `String` source_id for call-site ergonomics — internally stored as `SourceId`; `debug_assert!` enforces non-empty on `offering_id`, `name_vi`, `source_id`. Avoids forcing call-sites to write `SourceId::from(SOURCE_X.to_string())`.
+- `offering_id` is corpus-position-based (`format!("ritual.{ritual_id}.offering.{idx}")`), NOT hashed from `name_vi` — per 19-RESEARCH.md Pitfall P-3 / Don't-Hand-Roll (hashing name_vi would break stable join keys if the corpus is reordered or renamed).
+- Both `offering_refs` and `offerings` are derived from the SAME source — `applicable_rituals` via `get_ritual_by_id`; `offering_refs` is the structured preferred path, `offerings` is the legacy flat-string BC summary. `offerings` is deduped by `name_vi` and preserves insertion order (Q4 interpretation i from 19-RESEARCH.md).
+- `is_empty() → None` conversion in the populate block preserves the additive contract — a day with no matching rituals (no `offering_refs`) MUST NOT serialize the `offering_refs` key into JSON (skip_serializing_if honored).
+- Schema-lock-before-builder discipline preserved: NO builder code emits `Offering` semantic-graph nodes in Plan 19-01; this is reserved for Plan 19-02 (Q4 dual-surface decision: fields on DaySnapshot PLUS additive `payload: Option<serde_json::Value>` on `SemanticNode`).
+
 ## v1.6 Target Features
 
 1. **Daily Flying Star (日紫白)** — ✅ ADR/schema lock done (FS-17); ✅ algorithm + 11 tests green (FS-16); ✅ golden dataset + 4 integration tests green (FS-18); ✅ DaySnapshot field + CRIT-3 grep guard green (FS-19). Phase 18 complete.
-2. **`RecommendsOffering` semantic-graph node** — promote from flat string list (Phase 19, next).
+2. **`RecommendsOffering` semantic-graph node** — ✅ INT-08 schema lock done (19-01: OfferingRef struct + SourceId alias + DaySnapshot additive fields). Next: 19-02 builder emitting Offering nodes + SemanticNode payload; 19-03 external-crate black-box tests.
 3. **RIT-11 reviewer field closure** — ✅ RIT-14 + RIT-15 closed in 17-01; ✅ RIT-16 closed in 17-02. Phase 17 complete.
 4. **ADR-0003 pre-1984 confidence boost** — ✅ FND-07 closed in 16-01; ✅ FND-08 closed in 16-02. Phase 16 complete.
 
@@ -72,16 +81,17 @@ Progress: [▓▓▓▓▓▓▓▓░░] 80% (v1.6: 3 of 4 phases complete; 8 
 - `.planning/phases/18-daily-phi-tinh/18-02-SUMMARY.md` — Plan 18-02 execution record (FS-16 algorithm + 11 tests).
 - `.planning/phases/18-daily-phi-tinh/18-03-SUMMARY.md` — Plan 18-03 execution record (FS-18 golden dataset + loader + integration tests).
 - `.planning/phases/18-daily-phi-tinh/18-04-SUMMARY.md` — Plan 18-04 execution record (FS-19 DaySnapshot additive field + CRIT-3 grep guard).
+- `.planning/phases/19-recommends-offering-semantic-graph-node/19-01-SUMMARY.md` — Plan 19-01 execution record (INT-08 OfferingRef schema lock + INT-07 SourceId alias + DaySnapshot additive fields).
 
 ## Session Continuity
 
-Last session: 2026-07-15T14:04:45Z
-Stopped at: Completed 18-04-PLAN.md. Phase 18 plan 4 of 4 executed (FS-19 closed; Phase 18 4/4 complete). Phase 19 (RecommendsOffering) next.
+Last session: 2026-07-15T16:48:00Z
+Stopped at: Completed 19-01-PLAN.md. Phase 19 plan 1 of 3 executed (INT-08 + INT-07 closed; OfferingRef schema + SourceId alias + DaySnapshot additive fields in place). Phase 19-02 (semantic-graph builder emitting Offering nodes + SemanticNode payload) next.
 Resume file: None.
 
 ### Next Step
 
-Run phase verification on Phase 18 (all 4 plans complete; FS-16/17/18/19 closed). Then start Phase 19 plan 19-01: schema-first `OfferingRef` struct + additive `offering_refs: Option<Vec<OfferingRef>>` on the `Ritual` semantic-graph node payload (INT-08), coexisting with the legacy `offerings: Option<Vec<String>>` flat-string field for backward compatibility.
+Start Phase 19 plan 19-02: emit `Offering` semantic-graph nodes from `applicable_rituals` using the locked `OfferingRef` type; add additive `payload: Option<serde_json::Value>` field to `SemanticNode` (Q4 dual-surface decision); wire into `build_reasoning_input_graph`. The schema-lock-before-builder discipline means the `OfferingRef` target type is already locked and Plan 19-02 only adds builder code.
 
 ---
-*State updated: 2026-07-15 after 18-04-PLAN.md executed (FS-19 closed; Phase 18 4/4 complete; build clean; day_snapshot_v14_compat 6/6 pass; fengshui_crit3_isolation 1/1 pass; full crate 709+ tests pass). Phase 18 verification is the next step before starting Phase 19.*
+*State updated: 2026-07-15 after 19-01-PLAN.md executed (INT-08 + INT-07 closed; Phase 19 1/3 complete; build clean; 712 lib tests pass (+3 from 709 baseline); day_snapshot_v14_compat 6/6 pass; source_id_guard 1/1 pass). Phase 19-02 next.*

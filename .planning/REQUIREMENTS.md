@@ -29,7 +29,7 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 ### Integration — `RecommendsOffering` semantic-graph node + daily wiring
 
 - [ ] **INT-07**: User-of-semantic-graph can find a new `NodeConcept::Offering` variant with associated identity (`offering_id: String`, `name_vi: String`, `name_en: Option<String>`, `source_id: SourceId`), plus `EdgeConcept::RecommendsOffering` connecting `Ritual` → `Offering` carrying rationale + source provenance.
-- [ ] **INT-08**: User-of-API can rely on `Ritual` node payload exposing `offering_refs: Option<Vec<OfferingRef>>` additively (preferred path) while keeping the legacy `offerings: Option<Vec<String>>` flat-string field present for backward compatibility — both fields `#[serde(default, skip_serializing_if = "Option::is_none")]`.
+- [x] **INT-08**: User-of-API can rely on `Ritual` node payload exposing `offering_refs: Option<Vec<OfferingRef>>` additively (preferred path) while keeping the legacy `offerings: Option<Vec<String>>` flat-string field present for backward compatibility — both fields `#[serde(default, skip_serializing_if = "Option::is_none")]`. ✅ Closed 2026-07-15 in 19-01 (commits eddc51d + 6508f79).
 - [ ] **INT-09**: User-of-semantic-graph can be confident that `RecommendsOffering` edges carry dual-source provenance where the offering reference originates in a non-ritual tradition (e.g., a Huyền Không element cure surfaced inside a ritual carries both `huyen-khong` and `vn-folk-ritual` provenance on the edge), reusing the existing multi-source Direction-node dedup logic from v1.5.
 - [ ] **INT-10**: User-of-`DaySnapshot` can find a v1.5→v1.6 backward-compat round-trip test that loads a v1.5 JSON fixture (with `flying_stars` but no `daily_flying_stars`) into v1.6 structs and re-serializes without unexpected fields, plus an end-to-end 2026 calendar smoke test on ≥ 5 representative dates that exercise both the existing annual/monthly fields and the new daily field.
 
@@ -57,8 +57,8 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 | FS-17 | Phase 18 | Complete |
 | FS-18 | Phase 18 | **Complete** (2026-07-15, 18-03) |
 | FS-19 | Phase 18 | Complete |
-| INT-07 | Phase 19 | Pending |
-| INT-08 | Phase 19 | Pending |
+| INT-07 | Phase 19 | Pending (SourceId alias + OfferingRef struct landed in 19-01; semantic-graph variant emission in 19-02) |
+| INT-08 | Phase 19 | **Complete** (2026-07-15, 19-01) |
 | INT-09 | Phase 19 | Pending |
 | INT-10 | Phase 19 | Pending |
 
