@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Kinh Dịch (I-Ching Divination)
-status: ready_to_plan
-last_updated: "2026-07-16T03:00:00Z"
+status: in_progress
+last_updated: "2026-07-15T19:45:50Z"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
 ---
 
 # Project State
@@ -23,12 +23,12 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-Phase: 20 — Foundation (Schema Lock + Source IDs + ADRs + Ontology) — Not started.
-Plan: —
-Status: Roadmap ready (6 phases, 15/15 requirements mapped). Next: `/gsd-plan-phase 20`.
-Last activity: 2026-07-16 — v1.7 roadmap created (Phases 20-25; schema-lock-first ordering; parallel cross-link track at Phase 23).
+Phase: 20 — Foundation (Schema Lock + Source IDs + ADRs + Ontology) — In progress (1/3 plans complete).
+Plan: 20-03 complete; next incomplete plans are 20-01 (source IDs) and 20-02 (IChing schema).
+Status: Plan 20-03 (ontology extension) complete; awaiting 20-01 + 20-02 completion to close Phase 20.
+Last activity: 2026-07-15 — Plan 20-03 executed (Hexagram/LocatedAt/Transforms ontology slices + IChing enum variants).
 
-Progress: [░░░░░░░░░░] 0% (v1.7: 0/6 phases complete; 0/15 requirements closed).
+Progress: [█░░░░░░░░░] 10% (v1.7: 0/6 phases complete; 1/15 requirements closed — FND-12 done).
 
 ## v1.7 Roadmap Summary
 
@@ -82,13 +82,20 @@ Progress: [░░░░░░░░░░] 0% (v1.7: 0/6 phases complete; 0/15 r
 
 ## Session Continuity
 
-Last session: 2026-07-16T03:00:00Z
-Stopped at: v1.7 roadmap created (6 phases, 15/15 requirements mapped). Files written: ROADMAP.md, REQUIREMENTS.md (traceability), STATE.md.
+Last session: 2026-07-15T19:45:50Z
+Stopped at: Completed 20-03-PLAN.md (Hexagram/LocatedAt/Transforms ontology slices + IChing enum variants; FND-12 closed).
 Resume file: None.
 
 ### Next Step
 
-Run `/gsd-plan-phase 20` to plan the Foundation phase (schema lock + source IDs + ADRs + ontology). Phase 20 is BLOCKING — it gates the entire v1.7 milestone via CRIT-1 schema-lock-first.
+Plans 20-01 (source IDs) and 20-02 (IChing schema) remain incomplete. Plan 20-02's RED bijectivity test is currently failing as expected — its GREEN implementation will resolve it. Once 20-01 + 20-02 + 20-03 all have SUMMARYs, Phase 20 is complete and Phase 21 (IChing Corpus + Loader) can begin.
+
+## v1.7 Plan 20-03 Key Decisions
+
+- FND-12 closed: `NodeConcept::Hexagram` + `EdgeConcept::LocatedAt` + `EdgeConcept::Transforms` added across all 6 ontology slices (enum + `label()` match + `ConceptLabel` enum + `as_str()` match + `node_concepts()`/`edge_concepts()` static slices). Compiler-enforced exhaustiveness forced updates to `views/helpers.rs::cluster_for_node_id` (Hexagram joins Ritual/FlyingStar/Offering in `day-core` cluster) + `views/visualization.rs::shape_hint_for_node` (Hexagram joins the `box` shape family). NO `#[non_exhaustive]` escape introduced (FND-12 lock honored).
+- Hexagram joins the corpus-node cluster family (`day-core` cluster + `box` shape) — mirrors the Phase 19 INT-07 precedent for Offering. Hexagram is a classical-corpus noun node like Offering/Ritual/FlyingStar.
+- `ActionId::IChing` + `ReasoningEvidenceSourceFamily::IChing` added as additive-safe variants — `IChing` is a distinct Tier-0 evidence family (NOT a reuse of `AlmanacRule`), per the v1.7 roadmap. Both enums are only constructed (never matched), so variant addition required zero call-site churn. Both serialize to `"i_ching"` via the existing `#[serde(rename_all = "snake_case")]` derive.
+- v1.7 ontology test pattern (`v17_concepts_present_in_ontology_slices`) extends the v1.5/v1.6 test template — 3 successive v1.x bumps now follow the same 6-slice extension + label round-trip assertion discipline.
 
 ---
 
@@ -135,4 +142,4 @@ Run `/gsd-plan-phase 20` to plan the Foundation phase (schema lock + source IDs 
 </details>
 
 ---
-*State updated: 2026-07-16 — v1.7 roadmap created (Phases 20-25, 6 phases, 15/15 requirements mapped). v1.6 Key Decisions archived into `<details>` (baked into ADRs/code). Next: `/gsd-plan-phase 20`.*
+*State updated: 2026-07-15 — Plan 20-03 complete (Hexagram/LocatedAt/Transforms ontology + IChing enum variants; FND-12 closed). v1.6 Key Decisions archived into `<details>` (baked into ADRs/code). Next: complete Plans 20-01 + 20-02 to close Phase 20.*
