@@ -47,17 +47,18 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 
 ## Out of Scope (carry-forward)
 
-- **P2 Kinh Dịch, P3 Y học, P6 Tử Vi** — deferred per Expansion Framework tiering.
+- **P3 Y học, P6 Tử Vi** — deferred per Expansion Framework tiering (P2 Kinh Dịch is the current milestone).
 - **P5 Spatial Phi Tinh / `spatial_compose`** — requires user spatial input (sit/face direction); explicit CRIT-3 isolation forbids wiring `FlyingStar` into `interaction/direction_merge.rs`.
 
-## Next Milestone Goals
+## Current Milestone: v1.7 Kinh Dịch (I-Ching Divination)
 
-No active milestone. v1.6 shipped 2026-07-16; next milestone to be defined via `/gsd-new-milestone`.
+**Goal:** Add the P2 Kinh Dịch pillar — Mai Hoa Dịch Số casting + 64-hexagram lookup — as a new Tier-0 reasoning capability, plus the Thái Tuế/Tam Sát directional cross-link (read-only reasoning join, a carry-forward "should-have" from v1.5 research).
 
-**Candidate inputs for next milestone planning:**
-- Dedicated clippy/fmt cleanup phase for ~96 pre-existing warnings (pre-existing debt, not introduced by v1.6).
-- 4 domain-expert deferrals (1960 Trung Nguyên split, 60 ritual reviewer entries, ADR-0004 page citation, Hạ Chí 2025 daily divergence) — all due 2026-12-31, tracked with typed schema markers; depend on external classical-Vietnamese review.
-- Expansion Framework sequencing: P2 Kinh Dịch, P3 Y học, P5 Spatial Phi Tinh (`Direction24`), P6 Tử Vi remain deferred.
+**Target features:**
+- **P2 Kinh Dịch (Mai Hoa Dịch Số)** — Tier-0 divination: cast a hexagram (quẻ) from the query time via Mai Hoa time-number method; resolve the 64-hexagram table (thoán từ / hào từ) with cát/hùng interpretation; integrate as a `ConsultationIntent::IChing` evaluator branch in `reasoning/personal.rs`. New `source_id: kinh-dich` (Ngô Tất Tố) + `mai-hoa-dich-so` (Thiệu Khang Tiết).
+- **Biến Quẻ (transforming hexagram)** — derive the biến quẻ from động hào (moving line) for the cát-hùng-over-time reading.
+- **Thái Tuế / Tam Sát ⇄ Phi Tinh cross-link** — read-only reasoning-layer join surfacing both the KHCBPPT directional warnings (`thai_tue`/`tam_sat`) and the `huyen-khong` palace layout in one directional picture (no CRIT-3 boundary merge — distinct source_ids, joined only in the reasoning envelope).
+- **Semantic-graph + DTO integration** — `Hexagram` node + `LocatedAt`/`Transforms` edges; additive `DaySnapshot` / reasoning surfaces; backward-compat round-trip preserved.
 
 ## Key Decisions
 
@@ -105,4 +106,4 @@ No active milestone. v1.6 shipped 2026-07-16; next milestone to be defined via `
 </details>
 
 ---
-*Last updated: 2026-07-16 after v1.6 milestone*
+*Last updated: 2026-07-16 — v1.7 Kinh Dịch milestone initialised (P2 pillar + Thái Tuế cross-link).*

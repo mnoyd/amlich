@@ -1,9 +1,9 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.6
-milestone_name: Eastern Knowledge Completion
-status: shipped
-last_updated: "2026-07-16T01:30:00Z"
+milestone: v1.7
+milestone_name: Kinh Dịch (I-Ching Divination)
+status: defining_requirements
+last_updated: "2026-07-16T02:00:00Z"
 progress:
   total_phases: 24
   completed_phases: 24
@@ -16,19 +16,19 @@ progress:
 
 See: .planning/PROJECT.md (updated 2026-07-16)
 
-**Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source (KHCBPPT / `vn-folk-ritual` / *Thẩm Thị Huyền Không Học*) for the 2020-2030 date range, with test-backed and traceable evidence.
+**Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source (KHCBPPT / `vn-folk-ritual` / *Thẩm Thị Huyền Không Học* / *Kinh Dịch Trọn Bộ*) for the 2020-2030 date range, with test-backed and traceable evidence.
 
-**Current focus:** v1.6 Eastern Knowledge Completion shipped 2026-07-16. No active milestone — next milestone TBD via `/gsd-new-milestone`.
+**Current focus:** v1.7 Kinh Dịch — add the P2 pillar (Mai Hoa Dịch Số casting + 64-hexagram table) as a Tier-0 reasoning capability, plus the Thái Tuế/Tam Sát directional cross-link. Phase numbering continues from v1.6 (starts at Phase 20).
 
 ## Current Position
 
-Milestone: v1.6 Eastern Knowledge Completion — SHIPPED 2026-07-16.
-Phases: 16-19 (all complete; 4/4 phases, 11/11 plans). All 12 v1.6 requirements satisfied (FND-07/08, RIT-14/15/16, FS-16/17/18/19, INT-07/08/09/10).
-Status: Milestone archived to `.planning/milestones/v1.6-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`. Tagged `v1.6`. Full crate 922 tests pass (0 failures). Next milestone not yet started.
+Milestone: v1.7 Kinh Dịch (I-Ching Divination).
+Phase: Not started (defining requirements → roadmap).
+Plan: —
+Status: Defining requirements for v1.7 (P2 Kinh Dịch + Thái Tuế cross-link).
+Last activity: 2026-07-16 — Milestone v1.7 started (v1.6 archived + tagged immediately prior).
 
-Progress: [▓▓▓▓▓▓▓▓▓▓] 100% (v1.6: 4 of 4 phases complete; 11 of 11 plans complete).
-
-Last activity: 2026-07-16 — milestone audit (12/12 reqs, 13/13 integration WIRED, 7/7 E2E flows pass) + milestone completion (archived roadmap + requirements + audit; MILESTONES.md entry; PROJECT.md full evolution; RETROSPECTIVE.md v1.6 section; git tag v1.6).
+Progress: [░░░░░░░░░░] 0% (v1.7: defining requirements; phases 20+ TBD).
 
 ## Key Decisions Added in 18-01 + 18-02 + 18-03 + 18-04
 
