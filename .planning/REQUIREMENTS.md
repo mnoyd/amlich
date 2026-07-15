@@ -11,7 +11,7 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 ### Foundation — ADR-0003 confidence closure
 
 - [x] **FND-07**: User-of-ADR-0003 can find pre-1984 Thượng/Trung Nguyên polarity rows promoted from MEDIUM to HIGH confidence after an external cross-check (independent classical reference beyond *Thẩm Thị Huyền Không Học*).
-- [ ] **FND-08**: User-of-divergence-ledger can find the 1960 Trung Nguyên `KnownDivergence` either resolved with source attribution or explicitly logged as a deferred `PendingExternalReview` with reason + tiebreaker decision; ADR-0003 narrative updated to record the disposition.
+- [x] **FND-08**: User-of-divergence-ledger can find the 1960 Trung Nguyên `KnownDivergence` either resolved with source attribution or explicitly logged as a deferred `PendingExternalReview` with reason + tiebreaker decision; ADR-0003 narrative updated to record the disposition.
 
 ### P1 Văn khấn — RIT-11 reviewer field closure
 
@@ -49,7 +49,7 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FND-07 | Phase 16 | **Complete** (2026-07-15, 16-01) |
-| FND-08 | Phase 16 | Pending |
+| FND-08 | Phase 16 | **Complete** (2026-07-15, 16-02) |
 | RIT-14 | Phase 17 | Pending |
 | RIT-15 | Phase 17 | Pending |
 | RIT-16 | Phase 17 | Pending |
@@ -70,4 +70,4 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 
 ---
 *Requirements defined: 2026-07-15*
-*Last updated: 2026-07-15 — FND-07 marked Complete after 16-01 execution (ADR-0003a accepted; GoldenConfidence typed + Test F gate; 887/887 tests pass).*
+*Last updated: 2026-07-15 — FND-07 + FND-08 marked Complete after 16-01 + 16-02 execution (ADR-0003a accepted + Consequences restructured; GoldenConfidence typed + DeferralMarker typed; Test F + Test G gates; 888/888 tests pass).*

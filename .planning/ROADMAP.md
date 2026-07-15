@@ -27,7 +27,7 @@
 
 ## Phases
 
-- [ ] **Phase 16: Foundation — ADR-0003 Confidence Closure** - Promote pre-1984 Thượng/Trung Nguyên polarity rows MEDIUM → HIGH after external cross-check; resolve or explicitly defer the 1960 Trung Nguyên `KnownDivergence`.
+- [x] **Phase 16: Foundation — ADR-0003 Confidence Closure** - Promote pre-1984 Thượng/Trung Nguyên polarity rows MEDIUM → HIGH after external cross-check; resolve or explicitly defer the 1960 Trung Nguyên `KnownDivergence`.
 - [ ] **Phase 17: Văn khấn Reviewer Closure** - Populate the `reviewer` field on every ritual entry (identity OR explicit `ExternalReviewPending` marker); re-verify corrected entries pass existing JSON-schema + NFC guards.
 - [ ] **Phase 18: Daily Phi Tinh (日紫白)** - Land the deferred daily layer: `compute_daily_flying_stars` with 冬至/夏至 reversal, ADR-0004 daily starting-star convention, multi-source daily golden dataset, additive `DaySnapshot.daily_flying_stars` field.
 - [ ] **Phase 19: `RecommendsOffering` Semantic-Graph Node + v1.6 Integration** - Promote offerings to first-class nodes (Ritual → Offering via `RecommendsOffering` edge with dual-source provenance); v1.5→v1.6 backward-compat round-trip + 2026 E2E smoke.
@@ -44,13 +44,13 @@
 
 **Success Criteria** (what must be TRUE):
   1. ✅ A reader can open ADR-0003a and find pre-1984 Thượng/Trung Nguyên polarity rows promoted from MEDIUM to HIGH confidence, with cross-check trail via dual-source independent secondary modern verification (phongthuycaivan.org + lasotuvi.com / phongthuyso.vn); *Thẩm Thị Huyền Không Học* retained as classical tiebreaker (no additional classical authority claimed).
-  2. ⏳ A reader of the golden dataset's `known_divergences` can find the 1960 Trung Nguyên case carrying an explicit `PendingExternalReview` deferral marker with documented reason + expected review date (Plan 16-02 adds the structured `DeferralMarker` schema field; ADR-0003a §4 locks the narrative disposition).
+  2. ✅ A reader of the golden dataset's `known_divergences` can find the 1960 Trung Nguyên case carrying an explicit `PendingExternalReview` deferral marker with documented reason + expected review date (Plan 16-02 adds the structured `DeferralMarker` schema field; ADR-0003a §4 locks the narrative disposition).
   3. ✅ A reader can find ADR-0003a (the superseding decision) recording both the disposition of the 1960 divergence (PendingExternalReview, our_value=5 retained per *Thẩm Thị* tiebreaker, no silent correction) and the high-confidence upgrade path (dual-source independent secondary modern verification).
-  4. ✅ A cargo test run on the Phi Tinh golden dataset (`tests/fengshui_invariants.rs`) passes with the upgraded confidence annotations (10/10 tests; Test F added for FND-07 gate); no regression in any v1.5 KHCBPPT or `vn-folk-ritual` test (887/887 tests pass).
+  4. ✅ A cargo test run on the Phi Tinh golden dataset (`tests/fengshui_invariants.rs`) passes with the upgraded confidence annotations (11/11 tests; Test F added for FND-07 gate, Test G added for FND-08 gate); no regression in any v1.5 KHCBPPT or `vn-folk-ritual` test (888/888 tests pass).
 
 **Plans**: 2 plans
 - [x] 16-01-PLAN.md — ADR-0003a authored + cross-check citation trail collected + golden dataset confidence annotations updated (FND-07) — commits c76e741 (docs) + 3d3d565 (feat)
-- [ ] 16-02-PLAN.md — 1960 Trung Nguyên `KnownDivergence` disposition (`PendingExternalReview` deferral) + structured `DeferralMarker` schema field + tests/fengshui_invariants.rs gate (FND-08)
+- [x] 16-02-PLAN.md — 1960 Trung Nguyên `KnownDivergence` disposition (`PendingExternalReview` deferral) + structured `DeferralMarker` schema field + tests/fengshui_invariants.rs gate (FND-08) — commits e504fe4 (feat) + 424010c (docs)
 
 ### Phase 17: Văn khấn Reviewer Closure
 
@@ -115,7 +115,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 16. Foundation — ADR-0003 Confidence Closure | 1/2 | In Progress (16-01 done) | 2026-07-15 |
+| 16. Foundation — ADR-0003 Confidence Closure | 2/2 | Complete | 2026-07-15 |
 | 17. Văn khấn Reviewer Closure | 0/2 | Not started | - |
 | 18. Daily Phi Tinh (日紫白) | 0/4 | Not started | - |
 | 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 0/3 | Not started | - |

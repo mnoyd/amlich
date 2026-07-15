@@ -16,4 +16,12 @@ Pre-existing issues discovered during Phase 16 execution that are out of scope f
 
 ---
 
-*Recorded 2026-07-15 during execution of 16-01-PLAN.md.*
+## FMT/Clippy — Phase 16-02 commit 424010c + e504fe4
+
+**Verified scope:** `git stash && cargo clippy -p amlich-core --all-targets 2>&1 | grep -E "^error|^warning" | wc -l` returns **96** with the Phase 16-02 working tree applied. Re-running the same count against the immediately-preceding commit (Phase 16-01 final = 51c0199) also returns **96** — Phase 16-02 introduces **no new** clippy warnings.
+
+**Pre-existing FMT/Clippy debt** (carried over from 16-01): same scope as 16-01, no expansion in 16-02. Plan 16-02's source-of-truth changes (golden.rs `DeferralMarker` struct + additive field, mod.rs re-export, JSON deferral object, integration Test G) and ADR-0003a Consequences rewrite introduce no new lint debt.
+
+---
+
+*Recorded 2026-07-15 during execution of 16-01-PLAN.md and 16-02-PLAN.md.*
