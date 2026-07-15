@@ -65,12 +65,39 @@ pub enum GoldenConfidence {
     Low,
 }
 
+/// Structured marker for a deferred `KnownDivergence`.
+///
+/// The presence of this marker (via `KnownDivergence.deferral: Option<DeferralMarker>`)
+/// is the typed `PendingExternalReview` disposition — the divergence has NOT been
+/// resolved by the polarity-row confidence upgrade (see ADR-0003a §4 for the
+/// 1960 Trung Nguyên case). The provisional tiebreaker value remains in
+/// `KnownDivergence.our_value` while review is pending.
+///
+/// Backward compatibility: the field on `KnownDivergence` is `Option<DeferralMarker>`
+/// with `#[serde(default, skip_serializing_if = "Option::is_none")]` so legacy
+/// payloads that omit `deferral` deserialize unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct DeferralMarker {
+    /// Reason the divergence is deferred (e.g., independent sources disagree
+    /// on the center-star encoding and classical cross-check does not settle it).
+    pub reason: String,
+    /// ISO 8601 date when review is expected (e.g., `"2026-12-31"`).
+    pub expected_review_date: String,
+    /// Who/what will perform the review. `None` is acceptable for purely
+    /// external (unassigned) deferrals; canonical current deferrals set it.
+    pub assigned_to: Option<String>,
+}
+
 /// A known source divergence — logged, never silently corrected (FS-10).
 ///
 /// When two or more authoritative references disagree on a value, the
 /// disagreement is recorded here.  `our_value` is the tiebreaker selection
 /// per *Thẩm Thị Huyền Không Học*; the losing source values are preserved
 /// for audit.
+///
+/// A `deferral` marker (if present) signals that the divergence disposition is
+/// `PendingExternalReview` — the provisional tiebreaker in `our_value` is
+/// retained while review is pending, NOT silently corrected (FS-10 / ADR-0003a §4).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KnownDivergence {
     /// Human-readable case identifier (e.g. "annual 1960").
@@ -83,6 +110,12 @@ pub struct KnownDivergence {
     pub tiebreaker: String,
     /// Additional context on why this divergence exists.
     pub note: String,
+    /// Optional typed `PendingExternalReview` deferral marker. The presence
+    /// of this field is the machine-readable signal that the divergence has
+    /// NOT been silently corrected and is awaiting external review. Backward
+    /// compatible: absent markers deserialize as `None`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub deferral: Option<DeferralMarker>,
 }
 
 /// One dated reference case for Phi Tinh validation.

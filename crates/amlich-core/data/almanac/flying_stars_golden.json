@@ -536,8 +536,13 @@
         { "source": "phongthuycaivan.org", "value": 5 },
         { "source": "lasotuvi.com", "value": 6 }
       ],
-      "tiebreaker": "Tham Thi Huyen Khong Hoc polarity matrix selects center=5 (Ngu Hoang) for Canh Ty 1960 Trung Nguyen; lasotuvi.com value 6 appears to conflate center star with Van number. Polarity-row confidence HIGH per ADR-0003a (2026-07-15, dual-source independent secondary modern verification).",
-      "note": "Case-level center-value split (5 vs 6) is PendingExternalReview per ADR-0003a §4 — our_value=5 retained per Tham Thi tiebreaker, divergence logged per FS-10, NOT silently corrected. Plan 16-02 (FND-08) adds the structured DeferralMarker. HIGH polarity-row confidence does not resolve the case-level split."
+      "tiebreaker": "Tham Thi Huyen Khong Hoc polarity matrix selects center=5 (Ngu Hoang) for Canh Ty 1960 Trung Nguyen; lasotuvi.com value 6 appears to conflate center star with Van number. Center 5 remains the provisional *Tham Thi Huyen Khong Hoc* operational value pending external review (deferral: 2026-12-31, external-huyen-khong-reviewer). Polarity-row confidence HIGH per ADR-0003a (2026-07-15, dual-source independent secondary modern verification).",
+      "note": "PendingExternalReview disposition per ADR-0003a §4 — case-level center-value split (5 vs 6) is NOT resolved by the HIGH polarity-row confidence upgrade. our_value=5 retained as the provisional *Tham Thi Huyen Khong Hoc* operational value while review is pending; divergence logged per FS-10, NOT silently corrected. See structured deferral marker below.",
+      "deferral": {
+        "reason": "phongthuycaivan.org=5 and lasotuvi.com=6 remain unresolved; independent secondary verification does not settle the center-star encoding",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-huyen-khong-reviewer"
+      }
     }
   ]
 }

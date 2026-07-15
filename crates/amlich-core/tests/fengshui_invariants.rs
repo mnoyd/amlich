@@ -14,6 +14,9 @@ use amlich_core::almanac::fengshui::{
     compute_period, compute_yearly_flying_stars, load_flying_stars_golden,
     GoldenConfidence, TietKhiScanner,
 };
+// `KnownDivergence` is referenced by Test G (FND-08) — imported for completeness.
+#[allow(unused_imports)]
+use amlich_core::almanac::fengshui::KnownDivergence;
 use amlich_core::almanac::fengshui::types::FlyingStarPeriod;
 use amlich_core::julian::jd_from_date;
 
@@ -398,5 +401,92 @@ fn test_f_golden_pre_1984_confidence_is_high() {
             case.year,
             case.confidence,
         );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Test G — FND-08 gate: 1960 Trung Nguyên divergence carries a typed
+// PendingExternalReview deferral marker (per ADR-0003a §4).
+// ---------------------------------------------------------------------------
+
+/// FND-08 gate: the unresolved 1960 Trung Nguyên `KnownDivergence` is logged as
+/// `PendingExternalReview` via a typed `DeferralMarker`.
+///
+/// ADR-0003a §4 locks the narrative disposition (HIGH polarity-row confidence
+/// does NOT resolve the case-level 5-vs-6 center-value split; the 1960 case is
+/// `PendingExternalReview` with our_value=5 retained per the *Thẩm Thị* tiebreaker
+/// while review is pending). This test makes that disposition machine-readable
+/// without changing the provisional tiebreaker value.
+///
+/// Required shape on the 1960 `KnownDivergence` row:
+/// - `deferral` field is present (not None)
+/// - `deferral.reason.trim()` is non-empty
+/// - `deferral.expected_review_date == "2026-12-31"`
+/// - `deferral.assigned_to` is Some with non-empty content
+/// - the row's `note` contains the literal substring `PendingExternalReview`
+/// - the row's `our_value == 5` (provisional tiebreaker, NOT silently corrected)
+#[test]
+fn test_g_1960_divergence_deferred() {
+    let ds = load_flying_stars_golden();
+
+    // Locate the 1960 divergence row.
+    let div = ds
+        .known_divergences
+        .iter()
+        .find(|d| d.case == "annual 1960")
+        .expect(
+            "FND-08: 1960 Trung Nguyên KnownDivergence must be present (logged per FS-10, not silently corrected)",
+        );
+
+    // Provisional tiebreaker retained — NOT silently corrected to 6.
+    assert_eq!(
+        div.our_value, 5,
+        "FND-08: 1960 our_value must remain 5 (Thẩm Thị tiebreaker), got {}",
+        div.our_value
+    );
+
+    // The deferral marker itself must be present and populated.
+    let deferral = div
+        .deferral
+        .as_ref()
+        .expect("FND-08: 1960 KnownDivergence must carry a deferral marker (PendingExternalReview)");
+
+    assert!(
+        !deferral.reason.trim().is_empty(),
+        "FND-08: deferral.reason must be non-empty"
+    );
+
+    assert_eq!(
+        deferral.expected_review_date, "2026-12-31",
+        "FND-08: deferral.expected_review_date must be 2026-12-31 (the review due date per ADR-0003a §4)"
+    );
+
+    let assignee = deferral
+        .assigned_to
+        .as_ref()
+        .expect("FND-08: deferral.assigned_to must be Some");
+    assert!(
+        !assignee.trim().is_empty(),
+        "FND-08: deferral.assigned_to must be non-empty"
+    );
+
+    // The literal disposition name must appear in the row's note so human
+    // readers can find it.
+    assert!(
+        div.note.contains("PendingExternalReview"),
+        "FND-08: 1960 KnownDivergence note must contain literal 'PendingExternalReview', got: {:?}",
+        div.note
+    );
+
+    // Backward-compat smoke: absence of the deferral marker on other rows
+    // must deserialize cleanly (the field is Option, not required).
+    for other in ds
+        .known_divergences
+        .iter()
+        .filter(|d| d.case != "annual 1960")
+    {
+        // Other divergences (if any in the future) may or may not carry the
+        // marker. This test only asserts the 1960 row carries it.
+        let _ = other.deferral.as_ref();
     }
 }
