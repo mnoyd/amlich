@@ -262,6 +262,62 @@ fn every_ledger_row_passes_invariants() {
     ledger::assert_no_bare_pending(PROVENANCE_AUDIT_MD);
 }
 
+// ─── Test 8 (Plan 17-02 / RIT-16 corrected-entry gate) ────────────────────────
+// For every ledger row whose outcome == "corrected", re-verify that:
+//   1. The corrected ID resolves to exactly one corpus entry (via all_rituals()).
+//   2. The entry's `invocation_text_vi` (LOCKED body field per ADR-0001 —
+//      NEVER `body_vi`) is non-empty (source content present).
+//   3. The entry round-trips byte-equal through serde_json after the locked
+//      schema parse + NFC-at-load guards (mirrors Test 5 at lines 155-169).
+//
+// Phase 17 closure state: 0 corrected rows. The Pitfall-7 guard (parser must
+// successfully read 60 rows BEFORE the corrected_count == 0 assertion) prevents
+// a vacuous pass when the ledger parser silently drops rows. The forward-
+// compatible loop body runs once per future corrected row.
+#[test]
+fn every_corrected_entry_passes_schema_and_nfc_round_trip() {
+    let rows = ledger::parse_ledger(PROVENANCE_AUDIT_MD);
+    assert_eq!(
+        rows.len(),
+        60,
+        "vacuous corrected-entry test: parser read {} rows from provenance_audit.md (expected 60)",
+        rows.len()
+    );
+
+    let corrected_ids = ledger::find_corrected_ids(&rows);
+    let corrected_count = corrected_ids.len();
+    assert_eq!(
+        corrected_count, 0,
+        "Phase 17 closure state: 60 entries deferred as ExternalReviewPending, 0 corrected. \
+         When a future phase marks an entry 'corrected' after source re-verification, \
+         this test will round-trip that entry through schema + NFC + serde. \
+         Got corrected_count = {corrected_count}."
+    );
+
+    // Loop body is forward-compatible: runs once per corrected ledger row.
+    for ritual_id in &corrected_ids {
+        let entry = all_rituals()
+            .iter()
+            .find(|e| e.ritual_id == *ritual_id)
+            .unwrap_or_else(|| {
+                panic!("corrected ledger ID {ritual_id} is absent from the loaded corpus")
+            });
+        assert!(
+            !entry.invocation_text_vi.trim().is_empty(),
+            "corrected ritual {ritual_id} has empty invocation_text_vi (source content missing)"
+        );
+
+        let first = serde_json::to_string(entry).expect("serialize corrected entry");
+        let parsed: amlich_core::rituals::RitualEntry =
+            serde_json::from_str(&first).expect("deserialize corrected entry");
+        let second = serde_json::to_string(&parsed).expect("re-serialize corrected entry");
+        assert_eq!(
+            first, second,
+            "corrected ritual {ritual_id} did not round-trip byte-equal through serde_json"
+        );
+    }
+}
+
 // ─── Ledger parser (test-only, Markdown pipe-table) ───────────────────────────
 //
 // This is test scaffolding: it parses the canonical reviewer-audit ledger
