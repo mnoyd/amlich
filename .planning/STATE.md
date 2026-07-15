@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Integration
 status: in_progress
-last_updated: "2026-07-15T11:36:53.000Z"
+last_updated: "2026-07-15T11:45:35.904Z"
 progress:
-  total_phases: 21
-  completed_phases: 21
-  total_plans: 58
-  completed_plans: 58
+  total_phases: 22
+  completed_phases: 22
+  total_plans: 59
+  completed_plans: 59
 ---
 
 # Project State
@@ -28,7 +28,7 @@ Plan: 17-02 COMPLETE (RIT-16 closed via ledger-driven corrected-entry round-trip
 Status: `provenance_audit.md` (8-column, 60 rows all `ExternalReviewPending`) now has a black-box reader-of-record test (`every_ledger_row_passes_invariants`) and a forward-compatible RIT-16 corrected-entry gate (`every_corrected_entry_passes_schema_and_nfc_round_trip`). Phase 17 closes RIT-14 + RIT-15 (Plan 17-01) AND RIT-16 (Plan 17-02). `RitualEntry` JSON schema remains locked per ADR-0001; the ledger is the canonical reviewer record.
 Last activity: 2026-07-15 — 17-02-PLAN.md executed: test-only Markdown pipe-table parser + 2 new tests in `crates/amlich-core/tests/rituals_integration.rs` (commits 57496f7 + 0c3d483). `cargo build -p amlich-core` clean; `cargo test -p amlich-core --test rituals_integration` 8/8 pass (6 pre-existing + 2 new); full crate gate 890/890 (888 Phase-16 baseline + 2 new, zero regressions). RIT-16 closed.
 
-Progress: [▓▓░░░░░░░░] 25% (v1.6: 1 phase, 4 plans complete).
+Progress: [▓▓▓▓▓░░░░░] 50% (v1.6: 2 of 4 phases complete; 4 of 11 plans complete).
 
 ## v1.6 Target Features
 
