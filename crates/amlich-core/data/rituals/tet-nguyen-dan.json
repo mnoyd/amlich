@@ -56,7 +56,16 @@
         "edition": "2003",
         "page": "14"
       },
-      "confidence": "primary"
+      "confidence": "primary",
+      "metadata": {
+        "cross_source_curing": [
+          {
+            "element_cure_for": "Kim",
+            "source_id": "huyen-khong",
+            "rationale_vi": "Huyền Không Ngũ Hành: vật dâng cúng tương sinh với trung cung Ngũ Hành của ngày Tết, hỗ trợ chữa trị hành Kim"
+          }
+        ]
+      }
     },
     {
       "ritual_id": "van-khan-tet-phat-giao",

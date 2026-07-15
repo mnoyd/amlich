@@ -47,6 +47,16 @@ impl SemanticGraph {
         &self.nodes
     }
 
+    /// Mutable access to the nodes map. Phase 19 (INT-08 SC#2 literal) uses
+    /// this to set `payload` on the aggregate Ritual node AFTER `add_node()`
+    /// has built the node without the payload (the payload depends on
+    /// `snapshot.offering_refs` which is only known inside `add_ritual_facts`).
+    /// Prefer `add_node()` for initial insertion; use this accessor ONLY for
+    /// post-population of additive fields.
+    pub fn nodes_mut(&mut self) -> &mut HashMap<String, SemanticNode> {
+        &mut self.nodes
+    }
+
     pub fn edges(&self) -> &HashMap<String, SemanticEdge> {
         &self.edges
     }

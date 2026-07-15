@@ -114,6 +114,46 @@ pub struct Offering {
     pub notes: Option<String>,
 }
 
+/// Annotation indicating that a ritual offering reference ALSO originates in a
+/// non-ritual classical tradition (Phase 19, INT-09). Example: a Huyền Không
+/// Ngũ Hành element-cure surfaced inside a văn khấn ritual.
+///
+/// When `RitualEntry::metadata.cross_source_curing` contains a `CrossSourceCure`,
+/// the `add_offering_facts` builder emits TWO `track_provenance` calls on the
+/// `RecommendsOffering` edge — one for the ritual tradition (`vn-folk-ritual`)
+/// and one for the annotated tradition (e.g., `huyen-khong`). This implements
+/// INT-09's dual-source edge provenance on the existing `ProvenanceTracker::track()`
+/// append-pattern (v1.5 multi-source dedup is implicit — NO parallel dedup helper).
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct CrossSourceCure {
+    /// The Ngũ Hành element this cure addresses (e.g. "Kim", "Mộc", "Thủy", "Hỏa", "Thổ").
+    /// Free-form Vietnamese string for now (the existing `Element` enum at
+    /// `almanac/fengshui/types.rs` uses lowercase English: "metal", "wood", etc.).
+    /// Phase 19 keeps the cross-source cure annotation human-readable; future
+    /// phases MAY tighten into a typed enum.
+    pub element_cure_for: String,
+    /// MUST equal one of `crate::sources::SOURCE_*` (typically `SOURCE_HUYEN_KHONG`).
+    /// Typed as `crate::sources::SourceId` per INT-07 discipline.
+    pub source_id: crate::sources::SourceId,
+    /// Vietnamese-language rationale explaining why this tradition curates
+    /// this element (free-form, audited-by-author at corpus-load time).
+    pub rationale_vi: String,
+}
+
+/// Optional extension metadata on a `RitualEntry` (Phase 19, INT-09 corpus
+/// augmentation mechanism). Currently carries `cross_source_curing` annotations
+/// — a list of non-ritual-tradition element cures surfaced inside the ritual.
+/// Future fields MAY be added as the additive `Option<T>` discipline permits
+/// (`metadata: Option<RitualMetadata>` stays compatible with new fields inside
+/// the inner struct).
+#[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RitualMetadata {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cross_source_curing: Option<Vec<CrossSourceCure>>,
+}
+
 /// Identity handle for a semantic-graph Offering node.
 ///
 /// Locked before any builder code emits Offering nodes (schema-lock
@@ -195,6 +235,13 @@ pub struct RitualEntry {
     pub source_id: String,
     pub original_citation: SourceCitation,
     pub confidence: RitualConfidenceTier,
+    /// Optional Phase 19 extension metadata (INT-09 corpus augmentation).
+    /// Carries `cross_source_curing` annotations for non-ritual-tradition
+    /// element cures surfaced inside this ritual. Additive `Option<T>` with
+    /// `#[serde(default, skip_serializing_if = "Option::is_none")]` matches the
+    /// established additive field discipline (see `body_en`, `notes`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub metadata: Option<RitualMetadata>,
 }
 
 #[cfg(test)]
@@ -362,5 +409,39 @@ mod tests {
         // (a String alias). Confirm compile-time type identity.
         let _: &crate::sources::SourceId = &r.source_id;
         assert_eq!(r.source_id.as_str(), "vn-folk-ritual");
+    }
+
+    // Test 7: RitualMetadata + CrossSourceCure serde round-trip — Phase 19-02 INT-09 schema lock
+    #[test]
+    fn ritual_metadata_and_cross_source_cure_serde_round_trip() {
+        use crate::sources::SOURCE_HUYEN_KHONG;
+
+        // Round-trip RitualMetadata with cross_source_curing populated
+        let metadata = RitualMetadata {
+            cross_source_curing: Some(vec![CrossSourceCure {
+                element_cure_for: "Kim".to_string(),
+                source_id: SOURCE_HUYEN_KHONG.to_string(),
+                rationale_vi: "Huyền Không Ngũ Hành tương sinh: Kim sinh Thủy".to_string(),
+            }]),
+        };
+        let json = serde_json::to_string(&metadata).expect("serialize");
+        let recovered: RitualMetadata = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(recovered, metadata);
+
+        // Round-trip with cross_source_curing absent (skip_serializing_if honored)
+        let empty = RitualMetadata { cross_source_curing: None };
+        let json_empty = serde_json::to_string(&empty).expect("serialize");
+        assert!(!json_empty.contains("cross_source_curing"),
+                "cross_source_curing must be absent in JSON when None; got: {json_empty}");
+
+        // deny_unknown_fields on RitualMetadata rejects unknown fields
+        let bad = r#"{"cross_source_curing": [], "bogus": 1}"#;
+        let err: Result<RitualMetadata, _> = serde_json::from_str(bad);
+        assert!(err.is_err(), "deny_unknown_fields must reject unknown fields on RitualMetadata");
+
+        // deny_unknown_fields on CrossSourceCure rejects unknown fields
+        let bad_cure = r#"{"element_cure_for":"Kim","source_id":"huyen-khong","rationale_vi":"x","bogus":1}"#;
+        let err_cure: Result<CrossSourceCure, _> = serde_json::from_str(bad_cure);
+        assert!(err_cure.is_err(), "deny_unknown_fields must reject unknown fields on CrossSourceCure");
     }
 }

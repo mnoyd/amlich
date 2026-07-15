@@ -41,6 +41,7 @@ impl DaySnapshotGraphBuilder {
         builder.add_hoang_dao_hours_fact(snapshot);
         builder.add_flying_star_facts(snapshot);
         builder.add_ritual_facts(snapshot);
+        builder.add_offering_facts(snapshot);
 
         builder
     }
@@ -558,12 +559,191 @@ impl DaySnapshotGraphBuilder {
         .with_provenance(prov);
 
         self.graph.add_node(node);
+
+        // Phase 19 (INT-08 SC#2 literal): populate payload on the aggregate Ritual
+        // node with the structured offering_refs + flat-string offerings derived
+        // from snapshot.applicable_rituals. The DaySnapshot fields (Plan 19-01)
+        // remain the canonical structured surface; this payload is the
+        // semantic-graph-node-payload interpretation per Option B in 19-RESEARCH.md.
+        // The payload is populated ONLY when applicable_rituals is non-empty
+        // (mirroring the DaySnapshot populate-block invariant).
+        let payload_value = if let Some(refs) = &snapshot.offering_refs {
+            if !refs.is_empty() {
+                serde_json::json!({
+                    "offering_refs": refs.iter().map(|r| {
+                        serde_json::json!({
+                            "offering_id": r.offering_id,
+                            "name_vi": r.name_vi,
+                            "name_en": r.name_en,
+                            "source_id": r.source_id,
+                        })
+                    }).collect::<Vec<_>>(),
+                    "offerings": snapshot.offerings.clone().unwrap_or_default(),
+                })
+            } else {
+                serde_json::Value::Null
+            }
+        } else {
+            serde_json::Value::Null
+        };
+        if !payload_value.is_null() {
+            self.graph.nodes_mut().get_mut(&node_id)
+                .expect("Ritual node just added")
+                .payload = Some(payload_value);
+        }
+
         // Ritual prescribed FOR the day
         self.graph.add_edge(SemanticEdge::new(
             &node_id,
             &self.day_root_id,
             EdgeConcept::PrescribedFor,
         ));
+    }
+
+    fn add_offering_facts(&mut self, snapshot: &DaySnapshot) {
+        let Some(ritual_ids) = &snapshot.applicable_rituals else {
+            return;
+        };
+        if ritual_ids.is_empty() {
+            return;
+        }
+
+        // Aggregate Ritual node id (same as add_ritual_facts) — the from-side of RecommendsOffering edges.
+        let ritual_node_id =
+            SemanticId::new("ritual", format!("day:{}:rituals", self.tz_suffix)).to_node_id();
+
+        // Dedup edges by (ritual_node_id, offering_node_id) — two rituals could
+        // theoretically share an offering reference (same ritual_id is deduped
+        // upstream; different ritual_ids sharing an offering name is rare but
+        // possible). HashSet prevents emitting the same edge twice.
+        let mut emitted_edges: std::collections::HashSet<(String, String)> =
+            std::collections::HashSet::new();
+
+        for ritual_id in ritual_ids {
+            let Some(entry) = crate::rituals::get_ritual_by_id(ritual_id) else {
+                continue;
+            };
+
+            // INT-09: collect this entry's cross_source_curing annotations (if any)
+            // for emission as additional provenance on every RecommendsOffering edge
+            // derived from this entry's offerings.
+            let cross_cures: Vec<(String, String)> = entry
+                .metadata
+                .as_ref()
+                .and_then(|m| m.cross_source_curing.as_ref())
+                .map(|cures| {
+                    cures
+                        .iter()
+                        .map(|c| (c.source_id.clone(), c.element_cure_for.clone()))
+                        .collect()
+                })
+                .unwrap_or_default();
+
+            for (idx, offering) in entry.offerings.iter().enumerate() {
+                // Build the locked OfferingRef (Plan 19-01) for the semantic-graph handle.
+                let offering_ref = crate::rituals::OfferingRef::new(
+                    format!("ritual.{ritual_id}.offering.{idx}"),
+                    offering.name_vi.clone(),
+                    offering.name_en.clone(),
+                    crate::sources::SOURCE_VN_FOLK_RITUAL.to_string(),
+                );
+
+                // Stable Offering node id (mirror day_snapshot.rs:488 timezone-suffixed pattern).
+                let offering_node_id_raw = SemanticId::new(
+                    "offering",
+                    format!(
+                        "ritual:{ritual_id}:offering:{idx}:day:{}:{}",
+                        format!(
+                            "{:04}-{:02}-{:02}",
+                            snapshot.context.solar.year,
+                            snapshot.context.solar.month,
+                            snapshot.context.solar.day
+                        ),
+                        self.tz_suffix
+                    ),
+                );
+                let offering_node_id = offering_node_id_raw.clone().to_node_id();
+
+                // Emit Offering node — single SOURCE_VN_FOLK_RITUAL provenance via constructor.
+                let offering_prov = ProvenanceEntry::almanac_rule(
+                    SOURCE_VN_FOLK_RITUAL,
+                    "ritual.offering_lookup",
+                )
+                .with_note(format!(
+                    "offering_id={};ritual_id={};rationale=lễ vật của nghi lễ",
+                    offering_ref.offering_id, ritual_id
+                ));
+                let offering_node = SemanticNode::new(
+                    offering_node_id_raw,
+                    NodeConcept::Offering,
+                    NodeOrigin::Fact,
+                    format!("Lễ vật: {}", offering_ref.name_vi),
+                )
+                .with_provenance(offering_prov);
+                self.graph.add_node(offering_node);
+
+                // Dedup: skip if edge already emitted for this (ritual_node, offering_node) pair.
+                if !emitted_edges.insert((ritual_node_id.clone(), offering_node_id.clone())) {
+                    continue;
+                }
+
+                // Emit RecommendsOffering edge (Ritual → Offering).
+                self.graph.add_edge(SemanticEdge::new(
+                    &ritual_node_id,
+                    &offering_node_id,
+                    EdgeConcept::RecommendsOffering,
+                ));
+
+                // Track edge provenance — INT-09 dual-source pattern.
+                // For ordinary rituals: ONE track_provenance call (vn-folk-ritual only).
+                // For cross_source_curing-annotated rituals: TWO track_provenance calls
+                // (one per source — vn-folk-ritual + the annotated source_id from each cure).
+                // This reuses the v1.5 multi-source ProvenanceTracker::track() append-pattern
+                // — NO parallel dedup helper is introduced.
+                let edge_id = format!("{}->{}", ritual_node_id, offering_node_id);
+
+                // Build the rationale string — Blocker 4 fix: rationale lives on the
+                // EDGE provenance note, not just on the Offering node provenance.
+                // Single-source rationale: "lễ vật của nghi lễ".
+                // Dual-source rationale: "lễ vật của nghi lễ, hỗ trợ chữa trị ngũ hành tương ứng"
+                // (the latter only when at least one cross_source_curing annotation exists).
+                let has_dual_source = !cross_cures.is_empty();
+                let rationale = if has_dual_source {
+                    "lễ vật của nghi lễ, hỗ trợ chữa trị ngũ hành tương ứng".to_string()
+                } else {
+                    "lễ vật của nghi lễ".to_string()
+                };
+
+                // First track_provenance call: vn-folk-ritual (always).
+                self.graph.track_provenance(
+                    &edge_id,
+                    ProvenanceEntry::almanac_rule(
+                        SOURCE_VN_FOLK_RITUAL,
+                        "ritual.recommends_offering",
+                    )
+                    .with_note(format!(
+                        "ritual={};offering_id={};rationale={}",
+                        ritual_id, offering_ref.offering_id, rationale
+                    )),
+                );
+
+                // Subsequent track_provenance calls: one per cross_source_curing annotation.
+                // Each cure emits a second (or third, ...) ProvenanceEntry on the SAME edge.
+                for (cure_source_id, element_cure_for) in &cross_cures {
+                    self.graph.track_provenance(
+                        &edge_id,
+                        ProvenanceEntry::almanac_rule(
+                            cure_source_id,
+                            "ritual.cross_source_cure",
+                        )
+                        .with_note(format!(
+                            "ritual={};offering_id={};element_cure_for={}",
+                            ritual_id, offering_ref.offering_id, element_cure_for
+                        )),
+                    );
+                }
+            }
+        }
     }
 
     pub fn build(self) -> SemanticGraph {
@@ -947,5 +1127,198 @@ mod tests {
             "Direction node must have a huyen-khong provenance entry; got: {:?}",
             source_ids
         );
+    }
+
+    // ===========================================================================
+    // Phase 19 — INT-09 dual-source provenance + INT-08 SC#2 literal payload
+    // ===========================================================================
+
+    #[test]
+    fn recommends_offering_edge_carries_dual_source_provenance() {
+        // INT-09: at least one RecommendsOffering edge MUST carry BOTH
+        // "vn-folk-ritual" AND "huyen-khong" provenance entries on Tết 2026
+        // (the `van-khan-tet-day-du` ritual entry is annotated with a
+        // huyen-khong cross_source_curing per Phase 19-02 corpus augmentation).
+        // This proves the dual-source pattern is actually wired end-to-end.
+
+        let snap = crate::calculate_day_snapshot(17, 2, 2026); // Tết 2026
+        let graph = build_day_snapshot_graph(&snap);
+
+        // Find every RecommendsOffering edge
+        let rec_edges: Vec<_> = graph
+            .edges()
+            .values()
+            .filter(|e| matches!(e.label.concept, EdgeConcept::RecommendsOffering))
+            .collect();
+
+        assert!(
+            !rec_edges.is_empty(),
+            "Tết 2026 must have >= 1 RecommendsOffering edge; got 0"
+        );
+
+        // At least one RecommendsOffering edge must carry BOTH source_ids
+        let mut found_dual_source = false;
+        for edge in &rec_edges {
+            let edge_id = &edge.edge_id;
+            let entries = graph
+                .provenance()
+                .get(edge_id)
+                .expect("RecommendsOffering edge must have provenance entries");
+            let source_ids: Vec<&str> = entries.iter().map(|p| p.source_id.as_str()).collect();
+
+            // Endpoint sanity (Blocker 6 — from_node_id is Ritual concept, to_node_id is Offering concept)
+            let from_node = graph
+                .nodes()
+                .get(&edge.from_node_id)
+                .expect("RecommendsOffering edge from_node must exist");
+            let to_node = graph
+                .nodes()
+                .get(&edge.to_node_id)
+                .expect("RecommendsOffering edge to_node must exist");
+            assert!(
+                matches!(from_node.concept, NodeConcept::Ritual),
+                "RecommendsOffering from_node_id must point to a Ritual node; got {:?}",
+                from_node.concept
+            );
+            assert!(
+                matches!(to_node.concept, NodeConcept::Offering),
+                "RecommendsOffering to_node_id must point to an Offering node; got {:?}",
+                to_node.concept
+            );
+
+            // INT-09 dual-source check: edge provenance contains both
+            if source_ids.contains(&"vn-folk-ritual") && source_ids.contains(&"huyen-khong") {
+                found_dual_source = true;
+            }
+
+            // Blocker 4 fix: rationale must appear in the edge provenance note
+            // for the vn-folk-ritual entry (at minimum)
+            let vn_folk_entry = entries
+                .iter()
+                .find(|p| p.source_id.as_str() == "vn-folk-ritual")
+                .expect("RecommendsOffering edge must have a vn-folk-ritual provenance entry");
+            let note = vn_folk_entry
+                .note
+                .as_deref()
+                .expect("vn-folk-ritual provenance entry must carry a note with rationale");
+            assert!(
+                note.contains("rationale="),
+                "vn-folk-ritual edge provenance note must include rationale=; got: {note}"
+            );
+        }
+
+        assert!(
+            found_dual_source,
+            "At least one RecommendsOffering edge MUST carry BOTH 'vn-folk-ritual' AND 'huyen-khong' provenance on Tết 2026 — INT-09 dual-source pattern is not wired (the van-khan-tet-day-du corpus annotation is missing)"
+        );
+    }
+
+    // ===========================================================================
+    // Phase 19 — endpoint verification (Blocker 6) + annual+monthly FlyingStar
+    // assertion (Blocker 7 — the new test explicitly checks annual + monthly
+    // fields, not just palace_overlays.len())
+    // ===========================================================================
+
+    #[test]
+    fn phase19_offering_wiring_endpoint_and_flying_star_components() {
+        // Blockers 6 + 7 fix: this test verifies BOTH the endpoint shape of
+        // RecommendsOffering edges AND the annual+monthly FlyingStar components.
+        let snap = crate::calculate_day_snapshot(17, 2, 2026);
+        let graph = build_day_snapshot_graph(&snap);
+
+        // (Blocker 6) Every RecommendsOffering edge must have:
+        //   - from_node_id pointing to a NodeConcept::Ritual node
+        //   - to_node_id pointing to a NodeConcept::Offering node
+        //   - at least one provenance entry with source_id == "vn-folk-ritual"
+        let rec_edges: Vec<_> = graph
+            .edges()
+            .values()
+            .filter(|e| matches!(e.label.concept, EdgeConcept::RecommendsOffering))
+            .collect();
+        assert!(
+            !rec_edges.is_empty(),
+            "RecommendsOffering edges must exist on Tết 2026"
+        );
+        for edge in &rec_edges {
+            let from = graph
+                .nodes()
+                .get(&edge.from_node_id)
+                .expect("from_node must exist");
+            let to = graph
+                .nodes()
+                .get(&edge.to_node_id)
+                .expect("to_node must exist");
+            assert!(
+                matches!(from.concept, NodeConcept::Ritual),
+                "from_node_id must point to a Ritual node; got {:?}",
+                from.concept
+            );
+            assert!(
+                matches!(to.concept, NodeConcept::Offering),
+                "to_node_id must point to an Offering node; got {:?}",
+                to.concept
+            );
+            let entries = graph
+                .provenance()
+                .get(&edge.edge_id)
+                .expect("RecommendsOffering edge must have provenance entries");
+            assert!(
+                entries.iter().any(|p| p.source_id.as_str() == "vn-folk-ritual"),
+                "RecommendsOffering edge provenance must include vn-folk-ritual"
+            );
+        }
+
+        // (Blocker 7) Annual + monthly FlyingStar components must both exist
+        // on DaySnapshot.flying_stars.palace_overlays (each entry is a
+        // (annual, monthly) tuple — 9 entries per `almanac/fengshui/combined.rs:48`).
+        let fs_summary = snap
+            .flying_stars
+            .as_ref()
+            .expect("flying_stars must be Some for Tết 2026");
+        assert_eq!(
+            fs_summary.palace_overlays.len(),
+            9,
+            "flying_stars.palace_overlays must have 9 entries"
+        );
+
+        // The annual + monthly components are stored as FlyingStar enum values.
+        // `FlyingStar` does NOT derive Default — verify each (annual, monthly)
+        // tuple member is one of the 9 valid FlyingStar variants (any valid
+        // variant proves the field is populated; the absence of `Default` means
+        // there's no meaningful "uninitialized" sentinel to compare against).
+        for (i, (annual, monthly)) in fs_summary.palace_overlays.iter().enumerate() {
+            assert!(
+                matches!(
+                    annual,
+                    crate::almanac::fengshui::types::FlyingStar::NhatBach
+                        | crate::almanac::fengshui::types::FlyingStar::NhiHac
+                        | crate::almanac::fengshui::types::FlyingStar::TamBich
+                        | crate::almanac::fengshui::types::FlyingStar::TuLuc
+                        | crate::almanac::fengshui::types::FlyingStar::NguHoang
+                        | crate::almanac::fengshui::types::FlyingStar::LucBach
+                        | crate::almanac::fengshui::types::FlyingStar::ThatXich
+                        | crate::almanac::fengshui::types::FlyingStar::BatBach
+                        | crate::almanac::fengshui::types::FlyingStar::CuuTu
+                ),
+                "palace_overlays[{i}].0 (annual) must be a valid FlyingStar variant; got {:?}",
+                annual
+            );
+            assert!(
+                matches!(
+                    monthly,
+                    crate::almanac::fengshui::types::FlyingStar::NhatBach
+                        | crate::almanac::fengshui::types::FlyingStar::NhiHac
+                        | crate::almanac::fengshui::types::FlyingStar::TamBich
+                        | crate::almanac::fengshui::types::FlyingStar::TuLuc
+                        | crate::almanac::fengshui::types::FlyingStar::NguHoang
+                        | crate::almanac::fengshui::types::FlyingStar::LucBach
+                        | crate::almanac::fengshui::types::FlyingStar::ThatXich
+                        | crate::almanac::fengshui::types::FlyingStar::BatBach
+                        | crate::almanac::fengshui::types::FlyingStar::CuuTu
+                ),
+                "palace_overlays[{i}].1 (monthly) must be a valid FlyingStar variant; got {:?}",
+                monthly
+            );
+        }
     }
 }
