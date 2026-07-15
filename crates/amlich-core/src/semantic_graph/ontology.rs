@@ -331,6 +331,29 @@ mod tests {
         assert_eq!(NodeConcept::Offering.label().as_str(), "offering");
         assert_eq!(EdgeConcept::RecommendsOffering.label().as_str(), "recommends_offering");
     }
+
+    // Phase 20 (FND-12): v1.7 Hexagram node + LocatedAt/Transforms edges present in ontology slices
+    #[test]
+    fn v17_concepts_present_in_ontology_slices() {
+        let nodes = GraphOntology::node_concepts();
+        assert!(
+            nodes.contains(&NodeConcept::Hexagram),
+            "Hexagram missing from node_concepts()"
+        );
+        let edges = GraphOntology::edge_concepts();
+        assert!(
+            edges.contains(&EdgeConcept::LocatedAt),
+            "LocatedAt missing from edge_concepts()"
+        );
+        assert!(
+            edges.contains(&EdgeConcept::Transforms),
+            "Transforms missing from edge_concepts()"
+        );
+        // Label round-trip sanity:
+        assert_eq!(NodeConcept::Hexagram.label().as_str(), "hexagram");
+        assert_eq!(EdgeConcept::LocatedAt.label().as_str(), "located_at");
+        assert_eq!(EdgeConcept::Transforms.label().as_str(), "transforms");
+    }
 }
 
 impl GraphOntology {
