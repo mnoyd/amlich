@@ -170,6 +170,18 @@ pub struct DaySnapshot {
     /// alongside `flying_stars` in `calculate_day_snapshot_internal`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub daily_flying_stars: Option<crate::almanac::fengshui::types::DailyFlyingStarLayout>,
+    /// Additive optional structured offering handles (Phase 19, INT-08, preferred
+    /// path). Each `OfferingRef` is derived from the matching ritual entry's
+    /// `offerings: Vec<Offering>` field — see `rituals::OfferingRef` for the
+    /// locked identity tuple. Absent in JSON when None.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub offering_refs: Option<Vec<crate::rituals::OfferingRef>>,
+    /// Additive optional flat-string summary of offering names (Phase 19, INT-08,
+    /// legacy BC path). Auto-populated from `offering_refs` (flattened `name_vi`
+    /// values, deduplicated). Carries no `offering_id` or `source_id` — use
+    /// `offering_refs` for structured queries. Absent in JSON when None.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub offerings: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -322,6 +334,8 @@ fn calculate_day_snapshot_internal(
         flying_stars: None,
         applicable_rituals: None,
         daily_flying_stars: None,
+        offering_refs: None,
+        offerings: None,
     };
 
     // Populate flying_stars from the combined Phi Tinh overlay.
@@ -367,6 +381,40 @@ fn calculate_day_snapshot_internal(
             .map(|r| r.ritual_id.clone())
             .collect();
         snap.applicable_rituals = Some(ritual_ids);
+    }
+
+    // Populate offering_refs (structured) + offerings (legacy flat-string)
+    // from the ritual corpus. Both fields derived from the same source —
+    // offering_refs is the preferred path, offerings is the legacy summary.
+    // Phase 19-01 (INT-08). The flat-string list is deduped by name_vi and
+    // preserves insertion order (matches the literal SC text per Q4 interpretation i).
+    {
+        use crate::rituals::get_ritual_by_id;
+        use crate::sources::SOURCE_VN_FOLK_RITUAL;
+
+        let mut offering_refs: Vec<crate::rituals::OfferingRef> = Vec::new();
+        let mut offerings_flat: Vec<String> = Vec::new();
+
+        if let Some(ritual_ids) = &snap.applicable_rituals {
+            for ritual_id in ritual_ids {
+                let Some(entry) = get_ritual_by_id(ritual_id) else { continue; };
+                for (idx, offering) in entry.offerings.iter().enumerate() {
+                    let offering_ref = crate::rituals::OfferingRef::new(
+                        format!("ritual.{ritual_id}.offering.{idx}"),
+                        offering.name_vi.clone(),
+                        offering.name_en.clone(),
+                        SOURCE_VN_FOLK_RITUAL.to_string(),
+                    );
+                    if !offerings_flat.contains(&offering.name_vi) {
+                        offerings_flat.push(offering.name_vi.clone());
+                    }
+                    offering_refs.push(offering_ref);
+                }
+            }
+        }
+
+        snap.offering_refs = if offering_refs.is_empty() { None } else { Some(offering_refs) };
+        snap.offerings = if offerings_flat.is_empty() { None } else { Some(offerings_flat) };
     }
 
     Ok(snap)
@@ -498,5 +546,59 @@ mod tests {
         let json = serde_json::to_string(&none_snapshot).expect("serialization failed");
         assert!(!json.contains("\"flying_stars\""), "flying_stars must not appear in JSON when None");
         assert!(!json.contains("\"applicable_rituals\""), "applicable_rituals must not appear in JSON when None");
+    }
+
+    // Phase 19-01 focused populate test (INT-08, warning 1 fix):
+    // asserts the additive offering_refs + offerings fields specifically
+    // (the existing `day_snapshot_populates_additive_surfaces` only checks
+    // `flying_stars` + `applicable_rituals`).
+    #[test]
+    fn day_snapshot_offering_refs_populated_and_deduped() {
+        use crate::sources::SOURCE_VN_FOLK_RITUAL;
+
+        let snap = calculate_day_snapshot(17, 2, 2026); // Tết 2026 — guarantees applicable_rituals non-empty
+
+        // 1. Both fields populated
+        let refs = snap.offering_refs.as_ref()
+            .expect("offering_refs must be Some when applicable_rituals is non-empty");
+        assert!(!refs.is_empty(), "offering_refs must be non-empty for Tết 2026");
+        let flat = snap.offerings.as_ref()
+            .expect("offerings (flat-string) must be Some when applicable_rituals is non-empty");
+        assert!(!flat.is_empty(), "offerings (flat-string) must be non-empty for Tết 2026");
+
+        // 2. Identity: offering_id is non-empty, follows "ritual.{ritual_id}.offering.{idx}" pattern
+        let first = &refs[0];
+        assert!(!first.offering_id.is_empty(), "OfferingRef.offering_id must be non-empty");
+        assert!(first.offering_id.starts_with("ritual."),
+                "OfferingRef.offering_id must follow ritual.<id>.offering.<idx> pattern; got {:?}",
+                first.offering_id);
+
+        // 3. Source-id discipline: every OfferingRef.source_id == "vn-folk-ritual"
+        for r in refs {
+            assert_eq!(r.source_id, SOURCE_VN_FOLK_RITUAL,
+                       "OfferingRef.source_id must equal vn-folk-ritual; got {:?}", r.source_id);
+        }
+
+        // 4. Dedup: the flat-string offerings Vec is a deduped subset of OfferingRef.name_vi values
+        for r in refs {
+            assert!(flat.contains(&r.name_vi),
+                    "flat-string offerings must contain every OfferingRef.name_vi = {:?}", r.name_vi);
+        }
+        // And the flat-string Vec itself contains no duplicates
+        let mut seen = std::collections::HashSet::new();
+        for name in flat {
+            assert!(seen.insert(name.clone()),
+                    "flat-string offerings must be deduplicated; found duplicate: {:?}", name);
+        }
+
+        // 5. None behavior: explicitly clear both fields, verify None → absent in JSON
+        let mut snap_none = snap.clone();
+        snap_none.offering_refs = None;
+        snap_none.offerings = None;
+        let json = serde_json::to_string(&snap_none).expect("serialization failed");
+        assert!(!json.contains("\"offering_refs\""),
+                "offering_refs must NOT appear in JSON when None; got: {json}");
+        assert!(!json.contains("\"offerings\""),
+                "offerings must NOT appear in JSON when None; got: {json}");
     }
 }
