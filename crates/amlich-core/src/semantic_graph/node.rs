@@ -24,6 +24,18 @@ pub struct SemanticNode {
     pub tags: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub provenance: Vec<ProvenanceEntry>,
+    /// Optional generic JSON payload (Phase 19, INT-08 SC#2 literal interpretation).
+    /// For `NodeConcept::Ritual` aggregate nodes, this carries
+    /// `{"offering_refs": [...], "offerings": [...]}` derived from the matching
+    /// ritual entries' `RitualEntry::offerings`. Other concepts may use this
+    /// field for concept-specific structured data. Absent in JSON when None.
+    ///
+    /// NOTE: kept as `serde_json::Value` (NOT a typed enum) per 19-RESEARCH.md
+    /// Option B. This is the lightweight generic payload mechanism — it avoids
+    /// the cost of a typed `RitualNodePayload` enum (Option C) and matches the
+    /// `v1.5` discipline of "additive `Option<T>` fields on existing structs".
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payload: Option<serde_json::Value>,
 }
 
 impl SemanticNode {
@@ -43,6 +55,7 @@ impl SemanticNode {
             severity: None,
             tags: Vec::new(),
             provenance: Vec::new(),
+            payload: None,
         }
     }
 

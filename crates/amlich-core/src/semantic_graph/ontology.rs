@@ -39,6 +39,7 @@ pub enum NodeConcept {
     RecommendationSummary,
     Ritual,
     FlyingStar,
+    Offering,
 }
 
 impl NodeConcept {
@@ -80,6 +81,7 @@ impl NodeConcept {
             Self::RecommendationSummary => ConceptLabel::RecommendationSummary,
             Self::Ritual => ConceptLabel::Ritual,
             Self::FlyingStar => ConceptLabel::FlyingStar,
+            Self::Offering => ConceptLabel::Offering,
         }
     }
 }
@@ -115,6 +117,7 @@ pub enum EdgeConcept {
     PrescribedFor,
     OccupiesPalace,
     CarriesElement,
+    RecommendsOffering,
 }
 
 impl EdgeConcept {
@@ -148,6 +151,7 @@ impl EdgeConcept {
             Self::PrescribedFor => ConceptLabel::PrescribedFor,
             Self::OccupiesPalace => ConceptLabel::OccupiesPalace,
             Self::CarriesElement => ConceptLabel::CarriesElement,
+            Self::RecommendsOffering => ConceptLabel::RecommendsOffering,
         }
     }
 }
@@ -216,9 +220,11 @@ pub enum ConceptLabel {
     Aggregates,
     Ritual,
     FlyingStar,
+    Offering,
     PrescribedFor,
     OccupiesPalace,
     CarriesElement,
+    RecommendsOffering,
 }
 
 impl ConceptLabel {
@@ -285,9 +291,11 @@ impl ConceptLabel {
             Self::Aggregates => "aggregates",
             Self::Ritual => "ritual",
             Self::FlyingStar => "flying_star",
+            Self::Offering => "offering",
             Self::PrescribedFor => "prescribed_for",
             Self::OccupiesPalace => "occupies_palace",
             Self::CarriesElement => "carries_element",
+            Self::RecommendsOffering => "recommends_offering",
         }
     }
 }
@@ -310,6 +318,18 @@ mod tests {
         // Label round-trip sanity:
         assert_eq!(NodeConcept::FlyingStar.label().as_str(), "flying_star");
         assert_eq!(EdgeConcept::OccupiesPalace.label().as_str(), "occupies_palace");
+    }
+
+    // Phase 19 (INT-07): v1.6 Offering + RecommendsOffering concepts present in ontology slices
+    #[test]
+    fn v16_concepts_present_in_ontology_slices() {
+        let nodes = GraphOntology::node_concepts();
+        assert!(nodes.contains(&NodeConcept::Offering), "Offering missing from node_concepts()");
+        let edges = GraphOntology::edge_concepts();
+        assert!(edges.contains(&EdgeConcept::RecommendsOffering), "RecommendsOffering missing from edge_concepts()");
+        // Label round-trip:
+        assert_eq!(NodeConcept::Offering.label().as_str(), "offering");
+        assert_eq!(EdgeConcept::RecommendsOffering.label().as_str(), "recommends_offering");
     }
 }
 
@@ -352,6 +372,7 @@ impl GraphOntology {
             NodeConcept::RecommendationSummary,
             NodeConcept::Ritual,
             NodeConcept::FlyingStar,
+            NodeConcept::Offering,
         ]
     }
 
@@ -385,6 +406,7 @@ impl GraphOntology {
             EdgeConcept::PrescribedFor,
             EdgeConcept::OccupiesPalace,
             EdgeConcept::CarriesElement,
+            EdgeConcept::RecommendsOffering,
         ]
     }
 }
