@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Integration
 status: in_progress
-last_updated: "2026-07-15T17:05:20.000Z"
+last_updated: "2026-07-16T00:30:00.000Z"
 progress:
   total_phases: 23
   completed_phases: 23
   total_plans: 63
-  completed_plans: 65
+  completed_plans: 66
 ---
 
 # Project State
@@ -18,17 +18,17 @@ See: .planning/PROJECT.md (updated 2026-07-15)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source (KHCBPPT / `vn-folk-ritual` / *Thẩm Thị Huyền Không Học*) for the 2020-2030 date range, with test-backed and traceable evidence.
 
-**Current focus:** v1.6 Eastern Knowledge Completion — Phase 18 Daily Phi Tinh COMPLETE (all 4 plans + FS-16/17/18/19 closed). Next: Phase 19 plan 19-03 (external-crate black-box tests for Offering pipeline).
+**Current focus:** v1.6 Eastern Knowledge Completion — Phase 19 COMPLETE (all 3 plans: 19-01 schema lock + 19-02 ontology/builder + 19-03 external-crate black-box tests). INT-07/08/09/10 all closed. All 12 v1.6 requirements satisfied. Next: milestone transition / v1.7 planning.
 
 ## Current Position
 
 Milestone: v1.6 Eastern Knowledge Completion.
-Phase: 19 of 4 planned (Phase 19: Recommends Offering Semantic Graph Node, 3 plans) — IN PROGRESS.
-Plan: 19-02 COMPLETE (Offering node + RecommendsOffering edge across all 6 ontology slice locations + payload field + INT-09 dual-source provenance). Next: Phase 19 plan 19-03 (external-crate black-box tests).
-Status: `OfferingRef` struct locked in `crates/amlich-core/src/rituals/schema.rs` with the exact 4-field identity tuple `{ offering_id, name_vi, name_en, source_id }`, `#[serde(deny_unknown_fields)]` (ADR-0001 discipline), and `OfferingRef::new(...)` constructor with `debug_assert!` non-empty enforcement. `source_id` field is typed as `crate::sources::SourceId` (new zero-cost newtype over String alias introduced in 19-01). `DaySnapshot` extended with two additive `Option<T>` fields: `offering_refs: Option<Vec<crate::rituals::OfferingRef>>` (structured preferred) + `offerings: Option<Vec<String>>` (legacy flat-string summary, deduped by `name_vi`) — both carrying `#[serde(default, skip_serializing_if = "Option::is_none")]` matching the EXACT serde pattern as `flying_stars` / `applicable_rituals` / `daily_flying_stars`. `calculate_day_snapshot_internal` populates both fields from `applicable_rituals` via `get_ritual_by_id` with `SOURCE_VN_FOLK_RITUAL` const import (no bare string literal — `source_id_guard` compliant). Schema-lock-before-builder discipline preserved: NO builder code emits `Offering` nodes yet (Plan 19-02's domain).
-Last activity: 2026-07-15 — 19-01-PLAN.md executed: OfferingRef schema lock + SourceId alias + DaySnapshot additive fields (commits eddc51d + 6508f79). `cargo build -p amlich-core` clean; `cargo test -p amlich-core --lib rituals::schema::tests::offering_ref_serde_round_trip_and_deny_unknown_fields sources::tests::source_id_alias_is_string day_snapshot_offering_refs_populated_and_deduped day_snapshot_populates_additive_surfaces` 4/4 pass; `cargo test -p amlich-core --test day_snapshot_v14_compat` 6/6 pass (zero regressions); `cargo test -p amlich-core --test source_id_guard` 1/1 pass; `cargo test -p amlich-core` 712 lib tests + all integration tests pass (zero regressions vs Phase 18-04 baseline of 709 lib tests). INT-08 closed; Phase 19-01 complete (1/3 plans).
+Phase: 19 of 4 planned (Phase 19: Recommends Offering Semantic Graph Node, 3 plans) — COMPLETE.
+Plan: 19-03 COMPLETE (3 v1.5→v1.6 backward-compat round-trip tests for offering_refs + offerings additive fields, including BLOCKER 5 FIX combined-strip discipline; 1 E2E 2026 smoke test exercising Offering node + RecommendsOffering edge wiring on >=5 representative dates with BLOCKER 6 endpoint + INT-09 dual-source verification + BLOCKER 7 annual/monthly FlyingStar component verification). INT-10 closed; Phase 19 complete (3/3 plans). All 12 v1.6 requirements satisfied.
+Status: All v1.6 requirements closed (FND-07/08, RIT-14/15/16, FS-16/17/18/19, INT-07/08/09/10). Test gates green: 716 lib tests + 9 day_snapshot_v14_compat + 4 integration_2026_smoke + 1 source_id_guard all pass with zero regressions vs Phase 19-02 baseline.
+Last activity: 2026-07-16 — 19-03-PLAN.md executed: 3 round-trip tests appended to day_snapshot_v14_compat.rs (commit c0a37c0); 1 E2E smoke test appended to integration_2026_smoke.rs + 1-line re-export of build_day_snapshot_graph at semantic_graph crate root (Rule 3 blocking auto-fix — the plan's deep import path traversed private modules; mirrors existing build_reasoning_input_graph re-export pattern) (commit bd5aeda). `cargo test -p amlich-core` 716 lib tests + all integration tests pass (zero regressions); `cargo test -p amlich-core --test day_snapshot_v14_compat` 9/9 pass (3 v1.4→v1.5 + 3 Phase 18 v1.5→v1.6 daily_flying_stars + 3 Phase 19 v1.5→v1.6 offering_refs); `cargo test -p amlich-core --test integration_2026_smoke` 4/4 pass (3 pre-existing + 1 new offering wiring); `cargo test -p amlich-core --test source_id_guard` 1/1 pass. INT-10 closed; Phase 19 complete (3/3 plans).
 
-Progress: [▓▓▓▓▓▓▓▓▓░] 91% (v1.6: 3 of 4 phases complete; 10 of 11 plans complete; Phase 19 is 2/3).
+Progress: [▓▓▓▓▓▓▓▓▓▓] 100% (v1.6: 4 of 4 phases complete; 11 of 11 plans complete; Phase 19 is 3/3).
 
 ## Key Decisions Added in 18-01 + 18-02 + 18-03 + 18-04
 
@@ -61,10 +61,16 @@ Progress: [▓▓▓▓▓▓▓▓▓░] 91% (v1.6: 3 of 4 phases complete; 10
 - Rationale carried on the EDGE provenance note (Blocker 4 fix) — not just on the Offering node. The dual-source rationale `"lễ vật của nghi lễ, hỗ trợ chữa trị ngũ hành tương ứng"` is embedded in the vn-folk-ritual entry's note via `rationale=...` substring, ensuring any consumer querying the edge can recover the rationale without a node lookup.
 - Edge dedup via `HashSet<(ritual_node_id, offering_node_id)>` (NOT provenance dedup) — keys on edge endpoints, not provenance entries. The v1.5 multi-source append-pattern remains the single source of truth for provenance.
 
+## Key Decisions Added in 19-03
+
+- `build_day_snapshot_graph` is re-exported at the `semantic_graph` crate root (`pub use builders::{build_day_snapshot_graph, ...}`) instead of flipping the private `builders` + `day_snapshot` modules to `pub mod`. The plan's literal import path (`amlich_core::semantic_graph::builders::day_snapshot::build_day_snapshot_graph`) is unreachable from external consumers because both modules are `mod` (private). The re-export is the minimal, idiomatic fix and mirrors the existing `build_reasoning_input_graph` re-export pattern; keeps the builder subtree private. Rule 3 (Blocking) auto-fix.
+- Combined-strip v1.5→v1.6 round-trip test pattern (BLOCKER 5 FIX): Test 7 removes ALL v1.6-new additive fields together (`daily_flying_stars` + `offering_refs` + `offerings`) to simulate the v1.5 fixture shape, then re-serializes the recovered v1.6 value and asserts byte-equal round-trip + no unexpected fields. Extends Phase 18-04's single-strip pattern into a single canonical "strip every new field, re-serialize, assert byte-equal" discipline for additive DTO verification going forward.
+- INT-10 closed: both sub-criteria satisfied — (1) v1.5→v1.6 backward-compat round-trip via 3 new tests in `day_snapshot_v14_compat.rs`, (2) >=5-date 2026 E2E smoke in `integration_2026_smoke.rs` exercising BOTH annual/monthly `flying_stars` AND new `daily_flying_stars` AND new `offering_refs` fields with semantic-graph `Offering` + `RecommendsOffering` wiring verified (BLOCKER 6 endpoint shape + INT-09 dual-source provenance + BLOCKER 7 annual/monthly FlyingStar components).
+
 ## v1.6 Target Features
 
 1. **Daily Flying Star (日紫白)** — ✅ ADR/schema lock done (FS-17); ✅ algorithm + 11 tests green (FS-16); ✅ golden dataset + 4 integration tests green (FS-18); ✅ DaySnapshot field + CRIT-3 grep guard green (FS-19). Phase 18 complete.
-2. **`RecommendsOffering` semantic-graph node** — ✅ INT-08 + INT-07 schema lock done (19-01: OfferingRef struct + SourceId alias + DaySnapshot additive fields). ✅ 19-02 complete (Offering + RecommendsOffering ontology + payload field + INT-09 dual-source provenance). Next: 19-03 external-crate black-box tests.
+2. **`RecommendsOffering` semantic-graph node** — ✅ INT-08 + INT-07 schema lock done (19-01: OfferingRef struct + SourceId alias + DaySnapshot additive fields). ✅ 19-02 complete (Offering + RecommendsOffering ontology + payload field + INT-09 dual-source provenance). ✅ 19-03 complete (3 v1.5→v1.6 round-trip tests + E2E 2026 smoke; INT-10 closed). Phase 19 complete.
 3. **RIT-11 reviewer field closure** — ✅ RIT-14 + RIT-15 closed in 17-01; ✅ RIT-16 closed in 17-02. Phase 17 complete.
 4. **ADR-0003 pre-1984 confidence boost** — ✅ FND-07 closed in 16-01; ✅ FND-08 closed in 16-02. Phase 16 complete.
 
@@ -92,16 +98,17 @@ Progress: [▓▓▓▓▓▓▓▓▓░] 91% (v1.6: 3 of 4 phases complete; 10
 - `.planning/phases/18-daily-phi-tinh/18-04-SUMMARY.md` — Plan 18-04 execution record (FS-19 DaySnapshot additive field + CRIT-3 grep guard).
 - `.planning/phases/19-recommends-offering-semantic-graph-node/19-01-SUMMARY.md` — Plan 19-01 execution record (INT-08 OfferingRef schema lock + INT-07 SourceId alias + DaySnapshot additive fields).
 - `.planning/phases/19-recommends-offering-semantic-graph-node/19-02-SUMMARY.md` — Plan 19-02 execution record (Offering + RecommendsOffering ontology + INT-08 payload field + INT-09 dual-source provenance).
+- `.planning/phases/19-recommends-offering-semantic-graph-node/19-03-SUMMARY.md` — Plan 19-03 execution record (INT-10 v1.5→v1.6 backward-compat round-trip + 2026 E2E Offering-wiring smoke test).
 
 ## Session Continuity
 
-Last session: 2026-07-15T17:05:20Z
-Stopped at: Completed 19-02-PLAN.md. Phase 19 plan 2 of 3 executed (INT-07 + INT-08 + INT-09 closed; Offering + RecommendsOffering ontology across 6 slices + payload field + dual-source provenance). Phase 19-03 (external-crate black-box tests) next.
+Last session: 2026-07-16T00:30:00Z
+Stopped at: Completed 19-03-PLAN.md. Phase 19 plan 3 of 3 executed (INT-10 closed; 3 round-trip tests + 1 E2E smoke + Rule 3 build_day_snapshot_graph re-export). Phase 19 complete (3/3 plans); all 12 v1.6 requirements satisfied. v1.6 Eastern Knowledge Completion milestone ready for transition.
 Resume file: None.
 
 ### Next Step
 
-Start Phase 19 plan 19-03: external-crate black-box tests for the full RecommendsOffering pipeline. Primary test surface: load `tet-nguyen-dan.json`, build a Tết 2026 `DaySnapshot`, assert the graph contains `RecommendsOffering` edges with dual-source provenance (vn-folk-ritual + huyen-khong for the van-khan-tet-day-du entry's offerings).
+v1.6 milestone is feature-complete (all 12 requirements closed: FND-07/08, RIT-14/15/16, FS-16/17/18/19, INT-07/08/09/10). Suggested next steps: (a) run `/gsd-verify-work 19` for the final cross-phase audit, (b) `/gsd-complete-milestone` to formally close v1.6 and log it in MILESTONES.md, (c) `/gsd-plan-phase 20` (or `/gsd-add-phase`) for v1.7 planning.
 
 ---
-*State updated: 2026-07-15 after 19-02-PLAN.md executed (INT-07 + INT-08 + INT-09 closed; Phase 19 2/3 complete; build clean; 716 lib tests pass (+4 from 712 baseline); day_snapshot_v14_compat 6/6 pass; source_id_guard 1/1 pass). Phase 19-03 next.*
+*State updated: 2026-07-16 after 19-03-PLAN.md executed (INT-10 closed; Phase 19 3/3 complete; build clean; 716 lib tests + 9 day_snapshot_v14_compat + 4 integration_2026_smoke + 1 source_id_guard all pass, zero regressions). v1.6 milestone feature-complete (all 12 requirements satisfied).*

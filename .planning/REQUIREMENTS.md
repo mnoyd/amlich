@@ -31,7 +31,7 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 - [x] **INT-07**: User-of-semantic-graph can find a new `NodeConcept::Offering` variant with associated identity (`offering_id: String`, `name_vi: String`, `name_en: Option<String>`, `source_id: SourceId`), plus `EdgeConcept::RecommendsOffering` connecting `Ritual` → `Offering` carrying rationale + source provenance. ✅ Closed 2026-07-15 in 19-02 (commits 3dce869 + 18028b3; ontology extended across all 6 slice locations + new sibling test `v16_concepts_present_in_ontology_slices`).
 - [x] **INT-08**: User-of-API can rely on `Ritual` node payload exposing `offering_refs: Option<Vec<OfferingRef>>` additively (preferred path) while keeping the legacy `offerings: Option<Vec<String>>` flat-string field present for backward compatibility — both fields `#[serde(default, skip_serializing_if = "Option::is_none")]`. ✅ Closed 2026-07-15 in 19-01 (commits eddc51d + 6508f79) + 19-02 (SemanticNode payload field + add_ritual_facts population).
 - [x] **INT-09**: User-of-semantic-graph can be confident that `RecommendsOffering` edges carry dual-source provenance where the offering reference originates in a non-ritual tradition (e.g., a Huyền Không element cure surfaced inside a ritual carries both `huyen-khong` and `vn-folk-ritual` provenance on the edge), reusing the existing multi-source Direction-node dedup logic from v1.5. ✅ Closed 2026-07-15 in 19-02 (RitualMetadata + CrossSourceCure schema + van-khan-tet-day-du corpus annotation + add_offering_facts dual-source track_provenance pattern; commits 3dce869 + 18028b3).
-- [ ] **INT-10**: User-of-`DaySnapshot` can find a v1.5→v1.6 backward-compat round-trip test that loads a v1.5 JSON fixture (with `flying_stars` but no `daily_flying_stars`) into v1.6 structs and re-serializes without unexpected fields, plus an end-to-end 2026 calendar smoke test on ≥ 5 representative dates that exercise both the existing annual/monthly fields and the new daily field.
+- [x] **INT-10**: User-of-`DaySnapshot` can find a v1.5→v1.6 backward-compat round-trip test that loads a v1.5 JSON fixture (with `flying_stars` but no `daily_flying_stars`) into v1.6 structs and re-serializes without unexpected fields, plus an end-to-end 2026 calendar smoke test on ≥ 5 representative dates that exercise both the existing annual/monthly fields and the new daily field.
 
 ## Out of Scope
 
@@ -60,7 +60,7 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 | INT-07 | Phase 19 | **Complete** (2026-07-15, 19-02) |
 | INT-08 | Phase 19 | **Complete** (2026-07-15, 19-01 + 19-02) |
 | INT-09 | Phase 19 | **Complete** (2026-07-15, 19-02) |
-| INT-10 | Phase 19 | Pending (19-03 next) |
+| INT-10 | Phase 19 | **Complete** (2026-07-16, 19-03) |
 
 **Coverage:**
 - v1.6 requirements: 12 total
@@ -70,4 +70,4 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 
 ---
 *Requirements defined: 2026-07-15*
-*Last updated: 2026-07-15 — RIT-14 + RIT-15 marked Complete after 17-01 execution (provenance_audit.md expanded to 8-column review record; 60/60 ExternalReviewPending markers; 0/0/0/60 outcome breakdown; ledger remains canonical record; no JSON schema changes; 888/888 tests still pass — 6/6 rituals_integration confirmed).*
+*Last updated: 2026-07-16 — INT-10 marked Complete after 19-03 execution (3 v1.5→v1.6 backward-compat round-trip tests for offering_refs + offerings additive fields in day_snapshot_v14_compat.rs including BLOCKER 5 combined-strip discipline; 1 E2E 2026 smoke test in integration_2026_smoke.rs exercising Offering node + RecommendsOffering edge wiring on >=5 representative dates with BLOCKER 6 endpoint + INT-09 dual-source verification + BLOCKER 7 annual/monthly FlyingStar component verification; 9/9 + 4/4 + 716 lib tests pass; zero regressions; v1.6 milestone feature-complete — all 12 requirements satisfied).*

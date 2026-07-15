@@ -30,7 +30,7 @@
 - [x] **Phase 16: Foundation — ADR-0003 Confidence Closure** - Promote pre-1984 Thượng/Trung Nguyên polarity rows MEDIUM → HIGH after external cross-check; resolve or explicitly defer the 1960 Trung Nguyên `KnownDivergence`.
 - [x] **Phase 17: Văn khấn Reviewer Closure** - Populate the `reviewer` field on every ritual entry (identity OR explicit `ExternalReviewPending` marker); re-verify corrected entries pass existing JSON-schema + NFC guards.
 - [x] **Phase 18: Daily Phi Tinh (日紫白)** - Land the deferred daily layer: `compute_daily_flying_stars` with 冬至/夏至 reversal, ADR-0004 daily starting-star convention, multi-source daily golden dataset, additive `DaySnapshot.daily_flying_stars` field. (completed 2026-07-15)
-- [ ] **Phase 19: `RecommendsOffering` Semantic-Graph Node + v1.6 Integration** - Promote offerings to first-class nodes (Ritual → Offering via `RecommendsOffering` edge with dual-source provenance); v1.5→v1.6 backward-compat round-trip + 2026 E2E smoke. *(in progress — 19-01 + 19-02 complete)*
+- [x] **Phase 19: `RecommendsOffering` Semantic-Graph Node + v1.6 Integration** - Promote offerings to first-class nodes (Ritual → Offering via `RecommendsOffering` edge with dual-source provenance); v1.5→v1.6 backward-compat round-trip + 2026 E2E smoke. (completed 2026-07-16)
 
 ## Phase Details
 
@@ -97,7 +97,7 @@
 
 **Depends on**: Phase 18 (FS-19's `daily_flying_stars` field must exist for the round-trip test to exercise both old and new DTO fields).
 
-**Requirements**: INT-07 (✅ closed 19-02), INT-08 (✅ closed 19-01 + 19-02), INT-09 (✅ closed 19-02), INT-10
+**Requirements**: INT-07 (✅ closed 19-02), INT-08 (✅ closed 19-01 + 19-02), INT-09 (✅ closed 19-02), INT-10 (✅ closed 19-03)
 
 **Success Criteria** (what must be TRUE):
   1. A reader of the ontology can find a new `NodeConcept::Offering` variant and a new `EdgeConcept::RecommendsOffering` (Ritual → Offering) edge concept, both with exhaustive matches enforced by the compiler across all six ontology slice locations; the `OfferingRef { offering_id: String, name_vi: String, name_en: Option<String>, source_id: SourceId }` identity type is locked before any builder code emits `Offering` nodes.
@@ -109,7 +109,7 @@
 **Plans**: 3 plans
 - [x] 19-01-PLAN.md — Schema-first: `OfferingRef` struct + additive `offering_refs` on `Ritual` semantic-graph node payload (coexists with legacy `offerings` flat-string field for BC) (INT-08) — commits eddc51d (feat OfferingRef + SourceId) + 6508f79 (feat DaySnapshot fields + populate + focused test)
 - [x] 19-02-PLAN.md — Ontology: `NodeConcept::Offering` + `EdgeConcept::RecommendsOffering` across all six slice locations + dual-source edge provenance builder extending v1.5 multi-source dedup logic (INT-07, INT-09) — commits 3dce869 (feat Offering + RecommendsOffering ontology + payload field) + 18028b3 (feat dual-source provenance + RitualMetadata + CrossSourceCure + corpus annotation)
-- [ ] 19-03-PLAN.md — v1.5→v1.6 backward-compat round-trip test + 2026 E2E smoke (≥ 5 dates exercising daily + annual + `Offering`/`RecommendsOffering` wiring) (INT-10)
+- [x] 19-03-PLAN.md — v1.5→v1.6 backward-compat round-trip test + 2026 E2E smoke (≥ 5 dates exercising daily + annual + `Offering`/`RecommendsOffering` wiring) (INT-10) — commits c0a37c0 (test 3 round-trip tests for offering_refs + offerings) + bd5aeda (feat E2E 2026 smoke for Offering wiring + Rule 3 re-export of build_day_snapshot_graph)
 
 ## Progress Table
 
@@ -118,7 +118,7 @@
 | 16. Foundation — ADR-0003 Confidence Closure | 2/2 | Complete    | 2026-07-15 |
 | 17. Văn khấn Reviewer Closure | 2/2 | Complete    | 2026-07-15 |
 | 18. Daily Phi Tinh (日紫白) | 4/4 | Complete    | 2026-07-15 |
-| 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 2/3 | In Progress|  |
+| 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 3/3 | Complete   | 2026-07-16 |
 
 ## Requirement Coverage
 
@@ -141,4 +141,4 @@
 
 ---
 
-*Last updated: 2026-07-15 — v1.6 roadmap (Phases 16-19, 11 plans, 12/12 requirements mapped). Phase 19 in progress (19-01 + 19-02 complete: OfferingRef + SourceId + DaySnapshot fields + Offering ontology + INT-09 dual-source provenance; INT-07 + INT-08 + INT-09 all closed). 19-03 external-crate black-box tests next.*
+*Last updated: 2026-07-16 — v1.6 roadmap (Phases 16-19, 11 plans, 12/12 requirements mapped). Phase 19 COMPLETE (3/3 plans: 19-01 schema lock + 19-02 ontology/builder + 19-03 external-crate black-box tests). INT-07 + INT-08 + INT-09 + INT-10 all closed. v1.6 milestone feature-complete — all 12 requirements satisfied; ready for milestone transition.*
