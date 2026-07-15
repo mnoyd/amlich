@@ -87,7 +87,7 @@
 
 **Plans**: 4 plans
 - [x] 18-01-PLAN.md — ADR-0004 daily starting-star convention + `DailyFlyingStarLayout` type stub in `almanac/fengshui/types.rs` (FS-17) — commits b2265eb (docs) + a593a13 (feat)
-- [ ] 18-02-PLAN.md — `compute_daily_flying_stars` algorithm with 冬至/夏至 reversal via v1.1.2 Tiết Khí scanner (FS-16)
+- [x] 18-02-PLAN.md — `compute_daily_flying_stars` algorithm with 冬至/夏至 reversal via v1.1.2 Tiết Khí scanner (FS-16) — commits 27ce722 (feat algorithm + mod.rs wiring) + 083a483 (feat 11 tests)
 - [ ] 18-03-PLAN.md — Daily golden dataset (≥ 10 dates per Vận, ≥ 2 sources per case, `KnownDivergence` log) + tests/fengshui_daily_integration.rs (FS-18)
 - [ ] 18-04-PLAN.md — `DaySnapshot.daily_flying_stars: Option<DailyFlyingStarLayout>` additive field + v1.5 fixture round-trip test + CRIT-3 grep guard refresh (FS-19)
 
@@ -117,7 +117,7 @@
 |-------|----------------|--------|-----------|
 | 16. Foundation — ADR-0003 Confidence Closure | 2/2 | Complete    | 2026-07-15 |
 | 17. Văn khấn Reviewer Closure | 2/2 | Complete    | 2026-07-15 |
-| 18. Daily Phi Tinh (日紫白) | 1/4 | In Progress|  |
+| 18. Daily Phi Tinh (日紫白) | 2/4 | In Progress|  |
 | 19. `RecommendsOffering` Semantic-Graph Node + v1.6 Integration | 0/3 | Not started | - |
 
 ## Requirement Coverage

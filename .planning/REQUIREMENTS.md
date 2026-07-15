@@ -21,7 +21,7 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 
 ### P4 Phi Tinh — Daily layer (Lưu Nhật / 日紫白)
 
-- [ ] **FS-16**: User can call `compute_daily_flying_stars(date: NaiveDate, term_scanner: &TietKhiScanner) -> DailyFlyingStarLayout` returning the 9-palace daily grid, honouring 冬至/夏至 reversal semantics per a new daily-boundary ADR (FS-17).
+- [x] **FS-16**: User can call `compute_daily_flying_stars(date: NaiveDate, term_scanner: &TietKhiScanner) -> DailyFlyingStarLayout` returning the 9-palace daily grid, honouring 冬至/夏至 reversal semantics per a new daily-boundary ADR (FS-17).
 - [x] **FS-17**: User-of-Phi-Tinh can rely on a documented ADR capturing the daily starting-star convention (which year's annual chart seeds the daily count, and how 冬至/夏至 pivot reverses the forward sequence). The ADR cites chapter + page in *Thẩm Thị Huyền Không Học* and lists the alternative conventions considered.
 - [ ] **FS-18**: User-of-validation can find a daily-chart golden dataset with ≥ 10 reference dates per Vận, ≥ 2 independent classical sources per case, *Thẩm Thị Huyền Không Học* as tiebreaker, and any source disagreements logged as `KnownDivergence` (not silently corrected).
 - [ ] **FS-19**: User-of-`DaySnapshot` can find a new additive `daily_flying_stars: Option<DailyFlyingStarLayout>` field (`#[serde(default, skip_serializing_if = "Option::is_none")]`) with v1.5 fixtures round-tripping cleanly through the new field absent.
@@ -53,7 +53,7 @@ REQs continue numbering from v1.5 archive (FND-01..06, RIT-01..13, FS-01..15, IN
 | RIT-14 | Phase 17 | **Complete** (2026-07-15, 17-01) |
 | RIT-15 | Phase 17 | **Complete** (2026-07-15, 17-01) |
 | RIT-16 | Phase 17 | **Complete** (2026-07-15, 17-02) |
-| FS-16 | Phase 18 | Pending |
+| FS-16 | Phase 18 | **Complete** (2026-07-15, 18-02) |
 | FS-17 | Phase 18 | Complete |
 | FS-18 | Phase 18 | Pending |
 | FS-19 | Phase 18 | Pending |
