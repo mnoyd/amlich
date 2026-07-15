@@ -31,6 +31,8 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 
 ## Validated Capabilities (after v1.5)
 
+> v1.6 Eastern Knowledge Completion initialised; capabilities below are the post-v1.5 baseline. v1.6 will add Daily Flying Star + `RecommendsOffering` node + close review/confidence debt.
+
 - ✓ KHCBPPT-aligned core calendar (v1.0–v1.1)
 - ✓ Ten Gods + Kua + Dai Van calculators (v1.2–v1.3)
 - ✓ Hour pillar + 60-cycle + Na Am parity (v1.4)
@@ -42,15 +44,24 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 
 - **P2 Kinh Dịch, P3 Y học, P6 Tử Vi** — deferred per Expansion Framework tiering.
 - **P5 Spatial Phi Tinh / `spatial_compose`** — requires user spatial input (sit/face direction); explicit CRIT-3 isolation forbids wiring `FlyingStar` into `interaction/direction_merge.rs`.
-- **Daily / Hourly Phi Tinh** — explicit OUT-OF-SCOPE in v1.5 requirements; would need a separate per-day starting-star convention ADR.
+
+## Current Milestone: v1.6 Eastern Knowledge Completion
+
+**Goal:** Round out the Eastern Knowledge pillar by adding the deferred daily Phi Tinh layer, promoting `RecommendsOffering` to a first-class semantic-graph node, and closing the v1.5 review/confidence tech debt.
+
+**Target features:**
+- **Daily Flying Star (日紫白)** — per-day Phi Tinh overlay with 冬至/夏至 reversal, reusing v1.5 `huyen-khong` overlay + aspect machinery; new ADR for daily starting-star convention.
+- **`RecommendsOffering` semantic-graph node** — promote offerings from flat string list inside `Ritual` payload to first-class node (per `research/ARCHITECTURE.md:263`).
+- **RIT-11 reviewer field closure** — independent peer review for the 60 `reviewer: pending` ritual entries; resolution logged back into `provenance_audit.md`.
+- **ADR-0003 pre-1984 confidence boost** — promote Thượng/Trung Nguyên polarity rows from MEDIUM to HIGH after external cross-check; resolve 1960 Trung Nguyén `KnownDivergence`.
 
 ## Current Focus
 
-Milestone `v1.5` shipped 2026-05-28. Next milestone is unscoped — run `/gsd:new-milestone` to define v1.6 goals.
+Milestone `v1.5` shipped 2026-05-28. Milestone `v1.6 Eastern Knowledge Completion` initialised 2026-07-15; goals above.
 
-**Outstanding v1.5 tech debt (carry-forward, by-design):**
-- RIT-11: `provenance_audit.md reviewer: pending` for all 60 ritual entries — independent peer review deferred post-v1.5 by design.
-- ADR-0003: pre-1984 Thượng/Trung Nguyên polarity rows MEDIUM-confidence; Hạ Nguyên rows are two-source-confirmed. 1960 Trung Nguyên divergence logged as `KnownDivergence`.
+**Outstanding v1.5 tech debt (carry-forward → v1.6 closure):**
+- RIT-11: `provenance_audit.md reviewer: pending` for all 60 ritual entries → v1.6 closure phase.
+- ADR-0003: pre-1984 Thượng/Trung Nguyên polarity rows MEDIUM-confidence → v1.6 confidence-boost phase.
 
 ## Key Decisions
 
@@ -93,4 +104,4 @@ Milestone `v1.5` shipped 2026-05-28. Next milestone is unscoped — run `/gsd:ne
 </details>
 
 ---
-*Last updated: 2026-05-29 after v1.5 milestone close-out (Eastern Knowledge Expansion shipped).*
+*Last updated: 2026-07-15 — v1.6 Eastern Knowledge Completion initialised (4 target features).*
