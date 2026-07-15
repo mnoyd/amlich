@@ -52,7 +52,12 @@
   3. A reader can compile a 1-entry `HexagramEntry` serde round-trip probe and observe it passes BEFORE any of the 64 corpus entries are authored (CRIT-1 schema-lock-first); the three newtypes `TienThienTrigram(u8)` / `HauThienTrigram(u8)` / `KingWenHexagram(u8)` carry NO `From` impl between them (CRIT-3 prevention), and the 64-entry Tiên Thiên-pair → King Wen composition table validates at load.
   4. A reader of the 6-slice ontology can find `NodeConcept::Hexagram`, `EdgeConcept::LocatedAt`, `EdgeConcept::Transforms` extended across all six slice locations (compiler-enforced exhaustive match with no `#[non_exhaustive]` escape), plus `ReasoningEvidenceSourceFamily::IChing` and `ActionId::IChing` enum variants.
 
-**Plans**: TBD
+**Plans**: 3 plans (all Wave 1, parallel — no file conflicts)
+
+Plans:
+- [ ] 20-01-PLAN.md — Registration & Decisions: SOURCE_* consts + source_id_guard + ADRs 0005/0006/0007 + MILESTONES DEC rows (FND-09, FND-10)
+- [ ] 20-02-PLAN.md — IChing Schema Lock: 3 trigram/hexagram newtypes + HexagramEntry + bijective 64-entry composition table + 1-entry serde probe (FND-11)
+- [ ] 20-03-PLAN.md — Ontology 6-Slice Extension: Hexagram node + LocatedAt/Transforms edges + IChing enum variants (FND-12)
 
 ### Phase 21: IChing Corpus + Loader
 
@@ -138,7 +143,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 20. Foundation — Schema Lock + Source IDs + ADRs + Ontology | 0/TBD | Not started | - |
+| 20. Foundation — Schema Lock + Source IDs + ADRs + Ontology | 0/3 | Planned | - |
 | 21. IChing Corpus + Loader | 0/TBD | Not started | - |
 | 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 0/TBD | Not started | - |
 | 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 0/TBD | Not started | - |
@@ -212,4 +217,4 @@ Full details in [`milestones/v1.5-ROADMAP.md`](milestones/v1.5-ROADMAP.md).
 
 ---
 
-*Last updated: 2026-07-16 — v1.7 Kinh Dịch roadmap created (Phases 20-25, 6 phases, 15/15 requirements mapped, 0 plans yet). Schema-lock-first ordering preserved (Phase 20 BLOCKING); parallel cross-link track (Phase 23) merges at Phase 24. Ready for `/gsd-plan-phase 20`.*
+*Last updated: 2026-07-16 — Phase 20 planned (3 plans, all Wave 1 parallel; FND-09/10/11/12 covered). Schema-lock-first ordering preserved (Phase 20 BLOCKING); parallel cross-link track (Phase 23) merges at Phase 24. Ready for `/gsd-execute-phase 20`.*
