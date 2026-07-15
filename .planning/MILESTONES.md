@@ -1,5 +1,29 @@
 # Milestones: Amlich Almanac Correctness Audit
 
+## v1.6 Eastern Knowledge Completion (Shipped: 2026-07-16)
+
+**Delivered:** Rounded out the Eastern Knowledge pillar — landed the deferred daily Phi Tinh layer (日紫白, `compute_daily_flying_stars` with 冬至/夏至 reversal), promoted `RecommendsOffering` to a first-class semantic-graph node (`Offering` nodes + dual-source provenance edges), and closed the carry-forward v1.5 review/confidence tech debt (RIT-11 reviewer field across 60 entries + ADR-0003 pre-1984 confidence boost). All 12 requirements satisfied; full crate 922 tests pass.
+
+**Phases completed:** 4 phases (16-19), 11 plans
+
+**Key accomplishments:**
+- **ADR-0003 confidence closure (Phase 16):** ADR-0003a superseded ADR-0003 §6 — pre-1984 Thượng/Trung Nguyên polarity rows promoted MEDIUM → HIGH after dual-source independent secondary modern verification (phongthuycaivan.org + lasotuvi.com); typed `GoldenConfidence` enum + structured `DeferralMarker` schema field; 1960 Trung Nguyên `KnownDivergence` explicitly logged as `PendingExternalReview` with tiebreaker decision (our_value=5 retained per *Thẩm Thị*; no silent correction). FND-07/08 closed.
+- **Văn khấn reviewer closure (Phase 17):** All 60 ritual entries carry a `reviewer` field — either an actual reviewer identity or an explicit `ExternalReviewPending` deferral marker with documented reason + expected review date; `provenance_audit.md` ledger updated with method/date/outcome per row; corrected entries re-verified via NFC round-trip + JSON-schema guards in `tests/rituals_integration.rs`. RIT-14/15/16 closed.
+- **Daily Phi Tinh (日紫白) (Phase 18):** `compute_daily_flying_stars(date, scanner)` returning the 9-palace daily grid honouring 冬至/夏至 reversal (Dương thuận / Âm nghịch) via the v1.1.2 real-boundary Tiết Khí scanner; Giáp-Tý-as-seed-day mechanic with explicit Pitfall P-7 prior-pivot fall-back; ADR-0004 locks the daily starting-star convention; multi-source daily golden dataset (≥10 dates/Vận, ≥2 sources/case, `KnownDivergence` log); additive `DaySnapshot.daily_flying_stars` with v1.5 round-trip; CRIT-3 isolation preserved (grep-guarded). FS-16/17/18/19 closed.
+- **`RecommendsOffering` semantic-graph node (Phase 19):** `Offering` promoted to first-class node — `NodeConcept::Offering` + `EdgeConcept::RecommendsOffering` (Ritual → Offering) across all 6 ontology slice locations; dual-source edge provenance (`huyen-khong` + `vn-folk-ritual`) via `RitualMetadata`/`CrossSourceCure` reusing the v1.5 multi-source `track_provenance` pattern; additive `offering_refs`/`offerings` fields on Ritual payload; v1.5→v1.6 backward-compat round-trip + 2026 E2E smoke on ≥5 representative dates. INT-07/08/09/10 closed.
+
+**Stats:** 50 commits, 63 files changed, +12,704 / −268 lines; 922 tests pass (0 failures); 2026-07-15 → 2026-07-16.
+
+**Git range:** `01a17c2` → `bd5aeda`
+
+**Audit:** `.planning/milestones/v1.6-MILESTONE-AUDIT.md` — 12/12 requirements, 4/4 phases passed, 13/13 integration WIRED, 7/7 E2E flows pass. Status `tech_debt` (zero gaps; non-blocking deferrals only).
+
+**Known gaps / tech debt (by-design deferrals, not blockers):**
+- **4 domain-expert deferrals (due 2026-12-31):** 1960 Trung Nguyên center-value split (`PendingExternalReview`), 60 ritual reviewer entries (`ExternalReviewPending`), ADR-0004 page-level citation (future ADR-0004a), Hạ Chí 2025-06-28 daily divergence (`DeferralMarker`). All tracked via typed schema fields.
+- **Pre-existing engineering debt (NOT introduced by v1.6):** ~96 cargo clippy warnings + cargo fmt issues on master; unused `ProvenanceSource` import. Candidate for a dedicated cleanup phase.
+
+---
+
 ## v1.5 Eastern Knowledge Expansion (Shipped: 2026-05-28)
 
 **Delivered:** Two Tier-0 pillars shipped beside the entrenched khcbppt family — P1 Văn khấn cổ truyền (`source_id: vn-folk-ritual`, 60-entry corpus + 4 lookup APIs) and P4 Phi Tinh thời gian (`source_id: huyen-khong`, Van/Niên/Nguyệt layered overlays + 81-cell aspect table + safety hints) — wired into `DaySnapshot` via additive `Option<T>` fields and into the semantic graph with `Ritual`/`FlyingStar` nodes plus `PrescribedFor`/`OccupiesPalace`/`CarriesElement` edges.

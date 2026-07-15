@@ -1,9 +1,9 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.6
-milestone_name: Integration
-status: unknown
-last_updated: "2026-07-15T17:37:20.278Z"
+milestone_name: Eastern Knowledge Completion
+status: shipped
+last_updated: "2026-07-16T01:30:00Z"
 progress:
   total_phases: 24
   completed_phases: 24
@@ -14,21 +14,21 @@ progress:
 # Project State
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-15)
+See: .planning/PROJECT.md (updated 2026-07-16)
 
 **Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source (KHCBPPT / `vn-folk-ritual` / *Thẩm Thị Huyền Không Học*) for the 2020-2030 date range, with test-backed and traceable evidence.
 
-**Current focus:** v1.6 Eastern Knowledge Completion — Phase 19 COMPLETE (all 3 plans: 19-01 schema lock + 19-02 ontology/builder + 19-03 external-crate black-box tests). INT-07/08/09/10 all closed. All 12 v1.6 requirements satisfied. Next: milestone transition / v1.7 planning.
+**Current focus:** v1.6 Eastern Knowledge Completion shipped 2026-07-16. No active milestone — next milestone TBD via `/gsd-new-milestone`.
 
 ## Current Position
 
-Milestone: v1.6 Eastern Knowledge Completion.
-Phase: 19 of 4 planned (Phase 19: Recommends Offering Semantic Graph Node, 3 plans) — COMPLETE.
-Plan: 19-03 COMPLETE (3 v1.5→v1.6 backward-compat round-trip tests for offering_refs + offerings additive fields, including BLOCKER 5 FIX combined-strip discipline; 1 E2E 2026 smoke test exercising Offering node + RecommendsOffering edge wiring on >=5 representative dates with BLOCKER 6 endpoint + INT-09 dual-source verification + BLOCKER 7 annual/monthly FlyingStar component verification). INT-10 closed; Phase 19 complete (3/3 plans). All 12 v1.6 requirements satisfied.
-Status: All v1.6 requirements closed (FND-07/08, RIT-14/15/16, FS-16/17/18/19, INT-07/08/09/10). Test gates green: 716 lib tests + 9 day_snapshot_v14_compat + 4 integration_2026_smoke + 1 source_id_guard all pass with zero regressions vs Phase 19-02 baseline.
-Last activity: 2026-07-16 — 19-03-PLAN.md executed: 3 round-trip tests appended to day_snapshot_v14_compat.rs (commit c0a37c0); 1 E2E smoke test appended to integration_2026_smoke.rs + 1-line re-export of build_day_snapshot_graph at semantic_graph crate root (Rule 3 blocking auto-fix — the plan's deep import path traversed private modules; mirrors existing build_reasoning_input_graph re-export pattern) (commit bd5aeda). `cargo test -p amlich-core` 716 lib tests + all integration tests pass (zero regressions); `cargo test -p amlich-core --test day_snapshot_v14_compat` 9/9 pass (3 v1.4→v1.5 + 3 Phase 18 v1.5→v1.6 daily_flying_stars + 3 Phase 19 v1.5→v1.6 offering_refs); `cargo test -p amlich-core --test integration_2026_smoke` 4/4 pass (3 pre-existing + 1 new offering wiring); `cargo test -p amlich-core --test source_id_guard` 1/1 pass. INT-10 closed; Phase 19 complete (3/3 plans).
+Milestone: v1.6 Eastern Knowledge Completion — SHIPPED 2026-07-16.
+Phases: 16-19 (all complete; 4/4 phases, 11/11 plans). All 12 v1.6 requirements satisfied (FND-07/08, RIT-14/15/16, FS-16/17/18/19, INT-07/08/09/10).
+Status: Milestone archived to `.planning/milestones/v1.6-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md`. Tagged `v1.6`. Full crate 922 tests pass (0 failures). Next milestone not yet started.
 
-Progress: [▓▓▓▓▓▓▓▓▓▓] 100% (v1.6: 4 of 4 phases complete; 11 of 11 plans complete; Phase 19 is 3/3).
+Progress: [▓▓▓▓▓▓▓▓▓▓] 100% (v1.6: 4 of 4 phases complete; 11 of 11 plans complete).
+
+Last activity: 2026-07-16 — milestone audit (12/12 reqs, 13/13 integration WIRED, 7/7 E2E flows pass) + milestone completion (archived roadmap + requirements + audit; MILESTONES.md entry; PROJECT.md full evolution; RETROSPECTIVE.md v1.6 section; git tag v1.6).
 
 ## Key Decisions Added in 18-01 + 18-02 + 18-03 + 18-04
 
@@ -76,39 +76,24 @@ Progress: [▓▓▓▓▓▓▓▓▓▓] 100% (v1.6: 4 of 4 phases complete; 1
 
 ## Resources
 
-- `.planning/PROJECT.md` — project trajectory + Key Decisions table (updated 2026-07-15).
-- `.planning/MILESTONES.md` — shipped-milestone log with stats + accomplishments.
-- `.planning/ROADMAP.md` — v1.6 roadmap (Phases 16-19, 11 plans, 12/12 requirements mapped). Phase 18 marked Complete (4/4).
-- `.planning/REQUIREMENTS.md` — v1.6 requirements + traceability (FS-19 marked Complete post-18-04).
+- `.planning/PROJECT.md` — project trajectory + Key Decisions table (updated 2026-07-16 after v1.6).
+- `.planning/MILESTONES.md` — shipped-milestone log with stats + accomplishments (v1.6 entry added 2026-07-16).
+- `.planning/ROADMAP.md` — collapsed roadmap (v1.6 archived into `<details>`; all 5 milestones shipped).
+- `.planning/REQUIREMENTS.md` — deleted; archived to `milestones/v1.6-REQUIREMENTS.md` (fresh one created by next `/gsd-new-milestone`).
 - `.planning/research/SUMMARY.md` — v1.5 research (HIGH confidence on P1/P4; v1.6 daily layer extends the validated patterns; no refresh flagged).
-- `.planning/milestones/v1.5-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md` — v1.5 archive (reuse patterns).
-- `.planning/RETROSPECTIVE.md` — cross-milestone learnings (v1.5 patterns carry forward: schema-lock-before-corpus, single-commit RED→GREEN, audit-as-decisive-source, external-crate black-box tests).
-- `.planning/adrs/0001-ritual-schema-v1.md` — ADR-0001 (locked).
-- `.planning/adrs/0002-phi-tinh-monthly-anchor.md` — ADR-0002 (locked).
-- `.planning/adrs/0003-nien-tu-bach-polarity.md` — ADR-0003 (matrix authoritative; §6 superseded by ADR-0003a).
-- `.planning/adrs/0003a-nien-tu-bach-polarity-confidence-closure.md` — ADR-0003a (Accepted 2026-07-15; FND-07 + FND-08 source of truth).
-- `.planning/adrs/0004-daily-phi-tinh-starting-star-convention.md` — ADR-0004 (Accepted 2026-07-15; FS-17 daily starting-star convention source of truth).
-- `.planning/phases/16-foundation-adr-0003-confidence-closure/16-01-SUMMARY.md` — Plan 16-01 execution record (FND-07).
-- `.planning/phases/16-foundation-adr-0003-confidence-closure/16-02-SUMMARY.md` — Plan 16-02 execution record (FND-08).
-- `.planning/phases/17-van-khan-reviewer-closure/17-01-SUMMARY.md` — Plan 17-01 execution record (RIT-14 + RIT-15 ledger expansion).
-- `.planning/phases/17-van-khan-reviewer-closure/17-02-SUMMARY.md` — Plan 17-02 execution record (RIT-16 corrected-entry gate).
-- `.planning/phases/18-daily-phi-tinh/18-01-SUMMARY.md` — Plan 18-01 execution record (FS-17 ADR + schema lock).
-- `.planning/phases/18-daily-phi-tinh/18-02-SUMMARY.md` — Plan 18-02 execution record (FS-16 algorithm + 11 tests).
-- `.planning/phases/18-daily-phi-tinh/18-03-SUMMARY.md` — Plan 18-03 execution record (FS-18 golden dataset + loader + integration tests).
-- `.planning/phases/18-daily-phi-tinh/18-04-SUMMARY.md` — Plan 18-04 execution record (FS-19 DaySnapshot additive field + CRIT-3 grep guard).
-- `.planning/phases/19-recommends-offering-semantic-graph-node/19-01-SUMMARY.md` — Plan 19-01 execution record (INT-08 OfferingRef schema lock + INT-07 SourceId alias + DaySnapshot additive fields).
-- `.planning/phases/19-recommends-offering-semantic-graph-node/19-02-SUMMARY.md` — Plan 19-02 execution record (Offering + RecommendsOffering ontology + INT-08 payload field + INT-09 dual-source provenance).
-- `.planning/phases/19-recommends-offering-semantic-graph-node/19-03-SUMMARY.md` — Plan 19-03 execution record (INT-10 v1.5→v1.6 backward-compat round-trip + 2026 E2E Offering-wiring smoke test).
+- `.planning/milestones/v1.6-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md` — v1.6 archive.
+- `.planning/RETROSPECTIVE.md` — cross-milestone learnings (v1.6 section added).
+- `.planning/adrs/` — ADRs 0001-0004 + 0003a (all locked/accepted).
 
 ## Session Continuity
 
-Last session: 2026-07-16T00:30:00Z
-Stopped at: Completed 19-03-PLAN.md. Phase 19 plan 3 of 3 executed (INT-10 closed; 3 round-trip tests + 1 E2E smoke + Rule 3 build_day_snapshot_graph re-export). Phase 19 complete (3/3 plans); all 12 v1.6 requirements satisfied. v1.6 Eastern Knowledge Completion milestone ready for transition.
+Last session: 2026-07-16T01:30:00Z
+Stopped at: v1.6 milestone archived + tagged. All 12 requirements satisfied; 922 tests pass.
 Resume file: None.
 
 ### Next Step
 
-v1.6 milestone is feature-complete (all 12 requirements closed: FND-07/08, RIT-14/15/16, FS-16/17/18/19, INT-07/08/09/10). Suggested next steps: (a) run `/gsd-verify-work 19` for the final cross-phase audit, (b) `/gsd-complete-milestone` to formally close v1.6 and log it in MILESTONES.md, (c) `/gsd-plan-phase 20` (or `/gsd-add-phase`) for v1.7 planning.
+v1.6 shipped 2026-07-16 (tag `v1.6`). No active milestone. Next: `/gsd-new-milestone` to start v1.7 (fresh requirements + roadmap). Candidate inputs: clippy/fmt cleanup phase, 4 domain-expert deferrals (due 2026-12-31), Expansion Framework sequencing (P2/P3/P5/P6).
 
 ---
-*State updated: 2026-07-16 after 19-03-PLAN.md executed (INT-10 closed; Phase 19 3/3 complete; build clean; 716 lib tests + 9 day_snapshot_v14_compat + 4 integration_2026_smoke + 1 source_id_guard all pass, zero regressions). v1.6 milestone feature-complete (all 12 requirements satisfied).*
+*State updated: 2026-07-16 after v1.6 milestone completion (archived + tagged; 922 tests pass; all 12 requirements satisfied).*
