@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Kinh Dịch (I-Ching Divination)
 status: in_progress
-last_updated: "2026-07-15T19:45:50Z"
+last_updated: "2026-07-15T19:49:03Z"
 progress:
   total_phases: 6
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 3
 ---
 
 # Project State
@@ -23,12 +23,12 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-Phase: 20 — Foundation (Schema Lock + Source IDs + ADRs + Ontology) — In progress (1/3 plans complete).
-Plan: 20-03 complete; next incomplete plans are 20-01 (source IDs) and 20-02 (IChing schema).
-Status: Plan 20-03 (ontology extension) complete; awaiting 20-01 + 20-02 completion to close Phase 20.
-Last activity: 2026-07-15 — Plan 20-03 executed (Hexagram/LocatedAt/Transforms ontology slices + IChing enum variants).
+Phase: 20 — Foundation (Schema Lock + Source IDs + ADRs + Ontology) — COMPLETE (3/3 plans).
+Plan: All three Phase 20 plans complete (20-01 source IDs + ADRs; 20-02 HexagramEntry schema + composition table; 20-03 ontology extension).
+Status: Phase 20 foundation locked. Ready to plan Phase 21 (IChing Corpus + Loader) against the now-locked HexagramEntry schema + ADR-0005/0006/0007 contracts.
+Last activity: 2026-07-15 — Plan 20-01 executed (SOURCE_KINH_DICH + SOURCE_MAI_HOA_DICH_SO pub const + CI guard extension + ADR-0005/0006/0007 accepted + DEC-0026/0027/0028 MILESTONES cross-refs; FND-09 + FND-10 closed).
 
-Progress: [█░░░░░░░░░] 10% (v1.7: 0/6 phases complete; 1/15 requirements closed — FND-12 done).
+Progress: [██░░░░░░░░] 27% (v1.7: 1/6 phases complete; 4/15 requirements closed — FND-09 + FND-10 + FND-11 + FND-12 done).
 
 ## v1.7 Roadmap Summary
 
@@ -78,17 +78,29 @@ Progress: [█░░░░░░░░░] 10% (v1.7: 0/6 phases complete; 1/15 
 - `.planning/REQUIREMENTS.md` — v1.7 requirements (15 total; traceability filled).
 - `.planning/research/SUMMARY.md` — v1.7 research (HIGH confidence; 8-phase structure suggested, consolidated to 6 for quick depth).
 - `.planning/milestones/v1.{0..6}-{ROADMAP,REQUIREMENTS,MILESTONE-AUDIT}.md` — shipped milestone archives.
-- `.planning/adrs/` — ADRs 0001-0004 + 0003a (locked); ADRs 0005/0006/0007 to be authored in Phase 20.
+- `.planning/adrs/` — ADRs 0001-0007 + 0003a (all locked). ADRs 0005/0006/0007 (Phase 20) lock HexagramEntry schema, Mai Hoa casting convention, and cross-link CRIT-3 carve-out.
 
 ## Session Continuity
 
-Last session: 2026-07-15T19:45:50Z
-Stopped at: Completed 20-03-PLAN.md (Hexagram/LocatedAt/Transforms ontology slices + IChing enum variants; FND-12 closed).
+Last session: 2026-07-15T19:49:03Z
+Stopped at: Completed 20-01-PLAN.md (SOURCE_KINH_DICH + SOURCE_MAI_HOA_DICH_SO pub const + source_id_guard extension + ADR-0005/0006/0007 + DEC-0026/0027/0028; FND-09 + FND-10 closed). Phase 20 is fully complete.
 Resume file: None.
 
 ### Next Step
 
-Plans 20-01 (source IDs) and 20-02 (IChing schema) remain incomplete. Plan 20-02's RED bijectivity test is currently failing as expected — its GREEN implementation will resolve it. Once 20-01 + 20-02 + 20-03 all have SUMMARYs, Phase 20 is complete and Phase 21 (IChing Corpus + Loader) can begin.
+Phase 20 foundation is fully locked. Run `/gsd-plan-phase 21` to plan the IChing Corpus + Loader phase (Ngô Tất Tố 64-hexagram corpus against the now-locked HexagramEntry schema from ADR-0005). Phase 21 implements the loader hao_tu length-rule invariant (6 for #3..64; 7 for #1 & #2) and authors the 64 corpus entries with reviewer free-text markers per ADR-0005 §4. Parallel track: `/gsd-plan-phase 23` for the cross-link (consumes ADR-0007 placement contract).
+
+## v1.7 Plan 20-02 Key Decisions
+
+- FND-11 closed: `HexagramEntry` schema locked with `#[serde(deny_unknown_fields)]` + additive `Option<T>` discipline for reserved `*_en` fields; `pending_review: Option<DeferralMarker>` reused verbatim from `almanac/fengshui/golden.rs:85-95` (v1.6 RIT-14 pattern). 1-entry serde round-trip probe for hexagram #2 Khôn (7 hao_tu + NFC diacritics + DeferralMarker) passes BEFORE any of the 64 corpus entries are authored — the CRIT-1 schema-lock-first gate is in place.
+- Three CRIT-3-isolating newtypes declared with NO `impl From<...>` between them: `TienThienTrigram` (#[repr(u8)] enum, Tiên Thiên 1..8), `HauThienTrigram` (#[repr(u8)] enum, Lo Shu 1..9 skipping 5), `KingWenHexagram` (`pub struct(u8)` newtype with `const fn new(n) -> Option<Self>`). The composition table is the ONLY bridge. Verified by `rg "impl From<(TienThienTrigram|HauThienTrigram|KingWenHexagram)> for ..." crates/amlich-core/src/iching/` returning zero matches.
+- `KingWenHexagram` is a `pub struct(u8)` newtype (NOT a 64-variant enum) — 64 named variants is too verbose to maintain ergonomically; the composition table already carries the readable Tiên Thiên-pair → King Wen mapping. Per 20-RESEARCH.md Open Question #1 recommendation.
+- `TienThienTrigram` and `HauThienTrigram` reuse the `Palace` enum PATTERN (`#[repr(u8)]` + explicit discriminants + `#[serde(rename_all = "snake_case")]` + `ALL: [...; 8]` static array) but NOT the `Palace` type itself — reusing `Palace` directly would re-open CRIT-3 by making `HauThienTrigram` interchangeable with a palace-layout descriptor. Pattern reuse, not type reuse.
+- `HauThienTrigram` encoding pinned to the exact Lo Shu palace numbers (Khảm=1, Khôn=2, Chấn=3, Tốn=4, Kiền=6, Đoài=7, Cấn=8, Ly=9 — skipping 5/center), matching `Palace` exactly per Pitfall 1. This pre-empts the vi.wikipedia sub-school variance that places Ly at 5.
+- `COMPOSITION_TABLE` is a `pub const [(TienThienTrigram, TienThienTrigram); 64]` indexed by King Wen number (index 0 = #1), NOT a runtime-parsed JSON file — WASM-safe by construction (no `std::fs`, no `OnceLock`, no `serde_json::from_str` at load), compile-checked, mirrors the `Palace::ALL` precedent. The bijectivity test runs in `cargo test`, not at runtime.
+- `compose()` uses a linear scan over the 64-entry table (premature to pre-compute a reverse map); panics on missing pair as a contract-violation signal (unreachable per bijectivity test).
+- `HexagramEntry.upper_trigram`/`lower_trigram` are `HauThienTrigram`, NOT `TienThienTrigram` — the corpus follows the King Wen text tradition (Ngô Tất Tố *Kinh Dịch Trọn Bộ*); closes the CRIT-3 round-trip trap (a future maintainer cannot "round-trip" cast → corpus → re-compose).
+- Probe fixture is hexagram #2 Khôn (NOT #1 Kiền) — exercises the 7-hao_tu length rule (dụng lục seventh line) + NFC-sensitive diacritics + populated `pending_review` simultaneously, per 20-RESEARCH.md Pitfall 5.
 
 ## v1.7 Plan 20-03 Key Decisions
 
@@ -142,4 +154,4 @@ Plans 20-01 (source IDs) and 20-02 (IChing schema) remain incomplete. Plan 20-02
 </details>
 
 ---
-*State updated: 2026-07-15 — Plan 20-03 complete (Hexagram/LocatedAt/Transforms ontology + IChing enum variants; FND-12 closed). v1.6 Key Decisions archived into `<details>` (baked into ADRs/code). Next: complete Plans 20-01 + 20-02 to close Phase 20.*
+*State updated: 2026-07-15 — Plans 20-02 + 20-03 complete (HexagramEntry schema lock + 64-entry composition table + Hexagram/LocatedAt/Transforms ontology + IChing enum variants; FND-11 + FND-12 closed). v1.6 Key Decisions archived into `<details>` (baked into ADRs/code). Next: complete Plan 20-01 (source IDs + ADRs) to close Phase 20.*

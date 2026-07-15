@@ -143,7 +143,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 20. Foundation — Schema Lock + Source IDs + ADRs + Ontology | 1/3 | In Progress|  |
+| 20. Foundation — Schema Lock + Source IDs + ADRs + Ontology | 2/3 | In Progress|  |
 | 21. IChing Corpus + Loader | 0/TBD | Not started | - |
 | 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 0/TBD | Not started | - |
 | 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 0/TBD | Not started | - |

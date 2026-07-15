@@ -12,7 +12,7 @@ REQs continue numbering from v1.6 archive (FND-01..08, RIT-01..16, FS-01..19, IN
 
 - [ ] **FND-09**: User-of-sources can find two new `pub const` source_ids registered — `SOURCE_KINH_DICH` (`"kinh-dich"`, for hexagram text corpus) and `SOURCE_MAI_HOA_DICH_SO` (`"mai-hoa-dich-so"`, for the casting algorithm) — with the CI `source_id_guard.rs` extended so bare literals at provenance call-sites are forbidden (DEC-0023 discipline).
 - [ ] **FND-10**: User-of-ADRs can find three accepted decisions — ADR-0005 (IChing `HexagramEntry` schema v1 with `deny_unknown_fields`), ADR-0006 (Mai Hoa casting convention: Tiên Thiên arrangement pinned to a page reference, lunar input, `((n-1)%k)+1` remainder-zero convention), and ADR-0007 (cross-link CRIT-3 carve-out: read-only `reasoning/` placement + composite `rule.composite.direction_cross_link` envelope).
-- [ ] **FND-11**: User-of-schema can find a locked `HexagramEntry` type with `#[serde(deny_unknown_fields)]` + a passing 1-entry serde round-trip probe BEFORE any of the 64 corpus entries are authored (CRIT-1 schema-lock-first), plus three distinct newtypes `TienThienTrigram(u8)` / `HauThienTrigram(u8)` / `KingWenHexagram(u8)` with NO `From` impl between them (CRIT-3 Mai Hoa vs King Wen prevention) and a 64-entry Tiên Thiên-pair → King Wen composition table validated at load.
+- [x] **FND-11**: User-of-schema can find a locked `HexagramEntry` type with `#[serde(deny_unknown_fields)]` + a passing 1-entry serde round-trip probe BEFORE any of the 64 corpus entries are authored (CRIT-1 schema-lock-first), plus three distinct newtypes `TienThienTrigram(u8)` / `HauThienTrigram(u8)` / `KingWenHexagram(u8)` with NO `From` impl between them (CRIT-3 Mai Hoa vs King Wen prevention) and a 64-entry Tiên Thiên-pair → King Wen composition table validated at load.
 - [x] **FND-12**: User-of-ontology can find the 6-slice ontology extended with `NodeConcept::Hexagram`, `EdgeConcept::LocatedAt`, and `EdgeConcept::Transforms` (compiler-enforced exhaustive match across all slice locations), plus `ReasoningEvidenceSourceFamily::IChing` and `ActionId::IChing` enum variants.
 
 ### P2 Kinh Dịch — Corpus + Casting + Evaluator
@@ -54,7 +54,7 @@ REQs continue numbering from v1.6 archive (FND-01..08, RIT-01..16, FS-01..19, IN
 |-------------|-------|--------|
 | FND-09 | 20 | Pending |
 | FND-10 | 20 | Pending |
-| FND-11 | 20 | Pending |
+| FND-11 | 20 | Complete |
 | FND-12 | 20 | Complete |
 | ICH-01 | 21 | Pending |
 | ICH-02 | 22 | Pending |
