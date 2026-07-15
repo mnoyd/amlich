@@ -25,6 +25,12 @@ pub const SOURCE_VN_FOLK_RITUAL: &str = "vn-folk-ritual";
 /// Thẩm Thị Huyền Không Học — Phi Tinh / Flying Stars source (new in v1.5).
 pub const SOURCE_HUYEN_KHONG: &str = "huyen-khong";
 
+/// Kinh Dịch (I-Ching) — Ngô Tất Tố hexagram text corpus (new in v1.7).
+pub const SOURCE_KINH_DICH: &str = "kinh-dich";
+
+/// Mai Hoa Dịch Số — Thiệu Khang Tiết casting algorithm (new in v1.7).
+pub const SOURCE_MAI_HOA_DICH_SO: &str = "mai-hoa-dich-so";
+
 /// Typed alias for `source_id` fields on semantic-graph / corpus types.
 ///
 /// Zero-cost newtype over `String` introduced in Phase 19-01 to satisfy
