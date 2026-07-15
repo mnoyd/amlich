@@ -126,3 +126,63 @@ fn v14_json_without_new_fields_deserializes() {
         "ruleset_id must survive round-trip"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Test 4 — v1.5 JSON (without daily_flying_stars) deserializes into v1.6 DaySnapshot
+// ---------------------------------------------------------------------------
+
+/// A v1.5 DaySnapshot JSON (with flying_stars and applicable_rituals populated
+/// but NO daily_flying_stars key) must deserialize cleanly into the v1.6
+/// DaySnapshot struct. The new daily_flying_stars field is additive with
+/// #[serde(default)] so the missing key defaults to None.
+#[test]
+fn v15_json_without_daily_flying_stars_deserializes() {
+    let mut snap = calculate_day_snapshot(10, 2, 2024);
+    snap.daily_flying_stars = None;
+
+    let v15_json = serde_json::to_string(&snap).expect("v1.5-shaped serialization failed");
+    assert!(!v15_json.contains("\"daily_flying_stars\""),
+        "test precondition: daily_flying_stars must not be in the stripped JSON");
+
+    let recovered: DaySnapshot = serde_json::from_str(&v15_json)
+        .expect("v1.5 JSON must deserialize into v1.6 DaySnapshot");
+    assert!(recovered.daily_flying_stars.is_none(),
+        "daily_flying_stars must default to None when absent from JSON");
+    assert!(recovered.flying_stars.is_some());
+    assert!(recovered.applicable_rituals.is_some());
+}
+
+// ---------------------------------------------------------------------------
+// Test 5 — daily_flying_stars byte-equal round-trip
+// ---------------------------------------------------------------------------
+
+#[test]
+fn daily_flying_stars_byte_equal_round_trip() {
+    let snap = calculate_day_snapshot(10, 2, 2024);
+    let daily = snap.daily_flying_stars.as_ref().expect("daily_flying_stars must be populated");
+
+    let json = serde_json::to_string(&snap).expect("v1.6 serialization failed");
+    let round_tripped: DaySnapshot = serde_json::from_str(&json).expect("v1.6 deserialization failed");
+    let json2 = serde_json::to_string(&round_tripped).expect("v1.6 re-serialization failed");
+
+    assert_eq!(json, json2, "v1.6 DaySnapshot round-trip must be byte-equal");
+    assert_eq!(
+        round_tripped.daily_flying_stars.as_ref().map(|d| d.center_star as u8),
+        Some(daily.center_star as u8),
+        "daily_flying_stars.center_star must survive round-trip"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Test 6 — daily_flying_stars absent in JSON when None
+// ---------------------------------------------------------------------------
+
+#[test]
+fn daily_flying_stars_absent_when_none() {
+    let mut snap = calculate_day_snapshot(10, 2, 2024);
+    snap.daily_flying_stars = None;
+
+    let json = serde_json::to_string(&snap).expect("serialization failed");
+    assert!(!json.contains("\"daily_flying_stars\""),
+        "daily_flying_stars must NOT appear in JSON when None; got: {json}");
+}
