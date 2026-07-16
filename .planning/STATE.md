@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Kinh Dịch (I-Ching Divination)
 status: in_progress
-last_updated: "2026-07-16T03:30:00Z"
+last_updated: "2026-07-16T02:03:17Z"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
 ---
 
 # Project State
@@ -23,12 +23,12 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-Phase: 20 — Foundation (Schema Lock + Source IDs + ADRs + Ontology) — COMPLETE (3/3 plans).
-Plan: All three Phase 20 plans complete (20-01 source IDs + ADRs; 20-02 HexagramEntry schema + composition table; 20-03 ontology extension).
-Status: Phase 20 foundation locked. Ready to plan Phase 21 (IChing Corpus + Loader) against the now-locked HexagramEntry schema + ADR-0005/0006/0007 contracts.
-Last activity: 2026-07-15 — Plan 20-01 executed (SOURCE_KINH_DICH + SOURCE_MAI_HOA_DICH_SO pub const + CI guard extension + ADR-0005/0006/0007 accepted + DEC-0026/0027/0028 MILESTONES cross-refs; FND-09 + FND-10 closed).
+Phase: 21 — IChing Corpus + Loader — IN PROGRESS (1/2 plans).
+Plan: 21-01 complete (64-hexagram corpus JSON + 64-row provenance audit ledger). 21-02 (OnceLock loader + get_hexagram/all_hexagrams API + integration tests) remains.
+Status: IChing corpus DATA half shipped. Plan 21-02 will deliver the CODE half (loader + lookup API + integration tests) to close ICH-01.
+Last activity: 2026-07-16 — Plan 21-01 executed (64-entry hexagrams.json with envelope {$schema_version: iching-v1} + 64-row provenance_audit.md; structural fields derived from COMPOSITION_TABLE; interpretive text deferred per AF-05; zero Rust code touched).
 
-Progress: [██░░░░░░░░] 27% (v1.7: 1/6 phases complete; 4/15 requirements closed — FND-09 + FND-10 + FND-11 + FND-12 done).
+Progress: [██░░░░░░░░] 31% (v1.7: 1/6 phases complete; 4/15 requirements closed — FND-09 + FND-10 + FND-11 + FND-12 done; ICH-01 spans 21-01 DATA + 21-02 CODE).
 
 ## v1.7 Roadmap Summary
 
@@ -82,13 +82,22 @@ Progress: [██░░░░░░░░] 27% (v1.7: 1/6 phases complete; 4/15 
 
 ## Session Continuity
 
-Last session: 2026-07-15T19:49:03Z
-Stopped at: Completed 20-01-PLAN.md (SOURCE_KINH_DICH + SOURCE_MAI_HOA_DICH_SO pub const + source_id_guard extension + ADR-0005/0006/0007 + DEC-0026/0027/0028; FND-09 + FND-10 closed). Phase 20 is fully complete.
+Last session: 2026-07-16T02:03:17Z
+Stopped at: Completed 21-01-PLAN.md (64-entry hexagrams.json corpus + 64-row provenance_audit.md ledger; IChing corpus DATA half of ICH-01). Phase 21 is 1/2 plans complete.
 Resume file: None.
 
 ### Next Step
 
-Phase 20 foundation is fully locked. Run `/gsd-plan-phase 21` to plan the IChing Corpus + Loader phase (Ngô Tất Tố 64-hexagram corpus against the now-locked HexagramEntry schema from ADR-0005). Phase 21 implements the loader hao_tu length-rule invariant (6 for #3..64; 7 for #1 & #2) and authors the 64 corpus entries with reviewer free-text markers per ADR-0005 §4. Parallel track: `/gsd-plan-phase 23` for the cross-link (consumes ADR-0007 placement contract).
+Phase 21 Plan 21-01 (corpus DATA half) is complete. Run `/gsd-execute-phase 21` again to execute Plan 21-02 (OnceLock loader consuming `include_str!("data/iching/hexagrams.json")` + `get_hexagram`/`all_hexagrams` lookup API + NFC/hao_tu-invariant enforcement + black-box integration tests — mirrors the v1.5 `rituals/corpus.rs` pattern). Plan 21-02 fully closes ICH-01 across its 4 success criteria. Parallel track remains available: `/gsd-plan-phase 23` for the Thái Tuế/Tam Sát ⇄ Phi Tinh cross-link.
+
+## v1.7 Plan 21-01 Key Decisions
+
+- IChing corpus DATA half shipped: `data/iching/hexagrams.json` (64 entries, envelope `{"$schema_version": "iching-v1", "entries": [...]}`) + `data/iching/provenance_audit.md` (64-row ledger mirroring Phase 17 closure template). All 64 King Wen indices 1..=64 present once; #1 Kiền & #2 Khôn carry 7 hao_tu (dụng cửu / dụng lục); #3..=64 carry 6 hao_tu. Zero Rust code touched; `cargo build -p amlich-core` stays green.
+- vi_name values ARE safe to populate because they come from the COMPOSITION_TABLE comments (Hán-Việt classical names like "Thuần Kiền", "Truân", "Thái") — these are standard Hán-Việt hexagram names, NOT Ngô Tất Tố's unique textual contribution (per the plan's design_decisions). Interpretive text (thoai_tu, hao_tu, cat_hung) is honestly deferred as `[PendingExternalReview — ...]` placeholders per AF-05 — no silent fill from Richard Wilhelm / Gregory Whincup / another translator.
+- Trigram identity mapping is CRIT-3-safe: `upper_trigram`/`lower_trigram` in JSON are snake_case variant names (`"kien"`, `"khon"`, ...) which deserialise to `HauThienTrigram` variants; the IDENTITY matches `COMPOSITION_TABLE[i].0/.1` (a `TienThienTrigram`) by variant NAME because both enums carry `#[serde(rename_all = "snake_case")]`. The discriminants differ (Tiên Thiên Kiền=1 vs Hậu Thiên Kiền=6) but the JSON name is identical — CRIT-3 isolation preserved at the type level (no `From` impl). All 64 entries' trigram identities cross-checked against the table.
+- Generator-driven authoring: both files produced by deterministic Python scripts that re-declare the 64-hexagram table, eliminating 64× manual transcription risk. NFC normalisation applied via `unicodedata.normalize("NFC", ...)` on every Vietnamese string; verified across all text fields in both files.
+- Dual-surface reviewer record: canonical = per-entry `reviewer: String` field on `HexagramEntry` (survives reviewer-name change without schema migration per ADR-0005 §4); aggregate = `provenance_audit.md` ledger (human-readable audit). Reviewer marker strings byte-identical across the two surfaces (cross-file verified).
+- ICH-01 is split across 21-01 (this plan, DATA) + 21-02 (CODE: OnceLock loader + lookup API + integration tests). ICH-01 is fully closeable once 21-02 ships; the requirement is NOT marked complete in REQUIREMENTS.md until then.
 
 ## v1.7 Plan 20-02 Key Decisions
 
@@ -164,4 +173,4 @@ Phase 20 foundation is fully locked. Run `/gsd-plan-phase 21` to plan the IChing
 </details>
 
 ---
-*State updated: 2026-07-15 — Phase 20 fully complete (3/3 plans). Plan 20-01 closed FND-09 + FND-10 (source IDs + ADR-0005/0006/0007 + DEC-0026/0027/0028). v1.6 Key Decisions archived into `<details>` (baked into ADRs/code). Next: `/gsd-plan-phase 21` (IChing Corpus + Loader) against the now-locked HexagramEntry schema.*
+*State updated: 2026-07-16 — Phase 21 Plan 21-01 complete (64-hexagram corpus JSON + 64-row provenance audit ledger; DATA half of ICH-01). Phase 21 is 1/2 plans done. Next: Plan 21-02 (OnceLock loader + lookup API + integration tests) to fully close ICH-01.*

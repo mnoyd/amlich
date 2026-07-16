@@ -56,7 +56,7 @@ REQs continue numbering from v1.6 archive (FND-01..08, RIT-01..16, FS-01..19, IN
 | FND-10 | 20 | Complete |
 | FND-11 | 20 | Complete |
 | FND-12 | 20 | Complete |
-| ICH-01 | 21 | Pending |
+| ICH-01 | 21 | In Progress (21-01 DATA done; 21-02 CODE pending) |
 | ICH-02 | 22 | Pending |
 | ICH-03 | 22 | Pending |
 | ICH-04 | 22 | Pending |
