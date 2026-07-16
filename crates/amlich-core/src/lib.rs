@@ -288,6 +288,37 @@ pub fn build_initiation_opening_reasoning_bundle(
     reasoning::build_initiation_opening_reasoning_bundle(snapshot, personal_input)
 }
 
+/// Phase 23 (XLK-03) immutable enrichment: clone the snapshot, build the
+/// directional cross-link, project it to the slim DTO form, and attach it
+/// to the `direction_cross_link` field on the cloned snapshot.
+///
+/// Dispatches on the [`DATE_ONLY_BIRTH_CHI_INDEX`][reasoning::DATE_ONLY_BIRTH_CHI_INDEX]
+/// sentinel: passing `usize::MAX` selects the date-only builder; any other
+/// value selects the validated personal builder (which requires
+/// `birth_chi_index < 12`). The input snapshot is never mutated.
+///
+/// Ordinary [`calculate_day_snapshot`] / [`calculate_day_snapshot_with_timezone`]
+/// calls leave `direction_cross_link` as `None`; only this helper populates
+/// it. The result is absent from JSON when None so v1.6 → v1.7 round-trip
+/// stays byte-equal.
+pub fn enrich_day_snapshot_with_direction_cross_link(
+    snapshot: &DaySnapshot,
+    birth_chi_index: usize,
+) -> Result<DaySnapshot, String> {
+    use reasoning::direction_composite::{
+        build_direction_cross_link_date, build_direction_cross_link_personal,
+        project_to_summary, DATE_ONLY_BIRTH_CHI_INDEX,
+    };
+    let summary = if birth_chi_index == DATE_ONLY_BIRTH_CHI_INDEX {
+        project_to_summary(&build_direction_cross_link_date(snapshot)?)
+    } else {
+        project_to_summary(&build_direction_cross_link_personal(snapshot, birth_chi_index)?)
+    };
+    let mut enriched = snapshot.clone();
+    enriched.direction_cross_link = Some(summary);
+    Ok(enriched)
+}
+
 fn calculate_day_snapshot_internal(
     day: i32,
     month: i32,
