@@ -116,8 +116,8 @@ Plans:
 **Plans**: 3 plans (Wave 1: 23-01 + 23-02 parallel; Wave 2: 23-03)
 
 Plans:
-- [ ] 23-01-PLAN.md — Directional Thái Tuế + Tam Sát primitives, evidence backfills, and pending-review provenance (XLK-01, XLK-02)
-- [ ] 23-02-PLAN.md — Cross-link DTO contracts, annual safety-hint transport, and default-None DaySnapshot field (XLK-03)
+- [x] 23-01-PLAN.md — Directional Thái Tuế + Tam Sát primitives, evidence backfills, and pending-review provenance (XLK-01, XLK-02). Completed 2026-07-16.
+- [x] 23-02-PLAN.md — Cross-link DTO contracts, annual safety-hint transport, and default-None DaySnapshot field (XLK-03 contracts half; XLK-03 closes with 23-03). Completed 2026-07-16.
 - [ ] 23-03-PLAN.md — Read-only composite builders, immutable enrichment, evidence tests, and CRIT-3 sibling guard (XLK-03)
 
 ### Phase 24: IChing Evaluator + Semantic-Graph Wiring + DTO Integration
