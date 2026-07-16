@@ -243,6 +243,17 @@ impl SemanticId {
     pub fn to_node_id(&self) -> String {
         format!("{}:{}", self.concept_label, self.stable_key)
     }
+
+    /// Stable key for an IChing Hexagram node (Phase 24-02 INT-11 IChing
+    /// portion). Role-bearing so the primary (`chu`) and transformed
+    /// (`bien`) hexagrams cannot collide.
+    ///   `concept_label = "hexagram"`, `stable_key = "iching:{role}:{king_wen}:{date}:{tz}"`
+    ///
+    /// RED phase stub — full implementation lands in Task 1 GREEN.
+    pub fn iching_hexagram(role: &str, king_wen: u8, date: &str, tz: &str) -> Self {
+        let _ = (role, king_wen, date, tz);
+        unimplemented!("RED phase: SemanticId::iching_hexagram")
+    }
 }
 
 impl std::fmt::Display for SemanticId {

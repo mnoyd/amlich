@@ -246,6 +246,27 @@ pub struct IChingCastSummary {
 }
 
 // ===========================================================================
+// IChingCastSummary accessors (Phase 24-02 INT-11)
+// ===========================================================================
+
+impl IChingCastSummary {
+    /// King Wen index of the primary chủ quẻ (1..=64). Used by the
+    /// semantic-graph builder (`add_iching_facts`) to build the role-bearing
+    /// stable key for the primary Hexagram node.
+    pub fn chu_king_wen_index(&self) -> u8 {
+        self.cast.chu_que.0
+    }
+
+    /// King Wen index of the biến quẻ (1..=64). Used by the semantic-graph
+    /// builder to build the role-bearing stable key for the biến Hexagram
+    /// node. The biến King Wen index MUST differ from the primary's per
+    /// CRIT-4 (a line flip ALWAYS changes the hexagram).
+    pub fn bien_king_wen_index(&self) -> u8 {
+        self.bien_que.king_wen.0
+    }
+}
+
+// ===========================================================================
 // IChingEvaluator — Tier-0 evaluator (no birth data)
 // ===========================================================================
 

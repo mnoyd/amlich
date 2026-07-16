@@ -42,6 +42,8 @@ impl DaySnapshotGraphBuilder {
         builder.add_flying_star_facts(snapshot);
         builder.add_ritual_facts(snapshot);
         builder.add_offering_facts(snapshot);
+        builder.add_iching_facts(snapshot);
+        builder.add_direction_composite_facts(snapshot);
 
         builder
     }
@@ -744,6 +746,36 @@ impl DaySnapshotGraphBuilder {
                 }
             }
         }
+    }
+
+    // =========================================================================
+    // Phase 24-02 (INT-11) — IChing semantic-graph wiring
+    //
+    // RED phase stub. Full implementation lands in Task 1 GREEN. The
+    // method signature is locked now so the dispatch wiring above is
+    // stable, but the body panics on invocation. The companion method
+    // `add_direction_composite_facts` below is the same shape for Task 2.
+    // =========================================================================
+
+    /// Emit TWO distinct `NodeConcept::Hexagram` nodes (primary chủ + biến)
+    /// when `snapshot.iching_cast` is `Some(...)`, with dual-source
+    /// provenance (CRIT-6: SOURCE_MAI_HOA_DICH_SO + SOURCE_KINH_DICH) on
+    /// each node, plus one `EdgeConcept::Transforms` edge (chu → biến) and
+    /// two `EdgeConcept::LocatedAt` edges (each Hexagram → day root).
+    /// Early-returns without modifying the graph when `snapshot.iching_cast`
+    /// is `None`.
+    fn add_iching_facts(&mut self, _snapshot: &DaySnapshot) {
+        unimplemented!("RED phase: DaySnapshotGraphBuilder::add_iching_facts")
+    }
+
+    /// Emit ONE `NodeConcept::Direction` composite fact node when
+    /// `snapshot.direction_cross_link` is `Some(...)` (Phase 23 surface),
+    /// carrying KHCBPPT + Huyền Không primitive source-id entries plus ONE
+    /// composite envelope per Phase 23's locked contract. Early-returns
+    /// without modifying the graph when `snapshot.direction_cross_link` is
+    /// `None`.
+    fn add_direction_composite_facts(&mut self, _snapshot: &DaySnapshot) {
+        unimplemented!("RED phase: DaySnapshotGraphBuilder::add_direction_composite_facts")
     }
 
     pub fn build(self) -> SemanticGraph {
