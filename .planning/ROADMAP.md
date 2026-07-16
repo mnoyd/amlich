@@ -153,7 +153,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 20. Foundation — Schema Lock + Source IDs + ADRs + Ontology | 3/3 | Complete   | 2026-07-15 |
 | 21. IChing Corpus + Loader | 2/2 | Complete    | 2026-07-16 |
-| 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 2/2 | Complete   | 2026-07-16 |
+| 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 2/2 | Complete    | 2026-07-16 |
 | 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 0/TBD | Not started | - |
 | 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | 0/TBD | Not started | - |
 | 25. E2E Validation + Golden Cross-Source Verification | 0/TBD | Not started | - |
