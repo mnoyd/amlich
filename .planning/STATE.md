@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-07-16T02:39:27.661Z"
+last_updated: "2026-07-16T03:51:53.000Z"
 progress:
   total_phases: 26
   completed_phases: 26
-  total_plans: 71
-  completed_plans: 71
+  total_plans: 72
+  completed_plans: 72
 ---
 
 # Project State
@@ -23,12 +23,12 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-Phase: 21 — IChing Corpus + Loader — COMPLETE (2/2 plans). ICH-01 CLOSED.
-Plan: 21-02 complete (OnceLock loader + get_hexagram/all_hexagrams API + 8 black-box integration tests). Both halves of ICH-01 now shipped (21-01 DATA + 21-02 CODE).
-Status: IChing pillar foundation in place. Ready to plan Phase 22 (Mai Hoa casting) or Phase 23 (Thái Tuế/Tam Sát ⇄ Phi Tinh cross-link) in parallel.
-Last activity: 2026-07-16 — Plan 21-02 executed (OnceLock-cached iching/corpus.rs mirroring rituals/corpus.rs; ADR-0005 §2 hao_tu length invariant enforced at load; RIT-08 NFC normalization; 8 integration tests closing ICH-01 SC1-4 from external-crate path).
+Phase: 22 — Mai Hoa Casting + Biến Quẻ + Thể/Dụng — IN PROGRESS (1/2 plans complete).
+Plan: 22-01 complete (cast_mai_hoa + MaiHoaCast + derive_bien_que + BienQue + 9 inline tests + 6 black-box integration tests; ICH-02 + ICH-03 both closed).
+Status: Phase 22 is 1/2 — casting + biến quẻ done; Thể/Dụng classification + ≥10 cross-source golden cases (ICH-04) deferred to Plan 22-02.
+Last activity: 2026-07-16 — Plan 22-01 executed (TDD RED→GREEN + black-box integration suite; CRIT-2 boundary test verifies (8,8,8,8)→Khôn/#2/dong=2 per ADR-0006 §4; CRIT-4 384-case contract test verifies every biến quẻ differs from its chủ quẻ; worked (8,8,8,8)→#7 Sư per COMPOSITION_TABLE line 189; CRIT-3 isolation preserved — zero cross-newtype From impls).
 
-Progress: [███░░░░░░░] 38% (v1.7: 2/6 phases complete; 5/15 requirements closed — FND-09 + FND-10 + FND-11 + FND-12 + ICH-01 done).
+Progress: [████░░░░░░] 47% (v1.7: 2/6 phases complete; 7/15 requirements closed — FND-09..12 + ICH-01..03 done; ICH-04 + ICH-05 + XLK-01..03 + INT-11..13 still Pending).
 
 ## v1.7 Roadmap Summary
 
@@ -82,17 +82,26 @@ Progress: [███░░░░░░░] 38% (v1.7: 2/6 phases complete; 5/15 
 
 ## Session Continuity
 
-Last session: 2026-07-16T02:21:23Z
-Stopped at: Completed 21-02-PLAN.md (OnceLock iching corpus loader + get_hexagram/all_hexagrams API + 8 black-box integration tests; CODE half of ICH-01; ICH-01 fully closed). Phase 21 is 2/2 plans complete.
+Last session: 2026-07-16T03:51:53Z
+Stopped at: Completed 22-01-PLAN.md (Mai Hoa casting cast_mai_hoa + MaiHoaCast struct + biến quẻ derive_bien_que + BienQue struct + 9 inline tests + 6 black-box integration tests; ICH-02 + ICH-03 both closed; CRIT-2 boundary + CRIT-4 384-case contract + CRIT-3 isolation preserved). Phase 22 is 1/2 plans complete.
 Resume file: None.
 
 ### Next Step
 
-Phase 21 is COMPLETE (both 21-01 DATA + 21-02 CODE shipped; ICH-01 closed). Two parallel tracks available:
-- `/gsd-plan-phase 22` — Mai Hoa casting + Biến Quẻ + Thể/Dụng (`cast_mai_hoa(...) -> MaiHoaCast` consuming `get_hexagram` + `compose()`; CRIT-2 boundary + 384-case biến quẻ contract test).
-- `/gsd-plan-phase 23` — Thái Tuế / Tam Sát ⇄ Phi Tinh cross-link (read-only `reasoning/direction_composite.rs::build_direction_cross_link`; CRIT-3 carve-out per ADR-0007).
+Phase 22 is 1/2 plans complete (22-01: ICH-02 + ICH-03 closed; 22-02: ICH-04 + ≥10 cross-source golden cases still Pending). Next:
+- `/gsd-execute-phase 22-02` — Thể/Dụng classification + Ngũ Hành sinh/khắc + ≥10 cross-source golden cases (consuming `MaiHoaCast` + `derive_bien_que` from 22-01).
+- Parallel option: `/gsd-plan-phase 23` — Thái Tuế / Tam Sát ⇄ Phi Tinh cross-link (read-only `reasoning/direction_composite.rs::build_direction_cross_link`; CRIT-3 carve-out per ADR-0007).
 
 Both unblock Phase 24 (IChing evaluator + semantic-graph wiring).
+
+## v1.7 Plan 22-01 Key Decisions
+
+- ICH-02 + ICH-03 closed: `crates/amlich-core/src/iching/mai_hoa.rs` (~250 lines) implements `MaiHoaCast` struct (4 lunar inputs + Tiên Thiên pair + động hào + chủ quẻ King Wen index; derives Debug/Clone/PartialEq/Eq/Serialize/Deserialize) + `mai_hoa_remainder((sum, k)) -> i32` SINGLE named CRIT-2 helper implementing `((sum-1)%k)+1` + `cast_mai_hoa(lunar_year_branch, lunar_month, lunar_day, chi_hour_index) -> MaiHoaCast` (pure integer arithmetic; no RNG, no wall-clock, no fs). `crates/amlich-core/src/iching/bien_que.rs` (~250 lines) implements `BienQue` struct + `trigram_lines` + `lines_to_trigram` (8 classical Bā Guà patterns: Kiền ☰ = [1,1,1] ... Khôn ☷ = [0,0,0]; lines indexed bottom-to-top; bijective round-trip) + `derive_bien_que(&MaiHoaCast) -> BienQue` (flip động hào line + re-compose via COMPOSITION_TABLE). 9 inline tests (5 mai_hoa + 4 bien_que including the 384-case CRIT-4 contract) + 6 black-box integration tests closing ICH-02 (CRIT-2 boundary (8,8,8,8)→Khôn/#2/dong=2 per ADR-0006 §4, explicit rejection of #1 regression; determinism; 51,840-cast range sweep; CRIT-3 isolation grep guard) + ICH-03 (CRIT-4 384-case contract (every biến quẻ valid, differs from chu_que, flips exactly one trigram); worked (8,8,8,8)→#7 Sư per COMPOSITION_TABLE line 189 with explicit rejection of #8 Tỷ trigram-order inversion trap).
+- CRIT-2 lock via SINGLE named helper: `mai_hoa_remainder` is the only place the `((n-1)%k)+1` convention appears in the codebase. Doc-comment explicitly warns: "Replacing this helper with `sum % k` or `(sum % k) + 1` regresses CRIT-2." Per research SUMMARY pitfall 2 ("implement as named helpers"), concentrating the convention into one auditable location prevents future drift. The boundary test cites ADR-0006 §4 verbatim and EXPLICITLY asserts `#2` AND EXPLICITLY REJECTS `#1` (the naïve-convention regression signature).
+- CRIT-4 contract test uses SYNTHETIC MaiHoaCast construction (fields are pub): the 384-case loop directly specifies `(upper, lower, dong_hao)` triples without round-tripping through `cast_mai_hoa`. This DECOUPLES CRIT-4 verification from CRIT-2 correctness — a CRIT-2 bug would only affect specific input tuples, while the 384-case sweep exercises every triple independently. The contract asserts (a) biến quẻ is valid (1..=64), (b) biến quẻ ≠ chủ quẻ (flipping a line ALWAYS changes the hexagram), (c) exactly one of (upper_changed, lower_changed) is true (flip changes EXACTLY ONE trigram).
+- CRIT-3 isolation preserved: `rg "impl From<(TienThienTrigram|HauThienTrigram|KingWenHexagram)> for "` returns ZERO matches across the new modules. The CRIT-3 grep guard uses RUNTIME-BUILT needles (`format!("impl From<{a}{b}")` at test runtime where `(a, b)` is `("Tien", "ThienTrigram")` etc.) — a literal-needle grep would self-trip on the test's own doc-comments that legitimately mention the forbidden patterns. Rule 1 deviation (false-positive grep guard) was fixed during RED-phase compilation before the RED commit shipped.
+- MaiHoaCast retains all 4 lunar inputs on the struct (not just the derived pair) — preserves traceability / recasting; field ranges documented in doc-comments. CRIT-3 isolation gate is structural (no From impls), not value-level.
+- TDD discipline: RED commit `fb13272` (9 inline tests fail with "not implemented: RED phase"; CRIT-3 grep test correctly passes since no actual cross-newtype From exists); GREEN commit `5d61b7d` (implementation passes all 9); integration suite commit `e077210` (6 black-box tests from external crate path). Three commits in order. Total: 13 min, 962 tests passing, 0 regressions vs Phase 21-02 baseline.
 
 ## v1.7 Plan 21-02 Key Decisions
 
