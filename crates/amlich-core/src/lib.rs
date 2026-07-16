@@ -149,6 +149,15 @@ pub struct FlyingStarsSummary {
     pub center_star: crate::almanac::fengshui::types::FlyingStar,
     /// Per-palace (annual, monthly) star pairs, Palace::ALL order.
     pub palace_overlays: [(crate::almanac::fengshui::types::FlyingStar, crate::almanac::fengshui::types::FlyingStar); 9],
+    /// Additive optional annual palace safety-hint projection (Phase 23-02,
+    /// XLK-03). Each entry mirrors the `palace_overlays` order and carries
+    /// the Vietnamese safety-hint text for the ANNUAL star at that palace
+    /// (`None` for auspicious stars that have no mitigation hint). Populated
+    /// by `calculate_day_snapshot_internal` at the snapshot boundary so the
+    /// later reasoning cross-link consumes only this DTO (no lower-level
+    /// imports). Absent from JSON when the whole field is `None`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub palace_safety_hints: Option<[Option<String>; 9]>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -183,6 +192,13 @@ pub struct DaySnapshot {
     /// `offering_refs` for structured queries. Absent in JSON when None.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub offerings: Option<Vec<String>>,
+    /// Additive optional directional cross-link summary (Phase 23-02, XLK-03).
+    /// Defaults to `None` — no calculation path in `calculate_day_snapshot_internal`
+    /// auto-populates it; the explicit enrichment helper shipped by the
+    /// implementation plan clones the snapshot and attaches the summary. Absent
+    /// from JSON when None so the v1.6 → v1.7 round-trip stays byte-equal.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub direction_cross_link: Option<crate::reasoning::DirectionCrossLinkSummary>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -337,11 +353,12 @@ fn calculate_day_snapshot_internal(
         daily_flying_stars: None,
         offering_refs: None,
         offerings: None,
+        direction_cross_link: None,
     };
 
     // Populate flying_stars from the combined Phi Tinh overlay.
     {
-        use crate::almanac::fengshui::{compute_combined_overlay, TietKhiScanner};
+        use crate::almanac::fengshui::{compute_combined_overlay, element_hint_for_palace, TietKhiScanner};
         use crate::almanac::fengshui::types::FlyingStarPeriod;
         let scanner = TietKhiScanner::new();
         let lunar_month = snap.context.lunar.month as u8;
@@ -352,12 +369,21 @@ fn calculate_day_snapshot_internal(
         } else {
             1 // fallback; period is always Van for a solar year
         };
+        // Pre-bake the annual palace safety-hint Vietnamese text at the DTO
+        // boundary so the later reasoning cross-link consumes only the
+        // snapshot field (no lower-level imports). Mirrors the `palace_overlays`
+        // order; `None` entries mark auspicious stars with no mitigation hint.
+        let palace_safety_hints: [Option<String>; 9] = std::array::from_fn(|i| {
+            element_hint_for_palace(overlay.palace_overlays[i].0)
+                .map(|hint| hint.hint_text_vi.clone())
+        });
         snap.flying_stars = Some(FlyingStarsSummary {
             van,
             year: overlay.year,
             month: overlay.month,
             center_star: overlay.annual_layout.center_star,
             palace_overlays: overlay.palace_overlays,
+            palace_safety_hints: Some(palace_safety_hints),
         });
     }
 
