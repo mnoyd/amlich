@@ -602,4 +602,45 @@ mod tests {
         assert!(!json.contains("\"offerings\""),
                 "offerings must NOT appear in JSON when None; got: {json}");
     }
+
+    // Phase 23-02 Task 2: additive DTO transport contracts.
+
+    #[test]
+    fn day_snapshot_direction_cross_link_defaults_to_none() {
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
+        assert!(snapshot.direction_cross_link.is_none(),
+                "direction_cross_link must default to None; no calculation path auto-populates it");
+        let json = serde_json::to_string(&snapshot).expect("serialize");
+        assert!(!json.contains("\"direction_cross_link\""),
+                "direction_cross_link must NOT appear in JSON when None; got: {json}");
+    }
+
+    #[test]
+    fn flying_stars_summary_carries_palace_safety_hints() {
+        let snapshot = calculate_day_snapshot(10, 2, 2024);
+        let fs = snapshot.flying_stars.as_ref().expect("flying_stars must be Some");
+        let hints = fs.palace_safety_hints.as_ref()
+            .expect("palace_safety_hints must be populated by the snapshot constructor");
+        assert_eq!(hints.len(), 9,
+                   "palace_safety_hints must follow the 9-palace overlay order");
+    }
+
+    #[test]
+    fn v16_json_without_palace_safety_hints_deserializes() {
+        // A v1.6-era JSON that predates palace_safety_hints must still
+        // deserialize cleanly into the v1.7 shape with the field defaulting to None.
+        let snap = calculate_day_snapshot(10, 2, 2024);
+        let mut value: serde_json::Value =
+            serde_json::to_value(&snap).expect("serialize to value");
+        if let Some(fs) = value.get_mut("flying_stars").and_then(|v| v.as_object_mut()) {
+            fs.remove("palace_safety_hints");
+        }
+        let stripped = serde_json::to_string(&value).expect("reserialize stripped value");
+        assert!(!stripped.contains("\"palace_safety_hints\""),
+                "test precondition: stripped JSON must not contain palace_safety_hints");
+        let recovered: DaySnapshot =
+            serde_json::from_str(&stripped).expect("deserialize pre-v1.7 JSON");
+        assert!(recovered.flying_stars.as_ref().unwrap().palace_safety_hints.is_none(),
+                "missing palace_safety_hints must default to None");
+    }
 }
