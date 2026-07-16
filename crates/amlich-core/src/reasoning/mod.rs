@@ -1,5 +1,6 @@
 mod action;
 mod action_evaluator;
+mod direction_composite;
 mod export;
 mod graph_projection;
 mod initiation_opening_evaluator;
