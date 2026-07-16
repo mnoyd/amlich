@@ -12,6 +12,7 @@
 //! 1..N form).
 pub mod bien_que;
 pub mod corpus;
+pub mod evaluator;
 pub mod golden;
 pub mod mai_hoa;
 pub mod schema;

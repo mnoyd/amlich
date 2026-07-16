@@ -12,6 +12,14 @@ pub enum ProvenanceSource {
     AlmanacRule,
     Insight,
     Derived,
+    /// Phase 24 (ICH-05): I Ching variant for Hexagram nodes + IChing
+    /// composite cross-link. Constructed-only (never matched on the public
+    /// graph surface); reasoning consumers read this via
+    /// [`to_reasoning_evidence`] which maps the variant to
+    /// [`Family::IChing`]. Matches the Phase 20-03 ActionId::IChing
+    /// addition discipline — extending the enum is an additive-safe
+    /// change.
+    IChing,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -74,6 +82,12 @@ impl ProvenanceEntry {
         Self::new(ProvenanceSource::Derived, source_id, method)
     }
 
+    /// Phase 24 (ICH-05): IChing variant helper mirroring
+    /// `almanac_rule` / `derived` / `snapshot` / etc.
+    pub fn iching(source_id: impl Into<String>, method: impl Into<String>) -> Self {
+        Self::new(ProvenanceSource::IChing, source_id, method)
+    }
+
     pub fn from_rule_evidence(
         source: ProvenanceSource,
         evidence: &crate::almanac::types::RuleEvidence,
@@ -107,6 +121,7 @@ impl ProvenanceEntry {
             ProvenanceSource::AlmanacRule => Family::AlmanacRule,
             ProvenanceSource::Insight => Family::Insight,
             ProvenanceSource::Derived => Family::Derived,
+            ProvenanceSource::IChing => Family::IChing,
         };
         ReasoningEvidenceEnvelope {
             source_family,
@@ -148,6 +163,61 @@ impl ProvenanceTracker {
                 .entry(node_id)
                 .or_default()
                 .append(&mut entries);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::reasoning::ReasoningEvidenceSourceFamily as Family;
+
+    /// Phase 24 (ICH-05): the new `ProvenanceSource::IChing` variant
+    /// resolves to `ReasoningEvidenceSourceFamily::IChing` via
+    /// `to_reasoning_evidence`.
+    #[test]
+    fn to_reasoning_evidence_maps_iching_to_iching_family() {
+        let entry = ProvenanceEntry::iching("kinh-dich", "corpus_lookup")
+            .with_note("Hexagram lookup for chu quẻ");
+        let envelope = entry.to_reasoning_evidence();
+        assert_eq!(
+            envelope.source_family,
+            Family::IChing,
+            "ProvenanceSource::IChing must map to ReasoningEvidenceSourceFamily::IChing"
+        );
+        assert_eq!(envelope.source_id, "kinh-dich");
+        assert_eq!(envelope.method, "corpus_lookup");
+        assert_eq!(
+            envelope.note.as_deref(),
+            Some("Hexagram lookup for chu quẻ")
+        );
+    }
+
+    /// Locked mapping for every existing variant — guards against silent
+    /// drift if a future commit removes / reorders a match arm.
+    #[test]
+    fn to_reasoning_evidence_preserves_all_existing_match_arms() {
+        // Each (ProvenanceSource, Family) pair below MUST remain
+        // (constructor-and-rename-stable). If a future commit changes the
+        // mapping, this test fails with a loud message naming the pair.
+        let cases: Vec<(ProvenanceSource, Family, &str, &str)> = vec![
+            (ProvenanceSource::Snapshot, Family::Snapshot, "snap", "compute_day_context"),
+            (ProvenanceSource::Interaction, Family::Interaction, "interaction.x", "y"),
+            (ProvenanceSource::Bazi, Family::Bazi, "bazi.x", "y"),
+            (ProvenanceSource::AlmanacRule, Family::AlmanacRule, "khcbppt", "thai_tue"),
+            (ProvenanceSource::Insight, Family::Insight, "insight.x", "y"),
+            (ProvenanceSource::Derived, Family::Derived, "rule.composite.direction_cross_link", "v17.read_only_join"),
+            (ProvenanceSource::IChing, Family::IChing, "kinh-dich", "corpus_lookup"),
+        ];
+        for (source, family, source_id, method) in cases {
+            let entry = ProvenanceEntry::new(source, source_id, method);
+            let envelope = entry.to_reasoning_evidence();
+            assert_eq!(
+                envelope.source_family, family,
+                "mapping for {source:?} -> {family:?} must be preserved"
+            );
+            assert_eq!(envelope.source_id, source_id);
+            assert_eq!(envelope.method, method);
         }
     }
 }
