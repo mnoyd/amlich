@@ -59,8 +59,17 @@ pub struct BienQue {
 /// | Khảm    | ☵      | `[0,1,0]`   |
 /// | Cấn     | ☶      | `[0,0,1]`   |
 /// | Khôn    | ☷      | `[0,0,0]`   |
-pub(crate) fn trigram_lines(_t: TienThienTrigram) -> [u8; 3] {
-    unimplemented!("RED phase: implement classical 8 trigrams 3-line pattern (Bā Guà)")
+pub(crate) fn trigram_lines(t: TienThienTrigram) -> [u8; 3] {
+    match t {
+        TienThienTrigram::Kien => [1, 1, 1],
+        TienThienTrigram::Doai => [1, 1, 0],
+        TienThienTrigram::Ly => [1, 0, 1],
+        TienThienTrigram::Chan => [1, 0, 0],
+        TienThienTrigram::Ton => [0, 1, 1],
+        TienThienTrigram::Kham => [0, 1, 0],
+        TienThienTrigram::Can => [0, 0, 1],
+        TienThienTrigram::Khon => [0, 0, 0],
+    }
 }
 
 /// 3-line bit pattern (bottom-to-top) → trigram.
@@ -68,8 +77,15 @@ pub(crate) fn trigram_lines(_t: TienThienTrigram) -> [u8; 3] {
 /// Reverse of [`trigram_lines`]. Linear scan over `TienThienTrigram::ALL` is
 /// adequate (8 entries, accessed once per biến quẻ derivation — a pre-computed
 /// reverse map is premature).
-pub(crate) fn lines_to_trigram(_lines: [u8; 3]) -> TienThienTrigram {
-    unimplemented!("RED phase: implement reverse trigram lookup")
+pub(crate) fn lines_to_trigram(lines: [u8; 3]) -> TienThienTrigram {
+    for t in TienThienTrigram::ALL {
+        if trigram_lines(t) == lines {
+            return t;
+        }
+    }
+    // Unreachable: `trigram_lines` is bijective onto the 8 classical patterns
+    // (verified by the `trigram_lines_bijective` test).
+    panic!("lines_to_trigram: no trigram matches lines {lines:?}")
 }
 
 /// Derive the biến quẻ from a [`MaiHoaCast`] by flipping the động hào
@@ -86,8 +102,42 @@ pub(crate) fn lines_to_trigram(_lines: [u8; 3]) -> TienThienTrigram {
 ///
 /// Returns a [`BienQue`] with the new trigram pair + re-composed King Wen
 /// index + echo of which động hào was flipped.
-pub fn derive_bien_que(_cast: &MaiHoaCast) -> BienQue {
-    unimplemented!("RED phase: implement biến quẻ derivation (flip động hào + re-compose)")
+pub fn derive_bien_que(cast: &MaiHoaCast) -> BienQue {
+    let lower_lines = trigram_lines(cast.lower_trigram);
+    let upper_lines = trigram_lines(cast.upper_trigram);
+
+    // Lines are indexed 0..=5 (BOTTOM=0, TOP=5). The cast's dong_hao is
+    // 1..=6 (BOTTOM=1, TOP=6). Convert by subtracting 1.
+    let dong_idx = (cast.dong_hao - 1) as usize;
+    assert!(
+        dong_idx < 6,
+        "dong_hao out of range: {} (must be 1..=6)",
+        cast.dong_hao
+    );
+
+    // Build the 6-line array: lower lines first (b→t), then upper lines.
+    let mut lines = [
+        lower_lines[0], lower_lines[1], lower_lines[2],
+        upper_lines[0], upper_lines[1], upper_lines[2],
+    ];
+
+    // Flip the động hào bit.
+    lines[dong_idx] = 1 - lines[dong_idx];
+
+    // Re-split into lower + upper trigrams.
+    let new_lower_lines = [lines[0], lines[1], lines[2]];
+    let new_upper_lines = [lines[3], lines[4], lines[5]];
+
+    let new_lower = lines_to_trigram(new_lower_lines);
+    let new_upper = lines_to_trigram(new_upper_lines);
+    let king_wen = compose(new_upper, new_lower);
+
+    BienQue {
+        upper_trigram: new_upper,
+        lower_trigram: new_lower,
+        king_wen,
+        flipped_dong_hao: cast.dong_hao,
+    }
 }
 
 #[cfg(test)]

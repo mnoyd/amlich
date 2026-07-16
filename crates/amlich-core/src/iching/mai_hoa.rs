@@ -78,7 +78,7 @@ pub struct MaiHoaCast {
 /// **Replacing this helper with `sum % k` or `(sum % k) + 1` regresses CRIT-2.**
 /// The boundary test in `mod tests` is the structural gate.
 fn mai_hoa_remainder(sum: i32, k: i32) -> i32 {
-    unimplemented!("RED phase: implement CRIT-2 boundary-safe reduction (ADR-0006 §3)")
+    ((sum - 1) % k) + 1
 }
 
 /// Cast a Mai Hoa Dịch Số hexagram from lunar calendar inputs.
@@ -102,12 +102,33 @@ fn mai_hoa_remainder(sum: i32, k: i32) -> i32 {
 /// via `almanac::lunar` (ADR-0006 §2). DEC-0017 early-Tý / late-Tý split is
 /// the CALLER's concern, not this function's.
 pub fn cast_mai_hoa(
-    _lunar_year_branch: u8,
-    _lunar_month: u8,
-    _lunar_day: u8,
-    _chi_hour_index: u8,
+    lunar_year_branch: u8,
+    lunar_month: u8,
+    lunar_day: u8,
+    chi_hour_index: u8,
 ) -> MaiHoaCast {
-    unimplemented!("RED phase: implement cast_mai_hoa per ADR-0006 §3-§4")
+    let sum_base: i32 = (lunar_year_branch as i32) + (lunar_month as i32) + (lunar_day as i32);
+    let sum_full: i32 = sum_base + (chi_hour_index as i32);
+
+    // CRIT-2 lock: use the named helper, NOT `sum % k` or `(sum % k) + 1`.
+    let upper_idx = mai_hoa_remainder(sum_base, 8) as u8; // 1..=8
+    let lower_idx = mai_hoa_remainder(sum_full, 8) as u8; // 1..=8
+    let dong_hao = mai_hoa_remainder(sum_full, 6) as u8;  // 1..=6
+
+    let upper = TienThienTrigram::ALL[(upper_idx - 1) as usize];
+    let lower = TienThienTrigram::ALL[(lower_idx - 1) as usize];
+    let chu_que = compose(upper, lower);
+
+    MaiHoaCast {
+        lunar_year_branch,
+        lunar_month,
+        lunar_day,
+        chi_hour_index,
+        upper_trigram: upper,
+        lower_trigram: lower,
+        dong_hao,
+        chu_que,
+    }
 }
 
 #[cfg(test)]
