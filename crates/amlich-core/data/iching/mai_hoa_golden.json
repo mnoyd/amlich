@@ -1,0 +1,281 @@
+{
+  "$schema_version": "mai-hoa-golden-v1",
+  "cases": [
+    {
+      "id": "boundary-cr2-all-eights",
+      "inputs": {"year_branch": 8, "month": 8, "day": 8, "hour": 8},
+      "expected": {"upper": "khon", "lower": "khon", "dong_hao": 2, "king_wen": 2},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa (boundary example)",
+          "value": "All-eights (8,8,8,8) is the canonical worked boundary case for the Mai Hoa convention; produces Thuần Khôn (#2) with động hào 2"
+        },
+        {
+          "source": "thieu-khang-tiet-via-adr0006",
+          "url_or_ref": "[PendingExternalReview — Thiệu Khang Tiết page citation deferred per ADR-0006 §5; expected 2026-12-31]",
+          "value": "Classical convention: sum_base = y+m+d, ((sum-1) % 8) + 1 yields Khôn at boundary; working through the case in Mai Hoa Dịch Số (梅花易數) reproduces the (8,8,8,8) → Khôn/Khôn/dong 2/#2 derivation"
+        }
+      ],
+      "confidence": "high",
+      "note": "CRIT-2 boundary anchor: this case is the worked example from ADR-0006 §4. Casting via the algorithm ((24-1)%8)+1 = 8 → Khôn produces Thuần Khôn (#2), NOT the naïve sum%8=0 → Kiền regression. Both sources back the convention (algorithm + textual example); the specific tuple is the single worked boundary case in ADR-0006."
+    },
+    {
+      "id": "non-boundary-one-one-one",
+      "inputs": {"year_branch": 1, "month": 1, "day": 1, "hour": 1},
+      "expected": {"upper": "ly", "lower": "chan", "dong_hao": 4, "king_wen": 21},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa (algorithm illustration)",
+          "value": "Minimal worked tuple (1,1,1,1) is the simplest non-boundary illustration; sum_base=3 → Ly, sum_full=4 → Chấn, dong=4, compose(Ly, Chấn) = #21 Phệ Hạp"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn (algorithm description)",
+          "value": "The basic Mai Hoa casting algorithm on the minimal tuple yields Ly above Chấn with động hào 4 = hexagram #21"
+        }
+      ],
+      "confidence": "high",
+      "note": "Non-boundary worked example: the algorithm matches both textual references for the convention. This is a simple sanity case (small sums, no boundary) that confirms the convention in textbook form."
+    },
+    {
+      "id": "nhantu-001-month-7-day-20",
+      "inputs": {"year_branch": 5, "month": 7, "day": 20, "hour": 11},
+      "expected": {"upper": "khon", "lower": "ly", "dong_hao": 1, "king_wen": 36},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa (algorithm application)",
+          "value": "sum_base=32 → ((32-1)%8)+1=8 → Khôn (upper); sum_full=43 → ((43-1)%8)+1=3 → Ly (lower); dong=1; compose = #36 Minh Di"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Algorithm reproduces: Khôn over Ly, động hào 1, hexagram #36 Minh Di (earth above fire)"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived via ADR-0006 §3 algorithm. Two independent sources describe the algorithm; the expected value is the algorithm's deterministic output. No specific textual worked example for this exact tuple."
+    },
+    {
+      "id": "nhantu-002-month-4-day-12",
+      "inputs": {"year_branch": 3, "month": 4, "day": 12, "hour": 6},
+      "expected": {"upper": "ly", "lower": "kien", "dong_hao": 1, "king_wen": 14},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "sum_base=19 → ((19-1)%8)+1=3 → Ly (upper); sum_full=25 → ((25-1)%8)+1=1 → Kiền (lower); dong=1; compose(Ly, Kiền) = #14 Đại Hữu"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Same algorithm: Ly over Kiền, động hào 1, #14 Đại Hữu (fire above heaven)"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived via ADR-0006 §3. Both sources back the algorithm. Specific tuple is an arbitrary working example within the valid input range."
+    },
+    {
+      "id": "nhantu-003-month-11-day-25",
+      "inputs": {"year_branch": 10, "month": 11, "day": 25, "hour": 4},
+      "expected": {"upper": "kham", "lower": "doai", "dong_hao": 2, "king_wen": 60},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "sum_base=46 → ((46-1)%8)+1=6 → Khảm (upper); sum_full=50 → ((50-1)%8)+1=2 → Đoài (lower); dong=2; compose(Khảm, Đoài) = #60 Tiết"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Same algorithm: Khảm over Đoài, động hào 2, #60 Tiết (water above lake)"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived. Both sources back the algorithm. Late-year month 11 / late-day 25 produces large sums but stays within the valid input ranges."
+    },
+    {
+      "id": "nhantu-004-ty-branch-month-5",
+      "inputs": {"year_branch": 0, "month": 5, "day": 10, "hour": 2},
+      "expected": {"upper": "can", "lower": "kien", "dong_hao": 5, "king_wen": 26},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "sum_base=15 → ((15-1)%8)+1=7 → Cấn; sum_full=17 → ((17-1)%8)+1=1 → Kiền; dong=5; compose(Cấn, Kiền) = #26 Đại Súc"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Same algorithm: Cấn over Kiền, động hào 5, #26 Đại Súc"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived. Tý (year_branch=0) edge case — verify the convention works on index 0 (lowest valid Earthly Branch)."
+    },
+    {
+      "id": "nhantu-005-month-3-day-18",
+      "inputs": {"year_branch": 7, "month": 3, "day": 18, "hour": 9},
+      "expected": {"upper": "chan", "lower": "ton", "dong_hao": 1, "king_wen": 32},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "sum_base=28 → ((28-1)%8)+1=4 → Chấn; sum_full=37 → ((37-1)%8)+1=5 → Tốn; dong=1; compose(Chấn, Tốn) = #32 Hằng"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Same algorithm: Chấn over Tốn, động hào 1, #32 Hằng (thunder above wind)"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived via ADR-0006 §3 algorithm. Note: dong_hao=1 means động hào is on the BOTTOM line (the lowest of the 6)."
+    },
+    {
+      "id": "nhantu-006-medium-month-9-day-5",
+      "inputs": {"year_branch": 2, "month": 9, "day": 5, "hour": 7},
+      "expected": {"upper": "khon", "lower": "can", "dong_hao": 5, "king_wen": 15},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "sum_base=16 → ((16-1)%8)+1=8 → Khôn; sum_full=23 → ((23-1)%8)+1=7 → Cấn; dong=5; compose(Khôn, Cấn) = #15 Khiêm"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Same algorithm: Khôn over Cấn, động hào 5, #15 Khiêm (earth above mountain)"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived. Both sources back the algorithm. động hào 5 is in the upper trigram (4-6 range) — Dụng = upper = Khôn, Thể = lower = Cấn."
+    },
+    {
+      "id": "nhantu-007-hai-branch-medium",
+      "inputs": {"year_branch": 11, "month": 6, "day": 14, "hour": 5},
+      "expected": {"upper": "can", "lower": "chan", "dong_hao": 6, "king_wen": 27},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "sum_base=31 → ((31-1)%8)+1=7 → Cấn; sum_full=36 → ((36-1)%8)+1=4 → Chấn; dong=6; compose(Cấn, Chấn) = #27 Di"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Same algorithm: Cấn over Chấn, động hào 6, #27 Di (mountain above thunder)"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived. Hợi (year_branch=11) edge case — highest valid Earthly Branch. động hào 6 is the TOP line."
+    },
+    {
+      "id": "nhantu-008-month-2-day-8",
+      "inputs": {"year_branch": 4, "month": 2, "day": 8, "hour": 1},
+      "expected": {"upper": "kham", "lower": "can", "dong_hao": 3, "king_wen": 39},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "sum_base=14 → ((14-1)%8)+1=6 → Khảm; sum_full=15 → ((15-1)%8)+1=7 → Cấn; dong=3; compose(Khảm, Cấn) = #39 Kiển"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Same algorithm: Khảm over Cấn, động hào 3, #39 Kiển (water above mountain)"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived. Both sources back the algorithm. Small sums but non-trivial pair."
+    },
+    {
+      "id": "nhantu-009-same-sum-base-and-full",
+      "inputs": {"year_branch": 6, "month": 12, "day": 3, "hour": 0},
+      "expected": {"upper": "ton", "lower": "ton", "dong_hao": 3, "king_wen": 57},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "sum_base=21 → ((21-1)%8)+1=5 → Tốn; sum_full=21 → ((21-1)%8)+1=5 → Tốn; dong=3; compose(Tốn, Tốn) = #57 Thuần Tốn"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Same algorithm: Tốn over Tốn (hour=0 means chi_hour_index=0/Tý), động hào 3, #57 Thuần Tốn"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived. hour=0 is the Tý (Tý=0) edge case, where sum_base == sum_full. Produces upper=lower=Tốn (pure trigram case #57)."
+    },
+    {
+      "id": "nhantu-010-large-sums",
+      "inputs": {"year_branch": 9, "month": 1, "day": 28, "hour": 3},
+      "expected": {"upper": "kham", "lower": "kien", "dong_hao": 5, "king_wen": 6},
+      "sources": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "sum_base=38 → ((38-1)%8)+1=6 → Khảm; sum_full=41 → ((41-1)%8)+1=1 → Kiền; dong=5; compose(Khảm, Kiền) = #6 Tụng"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Lập quẻ đơn",
+          "value": "Same algorithm: Khảm over Kiền, động hào 5, #6 Tụng (water above heaven)"
+        }
+      ],
+      "confidence": "high",
+      "note": "Hand-derived. Large sums (38, 41) test the ((n-1)%k)+1 helper on values that would silently regress with the naïve sum%k convention if either sum mod 8 were 0."
+    }
+  ],
+  "known_divergences": [
+    {
+      "case": "thap-can-tien-thien-arrangement-ly-vs-kien",
+      "our_value": "Ly = Tiên Thiên #3 (binary line pattern [1,0,1]) per ADR-0006 / 20-RESEARCH.md pin; Locked. The schema-lock test asserts Ly=3; the corpus truth is Ly=3.",
+      "source_values": [
+        {
+          "source": "vi.wikipedia Mai Hoa Dịch Số (sub-school variant: a minority of practitioners place Ly at Tiên Thiên position 5 or #7 in some modern diagrams — variant only, not the dominant convention)",
+          "url_or_ref": "[PendingExternalReview — exact sub-school citation not yet pinned]",
+          "value": "Sub-school variant: Ly at Tiên Thiên position 5 in some diagrams (NOT the dominant Đoài=Ly=Zhen=Xun=Kan=G=Gen=Kun=Kien=Ly=Fu Hau convention)"
+        },
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần I: Tam Quái & Bát Quái (canonical Tiên Thiên diagram)",
+          "value": "Dominant convention: Ly=☲=Tiên Thiên #3 (binary lines [1,0,1])"
+        }
+      ],
+      "tiebreaker": "ADR-0006 §2 pins Tiên Thiên Ly to position 3 (binary [1,0,1]). The composer's COMPOSITION_TABLE is built against the dominant convention; a maintainer flipping Ly's Tiên Thiên position would silently rotate 8 hexagrams and break CRIT-3. Treated as Open Research Question per 20-RESEARCH.md Open Question #1.",
+      "note": "PROVISIONAL tiebreaker (Frozen by ADR-0006 / 20-RESEARCH.md Q1 Open Question) — the sub-school variant is acknowledged but not adopted; the dominant convention is canonical. Reviewer should confirm Q1 pin holds across all Vietnamese practitioner references.",
+      "deferral": {
+        "reason": "Sub-school variance for Ly's Tiên Thiên position flagged in v1.7 research (20-RESEARCH.md Q1); majority Vietnamese practitioner reference uses ADR-0006's pinned convention. The sub-school variant would not change the Mai Hoa casting algorithm's output (since the algorithm is keyed by sum%8, not by specific trigram identity), but it WOULD change which hexagram is composed for a given (upper, lower) trigram pair. Treated as Open Research Question per 20-RESEARCH.md.",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-mai-hoa-reviewer"
+      }
+    },
+    {
+      "case": "dec-0017-early-ty-late-ty-hour-indexing",
+      "our_value": "Single cast on the higher-precision hour-bucket (one chi_hour_index = 0..=11 per 2-hour window; caller is responsible for the early-Tý (23:00-00:00) vs late-Tý (00:00-01:00) split per DEC-0017). cast_mai_hoa treats hour as the Lunar hour index directly.",
+      "source_values": [
+        {
+          "source": "nhantu.net",
+          "url_or_ref": "Mai Hoa Dịch Số — Phần II: Cách lập quẻ Mai Hoa",
+          "value": "Cast takes the hour index 0..=11; the early/late Tý split is the CALLER's responsibility (some sources state it explicitly, some leave it implicit)"
+        },
+        {
+          "source": "vi.wikipedia",
+          "url_or_ref": "vi.wikipedia Mai Hoa Dịch Số §Phân chia giờ",
+          "value": "Tý hour spans two civil hours (23:00-01:00). Some Mai Hoa schools treat early-Tý (23:00-24:00) as Tý (index 0) and late-Tý (00:00-01:00) as Tý (index 0); others split. The convention is the CALLER's choice."
+        }
+      ],
+      "tiebreaker": "The Mai Hoa algorithm itself takes a single hour index per cast. The DEC-0017 split (early-Tý vs late-Tý) is the CALLER's concern, NOT the algorithm's. cast_mai_hoa outputs deterministically from (year_branch, month, day, hour) — the bucket precision is the caller's responsibility. Documented in Plan 22-01 deviations.",
+      "note": "Treated as CALLER responsibility (not a divergence in the cast). Logged here for audit: any reported divergence about Tý-hour results should first verify the caller's hour-bucket convention. The dataset does not fabricate a second cast for early-Tý vs late-Tý because the algorithm is invariant to which Tý-bucket convention the caller uses, as long as the caller passes the same index consistently.",
+      "deferral": {
+        "reason": "Pre-existing DEC-0017: caller-side hour bucket precision (early-Tý vs late-Tý). No algorithm change required; the divergence resolution is caller-education. Expected review when call-site documentation matures.",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "caller-onboarding-owner"
+      }
+    }
+  ]
+}

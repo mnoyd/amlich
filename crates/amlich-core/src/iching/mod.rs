@@ -12,14 +12,16 @@
 //! 1..N form).
 pub mod bien_que;
 pub mod corpus;
+pub mod golden;
 pub mod mai_hoa;
 pub mod schema;
 pub mod the_dung;
 
 pub use bien_que::{derive_bien_que, BienQue};
 pub use corpus::{all_hexagrams, get_hexagram};
+pub use golden::{load_mai_hoa_golden, MaiHoaGoldenCase, MaiHoaGoldenDataset};
 pub use mai_hoa::{cast_mai_hoa, MaiHoaCast};
 pub use schema::{
     compose, HauThienTrigram, HexagramEntry, KingWenHexagram, TienThienTrigram, COMPOSITION_TABLE,
 };
-pub use the_dung::{classify_the_dung, CatHung, TheDungClassification, TheDungRelation};
+pub use the_dung::{classify_the_dung, trigram_element, CatHung, TheDungClassification, TheDungRelation};
