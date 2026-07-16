@@ -73,7 +73,11 @@ Plans:
   3. A reader can find every Vietnamese text field is NFC-normalized at load (RIT-08 precedent) and a `data/iching/provenance_audit.md` ledger accompanies the corpus.
   4. A caller can observe corpus load is lazy (only triggered on first lookup) and WASM-safe (no `std::fs`, no `Utc::now`).
 
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 21-01-PLAN.md — Author 64-hexagram corpus JSON (deterministic fields + AF-05 deferred text) + provenance audit ledger
+- [ ] 21-02-PLAN.md — OnceLock loader + get_hexagram/all_hexagrams lookup API + NFC/hao_tu-invariant + black-box integration tests
 
 ### Phase 22: Mai Hoa Casting + Biến Quẻ + Thể/Dụng
 
