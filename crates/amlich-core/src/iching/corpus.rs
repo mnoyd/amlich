@@ -12,9 +12,10 @@
 //! `$schema_version` on the corpus file.
 //!
 //! WASM-safe by construction: `include_str!` is compile-time, `OnceLock` is std,
-//! and there is NO `std::fs` or `chrono::Utc::now()` anywhere in this module
-//! (verified by the `wasm_safety_no_fs_no_utc` integration test, mirroring the
-//! v1.6 `tests/fengshui_crit3_isolation.rs` grep-guard discipline).
+//! and there is no filesystem I/O (`std::fs`) or wall-clock access
+//! (`chrono::Utc`) anywhere in this module (verified by the
+//! `wasm_safety_no_fs_no_utc` integration test, mirroring the v1.6
+//! `tests/fengshui_crit3_isolation.rs` grep-guard discipline).
 
 use serde::Deserialize;
 use std::sync::OnceLock;
