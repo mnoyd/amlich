@@ -224,19 +224,33 @@ fn get_sat_phuong_day_chi_values_remain_unchanged() {
 
 #[test]
 fn tam_sat_result_is_distinct_module_from_sat_phuong() {
-    // Sanity: Tam Sát is a 3-direction API; Sát Phương is a 1-direction API.
-    // They share no struct shape.
+    // Sanity: Tam Sát is a 3-direction year-chi API; Sát Phương is a
+    // 1-direction day-chi API. They share no struct shape. For year=Tý,
+    // Tam Sát = [NE, S, NW] (opposite triad Dần/Ngọ/Tuất) while Sát Phương
+    // for day=Tý is "Nam" — the two APIs return different cardinalities
+    // and are invoked on different chi axes (year vs day).
     let tam_sat = tam_sat_direction(chi_index("Tý"));
     let sat_phuong = get_sat_phuong(chi_index("Tý"));
-    assert_eq!(tam_sat.tam_sat_directions.len(), 3);
-    assert_eq!(sat_phuong.direction.len(), 3); // "Nam" — 3 chars
-    // Tam Sát for Tý year = Dần, Ngọ, Tuất directions = NE, S, NW.
-    // Sát Phương for Tý day = Nam. They are different concepts.
+    assert_eq!(
+        tam_sat.tam_sat_directions.len(),
+        3,
+        "Tam Sát returns exactly 3 directions (classical three-direction contract)"
+    );
+    assert_eq!(
+        sat_phuong.direction.len(),
+        3,
+        "Sát Phương direction string for Tý is the 3-char VN word 'Nam'"
+    );
+    assert_eq!(sat_phuong.direction, "Nam");
+    // Tam Sát for Tý year includes Ngọ→South; Sát Phương for Tý day also
+    // returns South — but the two APIs operate on different chi axes
+    // (year vs day) and return different shapes. They are sibling APIs,
+    // not duplicates.
     assert!(tam_sat
         .tam_sat_directions
         .iter()
-        .all(|d| !matches!(d, Direction::South))); // Tam Sát for Tý does not include South
-    assert_eq!(sat_phuong.direction, "Nam");
+        .any(|d| matches!(d, Direction::South)),
+        "Tam Sát for Tý year must include South (Ngọ → South) per the locked mapping");
 }
 
 // ---------------------------------------------------------------------------
