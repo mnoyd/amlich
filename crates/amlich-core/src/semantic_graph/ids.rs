@@ -248,11 +248,11 @@ impl SemanticId {
     /// portion). Role-bearing so the primary (`chu`) and transformed
     /// (`bien`) hexagrams cannot collide.
     ///   `concept_label = "hexagram"`, `stable_key = "iching:{role}:{king_wen}:{date}:{tz}"`
-    ///
-    /// RED phase stub — full implementation lands in Task 1 GREEN.
     pub fn iching_hexagram(role: &str, king_wen: u8, date: &str, tz: &str) -> Self {
-        let _ = (role, king_wen, date, tz);
-        unimplemented!("RED phase: SemanticId::iching_hexagram")
+        Self::new(
+            "hexagram",
+            format!("iching:{}:{}:{}:{}", role, king_wen, date, tz),
+        )
     }
 }
 

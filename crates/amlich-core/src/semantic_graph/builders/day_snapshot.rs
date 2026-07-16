@@ -3,7 +3,10 @@ use crate::semantic_graph::{
     EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, ProvenanceSource, SemanticEdge,
     SemanticGraph, SemanticId, SemanticNode,
 };
-use crate::sources::{SOURCE_HUYEN_KHONG, SOURCE_VN_FOLK_RITUAL};
+use crate::sources::{
+    SOURCE_HUYEN_KHONG, SOURCE_KHCBPPT, SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO,
+    SOURCE_VN_FOLK_RITUAL,
+};
 use crate::DaySnapshot;
 
 pub struct DaySnapshotGraphBuilder {
@@ -751,10 +754,20 @@ impl DaySnapshotGraphBuilder {
     // =========================================================================
     // Phase 24-02 (INT-11) — IChing semantic-graph wiring
     //
-    // RED phase stub. Full implementation lands in Task 1 GREEN. The
-    // method signature is locked now so the dispatch wiring above is
-    // stable, but the body panics on invocation. The companion method
-    // `add_direction_composite_facts` below is the same shape for Task 2.
+    // Two distinct `NodeConcept::Hexagram` nodes (primary chu + bien) wired
+    // via `EdgeConcept::Transforms` + `EdgeConcept::LocatedAt` edges with
+    // IChing-family dual-source provenance (CRIT-6).
+    //
+    // CRIT-3 isolation: this method does NOT import or reference the v1.5
+    // Phi Tinh aggregator surface (the `add_flying_star_facts` method above
+    // owns that import). The integration suite's grep guard test pins this
+    // discipline by scanning for the literal Phi-Tinh-aggregator type name
+    // inside this method's body.
+    //
+    // Edge insertion order: both Hexagram nodes are added BEFORE the
+    // Transforms + LocatedAt edges. `SemanticGraph::add_edge` silently
+    // drops edges whose endpoint nodes are missing (see
+    // `semantic_graph/graph.rs:23-28`); ordering prevents silent drops.
     // =========================================================================
 
     /// Emit TWO distinct `NodeConcept::Hexagram` nodes (primary chủ + biến)
@@ -763,9 +776,110 @@ impl DaySnapshotGraphBuilder {
     /// each node, plus one `EdgeConcept::Transforms` edge (chu → biến) and
     /// two `EdgeConcept::LocatedAt` edges (each Hexagram → day root).
     /// Early-returns without modifying the graph when `snapshot.iching_cast`
-    /// is `None`.
-    fn add_iching_facts(&mut self, _snapshot: &DaySnapshot) {
-        unimplemented!("RED phase: DaySnapshotGraphBuilder::add_iching_facts")
+    /// is `None` (no implicit wiring on ordinary snapshots).
+    fn add_iching_facts(&mut self, snapshot: &DaySnapshot) {
+        let Some(summary) = snapshot.iching_cast.as_ref() else {
+            return;
+        };
+
+        let date_str = format!(
+            "{:04}-{:02}-{:02}",
+            snapshot.context.solar.year,
+            snapshot.context.solar.month,
+            snapshot.context.solar.day
+        );
+
+        let chu_kw = summary.chu_king_wen_index();
+        let bien_kw = summary.bien_king_wen_index();
+        let chu_id_raw = SemanticId::iching_hexagram("chu", chu_kw, &date_str, &self.tz_suffix);
+        let bien_id_raw = SemanticId::iching_hexagram("bien", bien_kw, &date_str, &self.tz_suffix);
+        let chu_id = chu_id_raw.clone().to_node_id();
+        let bien_id = bien_id_raw.clone().to_node_id();
+
+        // CRIT-6 dual-source provenance per node: casting source_id
+        // (SOURCE_MAI_HOA_DICH_SO) + corpus source_id (SOURCE_KINH_DICH).
+        let chu_prov_cast = ProvenanceEntry::almanac_rule(
+            SOURCE_MAI_HOA_DICH_SO,
+            "iching.cast_mai_hoa",
+        )
+        .with_note(format!(
+            "king_wen={};moving_line={}",
+            chu_kw, summary.cast.dong_hao
+        ));
+        let chu_prov_corpus =
+            ProvenanceEntry::almanac_rule(SOURCE_KINH_DICH, "iching.corpus_lookup")
+                .with_note(format!(
+                    "king_wen={};vi_name={}",
+                    chu_kw, summary.chu_hexagram_vi_name
+                ));
+        let bien_prov_cast = ProvenanceEntry::almanac_rule(
+            SOURCE_MAI_HOA_DICH_SO,
+            "iching.derive_bien_que",
+        )
+        .with_note(format!(
+            "king_wen={};flipped_dong_hao={}",
+            bien_kw, summary.bien_que.flipped_dong_hao
+        ));
+        let bien_prov_corpus =
+            ProvenanceEntry::almanac_rule(SOURCE_KINH_DICH, "iching.corpus_lookup")
+                .with_note(format!(
+                    "king_wen={};vi_name={}",
+                    bien_kw, summary.bien_hexagram_vi_name
+                ));
+
+        let chu_node = SemanticNode::new(
+            chu_id_raw,
+            NodeConcept::Hexagram,
+            NodeOrigin::Fact,
+            format!(
+                "Quẻ chủ #{} {}",
+                chu_kw, summary.chu_hexagram_vi_name
+            ),
+        )
+        .with_tags(vec![
+            format!("king_wen={}", chu_kw),
+            "role=chu".to_string(),
+            format!("verdict={}", summary.cat_hung_summary),
+            format!("moving_line={}", summary.cast.dong_hao),
+        ])
+        .with_provenance(chu_prov_cast)
+        .with_provenance(chu_prov_corpus);
+        self.graph.add_node(chu_node);
+
+        let bien_node = SemanticNode::new(
+            bien_id_raw,
+            NodeConcept::Hexagram,
+            NodeOrigin::Fact,
+            format!(
+                "Quẻ biến #{} {}",
+                bien_kw, summary.bien_hexagram_vi_name
+            ),
+        )
+        .with_tags(vec![
+            format!("king_wen={}", bien_kw),
+            "role=bien".to_string(),
+            format!("flipped_dong_hao={}", summary.bien_que.flipped_dong_hao),
+        ])
+        .with_provenance(bien_prov_cast)
+        .with_provenance(bien_prov_corpus);
+        self.graph.add_node(bien_node);
+
+        // Edges AFTER both endpoints exist (preventing silent drops).
+        self.graph.add_edge(SemanticEdge::new(
+            &chu_id,
+            &bien_id,
+            EdgeConcept::Transforms,
+        ));
+        self.graph.add_edge(SemanticEdge::new(
+            &chu_id,
+            &self.day_root_id,
+            EdgeConcept::LocatedAt,
+        ));
+        self.graph.add_edge(SemanticEdge::new(
+            &bien_id,
+            &self.day_root_id,
+            EdgeConcept::LocatedAt,
+        ));
     }
 
     /// Emit ONE `NodeConcept::Direction` composite fact node when
@@ -773,9 +887,82 @@ impl DaySnapshotGraphBuilder {
     /// carrying KHCBPPT + Huyền Không primitive source-id entries plus ONE
     /// composite envelope per Phase 23's locked contract. Early-returns
     /// without modifying the graph when `snapshot.direction_cross_link` is
-    /// `None`.
-    fn add_direction_composite_facts(&mut self, _snapshot: &DaySnapshot) {
-        unimplemented!("RED phase: DaySnapshotGraphBuilder::add_direction_composite_facts")
+    /// `None` (the IChing-only enrichment does NOT auto-infer directional
+    /// cross-link wiring).
+    ///
+    /// CRIT-3 isolation: this method does NOT import or reference the v1.5
+    /// Phi Tinh aggregator surface (the `add_flying_star_facts` method owns
+    /// that import). The directional cross-link is consumed as a pure DTO
+    /// projection. The directional surface uses KHCBPPT (Thái Tuế +
+    /// Tam Sát + Sát Phương) + Huyền Không (Phi Tinh palace overlay)
+    /// primitive source_ids only.
+    fn add_direction_composite_facts(&mut self, snapshot: &DaySnapshot) {
+        let Some(cross) = snapshot.direction_cross_link.as_ref() else {
+            return;
+        };
+
+        let date_str = format!(
+            "{:04}-{:02}-{:02}",
+            snapshot.context.solar.year,
+            snapshot.context.solar.month,
+            snapshot.context.solar.day
+        );
+        let node_id_raw = SemanticId::new(
+            "direction",
+            format!("cross_link:{}:+7", date_str),
+        );
+        let node_id = node_id_raw.clone().to_node_id();
+
+        // Phase 23's locked CRIT-6 dual-source pattern: distinct primitive
+        // source_ids (KHCBPPT + Huyền-Không) + ONE composite envelope per
+        // `DirectionCrossLinkSummary.cross_link_source` (which carries
+        // the composite `rule.composite.direction_cross_link` value per
+        // ADR-0007).
+        let khcbppt_prov = ProvenanceEntry::almanac_rule(
+            SOURCE_KHCBPPT,
+            "thai_tue_tam_sat_directional",
+        )
+        .with_note(format!(
+            "day_chi_index={};birth_chi_index={}",
+            cross.day_chi_index, cross.birth_chi_index
+        ));
+        let huyen_khong_prov =
+            ProvenanceEntry::almanac_rule(SOURCE_HUYEN_KHONG, "phi_tinh.palace_overlay")
+                .with_note(format!("day_chi_index={}", cross.day_chi_index));
+        let composite_prov = ProvenanceEntry::derived(
+            cross.cross_link_source.as_str(),
+            "build_direction_cross_link",
+        )
+        .with_note(format!(
+            "composite cross-link of day_chi={};birth_chi={}",
+            cross.day_chi_index, cross.birth_chi_index
+        ));
+
+        let node = SemanticNode::new(
+            node_id_raw,
+            NodeConcept::Direction,
+            NodeOrigin::Fact,
+            format!(
+                "Cross-link KHCBPPT×Huyền-Không ({})",
+                cross.cross_link_kind
+            ),
+        )
+        .with_tags(vec![
+            format!("cross_link_kind={}", cross.cross_link_kind),
+            format!("day_chi_index={}", cross.day_chi_index),
+            format!("birth_chi_index={}", cross.birth_chi_index),
+        ])
+        .with_provenance(khcbppt_prov)
+        .with_provenance(huyen_khong_prov)
+        .with_provenance(composite_prov);
+        self.graph.add_node(node);
+
+        // Edge AFTER endpoint exists (single node — single edge to day root).
+        self.graph.add_edge(SemanticEdge::new(
+            &node_id,
+            &self.day_root_id,
+            EdgeConcept::LocatedAt,
+        ));
     }
 
     pub fn build(self) -> SemanticGraph {
