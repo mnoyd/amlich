@@ -32,7 +32,7 @@
 - [x] **Phase 20: Foundation — Schema Lock + Source IDs + ADRs + Ontology** - Lock the IChing + cross-link foundation: register `SOURCE_KINH_DICH` / `SOURCE_MAI_HOA_DICH_SO`, accept ADR-0005/0006/0007, lock `HexagramEntry` schema with the three trigram/hexagram newtypes + the 64-entry Tiên Thiên → King Wen composition table, extend the 6-slice ontology with Hexagram/LocatedAt/Transforms + IChing enum variants. (BLOCKING) (completed 2026-07-15)
 - [x] **Phase 21: IChing Corpus + Loader** - Author the 64-hexagram Ngô Tất Tố corpus with reviewer signatures + `PendingExternalReview` gaps; lazy `OnceLock` loader consuming the locked Phase 20 schema. (completed 2026-07-16)
 - [x] **Phase 22: Mai Hoa Casting + Biến Quẻ + Thể/Dụng** - Pure-deterministic `cast_mai_hoa` + biến quẻ derivation + Thể/Dụng classification; 384-case biến quẻ contract test + ≥10 cross-source golden cases. (Critical path; parallel to Phase 23.) Completed 2026-07-16.
-- [ ] **Phase 23: Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link** - Directional Thái Tuế + classical 3-direction Tam Sát module (both `source_id: khcbppt`) + read-only `build_direction_cross_link` composite with CRIT-3 isolation grep-guarded. (Parallel to Phases 21-22.)
+- [x] **Phase 23: Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link** - Directional Thái Tuế + classical 3-direction Tam Sát module (both `source_id: khcbppt`) + read-only `build_direction_cross_link` composite with CRIT-3 isolation grep-guarded. (Parallel to Phases 21-22.) Completed 2026-07-16.
 - [ ] **Phase 24: IChing Evaluator + Semantic-Graph Wiring + DTO Integration** - `IChingQuery` sibling newtype + `IChingEvaluator` with per-step source_id envelopes + composite; Hexagram/LocatedAt/Transforms semantic-graph wiring; additive `DaySnapshot.iching_cast` + `direction_cross_link` fields with v1.6→v1.7 round-trip.
 - [ ] **Phase 25: E2E Validation + Golden Cross-Source Verification** - ≥10 IChing golden casting cases × ≥2 sources, 2026 E2E smoke exercising the full v1.7 surface, zero regressions on v1.6 tests, no new crate deps.
 
@@ -118,7 +118,7 @@ Plans:
 Plans:
 - [x] 23-01-PLAN.md — Directional Thái Tuế + Tam Sát primitives, evidence backfills, and pending-review provenance (XLK-01, XLK-02). Completed 2026-07-16.
 - [x] 23-02-PLAN.md — Cross-link DTO contracts, annual safety-hint transport, and default-None DaySnapshot field (XLK-03 contracts half; XLK-03 closes with 23-03). Completed 2026-07-16.
-- [ ] 23-03-PLAN.md — Read-only composite builders, immutable enrichment, evidence tests, and CRIT-3 sibling guard (XLK-03)
+- [x] 23-03-PLAN.md — Read-only composite builders, immutable enrichment, evidence tests, and CRIT-3 sibling guard (XLK-03). Completed 2026-07-16.
 
 ### Phase 24: IChing Evaluator + Semantic-Graph Wiring + DTO Integration
 
@@ -164,7 +164,7 @@ Plans:
 | 20. Foundation — Schema Lock + Source IDs + ADRs + Ontology | 3/3 | Complete   | 2026-07-15 |
 | 21. IChing Corpus + Loader | 2/2 | Complete    | 2026-07-16 |
 | 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 2/2 | Complete    | 2026-07-16 |
-| 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 0/TBD | Not started | - |
+| 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 3/3 | Complete  | 2026-07-16 |
 | 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | 0/3 | Not started | - |
 | 25. E2E Validation + Golden Cross-Source Verification | 0/TBD | Not started | - |
 
@@ -235,4 +235,4 @@ Full details in [`milestones/v1.5-ROADMAP.md`](milestones/v1.5-ROADMAP.md).
 
 ---
 
-*Last updated: 2026-07-16 — Phase 21 Plan 21-02 complete (OnceLock iching corpus loader + get_hexagram/all_hexagrams API + 8 black-box integration tests; CODE half of ICH-01; ICH-01 fully closed). Phase 21 is 2/2 plans done — Phase 21 COMPLETE. Next: `/gsd-plan-phase 22` (Mai Hoa casting) or `/gsd-plan-phase 23` (Thái Tuế/Tam Sát cross-link).*
+*Last updated: 2026-07-16T15:54:40Z — Phase 23 Plan 23-03 complete (read-only composite builders + immutable enrichment + sibling CRIT-3 grep guard; XLK-03 fully closed). Phase 23 is 3/3 plans done — XLK-01 + XLK-02 + XLK-03 all closed; Phase 23 COMPLETE (4/6 v1.7 phases done; 11/15 requirements closed). Next: `/gsd-plan-phase 24` (IChing Evaluator + Semantic-Graph Wiring + DTO Integration).*
