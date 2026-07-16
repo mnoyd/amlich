@@ -4,7 +4,7 @@
 //!
 //! # Algorithm (locked by ADR-0006)
 //!
-//! ```
+//! ```text
 //! sum_base = lunar_year_branch + lunar_month + lunar_day          // upper trigram
 //! sum_full = sum_base + chi_hour_index                             // lower trigram + moving line
 //!
