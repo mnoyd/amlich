@@ -2,13 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: v1.7-iching-divination
-status: in_progress
-last_updated: "2026-07-16T17:41:37.000Z"
+current_plan: 2
+status: executing
+last_updated: "2026-07-16T17:58:04.000Z"
+last_activity: 2026-07-16
 progress:
   total_phases: 29
   completed_phases: 28
   total_plans: 80
-  completed_plans: 77
+  completed_plans: 78
 ---
 
 # Project State
@@ -23,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-**Current Plan:** 1 (of 3 in Phase 24 — IChing Evaluator + Semantic-Graph Wiring + DTO Integration)
+**Current Plan:** 2 (just completed — Plan 24-02)
 **Total Plans in Phase:** 3
-**Phase:** 24 — IChing Evaluator + Semantic-Graph Wiring + DTO Integration — Plan 24-01 complete (ICH-05 Closed; INT-12 Partially Closed — one of two additive `DaySnapshot` fields in place; full INT-12 close-out ships in Plan 24-03).
-**Last Activity:** 2026-07-16T17:41:37Z
-**Status:** Plan 24-01 complete (3/3 task commits: `563cc27` RED 19 inline tests + 2 provenance tests + `4ecd343` GREEN full IChingQuery + IChingEvaluator + per-step evidence envelopes + `8ea2373` DaySnapshot.iching_cast + enrich_day_snapshot_with_iching + 18-test black-box integration suite). 1101 crate tests green (+39 vs Plan 23-03's 1062 baseline). Zero regressions; zero new deps.
+**Phase:** 24 — IChing Evaluator + Semantic-Graph Wiring + DTO Integration — Plan 24-01 complete (ICH-05 Closed; INT-12 Partially Closed); Plan 24-02 complete (INT-11 Closed — Hexagram nodes + Transforms + LocatedAt edges + dual-source provenance + Direction composite fact wired into DaySnapshotGraphBuilder).
+**Last Activity:** 2026-07-16T17:58:04Z
+**Status:** Plan 24-02 complete (2/3 task commits: `278f4a5` RED 13-test integration suite + `46ad421` GREEN add_iching_facts + add_direction_composite_facts). 1114 crate tests green (+13 vs Plan 24-01's 1101 baseline); zero regressions; zero new deps. INT-11 Closed; INT-12 still partial (combined-strip v1.6→v1.7 round-trip ships in Plan 24-03); INT-13 still Pending (Phase 25).
 
-Progress: [████████░░] 81% (v1.7: 4/6 phases complete; 12/15 requirements closed — FND-09..12 + ICH-01..05 + XLK-01..03 done; INT-11 + INT-12 partial + INT-13 still Pending — Plan 24-01 closes ICH-05 + INT-12 additive field; Plans 24-02 + 24-03 close INT-11 + full INT-12).
+Progress: [█████████░] 83% (v1.7: 4/6 phases complete; 13/15 requirements closed — FND-09..12 + ICH-01..05 + XLK-01..03 + INT-11 done; INT-12 partial + INT-13 still Pending — Plan 24-02 closes INT-11; Plan 24-03 closes INT-12).
 
 ## v1.7 Roadmap Summary
 
@@ -83,23 +85,35 @@ Progress: [████████░░] 81% (v1.7: 4/6 phases complete; 12/15
 
 ## Session Continuity
 
-Last session: 2026-07-16 (Plan 24-01 execution)
-Stopped at: Plan 24-01 complete (1/3 in Phase 24); ICH-05 Closed; INT-12 partial (one of two additive `DaySnapshot` fields in place); 1101 crate tests green (+39 vs Plan 23-03's 1062 baseline); zero regressions; zero new deps. Phase 24 has 2 plans remaining (24-02 semantic-graph wiring + 24-03 combined-strip v1.6→v1.7 round-trip). v1.7 critical path: 20 → 21 → 22 → 24 → 25 (5 hops).
+Last session: 2026-07-16 (Plan 24-02 execution)
+Stopped at: Plan 24-02 complete (2/3 in Phase 24); ICH-05 + INT-11 Closed; INT-12 partial (combined-strip v1.6→v1.7 round-trip + full close ships in Plan 24-03); 1114 crate tests green (+13 vs Plan 24-01's 1101 baseline); zero regressions; zero new deps. Phase 24 has 1 plan remaining (24-03 combined-strip v1.6→v1.7 round-trip + INT-12 full close). v1.7 critical path: 20 → 21 → 22 → 24 → 25 (5 hops; 1 hop remaining).
 Resume file: None (atomic plan execution; no resume file needed).
 
 ### Next Step
 
-Plan 24-01 fully complete. Next:
-- `/gsd-execute-phase 24-02` (IChing semantic-graph wiring — `add_iching_facts()` method on `DaySnapshotGraphBuilder` adds Hexagram nodes + `LocatedAt` / `Transforms` edges + `forward-compatible add_direction_composite_facts()` placeholder; `SemanticId::iching_hexagram(role, king_wen, date, tz)` role-bearing stable keys; `IChingCastSummary` accessors; closes INT-11).
-- `/gsd-execute-phase 24-03` (combined-strip v1.6→v1.7 round-trip tests in `tests/day_snapshot_v14_compat.rs` + Phase 23 placeholder cleanup + `DaySnapshot.direction_cross_link` field type finalisation + Plan 24-02 `#[ignore]`'d test activation; closes INT-12 fully).
-- After Phase 24 (Plans 24-02 + 24-03), Phase 25 unblocks (`/gsd-plan-phase 25` — E2E Validation + Golden Cross-Source Verification; ≥10 IChing golden casting cases + 2026 E2E smoke + zero-regression gate; closes INT-13).
+Plan 24-02 fully complete. Next:
+- `/gsd-execute-phase 24-03` (combined-strip v1.6→v1.7 round-trip tests in `tests/day_snapshot_v14_compat.rs` exercising BOTH additive `DaySnapshot.iching_cast` (Phase 24-01) AND `DaySnapshot.direction_cross_link` (Phase 23-02) populated simultaneously — proves byte-equal round-trip with v1.6 fields intact; closes INT-12 fully).
+- After Phase 24 (Plan 24-03), Phase 25 unblocks (`/gsd-plan-phase 25` — E2E Validation + Golden Cross-Source Verification; ≥10 IChing golden casting cases + 2026 E2E smoke + zero-regression gate; closes INT-13).
 
-Plan 24-01 consumers (Phase 24 forward + Phase 25):
-- `crate::iching::{IChingQuery, IChingEvaluator, IChingCastSummary, IChingEvaluation, HexagramEntryProjection, COMPOSITE_ICHING_CONSULTATION}`
-- `crate::iching::enrich_day_snapshot_with_iching(snapshot, query)` (re-export from `lib.rs`; mirrors Phase 23-03's `enrich_day_snapshot_with_direction_cross_link` pattern; the canonical site is at the crate root for the public-API surface)
-- `snapshot.iching_cast: Option<IChingCastSummary>` (additive DTO, default None, populated only by the explicit enrichment helper; byte-equal serde round-trip with v1.6 fields intact)
-- `crate::semantic_graph::provenance::ProvenanceSource::IChing` (mapped to `ReasoningEvidenceSourceFamily::IChing` via `to_reasoning_evidence()`; mirrors the Phase 20-03 `ActionId::IChing` additive-safe variant discipline)
-- `ProvenanceEntry::iching(source_id, method)` constructor helper (mirrors `almanac_rule` / `derived` / `snapshot` / `interaction` / `bazi` helpers)
+Plan 24-02 consumers (Phase 24 forward + Phase 25):
+- `crate::semantic_graph::builders::day_snapshot::DaySnapshotGraphBuilder::add_iching_facts` (additive; produces 2 NodeConcept::Hexagram nodes with role-bearing stable keys + dual-source provenance + Transforms + LocatedAt edges)
+- `crate::semantic_graph::builders::day_snapshot::DaySnapshotGraphBuilder::add_direction_composite_facts` (additive; produces 1 NodeConcept::Direction composite fact node with KHCBPPT + huyen-khong primitives + 1 composite envelope per Phase 23's locked contract)
+- `crate::semantic_graph::ids::SemanticId::iching_hexagram(role, king_wen, date, tz)` (role-bearing stable-key constructor)
+- `crate::iching::IChingCastSummary::chu_king_wen_index()` + `bien_king_wen_index()` (accessor helpers used by the semantic-graph builder)
+- `tests/semantic_graph_iching_integration.rs` (13-test black-box integration suite covering INT-11 success criteria; locks the 2-Hexagram + 1-Transforms + 2-LocatedAt + dual-source-provenance contract)
+
+## v1.7 Plan 24-02 Key Decisions
+
+- INT-11 closed: `crates/amlich-core/src/semantic_graph/builders/day_snapshot.rs` (~200 lines) adds the additive `fn add_iching_facts(&mut self, snapshot: &DaySnapshot)` + `fn add_direction_composite_facts(&mut self, snapshot: &DaySnapshot)` methods wired into `DaySnapshotGraphBuilder::new` dispatch (after `add_offering_facts`). `add_iching_facts` emits EXACTLY 2 distinct `NodeConcept::Hexagram` nodes — primary `chu` (stable key `hexagram:iching:chu:<kw>:<date>:<tz>`) + biến `bien` (stable key `hexagram:iching:bien:<kw>:<date>:<tz>`) — with role-bearing stable keys so the same primary/bien pair cannot collide in `graph.node_count()`. Each Hexagram node carries CRIT-6 dual-source provenance (2 entries): SOURCE_MAI_HOA_DICH_SO (`iching.cast_mai_hoa` for primary / `iching.derive_bien_que` for bien) + SOURCE_KINH_DICH (`iching.corpus_lookup`). Both methods early-return on the None case — `add_iching_facts` early-returns when `snapshot.iching_cast.is_none()` (no implicit wiring on ordinary snapshots), `add_direction_composite_facts` early-returns when `snapshot.direction_cross_link.is_none()` (the directional wiring is opt-in via the explicit Phase 23 enrichment helper, never auto-inferred from the IChing surface).
+- Locked edge topology: 1 `EdgeConcept::Transforms` edge (primary chu → biến) + 2 `EdgeConcept::LocatedAt` edges (each Hexagram → day_root). Edge insertion order discipline preserved — both Hexagram nodes are added BEFORE the Transforms + LocatedAt edges. `SemanticGraph::add_edge` silently drops edges whose endpoint nodes are missing (per `semantic_graph/graph.rs:23-28`); the integration test `iching_graph_edges_only_present_after_nodes_inserted` pins this at runtime: enriched snapshots have strictly more edges than ordinary ones, AND the enriched graph has exactly 1 Transforms + 2 LocatedAt edges. This is the structural defense against the silent-drop failure mode.
+- Forward-compatibility resolution: Phase 23 fully shipped BEFORE Plan 24-02 executed. `DaySnapshot.direction_cross_link: Option<crate::reasoning::DirectionCrossLinkSummary>` was already at `crates/amlich-core/src/lib.rs:201` from Phase 23-02's `bf680e0` commit; the `DirectionCrossLinkSummary` type lives at `crates/amlich-core/src/reasoning/direction_composite.rs:180` with the full production-quality field set (cross_link_kind + cross_link_source + date + day_chi_index + birth_chi_index + cells + summary_vi + composite_severity + evidence). Plan 24-02's "add a placeholder type" sub-action was a no-op (no declaration was made and no deletion was needed). The `add_direction_composite_facts` method directly consumes the real `DirectionCrossLinkSummary` type and reads its `cross_link_source` field as the composite envelope's source_id (typically `rule.composite.direction_cross_link` per ADR-0007). This gives Phase 23 control over the composite source_id without the semantic-graph layer having to know the constant — forward-compatible if Phase 23 ever ships a v2 composite with a different source_id.
+- `SemanticId::iching_hexagram(role, king_wen, date, tz)` constructor: new additive method on `SemanticId` (alongside `day_root`, `truc_day`, etc.) producing role-bearing stable keys with shape `"hexagram:iching:{role}:{king_wen}:{date}:{tz}"`. The role parameter (`"chu"` vs `"bien"`) is the FIRST segment of the stable key so the primary + transformed hexagrams cannot collide in `graph.node_count()`. The King Wen index is the SECOND segment for human readability — the role marker is the structural defense against collisions. Mirrors the v1.6/v1.7 sibling-DTO discipline (locked pitfall P-3).
+- `IChingCastSummary::chu_king_wen_index()` + `bien_king_wen_index()` accessors: small ergonomic seam that lets the builder read the structured King Wen indices without re-deriving them. `chu_king_wen_index` returns `self.cast.chu_que.0`; `bien_king_wen_index` returns `self.bien_que.king_wen.0`. The biến King Wen index MUST differ from the primary's per CRIT-4 (a line flip ALWAYS changes the hexagram). Landed in the same commit as the stubs (the accessors' implementation is trivial — no RED/GREEN split needed).
+- TDD discipline: 2 atomic commits (RED `278f4a5` 13-test integration suite + 10 panic with "not implemented: RED phase: DaySnapshotGraphBuilder::add_iching_facts"; 3 pass because they exercise pre-existing JSON-serialisation or the Phase-23-shipped `direction_cross_link` field; GREEN `46ad421` full implementation + all 13 tests pass + zero regressions). Task 1 + Task 2 work was merged into a single GREEN commit because Phase 23 had already shipped the field + type, making Task 2's "forward-compatible placeholder" a no-op. 9 min 3 s total; 1114 crate tests green (+13 vs Plan 24-01's 1101 baseline); zero regressions; `cargo tree -p amlich-core --depth 1` shows no new dependency (chrono + serde + serde_json + unicode-normalization).
+- Rule 1 deviation (1): doc-comments in `add_iching_facts` + `add_direction_composite_facts` initially used the literal `` `FlyingStar` `` when describing what the methods DON'T reference (CRIT-3 isolation rationale). The integration test's `iching_graph_no_flyingstar_in_iching_method` grep guard correctly flagged this as a self-tripping false-positive (same trap as Phase 22-02 golden.rs + Phase 24-01 evaluator.rs — bare-substring grep self-trips on rationale text). Fixed by rephrasing to phrase-level names ("the v1.5 Phi Tinh aggregator surface"). The intent (CRIT-3 isolation) is preserved in the doc-comment; the grep guard no longer self-trips. Mirrors the runtime-built needle pattern codified across `corpus.rs` / `mai_hoa.rs` / `bien_que.rs` / `the_dung.rs` / `golden.rs` / `evaluator.rs`.
+- Architectural deviations (3): (a) Task 2's "add a placeholder `DirectionCrossLinkSummary` type" was a no-op because Phase 23-02 already shipped the field + type before Plan 24-02 executed. (b) `direction_composite_facts_wires_populated_state` test is ACTIVE (not `#[ignore]`'d) because Phase 23 fully shipped — the test exercises the end-to-end composite wiring. (c) Task 1 + Task 2 work was merged into a single GREEN commit because the dispatch wiring in `DaySnapshotGraphBuilder::new` calls both methods together at lines 47-48; splitting them would have required either temporary placeholder bodies or consecutive commits that each touch the same lines. The GREEN commit message enumerates both surfaces separately so the audit trail is preserved.
+- CRIT-3 isolation preserved: `rg "FlyingStar" crates/amlich-core/src/semantic_graph/builders/day_snapshot.rs` returns matches ONLY in `add_flying_star_facts` (lines 499, 509, 519) + the inline tests (lines 1186+). Zero matches in `add_iching_facts` (line 780) or `add_direction_composite_facts` (line 894). `rg "impl From" crates/amlich-core/src/semantic_graph/builders/day_snapshot.rs` returns ZERO. `rg "rand::|Utc::now|std::fs::" crates/amlich-core/src/semantic_graph/builders/day_snapshot.rs` returns ZERO. The integration test's grep guard pins this discipline at runtime.
+- Bare source-id literal discipline preserved: `tests/source_id_guard.rs` still passes (1/1); production call-sites use the registered `SOURCE_MAI_HOA_DICH_SO` / `SOURCE_KINH_DICH` / `SOURCE_KHCBPPT` / `SOURCE_HUYEN_KHONG` consts. The only literal `"FlyingStar"` substring matches in `day_snapshot.rs` are in `add_flying_star_facts` + the inline tests, never in `add_iching_facts` or `add_direction_composite_facts`.
 
 ## v1.7 Plan 24-01 Key Decisions
 
