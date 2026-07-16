@@ -11,6 +11,11 @@ mod types;
 
 pub use action::InitiationOpeningVector;
 pub use action_evaluator::{ActionEvaluation, ActionEvaluator};
+pub use direction_composite::{
+    Agreement, DirectionCell, DirectionCrossLink, DirectionCrossLinkSummary, DirectionalTaboo,
+    DirectionalThaiTue, HuyenKhongCell, COMPOSITE_DIRECTION_CROSS_LINK,
+    DATE_ONLY_BIRTH_CHI_INDEX, DIRECTION_ORDER,
+};
 pub use initiation_opening_evaluator::InitiationOpeningEvaluator;
 pub use personal::{PersonalFactNode, PersonalReasoningInput};
 pub use projection::{
