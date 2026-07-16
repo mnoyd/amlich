@@ -24,6 +24,11 @@ pub use evaluator::{
     HexagramEntryProjection, IChingCastSummary, IChingEvaluation, IChingEvaluator, IChingQuery,
     COMPOSITE_ICHING_CONSULTATION,
 };
+
+// Re-export the crate-root enrichment helper so callers in the iching module
+// namespace can use it directly (mirrors the planned Phase 24-03 import path:
+// `use amlich_core::iching::{enrich_day_snapshot_with_iching, IChingQuery}`).
+pub use crate::enrich_day_snapshot_with_iching;
 pub use golden::{load_mai_hoa_golden, MaiHoaGoldenCase, MaiHoaGoldenDataset};
 pub use mai_hoa::{cast_mai_hoa, MaiHoaCast};
 pub use schema::{

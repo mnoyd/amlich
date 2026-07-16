@@ -199,6 +199,15 @@ pub struct DaySnapshot {
     /// from JSON when None so the v1.6 → v1.7 round-trip stays byte-equal.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub direction_cross_link: Option<crate::reasoning::DirectionCrossLinkSummary>,
+    /// Additive optional I Ching consultation summary (Phase 24-01, ICH-05 +
+    /// partial INT-12). Populated only via the explicit
+    /// [`enrich_day_snapshot_with_iching`] helper. Ordinary
+    /// [`calculate_day_snapshot`] calls leave this as `None` — no auto-cast
+    /// is invented. Absent from JSON when None (additive
+    /// `Option<T>` + `serde(default, skip_serializing_if = "Option::is_none")`
+    /// discipline).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub iching_cast: Option<crate::iching::IChingCastSummary>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -319,6 +328,36 @@ pub fn enrich_day_snapshot_with_direction_cross_link(
     Ok(enriched)
 }
 
+/// Phase 24-01 (ICH-05 + partial INT-12) immutable enrichment: clone the
+/// snapshot, run the [`crate::iching::IChingEvaluator`] over an explicit
+/// [`crate::iching::IChingQuery`] (Tier-0 path, no birth data), and attach
+/// the resulting [`crate::iching::IChingCastSummary`] DTO to the
+/// `iching_cast` field on the cloned snapshot.
+///
+/// The input snapshot is never mutated. Ordinary
+/// [`calculate_day_snapshot`] / [`calculate_day_snapshot_with_timezone`]
+/// calls leave `iching_cast` as `None`; only this helper populates it. The
+/// result is absent from JSON when None (additive `Option<T>` discipline)
+/// so the v1.6 → v1.7 round-trip stays byte-equal.
+///
+/// Mirrors the immutable clone-and-attach pattern of
+/// [`enrich_day_snapshot_with_direction_cross_link`] (Phase 23-03).
+///
+/// Reachable as both `amlich_core::enrich_day_snapshot_with_iching` (this
+/// site) and `amlich_core::iching::enrich_day_snapshot_with_iching`
+/// (re-exported from `iching/mod.rs` so callers in the iching module
+/// namespace can use it directly).
+pub fn enrich_day_snapshot_with_iching(
+    snapshot: &DaySnapshot,
+    query: crate::iching::IChingQuery,
+) -> Result<DaySnapshot, String> {
+    let evaluator = crate::iching::IChingEvaluator::new(query);
+    let summary = evaluator.evaluate(snapshot)?;
+    let mut enriched = snapshot.clone();
+    enriched.iching_cast = Some(summary);
+    Ok(enriched)
+}
+
 fn calculate_day_snapshot_internal(
     day: i32,
     month: i32,
@@ -385,6 +424,7 @@ fn calculate_day_snapshot_internal(
         offering_refs: None,
         offerings: None,
         direction_cross_link: None,
+        iching_cast: None,
     };
 
     // Populate flying_stars from the combined Phi Tinh overlay.
