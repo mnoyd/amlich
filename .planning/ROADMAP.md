@@ -113,7 +113,12 @@ Plans:
   3. A caller can invoke `build_direction_cross_link(snapshot, birth_chi_index) -> PersonalFactNode` in `reasoning/direction_composite.rs` that surfaces BOTH the KHCBPPT Thái Tuế/Tam Sát directional taboos AND the `huyen-khong` Phi Tinh palace layout in one composite fact node, emitting distinct primitive `source_id` envelopes (`khcbppt` + `huyen-khong`) plus one `rule.composite.direction_cross_link` envelope.
   4. A reader can confirm CRIT-3 isolation is preserved: no `FlyingStar` reference in `interaction/direction_merge.rs` (verified by a sibling `tests/thai_tue_cross_link_crit3.rs` grep guard), and `build_direction_cross_link` takes only `&` references (read-only by design).
 
-**Plans**: TBD
+**Plans**: 3 plans (Wave 1: 23-01 + 23-02 parallel; Wave 2: 23-03)
+
+Plans:
+- [ ] 23-01-PLAN.md — Directional Thái Tuế + Tam Sát primitives, evidence backfills, and pending-review provenance (XLK-01, XLK-02)
+- [ ] 23-02-PLAN.md — Cross-link DTO contracts, annual safety-hint transport, and default-None DaySnapshot field (XLK-03)
+- [ ] 23-03-PLAN.md — Read-only composite builders, immutable enrichment, evidence tests, and CRIT-3 sibling guard (XLK-03)
 
 ### Phase 24: IChing Evaluator + Semantic-Graph Wiring + DTO Integration
 
