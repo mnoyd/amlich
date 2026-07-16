@@ -93,7 +93,11 @@ Plans:
   3. A reader of a `MaiHoaCast` can find the Thể (the trigram NOT containing the động hào) and Dụng (the trigram containing it) classification plus the Ngũ Hành sinh/khắc relationship driving the cát/hùng reading.
   4. A reader can find ≥10 cross-source golden casting cases (each cross-checked against ≥2 independent sources — `nhantu.net` + a second Mai Hoa reference); divergences are logged as `KnownDivergence`, never silently corrected.
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 22-01-PLAN.md — MaiHoaCast + `cast_mai_hoa` + biến quẻ derivation (ICH-02, ICH-03; CRIT-2 boundary + CRIT-4 384-case contract)
+- [ ] 22-02-PLAN.md — Thể/Dụng classification + Ngũ Hành sinh/khắc + ≥10 cross-source golden cases (ICH-04 + SC4)
 
 ### Phase 23: Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link
 
@@ -149,7 +153,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 20. Foundation — Schema Lock + Source IDs + ADRs + Ontology | 3/3 | Complete   | 2026-07-15 |
 | 21. IChing Corpus + Loader | 2/2 | Complete    | 2026-07-16 |
-| 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 0/TBD | Not started | - |
+| 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 0/2 | Planned | - |
 | 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 0/TBD | Not started | - |
 | 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | 0/TBD | Not started | - |
 | 25. E2E Validation + Golden Cross-Source Verification | 0/TBD | Not started | - |
