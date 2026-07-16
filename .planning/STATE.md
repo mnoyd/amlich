@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.7
-milestone_name: kinh-dich
-status: in_progress
-last_updated: "2026-07-16T15:54:40Z"
+milestone: v1.1
+milestone_name: milestone
+status: unknown
+last_updated: "2026-07-16T16:02:49.075Z"
 progress:
-  total_phases: 27
+  total_phases: 29
   completed_phases: 28
-  total_plans: 75
-  completed_plans: 75
+  total_plans: 79
+  completed_plans: 76
 ---
 
 # Project State
