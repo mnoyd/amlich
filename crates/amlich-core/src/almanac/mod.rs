@@ -16,6 +16,7 @@ pub mod sat_phuong;
 pub mod sexagenary_cycle;
 pub mod star;
 pub mod taboo;
+pub mod tam_sat;
 pub mod tam_tai;
 pub mod tang_can;
 pub mod thai_tue;
