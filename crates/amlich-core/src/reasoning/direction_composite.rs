@@ -243,4 +243,193 @@ mod tests {
         assert_eq!(back.cross_link_source, COMPOSITE_DIRECTION_CROSS_LINK);
         assert_eq!(back.cells.len(), 8);
     }
+
+    // -----------------------------------------------------------------
+    // Phase 23-03 Task 1 (TDD RED): composite_severity tie behaviour.
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn composite_severity_picks_inauspicious_on_favorable_unfavorable_tie() {
+        // 4 Auspicious + 4 Inauspicious -> tied top count -> the
+        // conservative-default rule must pick Inauspicious (CONTEXT.md
+        // "taboo-leaning on ambiguity" recommendation).
+        let severities = [
+            ReasoningNodeSeverity::Auspicious,
+            ReasoningNodeSeverity::Auspicious,
+            ReasoningNodeSeverity::Auspicious,
+            ReasoningNodeSeverity::Auspicious,
+            ReasoningNodeSeverity::Inauspicious,
+            ReasoningNodeSeverity::Inauspicious,
+            ReasoningNodeSeverity::Inauspicious,
+            ReasoningNodeSeverity::Inauspicious,
+        ];
+        assert_eq!(
+            composite_severity(&severities),
+            ReasoningNodeSeverity::Inauspicious
+        );
+    }
+
+    #[test]
+    fn composite_severity_majority_wins_when_clear() {
+        // 5 HardTaboo + 3 Auspicious -> HardTaboo has the clear majority.
+        let severities = [
+            ReasoningNodeSeverity::HardTaboo,
+            ReasoningNodeSeverity::HardTaboo,
+            ReasoningNodeSeverity::HardTaboo,
+            ReasoningNodeSeverity::HardTaboo,
+            ReasoningNodeSeverity::HardTaboo,
+            ReasoningNodeSeverity::Auspicious,
+            ReasoningNodeSeverity::Auspicious,
+            ReasoningNodeSeverity::Auspicious,
+        ];
+        assert_eq!(
+            composite_severity(&severities),
+            ReasoningNodeSeverity::HardTaboo
+        );
+    }
+
+    #[test]
+    fn composite_severity_picks_most_cautionary_on_tie() {
+        // 4 SoftTaboo + 4 HardTaboo -> tied top count -> HardTaboo is the
+        // most cautionary tied value.
+        let severities = [
+            ReasoningNodeSeverity::SoftTaboo,
+            ReasoningNodeSeverity::SoftTaboo,
+            ReasoningNodeSeverity::SoftTaboo,
+            ReasoningNodeSeverity::SoftTaboo,
+            ReasoningNodeSeverity::HardTaboo,
+            ReasoningNodeSeverity::HardTaboo,
+            ReasoningNodeSeverity::HardTaboo,
+            ReasoningNodeSeverity::HardTaboo,
+        ];
+        assert_eq!(
+            composite_severity(&severities),
+            ReasoningNodeSeverity::HardTaboo
+        );
+    }
+
+    // -----------------------------------------------------------------
+    // Phase 23-03 Task 1 (TDD RED): public builder surface contracts.
+    // -----------------------------------------------------------------
+
+    #[test]
+    fn build_personal_cross_link_returns_eight_cells_in_locked_order() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let cross = build_direction_cross_link_personal(&snapshot, 10)
+            .expect("personal builder should succeed for in-range birth chi");
+        assert_eq!(cross.cells.len(), 8);
+        for (i, expected) in DIRECTION_ORDER.iter().enumerate() {
+            assert_eq!(
+                cross.cells[i].direction, *expected,
+                "cell {} must be {:?} in DIRECTION_ORDER",
+                i, expected
+            );
+        }
+        assert_eq!(cross.birth_chi_index, 10);
+    }
+
+    #[test]
+    fn build_personal_cross_link_rejects_out_of_range_birth_chi() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let err = build_direction_cross_link_personal(&snapshot, 12)
+            .expect_err("out-of-range birth chi must error");
+        assert!(
+            err.contains("birth_chi_index") || err.contains("range"),
+            "error must explain the out-of-range cause; got: {err}"
+        );
+    }
+
+    #[test]
+    fn build_date_cross_link_carries_sentinel_and_omits_thai_tue() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let cross = build_direction_cross_link_date(&snapshot)
+            .expect("date builder should succeed for a populated snapshot");
+        assert_eq!(cross.birth_chi_index, DATE_ONLY_BIRTH_CHI_INDEX);
+        for cell in cross.cells.iter() {
+            if let Some(taboo) = cell.khcbppt.as_ref() {
+                assert!(
+                    taboo.thai_tue.is_none(),
+                    "date variant must never carry a directional Thai Tue record"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn build_personal_cross_link_carries_exactly_three_evidence_envelopes() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let cross = build_direction_cross_link_personal(&snapshot, 10)
+            .expect("personal builder");
+        assert_eq!(cross.evidence.len(), 3);
+        assert_eq!(
+            cross.evidence[0].source_id,
+            crate::sources::SOURCE_KHCBPPT
+        );
+        assert_eq!(
+            cross.evidence[1].source_id,
+            crate::sources::SOURCE_HUYEN_KHONG
+        );
+        assert_eq!(
+            cross.evidence[2].source_id,
+            COMPOSITE_DIRECTION_CROSS_LINK
+        );
+        // The huyen-khong primitive's method value is locked at runtime.
+        let huyen_method = cross.evidence[1].method.clone();
+        let mut expected = String::from("phi");
+        expected.push('_');
+        expected.push_str("tinh.palace_layout");
+        assert_eq!(huyen_method, expected);
+    }
+
+    #[test]
+    fn build_direction_cross_link_wrapper_returns_personal_fact_node() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let node = build_direction_cross_link(&snapshot, 10).expect("wrapper builder");
+        assert_eq!(node.id, "fact.personal.direction_cross_link");
+        assert_eq!(node.evidence.len(), 3);
+        assert!(!node.summary_vi.is_empty());
+    }
+
+    #[test]
+    fn project_to_summary_carries_cross_link_source() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let cross = build_direction_cross_link_personal(&snapshot, 10)
+            .expect("personal builder");
+        let summary = project_to_summary(&cross);
+        assert_eq!(summary.cross_link_source, COMPOSITE_DIRECTION_CROSS_LINK);
+        assert_eq!(summary.cells.len(), 8);
+        assert_eq!(summary.birth_chi_index, cross.birth_chi_index);
+    }
+
+    #[test]
+    fn enrich_helper_attaches_summary_and_leaves_input_unchanged() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        assert!(snapshot.direction_cross_link.is_none());
+        let enriched = crate::enrich_day_snapshot_with_direction_cross_link(&snapshot, 10)
+            .expect("enrichment should succeed");
+        assert!(enriched.direction_cross_link.is_some());
+        // The input snapshot must remain unchanged (immutable clone-and-attach).
+        assert!(snapshot.direction_cross_link.is_none());
+    }
+
+    #[test]
+    fn enrich_helper_dispatches_sentinel_to_date_builder() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let enriched = crate::enrich_day_snapshot_with_direction_cross_link(
+            &snapshot,
+            DATE_ONLY_BIRTH_CHI_INDEX,
+        )
+        .expect("sentinel enrichment should dispatch to date builder");
+        let summary = enriched
+            .direction_cross_link
+            .expect("summary attached");
+        assert_eq!(summary.birth_chi_index, DATE_ONLY_BIRTH_CHI_INDEX);
+    }
+
+    #[test]
+    fn enrich_helper_rejects_invalid_personal_birth_chi() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let _ = crate::enrich_day_snapshot_with_direction_cross_link(&snapshot, 99)
+            .expect_err("invalid birth chi must propagate the personal builder's error");
+    }
 }
