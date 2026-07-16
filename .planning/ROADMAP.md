@@ -33,7 +33,7 @@
 - [x] **Phase 21: IChing Corpus + Loader** - Author the 64-hexagram Ngô Tất Tố corpus with reviewer signatures + `PendingExternalReview` gaps; lazy `OnceLock` loader consuming the locked Phase 20 schema. (completed 2026-07-16)
 - [x] **Phase 22: Mai Hoa Casting + Biến Quẻ + Thể/Dụng** - Pure-deterministic `cast_mai_hoa` + biến quẻ derivation + Thể/Dụng classification; 384-case biến quẻ contract test + ≥10 cross-source golden cases. (Critical path; parallel to Phase 23.) Completed 2026-07-16.
 - [x] **Phase 23: Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link** - Directional Thái Tuế + classical 3-direction Tam Sát module (both `source_id: khcbppt`) + read-only `build_direction_cross_link` composite with CRIT-3 isolation grep-guarded. (Parallel to Phases 21-22.) Completed 2026-07-16.
-- [ ] **Phase 24: IChing Evaluator + Semantic-Graph Wiring + DTO Integration** - `IChingQuery` sibling newtype + `IChingEvaluator` with per-step source_id envelopes + composite; Hexagram/LocatedAt/Transforms semantic-graph wiring; additive `DaySnapshot.iching_cast` + `direction_cross_link` fields with v1.6→v1.7 round-trip.
+- [~] **Phase 24: IChing Evaluator + Semantic-Graph Wiring + DTO Integration** - `IChingQuery` sibling newtype + `IChingEvaluator` with per-step source_id envelopes + composite; Hexagram/LocatedAt/Transforms semantic-graph wiring; additive `DaySnapshot.iching_cast` + `direction_cross_link` fields with v1.6→v1.7 round-trip. (Plan 24-01 complete 2026-07-16 — ICH-05 closed + INT-12 additive field in place; Plans 24-02 + 24-03 remaining for INT-11 + INT-12 full close.)
 - [ ] **Phase 25: E2E Validation + Golden Cross-Source Verification** - ≥10 IChing golden casting cases × ≥2 sources, 2026 E2E smoke exercising the full v1.7 surface, zero regressions on v1.6 tests, no new crate deps.
 
 ## Phase Details
@@ -137,7 +137,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 24-01-PLAN.md — `IChingQuery` sibling newtype + `IChingEvaluator` (Tier-0, no birth data) + per-step evidence envelopes (`mai-hoa-dich-so` + `kinh-dich` primitives + `rule.composite.iching_consultation` composite) + additive `DaySnapshot.iching_cast` field + immutable `enrich_day_snapshot_with_iching` helper (ICH-05, INT-12 partial)
+- [x] 24-01-PLAN.md — `IChingQuery` sibling newtype + `IChingEvaluator` (Tier-0, no birth data) + per-step evidence envelopes (`mai-hoa-dich-so` + `kinh-dich` primitives + `rule.composite.iching_consultation` composite) + additive `DaySnapshot.iching_cast` field + immutable `enrich_day_snapshot_with_iching` helper (ICH-05 Closed, INT-12 partial). Completed 2026-07-16.
 - [ ] 24-02-PLAN.md — Semantic-graph wiring: `add_iching_facts()` (2 distinct Hexagram nodes + Transforms + LocatedAt edges + dual-source provenance) + forward-compatible `add_direction_composite_facts()` placeholder (Phase-23-conditional); `SemanticId::iching_hexagram(role, king_wen, date, tz)` role-bearing stable keys; `IChingCastSummary` accessors (INT-11)
 - [x] 24-03-PLAN.md — Combined-strip v1.6→v1.7 round-trip tests (3 new tests in `day_snapshot_v14_compat.rs`) + Phase 23 placeholder cleanup + `DaySnapshot.direction_cross_link` field type finalisation + Plan 24-02 `#[ignore]`'d test activation (INT-12 full) (completed 2026-07-16)
 

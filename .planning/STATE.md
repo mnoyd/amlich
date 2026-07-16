@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: milestone
-status: unknown
-last_updated: "2026-07-16T16:02:49.075Z"
+milestone: v1.7
+milestone_name: v1.7-iching-divination
+status: in_progress
+last_updated: "2026-07-16T17:41:37.000Z"
 progress:
   total_phases: 29
   completed_phases: 28
-  total_plans: 79
-  completed_plans: 76
+  total_plans: 80
+  completed_plans: 77
 ---
 
 # Project State
@@ -23,12 +23,13 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-Phase: 23 — Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link — COMPLETE (all 3 plans: 23-01 + 23-02 + 23-03 done; XLK-01 + XLK-02 + XLK-03 all closed).
-Plan: 23-03 complete (XLK-03 fully closed: read-only `build_direction_cross_link_personal` / `_date` + `build_direction_cross_link` PersonalFactNode wrapper + `project_to_summary` + immutable `enrich_day_snapshot_with_direction_cross_link` helper at crate root + sibling `tests/thai_tue_cross_link_crit3.rs` seven-pattern two-target CRIT-3 grep guard + 22-test `tests/direction_cross_link_integration.rs` black-box gate; conservative-default majority-vote severity with three inline unit tests; runtime-built huyen-khong method string == `phi_tinh.palace_layout`).
-Status: Phase 23 complete (3/3 plans). Phase 24 unblocks (consumes `DirectionCrossLinkSummary` + the enrichment helper pattern).
-Last activity: 2026-07-16T15:54:40Z — Plan 23-03 executed (TDD RED→GREEN: Task 1 = `c3e8a74` RED 12 inline tests + `4b79803` GREEN full builder implementation + immutable enrichment helper; Task 2 = `26fd7a3` 22-test black-box integration suite + 3-test sibling CRIT-3 grep guard). 1062 crate tests green (+72 vs Plan 22-02's 990 baseline). Zero regressions; zero new deps.
+**Current Plan:** 1 (of 3 in Phase 24 — IChing Evaluator + Semantic-Graph Wiring + DTO Integration)
+**Total Plans in Phase:** 3
+**Phase:** 24 — IChing Evaluator + Semantic-Graph Wiring + DTO Integration — Plan 24-01 complete (ICH-05 Closed; INT-12 Partially Closed — one of two additive `DaySnapshot` fields in place; full INT-12 close-out ships in Plan 24-03).
+**Last Activity:** 2026-07-16T17:41:37Z
+**Status:** Plan 24-01 complete (3/3 task commits: `563cc27` RED 19 inline tests + 2 provenance tests + `4ecd343` GREEN full IChingQuery + IChingEvaluator + per-step evidence envelopes + `8ea2373` DaySnapshot.iching_cast + enrich_day_snapshot_with_iching + 18-test black-box integration suite). 1101 crate tests green (+39 vs Plan 23-03's 1062 baseline). Zero regressions; zero new deps.
 
-Progress: [████████░░] 80% (v1.7: 4/6 phases complete; 11/15 requirements closed — FND-09..12 + ICH-01..04 + XLK-01..03 done; ICH-05 + INT-11..13 still Pending).
+Progress: [████████░░] 81% (v1.7: 4/6 phases complete; 12/15 requirements closed — FND-09..12 + ICH-01..05 + XLK-01..03 done; INT-11 + INT-12 partial + INT-13 still Pending — Plan 24-01 closes ICH-05 + INT-12 additive field; Plans 24-02 + 24-03 close INT-11 + full INT-12).
 
 ## v1.7 Roadmap Summary
 
@@ -82,17 +83,37 @@ Progress: [████████░░] 80% (v1.7: 4/6 phases complete; 11/15
 
 ## Session Continuity
 
-Last session: 2026-07-16 (transition 23 → 24)
-Stopped at: Phase 23 complete (3/3 plans; XLK-01 + XLK-02 + XLK-03 all closed); VERIFICATION.md status: passed (7/7 must-haves). Phase 24 plans authored (24-01/02/03) and CONTEXT.md + RESEARCH.md present — ready to execute via `/gsd-execute-phase 24`. v1.7 critical path: 20 → 21 → 22 → 24 → 25 (5 hops).
-Resume file: None (transitions don't use resume files).
+Last session: 2026-07-16 (Plan 24-01 execution)
+Stopped at: Plan 24-01 complete (1/3 in Phase 24); ICH-05 Closed; INT-12 partial (one of two additive `DaySnapshot` fields in place); 1101 crate tests green (+39 vs Plan 23-03's 1062 baseline); zero regressions; zero new deps. Phase 24 has 2 plans remaining (24-02 semantic-graph wiring + 24-03 combined-strip v1.6→v1.7 round-trip). v1.7 critical path: 20 → 21 → 22 → 24 → 25 (5 hops).
+Resume file: None (atomic plan execution; no resume file needed).
 
 ### Next Step
 
-Phase 23 is fully complete. Next:
-- `/gsd-plan-phase 24` (IChing Evaluator + Semantic-Graph Wiring + DTO Integration; consumes `DirectionCrossLinkSummary` from Phase 23 + `cast_mai_hoa` + `classify_the_dung` from Phase 22; ships `IChingQuery` sibling newtype + `IChingEvaluator` + per-step evidence envelopes + `add_iching_facts()` / `add_direction_composite_facts()` graph builders + additive `DaySnapshot.iching_cast` + v1.6→v1.7 round-trip).
-- After Phase 24, Phase 25 unblocks (`/gsd-plan-phase 25` — E2E Validation + Golden Cross-Source Verification; ≥10 IChing golden casting cases + 2026 E2E smoke + zero-regression gate).
+Plan 24-01 fully complete. Next:
+- `/gsd-execute-phase 24-02` (IChing semantic-graph wiring — `add_iching_facts()` method on `DaySnapshotGraphBuilder` adds Hexagram nodes + `LocatedAt` / `Transforms` edges + `forward-compatible add_direction_composite_facts()` placeholder; `SemanticId::iching_hexagram(role, king_wen, date, tz)` role-bearing stable keys; `IChingCastSummary` accessors; closes INT-11).
+- `/gsd-execute-phase 24-03` (combined-strip v1.6→v1.7 round-trip tests in `tests/day_snapshot_v14_compat.rs` + Phase 23 placeholder cleanup + `DaySnapshot.direction_cross_link` field type finalisation + Plan 24-02 `#[ignore]`'d test activation; closes INT-12 fully).
+- After Phase 24 (Plans 24-02 + 24-03), Phase 25 unblocks (`/gsd-plan-phase 25` — E2E Validation + Golden Cross-Source Verification; ≥10 IChing golden casting cases + 2026 E2E smoke + zero-regression gate; closes INT-13).
 
-Plan 23-03 consumers (Phase 24 forward): `crate::reasoning::{build_direction_cross_link, build_direction_cross_link_personal, build_direction_cross_link_date, project_to_summary, DirectionCrossLink, DirectionCrossLinkSummary, DirectionCell, DirectionalTaboo, DirectionalThaiTue, HuyenKhongCell, Agreement, COMPOSITE_DIRECTION_CROSS_LINK, DATE_ONLY_BIRTH_CHI_INDEX, DIRECTION_ORDER}`; `crate::enrich_day_snapshot_with_direction_cross_link(snapshot, birth_chi_index)` at the crate root; `snapshot.direction_cross_link: Option<DirectionCrossLinkSummary>` (additive DTO, default None, populated only by the explicit enrichment helper).
+Plan 24-01 consumers (Phase 24 forward + Phase 25):
+- `crate::iching::{IChingQuery, IChingEvaluator, IChingCastSummary, IChingEvaluation, HexagramEntryProjection, COMPOSITE_ICHING_CONSULTATION}`
+- `crate::iching::enrich_day_snapshot_with_iching(snapshot, query)` (re-export from `lib.rs`; mirrors Phase 23-03's `enrich_day_snapshot_with_direction_cross_link` pattern; the canonical site is at the crate root for the public-API surface)
+- `snapshot.iching_cast: Option<IChingCastSummary>` (additive DTO, default None, populated only by the explicit enrichment helper; byte-equal serde round-trip with v1.6 fields intact)
+- `crate::semantic_graph::provenance::ProvenanceSource::IChing` (mapped to `ReasoningEvidenceSourceFamily::IChing` via `to_reasoning_evidence()`; mirrors the Phase 20-03 `ActionId::IChing` additive-safe variant discipline)
+- `ProvenanceEntry::iching(source_id, method)` constructor helper (mirrors `almanac_rule` / `derived` / `snapshot` / `interaction` / `bazi` helpers)
+
+## v1.7 Plan 24-01 Key Decisions
+
+- ICH-05 closed: `crates/amlich-core/src/iching/evaluator.rs` (~470 lines) implements the Tier-0 evaluator as `pub struct IChingEvaluator { query: IChingQuery }` + `pub struct IChingQuery { chi_hour_index: u8, question_vi: Option<String>, lunar_year_branch: u8, lunar_month: u8, lunar_day: u8 }` + compound `pub struct IChingEvaluation` (carries query + cast + bien_que + the_dung + chu_hexagram projection + bien_hexagram projection + evidence vector) + slim owned `pub struct IChingCastSummary` (the DTO that rides on `DaySnapshot.iching_cast`) + owned `pub struct HexagramEntryProjection` (no `&'static HexagramEntry` references on the snapshot). Plan-exact 4-envelope evidence vector: 3 primitive envelopes (`cast_mai_hoa` + `derive_bien_que` carrying `SOURCE_MAI_HOA_DICH_SO`; `corpus_lookup` carrying `SOURCE_KINH_DICH`) + 1 composite envelope with `source_id = "rule.composite.iching_consultation"` and `source_family = ReasoningEvidenceSourceFamily::Derived` (CRIT-6). The composite does NOT collapse the primitives — every step in the derivation remains individually traceable.
+- Sibling-newtype query (locked, non-negotiable per 24-CONTEXT.md): `IChingQuery` is a NEW struct — NOT a `ConsultationIntent::IChing` variant. Adding the variant would force ~25-43 call-site `Copy`-break churn across the codebase (per `.planning/research/ARCHITECTURE.md:436-440`). Mirrors the v1.6 `DailyFlyingStarLayout` sibling-to-`FlyingStarLayout` precedent and the v1.7 `DirectionCrossLinkSummary` sibling-to-`DirectionCrossLink` precedent.
+- Owned DTO projection everywhere: `HexagramEntryProjection` owns `vi_name` / `thoai_tu` / `hao_tu` / `cat_hung` strings; `IChingCastSummary` owns `chu_hexagram_vi_name` / `chu_hexagram_thoai_tu` / `bien_hexagram_vi_name` / `bien_hexagram_thoai_tu` / `question_vi` / `evidence`. No `&'static HexagramEntry` references — the snapshot stays self-contained once cloned, even if the `OnceLock`-cached corpus is dropped/refreshed. Honors the 24-01-PLAN.md "Owned DTO data" constraint.
+- Tier-0 `ActionEvaluator` adapter (MOD-7): `ActionEvaluator::evaluate` returns `Ok(ActionEvaluation::empty(ActionId::IChing))` ignoring `personal_input`. The rich `IChingEvaluation` lives behind `IChingEvaluator::evaluate_consultation` — NOT collapsed into the generic trait shape (per 24-CONTEXT.md Claude's Discretion §1). Test #8 (`iching_evaluator_works_at_tier_0_with_no_birth_data`) proves the personal path is a no-op by calling with `None` AND `Some(&personal_input)` and asserting identical `action_id` / `bucket` / `primary_conclusion`. `select_subgraph` returns the full graph clone (mirrors `InitiationOpeningEvaluator`).
+- Inline `nfc()` helper (mirrors `corpus.rs:163-169` + `rituals/corpus.rs` byte shape): keeps the evaluator module independent of the corpus loader while staying byte-identical to the proven RIT-08 NFC normalisation. RIT-08 NFC normalisation applied to `question_vi` at `IChingQuery::from_snapshot` construction time. Whitespace-only question normalised to `None`. `cat_hung_str` helper: stable lowercase string projection of `CatHung` (`'cat'` / `'binh'` / `'hung'`).
+- Crate-root + iching-namespace dual re-export: `enrich_day_snapshot_with_iching` lives at `lib.rs` (canonical site, mirrors `enrich_day_snapshot_with_direction_cross_link`'s placement at lines 304-320). Re-exported from `iching/mod.rs` so callers using the planned Phase 24-03 import path (`use amlich_core::iching::{enrich_day_snapshot_with_iching, IChingQuery}`) resolve cleanly. The Phase 24 plan-checker commit `d63639f` explicitly pins this contract.
+- `ProvenanceSource::IChing` added as additive-safe variant (between `Insight` and `Derived` — preserves the existing match-arm order from Phase 15; compiler-enforced). Only constructed (never matched at the public graph surface); `to_reasoning_evidence()` maps it to `ReasoningEvidenceSourceFamily::IChing` via a new explicit match arm. The `ProvenanceEntry::iching(source_id, method)` constructor helper mirrors the existing `almanac_rule` / `derived` / `snapshot` / `interaction` / `bazi` / `bazi` helpers. The `to_reasoning_evidence_preserves_all_existing_match_arms` test pins the locked mapping for every existing variant as well (defensive contract test against silent drift).
+- Input validation policy: `chi_hour_index` ∈ `0..=11` required, `question_vi` whitespace-stripped + NFC-normalised at construction. `IChingQuery::from_lunar_inputs` validates all four input ranges (`year_branch` ∈ `0..=11`, `month` ∈ `1..=12`, `day` ∈ `1..=30`, `hour` ∈ `0..=11`); out-of-range returns `Err` with a message naming the field. Missing hexagram guard: `get_hexagram` returns `Option<&'static HexagramEntry>`; if `None` the evaluator returns `Err("missing hexagram entry: <index> (contract violation)")` — unreachable per bijectivity, but contract-violation-safe.
+- Source-id naming discipline: the `note` field of each evidence envelope embeds the inputs in a stable textual shape (`"lunar_year_branch=X;month=Y;day=Z;hour=W"` / `"dong_hao=N;bien_que_king_wen=M"` / `"chu_king_wen=N;bien_king_wen=M;verdict=Cat"`). DOWNSTREAM readers can reconstruct the call-site context from the envelope alone.
+- TDD discipline: 3 atomic commits (RED `563cc27` 15 inline tests fail because `from_snapshot` / `from_lunar_inputs` / `evaluate_consultation` / `to_summary` / `evaluate` panic with `unimplemented!`; 4 invariant tests + 2 provenance tests pass; GREEN Task 1 `4ecd343` full implementation passes all 19 inline tests + 2 provenance tests; GREEN Task 2 `8ea2373` DaySnapshot.iching_cast field + `enrich_day_snapshot_with_iching` helper + 18-test external integration suite pass on first run). 10 min 16 s total; 1101 crate tests green (+39 vs Plan 23-03's 1062 baseline; net additions: 19 inline tests in iching::evaluator + 18 integration + 2 provenance + 0 source_id_guard regressions). Zero regressions; `cargo tree -p amlich-core --depth 1` shows no new dependency (chrono + serde + serde_json + unicode-normalization).
+- Rule 1/2 deviations (3): (a) Doc-comments contained literal `std::fs::` / `rand::` / `Utc::now` substrings that the runtime-built-needle WASM-safety grep guard found (fixed during RED by scrubbing the rationale text — mirrors the 22-02 / corpus.rs WASM-safety scrub discipline). (b) `iching_query_nfc_normalises_question` original NFD input relied on a Unicode composition quirk (precomposed `ê` + combining circumflex has no standard precomposed form); simplified to a single-grave-mark case that clearly verifies U+00EC precomposed `ì` is present after NFC. (c) `enrich_day_snapshot_with_iching` re-export added to `iching/mod.rs` despite being declared in `lib.rs` — to honor the Phase 24 plan-checker commit `d63639f` contract that locks the future Phase 24-03 import path `use amlich_core::iching::{enrich_day_snapshot_with_iching, IChingQuery}`. All three fixes are "make the plan's own verification gates pass" with no behavior change to the locked contracts.
 
 ## v1.7 Plan 23-03 Key Decisions
 
