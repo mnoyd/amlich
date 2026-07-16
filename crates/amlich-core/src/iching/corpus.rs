@@ -18,7 +18,7 @@
 
 use serde::Deserialize;
 use std::sync::OnceLock;
-use unicode_normalization::is_nfc;
+use unicode_normalization::{is_nfc, UnicodeNormalization};
 
 use crate::iching::schema::{HexagramEntry, KingWenHexagram};
 
@@ -56,7 +56,19 @@ static HEXAGRAMS: OnceLock<Vec<HexagramEntry>> = OnceLock::new();
 /// The corpus is compile-embedded so any such failure is a build-time bug, not
 /// a runtime condition.
 pub fn all_hexagrams() -> &'static [HexagramEntry] {
-    unimplemented!("RED phase: not yet implemented")
+    HEXAGRAMS
+        .get_or_init(|| {
+            let file: HexagramFile = serde_json::from_str(HEXAGRAMS_JSON).unwrap_or_else(|e| {
+                panic!("Failed to parse iching corpus: {e}")
+            });
+            assert_eq!(
+                file.schema_version, EXPECTED_SCHEMA_VERSION,
+                "iching corpus schema_version must equal {:?} (ADR-0005); found {:?}",
+                EXPECTED_SCHEMA_VERSION, file.schema_version
+            );
+            file.entries.into_iter().map(normalize_and_validate).collect()
+        })
+        .as_slice()
 }
 
 /// Look up a single hexagram by its King Wen sequence index.
@@ -65,18 +77,64 @@ pub fn all_hexagrams() -> &'static [HexagramEntry] {
 /// 64-iteration scan decision in `schema.rs:261-269` (premature to pre-compute
 /// a reverse lookup map for 64 entries accessed rarely).
 pub fn get_hexagram(index: KingWenHexagram) -> Option<&'static HexagramEntry> {
-    let _ = index;
-    unimplemented!("RED phase: not yet implemented")
+    all_hexagrams().iter().find(|e| e.king_wen_index == index)
 }
 
-fn normalize_and_validate(entry: HexagramEntry) -> HexagramEntry {
-    let _ = entry;
-    unimplemented!("RED phase: not yet implemented")
+/// NFC-normalize every Vietnamese text field on the entry AND enforce the
+/// ADR-0005 §2 `hao_tu` length invariant.
+///
+/// # Panics
+///
+/// Panics if the `hao_tu` length rule is violated. The corpus is
+/// compile-embedded so a violation is a build-time bug (caught by `cargo test`
+/// before release), not a runtime condition.
+fn normalize_and_validate(mut entry: HexagramEntry) -> HexagramEntry {
+    // ADR-0005 §2 hao_tu length invariant: #1 Kiền & #2 Khôn carry 7 entries
+    // (dụng cửu / dụng lục seventh line); #3..=64 carry 6 entries. Enforced at
+    // load (cannot be a serde constraint — `Vec<String>` has no
+    // length-dependent-on-other-field derive).
+    let kw = entry.king_wen_index.0;
+    let expected = if kw == 1 || kw == 2 { 7 } else { 6 };
+    assert_eq!(
+        entry.hao_tu.len(),
+        expected,
+        "hao_tu length rule violation for King Wen #{}: expected {}, got {} (ADR-0005 §2)",
+        kw,
+        expected,
+        entry.hao_tu.len()
+    );
+
+    // RIT-08 NFC normalization: every Vietnamese text field gets passed through
+    // `nfc()`. `is_nfc()` returns true for already-canonical text -> fast
+    // early-out (the corpus is authored NFC, so the early-out is the common
+    // path).
+    entry.vi_name = nfc(&entry.vi_name);
+    entry.thoai_tu = nfc(&entry.thoai_tu);
+    entry.cat_hung = nfc(&entry.cat_hung);
+    for line in entry.hao_tu.iter_mut() {
+        *line = nfc(line);
+    }
+    // Reserved *_en fields — None in v1.7 but normalized if Some (forward-safety).
+    if let Some(s) = entry.vi_name_en.as_deref() {
+        entry.vi_name_en = Some(nfc(s));
+    }
+    if let Some(s) = entry.thoai_tu_en.as_deref() {
+        entry.thoai_tu_en = Some(nfc(s));
+    }
+    if let Some(lines) = entry.hao_tu_en.as_mut() {
+        for line in lines.iter_mut() {
+            *line = nfc(line);
+        }
+    }
+    entry
 }
 
 fn nfc(s: &str) -> String {
-    let _ = (s, is_nfc);
-    unimplemented!("RED phase: not yet implemented")
+    if is_nfc(s) {
+        s.to_string()
+    } else {
+        s.nfc().collect()
+    }
 }
 
 #[cfg(test)]
