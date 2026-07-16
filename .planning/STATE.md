@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: Kinh Dịch (I-Ching Divination)
 status: in_progress
-last_updated: "2026-07-16T02:03:17Z"
+last_updated: "2026-07-16T02:21:23Z"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -23,12 +23,12 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-Phase: 21 — IChing Corpus + Loader — IN PROGRESS (1/2 plans).
-Plan: 21-01 complete (64-hexagram corpus JSON + 64-row provenance audit ledger). 21-02 (OnceLock loader + get_hexagram/all_hexagrams API + integration tests) remains.
-Status: IChing corpus DATA half shipped. Plan 21-02 will deliver the CODE half (loader + lookup API + integration tests) to close ICH-01.
-Last activity: 2026-07-16 — Plan 21-01 executed (64-entry hexagrams.json with envelope {$schema_version: iching-v1} + 64-row provenance_audit.md; structural fields derived from COMPOSITION_TABLE; interpretive text deferred per AF-05; zero Rust code touched).
+Phase: 21 — IChing Corpus + Loader — COMPLETE (2/2 plans). ICH-01 CLOSED.
+Plan: 21-02 complete (OnceLock loader + get_hexagram/all_hexagrams API + 8 black-box integration tests). Both halves of ICH-01 now shipped (21-01 DATA + 21-02 CODE).
+Status: IChing pillar foundation in place. Ready to plan Phase 22 (Mai Hoa casting) or Phase 23 (Thái Tuế/Tam Sát ⇄ Phi Tinh cross-link) in parallel.
+Last activity: 2026-07-16 — Plan 21-02 executed (OnceLock-cached iching/corpus.rs mirroring rituals/corpus.rs; ADR-0005 §2 hao_tu length invariant enforced at load; RIT-08 NFC normalization; 8 integration tests closing ICH-01 SC1-4 from external-crate path).
 
-Progress: [██░░░░░░░░] 31% (v1.7: 1/6 phases complete; 4/15 requirements closed — FND-09 + FND-10 + FND-11 + FND-12 done; ICH-01 spans 21-01 DATA + 21-02 CODE).
+Progress: [███░░░░░░░] 38% (v1.7: 2/6 phases complete; 5/15 requirements closed — FND-09 + FND-10 + FND-11 + FND-12 + ICH-01 done).
 
 ## v1.7 Roadmap Summary
 
@@ -82,13 +82,27 @@ Progress: [██░░░░░░░░] 31% (v1.7: 1/6 phases complete; 4/15 
 
 ## Session Continuity
 
-Last session: 2026-07-16T02:03:17Z
-Stopped at: Completed 21-01-PLAN.md (64-entry hexagrams.json corpus + 64-row provenance_audit.md ledger; IChing corpus DATA half of ICH-01). Phase 21 is 1/2 plans complete.
+Last session: 2026-07-16T02:21:23Z
+Stopped at: Completed 21-02-PLAN.md (OnceLock iching corpus loader + get_hexagram/all_hexagrams API + 8 black-box integration tests; CODE half of ICH-01; ICH-01 fully closed). Phase 21 is 2/2 plans complete.
 Resume file: None.
 
 ### Next Step
 
-Phase 21 Plan 21-01 (corpus DATA half) is complete. Run `/gsd-execute-phase 21` again to execute Plan 21-02 (OnceLock loader consuming `include_str!("data/iching/hexagrams.json")` + `get_hexagram`/`all_hexagrams` lookup API + NFC/hao_tu-invariant enforcement + black-box integration tests — mirrors the v1.5 `rituals/corpus.rs` pattern). Plan 21-02 fully closes ICH-01 across its 4 success criteria. Parallel track remains available: `/gsd-plan-phase 23` for the Thái Tuế/Tam Sát ⇄ Phi Tinh cross-link.
+Phase 21 is COMPLETE (both 21-01 DATA + 21-02 CODE shipped; ICH-01 closed). Two parallel tracks available:
+- `/gsd-plan-phase 22` — Mai Hoa casting + Biến Quẻ + Thể/Dụng (`cast_mai_hoa(...) -> MaiHoaCast` consuming `get_hexagram` + `compose()`; CRIT-2 boundary + 384-case biến quẻ contract test).
+- `/gsd-plan-phase 23` — Thái Tuế / Tam Sát ⇄ Phi Tinh cross-link (read-only `reasoning/direction_composite.rs::build_direction_cross_link`; CRIT-3 carve-out per ADR-0007).
+
+Both unblock Phase 24 (IChing evaluator + semantic-graph wiring).
+
+## v1.7 Plan 21-02 Key Decisions
+
+- IChing corpus CODE half shipped: `crates/amlich-core/src/iching/corpus.rs` (233 lines) implements the OnceLock-cached loader mirroring `rituals/corpus.rs` exactly — `HEXAGRAMS_JSON` via `include_str!("../../data/iching/hexagrams.json")`, `EXPECTED_SCHEMA_VERSION = "iching-v1"` asserted at load (panics on mismatch — ADR enforcement), `HexagramFile` envelope struct, `all_hexagrams() -> &'static [HexagramEntry]`, `get_hexagram(KingWenHexagram) -> Option<&'static HexagramEntry>` (64-entry linear scan mirroring `compose()`). `iching/mod.rs` re-exports `all_hexagrams` + `get_hexagram`.
+- ADR-0005 §2 `hao_tu` length invariant is enforced at LOAD (in `normalize_and_validate`) via `assert_eq!`, NOT via serde. Rust's `Vec<String>` has no length-dependent-on-other-field derive. Panic on violation is fail-fast — corpus is compile-embedded so a parse failure is a build-time bug, not a runtime condition. Panic message cites ADR-0005 §2.
+- RIT-08 NFC normalization applied to every Vietnamese text field at load (`vi_name`, `thoai_tu`, `cat_hung`, every `hao_tu` line, + reserved `*_en` Option fields if `Some`). `nfc()` helper byte-identical to `rituals/corpus.rs:163-169`.
+- Trigram identity cross-check (test `corpus_trigram_identity_matches_composition_table`) compares SERDE NAMES (e.g. `"kien"`), NOT discriminants — CRIT-3 isolation preserved because we never convert between `TienThienTrigram` and `HauThienTrigram`. Both enums carry `#[serde(rename_all = "snake_case")]` so the same logical trigram serializes to the same JSON string in either arrangement; the comparison catches any authoring error.
+- WASM-safety grep guard (`wasm_safety_no_fs_no_utc`) anchored on USAGE patterns (`std::fs::`, `use std::fs;`, `Utc::now`), NOT bare substrings — bare substrings false-positive on doc comments mentioning the rule. Mirrors v1.6 `fengshui_crit3_isolation.rs` discipline. Rule 1 deviation: initial guard was bare-substring and failed on its own rationale text; tightened + reworded corpus.rs doc.
+- Loader pattern now proven across 3 corpus milestones: rituals v1.5, golden v1.6, iching v1.7. The OnceLock + include_str! + envelope + nfc() shape is the canonical amlich corpus-loading discipline.
+- ICH-01 fully closed: 4 success criteria test-backed from external-crate path via `crates/amlich-core/tests/iching_corpus_integration.rs` (8 tests). SC1 lookup+hao_tu, SC2 reviewer signature, SC3 NFC+provenance ledger, SC4 idempotency+WASM-safety. Marked Closed in REQUIREMENTS.md.
 
 ## v1.7 Plan 21-01 Key Decisions
 
@@ -173,4 +187,4 @@ Phase 21 Plan 21-01 (corpus DATA half) is complete. Run `/gsd-execute-phase 21` 
 </details>
 
 ---
-*State updated: 2026-07-16 — Phase 21 Plan 21-01 complete (64-hexagram corpus JSON + 64-row provenance audit ledger; DATA half of ICH-01). Phase 21 is 1/2 plans done. Next: Plan 21-02 (OnceLock loader + lookup API + integration tests) to fully close ICH-01.*
+*State updated: 2026-07-16 — Phase 21 Plan 21-02 complete (OnceLock iching corpus loader + get_hexagram/all_hexagrams API + 8 black-box integration tests; CODE half of ICH-01; ICH-01 fully closed). Phase 21 is 2/2 plans done — Phase 21 COMPLETE. Next: `/gsd-plan-phase 22` (Mai Hoa casting) or `/gsd-plan-phase 23` (Thái Tuế/Tam Sát cross-link).*

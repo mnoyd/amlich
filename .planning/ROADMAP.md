@@ -30,7 +30,7 @@
 ## Phases
 
 - [x] **Phase 20: Foundation — Schema Lock + Source IDs + ADRs + Ontology** - Lock the IChing + cross-link foundation: register `SOURCE_KINH_DICH` / `SOURCE_MAI_HOA_DICH_SO`, accept ADR-0005/0006/0007, lock `HexagramEntry` schema with the three trigram/hexagram newtypes + the 64-entry Tiên Thiên → King Wen composition table, extend the 6-slice ontology with Hexagram/LocatedAt/Transforms + IChing enum variants. (BLOCKING) (completed 2026-07-15)
-- [ ] **Phase 21: IChing Corpus + Loader** - Author the 64-hexagram Ngô Tất Tố corpus with reviewer signatures + `PendingExternalReview` gaps; lazy `OnceLock` loader consuming the locked Phase 20 schema. (1/2 plans done — corpus DATA shipped; loader CODE pending)
+- [x] **Phase 21: IChing Corpus + Loader** - Author the 64-hexagram Ngô Tất Tố corpus with reviewer signatures + `PendingExternalReview` gaps; lazy `OnceLock` loader consuming the locked Phase 20 schema. (completed 2026-07-16)
 - [ ] **Phase 22: Mai Hoa Casting + Biến Quẻ + Thể/Dụng** - Pure-deterministic `cast_mai_hoa` + biến quẻ derivation + Thể/Dụng classification; 384-case biến quẻ contract test + ≥10 cross-source golden cases. (Critical path; parallel to Phase 23.)
 - [ ] **Phase 23: Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link** - Directional Thái Tuế + classical 3-direction Tam Sát module (both `source_id: khcbppt`) + read-only `build_direction_cross_link` composite with CRIT-3 isolation grep-guarded. (Parallel to Phases 21-22.)
 - [ ] **Phase 24: IChing Evaluator + Semantic-Graph Wiring + DTO Integration** - `IChingQuery` sibling newtype + `IChingEvaluator` with per-step source_id envelopes + composite; Hexagram/LocatedAt/Transforms semantic-graph wiring; additive `DaySnapshot.iching_cast` + `direction_cross_link` fields with v1.6→v1.7 round-trip.
@@ -73,7 +73,7 @@ Plans:
   3. A reader can find every Vietnamese text field is NFC-normalized at load (RIT-08 precedent) and a `data/iching/provenance_audit.md` ledger accompanies the corpus.
   4. A caller can observe corpus load is lazy (only triggered on first lookup) and WASM-safe (no `std::fs`, no `Utc::now`).
 
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 21-01-PLAN.md — Author 64-hexagram corpus JSON (deterministic fields + AF-05 deferred text) + provenance audit ledger
@@ -148,7 +148,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 20. Foundation — Schema Lock + Source IDs + ADRs + Ontology | 3/3 | Complete   | 2026-07-15 |
-| 21. IChing Corpus + Loader | 1/2 | In Progress | - |
+| 21. IChing Corpus + Loader | 2/2 | Complete   | 2026-07-16 |
 | 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 0/TBD | Not started | - |
 | 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 0/TBD | Not started | - |
 | 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | 0/TBD | Not started | - |
@@ -221,4 +221,4 @@ Full details in [`milestones/v1.5-ROADMAP.md`](milestones/v1.5-ROADMAP.md).
 
 ---
 
-*Last updated: 2026-07-16 — Phase 21 Plan 21-01 complete (64-hexagram corpus JSON + 64-row provenance audit ledger; DATA half of ICH-01). Phase 21 is 1/2 plans done. Next: Plan 21-02 (OnceLock loader + lookup API + integration tests) to fully close ICH-01.*
+*Last updated: 2026-07-16 — Phase 21 Plan 21-02 complete (OnceLock iching corpus loader + get_hexagram/all_hexagrams API + 8 black-box integration tests; CODE half of ICH-01; ICH-01 fully closed). Phase 21 is 2/2 plans done — Phase 21 COMPLETE. Next: `/gsd-plan-phase 22` (Mai Hoa casting) or `/gsd-plan-phase 23` (Thái Tuế/Tam Sát cross-link).*

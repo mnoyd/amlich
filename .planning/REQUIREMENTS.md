@@ -17,7 +17,7 @@ REQs continue numbering from v1.6 archive (FND-01..08, RIT-01..16, FS-01..19, IN
 
 ### P2 Kinh Dịch — Corpus + Casting + Evaluator
 
-- [ ] **ICH-01**: User-of-corpus can find a 64-hexagram lookup (`data/iching/hexagrams.json`, NFC-normalized at load, reviewer-signed) where each `HexagramEntry` carries `king_wen_index`, `vi_name`, `upper/lower_trigram`, `thoai_tu` (judgment), `hao_tu` (6 line texts, 7 for hexagrams 1 & 2), and `cat_hung` verdict — loaded via `include_str!` + `OnceLock`; gaps in the Ngô Tất Tố source are logged as `PendingExternalReview`, never silently filled from another translator.
+- [x] **ICH-01**: User-of-corpus can find a 64-hexagram lookup (`data/iching/hexagrams.json`, NFC-normalized at load, reviewer-signed) where each `HexagramEntry` carries `king_wen_index`, `vi_name`, `upper/lower_trigram`, `thoai_tu` (judgment), `hao_tu` (6 line texts, 7 for hexagrams 1 & 2), and `cat_hung` verdict — loaded via `include_str!` + `OnceLock`; gaps in the Ngô Tất Tố source are logged as `PendingExternalReview`, never silently filled from another translator.
 - [ ] **ICH-02**: A caller can invoke `cast_mai_hoa(lunar_year_branch, lunar_month, lunar_day, chi_hour_index) -> MaiHoaCast` returning the upper/lower Tiên Thiên trigram pair + động hào (moving line), deterministic with no RNG, honouring the `((n-1)%k)+1` remainder-zero convention (CRIT-2).
 - [ ] **ICH-03**: A caller can derive the biến quẻ (transforming hexagram) from a `MaiHoaCast` by flipping the động hào bit and re-composing, verifiable by a 384-case (64 chủ quẻ × 6 động hào) exhaustive contract test (CRIT-4).
 - [ ] **ICH-04**: A reader of a cast result can find the Thể (the trigram NOT containing the động hào) and Dụng (the trigram containing it) classification plus the Ngũ Hành sinh/khắc relationship driving the cát/hùng reading.
@@ -56,7 +56,7 @@ REQs continue numbering from v1.6 archive (FND-01..08, RIT-01..16, FS-01..19, IN
 | FND-10 | 20 | Complete |
 | FND-11 | 20 | Complete |
 | FND-12 | 20 | Complete |
-| ICH-01 | 21 | In Progress (21-01 DATA done; 21-02 CODE pending) |
+| ICH-01 | 21 | Complete (21-01 DATA + 21-02 CODE both shipped; 8 black-box integration tests) |
 | ICH-02 | 22 | Pending |
 | ICH-03 | 22 | Pending |
 | ICH-04 | 22 | Pending |
