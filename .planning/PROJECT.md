@@ -105,5 +105,10 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 
 </details>
 
+- **Cited deferrals tracked as `PendingExternalReview`** — Tam Sát page citation deferred honestly in `data/almanac/tam_sat_provenance.md` per ADR-0006 §5; runtime-built `huyen-khong` method string `phi_tinh.palace_layout` to keep `phi_tinh` literal out of `reasoning/direction_composite.rs` (CRIT-3 defensive coding). | ✓ Confirmed in v1.7 (Phase 23) |
+- **Additive `DaySnapshot.direction_cross_link` (None default) + immutable `enrich_day_snapshot_with_direction_cross_link` helper** | Wraps cross-link compute into snapshot without mutating caller-owned snapshot; mirrors v1.6 additive DTO discipline | ✓ Confirmed in v1.7 (Phase 23, Plan 23-02 + 23-03) |
+- **Sibling CRIT-3 grep guard at `tests/thai_tue_cross_link_crit3.rs`** (separate from existing `fengshui_crit3_isolation.rs`) | Scans exactly 7 forbidden patterns × 2 target files (`direction_merge.rs` + `direction_composite.rs`); catches both cross-link modules in one place | ✓ Confirmed in v1.7 (Phase 23, Plan 23-03) |
+
 ---
-*Last updated: 2026-07-16 — v1.7 Kinh Dịch milestone initialised (P2 pillar + Thái Tuế cross-link).*
+
+*Last updated: 2026-07-16 — v1.7 Kinh Dịch milestone: Phases 20–23 complete (Foundation + IChing corpus + Mai Hoa casting + Cross-Link); Phase 24 plans authored, ready to execute.*
