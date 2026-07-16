@@ -68,7 +68,18 @@ use crate::iching::schema::TienThienTrigram;
 /// CRIT-3 isolation: this is a plain `fn`, not `impl From<...>`. The three
 /// iching newtypes carry no cross-`From` impls.
 pub fn trigram_element(t: TienThienTrigram) -> FiveElement {
-    unimplemented!("RED phase: trigram_element not implemented")
+    match t {
+        // Kim (Metal) — Kiền ☰ heaven, Đoài ☱ lake.
+        TienThienTrigram::Kien | TienThienTrigram::Doai => FiveElement::Kim,
+        // Hoa (Fire) — Ly ☲ fire.
+        TienThienTrigram::Ly => FiveElement::Hoa,
+        // Moc (Wood) — Chấn ☳ thunder, Tốn ☴ wind.
+        TienThienTrigram::Chan | TienThienTrigram::Ton => FiveElement::Moc,
+        // Thuy (Water) — Khảm ☵ water.
+        TienThienTrigram::Kham => FiveElement::Thuy,
+        // Tho (Earth) — Cấn ☶ mountain, Khôn ☷ earth.
+        TienThienTrigram::Can | TienThienTrigram::Khon => FiveElement::Tho,
+    }
 }
 
 // ===========================================================================
@@ -80,15 +91,29 @@ pub fn trigram_element(t: TienThienTrigram) -> FiveElement {
 /// Classic Ngũ Hành sinh relation: does `a` generate `b`?
 ///
 /// sinh cycle: Mộc → Hỏa → Thổ → Kim → Thủy → Mộc.
-fn generates(_a: FiveElement, _b: FiveElement) -> bool {
-    unimplemented!("RED phase: generates not implemented")
+fn generates(a: FiveElement, b: FiveElement) -> bool {
+    matches!(
+        (a, b),
+        (FiveElement::Moc, FiveElement::Hoa)
+            | (FiveElement::Hoa, FiveElement::Tho)
+            | (FiveElement::Tho, FiveElement::Kim)
+            | (FiveElement::Kim, FiveElement::Thuy)
+            | (FiveElement::Thuy, FiveElement::Moc)
+    )
 }
 
 /// Classic Ngũ Hành khắc relation: does `a` control (overcome) `b`?
 ///
 /// khắc cycle: Mộc → Thổ → Thủy → Hỏa → Kim → Mộc.
-fn controls(_a: FiveElement, _b: FiveElement) -> bool {
-    unimplemented!("RED phase: controls not implemented")
+fn controls(a: FiveElement, b: FiveElement) -> bool {
+    matches!(
+        (a, b),
+        (FiveElement::Moc, FiveElement::Tho)
+            | (FiveElement::Tho, FiveElement::Thuy)
+            | (FiveElement::Thuy, FiveElement::Hoa)
+            | (FiveElement::Hoa, FiveElement::Kim)
+            | (FiveElement::Kim, FiveElement::Moc)
+    )
 }
 
 // ===========================================================================
@@ -123,7 +148,11 @@ impl TheDungRelation {
     /// | TheSinhDung     | Hung    |
     /// | DungKhacThe     | Hung    |
     pub fn cat_hung(self) -> CatHung {
-        unimplemented!("RED phase: cat_hung not implemented")
+        match self {
+            TheDungRelation::DungSinhThe | TheDungRelation::TheKhacDung => CatHung::Cat,
+            TheDungRelation::Dong => CatHung::Binh,
+            TheDungRelation::TheSinhDung | TheDungRelation::DungKhacThe => CatHung::Hung,
+        }
     }
 }
 
@@ -192,7 +221,65 @@ pub struct TheDungClassification {
 ///    (Sinh + khắc cycles are complementary so the final else is exhaustive.)
 /// 5. `verdict = relation.cat_hung()`.
 pub fn classify_the_dung(cast: &MaiHoaCast) -> TheDungClassification {
-    unimplemented!("RED phase: classify_the_dung not implemented")
+    // 1. Determine Dụng trigram by động hào position.
+    //
+    //    Lower trigram covers lines 1-3 (bottom); upper trigram covers 4-6
+    //    (top). động hào 1-3 lives in the lower trigram (so lower is Dụng,
+    //    upper is Thể). động hào 4-6 lives in the upper trigram (so upper
+    //    is Dụng, lower is Thể).
+    assert!(
+        (1..=6).contains(&cast.dong_hao),
+        "dong_hao out of range: {} (must be 1..=6)",
+        cast.dong_hao
+    );
+    let (the_trigram, dung_trigram) = if cast.dong_hao <= 3 {
+        (cast.upper_trigram, cast.lower_trigram)
+    } else {
+        (cast.lower_trigram, cast.upper_trigram)
+    };
+
+    // 2. Element mapping (Bát Quái Ngũ Hành).
+    let the_element = trigram_element(the_trigram);
+    let dung_element = trigram_element(dung_trigram);
+
+    // 3. Derive the 5-way sinh/khắc relation.
+    //
+    //    The sinh + khắc cycles are complementary, so for any pair of
+    //    DISTINCT elements exactly one of `generates(a,b)`, `generates(b,a)`,
+    //    `controls(a,b)`, `controls(b,a)` is true. Matching same-element
+    //    first (Dong) ensures the final `else` is reachable for distinct
+    //    pairs only.
+    let relation = if the_element == dung_element {
+        TheDungRelation::Dong
+    } else if generates(dung_element, the_element) {
+        TheDungRelation::DungSinhThe
+    } else if generates(the_element, dung_element) {
+        TheDungRelation::TheSinhDung
+    } else if controls(the_element, dung_element) {
+        TheDungRelation::TheKhacDung
+    } else {
+        // controls(dung_element, the_element) — exhaustive by the
+        // sinh+khắc complementarity.
+        debug_assert!(
+            controls(dung_element, the_element),
+            "non-same-element pair ({the_element:?}, {dung_element:?}) \
+             must relate by exactly one of sinh/khắc"
+        );
+        TheDungRelation::DungKhacThe
+    };
+
+    // 4. Verdict derived from the relation.
+    let verdict = relation.cat_hung();
+
+    TheDungClassification {
+        the_trigram,
+        dung_trigram,
+        dong_hao: cast.dong_hao,
+        the_element,
+        dung_element,
+        relation,
+        verdict,
+    }
 }
 
 // ===========================================================================
