@@ -1,0 +1,1415 @@
+{
+  "$schema_version": "iching-v1",
+  "entries": [
+    {
+      "king_wen_index": 1,
+      "vi_name": "Thuần Kiền",
+      "upper_trigram": "kien",
+      "lower_trigram": "kien",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ dụng cửu: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 2,
+      "vi_name": "Thuần Khôn",
+      "upper_trigram": "khon",
+      "lower_trigram": "khon",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ dụng lục: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 3,
+      "vi_name": "Truân",
+      "upper_trigram": "kham",
+      "lower_trigram": "chan",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 4,
+      "vi_name": "Mông",
+      "upper_trigram": "can",
+      "lower_trigram": "kham",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 5,
+      "vi_name": "Nhu",
+      "upper_trigram": "kien",
+      "lower_trigram": "kham",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 6,
+      "vi_name": "Tụng",
+      "upper_trigram": "kham",
+      "lower_trigram": "kien",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 7,
+      "vi_name": "Sư",
+      "upper_trigram": "khon",
+      "lower_trigram": "kham",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 8,
+      "vi_name": "Tỷ",
+      "upper_trigram": "kham",
+      "lower_trigram": "khon",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 9,
+      "vi_name": "Tiểu Súc",
+      "upper_trigram": "ton",
+      "lower_trigram": "kien",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 10,
+      "vi_name": "Lữ",
+      "upper_trigram": "kien",
+      "lower_trigram": "doai",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 11,
+      "vi_name": "Thái",
+      "upper_trigram": "khon",
+      "lower_trigram": "kien",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 12,
+      "vi_name": "Bỉ",
+      "upper_trigram": "kien",
+      "lower_trigram": "khon",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 13,
+      "vi_name": "Đồng Nhân",
+      "upper_trigram": "kien",
+      "lower_trigram": "ly",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 14,
+      "vi_name": "Đại Hữu",
+      "upper_trigram": "ly",
+      "lower_trigram": "kien",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 15,
+      "vi_name": "Khiêm",
+      "upper_trigram": "khon",
+      "lower_trigram": "can",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 16,
+      "vi_name": "Dự",
+      "upper_trigram": "chan",
+      "lower_trigram": "khon",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 17,
+      "vi_name": "Tùy",
+      "upper_trigram": "doai",
+      "lower_trigram": "chan",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 18,
+      "vi_name": "Cổ",
+      "upper_trigram": "can",
+      "lower_trigram": "ton",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 19,
+      "vi_name": "Lâm",
+      "upper_trigram": "khon",
+      "lower_trigram": "doai",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 20,
+      "vi_name": "Quan",
+      "upper_trigram": "ton",
+      "lower_trigram": "khon",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 21,
+      "vi_name": "Phệ Hạp",
+      "upper_trigram": "ly",
+      "lower_trigram": "chan",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 22,
+      "vi_name": "Bí",
+      "upper_trigram": "can",
+      "lower_trigram": "ly",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 23,
+      "vi_name": "Bác",
+      "upper_trigram": "can",
+      "lower_trigram": "khon",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 24,
+      "vi_name": "Phục",
+      "upper_trigram": "khon",
+      "lower_trigram": "chan",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 25,
+      "vi_name": "Vô Vọng",
+      "upper_trigram": "kien",
+      "lower_trigram": "chan",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 26,
+      "vi_name": "Đại Súc",
+      "upper_trigram": "can",
+      "lower_trigram": "kien",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 27,
+      "vi_name": "Di",
+      "upper_trigram": "can",
+      "lower_trigram": "chan",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 28,
+      "vi_name": "Đại Quá",
+      "upper_trigram": "doai",
+      "lower_trigram": "ton",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 29,
+      "vi_name": "Thuần Khảm",
+      "upper_trigram": "kham",
+      "lower_trigram": "kham",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 30,
+      "vi_name": "Thuần Ly",
+      "upper_trigram": "ly",
+      "lower_trigram": "ly",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 31,
+      "vi_name": "Hàm",
+      "upper_trigram": "doai",
+      "lower_trigram": "can",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 32,
+      "vi_name": "Hằng",
+      "upper_trigram": "chan",
+      "lower_trigram": "ton",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 33,
+      "vi_name": "Độn",
+      "upper_trigram": "kien",
+      "lower_trigram": "can",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 34,
+      "vi_name": "Đại Tráng",
+      "upper_trigram": "chan",
+      "lower_trigram": "kien",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 35,
+      "vi_name": "Tấn",
+      "upper_trigram": "ly",
+      "lower_trigram": "khon",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 36,
+      "vi_name": "Minh Di",
+      "upper_trigram": "khon",
+      "lower_trigram": "ly",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 37,
+      "vi_name": "Gia Nhân",
+      "upper_trigram": "ton",
+      "lower_trigram": "ly",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 38,
+      "vi_name": "Khuê",
+      "upper_trigram": "ly",
+      "lower_trigram": "doai",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 39,
+      "vi_name": "Kiển",
+      "upper_trigram": "kham",
+      "lower_trigram": "can",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 40,
+      "vi_name": "Giải",
+      "upper_trigram": "chan",
+      "lower_trigram": "kham",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 41,
+      "vi_name": "Tổn",
+      "upper_trigram": "can",
+      "lower_trigram": "doai",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 42,
+      "vi_name": "Ích",
+      "upper_trigram": "ton",
+      "lower_trigram": "chan",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 43,
+      "vi_name": "Quải",
+      "upper_trigram": "doai",
+      "lower_trigram": "kien",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 44,
+      "vi_name": "Cấu",
+      "upper_trigram": "kien",
+      "lower_trigram": "ton",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 45,
+      "vi_name": "Tụy",
+      "upper_trigram": "doai",
+      "lower_trigram": "khon",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 46,
+      "vi_name": "Thăng",
+      "upper_trigram": "khon",
+      "lower_trigram": "ton",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 47,
+      "vi_name": "Khốn",
+      "upper_trigram": "doai",
+      "lower_trigram": "kham",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 48,
+      "vi_name": "Tỉnh",
+      "upper_trigram": "kham",
+      "lower_trigram": "ton",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 49,
+      "vi_name": "Cách",
+      "upper_trigram": "doai",
+      "lower_trigram": "ly",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 50,
+      "vi_name": "Đỉnh",
+      "upper_trigram": "ly",
+      "lower_trigram": "ton",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 51,
+      "vi_name": "Thuần Chấn",
+      "upper_trigram": "chan",
+      "lower_trigram": "chan",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 52,
+      "vi_name": "Thuần Cấn",
+      "upper_trigram": "can",
+      "lower_trigram": "can",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 53,
+      "vi_name": "Tiệm",
+      "upper_trigram": "ton",
+      "lower_trigram": "can",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 54,
+      "vi_name": "Quy Muội",
+      "upper_trigram": "chan",
+      "lower_trigram": "doai",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 55,
+      "vi_name": "Phong",
+      "upper_trigram": "chan",
+      "lower_trigram": "ly",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 56,
+      "vi_name": "Lữ",
+      "upper_trigram": "ly",
+      "lower_trigram": "can",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 57,
+      "vi_name": "Thuần Tốn",
+      "upper_trigram": "ton",
+      "lower_trigram": "ton",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 58,
+      "vi_name": "Thuần Đoài",
+      "upper_trigram": "doai",
+      "lower_trigram": "doai",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 59,
+      "vi_name": "Hoán",
+      "upper_trigram": "ton",
+      "lower_trigram": "kham",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 60,
+      "vi_name": "Tiết",
+      "upper_trigram": "kham",
+      "lower_trigram": "doai",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 61,
+      "vi_name": "Trung Phu",
+      "upper_trigram": "ton",
+      "lower_trigram": "doai",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 62,
+      "vi_name": "Tiểu Quá",
+      "upper_trigram": "chan",
+      "lower_trigram": "can",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 63,
+      "vi_name": "Ký Tế",
+      "upper_trigram": "kham",
+      "lower_trigram": "ly",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    },
+    {
+      "king_wen_index": 64,
+      "vi_name": "Vị Tế",
+      "upper_trigram": "ly",
+      "lower_trigram": "kham",
+      "thoai_tu": "[PendingExternalReview — thoái từ (彖辭 judgment): Ngô Tất Tố Kinh Dịch Trọn Bộ source text pending external review]",
+      "hao_tu": [
+        "[PendingExternalReview — hào từ sơ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ nhị hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tam hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ tứ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ ngũ hào: Ngô Tất Tố source text pending]",
+        "[PendingExternalReview — hào từ thượng hào: Ngô Tất Tố source text pending]"
+      ],
+      "cat_hung": "[PendingExternalReview — cát hung (吉凶 verdict): Ngô Tất Tố source reading pending external review]",
+      "reviewer": "ExternalReviewPending(reason=\"Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text not available in this Claude execution; AF-05 forbids filling from another translator\"; expected_review_date=\"2026-12-31\"; assigned_to=\"external-kinh-dich-reviewer\")",
+      "pending_review": {
+        "reason": "Ngô Tất Tố Kinh Dịch Trọn Bộ interpretive text (thoai_tu, hao_tu, cat_hung) pending external review per AF-05",
+        "expected_review_date": "2026-12-31",
+        "assigned_to": "external-kinh-dich-reviewer"
+      }
+    }
+  ]
+}
