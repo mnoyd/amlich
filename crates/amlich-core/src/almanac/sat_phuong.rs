@@ -8,6 +8,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::types::RuleEvidence;
+use crate::sources::SOURCE_KHCBPPT;
 
 /// Sát direction by triad group:
 /// Group 0 (chi%4=0): Thân(8), Tý(0), Thìn(4)  → Sát Nam (South)
@@ -49,7 +50,11 @@ pub struct SatPhuongResult {
 pub fn get_sat_phuong(chi_index: usize) -> SatPhuongResult {
     SatPhuongResult {
         direction: SAT_PHUONG_BY_CHI[chi_index].to_string(),
-        evidence: None,
+        evidence: Some(RuleEvidence {
+            source_id: SOURCE_KHCBPPT.to_string(),
+            method: "sat_phuong_day_chi".to_string(),
+            profile: "baseline".to_string(),
+        }),
     }
 }
 
@@ -99,6 +104,14 @@ mod tests {
 
     #[test]
     fn evidence_defaults_to_none() {
-        assert!(get_sat_phuong(0).evidence.is_none());
+        // XLK-01 backfill: evidence is now populated with KHCBPPT provenance.
+        let r = get_sat_phuong(0);
+        let evidence = r
+            .evidence
+            .as_ref()
+            .expect("get_sat_phuong evidence must be populated after XLK-01 backfill");
+        assert_eq!(evidence.source_id, SOURCE_KHCBPPT);
+        assert_eq!(evidence.method, "sat_phuong_day_chi");
+        assert_eq!(evidence.profile, "baseline");
     }
 }
