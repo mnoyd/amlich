@@ -20,6 +20,10 @@ pub mod the_dung;
 
 pub use bien_que::{derive_bien_que, BienQue};
 pub use corpus::{all_hexagrams, get_hexagram};
+pub use evaluator::{
+    HexagramEntryProjection, IChingCastSummary, IChingEvaluation, IChingEvaluator, IChingQuery,
+    COMPOSITE_ICHING_CONSULTATION,
+};
 pub use golden::{load_mai_hoa_golden, MaiHoaGoldenCase, MaiHoaGoldenDataset};
 pub use mai_hoa::{cast_mai_hoa, MaiHoaCast};
 pub use schema::{

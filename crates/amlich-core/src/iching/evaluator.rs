@@ -41,6 +41,7 @@ use crate::reasoning::{
     ActionEvaluation, ActionEvaluator, PersonalReasoningInput, ReasoningEvidenceEnvelope,
 };
 use crate::ActionId;
+use crate::ReasoningEvidenceSourceFamily;
 use crate::semantic_graph::SemanticGraph;
 use crate::sources::{SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO};
 use crate::DaySnapshot;
@@ -102,8 +103,33 @@ impl IChingQuery {
         question_vi: Option<String>,
         chi_hour_index: u8,
     ) -> Result<Self, String> {
-        let _ = (snapshot, question_vi, chi_hour_index);
-        unimplemented!("RED phase: IChingQuery::from_snapshot")
+        if chi_hour_index > 11 {
+            return Err(format!(
+                "chi_hour_index must be in 0..=11; got {chi_hour_index}"
+            ));
+        }
+        let question_vi = question_vi.and_then(|s| {
+            let trimmed = s.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(nfc(trimmed))
+            }
+        });
+        // snapshot.context.canchi.year.chi_index is 0..=11 by construction.
+        let lunar_year_branch = snapshot.context.canchi.year.chi_index as u8;
+        // lunar.month/day are i32; coerce to u8 (the cast is sound for any
+        // i32 in the positive small range — Vietnamese lunar dates are
+        // bounded to 1..=30 by `lunar.rs`).
+        let lunar_month = snapshot.context.lunar.month as u8;
+        let lunar_day = snapshot.context.lunar.day as u8;
+        Ok(Self {
+            chi_hour_index,
+            question_vi,
+            lunar_year_branch,
+            lunar_month,
+            lunar_day,
+        })
     }
 
     /// Direct constructor for golden tests / boundary checks. Validates all
@@ -120,14 +146,41 @@ impl IChingQuery {
         chi_hour_index: u8,
         question_vi: Option<String>,
     ) -> Result<Self, String> {
-        let _ = (
+        if lunar_year_branch > 11 {
+            return Err(format!(
+                "lunar_year_branch must be in 0..=11; got {lunar_year_branch}"
+            ));
+        }
+        if !(1..=12).contains(&lunar_month) {
+            return Err(format!(
+                "lunar_month must be in 1..=12; got {lunar_month}"
+            ));
+        }
+        if !(1..=30).contains(&lunar_day) {
+            return Err(format!(
+                "lunar_day must be in 1..=30; got {lunar_day}"
+            ));
+        }
+        if chi_hour_index > 11 {
+            return Err(format!(
+                "chi_hour_index must be in 0..=11; got {chi_hour_index}"
+            ));
+        }
+        let question_vi = question_vi.and_then(|s| {
+            let trimmed = s.trim();
+            if trimmed.is_empty() {
+                None
+            } else {
+                Some(nfc(trimmed))
+            }
+        });
+        Ok(Self {
+            chi_hour_index,
+            question_vi,
             lunar_year_branch,
             lunar_month,
             lunar_day,
-            chi_hour_index,
-            question_vi,
-        );
-        unimplemented!("RED phase: IChingQuery::from_lunar_inputs")
+        })
     }
 }
 
@@ -227,22 +280,167 @@ impl IChingEvaluator {
         &self,
         _snapshot: &DaySnapshot,
     ) -> Result<IChingEvaluation, String> {
-        unimplemented!("RED phase: IChingEvaluator::evaluate_consultation")
+        // Phase 22 cast surface — DO NOT re-implement modulo arithmetic
+        // (CRIT-2 prevention).
+        let cast = cast_mai_hoa(
+            self.query.lunar_year_branch,
+            self.query.lunar_month,
+            self.query.lunar_day,
+            self.query.chi_hour_index,
+        );
+        // Phase 22 biến quẻ surface — DO NOT re-implement line flipping
+        // (CRIT-4 prevention).
+        let bien_que = derive_bien_que(&cast);
+        // Phase 22 thể/dụng surface — DO NOT re-implement sinh/khắc.
+        let the_dung = classify_the_dung(&cast);
+
+        // Phase 21 corpus surface — owned projection so the evaluation
+        // can be cloned without &'static-borrowed corpus refs.
+        let chu_entry = get_hexagram(cast.chu_que).ok_or_else(|| {
+            format!(
+                "missing hexagram entry: chu_que index {} (contract violation)",
+                cast.chu_que.0
+            )
+        })?;
+        let bien_entry = get_hexagram(bien_que.king_wen).ok_or_else(|| {
+            format!(
+                "missing hexagram entry: bien_que index {} (contract violation)",
+                bien_que.king_wen.0
+            )
+        })?;
+
+        let chu_hexagram = project_hexagram(chu_entry);
+        let bien_hexagram = project_hexagram(bien_entry);
+
+        // Per-step evidence (CRIT-6): distinct primitive source_ids
+        // include both `mai-hoa-dich-so` and `kinh-dich`, plus exactly one
+        // composite envelope with `rule.composite.iching_consultation`.
+        let evidence = build_evidence(
+            &cast,
+            &bien_que,
+            &the_dung,
+            self.query.lunar_year_branch,
+            self.query.lunar_month,
+            self.query.lunar_day,
+            self.query.chi_hour_index,
+        );
+
+        Ok(IChingEvaluation {
+            query: self.query.clone(),
+            cast,
+            bien_que,
+            the_dung,
+            chu_hexagram,
+            bien_hexagram,
+            evidence,
+        })
     }
 
     /// Project an [`IChingEvaluation`] into the slim owned
     /// [`IChingCastSummary`] DTO. Owned strings throughout — no `&'static`
     /// corpus references.
-    pub fn to_summary(&self, _evaluation: &IChingEvaluation) -> IChingCastSummary {
-        unimplemented!("RED phase: IChingEvaluator::to_summary")
+    pub fn to_summary(&self, evaluation: &IChingEvaluation) -> IChingCastSummary {
+        IChingCastSummary {
+            cast: evaluation.cast.clone(),
+            bien_que: evaluation.bien_que.clone(),
+            the_dung: evaluation.the_dung.clone(),
+            chu_hexagram_vi_name: evaluation.chu_hexagram.vi_name.clone(),
+            chu_hexagram_thoai_tu: evaluation.chu_hexagram.thoai_tu.clone(),
+            bien_hexagram_vi_name: evaluation.bien_hexagram.vi_name.clone(),
+            bien_hexagram_thoai_tu: evaluation.bien_hexagram.thoai_tu.clone(),
+            cat_hung_summary: cat_hung_str(evaluation.the_dung.verdict).to_string(),
+            moving_line: evaluation.cast.dong_hao,
+            question_vi: evaluation.query.question_vi.clone(),
+            evidence: evaluation.evidence.clone(),
+        }
     }
 
     /// Convenience: evaluate + project to summary. The `snapshot` is unused
     /// on the Tier-0 path; carried in the signature for the future
     /// personal-context-aware path.
-    pub fn evaluate(&self, _snapshot: &DaySnapshot) -> Result<IChingCastSummary, String> {
-        unimplemented!("RED phase: IChingEvaluator::evaluate")
+    pub fn evaluate(
+        &self,
+        snapshot: &DaySnapshot,
+    ) -> Result<IChingCastSummary, String> {
+        let evaluation = self.evaluate_consultation(snapshot)?;
+        Ok(self.to_summary(&evaluation))
     }
+}
+
+// ===========================================================================
+// private helpers — projector + evidence builder
+// ===========================================================================
+
+/// Project an `&'static HexagramEntry` into an owned [`HexagramEntryProjection`].
+/// Used so the snapshot's `iching_cast` field can be cloned / serialised
+/// without lifetime entanglement with the `OnceLock`-cached corpus.
+fn project_hexagram(entry: &crate::iching::HexagramEntry) -> HexagramEntryProjection {
+    HexagramEntryProjection {
+        king_wen_index: entry.king_wen_index,
+        vi_name: entry.vi_name.clone(),
+        thoai_tu: entry.thoai_tu.clone(),
+        hao_tu: entry.hao_tu.clone(),
+        cat_hung: entry.cat_hung.clone(),
+    }
+}
+
+/// Build the per-step evidence vector (CRIT-6 source-id discipline):
+///
+/// 1. `cast_mai_hoa` primitive → `mai-hoa-dich-so`
+/// 2. `derive_bien_que` primitive → `mai-hoa-dich-so`
+/// 3. `corpus_lookup` primitive → `kinh-dich`
+/// 4. composite → `rule.composite.iching_consultation`
+///
+/// The composite envelope (Derived family) does NOT collapse the primitive
+/// sources — both `mai-hoa-dich-so` AND `kinh-dich` stay separately
+/// present so downstream readers can trace every step.
+fn build_evidence(
+    cast: &MaiHoaCast,
+    bien_que: &BienQue,
+    the_dung: &TheDungClassification,
+    lunar_year_branch: u8,
+    lunar_month: u8,
+    lunar_day: u8,
+    chi_hour_index: u8,
+) -> Vec<ReasoningEvidenceEnvelope> {
+    vec![
+        ReasoningEvidenceEnvelope {
+            source_family: ReasoningEvidenceSourceFamily::IChing,
+            source_id: SOURCE_MAI_HOA_DICH_SO.to_string(),
+            method: "cast_mai_hoa".to_string(),
+            note: Some(format!(
+                "lunar_year_branch={lunar_year_branch};month={lunar_month};day={lunar_day};hour={chi_hour_index}"
+            )),
+        },
+        ReasoningEvidenceEnvelope {
+            source_family: ReasoningEvidenceSourceFamily::IChing,
+            source_id: SOURCE_MAI_HOA_DICH_SO.to_string(),
+            method: "derive_bien_que".to_string(),
+            note: Some(format!(
+                "dong_hao={};bien_que_king_wen={}",
+                cast.dong_hao, bien_que.king_wen.0
+            )),
+        },
+        ReasoningEvidenceEnvelope {
+            source_family: ReasoningEvidenceSourceFamily::IChing,
+            source_id: SOURCE_KINH_DICH.to_string(),
+            method: "corpus_lookup".to_string(),
+            note: Some(format!(
+                "chu_king_wen={};bien_king_wen={};verdict={:?}",
+                cast.chu_que.0,
+                bien_que.king_wen.0,
+                the_dung.verdict
+            )),
+        },
+        ReasoningEvidenceEnvelope {
+            source_family: ReasoningEvidenceSourceFamily::Derived,
+            source_id: COMPOSITE_ICHING_CONSULTATION.to_string(),
+            method: "iching_consultation".to_string(),
+            note: Some(
+                "composite consultation = cast + bien_que + the_dung + corpus_text".to_string(),
+            ),
+        },
+    ]
 }
 
 impl ActionEvaluator for IChingEvaluator {
@@ -363,18 +561,21 @@ mod tests {
     #[test]
     fn iching_query_nfc_normalises_question() {
         let snap = sample_snapshot();
-        // Combining diacritics form: "vi\u{0300}e\u{0302}" should NFC-normalise
-        // to "viê".
-        let decomposed = String::from("vi\u{0300}e\u{0302} công vi\u{00ea}\u{0302}c");
+        // Combining diacritics form: "vi\u{0300}" (v + i + combining grave)
+        // NFC-normalises to "vì" (U+00EC). Use a simple, single-mark case
+        // so the assertion doesn't have to thread through Unicode
+        // composition quirks.
+        let decomposed = String::from("vi\u{0300} công việc");
         let query = IChingQuery::from_snapshot(&snap, Some(decomposed), 5)
             .expect("NFD input should be normalised, not rejected");
         let stored = query.question_vi.expect("non-whitespace input persists");
-        // The exact form after NFC: combining marks recomposed into precomposed chars.
-        assert!(is_nfc(&stored), "stored question_vi must be NFC; got decomposed form");
-        // "vi\u{0300}e\u{0302}" → "viê" (U+1EC3).
+        // NFC must have recomposed the combining grave into a precomposed
+        // ì (U+00EC). Verify by checking `is_nfc()` directly AND by
+        // looking for the precomposed char in the stored string.
+        assert!(is_nfc(&stored), "stored question_vi must be NFC; got: {stored:?}");
         assert!(
-            stored.contains("viê công viếc"),
-            "NFC must recompose the combining marks; got: {stored}"
+            stored.contains('\u{00EC}'),
+            "stored string must contain the precomposed ì (U+00EC) after NFC; got: {stored}"
         );
     }
 
