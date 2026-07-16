@@ -10,10 +10,14 @@
 //! them. The composition table is the ONLY bridge. Adding a cross-newtype
 //! `From` re-opens CRIT-3 (Tiên Thiên numbers ≠ King Wen numbers, shared
 //! 1..N form).
+pub mod bien_que;
 pub mod corpus;
+pub mod mai_hoa;
 pub mod schema;
 
+pub use bien_que::{derive_bien_que, BienQue};
 pub use corpus::{all_hexagrams, get_hexagram};
+pub use mai_hoa::{cast_mai_hoa, MaiHoaCast};
 pub use schema::{
     compose, HauThienTrigram, HexagramEntry, KingWenHexagram, TienThienTrigram, COMPOSITION_TABLE,
 };
