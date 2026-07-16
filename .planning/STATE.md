@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: milestone
 status: unknown
-last_updated: "2026-07-16T04:15:54.106Z"
+last_updated: "2026-07-16T15:31:03Z"
 progress:
   total_phases: 27
   completed_phases: 27
-  total_plans: 73
-  completed_plans: 73
+  total_plans: 74
+  completed_plans: 74
 ---
 
 # Project State
@@ -82,9 +82,9 @@ Progress: [██████░░░░] 67% (v1.7: 3/6 phases complete; 10/15
 
 ## Session Continuity
 
-Last session: 2026-07-16T15:28:33Z
-Stopped at: Completed 23-02-PLAN.md (parallel wave 1 with 23-01; XLK-03 contracts half closed).
-Resume file: .planning/phases/23-th-i-tu-tam-s-t-phi-tinh-cross-link/23-02-SUMMARY.md.
+Last session: 2026-07-16T15:31:03Z
+Stopped at: Completed 23-01-PLAN.md (XLK-01 + XLK-02 closed; wave 1 of Phase 23 fully done — 23-01 + 23-02 both shipped SUMMARYs).
+Resume file: .planning/phases/23-th-i-tu-tam-s-t-phi-tinh-cross-link/23-01-SUMMARY.md.
 
 ### Next Step
 
@@ -93,6 +93,16 @@ Plan 23-02 (cross-link DTO contracts) is complete. Plan 23-01 (directional Thái
 - After Phase 23 is fully complete (all 3 plans), Phase 24 unblocks (`/gsd-plan-phase 24` — IChing Evaluator + Semantic-Graph Wiring + DTO; consumes `DirectionCrossLinkSummary` from Phase 23 + `cast_mai_hoa` + `classify_the_dung` from Phase 22).
 
 Plan 23-03 consumers: the contract types/constants are at `crate::reasoning::{DirectionCrossLink, DirectionCrossLinkSummary, DirectionCell, DirectionalTaboo, DirectionalThaiTue, HuyenKhongCell, Agreement, COMPOSITE_DIRECTION_CROSS_LINK, DATE_ONLY_BIRTH_CHI_INDEX, DIRECTION_ORDER}`; the snapshot transport fields are `snapshot.flying_stars.palace_safety_hints` (read-only Vietnamese text) and `snapshot.direction_cross_link` (the additive target field, default None).
+
+## v1.7 Plan 23-01 Key Decisions
+
+- XLK-01 + XLK-02 closed: `crates/amlich-core/src/almanac/thai_tue.rs` adds `ThaiTueDirectionResult { year_chi_index, year_chi, direction: Direction, evidence: RuleEvidence }` + `pub fn thai_tue_direction(year_chi_index: usize) -> ThaiTueDirectionResult` as a SIBLING of the existing personal-conflict `compute_thai_tue` (year-only, no birth context, no conflict detection). The 12 branches collapse onto the 8-point `tu_menh::Direction` enum as: cardinals unique (Tý→North, Mão→East, Ngọ→South, Dậu→West), intercardinals in pairs (Sửu+Dần→Northeast, Thìn+Tỵ→Southeast, Mùi+Thân→Southwest, Tuất+Hợi→Northwest) per CONTEXT.md table. The existing `compute_thai_tue` API is UNCHANGED — only its `evidence: None → Some(KHCBPPT)` backfill at the locked return site; personal Thái Tuế conflict logic (Truc/Xung/Hai/Hinh/Pha) intact.
+- XLK-01 evidence backfill pair: `compute_thai_tue` evidence = `Some(RuleEvidence { source_id: SOURCE_KHCBPPT, method: "thai_tue_year_branch_conflict", profile: "baseline" })`; `get_sat_phuong` evidence = `Some(RuleEvidence { source_id: SOURCE_KHCBPPT, method: "sat_phuong_day_chi", profile: "baseline" })`. Distinct method names preserve each API's semantic identity. Legacy v1.6 JSON without `evidence` deserializes to `None` (BC guarantee verified by 2 tests in `tests/almanac_backfill_compat.rs`); populated v1.7 outputs serialize→deserialize→re-serialize byte-equal (verified by 2 round-trip tests + 2 cross-check tests = 6 total).
+- XLK-02 Tam Sát module: `crates/amlich-core/src/almanac/tam_sat.rs` (~260 lines) implements `TamSatDirectionResult { year_chi_index, year_chi, tam_hop_group: [String; 3], tam_sat_branches: [String; 3], tam_sat_directions: [Direction; 3], evidence: RuleEvidence }` + `pub fn tam_sat_direction(year_chi_index: usize) -> TamSatDirectionResult`. Locked `TAM_SAT_ROWS: [TamSatRow; 4]` table is tradition-ordered (Water/Wood/Fire/Metal), NOT chi%4 sort — each row holds the Tam Hợp triad, its opposite (lục-xung) triad, and the locked 8-point direction mapping. `find_triad_row` does explicit branch-membership search (mirrors `tam_tai.rs::find_triad_group` precedent). Mirrors `tam_tai.rs::TAI_YEARS` lục-xung opposite-triad CONCEPT but is a distinct year-only DIRECTIONAL module (not the 3-year Tam Tai affliction cycle).
+- Honest citation deferral: `data/almanac/tam_sat_provenance.md` (95-line discoverable ledger) states the locked rule, the four mapping rows, the search criteria for the deferred exact KHCBPPT edition/page pin, and an explicit `PendingExternalReview` marker. The Rust `evidence.profile` text is `"baseline | provenance: data/almanac/tam_sat_provenance.md | PendingExternalReview"` — never fabricates a Quyển/Trang/Câu pin. Mirrors ADR-0006 §5 page-citation deferral pattern (and the fengshui `KnownDivergence` + `DeferralMarker` discipline).
+- TDD discipline: 4 atomic commits (RED Task 1 `f4adf03` 4/6 compat tests fail on None-evidence; GREEN Task 1 `4d324cb` backfills + sibling API; RED Task 2 `7461548` 9/10 integration tests fail on unimplemented! stub; GREEN Task 2 `f67c72d` tradition-ordered table + provenance ledger + test fix). 15 min total; 774 lib tests + 6 almanac_backfill_compat + 10 tam_sat_integration + 1 source_id_guard all green; zero regressions vs Plan 22-02's 962-test baseline (the crate has grown; net +28 tests added by this plan).
+- Rule 1 deviations (2): (a) Out-of-range `thai_tue_direction(12)` initially panicked with opaque "index out of bounds" because `CHI[year_chi_index]` evaluated before the `direction_for_year_chi` match arm; reordered so the directional match panics first with "year_chi_index N not in 0..=11". (b) The `tam_sat_result_is_distinct_module_from_sat_phuong` test wrongly asserted Tam Sát for Tý year excludes `Direction::South`, but per the locked mapping (Ngọ → South) South IS present; rewrote the assertion to confirm South is in Tam Sát and reframed the test as a sibling-APIs distinction (3-direction year-axis vs 1-direction day-axis). Both fixes are "make the plan's own verification gates pass" with no behavior change to the locked mappings.
+- Parallel-execution discipline: zero file conflicts with sibling Plan 23-02. My files (almanac/thai_tue.rs + almanac/sat_phuong.rs + almanac/tam_sat.rs + almanac/mod.rs + tests/almanac_backfill_compat.rs + tests/tam_sat_integration.rs + data/almanac/tam_sat_provenance.md) are disjoint from 23-02's reasoning/* + lib.rs. Brief compile break observed when 23-02's `direction_composite.rs` had an in-flight `Copy` trait issue on `DirectionCell` — self-resolved when 23-02's GREEN `bf680e0` landed.
 
 ## v1.7 Plan 23-02 Key Decisions
 
@@ -218,4 +228,4 @@ Plan 23-03 consumers: the contract types/constants are at `crate::reasoning::{Di
 </details>
 
 ---
-*State updated: 2026-07-16 — Phase 22 Plan 22-02 complete (Thể/Dụng classification `classify_the_dung` + TheDungClassification + TheDungRelation + CatHung + trigram_element + 12-case cross-source golden dataset at crates/amlich-core/data/iching/mai_hoa_golden.json with FS-10 dual-source discipline + 2 KnownDivergence rows; ICH-04 closed). Phase 22 is 2/2 plans done — Phase 22 COMPLETE. All three Phase 22 requirements (ICH-02 + ICH-03 + ICH-04) closed. Next: `/gsd-plan-phase 24` (IChing Evaluator + Semantic-Graph Wiring + DTO) or `/gsd-plan-phase 23` (Thái Tuế/Tam Sát cross-link, parallel track).*
+*State updated: 2026-07-16 — Phase 23 Plan 23-01 complete (directional Thái Tuế sibling `thai_tue_direction` + classical Tam Sát module `tam_sat::tam_sat_direction` + both `compute_thai_tue` + `get_sat_phuong` KHCBPPT evidence backfills + discoverable pending-review `data/almanac/tam_sat_provenance.md`; XLK-01 + XLK-02 closed). Phase 23 wave 1 is now 2/2 plans done (23-01 + 23-02 both shipped SUMMARYs). Next: Plan 23-03 (wave 2) implements the read-only `build_direction_cross_link_*` composite builders + immutable enrichment + sibling CRIT-3 grep guard (XLK-03 full closure).*

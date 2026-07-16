@@ -25,8 +25,8 @@ REQs continue numbering from v1.6 archive (FND-01..08, RIT-01..16, FS-01..19, IN
 
 ### Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link
 
-- [ ] **XLK-01**: User-of-directions can find a Thái Tuế directional derivation (`pub fn` on `thai_tue.rs` mapping year-chi → `Direction8`) distinct from the existing personal-conflict-only Thái Tuế, carrying `source_id: khcbppt` evidence (the two 1-line `evidence: None` backfills on `thai_tue.rs` + `sat_phuong.rs` are populated).
-- [ ] **XLK-02**: User-of-directions can find a classical Tam Sát directional module (`almanac/tam_sat.rs`) returning the THREE contiguous sơn/directions per year from the Tam Hợp triad opposition (per a KHCBPPT-pinned citation), carrying `source_id: khcbppt`; the existing single-direction `sat_phuong.rs` day-chi feature stays intact. *(Decision-dependent — DEC required first; recommended option b per research.)*
+- [x] **XLK-01**: User-of-directions can find a Thái Tuế directional derivation (`pub fn` on `thai_tue.rs` mapping year-chi → `Direction8`) distinct from the existing personal-conflict-only Thái Tuế, carrying `source_id: khcbppt` evidence (the two 1-line `evidence: None` backfills on `thai_tue.rs` + `sat_phuong.rs` are populated).
+- [x] **XLK-02**: User-of-directions can find a classical Tam Sát directional module (`almanac/tam_sat.rs`) returning the THREE contiguous sơn/directions per year from the Tam Hợp triad opposition (per a KHCBPPT-pinned citation), carrying `source_id: khcbppt`; the existing single-direction `sat_phuong.rs` day-chi feature stays intact. *(Decision-dependent — DEC required first; recommended option b per research.)*
 - [ ] **XLK-03**: User-of-reasoning can find a read-only `build_direction_cross_link(snapshot, birth_chi_index)` in `reasoning/direction_composite.rs` that surfaces BOTH the KHCBPPT Thái Tuế/Tam Sát directional taboos AND the `huyen-khong` Phi Tinh palace layout in one composite fact node — emitting distinct primitive `source_id` envelopes (`khcbppt` + `huyen-khong`) plus one `rule.composite.direction_cross_link` envelope, with CRIT-3 isolation preserved (no `FlyingStar` reference in `interaction/direction_merge.rs`; grep-guarded by a sibling `tests/thai_tue_cross_link_crit3.rs`).
 
 ### Integration — Semantic Graph + DTO + E2E
@@ -61,8 +61,8 @@ REQs continue numbering from v1.6 archive (FND-01..08, RIT-01..16, FS-01..19, IN
 | ICH-03 | 22 | Complete (22-01 PLAN: derive_bien_que + BienQue + CRIT-4 384-case contract test + worked (8,8,8,8)→#7 Sư; 4 inline + 6 black-box integration tests passing) |
 | ICH-04 | 22 | Complete (22-02 PLAN: classify_the_dung + TheDungClassification struct + TheDungRelation enum (5-way sinh/khắc) + CatHung verdict + trigram_element; 7 inline + 11 black-box integration tests passing; ≥10-case cross-source golden dataset at crates/amlich-core/data/iching/mai_hoa_golden.json with FS-10 dual-source discipline + 2 KnownDivergence rows) |
 | ICH-05 | 24 | Pending |
-| XLK-01 | 23 | Pending |
-| XLK-02 | 23 | Pending |
+| XLK-01 | 23 | Complete (23-01 PLAN: thai_tue_direction(year_chi_index) sibling API + 8-point Direction mapping for all 12 branches + compute_thai_tue + get_sat_phuong KHCBPPT evidence backfills + almanac_backfill_compat BC round-trip gate; 13 thai_tue lib tests + 7 sat_phuong lib tests + 6 compat tests green) |
+| XLK-02 | 23 | Complete (23-01 PLAN: almanac::tam_sat::tam_sat_direction classical three-direction module with tradition-ordered TAM_SAT_ROWS table (Water/Wood/Fire/Metal) + lục-xung opposite-triad mapping per CONTEXT.md + discoverable data/almanac/tam_sat_provenance.md PendingExternalReview ledger; 5 tam_sat lib tests + 10 tam_sat_integration tests green) |
 | XLK-03 | 23 | Pending |
 | INT-11 | 24 | Pending |
 | INT-12 | 24 | Pending |
