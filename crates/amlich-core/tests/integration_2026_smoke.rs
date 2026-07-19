@@ -468,3 +468,419 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
          Got 0 — the van-khan-tet-day-du corpus annotation (Plan 19-02) is missing or not wired."
     );
 }
+
+// ---------------------------------------------------------------------------
+// Phase 25 (INT-13) E2E smoke — v1.7 IChing + cross-link unified wiring
+// ---------------------------------------------------------------------------
+//
+// Exercises ≥5 representative 2026 dates spanning distinct lunar months to
+// verify that ALL four v1.7 surfaces compose correctly end-to-end:
+//   1. Phase 22 IChing casting chain — cast_mai_hoa + derive_bien_que
+//      (CRIT-4 biến ≠ chủ always holds) + classify_the_dung.
+//   2. Phase 24-01 immutable IChing enrichment — enrich_day_snapshot_with_iching
+//      populates snapshot.iching_cast with IChingCastSummary carrying the
+//      CRIT-6 4-envelope evidence contract (2 SOURCE_MAI_HOA_DICH_SO +
+//      1 SOURCE_KINH_DICH + 1 composite rule.composite.iching_consultation).
+//      The input snapshot is NOT mutated (immutable-enrichment contract).
+//   3. Phase 23-03 immutable direction cross-link enrichment —
+//      enrich_day_snapshot_with_direction_cross_link populates
+//      snapshot.direction_cross_link with DirectionCrossLinkSummary carrying
+//      the 8-cell surface + dual-source provenance (KHCBPPT + HUYEN_KHONG
+//      primitives + rule.composite.* derived envelope). The input snapshot
+//      is NOT mutated AND previously-attached iching_cast is preserved.
+//   4. Phase 24-02 semantic-graph wiring — build_day_snapshot_graph on the
+//      both-fields-populated snapshot yields ≥2 NodeConcept::Hexagram nodes
+//      + ≥1 EdgeConcept::Transforms edge + ≥1 NodeConcept::Direction
+//      composite node, and strictly more Hexagram + Direction nodes than
+//      the un-enriched base snapshot's graph.
+//
+// Date selection (mirrors Phase 19 INT-10's pattern at lines 274-296):
+//   - Tết Nguyên Đán 2026 (2026-02-17) — guaranteed to surface a populated
+//     daily_flying_stars field (Phase 18-04 invariant) which is required
+//     by the cross-link's date-only builder.
+//   - Sóc (lunar day 1) of solar months 3, 6, 9, 12 of 2026 — surfaces
+//     distinct lunar months for representative coverage.
+//
+// WARNING 3 ASSUMPTION (mirrors Phase 19 INT-10): the date filter
+// `(_, m, _) where m in [3,6,9,12]` filters on the SOLAR month (the 3rd
+// tuple element), NOT the lunar month. This may produce dates that cross
+// lunar month boundaries (the 2026 lunar-Sóc dates for lunar months
+// 3/6/9/12 may have different solar months). The filter is kept as-is (it
+// produces valid representative dates) BUT the test explicitly asserts
+// the date set has ≥5 entries AND each entry exercises the wiring. If the
+// filter produces <5 entries in a future year, the filter MUST be replaced
+// with a lunar-month-aware helper.
+#[test]
+fn e2e_2026_smoke_v17_iching_and_cross_link_wiring_on_representative_dates() {
+    // Note: build_day_snapshot_graph is at `amlich_core::semantic_graph::` (NOT
+    // crate root); calculate_day_snapshot is at the crate root; both are also
+    // imported at module level above. The function-body use block keeps the
+    // new test self-contained without touching the file's existing imports.
+    use amlich_core::calculate_day_snapshot;
+    use amlich_core::iching::{cast_mai_hoa, classify_the_dung, derive_bien_que, IChingQuery};
+    use amlich_core::reasoning::DATE_ONLY_BIRTH_CHI_INDEX;
+    use amlich_core::semantic_graph::build_day_snapshot_graph;
+    use amlich_core::sources::{
+        SOURCE_KHCBPPT, SOURCE_KINH_DICH, SOURCE_HUYEN_KHONG, SOURCE_MAI_HOA_DICH_SO,
+    };
+    // enrich_day_snapshot_with_iching + enrich_day_snapshot_with_direction_cross_link
+    // are re-exported at the crate root by lib.rs (lines 313, 350).
+    use amlich_core::{
+        enrich_day_snapshot_with_direction_cross_link, enrich_day_snapshot_with_iching,
+    };
+
+    // --- Date set: Tết + 4 Sóc dates from solar months 3/6/9/12 ---
+    let mut dates: Vec<(i32, i32, i32)> = Vec::new();
+
+    // Tết Nguyên Đán 2026 (solar 2026-02-17) — guaranteed daily_flying_stars
+    // populated (Phase 18-04 invariant) + surfaces full lunar context.
+    dates.push((17, 2, 2026));
+
+    // Sóc (lunar day 1) of solar months 3, 6, 9, 12 of 2026
+    // (WARNING 3: this filters on SOLAR month; the test verifies >=5 entries)
+    let soc_dates = collect_lunar_day_dates(1);
+    let filtered: Vec<(i32, i32, i32)> = soc_dates
+        .into_iter()
+        .filter(|(_, m, _)| [3, 6, 9, 12].contains(m))
+        .collect();
+    dates.extend(filtered);
+
+    // Dedup (preserve first occurrence)
+    {
+        let mut seen = std::collections::HashSet::new();
+        dates.retain(|(d, m, y)| seen.insert((*d, *m, *y)));
+    }
+
+    // Must have ≥5 representative dates (Tết + ≥4 Sóc dates spanning distinct
+    // lunar months — mirrors Phase 19 INT-10's discipline).
+    assert!(
+        dates.len() >= 5,
+        "date set must contain >= 5 distinct entries; got {}",
+        dates.len()
+    );
+
+    // --- Exercise ALL FIVE v1.7 surfaces together on each representative date ---
+    for &(d, m, y) in &dates {
+        let snap = calculate_day_snapshot(d, m, y);
+
+        // -------------------------------------------------------------
+        // Surface 1: IChingQuery construction (Phase 24-01 sibling-newtype).
+        // chi_hour_index = 9 is the Dậu hour 酉 (Tý=0, Sửu=1, ..., Thân=8,
+        // Dậu=9, ..., Hợi=11 per mai_hoa.rs).
+        // -------------------------------------------------------------
+        let query = IChingQuery::from_snapshot(&snap, Some("việc hôm nay".to_string()), 9)
+            .expect("IChingQuery::from_snapshot must succeed for any valid snapshot");
+
+        // -------------------------------------------------------------
+        // Surface 2: Phase 22 casting chain end-to-end.
+        // -------------------------------------------------------------
+        let year_branch = query.lunar_year_branch;
+        let lunar_month = query.lunar_month;
+        let lunar_day = query.lunar_day;
+        let hour = query.chi_hour_index;
+
+        let cast = cast_mai_hoa(year_branch, lunar_month, lunar_day, hour);
+        let bien = derive_bien_que(&cast);
+        let the_dung = classify_the_dung(&cast);
+
+        // King Wen indices must be in 1..=64.
+        assert!(
+            (1..=64).contains(&cast.chu_que.0),
+            "chu_que King Wen index out of 1..=64 for {y:04}-{m:02}-{d:02}: {}",
+            cast.chu_que.0
+        );
+        assert!(
+            (1..=64).contains(&bien.king_wen.0),
+            "bien_que King Wen index out of 1..=64 for {y:04}-{m:02}-{d:02}: {}",
+            bien.king_wen.0
+        );
+        // CRIT-4: biến ≠ chủ (a line flip ALWAYS changes the hexagram).
+        assert!(
+            cast.chu_que != bien.king_wen,
+            "CRIT-4 violation for {y:04}-{m:02}-{d:02}: biến King Wen {} must differ from chủ King Wen {} \
+             (a line flip ALWAYS changes the hexagram)",
+            bien.king_wen.0,
+            cast.chu_que.0
+        );
+        // động hào is 1..=6 by construction.
+        assert!(
+            (1..=6).contains(&cast.dong_hao),
+            "dong_hao out of 1..=6 for {y:04}-{m:02}-{d:02}: {}",
+            cast.dong_hao
+        );
+        // Verdict surface exercised (NOT the verdict value — different dates
+        // produce different verdicts and that's correct).
+        assert!(
+            matches!(
+                the_dung.verdict,
+                amlich_core::iching::CatHung::Cat
+                    | amlich_core::iching::CatHung::Binh
+                    | amlich_core::iching::CatHung::Hung
+            ),
+            "the_dung.verdict must be a valid CatHung variant for {y:04}-{m:02}-{d:02}; got {:?}",
+            the_dung.verdict
+        );
+
+        // -------------------------------------------------------------
+        // Surface 3: Phase 24-01 immutable IChing enrichment.
+        // -------------------------------------------------------------
+        let enriched_iching = enrich_day_snapshot_with_iching(&snap, query)
+            .expect("enrich_day_snapshot_with_iching must succeed for {y:04}-{m:02}-{d:02}");
+
+        // Field is populated.
+        assert!(
+            enriched_iching.iching_cast.is_some(),
+            "enriched_iching.iching_cast must be Some for {y:04}-{m:02}-{d:02}"
+        );
+        // CRITICAL: input snapshot is NOT mutated (immutable-enrichment contract).
+        assert!(
+            snap.iching_cast.is_none(),
+            "immutable-enrichment contract violation: input snapshot.iching_cast must remain None \
+             after enrich_day_snapshot_with_iching for {y:04}-{m:02}-{d:02}"
+        );
+
+        let summary = enriched_iching
+            .iching_cast
+            .as_ref()
+            .expect("checked Some above");
+
+        // CRIT-6 contract: exactly 4 evidence envelopes.
+        assert_eq!(
+            summary.evidence.len(),
+            4,
+            "CRIT-6 contract violation for {y:04}-{m:02}-{d:02}: IChingCastSummary.evidence must \
+             have exactly 4 envelopes; got {}",
+            summary.evidence.len()
+        );
+
+        // CRIT-6 source-id breakdown: 2 SOURCE_MAI_HOA_DICH_SO +
+        // 1 SOURCE_KINH_DICH + 1 composite "rule.composite.iching_consultation".
+        let mai_hoa_count = summary
+            .evidence
+            .iter()
+            .filter(|e| e.source_id == SOURCE_MAI_HOA_DICH_SO)
+            .count();
+        let kinh_dich_count = summary
+            .evidence
+            .iter()
+            .filter(|e| e.source_id == SOURCE_KINH_DICH)
+            .count();
+        let composite_count = summary
+            .evidence
+            .iter()
+            .filter(|e| e.source_id == "rule.composite.iching_consultation")
+            .count();
+        assert_eq!(
+            mai_hoa_count, 2,
+            "CRIT-6 contract violation for {y:04}-{m:02}-{d:02}: expected exactly 2 envelopes with \
+             source_id == SOURCE_MAI_HOA_DICH_SO; got {}",
+            mai_hoa_count
+        );
+        assert_eq!(
+            kinh_dich_count, 1,
+            "CRIT-6 contract violation for {y:04}-{m:02}-{d:02}: expected exactly 1 envelope with \
+             source_id == SOURCE_KINH_DICH; got {}",
+            kinh_dich_count
+        );
+        assert_eq!(
+            composite_count, 1,
+            "CRIT-6 contract violation for {y:04}-{m:02}-{d:02}: expected exactly 1 envelope with \
+             source_id == rule.composite.iching_consultation; got {}",
+            composite_count
+        );
+
+        // King Wen indices (1..=64) — accessors mirror Plan 24-02's builder path.
+        assert!(
+            (1..=64).contains(&summary.chu_king_wen_index()),
+            "summary.chu_king_wen_index out of 1..=64 for {y:04}-{m:02}-{d:02}: {}",
+            summary.chu_king_wen_index()
+        );
+        assert!(
+            (1..=64).contains(&summary.bien_king_wen_index()),
+            "summary.bien_king_wen_index out of 1..=64 for {y:04}-{m:02}-{d:02}: {}",
+            summary.bien_king_wen_index()
+        );
+        // CRIT-4 echoed at the summary level.
+        assert!(
+            summary.chu_king_wen_index() != summary.bien_king_wen_index(),
+            "CRIT-4 violation at summary level for {y:04}-{m:02}-{d:02}: chu King Wen {} must \
+             differ from bien King Wen {}",
+            summary.chu_king_wen_index(),
+            summary.bien_king_wen_index()
+        );
+        // Echo of động hào.
+        assert!(
+            (1..=6).contains(&summary.moving_line),
+            "summary.moving_line out of 1..=6 for {y:04}-{m:02}-{d:02}: {}",
+            summary.moving_line
+        );
+        // Verdict surface projection.
+        assert!(
+            matches!(summary.cat_hung_summary.as_str(), "cat" | "binh" | "hung"),
+            "summary.cat_hung_summary must be 'cat' | 'binh' | 'hung' for {y:04}-{m:02}-{d:02}; \
+             got {:?}",
+            summary.cat_hung_summary
+        );
+
+        // -------------------------------------------------------------
+        // Surface 4: Phase 23-03 immutable direction cross-link enrichment.
+        // Uses the date-only variant (no birth data required) — mirrors the
+        // Tier-0 discipline.
+        // -------------------------------------------------------------
+        let enriched_both =
+            enrich_day_snapshot_with_direction_cross_link(&enriched_iching, DATE_ONLY_BIRTH_CHI_INDEX)
+                .expect(
+                "enrich_day_snapshot_with_direction_cross_link must succeed for {y:04}-{m:02}-{d:02}"
+            );
+
+        // Field is populated.
+        assert!(
+            enriched_both.direction_cross_link.is_some(),
+            "enriched_both.direction_cross_link must be Some for {y:04}-{m:02}-{d:02}"
+        );
+        // Immutable-enrichment contract: input to step 4 is unchanged.
+        assert!(
+            enriched_iching.direction_cross_link.is_none(),
+            "immutable-enrichment contract violation: enriched_iching.direction_cross_link must \
+             remain None after enrich_day_snapshot_with_direction_cross_link for {y:04}-{m:02}-{d:02}"
+        );
+        // CRITICAL: the IChing field is preserved across the cross-link enrichment.
+        // Both v1.7 fields coexist on the same snapshot.
+        assert!(
+            enriched_both.iching_cast.is_some(),
+            "IChing field must be preserved across cross-link enrichment for {y:04}-{m:02}-{d:02} \
+             (both v1.7 fields must coexist)"
+        );
+
+        let cross = enriched_both
+            .direction_cross_link
+            .as_ref()
+            .expect("checked Some above");
+        // Locked 8-direction surface per Phase 23 contract.
+        assert_eq!(
+            cross.cells.len(),
+            8,
+            "DirectionCrossLinkSummary.cells must have exactly 8 entries for {y:04}-{m:02}-{d:02}; \
+             got {}",
+            cross.cells.len()
+        );
+        // ≥3 envelopes: ≥1 KHCBPPT primitive + ≥1 HUYEN_KHONG primitive + ≥1 composite.
+        assert!(
+            cross.evidence.len() >= 3,
+            "DirectionCrossLinkSummary.evidence must have >= 3 envelopes (KHCBPPT + HUYEN_KHONG + \
+             composite) for {y:04}-{m:02}-{d:02}; got {}",
+            cross.evidence.len()
+        );
+        let has_khcbppt = cross.evidence.iter().any(|e| e.source_id == SOURCE_KHCBPPT);
+        let has_huyen_khong = cross.evidence.iter().any(|e| e.source_id == SOURCE_HUYEN_KHONG);
+        let has_composite = cross
+            .evidence
+            .iter()
+            .any(|e| e.source_id.starts_with("rule.composite."));
+        assert!(
+            has_khcbppt,
+            "DirectionCrossLinkSummary.evidence must contain at least one envelope with source_id \
+             == SOURCE_KHCBPPT for {y:04}-{m:02}-{d:02}"
+        );
+        assert!(
+            has_huyen_khong,
+            "DirectionCrossLinkSummary.evidence must contain at least one envelope with source_id \
+             == SOURCE_HUYEN_KHONG for {y:04}-{m:02}-{d:02}"
+        );
+        assert!(
+            has_composite,
+            "DirectionCrossLinkSummary.evidence must contain at least one envelope with source_id \
+             starting with rule.composite. for {y:04}-{m:02}-{d:02}"
+        );
+        // Composite envelope carries the standard prefix.
+        assert!(
+            cross.cross_link_source.starts_with("rule.composite."),
+            "DirectionCrossLinkSummary.cross_link_source must start with rule.composite. for \
+             {y:04}-{m:02}-{d:02}; got {:?}",
+            cross.cross_link_source
+        );
+
+        // -------------------------------------------------------------
+        // Surface 5: Phase 24-02 semantic-graph wiring.
+        // Compare against the UN-ENRICHED snapshot's graph to prove enrichment
+        // adds the v1.7 surfaces (not pre-existing).
+        // -------------------------------------------------------------
+        let graph = build_day_snapshot_graph(&enriched_both);
+        let base_graph = build_day_snapshot_graph(&snap);
+
+        // Count Hexagram nodes (chu + bien with role-bearing stable keys).
+        let hex_count = graph
+            .nodes()
+            .values()
+            .filter(|n| matches!(n.concept, NodeConcept::Hexagram))
+            .count();
+        let base_hex_count = base_graph
+            .nodes()
+            .values()
+            .filter(|n| matches!(n.concept, NodeConcept::Hexagram))
+            .count();
+        assert!(
+            hex_count >= 2,
+            "enriched graph must contain >= 2 NodeConcept::Hexagram nodes (chu + bien) for \
+             {y:04}-{m:02}-{d:02}; got {}",
+            hex_count
+        );
+        assert!(
+            hex_count > base_hex_count,
+            "enriched graph ({}) must have STRICTLY more Hexagram nodes than base ({}) for \
+             {y:04}-{m:02}-{d:02} — proves IChing facts are wired by enrichment",
+            hex_count,
+            base_hex_count
+        );
+
+        // Count Transforms edges (chu → bien).
+        let transforms_count = graph
+            .edges()
+            .values()
+            .filter(|e| matches!(e.label.concept, EdgeConcept::Transforms))
+            .count();
+        let base_transforms_count = base_graph
+            .edges()
+            .values()
+            .filter(|e| matches!(e.label.concept, EdgeConcept::Transforms))
+            .count();
+        assert!(
+            transforms_count >= 1,
+            "enriched graph must contain >= 1 EdgeConcept::Transforms edge (chu → bien) for \
+             {y:04}-{m:02}-{d:02}; got {}",
+            transforms_count
+        );
+        assert!(
+            transforms_count > base_transforms_count,
+            "enriched graph ({}) must have STRICTLY more Transforms edges than base ({}) for \
+             {y:04}-{m:02}-{d:02}",
+            transforms_count,
+            base_transforms_count
+        );
+
+        // Count Direction composite nodes (the composite cross-link fact node).
+        let direction_count = graph
+            .nodes()
+            .values()
+            .filter(|n| matches!(n.concept, NodeConcept::Direction))
+            .count();
+        let base_direction_count = base_graph
+            .nodes()
+            .values()
+            .filter(|n| matches!(n.concept, NodeConcept::Direction))
+            .count();
+        assert!(
+            direction_count >= 1,
+            "enriched graph must contain >= 1 NodeConcept::Direction composite node for \
+             {y:04}-{m:02}-{d:02}; got {}",
+            direction_count
+        );
+        assert!(
+            direction_count > base_direction_count,
+            "enriched graph ({}) must have STRICTLY more Direction nodes than base ({}) for \
+             {y:04}-{m:02}-{d:02} — proves cross-link composite fact is wired by enrichment",
+            direction_count,
+            base_direction_count
+        );
+    }
+}
