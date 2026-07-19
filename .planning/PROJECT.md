@@ -20,7 +20,7 @@ Canonical status and acceptance evidence are archived in milestone artifacts:
 - `.planning/milestones/v1.4-ROADMAP.md` / `v1.4-REQUIREMENTS.md` / `v1.4-MILESTONE-AUDIT.md`
 - `.planning/milestones/v1.5-ROADMAP.md` / `v1.5-REQUIREMENTS.md` / `v1.5-MILESTONE-AUDIT.md`
 - `.planning/milestones/v1.6-ROADMAP.md` / `v1.6-REQUIREMENTS.md` / `v1.6-MILESTONE-AUDIT.md`
-- `.planning/milestones/v1.7-ROADMAP.md` / `v1.7-REQUIREMENTS.md` *(no formal v1.7 MILESTONE-AUDIT — see Known Gaps below)*
+- `.planning/milestones/v1.7-ROADMAP.md` / `v1.7-REQUIREMENTS.md` / `v1.7-MILESTONE-AUDIT.md` (audit produced 2026-07-20 as retrospective backfill — status `tech_debt`; 15/15 satisfied, 0 gaps)
 
 ## Core Value
 
@@ -64,7 +64,6 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 - Hỗ Quả / nuclear hexagram depth (v1.9+ candidate)
 - Tier-2 Bazi enrichment of hexagram reading (depth on the v1.7 IChing surface)
 - ~96 cargo clippy/fmt warnings cleanup phase (engineering debt — same count as v1.6 baseline; not introduced by v1.7)
-- Optional: retrospective v1.7 audit if any cross-phase regression risk surfaces (no formal v1.7 MILESTONE-AUDIT.md was created)
 
 ## Key Decisions
 
@@ -123,7 +122,6 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 
 ## Known Gaps (after v1.7)
 
-- **No formal `v1.7-MILESTONE-AUDIT.md`** — v1.7 closed directly after Phase 25 with no separate audit pass. Phase 25's runtime-invariant baseline guards + unified v1.7 E2E smoke served as partial validation. Recommend retrospective audit if any cross-phase regression surfaces.
 - **64-hexagram Ngô Tất Tố interpretive text** (AF-05) — structural fields populated; `thoai_tu` / `hao_tu` / `cat_hung` carrying `[PendingExternalReview]` placeholders pending domain-expert verification. Tracked in `data/iching/provenance_audit.md` (64 rows, all ExternalReviewPending).
 - **Tam Sát KHCBPPT page-level citation** — `data/almanac/tam_sat_provenance.md` carries the locked rule + mapping + explicit `PendingExternalReview` marker per ADR-0006 §5.
 - **`SourceId = String` transparent alias** (carry-forward from v1.6) — documented future-tightenable.
@@ -131,4 +129,4 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 
 ---
 
-*Last updated: 2026-07-19 after v1.7 Kinh Dịch (I-Ching Divination) milestone*
+*Last updated: 2026-07-20 after v1.7 Kinh Dịch (I-Ching Divination) retrospective milestone audit*

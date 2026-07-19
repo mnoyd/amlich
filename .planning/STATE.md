@@ -4,8 +4,8 @@ milestone: v1.7
 milestone_name: Kinh Dịch (I-Ching Divination)
 current_plan: Not started
 status: completed
-last_updated: "2026-07-19T20:30:00.000Z"
-last_activity: 2026-07-19
+last_updated: "2026-07-20T00:30:00.000Z"
+last_activity: 2026-07-20
 progress:
   total_phases: 30
   completed_phases: 30
@@ -39,32 +39,32 @@ Progress: [██████████] 100% (v1.7: 6/6 phases complete; 14/1
 - Tag: `v1.7`
 - Archives: `.planning/milestones/v1.7-ROADMAP.md` + `.planning/milestones/v1.7-REQUIREMENTS.md`
 
-## Known Gaps (post-v1.7)
+## Known Gaps (post-v1.7, per 2026-07-20 retrospective audit)
 
-- **No formal `v1.7-MILESTONE-AUDIT.md`** — milestone closed directly after Phase 25. Phase 25's baseline guards + E2E smoke served as partial validation; recommend retrospective audit if cross-phase regression surfaces.
 - **64-hexagram Ngô Tất Tố interpretive text** (AF-05) — `thoai_tu` / `hao_tu` / `cat_hung` carrying `[PendingExternalReview]` placeholders pending domain-expert verification (`data/iching/provenance_audit.md`).
 - **Tam Sát KHCBPPT page-level citation** deferred — `data/almanac/tam_sat_provenance.md` carries `PendingExternalReview` per ADR-0006 §5.
 - **`SourceId = String` transparent alias** (carry-forward from v1.6) — documented future-tightenable.
 - **~96 cargo clippy/fmt warnings on master** (carry-forward from v1.6 baseline; same count after v1.7 — additive discipline prevented new debt).
 
+(See `.planning/milestones/v1.7-MILESTONE-AUDIT.md` for the full audit report — status `tech_debt`, 15/15 requirements satisfied, 0 integration gaps, 4/4 E2E flows complete.)
+
 ## Resources
 
-- `.planning/PROJECT.md` — project trajectory + Key Decisions table (v1.7 milestone scope + outcomes added 2026-07-19).
+- `.planning/PROJECT.md` — project trajectory + Key Decisions table (v1.7 milestone scope + outcomes added 2026-07-19; updated 2026-07-20 after retrospective audit).
 - `.planning/MILESTONES.md` — shipped-milestone log (v1.0-v1.7 archived).
 - `.planning/ROADMAP.md` — collapsed milestone sections (v1.5 / v1.6 / v1.7 in `<details>`); ready for next milestone's active section.
-- `.planning/RETROSPECTIVE.md` — v1.7 milestone section + cross-milestone trends updated.
-- `.planning/milestones/v1.{0..7}-{ROADMAP,REQUIREMENTS}.md` — shipped milestone archives (v1.1 / v1.4 / v1.5 / v1.6 also have MILESTONE-AUDIT.md; v1.7 does not).
+- `.planning/RETROSPECTIVE.md` — v1.7 milestone section + cross-milestone trends updated (2026-07-20 after retrospective audit).
+- `.planning/milestones/v1.{0..7}-{ROADMAP,REQUIREMENTS}.md` — shipped milestone archives. v1.1 / v1.4 / v1.5 / v1.6 / v1.7 also have MILESTONE-AUDIT.md (v1.7 audit produced 2026-07-20 as retrospective backfill).
 - `.planning/adrs/` — ADRs 0001-0007 + 0003a (all locked). v1.7 added ADR-0005 (HexagramEntry schema), ADR-0006 (Mai Hoa casting convention), ADR-0007 (cross-link CRIT-3 carve-out).
 
 ## Session Continuity
 
-Last session: 2026-07-20 (v1.7 milestone close — archive to milestones/, evolve PROJECT.md, append RETROSPECTIVE.md v1.7 section, git tag v1.7).
-Stopped at: v1.7 milestone SHIPPED. Roadmap collapsed; PROJECT.md evolved with v1.7 capabilities + known gaps; RETROSPECTIVE.md v1.7 section + cross-milestone trends updated; tag v1.7 created.
-Resume file: None (milestone-close workflow; no resume file needed).
+Last session: 2026-07-20 (v1.7 retrospective milestone audit — backfilled `v1.7-MILESTONE-AUDIT.md`; reconciled PROJECT.md / MILESTONES.md / RETROSPECTIVE.md / STATE.md to remove "no audit" caveats).
+Stopped at: v1.7 milestone SHIPPED + AUDITED. All prior "no formal audit" caveats resolved; status `tech_debt` (15/15 satisfied, 0 gaps).
+Resume file: None (audit-milestone workflow; no resume file needed).
 
 ### Next Step
 
-v1.7 milestone is SHIPPED and archived. Next:
-- `/gsd-new-milestone` — start the next milestone (questioning → research → requirements → roadmap).
-- `/gsd-audit-milestone v1.7` — optional retrospective audit to backfill the missing formal audit pass.
+v1.7 milestone is SHIPPED and AUDITED. Next:
+- `/gsd-new-milestone` — start the next milestone (questioning → research → requirements → roadmap). For v1.8+, the workflow should run `/gsd-audit-milestone` BEFORE `/gsd-complete-milestone` (per v1.7 retrospective lesson).
 - `/gsd-cleanup` — optional phase-directory archival (move v1.7 phase dirs to `milestones/v1.7-phases/`).

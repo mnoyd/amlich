@@ -18,10 +18,9 @@
 
 **Git range:** `dbd6934` → `ebce96d`
 
-**Audit:** ⚠ **No `v1.7-MILESTONE-AUDIT.md` was created** — milestone closed directly after Phase 25 with no separate audit pass. Phase 25's runtime-invariant baseline guards (`cargo_dependency_tree_unchanged_from_v16` + `int13_golden_dataset_cross_source_discipline_holds`) plus the unified v1.7 E2E smoke served as partial validation, but no comprehensive audit re-derived satisfaction from VERIFICATION.md / SUMMARY frontmatter / REQUIREMENTS rollup across all 6 phases. Recommend running a retrospective audit before v1.8 if any cross-phase regression risk surfaces.
+**Audit:** `.planning/milestones/v1.7-MILESTONE-AUDIT.md` — 15/15 requirements, 6/6 phases passed, 15/15 integration WIRED, 4/4 E2E flows complete. Status `tech_debt` (zero gaps; non-blocking deferrals + carry-forward engineering debt). Produced 2026-07-20 as a retrospective backfill after the milestone closed 2026-07-19.
 
 **Known gaps / tech debt (by-design deferrals, not blockers):**
-- **No formal milestone audit** (see Audit note above).
 - **`PendingExternalReview` markers across the 64-hexagram corpus** (AF-05) — structural fields populated; interpretive text (thoai_tu / hao_tu / cat_hung) honestly pending domain-expert Ngô Tất Tố verification. Tracked in `data/iching/provenance_audit.md` (64 rows, all ExternalReviewPending).
 - **Tam Sát KHCBPPT page-level citation deferred** — `data/almanac/tam_sat_provenance.md` carries the locked rule + mapping + explicit `PendingExternalReview` marker per ADR-0006 §5 page-citation deferral pattern.
 - **`SourceId = String` transparent alias** (carry-forward from v1.6) — documented future-tightenable; not introduced by v1.7.
