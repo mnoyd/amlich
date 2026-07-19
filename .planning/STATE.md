@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: v1.7-iching-divination
-current_plan: 3
-status: executing
-last_updated: "2026-07-19T12:05:00.000Z"
-last_activity: 2026-07-19
+current_plan: 1
+status: completed
+last_updated: "2026-07-20T00:00:00.000Z"
+last_activity: 2026-07-20
 progress:
-  total_phases: 29
-  completed_phases: 29
+  total_phases: 30
+  completed_phases: 30
   total_plans: 80
-  completed_plans: 79
+  completed_plans: 80
 ---
 
 # Project State
@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-**Current Plan:** 3 (just completed — Plan 24-03; Phase 24 closes here)
-**Total Plans in Phase:** 3
-**Phase:** 24 — IChing Evaluator + Semantic-Graph Wiring + DTO Integration — **COMPLETE (3/3)**: Plan 24-01 (ICH-05 Closed; INT-12 partial), Plan 24-02 (INT-11 Closed — Hexagram nodes + Transforms + LocatedAt edges + dual-source provenance + Direction composite fact wired into DaySnapshotGraphBuilder), Plan 24-03 (INT-12 Closed — 3 combined-strip v1.6→v1.7 round-trip tests in `tests/day_snapshot_v14_compat.rs`).
-**Last Activity:** 2026-07-19T12:05:00Z
-**Status:** Plan 24-03 complete (1/1 task commits: `8263348` feat v1.7 combined-strip round-trip tests for iching_cast + direction_cross_link; Task 2 was a NO-OP because Phase 23 already shipped DirectionCrossLinkSummary before Plan 24-02 executed, so no placeholder was ever declared). 1117 crate tests green (+3 vs Plan 24-02's 1114 baseline; +56 vs Phase 23-03's 1062 baseline across all of Phase 24); zero regressions; zero new deps. INT-11 + INT-12 Closed; INT-13 still Pending (Phase 25).
+**Current Plan:** 1 (just completed — Plan 25-01; Phase 25 + v1.7 milestone close here)
+**Total Plans in Phase:** 1
+**Phase:** 25 — E2E Validation + Golden Cross-Source Verification — **COMPLETE (1/1)**: Plan 25-01 (INT-13 Closed — `e2e_2026_smoke_v17_iching_and_cross_link_wiring_on_representative_dates` exercises ALL FIVE v1.7 surfaces together on Tết 2026 + 4 Sóc dates; `cargo_dependency_tree_unchanged_from_v16` (SC4) + `int13_golden_dataset_cross_source_discipline_holds` (SC1) lock the v1.6 baseline + INT-13 golden discipline as runtime invariants).
+**Last Activity:** 2026-07-20
+**Status:** v1.7 Milestone complete (6/6 phases; 15/15 requirements closed — FND-09..12 + ICH-01..05 + XLK-01..03 + INT-11..13 all done)
 
-Progress: [██████████] 83% (v1.7: 5/6 phases complete; 14/15 requirements closed — FND-09..12 + ICH-01..05 + XLK-01..03 + INT-11 + INT-12 done; INT-13 still Pending — Plan 24-03 just closed INT-12; Phase 25 closes INT-13).
+Progress: [██████████] 100% (v1.7: 6/6 phases complete; 15/15 requirements closed — INT-13 closed by Plan 25-01; v1.7 milestone ready for `/gsd-complete-milestone`).
 
 ## v1.7 Roadmap Summary
 
@@ -85,15 +85,15 @@ Progress: [██████████] 83% (v1.7: 5/6 phases complete; 14/15
 
 ## Session Continuity
 
-Last session: 2026-07-19 (Plan 24-03 execution — Phase 24 closure)
-Stopped at: Phase 24 COMPLETE (3/3 plans). ICH-05 + INT-11 + INT-12 all Closed. INT-13 still Pending (Phase 25). 1117 crate tests green (+3 vs Plan 24-02's 1114 baseline; +56 vs Phase 23-03's 1062-test baseline across all of Phase 24); zero regressions; zero new deps. v1.7 critical path: 20 → 21 → 22 → 24 → 25 (5 hops; 1 hop remaining — Phase 25 only).
+Last session: 2026-07-20 (Plan 25-01 execution — Phase 25 closure + v1.7 milestone closure)
+Stopped at: Phase 25 COMPLETE (1/1 plans). INT-13 Closed. v1.7 milestone fully complete (6/6 phases; 15/15 requirements; 80/80 plans). 1120 crate tests green (+3 vs Plan 24-03's 1117 baseline; +1 from `integration_2026_smoke.rs`'s new v1.7 E2E smoke + 2 from new `v17_baseline_guards.rs` runtime invariants); zero regressions; zero new deps. `cargo tree -p amlich-core --depth 1` confirms exactly 4 deps (chrono + serde + serde_json + unicode-normalization). Next: `/gsd-complete-milestone` to formalise v1.7 ship + archive to MILESTONES.md.
 Resume file: None (atomic plan execution; no resume file needed).
 
 ### Next Step
 
-Phase 24 fully closed (3/3 plans). Next:
-- `/gsd-plan-phase 25` (E2E Validation + Golden Cross-Source Verification — closes INT-13: ≥10 IChing golden casting cases cross-checked against ≥2 independent sources; 2026 E2E smoke extending `integration_2026_smoke.rs` exercising IChing casting + biến quẻ + Thái Tuế cross-link + semantic-graph wiring + DaySnapshot fields together; full crate test suite green with zero regressions on v1.6 tests; cargo deps unchanged).
-- After Phase 25, the v1.7 milestone is ready for `/gsd-complete-milestone`.
+Phase 25 fully closed (1/1 plans); v1.7 milestone complete. Next:
+- `/gsd-complete-milestone` — formalise the v1.7 milestone ship: archive v1.7 ROADMAP/REQUIREMENTS to `.planning/milestones/v1.7-*.md`, update MILESTONES.md log, prepare for v1.8 planning.
+- `/gsd-verify-work` — optional verification pass (full suite + lint + dep-tree manual eyeball) before milestone archive.
 
 Phase 24 deliverables (consumed by Phase 25):
 - `crate::iching::IChingEvaluator` + `IChingQuery` + `IChingEvaluation` + `IChingCastSummary` + `HexagramEntryProjection` + `COMPOSITE_ICHING_CONSULTATION` named const + `enrich_day_snapshot_with_iching` immutable helper (Plan 24-01)
@@ -110,6 +110,14 @@ Plan 24-02 consumers (now subsumed by Phase 24 deliverables list above — kept 
 - `crate::semantic_graph::ids::SemanticId::iching_hexagram(role, king_wen, date, tz)` (role-bearing stable-key constructor)
 - `crate::iching::IChingCastSummary::chu_king_wen_index()` + `bien_king_wen_index()` (accessor helpers used by the semantic-graph builder)
 - `tests/semantic_graph_iching_integration.rs` (13-test black-box integration suite covering INT-11 success criteria; locks the 2-Hexagram + 1-Transforms + 2-LocatedAt + dual-source-provenance contract)
+
+## v1.7 Plan 25-01 Key Decisions
+
+- INT-13 fully closed: Phase 25 ships pure validation (NO new production code; NO new deps) and closes INT-13's four success criteria via two test files. `crates/amlich-core/tests/integration_2026_smoke.rs` (+416 lines, file total 886) appends `e2e_2026_smoke_v17_iching_and_cross_link_wiring_on_representative_dates` (SC2) — purely additive, mirrors Phase 19 INT-10's append-to-shared-file pattern. The test exercises ALL FIVE v1.7 surfaces together on Tết 2026 + 4 Sóc dates spanning distinct lunar months: (1) Phase 22 casting chain (cast_mai_hoa + derive_bien_que + classify_the_dung) with CRIT-4 runtime invariant `cast.chu_que != bien.king_wen` (line-flip ALWAYS changes the hexagram); (2) Phase 24-01 immutable IChing enrichment via `enrich_day_snapshot_with_iching` with CRIT-6 4-envelope evidence contract verified by counting source_ids (exactly 2 `SOURCE_MAI_HOA_DICH_SO` + 1 `SOURCE_KINH_DICH` + 1 `"rule.composite.iching_consultation"`); (3) Phase 23-03 immutable direction cross-link enrichment via `enrich_day_snapshot_with_direction_cross_link(&enriched_iching, DATE_ONLY_BIRTH_CHI_INDEX)` with 8-cell + ≥3-envelope dual-source contract (≥1 KHCBPPT + ≥1 HUYEN_KHONG + ≥1 `rule.composite.*`); (4) Phase 24-02 semantic-graph wiring via `build_day_snapshot_graph` showing STRICTLY more Hexagram + Direction nodes + Transforms edges than the un-enriched base snapshot's graph (proves enrichment adds facts, not pre-existing). The immutable-enrichment contract is asserted on BOTH helpers: input snapshots unchanged after enrichment AND iching_cast preserved across the cross-link enrichment (both v1.7 fields coexist).
+- `crates/amlich-core/tests/v17_baseline_guards.rs` (NEW, 236 lines) ships TWO runtime-invariant baseline guards. Test 1 `cargo_dependency_tree_unchanged_from_v16` (SC4) embeds `crates/amlich-core/Cargo.toml` via `include_str!("../Cargo.toml")` + ad-hoc parser that locates the `\n[dependencies]` marker + next `\n[` section start, then asserts EXACTLY 4 entries with the locked v1.6 names (chrono + serde + serde_json + unicode-normalization). Sorts both sides so declaration order is not enforced — locks the SET of deps. The chosen `include_str!`-parse approach is faster + cargo-version-robust vs invoking `cargo tree` at test time via `std::process::Command` (the plan's explicit discipline constraint). Test 2 `int13_golden_dataset_cross_source_discipline_holds` (SC1) re-asserts INT-13's full cross-source discipline holistically: ≥10 cases; every case has ≥2 sources with `nhantu.net` present in ≥1 (canonical first reference per INT-13 wording); ≥1 KnownDivergence row with non-empty `our_value` + `tiebreaker` + `note` fields (AF-05 divergences-logged-not-corrected); `schema_version == "mai-hoa-golden-v1"` pin. The Phase 22-02 loader (`load_mai_hoa_golden`) already validates these invariants at load time — Test 2 is the formal Phase 25 closure sentinel so a future weakening of the loader's own assertions would still trip this test (defense in depth).
+- TDD discipline: 2 atomic commits (Task 1 `71d4c72` test-only +416 lines; Task 2 `4921a1c` test-only +236 lines new file). Neither task shipped production code — Phase 25 is pure validation. The plan's `type="auto"` (not `tdd="true"`) is honoured: no RED phase needed for contract-verification tests against an already-shipped public API. 7 min total; 1120 crate tests green (+3 vs Plan 24-03's 1117 baseline; zero regressions on v1.6-vintage test files); `cargo tree -p amlich-core --depth 1` shows no new dependency (chrono + serde + serde_json + unicode-normalization).
+- Rule 3 deviation (1): the plan's `<interfaces>` block listed `build_day_snapshot_graph` under "From `crates/amlich-core/src/lib.rs`" implying crate-root placement. In reality, `build_day_snapshot_graph` lives at `amlich_core::semantic_graph::build_day_snapshot_graph` (line 11 of `semantic_graph/mod.rs`) — it is NOT re-exported at the crate root. Fixed by changing the function-body `use amlich_core::{build_day_snapshot_graph, ...}` to `use amlich_core::semantic_graph::build_day_snapshot_graph;` (separate `use` statement). The existing module-level imports at lines 24-26 of `integration_2026_smoke.rs` (which already import the symbol correctly) are unchanged. Trivial compile-time fix; no behavior change.
+- Phase 25 closes fully (1/1 plan): INT-13 Closed. v1.7 milestone complete (6/6 phases; 15/15 requirements; 80/80 plans). The new baseline guards (`cargo_dependency_tree_unchanged_from_v16` + `int13_golden_dataset_cross_source_discipline_holds`) lock the v1.6 dep-tree shape + INT-13 golden discipline as runtime invariants — defense in depth for the v1.7 contracts in v1.8+. Ready for `/gsd-complete-milestone`.
 
 ## v1.7 Plan 24-03 Key Decisions
 

@@ -34,7 +34,7 @@
 - [x] **Phase 22: Mai Hoa Casting + Biến Quẻ + Thể/Dụng** - Pure-deterministic `cast_mai_hoa` + biến quẻ derivation + Thể/Dụng classification; 384-case biến quẻ contract test + ≥10 cross-source golden cases. (Critical path; parallel to Phase 23.) Completed 2026-07-16.
 - [x] **Phase 23: Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link** - Directional Thái Tuế + classical 3-direction Tam Sát module (both `source_id: khcbppt`) + read-only `build_direction_cross_link` composite with CRIT-3 isolation grep-guarded. (Parallel to Phases 21-22.) Completed 2026-07-16.
 - [x] **Phase 24: IChing Evaluator + Semantic-Graph Wiring + DTO Integration** - `IChingQuery` sibling newtype + `IChingEvaluator` with per-step source_id envelopes + composite; Hexagram/LocatedAt/Transforms semantic-graph wiring; additive `DaySnapshot.iching_cast` + `direction_cross_link` fields with v1.6→v1.7 round-trip. (Plans 24-01 + 24-02 + 24-03 complete 2026-07-16..2026-07-19 — ICH-05 closed + INT-11 closed + INT-12 fully closed via combined-strip v1.6→v1.7 round-trip tests in `tests/day_snapshot_v14_compat.rs`.)
-- [ ] **Phase 25: E2E Validation + Golden Cross-Source Verification** - ≥10 IChing golden casting cases × ≥2 sources, 2026 E2E smoke exercising the full v1.7 surface, zero regressions on v1.6 tests, no new crate deps.
+- [x] **Phase 25: E2E Validation + Golden Cross-Source Verification** - ≥10 IChing golden casting cases × ≥2 sources, 2026 E2E smoke exercising the full v1.7 surface, zero regressions on v1.6 tests, no new crate deps. (completed 2026-07-19)
 
 ## Phase Details
 
@@ -169,7 +169,7 @@ Plans:
 | 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 2/2 | Complete    | 2026-07-16 |
 | 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 3/3 | Complete    | 2026-07-16 |
 | 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | 3/3 | Complete    | 2026-07-19 |
-| 25. E2E Validation + Golden Cross-Source Verification | 0/TBD | Not started | - |
+| 25. E2E Validation + Golden Cross-Source Verification | 1/1 | Complete   | 2026-07-19 |
 
 ## Requirement Coverage
 
