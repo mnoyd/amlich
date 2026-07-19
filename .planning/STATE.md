@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.7
-milestone_name: v1.7-iching-divination
-current_plan: 1
+milestone: v1.1
+milestone_name: milestone
+current_plan: Not started
 status: completed
-last_updated: "2026-07-20T00:00:00.000Z"
-last_activity: 2026-07-20
+last_updated: "2026-07-19T17:41:15.291Z"
+last_activity: 2026-07-19
 progress:
   total_phases: 30
   completed_phases: 30
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-**Current Plan:** 1 (just completed — Plan 25-01; Phase 25 + v1.7 milestone close here)
+**Current Plan:** Not started
 **Total Plans in Phase:** 1
 **Phase:** 25 — E2E Validation + Golden Cross-Source Verification — **COMPLETE (1/1)**: Plan 25-01 (INT-13 Closed — `e2e_2026_smoke_v17_iching_and_cross_link_wiring_on_representative_dates` exercises ALL FIVE v1.7 surfaces together on Tết 2026 + 4 Sóc dates; `cargo_dependency_tree_unchanged_from_v16` (SC4) + `int13_golden_dataset_cross_source_discipline_holds` (SC1) lock the v1.6 baseline + INT-13 golden discipline as runtime invariants).
-**Last Activity:** 2026-07-20
-**Status:** v1.7 Milestone complete (6/6 phases; 15/15 requirements closed — FND-09..12 + ICH-01..05 + XLK-01..03 + INT-11..13 all done)
+**Last Activity:** 2026-07-19
+**Status:** Milestone complete
 
 Progress: [██████████] 100% (v1.7: 6/6 phases complete; 15/15 requirements closed — INT-13 closed by Plan 25-01; v1.7 milestone ready for `/gsd-complete-milestone`).
 

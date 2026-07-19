@@ -158,7 +158,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 25-01-PLAN.md — v1.7 E2E smoke extension (Tết 2026 + ≥4 Sóc dates exercising IChing casting + biến quẻ + Thái Tuế cross-link + semantic-graph wiring + DaySnapshot fields together) + Phase 25 baseline guards (cargo dep-tree shape + INT-13 golden-dataset cross-source discipline locked as runtime invariants)
+- [x] 25-01-PLAN.md — v1.7 E2E smoke extension (Tết 2026 + ≥4 Sóc dates exercising IChing casting + biến quẻ + Thái Tuế cross-link + semantic-graph wiring + DaySnapshot fields together) + Phase 25 baseline guards (cargo dep-tree shape + INT-13 golden-dataset cross-source discipline locked as runtime invariants) (completed 2026-07-19)
 
 ## Progress Table
 
@@ -169,7 +169,7 @@ Plans:
 | 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 2/2 | Complete    | 2026-07-16 |
 | 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 3/3 | Complete    | 2026-07-16 |
 | 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | 3/3 | Complete    | 2026-07-19 |
-| 25. E2E Validation + Golden Cross-Source Verification | 1/1 | Complete   | 2026-07-19 |
+| 25. E2E Validation + Golden Cross-Source Verification | 1/1 | Complete    | 2026-07-19 |
 
 ## Requirement Coverage
 
