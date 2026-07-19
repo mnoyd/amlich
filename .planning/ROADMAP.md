@@ -155,7 +155,10 @@ Plans:
   3. A caller running `cargo test --package amlich-core` observes the full test suite green with zero regressions on existing v1.6 tests (the 922-test v1.6 baseline continues passing plus new v1.7 tests added).
   4. A reader can confirm the cargo dependency tree is unchanged from v1.6 (no new crates — `cargo tree -p amlich-core --depth 1` still shows only `serde` / `serde_json` / `chrono` / `unicode-normalization`).
 
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 25-01-PLAN.md — v1.7 E2E smoke extension (Tết 2026 + ≥4 Sóc dates exercising IChing casting + biến quẻ + Thái Tuế cross-link + semantic-graph wiring + DaySnapshot fields together) + Phase 25 baseline guards (cargo dep-tree shape + INT-13 golden-dataset cross-source discipline locked as runtime invariants)
 
 ## Progress Table
 
@@ -165,7 +168,7 @@ Plans:
 | 21. IChing Corpus + Loader | 2/2 | Complete    | 2026-07-16 |
 | 22. Mai Hoa Casting + Biến Quẻ + Thể/Dụng | 2/2 | Complete    | 2026-07-16 |
 | 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | 3/3 | Complete    | 2026-07-16 |
-| 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | 3/3 | Complete   | 2026-07-19 |
+| 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | 3/3 | Complete    | 2026-07-19 |
 | 25. E2E Validation + Golden Cross-Source Verification | 0/TBD | Not started | - |
 
 ## Requirement Coverage
