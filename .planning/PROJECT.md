@@ -2,7 +2,7 @@
 
 ## Current State
 
-The project has shipped seven milestones:
+The project has shipped eight milestones:
 
 - `v1.0` KHCBPPT alignment complete (full validator + zero-divergence audit cycle).
 - `v1.1` Foundation extensions complete and accepted (Xung Hop extensions, Tang Can, Tiet Khi regression fix).
@@ -11,29 +11,22 @@ The project has shipped seven milestones:
 - `v1.4` Lunar Engine Table Parity complete (hour-pillar parity, full 60-cycle parity, Na Am API contracts).
 - `v1.5` Eastern Knowledge Expansion complete (Văn khấn `vn-folk-ritual` corpus + lookup APIs; Phi Tinh `huyen-khong` Vận/Niên/Nguyệt overlays + 81-cell aspects + safety hints; additive `DaySnapshot` integration; 886 tests pass).
 - `v1.6` Eastern Knowledge Completion complete (daily Phi Tinh 日紫白 layer; `RecommendsOffering` first-class semantic-graph node; v1.5 review/confidence tech debt closed — RIT-11 reviewer field across 60 entries + ADR-0003 pre-1984 confidence boost; 922 tests pass).
+- `v1.7` Kinh Dịch (I-Ching Divination) complete (P2 Kinh Dịch pillar: Mai Hoa Dịch Số casting + Biến Quẻ + Thể/Dụng + 64-hexagram Ngô Tất Tố corpus + `IChingEvaluator` Tier-0 reasoning; Thái Tuế / Tam Sát ⇄ Phi Tinh read-only directional cross-link; 1120 tests pass; zero new crate dependencies).
 
 Canonical status and acceptance evidence are archived in milestone artifacts:
 
-- `.planning/milestones/v1.1-ROADMAP.md`
-- `.planning/milestones/v1.1-REQUIREMENTS.md`
-- `.planning/milestones/v1.1-MILESTONE-AUDIT.md`
-- `.planning/milestones/v1.2-ROADMAP.md`
-- `.planning/milestones/v1.2-REQUIREMENTS.md`
-- `.planning/milestones/v1.4-ROADMAP.md`
-- `.planning/milestones/v1.4-REQUIREMENTS.md`
-- `.planning/milestones/v1.4-MILESTONE-AUDIT.md`
-- `.planning/milestones/v1.5-ROADMAP.md`
-- `.planning/milestones/v1.5-REQUIREMENTS.md`
-- `.planning/milestones/v1.5-MILESTONE-AUDIT.md`
-- `.planning/milestones/v1.6-ROADMAP.md`
-- `.planning/milestones/v1.6-REQUIREMENTS.md`
-- `.planning/milestones/v1.6-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.1-ROADMAP.md` / `v1.1-REQUIREMENTS.md` / `v1.1-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.2-ROADMAP.md` / `v1.2-REQUIREMENTS.md`
+- `.planning/milestones/v1.4-ROADMAP.md` / `v1.4-REQUIREMENTS.md` / `v1.4-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.5-ROADMAP.md` / `v1.5-REQUIREMENTS.md` / `v1.5-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.6-ROADMAP.md` / `v1.6-REQUIREMENTS.md` / `v1.6-MILESTONE-AUDIT.md`
+- `.planning/milestones/v1.7-ROADMAP.md` / `v1.7-REQUIREMENTS.md` *(no formal v1.7 MILESTONE-AUDIT — see Known Gaps below)*
 
 ## Core Value
 
-Every almanac subsystem in amlich must produce output that matches its canonical classical source (KHCBPPT for the original engine; `vn-folk-ritual` for ritual text; *Thẩm Thị Huyền Không Học* for Phi Tinh) for the 2020-2030 date range, with test-backed and traceable evidence. v1.5 expanded "canonical source" from a single text to a registered taxonomy of source_ids, each enforced by module-level `pub const` and CI grep guards.
+Every almanac subsystem in amlich must produce output that matches its canonical classical source (KHCBPPT for the original engine; `vn-folk-ritual` for ritual text; *Thẩm Thị Huyền Không Học* for Phi Tinh; *Kinh Dịch Trọn Bộ* (Ngô Tất Tố) for hexagram text; *Mai Hoa Dịch Số* (Thiệu Khang Tiết) for Mai Hoa casting) for the 2020-2030 date range, with test-backed and traceable evidence. v1.5 expanded "canonical source" from a single text to a registered taxonomy of source_ids, each enforced by module-level `pub const` and CI grep guards; v1.7 added the Kinh Dịch / Mai Hoa Dịch Số pair as the first non-almanac-classical-text sources.
 
-## Validated Capabilities (after v1.6)
+## Validated Capabilities (after v1.7)
 
 - ✓ KHCBPPT-aligned core calendar (v1.0–v1.1)
 - ✓ Ten Gods + Kua + Dai Van calculators (v1.2–v1.3)
@@ -44,21 +37,34 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 - ✓ Daily Phi Tinh (日紫白) layer — `compute_daily_flying_stars` with 冬至/夏至 reversal (v1.6, `huyen-khong`)
 - ✓ `RecommendsOffering` first-class semantic-graph node with dual-source edge provenance (v1.6)
 - ✓ ADR-0003 pre-1984 confidence closure + 60-entry Văn khấn reviewer field closure (v1.6)
+- ✓ Mai Hoa Dịch Số casting — `cast_mai_hoa` (pure deterministic; CRIT-2 boundary-safe `((n-1)%k)+1`) + `derive_bien_que` (CRIT-4 384-case contract) + `classify_the_dung` Ngũ Hành sinh/khắc + CatHung verdict (v1.7, `mai-hoa-dich-so`)
+- ✓ 64-hexagram Ngô Tất Tố corpus — `data/iching/hexagrams.json` NFC-normalised + reviewer-signed + `PendingExternalReview` for source gaps; lazy `OnceLock` loader (v1.7, `kinh-dich`)
+- ✓ `IChingEvaluator` + `IChingQuery` sibling-newtype Tier-0 reasoning (no birth data required, MOD-7) with 4-envelope evidence vector (3 primitives + 1 composite `rule.composite.iching_consultation`) — CRIT-6 (v1.7)
+- ✓ Thái Tuế directional (`thai_tue_direction` year-only sibling) + classical 3-direction Tam Sát module (`almanac/tam_sat.rs`) + read-only `build_direction_cross_link` composite surfacing KHCBPPT + Huyền-Không in one picture (v1.7, `khcbppt` + `huyen-khong` + `rule.composite.direction_cross_link`)
+- ✓ Semantic-graph Hexagram nodes (chu + biến) wired via `LocatedAt` / `Transforms` edges + composite Direction fact node (v1.7, INT-11)
+- ✓ Additive `DaySnapshot.iching_cast` + `DaySnapshot.direction_cross_link` with combined-strip v1.6→v1.7 backward-compat round-trip (v1.7, INT-12)
+- ✓ Runtime-invariant baseline guards: cargo dep-tree shape locked (`cargo_dependency_tree_unchanged_from_v16`) + INT-13 cross-source discipline locked (`int13_golden_dataset_cross_source_discipline_holds`) (v1.7 Phase 25)
 
 ## Out of Scope (carry-forward)
 
-- **P3 Y học, P6 Tử Vi** — deferred per Expansion Framework tiering (P2 Kinh Dịch is the current milestone).
-- **P5 Spatial Phi Tinh / `spatial_compose`** — requires user spatial input (sit/face direction); explicit CRIT-3 isolation forbids wiring `FlyingStar` into `interaction/direction_merge.rs`.
+- **P3 Y học, P6 Tử Vi** — deferred per Expansion Framework tiering; candidate for future milestones.
+- **P5 Spatial Phi Tinh / `spatial_compose`** — requires user spatial input (sit/face direction); explicit CRIT-3 isolation forbids wiring `FlyingStar` into `interaction/direction_merge.rs`. Deferred until Tier-3 landing.
+- **Hỗ Quả (nuclear hexagram)** — depth feature; defer to v1.9+.
+- **Tier-2 Bazi enrichment of hexagram reading** — v1.7 ships Tier-0 baseline only; mirrors v1.5 Phi Tinh T0/T2 split.
+- **User-selectable casting variants (số vật / âm thanh)** — out of scope; v1.7 ships Mai Hoa time-numerology only.
+- **Coin / yarrow / RNG casting** — different tradition; breaks determinism; would need a third `source_id`.
 
-## Current Milestone: v1.7 Kinh Dịch (I-Ching Divination)
+## Next Milestone Goals
 
-**Goal:** Add the P2 Kinh Dịch pillar — Mai Hoa Dịch Số casting + 64-hexagram lookup — as a new Tier-0 reasoning capability, plus the Thái Tuế/Tam Sát directional cross-link (read-only reasoning join, a carry-forward "should-have" from v1.5 research).
+**Not yet defined.** Start with `/gsd-new-milestone` (questioning → research → requirements → roadmap). Candidate carry-forwards from v1.7 retrospective + EXPANSION_FRAMEWORK sequencing:
 
-**Target features:**
-- **P2 Kinh Dịch (Mai Hoa Dịch Số)** — Tier-0 divination: cast a hexagram (quẻ) from the query time via Mai Hoa time-number method; resolve the 64-hexagram table (thoán từ / hào từ) with cát/hùng interpretation; integrate as a `ConsultationIntent::IChing` evaluator branch in `reasoning/personal.rs`. New `source_id: kinh-dich` (Ngô Tất Tố) + `mai-hoa-dich-so` (Thiệu Khang Tiết).
-- **Biến Quẻ (transforming hexagram)** — derive the biến quẻ from động hào (moving line) for the cát-hùng-over-time reading.
-- **Thái Tuế / Tam Sát ⇄ Phi Tinh cross-link** — read-only reasoning-layer join surfacing both the KHCBPPT directional warnings (`thai_tue`/`tam_sat`) and the `huyen-khong` palace layout in one directional picture (no CRIT-3 boundary merge — distinct source_ids, joined only in the reasoning envelope).
-- **Semantic-graph + DTO integration** — `Hexagram` node + `LocatedAt`/`Transforms` edges; additive `DaySnapshot` / reasoning surfaces; backward-compat round-trip preserved.
+- P3 Y học Tý Ngọ Lưu Chú (next Tier-0/1 candidate per framework §5)
+- P6 Tử Vi Đẩu Số (larger scope; multi-phase milestone)
+- P5 Spatial Phi Tinh (blocked on Tier-3 `spatial_compose` + user spatial input)
+- Hỗ Quả / nuclear hexagram depth (v1.9+ candidate)
+- Tier-2 Bazi enrichment of hexagram reading (depth on the v1.7 IChing surface)
+- ~96 cargo clippy/fmt warnings cleanup phase (engineering debt — same count as v1.6 baseline; not introduced by v1.7)
+- Optional: retrospective v1.7 audit if any cross-phase regression risk surfaces (no formal v1.7 MILESTONE-AUDIT.md was created)
 
 ## Key Decisions
 
@@ -71,23 +77,33 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 | Ten Gods mapping via five-element + polarity | Explicit mapping table over arithmetic shortcuts for audit readability | ✓ Confirmed in v1.2 |
 | Kua calculator solar year basis | Vietnamese feng-shui convention using Gregorian calendar | ✓ Confirmed in v1.2 |
 | Kua 5 resolution (male→8, female→2) | Frozen project policy for consistent output | ✓ Confirmed in v1.2 |
-| Additive-only integration changes | Preserve backward compatibility while extending outputs | ✓ Confirmed in v1.2 |
+| Additive-only integration changes | Preserve backward compatibility while extending outputs | ✓ Confirmed in v1.2 (re-validated v1.5/v1.6/v1.7) |
 | Hour pillar parity via fixed slot + seed group model | Stable deterministic mapping across 12 windows and day-stem groups | ✓ Confirmed in v1.4 |
 | Sexagenary inversion via CRT-based formula | Correct roundtrip mapping between cycle index and stem-branch pairs | ✓ Confirmed in v1.4 |
 | Na Am API contracts with typed deterministic errors | Stable schema and explicit invalid-input handling for pair/index lookups | ✓ Confirmed in v1.4 |
 | Source-ID taxonomy as `pub const &str` (not enum) | New traditions register without enum churn; CI grep guard prevents bare-literal drift | ✓ Confirmed in v1.5 (DEC-0023) |
-| Schema-lock before corpus authoring | Re-editing 60 corpus entries after a schema slip is prohibitively expensive (PITFALLS CRIT-1/5) | ✓ Confirmed in v1.5 (Phase 10 → 12 ordering) |
+| Schema-lock before corpus authoring | Re-editing corpus entries after a schema slip is prohibitively expensive (CRIT-1/5) | ✓ Confirmed in v1.5 (Phase 10 → 12); re-applied v1.7 Phase 20 → 21 (CRIT-1 × 7 amplification — 448 corpus fields) |
 | ADR-0001: `RitualEntry` JSON schema v1 with `deny_unknown_fields` | Frozen 10-type schema gives corpus authors a stable target | ✓ Confirmed in v1.5 |
 | ADR-0002: solar-term boundaries for monthly Phi Tinh | Reuses v1.1.2 Tiết Khí scanner per *Thẩm Thị Huyền Không Học* convention | ✓ Confirmed in v1.5 |
-| ADR-0003: Niên Tử Bạch polarity matrix (Tam Nguyên × year polarity) | Explicit (yuan, polarity) → (start, direction) table over arithmetic; 1960 divergence resolved by tiebreak | ✓ §§1–5 authoritative; §6 superseded by ADR-0003a (v1.6 — pre-1984 rows HIGH after dual-source independent secondary modern verification; 1960 case-level center-value split PendingExternalReview) |
-| Additive `Option<T>` `DaySnapshot` fields (no `deny_unknown_fields`) | v1.4 producer payloads still deserialize cleanly; v1.5 consumers see new fields when present | ✓ Confirmed in v1.5 (INT-05 round-trip) |
-| CRIT-3 isolation: `FlyingStar` never wired into `direction_merge.rs` | Keeps `huyen-khong` palace layouts disjoint from `khcbppt` `sát_phương`/`thần_hướng` until Tier-3 `spatial_compose` lands | ✓ Confirmed in v1.5 (grep-verified by audit) |
-| Center star carries Ngũ Hành on aggregate FlyingStar node | `CarriesElement` edge gives the FlyingStar node both spatial (palace) and elemental handles per *Thẩm Thị Huyền Không Học* | ✓ Confirmed in v1.5 post-audit (commit 3e6a148) |
+| ADR-0003: Niên Tử Bạch polarity matrix (Tam Nguyên × year polarity) | Explicit (yuan, polarity) → (start, direction) table over arithmetic; 1960 divergence resolved by tiebreak | ✓ §§1–5 authoritative; §6 superseded by ADR-0003a (v1.6) |
+| Additive `Option<T>` `DaySnapshot` fields (no `deny_unknown_fields`) | v1.4 producer payloads still deserialize cleanly; later consumers see new fields when present | ✓ Confirmed in v1.5 (INT-05 round-trip); re-validated v1.6 INT-10 + v1.7 INT-12 (combined-strip round-trip) |
+| CRIT-3 isolation: `FlyingStar` never wired into `direction_merge.rs` | Keeps `huyen-khong` palace layouts disjoint from `khcbppt` `sát_phương`/`thần_hướng` until Tier-3 `spatial_compose` lands | ✓ Confirmed in v1.5; v1.7 extended with sibling `tests/thai_tue_cross_link_crit3.rs` covering `reasoning/direction_composite.rs` |
+| Center star carries Ngũ Hành on aggregate FlyingStar node | `CarriesElement` edge gives the FlyingStar node both spatial (palace) and elemental handles per *Thẩm Thị Huyền Không Học* | ✓ Confirmed in v1.5 post-audit (commit 3e6e148) |
 | ADR-0003a: pre-1984 confidence boost via dual-source verification | Thượng/Trung Nguyên polarity rows MEDIUM → HIGH after independent secondary modern cross-check; 1960 divergence `PendingExternalReview` | ✓ Confirmed in v1.6 (FND-07/08) |
 | ADR-0004: daily Phi Tinh starting-star convention | 6 Trung Khí pivots with Dương thuận / Âm nghịch (intentionally opposite annual polarity); Giáp-Tý-as-seed with prior-pivot fall-back | ✓ Confirmed in v1.6 (FS-16/17) |
-| Typed `DeferralMarker` / `ExternalReviewPending` schema fields | By-design domain-expert deferrals tracked in-code, not silently corrected; due 2026-12-31 | ✓ Confirmed in v1.6 (FND-08, RIT-14) |
+| Typed `DeferralMarker` / `ExternalReviewPending` schema fields | By-design domain-expert deferrals tracked in-code, not silently corrected; due 2026-12-31 | ✓ Confirmed in v1.6 (FND-08, RIT-14); reused v1.7 (AF-05 hexagram corpus + Tam Sát page citation) |
 | `Offering` first-class node + `RecommendsOffering` edge | Promotes offerings from flat string list to graph-native with dual-source provenance reusing v1.5 dedup logic | ✓ Confirmed in v1.6 (INT-07/08/09) |
-| `SourceId = String` transparent alias (not true newtype) | Preserves DEC-0023 const discipline while satisfying INT-07 literal text; future phases may tighten | — Pending (documented decision, future-tightenable) |
+| `SourceId = String` transparent alias (not true newtype) | Preserves DEC-0023 const discipline while satisfying INT-07 literal text; future phases may tighten | — Pending (documented decision, future-tightenable; carry-forward from v1.6) |
+| ADR-0005: `HexagramEntry` JSON schema v1 with `deny_unknown_fields` | CRIT-1 schema-lock-first gate for 64-hexagram corpus authoring (× 7 amplification — 448 text fields) | ✓ Confirmed in v1.7 (FND-11; Phase 20 → 21) |
+| ADR-0006: Mai Hoa casting convention (Tiên Thiên arrangement + lunar input + `((n-1)%k)+1`) | Pins Thiệu Khang Tiết arrangement + CRIT-2 remainder-zero boundary-safe reduction; classical + modern (nhantu.net) two-source pin | ✓ Confirmed in v1.7 (FND-10; ICH-02 boundary test) |
+| ADR-0007: cross-link CRIT-3 carve-out (`reasoning/direction_composite.rs` + composite `rule.composite.direction_cross_link` envelope) | Read-only placement preserves CRIT-3 isolation; composite envelope is the only pattern compatible with the grep guard | ✓ Confirmed in v1.7 (FND-10; XLK-03 closure) |
+| Three CRIT-3-isolating newtypes (`TienThienTrigram` / `HauThienTrigram` / `KingWenHexagram`) with NO cross-`From` impls | Compiler-enforced boundary between Mai Hoa Tiên Thiên numbers and King Wen hexagram numbers (different mappings, shared "1..N" form) | ✓ Confirmed in v1.7 (FND-11; CRIT-3 prevention at type level) |
+| Sibling-newtype query (`IChingQuery`) + evaluator (`IChingEvaluator`) over closed-enum extension | Adding `ConsultationIntent::IChing` variant would force ~25-43 call-site `Copy`-break churn; mirrors v1.6 `DailyFlyingStarLayout` precedent | ✓ Confirmed in v1.7 (ICH-05; Phase 24-01) |
+| Per-step evidence envelope + composite (CRIT-6) | Each step in IChing derivation remains individually traceable; composite does NOT collapse primitives; locked 4-envelope vector | ✓ Confirmed in v1.7 (ICH-05; contract test pins `mai-hoa-dich-so` + `kinh-dich` + `rule.composite.iching_consultation`) |
+| Runtime-built needle patterns for grep guards | Test source code containing the forbidden literal would self-trip the guard; needles built via `String::from(...).push(...)` so the test's own source code is clean | ✓ Confirmed in v1.7 (Phase 22-02 / 23-03 / 24-01 / 24-02) — established as canonical pattern |
+| Tam Sát page-citation deferral (`PendingExternalReview` in `data/almanac/tam_sat_provenance.md`) | Honesty over fabrication — locked rule + mapping shipped, exact KHCBPPT edition/page pin deferred rather than invented | ✓ Confirmed in v1.7 (XLK-02; mirrors ADR-0006 §5 page-citation deferral pattern) |
+| Tier-0 `ActionEvaluator` adapter returns empty evaluation (MOD-7) | Rich `IChingEvaluation` lives behind `IChingEvaluator::evaluate_consultation`; generic trait surface stays minimal | ✓ Confirmed in v1.7 (ICH-05; mirrors `InitiationOpeningEvaluator`) |
+| Runtime-invariant baseline guards (`cargo_dependency_tree_unchanged_from_v16` + `int13_golden_dataset_cross_source_discipline_holds`) | Defense-in-depth — even if a future PR weakens the loader's own assertions or adds a new dep, these guards trip | ✓ Confirmed in v1.7 (Phase 25 SC1 + SC4) |
 
 <details>
 <summary>Archived initialization snapshot (pre-v1.1)</summary>
@@ -105,10 +121,14 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 
 </details>
 
-- **Cited deferrals tracked as `PendingExternalReview`** — Tam Sát page citation deferred honestly in `data/almanac/tam_sat_provenance.md` per ADR-0006 §5; runtime-built `huyen-khong` method string `phi_tinh.palace_layout` to keep `phi_tinh` literal out of `reasoning/direction_composite.rs` (CRIT-3 defensive coding). | ✓ Confirmed in v1.7 (Phase 23) |
-- **Additive `DaySnapshot.direction_cross_link` (None default) + immutable `enrich_day_snapshot_with_direction_cross_link` helper** | Wraps cross-link compute into snapshot without mutating caller-owned snapshot; mirrors v1.6 additive DTO discipline | ✓ Confirmed in v1.7 (Phase 23, Plan 23-02 + 23-03) |
-- **Sibling CRIT-3 grep guard at `tests/thai_tue_cross_link_crit3.rs`** (separate from existing `fengshui_crit3_isolation.rs`) | Scans exactly 7 forbidden patterns × 2 target files (`direction_merge.rs` + `direction_composite.rs`); catches both cross-link modules in one place | ✓ Confirmed in v1.7 (Phase 23, Plan 23-03) |
+## Known Gaps (after v1.7)
+
+- **No formal `v1.7-MILESTONE-AUDIT.md`** — v1.7 closed directly after Phase 25 with no separate audit pass. Phase 25's runtime-invariant baseline guards + unified v1.7 E2E smoke served as partial validation. Recommend retrospective audit if any cross-phase regression surfaces.
+- **64-hexagram Ngô Tất Tố interpretive text** (AF-05) — structural fields populated; `thoai_tu` / `hao_tu` / `cat_hung` carrying `[PendingExternalReview]` placeholders pending domain-expert verification. Tracked in `data/iching/provenance_audit.md` (64 rows, all ExternalReviewPending).
+- **Tam Sát KHCBPPT page-level citation** — `data/almanac/tam_sat_provenance.md` carries the locked rule + mapping + explicit `PendingExternalReview` marker per ADR-0006 §5.
+- **`SourceId = String` transparent alias** (carry-forward from v1.6) — documented future-tightenable.
+- **~96 cargo clippy/fmt warnings on master** (carry-forward from v1.6 baseline — same count; v1.7 did not introduce new debt).
 
 ---
 
-*Last updated: 2026-07-16 — v1.7 Kinh Dịch milestone: Phases 20–23 complete (Foundation + IChing corpus + Mai Hoa casting + Cross-Link); Phase 24 plans authored, ready to execute.*
+*Last updated: 2026-07-19 after v1.7 Kinh Dịch (I-Ching Divination) milestone*

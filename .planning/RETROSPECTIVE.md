@@ -161,6 +161,59 @@ Two new Tier-0 pillars beside the entrenched `khcbppt` family:
 - Sessions: 2 (2026-07-15 define + all 4 phases executed; 2026-07-16 audit + milestone close).
 - Notable: 50 commits / +12,704 LOC / 11 plans = ~1,155 LOC/plan and ~4.5 commits/plan — higher LOC/plan than v1.5 (~390), driven by the daily golden dataset + corpus annotations. Timeline compressed to ~2 days vs v1.5's ~4.
 
+## Milestone: v1.7 — Kinh Dịch (I-Ching Divination)
+
+**Shipped:** 2026-07-19
+**Phases:** 6 (20-25) | **Plans:** 14 | **Sessions:** ~5 (2026-07-16 research/define/Phase 20-23, 2026-07-19 Phase 24-25 + close)
+
+### What Was Built
+- Shipped the P2 Kinh Dịch pillar: pure-deterministic Mai Hoa Dịch Số casting (`cast_mai_hoa` with the single named `mai_hoa_remainder` boundary-safe reduction helper) + `derive_bien_que` (384-case CRIT-4 contract) + `classify_the_dung` Ngũ Hành sinh/khắc + CatHung verdict.
+- Authored the 64-hexagram Ngô Tất Tố corpus (`data/iching/hexagrams.json`) against the locked ADR-0005 schema — structural fields populated; interpretive text honestly `PendingExternalReview` per AF-05 (no fabrication from another translator); lazy `OnceLock` loader consuming `include_str!`.
+- Built `IChingEvaluator` + `IChingQuery` SIBLING-NEWTYPE (not a `ConsultationIntent::IChing` variant) at Tier-0 (no birth data required, MOD-7) with a locked 4-envelope evidence vector (3 primitives carrying `SOURCE_MAI_HOA_DICH_SO` / `SOURCE_KINH_DICH` + 1 composite `rule.composite.iching_consultation` — CRIT-6).
+- Shipped Thái Tuế / Tam Sát ⇄ Phi Tinh read-only directional cross-link: `thai_tue_direction` year-only sibling API + classical 3-direction `almanac::tam_sat` module + read-only `build_direction_cross_link(_personal/_date)` surfacing BOTH KHCBPPT directional taboos AND Huyền-Không palace layout with three-envelope provenance.
+- Wired Hexagram semantic-graph nodes (chu + biến with role-bearing stable keys) via `LocatedAt` / `Transforms` edges + composite Direction fact node through additive `add_iching_facts()` + `add_direction_composite_facts()` builder methods.
+- Added additive `DaySnapshot.iching_cast` + `DaySnapshot.direction_cross_link` fields with combined-strip v1.6→v1.7 backward-compat round-trip (Tests 10-12 in `day_snapshot_v14_compat.rs`).
+- Phase 25 closure: unified v1.7 E2E smoke exercising all five surfaces on Tết 2026 + 4 Sóc dates; two NEW runtime-invariant baseline guards (`cargo_dependency_tree_unchanged_from_v16` + `int13_golden_dataset_cross_source_discipline_holds`) for defense-in-depth.
+
+### What Worked
+- **Schema-lock-before-corpus × 7 amplification paid off again.** ADR-0005 + 1-entry serde round-trip probe + three CRIT-3-isolating newtypes (`TienThienTrigram` / `HauThienTrigram` / `KingWenHexagram`) landed in Phase 20 BEFORE any of the 64 corpus entries were authored in Phase 21. Zero schema slips across 448 corpus text fields.
+- **Sibling-newtype over closed-enum extension.** `IChingQuery` as a NEW newtype (not a `ConsultationIntent::IChing` variant) avoided ~25-43 call-site `Copy`-break churn — mirrors v1.6 `DailyFlyingStarLayout` sibling precedent and the v1.7 `DirectionCrossLinkSummary` precedent. Compiler enforced the discipline at the trait surface.
+- **Single named helper as the CRIT-2 boundary gate.** `mai_hoa_remainder((sum, k))` is the ONE function in the codebase implementing the `((n-1)%k)+1` reduction. Boundary test guards against refactors that replace it with `sum%k` or `(sum%k)+1` — structural prevention of the silent ~1/8 casting corruption.
+- **384-case exhaustive contract test (CRIT-4).** `derive_bien_que` validated across 64 chủ quée × 6 động hào combinations — exhaustive coverage rather than representative sampling. The CRIT-4 "line-flip ALWAYS changes the hexagram" runtime invariant is now also locked by Phase 25's E2E smoke.
+- **Runtime-built needle patterns for grep guards.** Building the forbidden-pattern needles via `String::from("phi").push('_').push_str("tinh.palace_layout")` (final value byte-equal to `phi_tinh.palace_layout`) keeps the test's own source code clean — the same self-tripping trap noted in v1.5/v1.6 was avoided by construction. Now codified across corpus.rs / mai_hoa.rs / bien_que.rs / the_dung.rs / golden.rs / evaluator.rs.
+- **Combined-strip round-trip discipline (INT-12).** Tests 10-12 strip BOTH v1.7-new fields together (`iching_cast` + `direction_cross_link`) from a fully populated v1.6 snapshot, then assert byte-equal round-trip with null-count parity (strictly stronger than v1.6 INT-10's literal-negation pattern — tolerates pre-existing nulls elsewhere in the JSON).
+- **Two parallel tracks merging at the evaluator+wiring phase.** Cross-link (Phase 23) ran in parallel with the IChing pillar (Phases 21-22) without file conflicts; Phase 24 was the merge point. Critical path 20→21→22→24→25 (5 hops) vs parallel 20→23→24 — finished in ~5 days.
+- **`include_str!`-parse approach for runtime Cargo.toml dep-tree guard** (Phase 25 SC4) — faster + cargo-version-robust vs invoking `cargo tree` at test time via `std::process::Command`. Locks the SET of 4 deps without enforcing declaration order.
+
+### What Was Inefficient
+- **No formal `v1.7-MILESTONE-AUDIT.md` was produced.** Milestone closed directly after Phase 25 with no separate audit pass. Phase 25's baseline guards + E2E smoke served as partial validation, but no comprehensive audit re-derived satisfaction from VERIFICATION.md / SUMMARY frontmatter / REQUIREMENTS rollup across all 6 phases the way v1.4/v1.5/v1.6 audits did. v1.5/v1.6 caught zero gaps in their audits, but the audit is also where cross-phase regression risk surfaces — skipping it loses that safety net.
+- **`milestone complete --help` is still treated as a version/name argument** (carry-forward from v1.6 retrospective). I tripped this again — running `milestone complete --help` to learn the CLI syntax silently archived a milestone under the literal name `--help`, polluting MILESTONES.md + STATE.md and creating `--help-*.md` files. Required manual `git checkout` + `rm` cleanup. The CLI still lacks a real help/usage surface — second milestone in a row this trap has fired.
+- **`summary-extract --fields one_liner` still returns empty** for the same reason as v1.6 — SUMMARY frontmatter uses a `provides:` YAML block instead of a `one_liner` field. Accomplishments had to be hand-composed from `provides:` lists across 14 SUMMARY files. Carry-forward from v1.5/v1.6.
+- **5-day compressed timeline with no cool-down** between feature-complete (Phase 24-03, 2026-07-19) and milestone close (same day). Risk of cross-phase regression is highest right after the last merge — no buffer for surfacing late issues.
+- **Phase 21-02 plan still shows `[ ]` unchecked in the archived v1.7-ROADMAP.md** even though the SUMMARY exists and the requirement is marked Complete. Carry-forward bookkeeping drift; does not affect correctness.
+
+### Patterns Established
+- **Runtime-built needle patterns for grep guards (canonical).** When a test's source code would otherwise contain the literal forbidden substrings, build the needles via `String::from(...).push_str(...)` so the test's own source code is clean. Established across 6 v1.7 modules and codified as a Cross-Cutting Constraint in ROADMAP.md for any future CRIT-3-surface grep guard.
+- **Sibling-newtype over closed-enum extension (re-validated).** Adding a sibling newtype + sibling evaluator struct is cheaper than extending a closed enum that ~25-43 call-sites already match on. The third consecutive confirmation (v1.6 `DailyFlyingStarLayout`, v1.7 `IChingQuery`, v1.7 `DirectionCrossLinkSummary`) — now a documented carry-forward constraint.
+- **Single named helper for boundary conventions.** Boundary conventions like `((n-1)%k)+1` live in ONE named function (`mai_hoa_remainder`) — the boundary test then guards against any refactor that bypasses it. Reusable recipe for any future "naive arithmetic vs classical convention" boundary.
+- **Combined-strip DTO round-trip (extension of v1.6 INT-10).** Strip ALL milestone-new additive `Option<T>` fields together to simulate the previous-version fixture, then assert byte-equal re-serialization with null-count parity (not literal negation). Tolerates pre-existing nulls elsewhere; strictly stronger than v1.6's pattern.
+- **Per-step evidence envelope + composite (CRIT-6).** Each step in a multi-source derivation gets its own primitive envelope (with distinct `source_id`); the composite envelope does NOT collapse the primitives — every step remains individually traceable. Generalizes the v1.5 INT-09 dual-source Direction-node pattern to N-primitive + 1-composite.
+- **Role-bearing stable keys for graph nodes.** `SemanticId::iching_hexagram(role, king_wen, date, tz)` puts the role (`chu` vs `bien`) as the FIRST segment of the stable key so the primary + transformed hexagrams cannot collide in `graph.node_count()`. Reusable for any future "two-of-the-same-concept" graph wiring.
+- **Tier-0 `ActionEvaluator` adapter pattern.** When a Tier-0 (no birth data) reasoning capability needs to plug into the generic `ActionEvaluator` trait surface, return `Ok(ActionEvaluation::empty(ActionId::X))` ignoring `personal_input`. The rich evaluation lives behind a sibling `evaluate_consultation` method. Mirrors `InitiationOpeningEvaluator`.
+
+### Key Lessons
+1. **A 5-day milestone with no audit is a calculated risk, not a free win.** Phase 25's baseline guards caught the regression-class risks (dep-tree drift, golden-discipline weakening), but the cross-phase integration audit is a different failure mode. v1.5/v1.6 audits passed clean, but the value of running the audit is partly the act of running it — skipping it loses the forcing function. Recommend either (a) always run `/gsd-audit-milestone` before closing, or (b) accept the trade-off explicitly in MILESTONES.md.
+2. **CLI `--help` arguments are still positional.** The `milestone complete` CLI parses `args[2]` as the version with no flag validation; passing `--help` literal silently creates a `--help` milestone. This has now fired in two consecutive milestone closes (v1.6 + v1.7). Permanent mitigation: never invoke `milestone complete` without a literal version; do not try to introspect the CLI via `--help`. Real fix would be a `--help` short-circuit in the CLI dispatcher.
+3. **Three newtypes + 64-entry composition table > runtime King Wen correctness assertions.** Compiler-enforced type disjointness between Tiên Thiên / Hậu Thiên / King Wen (CRIT-3 prevention) plus a bijective composition table validated at load eliminates whole classes of bugs that runtime assertions would only catch at execution time. The schema is the spec.
+4. **Parallel tracks with explicit merge points compress timelines without coordination overhead.** Phase 23 (cross-link) running parallel to Phases 21-22 (IChing pillar) had zero file conflicts because the contracts were defined upfront in Phase 20. Phase 24 was the explicit merge point. Pattern is now repeatable for any future multi-pillar milestone.
+5. **Honest page-citation deferral is a shipping enabler.** `data/almanac/tam_sat_provenance.md` ships the locked rule + mapping today with an explicit `PendingExternalReview` marker for the exact KHCBPPT edition/page pin — this unblocks XLK-02 without fabricating a citation, and the deferred item is machine-queryable. The fourth confirmation of the v1.6 typed-deferral pattern (joining ADR-0003a / ADR-0004 / RIT-14).
+6. **Pre-existing engineering debt persists across milestones.** The ~96 clippy/fmt warnings were 96 before v1.7 and 96 after — additive discipline prevented new debt, but the existing debt does not self-heal. A dedicated cleanup phase remains the only path to actually reducing the count.
+
+### Cost Observations
+- Model mix: not instrumented this milestone.
+- Sessions: ~5 (research/define + Phase 20 + Phase 21-23 + Phase 24 + Phase 25/close, compressed 2026-07-16 → 2026-07-20).
+- Notable: 79 commits / +24,498 LOC / 14 plans = ~1,750 LOC/plan and ~5.6 commits/plan — highest LOC/plan of any milestone to date (v1.6 was ~1,155; v1.5 was ~390). Driven by the 64-hexagram corpus + 13-section Phase 20 ADR/ontology foundation + 384-case contract test + 22-test integration suite for the cross-link. +198 tests vs v1.6's 922-test baseline (v1.5 → v1.6 added 36 tests; v1.6 → v1.7 added 198 — the contract-test discipline is intensifying).
+
 ---
 
 ## Cross-Milestone Trends
@@ -174,6 +227,7 @@ Two new Tier-0 pillars beside the entrenched `khcbppt` family:
 | v1.3 | 1 | 3/3 completed | Introduced deterministic Dai Van core contracts, lazy Ten Gods helpers, and per-pillar Kua direction analysis |
 | v1.5 | ~4 | 6 | First multi-pillar milestone: source-id taxonomy as `pub const`, schema-lock-before-corpus ordering, milestone audit re-deriving satisfaction from 3 independent sources |
 | v1.6 | 2 | 4 | Deferral-discipline schema fields, daily-boundary scanner reuse, algorithm-as-ground-truth golden datasets, compiler-enforced ontology exhaustiveness |
+| v1.7 | ~5 | 6 | Sibling-newtype over closed-enum extension, single-named-helper boundary gates (CRIT-2/4), per-step evidence envelope + composite (CRIT-6), runtime-built needle patterns for grep guards, parallel tracks with explicit merge points, **first milestone closed without a formal audit** |
 
 ### Cumulative Quality
 
@@ -184,6 +238,7 @@ Two new Tier-0 pillars beside the entrenched `khcbppt` family:
 | v1.3 | 242 passing (`amlich-core --lib`) | Dai Van core + helper contracts + Kua per-pillar analysis verified | 0 |
 | v1.5 | 886 passing (`amlich-core`, 0 failures) | Văn khấn lookup + Phi Tinh overlays + 81-cell aspects + semantic graph wiring; CRIT-3 isolation grep-verified | 1 (`unicode-normalization` for NFC-at-load) |
 | v1.6 | 922 passing (`amlich-core`, 0 failures) | Daily Phi Tinh + RecommendsOffering node + dual-source provenance + ADR-0003a confidence closure; CRIT-3 isolation preserved; 13/13 integration WIRED | 0 (pure Rust, reuses v1.5 deps) |
+| v1.7 | 1120 passing (`amlich-core`, 0 failures) | Mai Hoa casting + 64-hexagram corpus + IChingEvaluator + Thái Tuế/Tam Sát cross-link + semantic-graph Hexagram wiring + combined-strip v1.6→v1.7 round-trip + runtime-invariant baseline guards; CRIT-3 + CRIT-6 + zero-dep-tree preserved | 0 (pure Rust, reuses v1.5 deps — locked by `cargo_dependency_tree_unchanged_from_v16` runtime guard) |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -191,3 +246,8 @@ Two new Tier-0 pillars beside the entrenched `khcbppt` family:
 2. Small focused phases with explicit acceptance criteria improve recovery when regressions appear.
 3. Deterministic helper contracts should be asserted with fixture-based boundary tests to prevent edge-case regressions.
 4. Reuse-first integration (new feature over existing deterministic helpers) lowers scope risk while keeping behavior auditable.
+5. **Schema-lock before corpus authoring** (v1.5 → v1.6 → v1.7 × 7 amplification) — type stubs + ADR + 1-entry serde round-trip probe precede corpus authoring; compiler-enforced newtype disjointness eliminates whole bug classes that runtime assertions would only catch at execution time. The schema is the spec.
+6. **Additive `Option<T>` + combined-strip round-trip** (v1.5 INT-05 → v1.6 INT-10 → v1.7 INT-12) — the discipline that keeps `DaySnapshot` backward-compatible across four consecutive milestones. Strip ALL milestone-new fields together to simulate the previous-version fixture; assert byte-equal re-serialization with null-count parity.
+7. **Sibling-newtype over closed-enum extension** (v1.6 `DailyFlyingStarLayout` → v1.7 `IChingQuery` + `DirectionCrossLinkSummary`) — adding a sibling newtype + sibling evaluator struct is cheaper than extending a closed enum that ~25-43 call-sites already match on. Three consecutive confirmations; now a documented carry-forward constraint.
+8. **CLI `--help` is positional** (v1.6 + v1.7 both fired) — never invoke `gsd-tools milestone complete` without a literal version; do not try to introspect via `--help`. Real fix would be a `--help` short-circuit in the CLI dispatcher.
+9. **Pre-existing engineering debt does not self-heal** (v1.5 → v1.6 → v1.7) — additive discipline prevents new debt (96 → 96 → 96 clippy/fmt warnings) but the existing count persists. A dedicated cleanup phase remains the only path to actually reducing it.
