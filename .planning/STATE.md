@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.7
 milestone_name: v1.7-iching-divination
-current_plan: 2
+current_plan: 3
 status: executing
-last_updated: "2026-07-16T17:58:04.000Z"
-last_activity: 2026-07-16
+last_updated: "2026-07-19T12:05:00.000Z"
+last_activity: 2026-07-19
 progress:
   total_phases: 29
-  completed_phases: 28
+  completed_phases: 29
   total_plans: 80
-  completed_plans: 78
+  completed_plans: 79
 ---
 
 # Project State
@@ -25,13 +25,13 @@ See: .planning/PROJECT.md (updated 2026-07-16)
 ## Current Position
 
 Milestone: v1.7 Kinh Dịch (I-Ching Divination).
-**Current Plan:** 2 (just completed — Plan 24-02)
+**Current Plan:** 3 (just completed — Plan 24-03; Phase 24 closes here)
 **Total Plans in Phase:** 3
-**Phase:** 24 — IChing Evaluator + Semantic-Graph Wiring + DTO Integration — Plan 24-01 complete (ICH-05 Closed; INT-12 Partially Closed); Plan 24-02 complete (INT-11 Closed — Hexagram nodes + Transforms + LocatedAt edges + dual-source provenance + Direction composite fact wired into DaySnapshotGraphBuilder).
-**Last Activity:** 2026-07-16T17:58:04Z
-**Status:** Plan 24-02 complete (2/3 task commits: `278f4a5` RED 13-test integration suite + `46ad421` GREEN add_iching_facts + add_direction_composite_facts). 1114 crate tests green (+13 vs Plan 24-01's 1101 baseline); zero regressions; zero new deps. INT-11 Closed; INT-12 still partial (combined-strip v1.6→v1.7 round-trip ships in Plan 24-03); INT-13 still Pending (Phase 25).
+**Phase:** 24 — IChing Evaluator + Semantic-Graph Wiring + DTO Integration — **COMPLETE (3/3)**: Plan 24-01 (ICH-05 Closed; INT-12 partial), Plan 24-02 (INT-11 Closed — Hexagram nodes + Transforms + LocatedAt edges + dual-source provenance + Direction composite fact wired into DaySnapshotGraphBuilder), Plan 24-03 (INT-12 Closed — 3 combined-strip v1.6→v1.7 round-trip tests in `tests/day_snapshot_v14_compat.rs`).
+**Last Activity:** 2026-07-19T12:05:00Z
+**Status:** Plan 24-03 complete (1/1 task commits: `8263348` feat v1.7 combined-strip round-trip tests for iching_cast + direction_cross_link; Task 2 was a NO-OP because Phase 23 already shipped DirectionCrossLinkSummary before Plan 24-02 executed, so no placeholder was ever declared). 1117 crate tests green (+3 vs Plan 24-02's 1114 baseline; +56 vs Phase 23-03's 1062 baseline across all of Phase 24); zero regressions; zero new deps. INT-11 + INT-12 Closed; INT-13 still Pending (Phase 25).
 
-Progress: [█████████░] 83% (v1.7: 4/6 phases complete; 13/15 requirements closed — FND-09..12 + ICH-01..05 + XLK-01..03 + INT-11 done; INT-12 partial + INT-13 still Pending — Plan 24-02 closes INT-11; Plan 24-03 closes INT-12).
+Progress: [██████████] 83% (v1.7: 5/6 phases complete; 14/15 requirements closed — FND-09..12 + ICH-01..05 + XLK-01..03 + INT-11 + INT-12 done; INT-13 still Pending — Plan 24-03 just closed INT-12; Phase 25 closes INT-13).
 
 ## v1.7 Roadmap Summary
 
@@ -85,22 +85,43 @@ Progress: [█████████░] 83% (v1.7: 4/6 phases complete; 13/15
 
 ## Session Continuity
 
-Last session: 2026-07-16 (Plan 24-02 execution)
-Stopped at: Plan 24-02 complete (2/3 in Phase 24); ICH-05 + INT-11 Closed; INT-12 partial (combined-strip v1.6→v1.7 round-trip + full close ships in Plan 24-03); 1114 crate tests green (+13 vs Plan 24-01's 1101 baseline); zero regressions; zero new deps. Phase 24 has 1 plan remaining (24-03 combined-strip v1.6→v1.7 round-trip + INT-12 full close). v1.7 critical path: 20 → 21 → 22 → 24 → 25 (5 hops; 1 hop remaining).
+Last session: 2026-07-19 (Plan 24-03 execution — Phase 24 closure)
+Stopped at: Phase 24 COMPLETE (3/3 plans). ICH-05 + INT-11 + INT-12 all Closed. INT-13 still Pending (Phase 25). 1117 crate tests green (+3 vs Plan 24-02's 1114 baseline; +56 vs Phase 23-03's 1062-test baseline across all of Phase 24); zero regressions; zero new deps. v1.7 critical path: 20 → 21 → 22 → 24 → 25 (5 hops; 1 hop remaining — Phase 25 only).
 Resume file: None (atomic plan execution; no resume file needed).
 
 ### Next Step
 
-Plan 24-02 fully complete. Next:
-- `/gsd-execute-phase 24-03` (combined-strip v1.6→v1.7 round-trip tests in `tests/day_snapshot_v14_compat.rs` exercising BOTH additive `DaySnapshot.iching_cast` (Phase 24-01) AND `DaySnapshot.direction_cross_link` (Phase 23-02) populated simultaneously — proves byte-equal round-trip with v1.6 fields intact; closes INT-12 fully).
-- After Phase 24 (Plan 24-03), Phase 25 unblocks (`/gsd-plan-phase 25` — E2E Validation + Golden Cross-Source Verification; ≥10 IChing golden casting cases + 2026 E2E smoke + zero-regression gate; closes INT-13).
+Phase 24 fully closed (3/3 plans). Next:
+- `/gsd-plan-phase 25` (E2E Validation + Golden Cross-Source Verification — closes INT-13: ≥10 IChing golden casting cases cross-checked against ≥2 independent sources; 2026 E2E smoke extending `integration_2026_smoke.rs` exercising IChing casting + biến quẻ + Thái Tuế cross-link + semantic-graph wiring + DaySnapshot fields together; full crate test suite green with zero regressions on v1.6 tests; cargo deps unchanged).
+- After Phase 25, the v1.7 milestone is ready for `/gsd-complete-milestone`.
 
-Plan 24-02 consumers (Phase 24 forward + Phase 25):
+Phase 24 deliverables (consumed by Phase 25):
+- `crate::iching::IChingEvaluator` + `IChingQuery` + `IChingEvaluation` + `IChingCastSummary` + `HexagramEntryProjection` + `COMPOSITE_ICHING_CONSULTATION` named const + `enrich_day_snapshot_with_iching` immutable helper (Plan 24-01)
+- `crate::semantic_graph::builders::day_snapshot::DaySnapshotGraphBuilder::add_iching_facts` + `add_direction_composite_facts` additive methods (Plan 24-02; produce 2 NodeConcept::Hexagram nodes with role-bearing stable keys + dual-source provenance + Transforms + LocatedAt edges + 1 NodeConcept::Direction composite fact node with KHCBPPT + huyen-khong primitives + 1 composite envelope)
+- `crate::semantic_graph::ids::SemanticId::iching_hexagram(role, king_wen, date, tz)` role-bearing stable-key constructor (Plan 24-02)
+- `crate::iching::IChingCastSummary::chu_king_wen_index()` + `bien_king_wen_index()` accessor helpers (Plan 24-02)
+- `crate::ProvenanceSource::IChing` additive enum variant + `ProvenanceEntry::iching(source_id, method)` constructor + `to_reasoning_evidence()` IChing match arm (Plan 24-01)
+- `DaySnapshot.iching_cast: Option<IChingCastSummary>` additive field (Plan 24-01) + `DaySnapshot.direction_cross_link: Option<crate::reasoning::DirectionCrossLinkSummary>` additive field (Phase 23-02; Phase 24-03 finalised the combined-strip round-trip gate that closes INT-12's verification half)
+- `tests/iching_evaluator_integration.rs` 18-test black-box suite (Plan 24-01) + `tests/semantic_graph_iching_integration.rs` 13-test black-box suite (Plan 24-02) + `tests/day_snapshot_v14_compat.rs` Tests 10-12 v1.7 combined-strip round-trip gate (Plan 24-03)
+
+Plan 24-02 consumers (now subsumed by Phase 24 deliverables list above — kept for traceability):
 - `crate::semantic_graph::builders::day_snapshot::DaySnapshotGraphBuilder::add_iching_facts` (additive; produces 2 NodeConcept::Hexagram nodes with role-bearing stable keys + dual-source provenance + Transforms + LocatedAt edges)
 - `crate::semantic_graph::builders::day_snapshot::DaySnapshotGraphBuilder::add_direction_composite_facts` (additive; produces 1 NodeConcept::Direction composite fact node with KHCBPPT + huyen-khong primitives + 1 composite envelope per Phase 23's locked contract)
 - `crate::semantic_graph::ids::SemanticId::iching_hexagram(role, king_wen, date, tz)` (role-bearing stable-key constructor)
 - `crate::iching::IChingCastSummary::chu_king_wen_index()` + `bien_king_wen_index()` (accessor helpers used by the semantic-graph builder)
 - `tests/semantic_graph_iching_integration.rs` (13-test black-box integration suite covering INT-11 success criteria; locks the 2-Hexagram + 1-Transforms + 2-LocatedAt + dual-source-provenance contract)
+
+## v1.7 Plan 24-03 Key Decisions
+
+- INT-12 fully closed: `crates/amlich-core/tests/day_snapshot_v14_compat.rs` (+394 lines, -1 line) appends 3 NEW v1.7 combined-strip round-trip tests (Tests 10-12) covering the BLOCKER 5 FIX pattern extended for the v1.7 surface. Test 10 `v16_json_without_v17_iching_fields_deserializes_and_round_trips` strips BOTH v1.7-new fields together (`iching_cast` + `direction_cross_link`) from a fully populated Tết 2026 v1.6 snapshot, recovers via v1.7 DaySnapshot, re-serialises, asserts SEMANTIC equality via `serde_json::Value` + null-count parity + neither new key appears + no `null` value introduced for either new key. Test 11 `v17_iching_cast_and_direction_cross_link_byte_equal_round_trip` (UPGRADED from the plan's IChing-only spec to exercise BOTH v1.7 fields together — Phase 23 shipped, so the IChing-only spec would have left a verification gap) enriches via BOTH helpers + asserts BOTH summaries survive byte-equal round-trip with field-shape: King Wen indices 1..=64, moving_line 1..=6, CRIT-6 evidence contract (≥2 distinct primitive source_ids including SOURCE_MAI_HOA_DICH_SO + SOURCE_KINH_DICH + exactly 1 composite `rule.composite.iching_consultation`), cross-link 8-cell surface + dual-source KHCBPPT + HUYEN_KHONG evidence + composite cross_link_source. Test 12 `v17_iching_fields_absent_when_none` proves `skip_serializing_if` honoured for BOTH fields simultaneously.
+- Test 10 null-count parity replaces the plan's literal `!contains("null")`: the count-parity check (`re_serialized.matches("null").count() == v16_str.matches("null").count()`) tolerates pre-existing nulls elsewhere in the JSON (e.g. nested objects with optional fields, future additive `Option<Option<T>>` shapes) while still proving the round-trip introduces no new ones. Two additional per-field negation assertions (`!contains("\"iching_cast\":null")` + `!contains("\"direction_cross_link\":null")`) make the absence explicit. Strictly stronger + more durable than Phase 19-03 Test 7's literal-negation pattern.
+- Test 11 dual-direction upgrade: the plan's Test 11 spec called for IChing-only population (`iching_cast_byte_equal_round_trip`). Since Phase 23 has shipped, the test was upgraded to `v17_iching_cast_and_direction_cross_link_byte_equal_round_trip` — enriches via BOTH `enrich_day_snapshot_with_iching` AND `enrich_day_snapshot_with_direction_cross_link`, then asserts BOTH summaries survive byte-equal round-trip with their full field shapes. The CRIT-6 evidence contract assertions for iching_cast are preserved verbatim from the plan; the cross-link assertions (8-cell surface + dual-source KHCBPPT + HUYEN_KHONG + composite cross_link_source + birth_chi_index + day_chi_index) are added discipline that the plan anticipated for the Phase-23-shipped case. Test name makes the both-fields scope explicit in the runner output.
+- Task 2 declared a NO-OP (no commit): Phase 23 shipped `DirectionCrossLinkSummary` (at `reasoning/direction_composite.rs:180`) + `enrich_day_snapshot_with_direction_cross_link` (crate root) + `DaySnapshot.direction_cross_link` field (at `lib.rs:201` referencing `crate::reasoning::DirectionCrossLinkSummary` directly) BEFORE Plan 24-02 executed. Plan 24-02 therefore never declared a placeholder; Plan 24-02's `direction_composite_facts_wires_populated_state` test was always ACTIVE. Plan 24-03's Task 2 (remove placeholder + finalise field type + activate `#[ignore]`'d test) inherits the no-op state — verified via `rg "struct DirectionCrossLinkSummary" crates/amlich-core/src/` returning one match at the real type's location + `rg "#\[ignore" crates/amlich-core/tests/semantic_graph_iching_integration.rs` returning zero matches. Documented in SUMMARY rather than encoded as a no-op commit.
+- TDD discipline: single feat commit `8263348` covering all 3 tests + the import extensions. The plan flagged Task 1 with `tdd="true"`, but the tests are pure contract verification of an already-shipped public API (the DaySnapshot fields landed in Plan 24-01 + Phase 23-03; the helpers landed in the same plans). A RED phase would have produced empty `unimplemented!()` stubs in the test file with no production code to fill in — artificial ceremony. The single feat commit captures the actual work shape. 2 min total for this execution (resumed from a cancelled prior attempt — Task 1 was already committed at `8263348` timestamp 2026-07-17T01:34:39+07:00; this execution verified the work + produced SUMMARY/STATE/ROADMAP/REQUIREMENTS metadata); 1117 crate tests green (+3 vs Plan 24-02's 1114 baseline; +56 vs Phase 23-03's 1062 baseline across all of Phase 24); zero regressions; `cargo tree -p amlich-core --depth 1` shows no new dependency (chrono + serde + serde_json + unicode-normalization).
+- Architectural deviations (4): (a) Test 11 upgraded from IChing-only to BOTH-fields-populated. (b) Test 10 null-count parity replaces literal `!contains("null")`. (c) Task 2 declared NO-OP (Phase 23 placeholder never declared). (d) Single feat commit instead of RED+GREEN pair. All four strengthen the contract or reflect the actual project state (Phase 23 shipped before Plan 24-02). No scope creep; no behavior change to the locked contracts (combined-strip round-trip discipline + additive DTO + CRIT-3 isolation + CRIT-6 source-id + WASM-safety + determinism + no new deps).
+- CRIT-3 isolation preserved across the new tests: the test file does NOT reference `FlyingStar` directly. The Test 11 enrichment path goes through `enrich_day_snapshot_with_direction_cross_link` which itself respects CRIT-3 (reads `snapshot.flying_stars.palace_overlays[i].0 as u8` without naming the type). The test's `cells.len() == 8` + `cross_link_source.starts_with("rule.composite.")` assertions verify the cross-link shape without breaking the isolation firewall.
+- CRIT-6 source-id discipline preserved: the new tests use the registered `SOURCE_MAI_HOA_DICH_SO` + `SOURCE_KINH_DICH` + `SOURCE_KHCBPPT` + `SOURCE_HUYEN_KHONG` consts (not bare literals). The only literals are `"rule.composite.iching_consultation"` (a contract assertion, not a production call-site) + `"rule.composite."` (a prefix match for the cross-link composite source_id). `tests/source_id_guard.rs` still passes (1/1).
+- Phase 24 closes fully (3/3 plans): ICH-05 (Plan 24-01) + INT-11 (Plan 24-02) + INT-12 (Plan 24-03) all Closed. 1117 crate tests green; zero regressions; zero new deps; CRIT-3 + CRIT-6 + WASM-safety + determinism + source-id-discipline preserved. Phase 25 (E2E Validation + Golden Cross-Source Verification; closes INT-13) unblocks.
 
 ## v1.7 Plan 24-02 Key Decisions
 
