@@ -1,70 +1,80 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.7
-milestone_name: Kinh Dịch (I-Ching Divination)
+milestone: v1.8
+milestone_name: Surface & Debt Closure
 current_plan: Not started
-status: completed
-last_updated: "2026-07-20T00:30:00.000Z"
+status: defining_requirements
+last_updated: "2026-07-20T12:00:00.000Z"
 last_activity: 2026-07-20
 progress:
-  total_phases: 30
-  completed_phases: 30
-  total_plans: 80
-  completed_plans: 80
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-07-19 after v1.7 milestone)
+See: .planning/PROJECT.md (updated 2026-07-20 for v1.8 milestone start).
 
 **Core value:** Every almanac subsystem in amlich must produce output matching its canonical classical source (KHCBPPT / `vn-folk-ritual` / *Thẩm Thị Huyền Không Học* / *Kinh Dịch Trọn Bộ* / *Mai Hoa Dịch Số*) for the 2020-2030 date range, with test-backed and traceable evidence.
 
-**Current focus:** v1.7 Kinh Dịch (I-Ching Divination) SHIPPED 2026-07-19. Next milestone undefined — start with `/gsd-new-milestone` (questioning → research → requirements → roadmap).
+**Current focus:** v1.8 Surface & Debt Closure — land v1.7 backend into desktop + TUI surfaces, close in-flight UX epics, retire engineering debt carried since v1.5.
 
 ## Current Position
 
-**Milestone:** v1.7 Kinh Dịch (I-Ching Divination) — **SHIPPED 2026-07-19**.
-**Status:** Milestone complete; planning next milestone.
+**Milestone:** v1.8 Surface & Debt Closure — defining requirements.
+**Status:** Defining requirements after milestone kickoff.
+**Phase:** Not started.
+**Plan:** —.
 
-Progress: [██████████] 100% (v1.7: 6/6 phases complete; 14/14 plans complete; 15/15 requirements closed).
+Progress: [ ] 0% (defining requirements).
 
-### v1.7 Shipped Summary
+### v1.8 Scope (3 tracks)
 
-- 6 phases (20-25), 14 plans, 15 requirements (FND-09..12, ICH-01..05, XLK-01..03, INT-11..13)
-- 1120 crate tests green (+198 vs v1.6's 922-test baseline); zero regressions; zero new crate dependencies
-- Runtime-invariant baseline guards: `cargo_dependency_tree_unchanged_from_v16` + `int13_golden_dataset_cross_source_discipline_holds`
-- Git range: `dbd6934` → `ebce96d` (79 commits, 97 files changed, +24,498 / −1,238 lines, 2026-07-16 → 2026-07-20)
-- Tag: `v1.7`
-- Archives: `.planning/milestones/v1.7-ROADMAP.md` + `.planning/milestones/v1.7-REQUIREMENTS.md`
+1. **Desktop Observatory closure** — finish `amlich-00j` epic (Evidence Graph workspace `amlich-01mx` + quality gates `amlich-2nqy`); get v1.7 IChing + Thái Tuế / Tam Sát cross-link payloads user-visible in Observatory workspaces.
+2. **TUI Explanation Views closure** — finish `amlich-5no` epic (Yếu Tố lens `amlich-0qv` + rendering/navigation tests `amlich-jet`); default non-dev TUI shows "Vì Sao Kết Luận" with four Vietnamese-labelled lenses.
+3. **Engineering debt phase** — `amlich-081` (~96 clippy warnings) + `SourceId = String` → true newtype + documented `[PendingExternalReview]` workflow.
 
-## Known Gaps (post-v1.7, per 2026-07-20 retrospective audit)
+### v1.8 Out of Scope (locked)
 
-- **64-hexagram Ngô Tất Tố interpretive text** (AF-05) — `thoai_tu` / `hao_tu` / `cat_hung` carrying `[PendingExternalReview]` placeholders pending domain-expert verification (`data/iching/provenance_audit.md`).
-- **Tam Sát KHCBPPT page-level citation** deferred — `data/almanac/tam_sat_provenance.md` carries `PendingExternalReview` per ADR-0006 §5.
-- **`SourceId = String` transparent alias** (carry-forward from v1.6) — documented future-tightenable.
-- **~96 cargo clippy/fmt warnings on master** (carry-forward from v1.6 baseline; same count after v1.7 — additive discipline prevented new debt).
+P3 Y học, P5 Spatial Phi Tinh, P6 Tử Vi, Hỗ Quả, Tier-2 Bazi enrichment of IChing, LLM interpretation, domain-expert text resolution for the 64-hexagram deferrals (external dependency — v1.8 only tightens the workflow).
 
-(See `.planning/milestones/v1.7-MILESTONE-AUDIT.md` for the full audit report — status `tech_debt`, 15/15 requirements satisfied, 0 integration gaps, 4/4 E2E flows complete.)
+## Prior Milestone
+
+v1.7 Kinh Dịch (I-Ching Divination) — SHIPPED 2026-07-19 (audited 2026-07-20). 6 phases (20-25), 14 plans, 15 requirements satisfied; 1120 crate tests green; zero new deps. Archives: `.planning/milestones/v1.7-*.md`.
+
+## Known Gaps (carry-forward into v1.8 where addressable)
+
+- **~96 cargo clippy/fmt warnings on master** (carry-forward from v1.5 baseline; v1.8 will close via DEBT-01/02).
+- **`SourceId = String` transparent alias** (carry-forward from v1.6; v1.8 will close via DEBT-03).
+- **Undocumented `[PendingExternalReview]` workflow** for the 4 carry-forward domain-expert deferrals (64-hexagram Ngô Tất Tố text, Tam Sát page citation, 1960 Trung Nguyên polarity split, ADR-0004 daily page citation); v1.8 will close via DEBT-04.
+- **64-hexagram Ngô Tất Tố interpretive text** (AF-05) — `thoai_tu` / `hao_tu` / `cat_hung` carrying `[PendingExternalReview]` placeholders pending **external** domain-expert verification. NOT resolvable in v1.8 (external dependency).
+- **Tam Sát KHCBPPT page-level citation** deferred — `PendingExternalReview` per ADR-0006 §5. NOT resolvable in v1.8 (external dependency).
+
+(See `.planning/milestones/v1.7-MILESTONE-AUDIT.md` for the full v1.7 audit report — status `tech_debt`, 15/15 requirements satisfied, 0 integration gaps, 4/4 E2E flows complete.)
 
 ## Resources
 
-- `.planning/PROJECT.md` — project trajectory + Key Decisions table (v1.7 milestone scope + outcomes added 2026-07-19; updated 2026-07-20 after retrospective audit).
+- `.planning/PROJECT.md` — project trajectory + Key Decisions table (v1.8 milestone scope added 2026-07-20).
 - `.planning/MILESTONES.md` — shipped-milestone log (v1.0-v1.7 archived).
-- `.planning/ROADMAP.md` — collapsed milestone sections (v1.5 / v1.6 / v1.7 in `<details>`); ready for next milestone's active section.
-- `.planning/RETROSPECTIVE.md` — v1.7 milestone section + cross-milestone trends updated (2026-07-20 after retrospective audit).
-- `.planning/milestones/v1.{0..7}-{ROADMAP,REQUIREMENTS}.md` — shipped milestone archives. v1.1 / v1.4 / v1.5 / v1.6 / v1.7 also have MILESTONE-AUDIT.md (v1.7 audit produced 2026-07-20 as retrospective backfill).
-- `.planning/adrs/` — ADRs 0001-0007 + 0003a (all locked). v1.7 added ADR-0005 (HexagramEntry schema), ADR-0006 (Mai Hoa casting convention), ADR-0007 (cross-link CRIT-3 carve-out).
+- `.planning/ROADMAP.md` — v1.7 in `<details>`; ready for v1.8 active section.
+- `.planning/RETROSPECTIVE.md` — v1.7 milestone section + cross-milestone trends updated 2026-07-20.
+- `.planning/milestones/v1.{0..7}-{ROADMAP,REQUIREMENTS}.md` — shipped milestone archives.
+- `.planning/adrs/` — ADRs 0001-0007 + 0003a (all locked).
 
 ## Session Continuity
 
-Last session: 2026-07-20 (v1.7 retrospective milestone audit — backfilled `v1.7-MILESTONE-AUDIT.md`; reconciled PROJECT.md / MILESTONES.md / RETROSPECTIVE.md / STATE.md to remove "no audit" caveats).
-Stopped at: v1.7 milestone SHIPPED + AUDITED. All prior "no formal audit" caveats resolved; status `tech_debt` (15/15 satisfied, 0 gaps).
-Resume file: None (audit-milestone workflow; no resume file needed).
+Last session: 2026-07-20 — v1.7 retrospective milestone audit complete; milestone selection discussion resulted in choosing v1.8 = Surface & Debt Closure over P3 Y học / P6 Tử Vi / P5 Spatial alternatives.
+Stopped at: v1.8 milestone kickoff — PROJECT.md + STATE.md updated; requirements + roadmap next.
+Resume file: None (milestone kickoff; requirements being defined inline).
 
 ### Next Step
 
-v1.7 milestone is SHIPPED and AUDITED. Next:
-- `/gsd-new-milestone` — start the next milestone (questioning → research → requirements → roadmap). For v1.8+, the workflow should run `/gsd-audit-milestone` BEFORE `/gsd-complete-milestone` (per v1.7 retrospective lesson).
-- `/gsd-cleanup` — optional phase-directory archival (move v1.7 phase dirs to `milestones/v1.7-phases/`).
+v1.8 milestone kickoff in progress. After requirements + roadmap are committed:
+- `/gsd-discuss-phase 26` — gather context for first v1.8 phase
+- `/gsd-plan-phase 26` — plan directly (skip discussion)
+
+For v1.8+ per v1.7 retrospective lesson #10: `/gsd-audit-milestone` MUST run BEFORE `/gsd-complete-milestone`.

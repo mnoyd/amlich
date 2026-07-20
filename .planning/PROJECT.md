@@ -54,16 +54,27 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 - **User-selectable casting variants (số vật / âm thanh)** — out of scope; v1.7 ships Mai Hoa time-numerology only.
 - **Coin / yarrow / RNG casting** — different tradition; breaks determinism; would need a third `source_id`.
 
-## Next Milestone Goals
+## Current Milestone: v1.8 Surface & Debt Closure
 
-**Not yet defined.** Start with `/gsd-new-milestone` (questioning → research → requirements → roadmap). Candidate carry-forwards from v1.7 retrospective + EXPANSION_FRAMEWORK sequencing:
+**Goal:** Land v1.7's backend power (IChing pillar + Thái Tuế/Tam Sát cross-link) into the desktop + TUI surfaces, close the two in-flight P1/P2 UX epics (`amlich-00j` desktop observatory, `amlich-5no` TUI explanation views), and retire the engineering debt carried since v1.5.
 
-- P3 Y học Tý Ngọ Lưu Chú (next Tier-0/1 candidate per framework §5)
-- P6 Tử Vi Đẩu Số (larger scope; multi-phase milestone)
-- P5 Spatial Phi Tinh (blocked on Tier-3 `spatial_compose` + user spatial input)
-- Hỗ Quả / nuclear hexagram depth (v1.9+ candidate)
-- Tier-2 Bazi enrichment of hexagram reading (depth on the v1.7 IChing surface)
-- ~96 cargo clippy/fmt warnings cleanup phase (engineering debt — same count as v1.6 baseline; not introduced by v1.7)
+**Theme:** Surface what v1.7 built. Close epics that are 80%+ done. Pay down pre-existing engineering debt before adding new backend pillars.
+
+**Target tracks:**
+
+- **Desktop Observatory closure** — finish `amlich-00j` epic (Evidence Graph workspace `amlich-01mx` + quality gates `amlich-2nqy`); get v1.7 IChing + cross-link payloads user-visible in Observatory workspaces.
+- **TUI Explanation Views closure** — finish `amlich-5no` epic (Yếu Tố lens `amlich-0qv` + rendering/nav tests `amlich-jet`); default non-dev TUI shows decision-first "Vì Sao Kết Luận" with four Vietnamese-labelled lenses.
+- **Engineering debt phase** — `amlich-081` (~96 clippy warnings) + `SourceId = String` → true newtype + documented `[PendingExternalReview]` workflow for the four carry-forward domain-expert deferrals.
+
+**Out of scope (locked, deferred to v1.9+):**
+
+- P3 Y học Tý Ngọ Lưu Chú (next backend pillar candidate per framework §5)
+- P6 Tử Vi Đẩu Số (XL-scope; v2.0 candidate)
+- P5 Spatial Phi Tinh (Tier-3 `spatial_compose` blocked on new DEC)
+- Hỗ Quả / nuclear hexagram depth
+- Tier-2 Bazi enrichment of hexagram reading
+- LLM free-form interpretation
+- Domain-expert text resolution for 64-hexagram `[PendingExternalReview]` markers (external dependency — v1.8 only tightens the workflow, does not resolve the deferrals)
 
 ## Key Decisions
 
@@ -129,4 +140,4 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 
 ---
 
-*Last updated: 2026-07-20 after v1.7 Kinh Dịch (I-Ching Divination) retrospective milestone audit*
+*Last updated: 2026-07-20 — milestone v1.8 Surface & Debt Closure started*
