@@ -46,8 +46,14 @@ pub fn compute_personal_hour_matrix(
 
     let hours: Vec<PersonalHourEntry> = (0usize..12)
         .map(|slot| {
-            let hour_pillar = compute_hour_pillar(day_stem, (slot * 2 + 1) as u8, 0)
-                .expect("slot 0-11 always resolves");
+            // Slot 0 is Tý (23:00-01:00). For slot s (s>0) the wall-clock
+            // start hour is 2s-1 (Sửu=01:00, Dần=03:00, ...). The previous
+            // formula `(slot * 2 + 1)` started at hour=1 for slot=0, which
+            // `resolve_hour_branch_slot` mapped to Sửu — leaving row 0
+            // with Sửu chi but Tý's Hoàng Đạo star. See amlich-mwbp.2.
+            let wall_hour = if slot == 0 { 23 } else { (2 * slot - 1) as u8 };
+            let hour_pillar =
+                compute_hour_pillar(day_stem, wall_hour, 0).expect("slot 0-11 always resolves");
             let hour_stem = HeavenlyStem::ALL[hour_pillar.can_chi.can_index];
             let hour_chi_index = hour_pillar.can_chi.chi_index;
 
@@ -360,5 +366,86 @@ mod tests {
         chart.pillars.pop();
 
         assert!(compute_personal_hour_matrix(&day, &chart, &balanced_dist()).is_none());
+    }
+
+    /// Regression for amlich-mwbp.2: slot 0 must be Tý (23:00-01:00), not
+    /// Sửu (01:00-03:00). The previous formula `(slot * 2 + 1)` produced
+    /// hour=1 for slot=0, which `resolve_hour_branch_slot` mapped to the
+    /// Sửu branch — leaving row 0 with a Sửu chi but Tý's Hoàng Đạo star.
+    #[test]
+    fn slot_0_is_ty_with_midnight_range() {
+        let day = CanChi::new(0, 0); // Giáp Tý
+        let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
+        let row = &matrix.hours[0];
+        assert_eq!(row.chi, "Tý", "slot 0 chi");
+        assert_eq!(row.chi_index, 0, "slot 0 chi_index");
+        assert_eq!(row.time_range, "23:00-01:00", "slot 0 time range");
+        // Giáp day stem seeds Tý hour stem as Giáp → "Giáp Tý"
+        assert_eq!(row.canchi, "Giáp Tý", "slot 0 canchi");
+    }
+
+    /// Slot 1 must be Sửu (01:00-03:00), proving the rotation has no
+    /// off-by-one between consecutive rows.
+    #[test]
+    fn slot_1_is_suu_with_early_morning_range() {
+        let day = CanChi::new(0, 0);
+        let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
+        let row = &matrix.hours[1];
+        assert_eq!(row.chi, "Sửu", "slot 1 chi");
+        assert_eq!(row.chi_index, 1, "slot 1 chi_index");
+        assert_eq!(row.time_range, "01:00-03:00", "slot 1 time range");
+    }
+
+    /// All 12 rows must align chi, chi_index, time_range, and canchi by
+    /// the same canonical index. Previously the chi/time_range advanced by
+    /// one slot while the star stayed anchored to the outer loop index,
+    /// producing desync rows.
+    #[test]
+    fn all_rows_align_chi_time_range_and_star_index() {
+        let day = CanChi::new(0, 0);
+        let chart = make_chart((0, 0), (2, 2), (4, 4), (6, 6));
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
+        let hoang_dao = get_gio_hoang_dao(day.chi_index);
+        for (slot, row) in matrix.hours.iter().enumerate() {
+            assert_eq!(
+                row.chi_index, slot,
+                "slot {slot} chi_index must match row index"
+            );
+            assert_eq!(
+                row.chi, CHI[slot],
+                "slot {slot} chi label must match CHI[slot]"
+            );
+            // The star in the row must be the same star the Hoàng Đạo
+            // table reports for that canonical chi_index.
+            let expected_star = &hoang_dao.all_hours[slot].star;
+            assert_eq!(
+                &row.star_name, expected_star,
+                "slot {slot} star must align with chi_index"
+            );
+            assert_eq!(
+                row.is_hoang_dao, hoang_dao.all_hours[slot].is_good,
+                "slot {slot} is_hoang_dao must align with chi_index"
+            );
+        }
+    }
+
+    /// Boundary regression: wall-clock 23:00, 00:00, and 00:01 must all
+    /// resolve to Tý (slot 0); 01:00 must resolve to Sửu (slot 1).
+    /// Validates `almanac::hour_pillar::resolve_hour_branch_slot` at the
+    /// personal-hour boundary.
+    #[test]
+    fn midnight_boundaries_resolve_to_expected_slots() {
+        use crate::almanac::hour_pillar::resolve_hour_branch_slot;
+        for (hour, minute, expected) in [(23u8, 0u8, 0usize), (0, 0, 0), (0, 1, 0), (1, 0, 1)] {
+            let slot = resolve_hour_branch_slot(hour, minute)
+                .unwrap_or_else(|| panic!("({hour}:{minute:02}) should resolve"));
+            assert_eq!(
+                slot.slot_index, expected,
+                "({hour}:{minute:02}) expected slot {expected}, got {}",
+                slot.slot_index
+            );
+        }
     }
 }

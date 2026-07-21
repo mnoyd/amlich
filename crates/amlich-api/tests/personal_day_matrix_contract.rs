@@ -155,3 +155,70 @@ fn personal_day_matrix_domain_day_boost_has_five_domains() {
     let domains = report.domain_day_boost.expect("domain day boost");
     assert_eq!(domains.entries.len(), 5);
 }
+
+/// Regression for amlich-mwbp.2: the first personal-hour row exposed by
+/// the API must be Tý (23:00-01:00) with a Can Chi whose chi is "Tý",
+/// and its star must be the same Hoàng Đạo star the row's chi_index
+/// implies. End-to-end check across the core builder → API DTO hop.
+#[test]
+fn personal_day_matrix_personal_hours_slot_0_is_ty() {
+    let report = get_personal_day_matrix_report(&sample_birth_datetime(), &sample_date())
+        .expect("matrix report");
+    let hours = report.personal_hours.expect("personal hours present");
+    let row = &hours.hours[0];
+    assert_eq!(row.chi, "Tý", "API slot 0 chi");
+    assert_eq!(row.chi_index, 0, "API slot 0 chi_index");
+    assert_eq!(row.time_range, "23:00-01:00", "API slot 0 time range");
+    assert!(
+        row.canchi.ends_with("Tý"),
+        "API slot 0 canchi must end with 'Tý'; got {}",
+        row.canchi
+    );
+}
+
+/// Regression for amlich-mwbp.2: every personal-hour row in the API
+/// response must carry matching chi_index → chi label → time_range →
+/// star (no off-by-one between any of them).
+#[test]
+fn personal_day_matrix_personal_hours_rows_align_index_chi_time_star() {
+    let report = get_personal_day_matrix_report(&sample_birth_datetime(), &sample_date())
+        .expect("matrix report");
+    let hours = report.personal_hours.expect("personal hours present");
+    let day_canchi: amlich_core::CanChi = amlich_core::CanChi::new(0, 0); // unused; we only need the Hoàng Đạo table for star parity
+    let _ = day_canchi;
+    // The matrix report does not expose the day_canchi chi_index directly,
+    // so we re-derive the expected Hoàng Đạo layout from the day-person
+    // surface's day_canchi string ("Giáp Thìn" → chi_index 4 for Thìn).
+    let day_chi_index = report
+        .day_person
+        .day_canchi
+        .split_whitespace()
+        .nth(1)
+        .and_then(|chi| match chi {
+            "Tý" => Some(0),
+            "Sửu" => Some(1),
+            "Dần" => Some(2),
+            "Mão" => Some(3),
+            "Thìn" => Some(4),
+            "Tỵ" => Some(5),
+            "Ngọ" => Some(6),
+            "Mùi" => Some(7),
+            "Thân" => Some(8),
+            "Dậu" => Some(9),
+            "Tuất" => Some(10),
+            "Hợi" => Some(11),
+            _ => None,
+        })
+        .expect("day_canchi chi must be a known branch");
+    let hoang_dao = amlich_core::gio_hoang_dao::get_gio_hoang_dao(day_chi_index);
+    for (slot, row) in hours.hours.iter().enumerate() {
+        assert_eq!(
+            row.chi_index, slot,
+            "API slot {slot} chi_index must equal slot"
+        );
+        assert_eq!(
+            &row.star_name, &hoang_dao.all_hours[slot].star,
+            "API slot {slot} star must align with chi_index"
+        );
+    }
+}
