@@ -14,6 +14,185 @@ This plan synthesizes the advisory/reasoning, birth/API, and interaction/almanac
 8. **Parity:** standalone advisory, reasoning, matrix, and aggregate API responses agree on normalized profile, snapshot, score, confidence, and availability.
 9. **Safety:** medical/burial/contract outputs must not gain high confidence from incomplete profile or caution-message counts alone.
 
+## How to use this plan
+
+This document records target architecture, migration order, and release gates. It
+does not duplicate line-level evidence from the companion audits:
+
+- `advisory-reasoning.md` owns advisory/reasoning findings and deletion tests.
+- `birth-api.md` owns birth-input, capability, and transport findings.
+- `interaction-almanac.md` owns interaction-matrix and almanac findings.
+
+Implementation work is tracked under the `amlich-mwbp` beads epic. When an
+implementation discovery changes a target decision, update this plan first and
+then update the affected bead. New evidence that does not change the target
+architecture belongs in the relevant audit and bead, not in this document.
+
+## Target ownership of scores and matrices
+
+The word `matrix` currently covers both internal policy tables and serialized
+interaction results. The migration must separate these concepts before adding
+more scoring behavior.
+
+| Current surface | Target role | Public after migration | Canonical verdict source | Disposition |
+| --- | --- | --- | --- | --- |
+| `BaziScoringMatrixSet` and its element/season/visibility/interaction/Ten-God/domain tables | Versioned Bazi scoring policy/weight tables | No, unless an explicit expert configuration API is approved | No | Rename conceptually to policy/weight tables; keep behind the Bazi metrics builder |
+| `BaziComputedMetrics` and domain scores | Measurements and long-horizon profile analysis | Yes, with confidence and provenance | No | Keep separate from target-day decisions; never present a domain score as day suitability |
+| `DayPersonMatrix` | Typed raw day-to-pillar interaction signals | Yes as an explanation/detail projection | No | Preserve rows; replace broad membership booleans with approved typed relation facts |
+| `ElementResonanceMatrix` | Typed element/day context signals | Conditional | No | Preserve entry-level facts; quarantine `net_resonance` until a personal, versioned aggregate is validated |
+| `PersonalHourMatrix` | Twelve raw hour candidates plus an intent-policy ranking projection | Yes when birth time is known | No | Repair slot alignment; move composite score semantics into the canonical policy and expose contributions |
+| `DirectionMergeMatrix` | Eight typed direction-signal rows plus an optional intent-policy ranking | Yes when Kua inputs are available | No | Preserve raw signals; treat `net_score` as a count projection, not a universal suitability score |
+| `DomainDayBoostMatrix` | Unresolved experimental projection | No by default | No | Quarantine; either redesign with domain/intent-specific evidence or replace with clearly named generic day-quality context |
+| Legacy `score_day_selection` / `AdvisoryScoring` | Compatibility projection | Temporarily | No | Project from the canonical assessment during migration, then deprecate the independent formula |
+| Reasoning axis scores and semantic classifications | Explanation projections over selected evidence | Yes where useful | No | Consume canonical typed contributions; do not independently count notes or derive verdicts |
+| `PersonalDayAssessment` | One normalized, intent-specific decision and evidence envelope | Yes | **Yes** | Build once in core; all numeric and semantic verdict surfaces project from it |
+
+`Matrix` may remain in compatibility type names, but new domain names should
+prefer `PolicyTable`, `InteractionSignals`, `Candidates`, or `Assessment` so a
+data table is not mistaken for a calibrated decision engine.
+
+## Score taxonomy and canonical contract
+
+Every numeric value must be classified as exactly one of the following:
+
+1. **Measurement** — observed or derived profile/day quantity, such as element
+   distribution, interaction count, or evidence coverage. It describes input
+   state and must not map directly to a recommendation verdict.
+2. **Signal** — a typed favorable, unfavorable, neutral, unavailable, or
+   disputed relation with strength and provenance. Signals remain independent
+   of presentation language.
+3. **Decision score** — an intent-specific policy result. Only this class may
+   be thresholded into `recommended`, `consider`, `avoid`, or stronger safety
+   verdicts.
+
+Values from different classes, policies, intents, or versions are not
+comparable even when they share a 0-100 range. Public field documentation and
+DTOs must identify the class; ambiguous fields such as `score`, `net_score`,
+and `boosted_score` remain compatibility-only until their semantics are made
+explicit.
+
+The canonical assessment must keep at least these axes separate before any
+product-level summary is formed:
+
+- generic day quality;
+- activity/intent fit;
+- personal alignment;
+- annual/period pressure;
+- evidence coverage and input capability.
+
+Every decision contribution must contain stable, machine-readable metadata:
+
+```text
+contribution_id
+axis
+intent
+polarity_or_effect
+strength_or_weight
+policy_id + policy_version
+ruleset_id + ruleset_version
+source evidence
+availability/data-quality state
+```
+
+The assessment may expose a normalized decision score only after applying
+hard-veto precedence, deduplication, intent relevance, and missing-data rules.
+Confidence describes input/evidence coverage and policy support; it is not a
+second name for score magnitude.
+
+## Consumer migration map
+
+```text
+normalized day snapshot + normalized birth capabilities
+                         |
+                         v
+        corrected typed interaction/Bazi facts
+                         |
+                         v
+              PersonalDayAssessment
+               /       |       |       \
+              v        v       v        v
+          advisory    API     TUI    reasoning/graph
+```
+
+| Consumer | Current behavior | Required migration | Removal/parity gate |
+| --- | --- | --- | --- |
+| Advisory and ranked dates | Computes an independent 0-100 score | Become a compatibility projection of the assessment and its intent contributions | Same normalized inputs, verdict, score, confidence, and contribution IDs across standalone and aggregate calls |
+| Personal-day matrix API | Recomputes chart, snapshot, and five matrix outputs | Return raw-signal/detail projections from the already-built assessment; mark unavailable sections explicitly | No endpoint-local verdict or silent unknown-to-zero conversion; serialization compatibility fixtures pass |
+| TUI personal summary | Picks maxima/counts from unrelated numeric fields | Render the canonical verdict first, then explain with hour/direction/raw-signal projections and score labels | TUI cannot imply that a count projection is the canonical score; incomplete-profile fixtures are clear |
+| Flat reasoning pipeline | Rebuilds personal facts and interprets summaries/counts | Consume typed canonical facts and contributions for the allowlisted action | Localization, duplicate-fact, and unrelated-node metamorphic tests pass |
+| Semantic graph/evaluator | Richer parallel path, primarily test-backed | Represent the same canonical facts/evidence; become an explanation/query substrate rather than another scoring engine | Semantic and flat projections agree before the duplicate production path is retired |
+
+Compatibility fields may remain for one migration window, but they must be
+tagged with their legacy policy and derived from, or explicitly compared
+against, the canonical assessment. Safety fixes and explicit unavailable states
+must not be hidden behind the rollback flag.
+
+## Finding disposition workflow
+
+Before implementation, every audit finding receives one of these dispositions
+in its bead or source decision record:
+
+- **Accepted** — behavior and remediation are sufficiently established to
+  implement with a failing regression test first.
+- **Source verification required** — the code defect or ambiguity is known,
+  but the domain rule must be approved from a cited source before fixtures or
+  coefficients are frozen. XIANGXING and disputed relation semantics are in
+  this class.
+- **Quarantined** — a public aggregate or claim is disabled/marked unavailable
+  until a valid policy exists. Current `net_resonance` and domain-day boost are
+  the initial candidates.
+- **Deferred** — safe to leave in place for the current migration, with a
+  bounded impact and explicit dependency.
+- **Rejected** — no change, with recorded evidence explaining why the finding
+  does not apply.
+
+No AFK implementation task may silently choose a tradition, invent scoring
+coefficients, or promote a disputed finding from source-verification-required
+to accepted. Post-implementation audit findings follow the same workflow.
+
+## User-journey acceptance gates
+
+The migration is not complete merely because matrix shapes and unit tests pass.
+The following end-to-end questions must have one consistent, traceable answer:
+
+1. **“Is this date suitable for signing a contract?”** The answer uses the
+   contract intent policy, identifies any veto, distinguishes generic day
+   quality from personal alignment, and exposes confidence/evidence.
+2. **“If I still proceed today, which time and direction are preferable?”**
+   Hour and direction refinements use the same assessment, known capabilities,
+   and intent; they cannot reverse a hard avoid verdict without explaining the
+   distinction.
+3. **“Why did the answer change after I supplied my birth time?”** The response
+   identifies newly available facts/contributions and changes confidence only
+   for the capabilities and evidence actually added.
+4. **“What can be said with birth date but no time or gender?”** Available
+   generic/profile signals remain useful, while personal-hour, Kua, and annual
+   Hạn-dependent claims are explicitly unavailable rather than defaulted.
+
+Each journey requires golden API fixtures plus parity coverage for the
+standalone advisory, aggregate report, and whichever TUI/reasoning projection
+exposes it.
+
+## Implementation and review cadence
+
+1. **Before implementation:** assign dispositions, resolve source-sensitive
+   decisions, freeze the failing regression/golden cases, and confirm the
+   affected score or matrix role in the ownership table above.
+2. **During implementation:** land the smallest corrected vertical slice,
+   preserve raw evidence, and compare legacy and canonical projections in
+   shadow/parity tests. A local fix must not introduce a new endpoint-owned
+   verdict.
+3. **Before switching consumers:** pass capability, serialization, user-journey,
+   and cross-surface parity gates. Record intentional legacy/canonical diffs and
+   their policy versions.
+4. **After implementation:** repeat the focused audit against actual data flow,
+   classify any new finding through the same disposition workflow, and remove
+   compatibility paths only when their deletion tests and rollback conditions
+   are satisfied.
+
+The post-implementation audit verifies the plan; it is not the point at which
+ownership, score semantics, or source-sensitive rules are first decided.
+
 ## Ordered work packages
 
 ### P0 — quarantine unsafe semantics and establish canonical inputs
@@ -97,4 +276,3 @@ This plan synthesizes the advisory/reasoning, birth/API, and interaction/almanac
 - Metamorphic tests: duplicate evidence, localization changes, unrelated graph node insertion, date-only vs full profile, and standalone-vs-aggregate parity.
 - Serialization/API contract tests verify explicit unavailable states and stable policy/ruleset/evidence IDs.
 - Review source citations/ruleset versions for XIANGXING and scoring coefficients before enabling user-facing high-confidence conclusions.
-
