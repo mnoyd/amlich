@@ -173,8 +173,16 @@ pub struct ElementResonanceMatrix {
     pub season_factor: f32,
     /// Per-element resonance rows.
     pub entries: Vec<ElementResonanceEntry>,
-    /// Sum of all effective_resonance values — positive = supportive day.
+    /// Personal-score-weighted aggregate of `effective_resonance`. The
+    /// previous unweighted sum was independent of the input
+    /// `ElementDistribution`, so contrasting profiles produced identical
+    /// values — see amlich-mwbp.5 / REPAIR-PLAN.md P0.2.
     pub net_resonance: f32,
+    /// Policy version that produced `net_resonance`. Bumped whenever the
+    /// weighting formula changes; consumers should not compare values
+    /// across versions.
+    #[serde(default)]
+    pub resonance_policy_version: String,
     /// Source attribution.
     pub evidence: RuleEvidence,
 }

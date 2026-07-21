@@ -997,6 +997,24 @@ fn matrix_unavailable_sections(tier: &BirthDataTierDto) -> Vec<UnavailableSectio
     }
 }
 
+/// Matrix-surface extension of [`matrix_unavailable_sections`]: also
+/// accounts for gender-dependent sections (domain_day_boost) which the
+/// generic tier-only helper cannot see. See amlich-mwbp.5.
+fn matrix_unavailable_sections_with_gender(
+    tier: &BirthDataTierDto,
+    has_gender: bool,
+) -> Vec<UnavailableSectionDto> {
+    let mut sections = matrix_unavailable_sections(tier);
+    if !has_gender {
+        sections.push(unavailable_section(
+            "domain_day_boost",
+            "requires gender for yearly han assessment",
+            &["gender"],
+        ));
+    }
+    sections
+}
+
 fn personal_day_query(
     query: &DateQuery,
     birth_year: Option<i32>,
@@ -1122,6 +1140,10 @@ pub fn get_personal_day_advisory(
         get_personal_day_reasoning_bundle(query, birth_year, birth_month, birth_day, gender)?;
     let mut highlights = Vec::new();
     let mut cautions = Vec::new();
+    // amlich-mwbp.5: missing-profile messages are tracked separately so
+    // they cannot inflate severity. Only genuine adverse day signals go
+    // into `cautions`.
+    let mut unavailable_context = Vec::new();
     let mut top_signals = Vec::new();
     let mut why_this_matters = Vec::new();
     let mut recommended_actions = Vec::new();
@@ -1148,7 +1170,7 @@ pub fn get_personal_day_advisory(
                 .to_string(),
         );
     } else {
-        cautions.push("missing kua profile context".to_string());
+        unavailable_context.push("missing kua profile context".to_string());
         recommended_actions.push(
             "Add full birth date and gender to unlock Kua-based personal context.".to_string(),
         );
@@ -1160,14 +1182,14 @@ pub fn get_personal_day_advisory(
         top_signals.push(dai_van_signal);
         why_this_matters.push("Đại Vận gives timing context so favorable or difficult signals are read in a longer cycle.".to_string());
     } else {
-        cautions.push("missing dai van timing context".to_string());
+        unavailable_context.push("missing dai van timing context".to_string());
         recommended_actions.push(
             "Provide complete birth profile details to unlock Đại Vận timing context.".to_string(),
         );
     }
 
     if insight.ten_gods.is_none() {
-        cautions.push("ten gods analysis unavailable".to_string());
+        unavailable_context.push("ten gods analysis unavailable".to_string());
         recommended_actions.push(
             "Use the current output as partial guidance because Ten Gods detail is unavailable."
                 .to_string(),
@@ -1282,6 +1304,7 @@ pub fn get_personal_day_advisory(
         priority_order,
         highlights,
         cautions,
+        unavailable_context,
         reasoning_bucket,
         reasoning_confidence,
     })
@@ -1595,15 +1618,18 @@ pub fn get_personal_day_matrix_report(
         )
     });
 
-    // Matrix 4b: Domain-Day Boost (requires computed metrics)
-    let domain_day_boost = {
-        let han_count = compute_han_count(chart, &day_ctx);
-        Some(compute_domain_day_boost(
+    // Matrix 4b: Domain-Day Boost (requires gender for yearly Hạn; the
+    // underlying Cửu Diệu computation is gated on gender, so emitting the
+    // matrix with a silent-zero Hạn count would mislead consumers. See
+    // amlich-mwbp.5.)
+    let domain_day_boost = compute_han_count(chart, &day_ctx).map(|han_count| {
+        compute_domain_day_boost(
+            day_canchi.full.as_str(),
             &day_fortune,
             &report.computed_metrics.domain_scores,
             han_count,
-        ))
-    };
+        )
+    });
 
     Ok(PersonalDayMatrixReportDto {
         input: PersonalDayMatrixQueryDto {
@@ -1616,22 +1642,27 @@ pub fn get_personal_day_matrix_report(
         personal_hours,
         direction_merge,
         domain_day_boost,
-        unavailable_sections: matrix_unavailable_sections(&tier),
+        unavailable_sections: matrix_unavailable_sections_with_gender(
+            &tier,
+            chart.input.gender.is_some(),
+        ),
     })
 }
 
 /// Compute yearly hạn count from birth chart and current day context.
-/// Returns 0 if gender is unavailable (required for Cửu Diệu).
+///
+/// Returns `None` when gender is unavailable, because Cửu Diệu (one of the
+/// five Hạn checks) requires gender and the surrounding assessment cannot
+/// be completed without it. The previous implementation returned `0` on
+/// missing gender, silently conflating "gender unknown" with "zero active
+/// afflictions" — see amlich-mwbp.5 / REPAIR-PLAN.md P0.2.
 fn compute_han_count(
     chart: &amlich_core::bazi::types::BaziChart,
     day_ctx: &amlich_core::DayContext,
-) -> u8 {
+) -> Option<u8> {
     use amlich_core::almanac::yearly_han::{compute_yearly_han, YearlyHanInput};
 
-    let gender = match chart.input.gender {
-        Some(g) => g,
-        None => return 0,
-    };
+    let gender = chart.input.gender?;
 
     let birth_lunar_year = chart.lunar_date.year;
     let current_lunar_year = day_ctx.lunar.year;
@@ -1645,5 +1676,5 @@ fn compute_han_count(
     };
 
     let assessment = compute_yearly_han(&input, birth_chi_index, current_year_chi_index);
-    assessment.han_count
+    Some(assessment.han_count)
 }

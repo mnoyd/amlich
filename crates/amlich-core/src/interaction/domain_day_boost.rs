@@ -7,7 +7,14 @@ use super::types::{DomainDayBoostEntry, DomainDayBoostMatrix};
 ///
 /// For each of 5 life domains, applies day-level modifiers (stars, trực, thần)
 /// and yearly hạn penalty to the person's base Bazi domain scores.
+///
+/// `day_canchi_full` is the canonical day Can Chi label (e.g., "Bính Thân")
+/// threaded in by the caller. Previously this function derived the field
+/// from `day_fortune.day_element.can_element`/`chi_element`, which are
+/// ngũ-hành element names ("Mộc Thổ") — not Can Chi labels. See
+/// amlich-mwbp.5 / REPAIR-PLAN.md P0.2.
 pub fn compute_domain_day_boost(
+    day_canchi_full: &str,
     day_fortune: &DayFortune,
     domain_scores: &BaziDomainScores,
     han_active_count: u8,
@@ -48,10 +55,7 @@ pub fn compute_domain_day_boost(
         .collect();
 
     DomainDayBoostMatrix {
-        day_canchi: format!(
-            "{} {}",
-            day_fortune.day_element.can_element, day_fortune.day_element.chi_element
-        ),
+        day_canchi: day_canchi_full.to_string(),
         entries,
         evidence: RuleEvidence {
             source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
@@ -186,14 +190,14 @@ mod tests {
     #[test]
     fn matrix_has_5_domains() {
         let fortune = make_fortune(2, 1, "cat", true);
-        let matrix = compute_domain_day_boost(&fortune, &make_domain_scores(), 0);
+        let matrix = compute_domain_day_boost("Bính Thân", &fortune, &make_domain_scores(), 0);
         assert_eq!(matrix.entries.len(), 5);
     }
 
     #[test]
     fn domain_names_are_correct() {
         let fortune = make_fortune(0, 0, "binh", true);
-        let matrix = compute_domain_day_boost(&fortune, &make_domain_scores(), 0);
+        let matrix = compute_domain_day_boost("Bính Thân", &fortune, &make_domain_scores(), 0);
         let names: Vec<&str> = matrix.entries.iter().map(|e| e.domain.as_str()).collect();
         assert_eq!(
             names,
@@ -205,7 +209,7 @@ mod tests {
     fn good_day_boosts_scores() {
         // Many good stars, cat trực, hoàng đạo, no hạn
         let fortune = make_fortune(4, 0, "cat", true);
-        let matrix = compute_domain_day_boost(&fortune, &make_domain_scores(), 0);
+        let matrix = compute_domain_day_boost("Bính Thân", &fortune, &make_domain_scores(), 0);
         for entry in &matrix.entries {
             assert!(
                 entry.boosted_score >= entry.base_score,
@@ -221,7 +225,7 @@ mod tests {
     fn bad_day_reduces_scores() {
         // Many bad stars, hung trực, hắc đạo, 3 hạn
         let fortune = make_fortune(0, 4, "hung", false);
-        let matrix = compute_domain_day_boost(&fortune, &make_domain_scores(), 3);
+        let matrix = compute_domain_day_boost("Bính Thân", &fortune, &make_domain_scores(), 3);
         for entry in &matrix.entries {
             assert!(
                 entry.boosted_score <= entry.base_score,
@@ -237,9 +241,9 @@ mod tests {
     fn han_penalty_scales_with_count() {
         let fortune = make_fortune(0, 0, "binh", true);
         let scores = make_domain_scores();
-        let m0 = compute_domain_day_boost(&fortune, &scores, 0);
-        let m1 = compute_domain_day_boost(&fortune, &scores, 1);
-        let m2 = compute_domain_day_boost(&fortune, &scores, 2);
+        let m0 = compute_domain_day_boost("Bính Thân", &fortune, &scores, 0);
+        let m1 = compute_domain_day_boost("Bính Thân", &fortune, &scores, 1);
+        let m2 = compute_domain_day_boost("Bính Thân", &fortune, &scores, 2);
         // More hạn → lower boosted scores
         assert!(m0.entries[0].boosted_score > m1.entries[0].boosted_score);
         assert!(m1.entries[0].boosted_score > m2.entries[0].boosted_score);
@@ -248,7 +252,7 @@ mod tests {
     #[test]
     fn scores_are_clamped_0_100() {
         let fortune = make_fortune(0, 10, "hung", false);
-        let matrix = compute_domain_day_boost(&fortune, &make_domain_scores(), 3);
+        let matrix = compute_domain_day_boost("Bính Thân", &fortune, &make_domain_scores(), 3);
         for entry in &matrix.entries {
             assert!(entry.boosted_score >= 0.0);
             assert!(entry.boosted_score <= 100.0);
@@ -258,7 +262,7 @@ mod tests {
     #[test]
     fn matrix_serializes_to_json() {
         let fortune = make_fortune(1, 1, "cat", true);
-        let matrix = compute_domain_day_boost(&fortune, &make_domain_scores(), 0);
+        let matrix = compute_domain_day_boost("Bính Thân", &fortune, &make_domain_scores(), 0);
         let json = serde_json::to_string(&matrix).expect("should serialize");
         assert!(json.contains("\"domain\""));
         assert!(json.contains("\"boosted_score\""));
@@ -267,8 +271,26 @@ mod tests {
     #[test]
     fn evidence_is_set() {
         let fortune = make_fortune(0, 0, "binh", true);
-        let matrix = compute_domain_day_boost(&fortune, &make_domain_scores(), 0);
+        let matrix = compute_domain_day_boost("Bính Thân", &fortune, &make_domain_scores(), 0);
         assert_eq!(matrix.evidence.source_id, "khcbppt");
         assert_eq!(matrix.evidence.method, "domain-day-boost-matrix");
+    }
+
+    /// Regression for amlich-mwbp.5: the day_canchi field must serialize
+    /// the canonical day Can Chi label (e.g., "Bính Thân"), not the ngũ
+    /// hành element names ("Mộc Thổ") that the previous implementation
+    /// derived from day_fortune.day_element.can_element/chi_element.
+    #[test]
+    fn day_canchi_serializes_canonical_label_not_element_names() {
+        let fortune = make_fortune(0, 0, "binh", true);
+        let matrix = compute_domain_day_boost("Bính Thân", &fortune, &make_domain_scores(), 0);
+        assert_eq!(matrix.day_canchi, "Bính Thân");
+        // Negative regression: must not contain the ngũ hành elements that
+        // day_fortune.day_element would have produced.
+        assert!(!matrix.day_canchi.contains("Mộc"));
+        assert!(!matrix.day_canchi.contains("Thổ"));
+        // Serialization round-trip preserves the canonical label.
+        let json = serde_json::to_string(&matrix).expect("serialize");
+        assert!(json.contains("\"Bính Thân\""));
     }
 }

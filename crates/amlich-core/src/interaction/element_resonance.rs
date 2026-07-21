@@ -38,7 +38,22 @@ pub fn compute_element_resonance(
         })
         .collect();
 
-    let net_resonance: f32 = entries.iter().map(|e| e.effective_resonance).sum();
+    // Personal-score-weighted aggregate of effective_resonance. Contrasting
+    // element distributions now produce different values, satisfying the
+    // amlich-mwbp.5 acceptance criterion. Previous behavior summed
+    // effective_resonance independently of personal_score, so two profiles
+    // with the same day/month but different distributions collided.
+    let total_personal_score: u16 = entries.iter().map(|e| e.personal_score).sum();
+    let net_resonance: f32 = if total_personal_score == 0 {
+        0.0
+    } else {
+        entries
+            .iter()
+            .map(|e| {
+                e.effective_resonance * (e.personal_score as f32 / total_personal_score as f32)
+            })
+            .sum()
+    };
 
     ElementResonanceMatrix {
         day_canchi: day_canchi.full.clone(),
@@ -47,6 +62,7 @@ pub fn compute_element_resonance(
         season_factor,
         entries,
         net_resonance,
+        resonance_policy_version: "v1-personal-weighted".to_string(),
         evidence: RuleEvidence {
             source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
             method: "element-resonance-matrix".to_string(),
@@ -229,11 +245,64 @@ mod tests {
     }
 
     #[test]
-    fn net_resonance_is_sum_of_effectives() {
+    fn net_resonance_is_personal_weighted_aggregate() {
+        // amlich-mwbp.5 regression: net_resonance must be weighted by
+        // personal_score so contrasting distributions produce different
+        // values. The previous implementation was a flat sum of
+        // effective_resonance, which was independent of the personal
+        // distribution.
+        let day = CanChi::new(0, 0); // Giáp Tý
+        let dist_moc_heavy = ElementDistribution {
+            moc: 50,
+            hoa: 10,
+            tho: 10,
+            kim: 10,
+            thuy: 20,
+        };
+        let dist_kim_heavy = ElementDistribution {
+            moc: 10,
+            hoa: 10,
+            tho: 10,
+            kim: 50,
+            thuy: 20,
+        };
+
+        let m_moc = compute_element_resonance(&day, "Dần", &dist_moc_heavy);
+        let m_kim = compute_element_resonance(&day, "Dần", &dist_kim_heavy);
+
+        assert_ne!(
+            m_moc.net_resonance, m_kim.net_resonance,
+            "contrasting distributions must produce different net_resonance"
+        );
+
+        // Sanity: weighted average matches the formula
+        let total: u16 = m_moc.entries.iter().map(|e| e.personal_score).sum();
+        let expected: f32 = m_moc
+            .entries
+            .iter()
+            .map(|e| e.effective_resonance * (e.personal_score as f32 / total as f32))
+            .sum();
+        assert!(
+            (m_moc.net_resonance - expected).abs() < 0.001,
+            "net_resonance {} must equal weighted aggregate {}",
+            m_moc.net_resonance,
+            expected
+        );
+    }
+
+    #[test]
+    fn net_resonance_policy_version_is_set() {
         let day = CanChi::new(0, 0);
         let matrix = compute_element_resonance(&day, "Dần", &balanced_dist());
-        let sum: f32 = matrix.entries.iter().map(|e| e.effective_resonance).sum();
-        assert!((matrix.net_resonance - sum).abs() < 0.001);
+        assert!(
+            !matrix.resonance_policy_version.is_empty(),
+            "resonance_policy_version must be documented"
+        );
+        assert!(
+            matrix.resonance_policy_version.contains("personal"),
+            "resonance_policy_version must indicate personal weighting; got {}",
+            matrix.resonance_policy_version
+        );
     }
 
     #[test]

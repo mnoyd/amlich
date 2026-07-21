@@ -1142,6 +1142,12 @@ pub struct PersonalDayAdvisoryDto {
     pub priority_order: Vec<String>,
     pub highlights: Vec<String>,
     pub cautions: Vec<String>,
+    /// Missing-profile / missing-context messages that the previous
+    /// implementation mixed into `cautions`, inflating severity.
+    /// Separated out under amlich-mwbp.5 so `severity` reflects only
+    /// genuine adverse day signals.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub unavailable_context: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning_bucket: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

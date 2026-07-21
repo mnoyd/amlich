@@ -76,7 +76,16 @@ fn personal_day_matrix_report_omits_direction_merge_without_gender() {
     assert_eq!(report.tier, amlich_api::BirthDataTierDto::Datetime);
     assert!(report.personal_hours.is_some());
     assert!(report.direction_merge.is_none());
-    assert!(report.domain_day_boost.is_some());
+    // amlich-mwbp.5 regression: domain_day_boost must also be None when
+    // gender is missing (previously emitted a silent-zero Hạn penalty).
+    assert!(
+        report.domain_day_boost.is_none(),
+        "domain_day_boost must be None when gender is missing"
+    );
+    assert!(report
+        .unavailable_sections
+        .iter()
+        .any(|section| section.section == "domain_day_boost"));
 }
 
 #[test]
@@ -154,6 +163,53 @@ fn personal_day_matrix_domain_day_boost_has_five_domains() {
         .expect("matrix report");
     let domains = report.domain_day_boost.expect("domain day boost");
     assert_eq!(domains.entries.len(), 5);
+}
+
+/// Regression for amlich-mwbp.5: domain_day_boost.day_canchi must
+/// serialize the canonical day Can Chi label ("Bính Thân" / "Giáp Thìn"
+/// / etc.), not the ngũ hành element names ("Mộc Thổ") that the previous
+/// implementation derived from day_fortune.day_element. End-to-end check
+/// across the matrix builder → API DTO hop.
+#[test]
+fn personal_day_matrix_domain_day_boost_serializes_real_can_chi() {
+    let report = get_personal_day_matrix_report(&sample_birth_datetime(), &sample_date())
+        .expect("matrix report");
+    let boost = report.domain_day_boost.expect("domain_day_boost present");
+    // The sample date 2024-02-10 has day_canchi = "Giáp Thìn" on the
+    // day_person surface; the domain_day_boost.day_canchi must agree.
+    assert_eq!(
+        boost.day_canchi, report.day_person.day_canchi,
+        "domain_day_boost.day_canchi must match the canonical day Can Chi"
+    );
+    // Negative regression: must not contain element names.
+    for element in ["Mộc", "Hỏa", "Thổ", "Kim", "Thủy"] {
+        assert!(
+            !boost.day_canchi.contains(element),
+            "domain_day_boost.day_canchi must not contain element name {element}; got {}",
+            boost.day_canchi
+        );
+    }
+}
+
+/// Regression for amlich-mwbp.5: with full birth profile (gender
+/// present), domain_day_boost must still be Some and advertise its
+/// availability. This guards against accidentally flipping the gender
+/// gate to "always None".
+#[test]
+fn personal_day_matrix_domain_day_boost_available_with_full_profile() {
+    let report = get_personal_day_matrix_report(&sample_birth_datetime(), &sample_date())
+        .expect("matrix report");
+    assert!(
+        report.domain_day_boost.is_some(),
+        "domain_day_boost must be Some when gender is supplied"
+    );
+    assert!(
+        !report
+            .unavailable_sections
+            .iter()
+            .any(|section| section.section == "domain_day_boost"),
+        "domain_day_boost must NOT be in unavailable_sections when gender is supplied"
+    );
 }
 
 /// Regression for amlich-mwbp.2: the first personal-hour row exposed by

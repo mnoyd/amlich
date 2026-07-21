@@ -129,6 +129,48 @@ fn personal_day_advisory_exposes_highlights_or_cautions() {
     assert!(!advisory.highlights.is_empty() || !advisory.cautions.is_empty());
 }
 
+/// Regression for amlich-mwbp.5: a profile with NO birth date (fully
+/// anonymous) must accumulate missing-context messages in
+/// `unavailable_context`, but those messages must NOT push `severity`
+/// above "low". Previously the missing-context strings were pushed into
+/// `cautions` and could lift severity to "medium" or "high" purely from
+/// absence-of-data.
+#[test]
+fn personal_day_advisory_missing_context_does_not_inflate_severity() {
+    let advisory =
+        get_personal_day_advisory(&sample_query(), None, None, None, None).expect("advisory");
+
+    // Sanity: missing-profile messages are present somewhere.
+    assert!(
+        !advisory.unavailable_context.is_empty(),
+        "expected missing-context messages in unavailable_context; got {:?}",
+        advisory.unavailable_context
+    );
+
+    // Severity must NOT have been lifted by missing-context strings. With
+    // no genuine adverse day signals and no reasoning resistances, the
+    // result must be "low".
+    assert_eq!(
+        advisory.severity, "low",
+        "missing-context must not inflate severity; cautions={:?}",
+        advisory.cautions
+    );
+
+    // `cautions` must NOT contain the historical missing-context strings.
+    for forbidden in [
+        "missing kua profile context",
+        "missing dai van timing context",
+        "ten gods analysis unavailable",
+    ] {
+        assert!(
+            !advisory.cautions.iter().any(|c| c.contains(forbidden)),
+            "cautions must not contain missing-context message {:?}; got {:?}",
+            forbidden,
+            advisory.cautions
+        );
+    }
+}
+
 #[test]
 fn personal_day_report_exposes_unified_surface() {
     let report = get_personal_day_report(
