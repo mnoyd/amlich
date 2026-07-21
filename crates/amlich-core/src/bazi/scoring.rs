@@ -1096,6 +1096,7 @@ mod tests {
             year: 2024,
             hour: 9,
             minute: 30,
+            time_known: true,
             timezone: VIETNAM_TIMEZONE,
             longitude: None,
             use_solar_time: false,

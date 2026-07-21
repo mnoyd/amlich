@@ -355,6 +355,7 @@ mod tests {
                 year: 2000,
                 hour: 0,
                 minute: 0,
+                time_known: false,
                 timezone: 7.0,
                 longitude: None,
                 use_solar_time: false,

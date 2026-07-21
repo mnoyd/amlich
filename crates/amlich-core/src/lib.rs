@@ -11,6 +11,7 @@ pub mod advisory;
 pub mod almanac;
 pub mod analysis_envelope;
 pub mod bazi;
+pub mod birth;
 pub mod canchi;
 pub mod gio_hoang_dao;
 pub mod holiday_data;
@@ -73,6 +74,7 @@ pub use crate::bazi::{
     MonthlyPillarResponse, PillarKind, SeasonStrengthMatrix, StemRelationSet, TenGodContextMatrix,
     TenGodDistribution, TenGodWeightProfile, UsefulGodAnalysis, UsefulGodResponse,
 };
+pub use crate::birth::{BirthCapability, BirthDataTier, BirthProfile, BirthTime};
 pub use crate::reasoning::{
     ActionId, DecisionConfidence, EdgeEffect, InitiationOpeningDecision,
     InitiationOpeningDecisionExport, InitiationOpeningReasoningBundle, InitiationOpeningVector,
@@ -148,7 +150,10 @@ pub struct FlyingStarsSummary {
     /// Center palace star from the annual (Niên) layer.
     pub center_star: crate::almanac::fengshui::types::FlyingStar,
     /// Per-palace (annual, monthly) star pairs, Palace::ALL order.
-    pub palace_overlays: [(crate::almanac::fengshui::types::FlyingStar, crate::almanac::fengshui::types::FlyingStar); 9],
+    pub palace_overlays: [(
+        crate::almanac::fengshui::types::FlyingStar,
+        crate::almanac::fengshui::types::FlyingStar,
+    ); 9],
     /// Additive optional annual palace safety-hint projection (Phase 23-02,
     /// XLK-03). Each entry mirrors the `palace_overlays` order and carries
     /// the Vietnamese safety-hint text for the ANNUAL star at that palace
@@ -315,13 +320,16 @@ pub fn enrich_day_snapshot_with_direction_cross_link(
     birth_chi_index: usize,
 ) -> Result<DaySnapshot, String> {
     use reasoning::direction_composite::{
-        build_direction_cross_link_date, build_direction_cross_link_personal,
-        project_to_summary, DATE_ONLY_BIRTH_CHI_INDEX,
+        build_direction_cross_link_date, build_direction_cross_link_personal, project_to_summary,
+        DATE_ONLY_BIRTH_CHI_INDEX,
     };
     let summary = if birth_chi_index == DATE_ONLY_BIRTH_CHI_INDEX {
         project_to_summary(&build_direction_cross_link_date(snapshot)?)
     } else {
-        project_to_summary(&build_direction_cross_link_personal(snapshot, birth_chi_index)?)
+        project_to_summary(&build_direction_cross_link_personal(
+            snapshot,
+            birth_chi_index,
+        )?)
     };
     let mut enriched = snapshot.clone();
     enriched.direction_cross_link = Some(summary);
@@ -429,8 +437,10 @@ fn calculate_day_snapshot_internal(
 
     // Populate flying_stars from the combined Phi Tinh overlay.
     {
-        use crate::almanac::fengshui::{compute_combined_overlay, element_hint_for_palace, TietKhiScanner};
         use crate::almanac::fengshui::types::FlyingStarPeriod;
+        use crate::almanac::fengshui::{
+            compute_combined_overlay, element_hint_for_palace, TietKhiScanner,
+        };
         let scanner = TietKhiScanner::new();
         let lunar_month = snap.context.lunar.month as u8;
         let solar_year = snap.context.solar.year;
@@ -495,7 +505,9 @@ fn calculate_day_snapshot_internal(
 
         if let Some(ritual_ids) = &snap.applicable_rituals {
             for ritual_id in ritual_ids {
-                let Some(entry) = get_ritual_by_id(ritual_id) else { continue; };
+                let Some(entry) = get_ritual_by_id(ritual_id) else {
+                    continue;
+                };
                 for (idx, offering) in entry.offerings.iter().enumerate() {
                     let offering_ref = crate::rituals::OfferingRef::new(
                         format!("ritual.{ritual_id}.offering.{idx}"),
@@ -511,8 +523,16 @@ fn calculate_day_snapshot_internal(
             }
         }
 
-        snap.offering_refs = if offering_refs.is_empty() { None } else { Some(offering_refs) };
-        snap.offerings = if offerings_flat.is_empty() { None } else { Some(offerings_flat) };
+        snap.offering_refs = if offering_refs.is_empty() {
+            None
+        } else {
+            Some(offering_refs)
+        };
+        snap.offerings = if offerings_flat.is_empty() {
+            None
+        } else {
+            Some(offerings_flat)
+        };
     }
 
     Ok(snap)
@@ -526,11 +546,15 @@ mod tests {
     fn day_snapshot_serde_round_trip() {
         let snapshot = calculate_day_snapshot(10, 2, 2024);
         let json = serde_json::to_string(&snapshot).expect("serialization failed");
-        let roundtripped: DaySnapshot = serde_json::from_str(&json).expect("deserialization failed");
+        let roundtripped: DaySnapshot =
+            serde_json::from_str(&json).expect("deserialization failed");
         assert_eq!(roundtripped.ruleset_id, snapshot.ruleset_id);
         assert_eq!(roundtripped.profile, snapshot.profile);
         assert_eq!(roundtripped.context.solar.day, snapshot.context.solar.day);
-        assert_eq!(roundtripped.context.solar.month, snapshot.context.solar.month);
+        assert_eq!(
+            roundtripped.context.solar.month,
+            snapshot.context.solar.month
+        );
         assert_eq!(roundtripped.context.solar.year, snapshot.context.solar.year);
     }
 
@@ -631,7 +655,10 @@ mod tests {
         let snapshot = calculate_day_snapshot(17, 2, 2026);
 
         // flying_stars must be populated
-        let fs = snapshot.flying_stars.as_ref().expect("flying_stars must be Some");
+        let fs = snapshot
+            .flying_stars
+            .as_ref()
+            .expect("flying_stars must be Some");
         assert_eq!(fs.palace_overlays.len(), 9);
 
         // applicable_rituals must be populated (may be empty vec but not None)
@@ -642,8 +669,14 @@ mod tests {
         none_snapshot.flying_stars = None;
         none_snapshot.applicable_rituals = None;
         let json = serde_json::to_string(&none_snapshot).expect("serialization failed");
-        assert!(!json.contains("\"flying_stars\""), "flying_stars must not appear in JSON when None");
-        assert!(!json.contains("\"applicable_rituals\""), "applicable_rituals must not appear in JSON when None");
+        assert!(
+            !json.contains("\"flying_stars\""),
+            "flying_stars must not appear in JSON when None"
+        );
+        assert!(
+            !json.contains("\"applicable_rituals\""),
+            "applicable_rituals must not appear in JSON when None"
+        );
     }
 
     // Phase 19-01 focused populate test (INT-08, warning 1 fix):
@@ -657,36 +690,60 @@ mod tests {
         let snap = calculate_day_snapshot(17, 2, 2026); // Tết 2026 — guarantees applicable_rituals non-empty
 
         // 1. Both fields populated
-        let refs = snap.offering_refs.as_ref()
+        let refs = snap
+            .offering_refs
+            .as_ref()
             .expect("offering_refs must be Some when applicable_rituals is non-empty");
-        assert!(!refs.is_empty(), "offering_refs must be non-empty for Tết 2026");
-        let flat = snap.offerings.as_ref()
+        assert!(
+            !refs.is_empty(),
+            "offering_refs must be non-empty for Tết 2026"
+        );
+        let flat = snap
+            .offerings
+            .as_ref()
             .expect("offerings (flat-string) must be Some when applicable_rituals is non-empty");
-        assert!(!flat.is_empty(), "offerings (flat-string) must be non-empty for Tết 2026");
+        assert!(
+            !flat.is_empty(),
+            "offerings (flat-string) must be non-empty for Tết 2026"
+        );
 
         // 2. Identity: offering_id is non-empty, follows "ritual.{ritual_id}.offering.{idx}" pattern
         let first = &refs[0];
-        assert!(!first.offering_id.is_empty(), "OfferingRef.offering_id must be non-empty");
-        assert!(first.offering_id.starts_with("ritual."),
-                "OfferingRef.offering_id must follow ritual.<id>.offering.<idx> pattern; got {:?}",
-                first.offering_id);
+        assert!(
+            !first.offering_id.is_empty(),
+            "OfferingRef.offering_id must be non-empty"
+        );
+        assert!(
+            first.offering_id.starts_with("ritual."),
+            "OfferingRef.offering_id must follow ritual.<id>.offering.<idx> pattern; got {:?}",
+            first.offering_id
+        );
 
         // 3. Source-id discipline: every OfferingRef.source_id == "vn-folk-ritual"
         for r in refs {
-            assert_eq!(r.source_id, SOURCE_VN_FOLK_RITUAL,
-                       "OfferingRef.source_id must equal vn-folk-ritual; got {:?}", r.source_id);
+            assert_eq!(
+                r.source_id, SOURCE_VN_FOLK_RITUAL,
+                "OfferingRef.source_id must equal vn-folk-ritual; got {:?}",
+                r.source_id
+            );
         }
 
         // 4. Dedup: the flat-string offerings Vec is a deduped subset of OfferingRef.name_vi values
         for r in refs {
-            assert!(flat.contains(&r.name_vi),
-                    "flat-string offerings must contain every OfferingRef.name_vi = {:?}", r.name_vi);
+            assert!(
+                flat.contains(&r.name_vi),
+                "flat-string offerings must contain every OfferingRef.name_vi = {:?}",
+                r.name_vi
+            );
         }
         // And the flat-string Vec itself contains no duplicates
         let mut seen = std::collections::HashSet::new();
         for name in flat {
-            assert!(seen.insert(name.clone()),
-                    "flat-string offerings must be deduplicated; found duplicate: {:?}", name);
+            assert!(
+                seen.insert(name.clone()),
+                "flat-string offerings must be deduplicated; found duplicate: {:?}",
+                name
+            );
         }
 
         // 5. None behavior: explicitly clear both fields, verify None → absent in JSON
@@ -694,10 +751,14 @@ mod tests {
         snap_none.offering_refs = None;
         snap_none.offerings = None;
         let json = serde_json::to_string(&snap_none).expect("serialization failed");
-        assert!(!json.contains("\"offering_refs\""),
-                "offering_refs must NOT appear in JSON when None; got: {json}");
-        assert!(!json.contains("\"offerings\""),
-                "offerings must NOT appear in JSON when None; got: {json}");
+        assert!(
+            !json.contains("\"offering_refs\""),
+            "offering_refs must NOT appear in JSON when None; got: {json}"
+        );
+        assert!(
+            !json.contains("\"offerings\""),
+            "offerings must NOT appear in JSON when None; got: {json}"
+        );
     }
 
     // Phase 23-02 Task 2: additive DTO transport contracts.
@@ -705,21 +766,33 @@ mod tests {
     #[test]
     fn day_snapshot_direction_cross_link_defaults_to_none() {
         let snapshot = calculate_day_snapshot(10, 2, 2024);
-        assert!(snapshot.direction_cross_link.is_none(),
-                "direction_cross_link must default to None; no calculation path auto-populates it");
+        assert!(
+            snapshot.direction_cross_link.is_none(),
+            "direction_cross_link must default to None; no calculation path auto-populates it"
+        );
         let json = serde_json::to_string(&snapshot).expect("serialize");
-        assert!(!json.contains("\"direction_cross_link\""),
-                "direction_cross_link must NOT appear in JSON when None; got: {json}");
+        assert!(
+            !json.contains("\"direction_cross_link\""),
+            "direction_cross_link must NOT appear in JSON when None; got: {json}"
+        );
     }
 
     #[test]
     fn flying_stars_summary_carries_palace_safety_hints() {
         let snapshot = calculate_day_snapshot(10, 2, 2024);
-        let fs = snapshot.flying_stars.as_ref().expect("flying_stars must be Some");
-        let hints = fs.palace_safety_hints.as_ref()
+        let fs = snapshot
+            .flying_stars
+            .as_ref()
+            .expect("flying_stars must be Some");
+        let hints = fs
+            .palace_safety_hints
+            .as_ref()
             .expect("palace_safety_hints must be populated by the snapshot constructor");
-        assert_eq!(hints.len(), 9,
-                   "palace_safety_hints must follow the 9-palace overlay order");
+        assert_eq!(
+            hints.len(),
+            9,
+            "palace_safety_hints must follow the 9-palace overlay order"
+        );
     }
 
     #[test]
@@ -727,17 +800,28 @@ mod tests {
         // A v1.6-era JSON that predates palace_safety_hints must still
         // deserialize cleanly into the v1.7 shape with the field defaulting to None.
         let snap = calculate_day_snapshot(10, 2, 2024);
-        let mut value: serde_json::Value =
-            serde_json::to_value(&snap).expect("serialize to value");
-        if let Some(fs) = value.get_mut("flying_stars").and_then(|v| v.as_object_mut()) {
+        let mut value: serde_json::Value = serde_json::to_value(&snap).expect("serialize to value");
+        if let Some(fs) = value
+            .get_mut("flying_stars")
+            .and_then(|v| v.as_object_mut())
+        {
             fs.remove("palace_safety_hints");
         }
         let stripped = serde_json::to_string(&value).expect("reserialize stripped value");
-        assert!(!stripped.contains("\"palace_safety_hints\""),
-                "test precondition: stripped JSON must not contain palace_safety_hints");
+        assert!(
+            !stripped.contains("\"palace_safety_hints\""),
+            "test precondition: stripped JSON must not contain palace_safety_hints"
+        );
         let recovered: DaySnapshot =
             serde_json::from_str(&stripped).expect("deserialize pre-v1.7 JSON");
-        assert!(recovered.flying_stars.as_ref().unwrap().palace_safety_hints.is_none(),
-                "missing palace_safety_hints must default to None");
+        assert!(
+            recovered
+                .flying_stars
+                .as_ref()
+                .unwrap()
+                .palace_safety_hints
+                .is_none(),
+            "missing palace_safety_hints must default to None"
+        );
     }
 }

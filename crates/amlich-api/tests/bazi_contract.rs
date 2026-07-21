@@ -10,6 +10,7 @@ fn sample_query() -> BaziQuery {
         year: 2024,
         hour: 9,
         minute: 30,
+        time_known: None,
         timezone: Some(7.0),
         longitude: None,
         use_solar_time: false,

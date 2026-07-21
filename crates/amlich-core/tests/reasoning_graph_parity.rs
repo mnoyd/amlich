@@ -561,6 +561,8 @@ fn production_reasoning_entrypoint_matches_graph_evaluator_projection() {
             year: personal_input.birth.year,
             hour: personal_input.birth.hour.unwrap_or(0),
             minute: personal_input.birth.minute.unwrap_or(0),
+            time_known: personal_input.birth.hour.is_some()
+                && personal_input.birth.minute.is_some(),
             timezone: personal_input.birth.timezone,
             longitude: None,
             use_solar_time: false,
@@ -597,6 +599,8 @@ fn production_reasoning_bundle_export_matches_graph_evaluator_projection() {
             year: personal_input.birth.year,
             hour: personal_input.birth.hour.unwrap_or(0),
             minute: personal_input.birth.minute.unwrap_or(0),
+            time_known: personal_input.birth.hour.is_some()
+                && personal_input.birth.minute.is_some(),
             timezone: personal_input.birth.timezone,
             longitude: None,
             use_solar_time: false,
@@ -698,6 +702,7 @@ fn graph_backed_evaluator_handles_personal_input() {
         year: personal_input.birth.year,
         hour: personal_input.birth.hour.unwrap_or(0),
         minute: personal_input.birth.minute.unwrap_or(0),
+        time_known: personal_input.birth.hour.is_some() && personal_input.birth.minute.is_some(),
         timezone: personal_input.birth.timezone,
         longitude: None,
         use_solar_time: false,

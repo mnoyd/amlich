@@ -159,12 +159,19 @@ impl PersonalReasoningInput {
     }
 
     pub(crate) fn to_bazi_input(&self) -> BaziInput {
+        // Time-known signal flows from BirthInput's `Option<u8>` directly into
+        // BaziInput's `time_known` flag. Real midnight births (Some(0)) are
+        // preserved as `time_known: true`; absent time (None) becomes `false`
+        // and the hour/minute scalars hold the legacy 0/0 sentinel value for
+        // compatibility only. See REPAIR-PLAN.md P0.1.
+        let time_known = self.birth.hour.is_some() && self.birth.minute.is_some();
         BaziInput {
             day: self.birth.day,
             month: self.birth.month,
             year: self.birth.year,
             hour: self.birth.hour.unwrap_or(0),
             minute: self.birth.minute.unwrap_or(0),
+            time_known,
             timezone: self.birth.timezone,
             longitude: None,
             use_solar_time: false,

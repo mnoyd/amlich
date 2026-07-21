@@ -177,7 +177,6 @@ impl ActiveView {
     }
 }
 
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AppMode {
     Normal,
@@ -2219,6 +2218,7 @@ impl AppState {
             year: birth_year,
             hour: birth_hour,
             minute: birth_minute,
+            time_known: None,
             timezone: None,
             longitude: None,
             use_solar_time: false,

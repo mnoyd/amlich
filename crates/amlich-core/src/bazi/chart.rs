@@ -18,13 +18,13 @@ pub fn build_bazi_chart(input: BaziInput) -> Result<BaziChart, String> {
     let day_pillar = get_day_canchi(jd_from_date(input.day, input.month, input.year));
     let day_master =
         HeavenlyStem::try_from(day_pillar.can.as_str()).map_err(|err| err.to_string())?;
-    let hour_pillar = if input.hour == 0 && input.minute == 0 {
-        None
-    } else {
+    let hour_pillar = if input.time_known {
         Some(
             compute_hour_pillar(day_master, input.hour, input.minute)
                 .ok_or_else(|| "invalid birth hour/minute for hour pillar".to_string())?,
         )
+    } else {
+        None
     };
 
     let metadata = BaziChartMetadata::new(
@@ -129,6 +129,7 @@ mod tests {
             year: 2024,
             hour: 9,
             minute: 30,
+            time_known: true,
             timezone: VIETNAM_TIMEZONE,
             longitude: None,
             use_solar_time: false,
@@ -148,6 +149,7 @@ mod tests {
             year: 2024,
             hour: 0,
             minute: 0,
+            time_known: false,
             timezone: VIETNAM_TIMEZONE,
             longitude: None,
             use_solar_time: false,
@@ -160,6 +162,78 @@ mod tests {
         assert!(chart.metadata.hour_evidence.is_none());
     }
 
+    /// Regression for amlich-mwbp.1: a real midnight birth (00:00) must
+    /// produce an hour pillar, distinct from the unknown-time path that
+    /// suppresses it. Previously the `hour == 0 && minute == 0` sentinel
+    /// silently demoted real midnight births to date-only.
+    #[test]
+    fn builds_bazi_chart_with_hour_pillar_for_real_midnight_birth() {
+        let chart = build_bazi_chart(BaziInput {
+            day: 10,
+            month: 2,
+            year: 2024,
+            hour: 0,
+            minute: 0,
+            time_known: true,
+            timezone: VIETNAM_TIMEZONE,
+            longitude: None,
+            use_solar_time: false,
+            gender: None,
+        })
+        .expect("chart");
+
+        assert_eq!(chart.pillars.len(), 4);
+        assert!(chart.hour_pillar.is_some());
+        assert!(chart.metadata.hour_evidence.is_some());
+    }
+
+    /// Regression for amlich-mwbp.1: midnight-one (00:01) must survive
+    /// end-to-end as a distinct input from real midnight (00:00). Both fall
+    /// in the Tý slot (23:00-01:00) and produce the same hour-pillar Can
+    /// Chi, but the input minute must survive so downstream BirthProfile
+    /// serialization distinguishes them.
+    #[test]
+    fn builds_bazi_chart_preserves_midnight_minute_distinction() {
+        let midnight = build_bazi_chart(BaziInput {
+            day: 10,
+            month: 2,
+            year: 2024,
+            hour: 0,
+            minute: 0,
+            time_known: true,
+            timezone: VIETNAM_TIMEZONE,
+            longitude: None,
+            use_solar_time: false,
+            gender: None,
+        })
+        .expect("midnight chart");
+
+        let midnight_one = build_bazi_chart(BaziInput {
+            day: 10,
+            month: 2,
+            year: 2024,
+            hour: 0,
+            minute: 1,
+            time_known: true,
+            timezone: VIETNAM_TIMEZONE,
+            longitude: None,
+            use_solar_time: false,
+            gender: None,
+        })
+        .expect("midnight-one chart");
+
+        // Both produce an hour pillar (Tý slot covers 23:00-01:00).
+        assert!(midnight.hour_pillar.is_some());
+        assert!(midnight_one.hour_pillar.is_some());
+
+        // The capability projections distinguish the two profiles via
+        // BirthProfile.time equality even though the chart hour pillar
+        // Can Chi is identical.
+        let cap_midnight = crate::birth::BirthProfile::from_bazi_input(&midnight.input);
+        let cap_midnight_one = crate::birth::BirthProfile::from_bazi_input(&midnight_one.input);
+        assert_ne!(cap_midnight.time, cap_midnight_one.time);
+    }
+
     #[test]
     fn bazi_chart_populates_hidden_stems_and_ten_gods() {
         let chart = build_bazi_chart(BaziInput {
@@ -168,6 +242,7 @@ mod tests {
             year: 2024,
             hour: 9,
             minute: 30,
+            time_known: true,
             timezone: VIETNAM_TIMEZONE,
             longitude: None,
             use_solar_time: false,
@@ -191,6 +266,7 @@ mod tests {
             year: 2024,
             hour: 23,
             minute: 0,
+            time_known: true,
             timezone: VIETNAM_TIMEZONE,
             longitude: None,
             use_solar_time: false,

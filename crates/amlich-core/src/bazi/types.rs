@@ -165,6 +165,16 @@ pub struct BaziInput {
     pub year: i32,
     pub hour: u8,
     pub minute: u8,
+    /// Explicit time-known signal. `true` means the birth time is a real
+    /// value (including real midnight `00:00`); `false` means the user did
+    /// not supply a time and `hour`/`minute` hold the legacy `0/0` sentinel
+    /// for compatibility only. Defaults to `true` so existing construction
+    /// sites that pass a real time stay correct; builders that surface the
+    /// legacy sentinel must set this to `false` explicitly.
+    ///
+    /// Source: `docs/architecture/personal-day-audit/REPAIR-PLAN.md` P0.1.
+    #[serde(default = "default_time_known")]
+    pub time_known: bool,
     pub timezone: f64,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub longitude: Option<f64>,
@@ -172,6 +182,10 @@ pub struct BaziInput {
     pub use_solar_time: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub gender: Option<Gender>,
+}
+
+fn default_time_known() -> bool {
+    true
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

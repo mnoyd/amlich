@@ -33,15 +33,56 @@ fn parse_bazi_gender(value: Option<&str>) -> Result<Option<amlich_core::Gender>,
     }
 }
 
-fn query_has_birth_time(query: &BaziQuery) -> bool {
-    !(query.hour == 0 && query.minute == 0)
+/// Resolve the explicit time-known state for a [`BaziQuery`]. Honors the
+/// caller-supplied `time_known` override first; otherwise falls back to the
+/// legacy `hour == 0 && minute == 0` sentinel for backward compatibility.
+///
+/// Source: `docs/architecture/personal-day-audit/REPAIR-PLAN.md` P0.1.
+pub(crate) fn query_time_known(query: &BaziQuery) -> bool {
+    match query.time_known {
+        Some(explicit) => explicit,
+        None => !(query.hour == 0 && query.minute == 0),
+    }
 }
 
-fn bazi_birth_data_tier(query: &BaziQuery) -> BirthDataTierDto {
-    if query_has_birth_time(query) {
-        BirthDataTierDto::Datetime
+/// Build the canonical [`amlich_core::BirthProfile`] from a [`BaziQuery`].
+/// Replaces the three duplicated tier helpers (`bazi_birth_data_tier`,
+/// `personal_birth_data_tier`, `matrix_birth_data_tier`) with a single
+/// capability projection.
+pub(crate) fn birth_profile_from_query(
+    query: &BaziQuery,
+) -> Result<amlich_core::BirthProfile, String> {
+    let gender = parse_bazi_gender(query.gender.as_deref())?;
+    let time = if query_time_known(query) {
+        Some(amlich_core::BirthTime::new(query.hour, query.minute)?)
     } else {
-        BirthDataTierDto::Date
+        None
+    };
+    Ok(amlich_core::BirthProfile {
+        day: query.day,
+        month: query.month,
+        year: query.year,
+        time,
+        timezone: query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
+        longitude: query.longitude,
+        use_solar_time: query.use_solar_time,
+        gender,
+        location_name: None,
+    })
+}
+
+/// Backward-compatible tier helper for the Bazi chart and matrix surfaces.
+/// Delegates to the canonical
+/// [`amlich_core::BirthProfile::capability`] projection's
+/// `tier_for_bazi_matrix` method so both historical call sites agree.
+fn bazi_birth_data_tier(query: &BaziQuery) -> BirthDataTierDto {
+    let tier = birth_profile_from_query(query)
+        .map(|profile| profile.capability().tier_for_bazi_matrix())
+        .unwrap_or(amlich_core::BirthDataTier::Date);
+    match tier {
+        amlich_core::BirthDataTier::Anonymous => BirthDataTierDto::Anonymous,
+        amlich_core::BirthDataTier::Date => BirthDataTierDto::Date,
+        amlich_core::BirthDataTier::Datetime => BirthDataTierDto::Datetime,
     }
 }
 
@@ -65,6 +106,7 @@ fn to_bazi_input(query: &BaziQuery) -> Result<amlich_core::BaziInput, String> {
         year: query.year,
         hour: query.hour,
         minute: query.minute,
+        time_known: query_time_known(query),
         timezone: query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
         longitude: query.longitude,
         use_solar_time: query.use_solar_time,
@@ -245,7 +287,7 @@ pub fn get_bazi_derived_report(query: &BaziQuery) -> Result<BaziDerivedReportDto
     let input = to_bazi_input(query)?;
     let report = amlich_core::build_bazi_report(input, None)?;
     let chart = &report.chart;
-    let has_birth_time = query_has_birth_time(query);
+    let has_birth_time = query_time_known(query);
 
     // Thai Nguyên: month pillar + 1 stem, + 3 branch
     let thai_nguyen = amlich_core::bazi::compute_thai_nguyen(
@@ -795,19 +837,25 @@ fn personal_birth_data_tier(
     birth_day: Option<i32>,
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> BirthDataTierDto {
-    if birth_year.is_some() && birth_month.is_some() && birth_day.is_some() && gender.is_some() {
-        BirthDataTierDto::Date
-    } else {
-        BirthDataTierDto::Anonymous
+    // The personal-day surface does not carry birth time, so it can never
+    // produce Datetime tier. Anonymous vs Date hinges on full date + gender.
+    let cap = amlich_core::BirthCapability {
+        has_date: birth_year.is_some() && birth_month.is_some() && birth_day.is_some(),
+        has_time: false,
+        has_gender: gender.is_some(),
+        has_location: false,
+        has_solar_time_policy: false,
+        timezone: amlich_core::VIETNAM_TIMEZONE,
+    };
+    match cap.tier_for_personal_day() {
+        amlich_core::BirthDataTier::Anonymous => BirthDataTierDto::Anonymous,
+        amlich_core::BirthDataTier::Date => BirthDataTierDto::Date,
+        amlich_core::BirthDataTier::Datetime => BirthDataTierDto::Datetime,
     }
 }
 
 fn matrix_birth_data_tier(birth: &BaziQuery) -> BirthDataTierDto {
-    if query_has_birth_time(birth) {
-        BirthDataTierDto::Datetime
-    } else {
-        BirthDataTierDto::Date
-    }
+    bazi_birth_data_tier(birth)
 }
 
 fn unavailable_section(

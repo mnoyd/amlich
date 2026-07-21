@@ -19,6 +19,15 @@ pub struct BaziQuery {
     pub year: i32,
     pub hour: u8,
     pub minute: u8,
+    /// Explicit time-known override. When `Some(true)`, the caller asserts a
+    /// real birth time (including midnight `00:00`). When `Some(false)`, the
+    /// caller asserts no birth time is known regardless of hour/minute values.
+    /// When `None`, falls back to the legacy `hour == 0 && minute == 0`
+    /// sentinel for backward compatibility.
+    ///
+    /// Source: `docs/architecture/personal-day-audit/REPAIR-PLAN.md` P0.1.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub time_known: Option<bool>,
     pub timezone: Option<f64>,
     pub longitude: Option<f64>,
     #[serde(default)]
@@ -1486,6 +1495,7 @@ mod tests {
                 day: 15,
                 hour: 10,
                 minute: 30,
+                time_known: None,
                 timezone: Some(7.0),
                 longitude: None,
                 use_solar_time: false,

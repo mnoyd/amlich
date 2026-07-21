@@ -11,9 +11,7 @@ use ratatui::{
 use chrono::Datelike;
 
 use crate::layout::LayoutMode;
-use crate::state::{
-    AppState, GraphInspectorFocus, RecommendationLensVerdict, UserExplanationLens,
-};
+use crate::state::{AppState, GraphInspectorFocus, RecommendationLensVerdict, UserExplanationLens};
 use crate::view_models::decision_stack::DecisionRole;
 
 pub struct GraphInspectorScreenWidget<'a> {
@@ -55,20 +53,16 @@ impl Widget for GraphInspectorScreenWidget<'_> {
                     UserExplanationLens::HoatDong | UserExplanationLens::Nguon
                 ));
 
-        let inspection = amlich_core::debug_inspect_semantic_graph(
-            day,
-            month,
-            year,
-            include_recommendations,
-        );
+        let inspection =
+            amlich_core::debug_inspect_semantic_graph(day, month, year, include_recommendations);
 
         if !self.app.dev_inspector_mode {
             match self.app.explanation_lens {
                 UserExplanationLens::ViSao => self.render_vi_sao_view(&inspection, area, buf),
-                UserExplanationLens::YeuTo => self.render_causality_view(&inspection, area, buf, true),
-                UserExplanationLens::HoatDong => {
-                    self.render_hoat_dong_view(&inspection, area, buf)
+                UserExplanationLens::YeuTo => {
+                    self.render_causality_view(&inspection, area, buf, true)
                 }
+                UserExplanationLens::HoatDong => self.render_hoat_dong_view(&inspection, area, buf),
                 UserExplanationLens::Nguon => self.render_nguon_view(&inspection, area, buf),
             }
             return;
@@ -1652,7 +1646,8 @@ fn render_lens_header(
     block.render(area, buf);
 
     let lens_label = lens.label();
-    let help_line = "/?: đổi lens  Tab: đổi màn  ←/→: đổi ngày  t: hôm nay  ↑↓: chọn  Esc: quay lại";
+    let help_line =
+        "/?: đổi lens  Tab: đổi màn  ←/→: đổi ngày  t: hôm nay  ↑↓: chọn  Esc: quay lại";
 
     let lines = vec![
         Line::from(vec![
@@ -1780,9 +1775,7 @@ fn render_recommendation_lens_entries(
             let direction_color = match entry.verdict {
                 RecommendationLensVerdict::Nen => Color::Green,
                 RecommendationLensVerdict::CoThe => Color::Yellow,
-                RecommendationLensVerdict::Tranh | RecommendationLensVerdict::KyManh => {
-                    Color::Red
-                }
+                RecommendationLensVerdict::Tranh | RecommendationLensVerdict::KyManh => Color::Red,
             };
             let hard_stop_marker = if entry.verdict == RecommendationLensVerdict::KyManh {
                 " [KỴ MẠNH]"
@@ -1792,10 +1785,7 @@ fn render_recommendation_lens_entries(
 
             lines.push(Line::from(vec![
                 Span::styled(format!("{} ", marker), style),
-                Span::styled(
-                    entry.verdict.label(),
-                    Style::default().fg(direction_color),
-                ),
+                Span::styled(entry.verdict.label(), Style::default().fg(direction_color)),
                 Span::raw(" "),
                 Span::styled(
                     format!(
@@ -1938,6 +1928,7 @@ fn provenance_source_family_label(entry: &amlich_core::ReasoningEvidenceEnvelope
         Family::AlmanacRule => "almanac_rule",
         Family::Insight => "insight",
         Family::Derived => "derived",
+        Family::IChing => "iching",
     }
 }
 
@@ -2430,7 +2421,10 @@ impl GraphInspectorScreenWidget<'_> {
                     Style::default().fg(Color::White),
                 ),
                 Span::raw("   "),
-                Span::styled(format!("{} hỗ trợ", good), Style::default().fg(Color::Green)),
+                Span::styled(
+                    format!("{} hỗ trợ", good),
+                    Style::default().fg(Color::Green),
+                ),
                 Span::raw("  "),
                 Span::styled(format!("{} rủi ro", risk), Style::default().fg(Color::Red)),
             ]),
@@ -2464,10 +2458,7 @@ impl GraphInspectorScreenWidget<'_> {
                 ),
             ]),
             Line::from(vec![Span::styled(
-                format!(
-                    "  Góc nhìn: {}",
-                    self.app.explanation_lens.label()
-                ),
+                format!("  Góc nhìn: {}", self.app.explanation_lens.label()),
                 Style::default().fg(Color::DarkGray),
             )]),
         ];
@@ -2517,9 +2508,7 @@ impl GraphInspectorScreenWidget<'_> {
                 };
                 lines.push(Line::from(vec![Span::styled(
                     format!("  {}", entry.role.label()),
-                    Style::default()
-                        .fg(role_color)
-                        .add_modifier(Modifier::BOLD),
+                    Style::default().fg(role_color).add_modifier(Modifier::BOLD),
                 )]));
             }
 
@@ -2536,10 +2525,7 @@ impl GraphInspectorScreenWidget<'_> {
                 .impact
                 .as_ref()
                 .map(|imp| {
-                    Span::styled(
-                        format!(" [{}]", imp),
-                        Style::default().fg(Color::DarkGray),
-                    )
+                    Span::styled(format!(" [{}]", imp), Style::default().fg(Color::DarkGray))
                 })
                 .unwrap_or_else(|| Span::raw(""));
 
@@ -2642,10 +2628,7 @@ impl GraphInspectorScreenWidget<'_> {
                 ),
             ]),
             Line::from(vec![Span::styled(
-                format!(
-                    "  Góc nhìn: {}",
-                    self.app.explanation_lens.label()
-                ),
+                format!("  Góc nhìn: {}", self.app.explanation_lens.label()),
                 Style::default().fg(Color::DarkGray),
             )]),
         ];
@@ -2682,7 +2665,11 @@ impl GraphInspectorScreenWidget<'_> {
 
             render_hoat_dong_master_list(&entries, self.app.graph_inspector_cursor, panes[0], buf);
 
-            let selected = entries.get(self.app.graph_inspector_cursor.min(entries.len().saturating_sub(1)));
+            let selected = entries.get(
+                self.app
+                    .graph_inspector_cursor
+                    .min(entries.len().saturating_sub(1)),
+            );
             render_hoat_dong_detail(selected, panes[1], buf);
         }
 
@@ -2738,10 +2725,7 @@ impl GraphInspectorScreenWidget<'_> {
                 ),
             ]),
             Line::from(vec![Span::styled(
-                format!(
-                    "  Góc nhìn: {}",
-                    self.app.explanation_lens.label()
-                ),
+                format!("  Góc nhìn: {}", self.app.explanation_lens.label()),
                 Style::default().fg(Color::DarkGray),
             )]),
         ];
@@ -2768,7 +2752,12 @@ impl GraphInspectorScreenWidget<'_> {
                 .split(body_inner)
         };
 
-        render_nguon_master_list(&source_groups, self.app.graph_inspector_cursor, body_panes[0], buf);
+        render_nguon_master_list(
+            &source_groups,
+            self.app.graph_inspector_cursor,
+            body_panes[0],
+            buf,
+        );
         let selected = source_groups.get(
             self.app
                 .graph_inspector_cursor
@@ -2805,7 +2794,11 @@ impl GraphInspectorScreenWidget<'_> {
         block.render(area, buf);
 
         let nodes = crate::view_models::causality::extract_causality_tree(inspection);
-        let selected_node = nodes.get(self.app.graph_inspector_cursor.min(nodes.len().saturating_sub(1)));
+        let selected_node = nodes.get(
+            self.app
+                .graph_inspector_cursor
+                .min(nodes.len().saturating_sub(1)),
+        );
 
         let rows = Layout::vertical([
             Constraint::Length(3),
@@ -2827,7 +2820,12 @@ impl GraphInspectorScreenWidget<'_> {
                         .split(rows[1])
                 };
 
-                render_causality_master_list(&nodes, self.app.graph_inspector_cursor, panes[0], buf);
+                render_causality_master_list(
+                    &nodes,
+                    self.app.graph_inspector_cursor,
+                    panes[0],
+                    buf,
+                );
                 render_causality_detail_preview(selected_node, panes[1], buf, user_facing);
 
                 let summary_help = if user_facing {
@@ -2867,7 +2865,12 @@ fn render_causality_header(
     let nodes = crate::view_models::causality::extract_causality_tree(inspection);
     let good = nodes
         .iter()
-        .filter(|node| matches!(node.severity.as_deref(), Some("favorable") | Some("positive")))
+        .filter(|node| {
+            matches!(
+                node.severity.as_deref(),
+                Some("favorable") | Some("positive")
+            )
+        })
         .count();
     let risk = nodes
         .iter()
@@ -2901,7 +2904,10 @@ fn render_causality_header(
             Span::raw("  "),
             Span::styled(format!("{} xấu", risk), Style::default().fg(Color::Red)),
             Span::raw("  "),
-            Span::styled(format!("{} trung tính", neutral), Style::default().fg(Color::DarkGray)),
+            Span::styled(
+                format!("{} trung tính", neutral),
+                Style::default().fg(Color::DarkGray),
+            ),
         ]),
         Line::from(vec![
             Span::styled("  Đang chọn: ", Style::default().fg(Color::Cyan)),
@@ -2939,12 +2945,14 @@ fn render_causality_master_list(
             if !items.is_empty() {
                 items.push(ratatui::widgets::ListItem::new(Line::from("")));
             }
-            items.push(ratatui::widgets::ListItem::new(Line::from(vec![Span::styled(
-                format!("  {}", causality_cluster_title(&node.cluster)),
-                Style::default()
-                    .fg(Color::Magenta)
-                    .add_modifier(Modifier::BOLD),
-            )])));
+            items.push(ratatui::widgets::ListItem::new(Line::from(vec![
+                Span::styled(
+                    format!("  {}", causality_cluster_title(&node.cluster)),
+                    Style::default()
+                        .fg(Color::Magenta)
+                        .add_modifier(Modifier::BOLD),
+                ),
+            ])));
         }
 
         let selected = idx == cursor;
@@ -3002,7 +3010,12 @@ fn render_causality_master_list(
 
     let mut state = ratatui::widgets::ListState::default();
     state.select(selected_item);
-    ratatui::widgets::StatefulWidget::render(ratatui::widgets::List::new(items), inner, buf, &mut state);
+    ratatui::widgets::StatefulWidget::render(
+        ratatui::widgets::List::new(items),
+        inner,
+        buf,
+        &mut state,
+    );
 }
 
 fn render_causality_detail_preview(
@@ -3048,32 +3061,26 @@ fn render_causality_detail_preview(
     }
 
     let sections: Vec<Rect> = if inner.width < 70 || inner.height < 18 {
-        Layout::vertical([Constraint::Length(5), Constraint::Min(6), Constraint::Min(6)])
-            .split(inner)
-            .iter()
-            .copied()
-            .collect()
+        Layout::vertical([
+            Constraint::Length(5),
+            Constraint::Min(6),
+            Constraint::Min(6),
+        ])
+        .split(inner)
+        .iter()
+        .copied()
+        .collect()
     } else {
-        let cols = Layout::horizontal([Constraint::Percentage(46), Constraint::Percentage(54)]).split(inner);
-        let right = Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)]).split(cols[1]);
+        let cols = Layout::horizontal([Constraint::Percentage(46), Constraint::Percentage(54)])
+            .split(inner);
+        let right = Layout::vertical([Constraint::Percentage(50), Constraint::Percentage(50)])
+            .split(cols[1]);
         vec![cols[0], right[0], right[1]]
     };
 
     render_causality_selected_summary(node, sections[0], buf, user_facing);
-    render_causality_relation_block(
-        " Đến Từ Đâu ",
-        &node.incoming,
-        true,
-        sections[1],
-        buf,
-    );
-    render_causality_relation_block(
-        " Dẫn Tới Điều Gì ",
-        &node.outgoing,
-        false,
-        sections[2],
-        buf,
-    );
+    render_causality_relation_block(" Đến Từ Đâu ", &node.incoming, true, sections[1], buf);
+    render_causality_relation_block(" Dẫn Tới Điều Gì ", &node.outgoing, false, sections[2], buf);
 }
 
 fn render_causality_selected_summary(
@@ -3083,8 +3090,16 @@ fn render_causality_selected_summary(
     user_facing: bool,
 ) {
     let cluster_label = if user_facing { "Nhóm" } else { "Cụm" };
-    let kind_label = if user_facing { "Kiểu yếu tố" } else { "Loại" };
-    let conn_label = if user_facing { "Liên kết" } else { "Quan hệ" };
+    let kind_label = if user_facing {
+        "Kiểu yếu tố"
+    } else {
+        "Loại"
+    };
+    let conn_label = if user_facing {
+        "Liên kết"
+    } else {
+        "Quan hệ"
+    };
     let (severity_tag, color, icon) = causality_severity_badge(node.severity.as_deref());
     let lines = vec![
         Line::from(vec![
@@ -3097,18 +3112,30 @@ fn render_causality_selected_summary(
             ),
         ]),
         Line::from(vec![
-            Span::styled(format!("  {}: ", cluster_label), Style::default().fg(Color::Cyan)),
-            Span::styled(causality_cluster_title(&node.cluster), Style::default().fg(Color::White)),
+            Span::styled(
+                format!("  {}: ", cluster_label),
+                Style::default().fg(Color::Cyan),
+            ),
+            Span::styled(
+                causality_cluster_title(&node.cluster),
+                Style::default().fg(Color::White),
+            ),
         ]),
         Line::from(vec![
-            Span::styled(format!("  {}: ", kind_label), Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("  {}: ", kind_label),
+                Style::default().fg(Color::Cyan),
+            ),
             Span::styled(&node.semantic_kind, Style::default().fg(Color::White)),
             Span::raw("   "),
             Span::styled("Mức: ", Style::default().fg(Color::Cyan)),
             Span::styled(severity_tag, Style::default().fg(color)),
         ]),
         Line::from(vec![
-            Span::styled(format!("  {}: ", conn_label), Style::default().fg(Color::Cyan)),
+            Span::styled(
+                format!("  {}: ", conn_label),
+                Style::default().fg(Color::Cyan),
+            ),
             Span::styled(
                 format!("{} vào, {} ra", node.incoming.len(), node.outgoing.len()),
                 Style::default().fg(Color::White),
@@ -3148,7 +3175,9 @@ fn render_causality_relation_block(
         )));
     } else {
         for edge in edges.iter().take(inner.height.saturating_sub(1) as usize) {
-            let (icon, color) = if !incoming && (edge.neighbor_label.starts_with("Kỵ") || edge.edge_label.contains("avoid")) {
+            let (icon, color) = if !incoming
+                && (edge.neighbor_label.starts_with("Kỵ") || edge.edge_label.contains("avoid"))
+            {
                 ("x", Color::Red)
             } else if !incoming
                 && (edge.neighbor_label.starts_with("Nên") || edge.edge_label.contains("support"))
@@ -3163,14 +3192,21 @@ fn render_causality_relation_block(
             lines.push(Line::from(vec![
                 Span::styled(format!("{} ", icon), Style::default().fg(color)),
                 Span::styled(
-                    truncate_label(&edge.neighbor_label, inner.width.saturating_sub(12) as usize),
+                    truncate_label(
+                        &edge.neighbor_label,
+                        inner.width.saturating_sub(12) as usize,
+                    ),
                     Style::default().fg(Color::White),
                 ),
             ]));
             lines.push(Line::from(vec![
                 Span::raw("  "),
                 Span::styled(
-                    format!("{} [{}]", truncate_label(&edge.edge_label, 24), truncate_label(&edge.neighbor_kind, 12)),
+                    format!(
+                        "{} [{}]",
+                        truncate_label(&edge.edge_label, 24),
+                        truncate_label(&edge.neighbor_kind, 12)
+                    ),
                     Style::default().fg(Color::DarkGray),
                 ),
             ]));
@@ -3364,7 +3400,10 @@ fn render_hoat_dong_detail(
         Line::from(vec![
             Span::styled("  Lý do: ", Style::default().fg(Color::Cyan)),
             Span::styled(
-                truncate_label(&entry.headline_reason, inner.width.saturating_sub(12) as usize),
+                truncate_label(
+                    &entry.headline_reason,
+                    inner.width.saturating_sub(12) as usize,
+                ),
                 Style::default().fg(Color::White),
             ),
         ]),
@@ -3404,7 +3443,11 @@ fn render_hoat_dong_detail(
             lines.push(Line::from(vec![
                 Span::raw("    "),
                 Span::styled(
-                    format!("[{}] {}", provenance_source_family_label(prov), prov.source_id),
+                    format!(
+                        "[{}] {}",
+                        provenance_source_family_label(prov),
+                        prov.source_id
+                    ),
                     Style::default().fg(Color::DarkGray),
                 ),
             ]));
@@ -3515,7 +3558,10 @@ fn render_vi_sao_detail(
             lines.push(Line::from(vec![
                 Span::raw("    -> "),
                 Span::styled(
-                    truncate_label(&target.target_label, inner.width.saturating_sub(14) as usize),
+                    truncate_label(
+                        &target.target_label,
+                        inner.width.saturating_sub(14) as usize,
+                    ),
                     Style::default().fg(Color::White),
                 ),
                 Span::styled(
@@ -3531,7 +3577,11 @@ fn render_vi_sao_detail(
         lines.push(Line::from(vec![
             Span::styled("  Nguồn: ", Style::default().fg(Color::Cyan)),
             Span::styled(
-                format!("[{}] {}", provenance_source_family_label(first), first.source_id),
+                format!(
+                    "[{}] {}",
+                    provenance_source_family_label(first),
+                    first.source_id
+                ),
                 Style::default().fg(Color::DarkGray),
             ),
         ]));

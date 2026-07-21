@@ -437,6 +437,7 @@ mod tests {
             year: 1990,
             hour: 9,
             minute: 30,
+            time_known: true,
             timezone: 7.0,
             longitude: None,
             use_solar_time: false,

@@ -540,6 +540,7 @@ impl App {
             year: key.0,
             hour: 12,
             minute: 0,
+            time_known: None,
             timezone: Some(amlich_core::VIETNAM_TIMEZONE),
             longitude: None,
             use_solar_time: false,
