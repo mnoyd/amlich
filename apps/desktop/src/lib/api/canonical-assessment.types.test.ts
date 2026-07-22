@@ -27,6 +27,13 @@ import type {
     HourSelectionAdvisoryDto,
     HourSelectionAnalysisDto,
     PersonalDayReportDto,
+    InitiationOpeningDecisionExportDto,
+    ReasoningGraphExportDto,
+    ReasoningNodeExportDto,
+    ReasoningEdgeExportDto,
+    ReasoningEvidenceEnvelopeDto,
+    ReasoningNoteDto,
+    ReasoningAxisScoreDto,
 } from './types';
 
 import type {
@@ -134,6 +141,61 @@ type _AssessmentKeys = AssertTrue<
         | 'unavailable_sections'
         | 'evidence'
     >
+>;
+
+// ---------------------------------------------------------------------------
+// Reasoning graph contracts (locked against crates/amlich-core/src/reasoning/types.rs).
+// Consumed by the Evidence Graph workspace (amlich-01mx).
+// ---------------------------------------------------------------------------
+
+type _ReasoningEnvelopeKeys = AssertTrue<
+    Equals<keyof ReasoningEvidenceEnvelopeDto, 'source_family' | 'source_id' | 'method' | 'note'>
+>;
+
+type _ReasoningNoteKeys = AssertTrue<
+    Equals<keyof ReasoningNoteDto, 'node_id' | 'summary_vi' | 'tags' | 'provenance'>
+>;
+
+type _ReasoningNodeKeys = AssertTrue<
+    Equals<keyof ReasoningNodeExportDto, 'id' | 'kind' | 'axis' | 'severity' | 'tags' | 'summary_vi' | 'evidence'>
+>;
+
+type _ReasoningEdgeKeys = AssertTrue<
+    Equals<keyof ReasoningEdgeExportDto, 'from_node_id' | 'to_node_id' | 'effect' | 'weight' | 'justification' | 'evidence' | 'tags'>
+>;
+
+type _ReasoningGraphKeys = AssertTrue<
+    Equals<keyof ReasoningGraphExportDto, 'action_id' | 'nodes' | 'edges'>
+>;
+
+type _ReasoningAxisScoreKeys = AssertTrue<
+    Equals<keyof ReasoningAxisScoreDto, 'axis' | 'score' | 'strongest_node_id' | 'strongest_summary_vi'>
+>;
+
+type _DecisionExportKeys = AssertTrue<
+    Equals<
+        keyof InitiationOpeningDecisionExportDto,
+        | 'primary_conclusion'
+        | 'recommendation_bucket'
+        | 'confidence'
+        | 'context_is_clear'
+        | 'semantic'
+        | 'strongest_supports'
+        | 'strongest_resistances'
+        | 'override_factors'
+        | 'conflict_notes'
+        | 'suggested_hours'
+        | 'suggested_directions'
+        | 'axis_scores'
+    >
+>;
+
+type _ReportCarriesGraph = AssertTrue<
+    PersonalDayReportDto extends { graph?: ReasoningGraphExportDto | null } ? true : false
+>;
+
+type _ReportCarriesDecisionExport = AssertTrue<
+    PersonalDayReportDto extends { decision_export?: InitiationOpeningDecisionExportDto | null } ? true : false
 >;
 
 // ---------------------------------------------------------------------------

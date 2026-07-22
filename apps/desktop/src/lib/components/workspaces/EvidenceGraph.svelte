@@ -68,6 +68,10 @@
     $: reasoningAxes = report?.decision_export?.axis_scores ?? [];
     $: familyRows = report ? sourceFamilyBreakdown(report) : [];
     $: familyTotal = totalFamilyCount(familyRows);
+    $: devNodes = graph?.nodes ?? [];
+    $: devEdges = graph?.edges ?? [];
+    $: devSeverityCounts = severityCounts(devNodes);
+    $: devEffectCounts = effectCounts(devEdges);
 
     const bucketLabel: Record<InitiationRecommendationBucketDto, string> = {
         avoid: 'Tránh',
@@ -376,6 +380,41 @@
 
     function totalFamilyCount(rows: FamilyBreakdown[]): number {
         return rows.reduce((sum, row) => sum + row.total, 0);
+    }
+
+    function countBy<T extends string>(items: { value: T }[] | undefined, value: T): number {
+        return (items ?? []).filter((item) => item.value === value).length;
+    }
+
+    type SeverityCount = { severity: ReasoningNodeSeverityDto; label: string; count: number };
+
+    function severityCounts(nodes: ReasoningNodeExportDto[]): SeverityCount[] {
+        const order: ReasoningNodeSeverityDto[] = [
+            'hard_taboo', 'soft_taboo', 'hac_dao', 'inauspicious', 'hoang_dao', 'auspicious',
+        ];
+        return order
+            .map((severity) => ({
+                severity,
+                label: severityLabel[severity],
+                count: countBy(
+                    nodes.map((node) => ({ value: node.severity ?? ('' as ReasoningNodeSeverityDto) })),
+                    severity,
+                ),
+            }))
+            .filter((row) => row.count > 0);
+    }
+
+    type EffectCount = { effect: EdgeEffectDto; label: string; count: number };
+
+    function effectCounts(edges: ReasoningEdgeExportDto[]): EffectCount[] {
+        const order: EdgeEffectDto[] = ['overrides', 'conflicts_with', 'weakens', 'conditions', 'supports'];
+        return order
+            .map((effect) => ({
+                effect,
+                label: effectLabel[effect],
+                count: edges.filter((edge) => edge.effect === effect).length,
+            }))
+            .filter((row) => row.count > 0);
     }
 </script>
 
@@ -721,7 +760,111 @@
                     </div>
                 {/if}
             {:else if activeLens === 'dev'}
-                <p class="text-ink-light italic font-mono">Dev lens — raw graph dump arrives in the next commit.</p>
+                <div class="bg-evidence/5 border border-evidence/20 p-3 mb-6 font-mono text-xs">
+                    <span class="badge-evidence">DEV LENS</span>
+                    <span class="ml-2 text-ink-light">Raw graph dump — internal IDs, justifications, and evidence envelopes as the engine sees them.</span>
+                </div>
+
+                {#if graph}
+                    <section class="mb-8">
+                        <h3 class="text-xl font-mono font-bold mb-3">Summary</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="card-dense">
+                                <div class="text-xs font-mono uppercase text-ink-light">Action</div>
+                                <div class="text-sm font-bold">{graph.action_id}</div>
+                            </div>
+                            <div class="card-dense">
+                                <div class="text-xs font-mono uppercase text-ink-light">Nodes</div>
+                                <div class="text-2xl font-bold">{devNodes.length}</div>
+                            </div>
+                            <div class="card-dense">
+                                <div class="text-xs font-mono uppercase text-ink-light">Edges</div>
+                                <div class="text-2xl font-bold">{devEdges.length}</div>
+                            </div>
+                            <div class="card-dense">
+                                <div class="text-xs font-mono uppercase text-ink-light">Action ID</div>
+                                <div class="text-sm font-mono">{graph.action_id}</div>
+                            </div>
+                        </div>
+
+                        {#if devSeverityCounts.length}
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                {#each devSeverityCounts as row (row.severity)}
+                                    <span class="badge-evidence">{row.label}: {row.count}</span>
+                                {/each}
+                            </div>
+                        {/if}
+                        {#if devEffectCounts.length}
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                {#each devEffectCounts as row (row.effect)}
+                                    <span class="badge-cothe">{row.label}: {row.count}</span>
+                                {/each}
+                            </div>
+                        {/if}
+                    </section>
+
+                    <section class="mb-8">
+                        <h3 class="text-xl font-mono font-bold mb-3">Nodes ({devNodes.length})</h3>
+                        <div class="space-y-2">
+                            {#each devNodes as node (node.id)}
+                                <div class="card-dense font-mono text-xs">
+                                    <div class="flex flex-wrap items-baseline gap-2">
+                                        <span class="font-bold text-ink">{node.id}</span>
+                                        <span class="text-ink-light">{node.kind}</span>
+                                        {#if node.axis}
+                                            <span class="text-ink-light">axis={node.axis}</span>
+                                        {/if}
+                                        {#if node.severity}
+                                            <span class="{severityClass[node.severity]}">sev={node.severity}</span>
+                                        {/if}
+                                    </div>
+                                    <p class="text-sm font-sans mt-1">{node.summary_vi}</p>
+                                    {#if node.tags.length}
+                                        <div class="mt-1 text-ink-light">tags: [{node.tags.join(', ')}]</div>
+                                    {/if}
+                                    {#if node.evidence.length}
+                                        <ul class="mt-2 space-y-0.5 text-ink-light">
+                                            {#each node.evidence as env, i (node.id + '-ev-' + i)}
+                                                <li>· {env.source_family}:{env.source_id} ({env.method}){env.note ? ' — ' + env.note : ''}</li>
+                                            {/each}
+                                        </ul>
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
+                    </section>
+
+                    <section>
+                        <h3 class="text-xl font-mono font-bold mb-3">Edges ({devEdges.length})</h3>
+                        <div class="space-y-2">
+                            {#each devEdges as edge, i ('edge-' + i)}
+                                <div class="card-dense font-mono text-xs">
+                                    <div class="flex flex-wrap items-baseline gap-2">
+                                        <span class="font-bold text-ink">{edge.from_node_id}</span>
+                                        <span class="{effectClass[edge.effect]}">—{edge.effect}→</span>
+                                        <span class="font-bold text-ink">{edge.to_node_id}</span>
+                                        <span class="text-ink-light">w={edge.weight}</span>
+                                        <span class="text-ink-light">just={edge.justification}</span>
+                                    </div>
+                                    {#if edge.tags.length}
+                                        <div class="mt-1 text-ink-light">tags: [{edge.tags.join(', ')}]</div>
+                                    {/if}
+                                    {#if edge.evidence.length}
+                                        <ul class="mt-2 space-y-0.5 text-ink-light">
+                                            {#each edge.evidence as env, j ('edge-' + i + '-ev-' + j)}
+                                                <li>· {env.source_family}:{env.source_id} ({env.method})</li>
+                                            {/each}
+                                        </ul>
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
+                    </section>
+                {:else}
+                    <div class="card-dense text-sm text-ink-light italic">
+                        No reasoning graph for this day.
+                    </div>
+                {/if}
             {/if}
         {/if}
     </div>
