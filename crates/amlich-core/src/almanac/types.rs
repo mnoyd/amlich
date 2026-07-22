@@ -305,7 +305,133 @@ pub struct XungHopResult {
     /// Tương hại harm partner (mutual harms).
     pub xiang_hai: Option<String>,
     /// Tương hình punishment group members (mutual punishments).
+    ///
+    /// Day-level projection: the three members of the day chi's canonical
+    /// punishment group (one of 寅巳申, 丑未戌), or `None` for branches
+    /// that are not in any canonical 3-branch group. The pair-level,
+    /// self-vs-directed, and self-punishment semantics live in
+    /// `PunishmentKind` (see `interaction::types::BranchRelation`).
     pub xiang_xing: Option<Vec<String>>,
+}
+
+/// The five-element classification used for Tam hợp (三合) triads.
+///
+/// This is the canonical element for the three-harmony triad that a branch
+/// belongs to. Branches that do not belong to a triad (none in the current
+/// 12-branch system) would not produce a value; in practice every branch
+/// belongs to exactly one triad, so this is total over `0..12`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TriadElement {
+    /// Thủy — Water triad: {Thân(8), Tý(0), Thìn(4)}
+    Thuy,
+    /// Kim — Metal triad: {Tỵ(5), Dậu(9), Sửu(1)}
+    Kim,
+    /// Hỏa — Fire triad: {Dần(2), Ngọ(6), Tuất(10)}
+    Hoa,
+    /// Mộc — Wood triad: {Hợi(11), Mão(3), Mùi(7)}
+    Moc,
+}
+
+impl TriadElement {
+    /// Vietnamese name used in summaries and golden fixtures.
+    pub const fn as_vietnamese(self) -> &'static str {
+        match self {
+            TriadElement::Thuy => "Thủy",
+            TriadElement::Kim => "Kim",
+            TriadElement::Hoa => "Hỏa",
+            TriadElement::Moc => "Mộc",
+        }
+    }
+}
+
+/// Canonical Tương hình (相刑 / Mutual Punishment) classification for a pair
+/// of Earthly Branches.
+///
+/// Source-cited taxonomy per `docs/architecture/personal-day-audit/branch-relation-decision.md`:
+/// 1. **寅巳申** — Vô ân chi hình (mutual 3-branch Fire triad)
+/// 2. **丑未戌** — Trì thế chi hình (mutual 3-branch Earth triad)
+/// 3. **子卯** — Vô lễ chi hình (directed: Tý → Mão only)
+/// 4. **自刑** — Tự hình (self-punishment for {Thìn, Ngọ, Dậu, Hợi})
+/// 5. Everything else is **not** a punishment per the canonical Vietnamese /
+///    Chinese primary tradition. Incomplete two-branch occurrences of
+///    寅巳申 / 丑未戌 are **marked unavailable** rather than promoted.
+///
+/// Strict canonical only: no sub-school variants are shipped in v1.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum PunishmentKind {
+    /// No punishment relation between the two branches.
+    None,
+    /// Sub 卯 (Tý → Mão) directed pair. Only the direction Tý → Mão
+    /// is canonical; the reverse Mão → Tý is also represented as this
+    /// variant with `aggressor: Tý, victim: Mão` (the same direction) so
+    /// callers don't have to special-case the input order.
+    DirectedPair {
+        /// The branch that "harms" or "punishes" (the aggressor).
+        aggressor: BranchRef,
+        /// The branch that is harmed or punished (the victim).
+        victim: BranchRef,
+    },
+    /// Mutual 3-branch punishment group (寅巳申 = Fire, 丑未戌 = Earth).
+    /// Only emitted when both branches are in the triad and are
+    /// distinct (same-branch self-punishment is reported separately).
+    CompletedTriad {
+        /// The element (and therefore the canonical triad) the pair belongs to.
+        triad: TriadElement,
+    },
+    /// Self-punishment (自刑). Only emitted when the two branches are equal
+    /// and the branch is one of {Thìn(4), Ngọ(6), Dậu(9), Hợi(11)}.
+    SelfPunishment {
+        /// The branch that is in self-punishment.
+        branch: BranchRef,
+    },
+    /// Disputed or incomplete case that the canonical tradition marks
+    /// as unavailable rather than promoting it to a verdict.
+    Unavailable {
+        /// A short, stable human-readable reason (English / Vietnamese).
+        reason: String,
+    },
+}
+
+impl PunishmentKind {
+    /// `true` when this kind encodes a real punishment relation
+    /// (directed, completed triad, or self-punishment).
+    pub fn is_punishment(&self) -> bool {
+        matches!(
+            self,
+            PunishmentKind::DirectedPair { .. }
+                | PunishmentKind::CompletedTriad { .. }
+                | PunishmentKind::SelfPunishment { .. }
+        )
+    }
+}
+
+/// Stable, serializable reference to an Earthly Branch (Địa Chi).
+///
+/// Carries both the canonical index (0..12) and the Vietnamese name so
+/// the typed `PunishmentKind` round-trips through JSON without losing
+/// either piece of context. The name is owned (not `&'static str`) so
+/// `BranchRef` is `Deserialize`-compatible and can be used inside
+/// owning enums like [`PunishmentKind`].
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct BranchRef {
+    /// 0-based Earthly Branch index (0=Tý .. 11=Hợi).
+    pub index: usize,
+    /// Vietnamese name (e.g. "Tý").
+    pub name: String,
+}
+
+impl BranchRef {
+    /// Build a `BranchRef` from a 0-based index. Panics on out-of-range
+    /// input — callers in this codebase always hold validated indices.
+    pub fn new(index: usize) -> Self {
+        debug_assert!(index < 12, "BranchRef index must be in 0..12");
+        Self {
+            index,
+            name: crate::types::CHI[index].to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

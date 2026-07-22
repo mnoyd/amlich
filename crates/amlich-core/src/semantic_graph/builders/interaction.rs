@@ -191,22 +191,49 @@ impl InteractionGraphBuilder {
         if branch_rel.luc_hop {
             tags.push("luc_hop".to_string());
         }
-        if branch_rel.tam_hop {
-            tags.push("tam_hop".to_string());
+        // Tam hợp: emit the typed element when both branches share a
+        // triad, and a "tam_hop_pair" tag only when the two branches
+        // are distinct members of that triad.
+        if let Some(element) = branch_rel.tam_hop_member {
+            tags.push(format!("tam_hop_member:{}", triad_element_tag(element)));
+            if branch_rel.is_tam_hop_pair() {
+                tags.push("tam_hop_pair".to_string());
+            }
+        }
+        if branch_rel.tam_hop_completed {
+            tags.push("tam_hop_completed".to_string());
         }
         if branch_rel.tuong_hai {
             tags.push("tuong_hai".to_string());
         }
-        if branch_rel.tuong_hinh {
-            tags.push("tuong_hinh".to_string());
+        // Tương hình: emit the typed kind so consumers can distinguish
+        // directed pair, completed triad, self-punishment, and
+        // unavailable (disputed/incomplete) without re-parsing strings.
+        if !matches!(
+            branch_rel.tuong_hinh,
+            crate::almanac::types::PunishmentKind::None
+        ) {
+            tags.push(format!(
+                "tuong_hinh:{}",
+                punishment_kind_tag(&branch_rel.tuong_hinh)
+            ));
         }
 
+        let tam_hop_summary = if branch_rel.is_tam_hop_pair() {
+            "tam_hợp"
+        } else if branch_rel.tam_hop_member.is_some() {
+            "tam_hợp (self)"
+        } else {
+            "no_tam_hop"
+        };
+        let tuong_hinh_summary = punishment_kind_summary(&branch_rel.tuong_hinh);
         let summary = format!(
-            "Xung: {} | Hợp: {} | Hại: {} | Hình: {}",
+            "Xung: {} | Hợp: {} | Hại: {} | Hình: {} | {}",
             branch_rel.luc_xung,
-            branch_rel.luc_hop || branch_rel.tam_hop,
+            branch_rel.luc_hop || branch_rel.is_tam_hop_pair(),
             branch_rel.tuong_hai,
-            branch_rel.tuong_hinh
+            tuong_hinh_summary,
+            tam_hop_summary,
         );
 
         let node = SemanticNode::new(
@@ -646,6 +673,50 @@ fn thap_than_label_tag(value: ThapThanLabel) -> &'static str {
         ThapThanLabel::ThatSat => "that_sat",
         ThapThanLabel::ChinhAn => "chinh_an",
         ThapThanLabel::ThienAn => "thien_an",
+    }
+}
+
+fn triad_element_tag(value: crate::almanac::types::TriadElement) -> &'static str {
+    use crate::almanac::types::TriadElement;
+    match value {
+        TriadElement::Thuy => "thuy",
+        TriadElement::Kim => "kim",
+        TriadElement::Hoa => "hoa",
+        TriadElement::Moc => "moc",
+    }
+}
+
+fn punishment_kind_tag(value: &crate::almanac::types::PunishmentKind) -> &'static str {
+    use crate::almanac::types::PunishmentKind;
+    match value {
+        PunishmentKind::None => "none",
+        PunishmentKind::DirectedPair { .. } => "directed_pair",
+        PunishmentKind::CompletedTriad { .. } => "completed_triad",
+        PunishmentKind::SelfPunishment { .. } => "self_punishment",
+        PunishmentKind::Unavailable { .. } => "unavailable",
+    }
+}
+
+fn punishment_kind_summary(value: &crate::almanac::types::PunishmentKind) -> &'static str {
+    use crate::almanac::types::{PunishmentKind, TriadElement};
+    match value {
+        PunishmentKind::None => "none",
+        // The only canonical directed pair is 子卯 (Tý → Mão).
+        // We bind the aggressor/victim to keep the destructuring
+        // pattern explicit; the summary is just the stable label
+        // "directed" so it doesn't change if the canonical taxonomy
+        // ever adds another directed pair.
+        PunishmentKind::DirectedPair { .. } => "directed",
+        PunishmentKind::CompletedTriad { triad } => match triad {
+            TriadElement::Hoa => "寅巳申",
+            TriadElement::Kim => "丑未戌 (complete)",
+            TriadElement::Moc => "Mộc-triad",
+            TriadElement::Thuy => "Thủy-triad",
+        },
+        // The summary just records that the relation is self-punishment.
+        // The branch name is already captured in the row context.
+        PunishmentKind::SelfPunishment { .. } => "self",
+        PunishmentKind::Unavailable { .. } => "unavailable",
     }
 }
 

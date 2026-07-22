@@ -1,37 +1,88 @@
 use serde::{Deserialize, Serialize};
 
-use crate::almanac::types::{FiveElement, FiveElementRelation, RuleEvidence, ThapThanResult};
+use crate::almanac::types::{
+    FiveElement, FiveElementRelation, PunishmentKind, RuleEvidence, ThapThanResult, TriadElement,
+};
 use crate::bazi::types::PillarKind;
 
 /// How today's Earthly Branch relates to a personal pillar's branch.
+///
+/// Source-cited taxonomy per
+/// `docs/architecture/personal-day-audit/branch-relation-decision.md`:
+/// membership in a Tam hợp triad is exposed as a typed `TriadElement`,
+/// and Tương hình is exposed as the typed [`PunishmentKind`] so that
+/// "same-branch is not automatically tam hợp" and "incomplete triads
+/// are not promoted to a completed-group verdict".
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct BranchRelation {
+    /// `true` when the day's branch and the pillar's branch are equal.
+    /// This is the only piece of state needed to disambiguate "tam hợp
+    /// pair" from "tam hợp membership" — see
+    /// [`BranchRelation::is_tam_hop_pair`].
+    pub same_branch: bool,
     /// Lục Xung: true if the two branches directly clash (6 positions apart).
     pub luc_xung: bool,
     /// Lục Hợp: true if the two branches form a six-harmony pair.
     pub luc_hop: bool,
-    /// Tam Hợp: true if both branches belong to the same three-harmony triad.
-    pub tam_hop: bool,
+    /// Tam Hợp triad membership: `Some(element)` when both branches
+    /// belong to the same canonical Tam hợp triad (Water / Wood / Fire
+    /// / Metal), `None` when the two branches are in different triads.
+    /// Same-branch is always `Some(element)` for the branch's own triad
+    /// (because every branch is a member of its own triad). Use
+    /// [`BranchRelation::is_tam_hop_pair`] to test the friendly
+    /// "two distinct branches in the same triad" case.
+    pub tam_hop_member: Option<TriadElement>,
+    /// Tam Hợp completed group: true only when three distinct branches
+    /// of one triad are simultaneously in scope. By definition this
+    /// cannot be true at the pair level (the API only takes two
+    /// branches), so this field is always `false` here. It exists so
+    /// the contract is explicit and to make chart-level aggregation
+    /// (e.g. a Bazi chart with three pillars in the same triad)
+    /// straightforward to express without inventing a new field.
+    pub tam_hop_completed: bool,
     /// Tương Hại: true if the two branches form a mutual-harm pair.
     pub tuong_hai: bool,
-    /// Tương Hình: true if both branches belong to the same punishment group.
-    pub tuong_hinh: bool,
+    /// Tương Hình: typed canonical punishment classification
+    /// (`None` | `DirectedPair` | `CompletedTriad` |
+    /// `SelfPunishment` | `Unavailable`). See [`PunishmentKind`].
+    pub tuong_hinh: PunishmentKind,
 }
 
 impl BranchRelation {
     /// True when no clash/harm/punishment relations exist.
     pub fn is_neutral(&self) -> bool {
-        !self.luc_xung && !self.tuong_hai && !self.tuong_hinh
+        !self.luc_xung
+            && !self.tuong_hai
+            && !self.tuong_hinh.is_punishment()
+            && !self.is_tam_hop_pair()
     }
 
     /// True when at least one harmony relation exists.
+    ///
+    /// Tam hợp only counts as harmony when the two branches are
+    /// **distinct** members of the same triad; same-branch is not a
+    /// harmony pair (it is a self-punishment or simply neutral, see
+    /// [`BranchRelation::tam_hop_member`]).
     pub fn has_harmony(&self) -> bool {
-        self.luc_hop || self.tam_hop
+        self.luc_hop || self.is_tam_hop_pair()
     }
 
     /// True when at least one conflict relation exists.
     pub fn has_conflict(&self) -> bool {
-        self.luc_xung || self.tuong_hai || self.tuong_hinh
+        self.luc_xung
+            || self.tuong_hai
+            || matches!(
+                self.tuong_hinh,
+                PunishmentKind::DirectedPair { .. }
+                    | PunishmentKind::CompletedTriad { .. }
+                    | PunishmentKind::SelfPunishment { .. }
+            )
+    }
+
+    /// True when both branches are **distinct** members of the same
+    /// Tam hợp triad (the friendly "tam hợp" reading).
+    pub fn is_tam_hop_pair(&self) -> bool {
+        !self.same_branch && self.tam_hop_member.is_some() && !self.tam_hop_completed
     }
 }
 

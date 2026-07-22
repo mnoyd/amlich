@@ -61,6 +61,27 @@ fn compute_pillar_interaction(
     }
 }
 
+/// Compute the typed branch relation between two Earthly Branches.
+///
+/// All four canonical relations (Lục xung, Lục hợp, Tương hại, Tương
+/// hình) plus Tam hợp triad membership are reported as typed facts so
+/// downstream code can distinguish direct pair, completed group, and
+/// self-punishment semantically instead of as booleans promoted from
+/// group membership.
+///
+/// Implementation note: this function previously reported
+/// `tam_hop = true` and `tuong_hinh = true` for any two branches in
+/// the same broad group, which the audit
+/// (`docs/architecture/personal-day-audit/interaction-almanac.md:69-115`)
+/// flagged as a conflation of membership with pair claims. The
+/// canonical replacement is:
+/// - `tam_hop_member` is set to the branch's triad element whenever
+///   both branches are in the same triad (including same-branch).
+/// - `tam_hop_completed` is always `false` at the pair level.
+/// - `tuong_hinh` uses the typed [`PunishmentKind`] from
+///   `almanac::xung_hop::xiang_xing_pair` /
+///   `almanac::xung_hop::xiang_xing_self` so that incomplete triads
+///   are reported as `Unavailable` rather than promoted.
 pub fn compute_branch_relation(day_chi: usize, pillar_chi: usize) -> BranchRelation {
     let day_xung_hop = xung_hop::get_xung_hop(day_chi);
     let pillar_chi_name = crate::types::CHI[pillar_chi];
@@ -72,22 +93,32 @@ pub fn compute_branch_relation(day_chi: usize, pillar_chi: usize) -> BranchRelat
         .as_ref()
         .is_some_and(|h| h == pillar_chi_name);
 
-    let tam_hop = day_xung_hop.tam_hop.iter().any(|b| b == pillar_chi_name);
+    let tam_hop_member = if xung_hop::is_triad_member(day_chi, pillar_chi) {
+        // Both branches are in the same triad (including same-branch).
+        // `is_triad_member` is total over 0..12, so this is the branch's
+        // own triad element.
+        xung_hop::triad_element(day_chi)
+    } else {
+        None
+    };
 
     let tuong_hai = day_xung_hop
         .xiang_hai
         .as_ref()
         .is_some_and(|h| h == pillar_chi_name);
 
-    let tuong_hinh = day_xung_hop
-        .xiang_xing
-        .as_ref()
-        .is_some_and(|group| group.iter().any(|b| b == pillar_chi_name));
+    let tuong_hinh = if day_chi == pillar_chi {
+        xung_hop::xiang_xing_self(day_chi)
+    } else {
+        xung_hop::xiang_xing_pair(day_chi, pillar_chi)
+    };
 
     BranchRelation {
+        same_branch: day_chi == pillar_chi,
         luc_xung,
         luc_hop,
-        tam_hop,
+        tam_hop_member,
+        tam_hop_completed: false,
         tuong_hai,
         tuong_hinh,
     }
@@ -245,14 +276,29 @@ mod tests {
         let day = CanChi::new(0, 0); // Giáp Tý
         let chart = make_chart((0, 8), (2, 4), (4, 0), (6, 6));
         let matrix = compute_day_person_matrix(&day, &chart);
-        // Year pillar chi = Thân(8) → in Tý's tam hợp
-        assert!(matrix.pillars[0].branch_relation.tam_hop);
-        // Month pillar chi = Thìn(4) → in Tý's tam hợp
-        assert!(matrix.pillars[1].branch_relation.tam_hop);
-        // Day pillar chi = Tý(0) → in Tý's tam hợp (self)
-        assert!(matrix.pillars[2].branch_relation.tam_hop);
-        // Hour pillar chi = Ngọ(6) → NOT in Tý's tam hợp
-        assert!(!matrix.pillars[3].branch_relation.tam_hop);
+        // Year pillar chi = Thân(8) → in Tý's tam hợp (Thủy triad).
+        assert_eq!(
+            matrix.pillars[0].branch_relation.tam_hop_member,
+            Some(crate::almanac::types::TriadElement::Thuy)
+        );
+        assert!(matrix.pillars[0].branch_relation.is_tam_hop_pair());
+        // Month pillar chi = Thìn(4) → in Tý's tam hợp (Thủy triad).
+        assert_eq!(
+            matrix.pillars[1].branch_relation.tam_hop_member,
+            Some(crate::almanac::types::TriadElement::Thuy)
+        );
+        assert!(matrix.pillars[1].branch_relation.is_tam_hop_pair());
+        // Day pillar chi = Tý(0) → in Tý's tam hợp (self).
+        // Same-branch is `Some(Thuy)` membership but `is_tam_hop_pair`
+        // returns false because the two branches are equal.
+        assert_eq!(
+            matrix.pillars[2].branch_relation.tam_hop_member,
+            Some(crate::almanac::types::TriadElement::Thuy)
+        );
+        assert!(!matrix.pillars[2].branch_relation.is_tam_hop_pair());
+        // Hour pillar chi = Ngọ(6) → NOT in Tý's tam hợp (Hỏa triad).
+        assert_eq!(matrix.pillars[3].branch_relation.tam_hop_member, None);
+        assert!(!matrix.pillars[3].branch_relation.is_tam_hop_pair());
     }
 
     #[test]
@@ -265,18 +311,137 @@ mod tests {
         assert!(matrix.pillars[0].branch_relation.has_conflict());
     }
 
+    /// Canonical Tương hình (寅巳申 Vô ân) — Dần-Tỵ-Thân mutual triad.
+    /// Dần(2) × Tỵ(5) and Dần(2) × Thân(8) must be CompletedTriad(Hỏa).
+    /// Mão(3) is NOT in this triad (Mão is in 子卯 and Wood triad), so
+    /// Dần(2) × Mão(3) must be `None` (the audit's headline defect).
     #[test]
-    fn tuong_hinh_dan_mao_ty() {
-        // Day chi = Dần(2), punishment group = [Dần(2), Mão(3), Tỵ(5)]
+    fn tuong_hinh_vo_an_can_ty_than() {
+        use crate::almanac::types::{PunishmentKind, TriadElement};
         let day = CanChi::new(0, 2); // Giáp Dần
+                                     // Year=Mão(3), Month=Tỵ(5), Day=Thân(8), Hour=Tuất(10)
         let chart = make_chart((0, 3), (2, 5), (4, 8), (6, 10));
         let matrix = compute_day_person_matrix(&day, &chart);
-        // Year pillar chi = Mão(3) → in Dần's punishment group
-        assert!(matrix.pillars[0].branch_relation.tuong_hinh);
-        // Month pillar chi = Tỵ(5) → in Dần's punishment group
-        assert!(matrix.pillars[1].branch_relation.tuong_hinh);
-        // Day pillar chi = Thân(8) → NOT in Dần's punishment group
-        assert!(!matrix.pillars[2].branch_relation.tuong_hinh);
+
+        // Dần(2) × Mão(3) — NOT a punishment (audit defect, now fixed).
+        assert_eq!(
+            matrix.pillars[0].branch_relation.tuong_hinh,
+            PunishmentKind::None
+        );
+        // Dần(2) × Tỵ(5) — CompletedTriad(Hỏa).
+        assert_eq!(
+            matrix.pillars[1].branch_relation.tuong_hinh,
+            PunishmentKind::CompletedTriad {
+                triad: TriadElement::Hoa
+            }
+        );
+        // Dần(2) × Thân(8) — CompletedTriad(Hỏa).
+        assert_eq!(
+            matrix.pillars[2].branch_relation.tuong_hinh,
+            PunishmentKind::CompletedTriad {
+                triad: TriadElement::Hoa
+            }
+        );
+        // Dần(2) × Tuất(10) — NOT a punishment. (Tuất is Earth triad.)
+        assert_eq!(
+            matrix.pillars[3].branch_relation.tuong_hinh,
+            PunishmentKind::None
+        );
+
+        // Both completed-triad rows must register as conflict.
+        assert!(matrix.pillars[1].branch_relation.has_conflict());
+        assert!(matrix.pillars[2].branch_relation.has_conflict());
+        // And neither must register as harmony.
+        assert!(!matrix.pillars[1].branch_relation.has_harmony());
+        assert!(!matrix.pillars[2].branch_relation.has_harmony());
+    }
+
+    /// Canonical Tương hình (丑未戌 Trì thế) — two-branch occurrences
+    /// are canonically `Unavailable`, NOT promoted to a punishment.
+    #[test]
+    fn tuong_hinh_chi_thien_two_branch_unavailable() {
+        use crate::almanac::types::PunishmentKind;
+        let day = CanChi::new(0, 1); // Giáp Sửu
+                                     // Year=Mùi(7), Month=Tuất(10), Day=Sửu(1) self, Hour=Tý(0)
+        let chart = make_chart((0, 7), (2, 10), (4, 1), (6, 0));
+        let matrix = compute_day_person_matrix(&day, &chart);
+
+        // Sửu(1) × Mùi(7) — Unavailable (incomplete Trì thế triad).
+        assert!(matches!(
+            matrix.pillars[0].branch_relation.tuong_hinh,
+            PunishmentKind::Unavailable { .. }
+        ));
+        // Sửu(1) × Tuất(10) — Unavailable (incomplete Trì thế triad).
+        assert!(matches!(
+            matrix.pillars[1].branch_relation.tuong_hinh,
+            PunishmentKind::Unavailable { .. }
+        ));
+        // Sửu(1) × Sửu(1) — NOT a punishment (Sửu is NOT self-punishment).
+        assert_eq!(
+            matrix.pillars[2].branch_relation.tuong_hinh,
+            PunishmentKind::None
+        );
+    }
+
+    /// Canonical Tương hình (子卯 Vô lễ) — directed pair Tý → Mão.
+    /// Both input orders must report the same direction.
+    #[test]
+    fn tuong_hinh_vo_le_directed_ty_mao() {
+        use crate::almanac::types::{BranchRef, PunishmentKind};
+
+        // Day=Tý(0), pillar=Mão(3)
+        let r = compute_branch_relation(0, 3);
+        assert_eq!(
+            r.tuong_hinh,
+            PunishmentKind::DirectedPair {
+                aggressor: BranchRef::new(0),
+                victim: BranchRef::new(3),
+            }
+        );
+
+        // Reverse input order still reports Tý → Mão.
+        let r = compute_branch_relation(3, 0);
+        assert_eq!(
+            r.tuong_hinh,
+            PunishmentKind::DirectedPair {
+                aggressor: BranchRef::new(0),
+                victim: BranchRef::new(3),
+            }
+        );
+    }
+
+    /// Self-punishment: Tỵ(5) is NOT in self-punishment (only Thìn, Ngọ,
+    /// Dậu, Hợi are). Day=Thân(8) × pillar=Thân(8) is `None`.
+    #[test]
+    fn tuong_hinh_self_ty_than_is_none() {
+        use crate::almanac::types::PunishmentKind;
+        let day = CanChi::new(0, 8); // Giáp Thân
+        let chart = make_chart((0, 8), (2, 4), (4, 6), (6, 0)); // Year=Thân(8)
+        let matrix = compute_day_person_matrix(&day, &chart);
+        assert_eq!(
+            matrix.pillars[0].branch_relation.tuong_hinh,
+            PunishmentKind::None
+        );
+    }
+
+    /// Self-punishment: Thân(8) × Thân(8) is NOT self-punishment
+    /// (Thân is in 寅巳申 but not in {Thìn, Ngọ, Dậu, Hợi}).
+    /// Day=Tý(0) × pillar=Tý(0) is also NOT self-punishment
+    /// (Tý is in 子卯 directed pair, not self).
+    #[test]
+    fn tuong_hinh_self_ngo_is_self_punishment() {
+        use crate::almanac::types::{BranchRef, PunishmentKind};
+        let day = CanChi::new(6, 6); // Bính Ngọ
+        let chart = make_chart((0, 6), (2, 4), (4, 6), (6, 0)); // Year=Ngọ(6)
+        let matrix = compute_day_person_matrix(&day, &chart);
+        assert_eq!(
+            matrix.pillars[0].branch_relation.tuong_hinh,
+            PunishmentKind::SelfPunishment {
+                branch: BranchRef::new(6),
+            }
+        );
+        // Self-punishment registers as conflict.
+        assert!(matrix.pillars[0].branch_relation.has_conflict());
     }
 
     #[test]
@@ -301,10 +466,10 @@ mod tests {
         assert!(!br.luc_xung);
         assert!(!br.luc_hop);
         assert!(!br.tuong_hai);
-        // Tý(0) and Dần(2) are in punishment group [Tý, Sửu, Thìn] — wait, let me check
-        // Actually xiang_xing group for Tý(0) is [Tý(0), Sửu(1), Thìn(4)]
-        // Dần(2) is NOT in that group, so tuong_hinh should be false
-        assert!(!br.tuong_hinh);
+        // Tý(0) and Dần(2) are in different triads (Tý=Thủy, Dần=Hỏa)
+        // and in different punishment relations (Tý is in 子卯 directed;
+        // Dần is in 寅巳申 mutual). The relation is therefore `None`.
+        assert_eq!(br.tuong_hinh, crate::almanac::types::PunishmentKind::None);
         assert!(br.is_neutral());
     }
 

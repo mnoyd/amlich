@@ -8,7 +8,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::tu_menh::Direction;
-use super::types::RuleEvidence;
+use super::types::{PunishmentKind, RuleEvidence};
 use super::xung_hop;
 use crate::sources::SOURCE_KHCBPPT;
 use crate::types::CHI;
@@ -105,16 +105,30 @@ pub fn compute_thai_tue(birth_chi_index: usize, current_year_chi_index: usize) -
         });
     }
 
-    // Hình: mutual punishment — check if both are in the same punishment group
-    let xing_group = xung_hop::get_xiang_xing(birth_chi_index);
-    if birth_chi_index != current_year_chi_index
-        && xing_group
-            .iter()
-            .any(|name| name.as_str() == CHI[current_year_chi_index])
-    {
+    // Hình: mutual punishment — consume the canonical typed pair
+    // classification. Only emit when the relation is an actual
+    // punishment (directed or completed triad). The disputed two-branch
+    // Trì thế (丑未戌) case is `Unavailable` and therefore does not
+    // fire here. Self-punishment is only emitted when the two branches
+    // are equal.
+    if birth_chi_index != current_year_chi_index {
+        let hinh = xung_hop::xiang_xing_pair(birth_chi_index, current_year_chi_index);
+        if matches!(
+            hinh,
+            PunishmentKind::DirectedPair { .. } | PunishmentKind::CompletedTriad { .. }
+        ) {
+            conflicts.push(ThaiTueConflict {
+                kind: ThaiTueConflictKind::Hinh,
+                description: format!("Hình Thái Tuế: {} hình {}", birth_name, year_name),
+            });
+        }
+    } else if matches!(
+        xung_hop::xiang_xing_self(birth_chi_index),
+        PunishmentKind::SelfPunishment { .. }
+    ) {
         conflicts.push(ThaiTueConflict {
             kind: ThaiTueConflictKind::Hinh,
-            description: format!("Hình Thái Tuế: {} hình {}", birth_name, year_name),
+            description: format!("Hình Thái Tuế: {} tự hình", birth_name),
         });
     }
 

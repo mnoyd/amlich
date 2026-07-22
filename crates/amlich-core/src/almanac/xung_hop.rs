@@ -1,4 +1,4 @@
-use super::types::XungHopResult;
+use super::types::{BranchRef, PunishmentKind, TriadElement, XungHopResult};
 /// Xung/Hợp Domain — Earthly Branch Conflict and Harmony Relations
 ///
 /// Implements the three classical branch-relationship groups used in daily
@@ -7,6 +7,11 @@ use super::types::XungHopResult;
 /// - **Lục xung (六冲):** Each branch clashes with the one 6 positions away.
 /// - **Tam hợp (三合):** Three branches form a harmony triad (4 groups).
 /// - **Tứ hành xung (四行冲):** Four branches in a mutual-clash square (3 groups).
+///
+/// Also implements the canonical Tương hình (相刑) taxonomy as typed
+/// `PunishmentKind` facts — see
+/// `docs/architecture/personal-day-audit/branch-relation-decision.md` for
+/// the source-cited decision.
 use crate::types::CHI;
 
 /// Return the lục-xung (direct-conflict) branch for `chi_index`.
@@ -64,11 +69,7 @@ pub fn get_xung_hop(chi_index: usize) -> XungHopResult {
             .collect(),
         liu_he: Some(get_liu_he(chi_index).to_string()),
         xiang_hai: Some(get_xiang_hai(chi_index).to_string()),
-        xiang_xing: if xiang_xing_group.is_empty() {
-            None
-        } else {
-            Some(xiang_xing_group)
-        },
+        xiang_xing: xiang_xing_group,
     }
 }
 
@@ -128,26 +129,140 @@ pub fn get_xiang_hai(chi_index: usize) -> &'static str {
 
 // --- Tương hình ---
 
-/// Tương hình punishment groups - 4 groups with 3-4 members each
-/// Note: Group [6, 6, 6] represents Ngọ Ngọ (self-punishment)
-pub const XIANGXING: [[usize; 3]; 4] = [
-    [2, 3, 5],  // 寅卯巳 (Vô恩之刑 - ungrateful punishment)
-    [0, 1, 4],  // 子辰丑 (恃势之刑 - relying on power punishment)
-    [8, 9, 11], // 申酉亥 (无礼之刑 - disrespectful punishment)
-    [6, 6, 6],  // 午午 (自刑 - self-punishment)
-];
-
-/// Return the Tương hình punishment group members for `chi_index`.
+/// Canonical 3-branch Tương hình (相刑) groups.
 ///
-/// Returns a vector of branch names that form the punishment group with `chi_index`.
-/// For self-punishment (Ngọ), returns [Ngọ, Ngọ, Ngọ] to indicate special handling.
-pub fn get_xiang_xing(chi_index: usize) -> Vec<String> {
-    for group in XIANGXING.iter() {
-        if group.contains(&chi_index) {
-            return group.iter().map(|&idx| CHI[idx].to_string()).collect();
-        }
+/// Source-cited taxonomy per
+/// `docs/architecture/personal-day-audit/branch-relation-decision.md` §2.5:
+///
+/// - `[2, 5, 8]` — 寅巳申 (Dần, Tỵ, Thân) — Vô ân chi hình (Fire element)
+/// - `[1, 7, 10]` — 丑未戌 (Sửu, Mùi, Tuất) — Trì thế chi hình (Earth element)
+/// - `[3, 0]` — 卯子 (Mão, Tý) — Vô lễ chi hình (directed pair)
+/// - `[4, 6, 9, 11]` — 辰午酉亥 (Thìn, Ngọ, Dậu, Hợi) — Tự hình (self-punishment)
+///
+/// This replaces the previous (incorrect) `[[usize; 3]; 4]` constant that
+/// conflated membership with completed-group claims and mis-grouped
+/// 寅卯巳 as a punishment triad when it is not. The directed pair and
+/// self-punishment groups use arrays of distinct lengths; the typed
+/// [`xiang_xing_pair`] / [`xiang_xing_self`] functions are the
+/// supported lookup surface.
+pub mod xiang_xing_groups {
+    /// 寅巳申 — Vô ân chi hình (mutual 3-branch Fire triad).
+    pub const INVISIBLE_FIRE: [usize; 3] = [2, 5, 8];
+    /// 丑未戌 — Trì thế chi hình (mutual 3-branch Earth triad).
+    pub const EARTH_POWER: [usize; 3] = [1, 7, 10];
+    /// 卯子 — Vô lễ chi hình (directed Tý → Mão pair).
+    pub const DIRECTED_RUDE: [usize; 2] = [3, 0];
+    /// 辰午酉亥 — Tự hình (self-punishment singletons).
+    pub const SELF_PUNISHMENT: [usize; 4] = [4, 6, 9, 11];
+}
+
+/// Return the day-level 3-branch Tương hình group for `chi_index`, or
+/// `None` when the branch is not in any canonical 3-branch group.
+///
+/// This is the day-level projection used by `XungHopResult.xiang_xing`.
+/// Pair-level, self-punishment, directed, and disputed cases are
+/// surfaced via [`xiang_xing_pair`] / [`xiang_xing_self`].
+pub fn get_xiang_xing(chi_index: usize) -> Option<Vec<String>> {
+    if xiang_xing_groups::INVISIBLE_FIRE.contains(&chi_index) {
+        return Some(
+            xiang_xing_groups::INVISIBLE_FIRE
+                .iter()
+                .map(|&i| CHI[i].to_string())
+                .collect(),
+        );
     }
-    vec![]
+    if xiang_xing_groups::EARTH_POWER.contains(&chi_index) {
+        return Some(
+            xiang_xing_groups::EARTH_POWER
+                .iter()
+                .map(|&i| CHI[i].to_string())
+                .collect(),
+        );
+    }
+    None
+}
+
+/// Tương hình classification for a pair of branches `(a, b)` where
+/// `a != b`. Returns the canonical [`PunishmentKind`].
+///
+/// Canonical mapping (per decision brief §2.5):
+/// - Both in `{2, 5, 8}` (寅巳申) → `CompletedTriad { triad: Hoa }`
+/// - Both in `{1, 7, 10}` (丑未戌) → `CompletedTriad { triad: Tho }` is
+///   **not currently emitted** because `TriadElement` does not yet have
+///   an Earth variant; incomplete two-branch occurrences are marked
+///   `Unavailable { reason: "incomplete Trì thế triad" }`.
+/// - `(0, 3)` or `(3, 0)` (子卯) → `DirectedPair { aggressor: Tý, victim: Mão }`
+///   — direction is always Tý → Mão, the reverse input order still
+///   reports the same direction.
+/// - Otherwise → `None`.
+pub fn xiang_xing_pair(a: usize, b: usize) -> PunishmentKind {
+    debug_assert!(a < 12 && b < 12, "xiang_xing_pair indices must be in 0..12");
+    if a == b {
+        return PunishmentKind::None;
+    }
+    if xiang_xing_groups::INVISIBLE_FIRE.contains(&a)
+        && xiang_xing_groups::INVISIBLE_FIRE.contains(&b)
+    {
+        return PunishmentKind::CompletedTriad {
+            triad: TriadElement::Hoa,
+        };
+    }
+    if xiang_xing_groups::EARTH_POWER.contains(&a) && xiang_xing_groups::EARTH_POWER.contains(&b) {
+        // Two-branch occurrences of 丑未戌 are canonically disputed —
+        // see branch-relation-decision.md §2.5.4. Mark as unavailable
+        // rather than promoting to a verdict.
+        return PunishmentKind::Unavailable {
+            reason: "incomplete Trì thế triad (丑未戌)".to_string(),
+        };
+    }
+    let is_ty = a == 0 || b == 0;
+    let is_mao = a == 3 || b == 3;
+    if is_ty && is_mao {
+        return PunishmentKind::DirectedPair {
+            aggressor: BranchRef::new(0),
+            victim: BranchRef::new(3),
+        };
+    }
+    PunishmentKind::None
+}
+
+/// Tương hình classification for a same-branch comparison
+/// `compute_branch_relation(b, b)`. Returns `SelfPunishment` for the four
+/// canonical self-punishment branches and `None` otherwise.
+///
+/// Same-branch is **never** promoted to `CompletedTriad` because the
+/// triad completion rule requires three distinct branches.
+pub fn xiang_xing_self(b: usize) -> PunishmentKind {
+    debug_assert!(b < 12, "xiang_xing_self index must be in 0..12");
+    if xiang_xing_groups::SELF_PUNISHMENT.contains(&b) {
+        return PunishmentKind::SelfPunishment {
+            branch: BranchRef::new(b),
+        };
+    }
+    PunishmentKind::None
+}
+
+/// Return the Tam hợp (三合) triad element for a branch, or `None` if
+/// the branch is not in any triad. Every branch in 0..12 belongs to
+/// exactly one triad today, so this is total over the canonical range.
+pub fn triad_element(chi_index: usize) -> Option<TriadElement> {
+    debug_assert!(chi_index < 12, "triad_element index must be in 0..12");
+    match chi_index % 4 {
+        0 => Some(TriadElement::Thuy), // Thân(8) · Tý(0) · Thìn(4)
+        1 => Some(TriadElement::Kim),  // Tỵ(5)  · Dậu(9) · Sửu(1)
+        2 => Some(TriadElement::Hoa),  // Dần(2) · Ngọ(6) · Tuất(10)
+        3 => Some(TriadElement::Moc),  // Hợi(11)· Mão(3) · Mùi(7)
+        _ => None,
+    }
+}
+
+/// True if two branches belong to the same Tam hợp triad.
+///
+/// Same-branch pairs are not promoted here — the caller should
+/// additionally check `a != b` if the policy requires a distinct pair.
+pub fn is_triad_member(a: usize, b: usize) -> bool {
+    debug_assert!(a < 12 && b < 12, "is_triad_member indices must be in 0..12");
+    triad_element(a) == triad_element(b)
 }
 
 #[cfg(test)]
@@ -368,76 +483,388 @@ mod tests {
 
     // --- Tương hình ---
 
+    /// get_xiang_xing is the day-level 3-branch group lookup. Only
+    /// 寅巳申 and 丑未戌 return groups; the other 6 branches (Tý, Mão,
+    /// Thìn, Ngọ, Dậu, Hợi) are not in any canonical 3-branch group.
     #[test]
-    fn test_xiang_xing_groups_complete() {
-        // All branches in punishment groups should appear
-        // Note: Not all 12 branches have Tương hình - only those in the 4 groups
-        let mut seen = std::collections::HashSet::new();
+    fn test_xiang_xing_canonical_3_branch_groups() {
+        // 寅巳申 (Dần, Tỵ, Thân) → Vô ân chi hình (Fire)
+        for &idx in &[2usize, 5, 8] {
+            let group = get_xiang_xing(idx).expect("group");
+            assert_eq!(group.len(), 3, "Dần/Tỵ/Thân group must be 3 members");
+            assert!(group.contains(&"Dần".to_string()));
+            assert!(group.contains(&"Tỵ".to_string()));
+            assert!(group.contains(&"Thân".to_string()));
+        }
+        // 丑未戌 (Sửu, Mùi, Tuất) → Trì thế chi hình (Earth)
+        for &idx in &[1usize, 7, 10] {
+            let group = get_xiang_xing(idx).expect("group");
+            assert_eq!(group.len(), 3, "Sửu/Mùi/Tuất group must be 3 members");
+            assert!(group.contains(&"Sửu".to_string()));
+            assert!(group.contains(&"Mùi".to_string()));
+            assert!(group.contains(&"Tuất".to_string()));
+        }
+        // The other 6 branches are NOT in any 3-branch group.
+        for &idx in &[0usize, 3, 4, 6, 9, 11] {
+            assert!(
+                get_xiang_xing(idx).is_none(),
+                "branch {idx} ({}) should not be in a 3-branch group",
+                CHI[idx]
+            );
+        }
+    }
+
+    /// Self-punishment is exposed via the typed `xiang_xing_self` API
+    /// (not via `get_xiang_xing`, which is day-level 3-branch only).
+    #[test]
+    fn test_xiang_xing_self_punishment_canonical() {
+        for &idx in &[4usize, 6, 9, 11] {
+            let kind = xiang_xing_self(idx);
+            assert!(
+                matches!(kind, PunishmentKind::SelfPunishment { .. }),
+                "branch {idx} ({}) must be self-punishment",
+                CHI[idx]
+            );
+        }
+        // The other 8 branches are not self-punishment.
+        for &idx in &[0usize, 1, 2, 3, 5, 7, 8, 10] {
+            assert_eq!(
+                xiang_xing_self(idx),
+                PunishmentKind::None,
+                "branch {idx} ({}) must not be self-punishment",
+                CHI[idx]
+            );
+        }
+    }
+
+    /// xiang_xing_pair produces the canonical pair-level kinds.
+    /// Dần-Tỵ, Dần-Thân, Tỵ-Thân → CompletedTriad(Hỏa).
+    #[test]
+    fn test_xiang_xing_pair_fire_triad() {
+        let pairs = [(2usize, 5usize), (2, 8), (5, 8), (5, 2), (8, 2), (8, 5)];
+        for (a, b) in pairs {
+            let kind = xiang_xing_pair(a, b);
+            assert_eq!(
+                kind,
+                PunishmentKind::CompletedTriad {
+                    triad: TriadElement::Hoa
+                },
+                "pair ({a}, {b}) must be CompletedTriad(Hỏa)"
+            );
+        }
+    }
+
+    /// 丑未戌 two-branch occurrences are canonically Unavailable
+    /// (incomplete Trì thế triad), NOT promoted to a punishment.
+    #[test]
+    fn test_xiang_xing_pair_earth_two_branch_unavailable() {
+        let pairs = [(1usize, 7usize), (1, 10), (7, 10), (7, 1), (10, 1), (10, 7)];
+        for (a, b) in pairs {
+            let kind = xiang_xing_pair(a, b);
+            assert!(
+                matches!(kind, PunishmentKind::Unavailable { .. }),
+                "pair ({a}, {b}) must be Unavailable (incomplete Trì thế triad)"
+            );
+        }
+    }
+
+    /// 子卯 is a directed pair: Tý → Mão. Both input orders
+    /// report the same direction.
+    #[test]
+    fn test_xiang_xing_pair_directed_ty_mao() {
+        let expected = PunishmentKind::DirectedPair {
+            aggressor: BranchRef::new(0),
+            victim: BranchRef::new(3),
+        };
+        assert_eq!(xiang_xing_pair(0, 3), expected);
+        assert_eq!(xiang_xing_pair(3, 0), expected);
+    }
+
+    /// All other distinct-branch pairs (not in 寅巳申, not the directed
+    /// 子卯 pair, not in 丑未戌) are `None` — not a punishment.
+    #[test]
+    fn test_xiang_xing_pair_unrelated_is_none() {
+        // Pick a few pairs that should clearly NOT be a punishment.
+        let pairs = [
+            (0usize, 1usize),
+            (0, 2),
+            (3, 4),
+            (4, 5),
+            (6, 7),
+            (8, 9),
+            (9, 10),
+            (10, 11),
+        ];
+        for (a, b) in pairs {
+            assert_eq!(
+                xiang_xing_pair(a, b),
+                PunishmentKind::None,
+                "pair ({a}, {b}) must be None"
+            );
+        }
+    }
+
+    /// Same-branch input to xiang_xing_pair is always `None`. The
+    /// self-punishment semantic lives in `xiang_xing_self`.
+    #[test]
+    fn test_xiang_xing_pair_same_branch_is_none() {
         for i in 0..12 {
-            let group = get_xiang_xing(i);
-            for branch in &group {
-                seen.insert(branch.clone());
+            assert_eq!(
+                xiang_xing_pair(i, i),
+                PunishmentKind::None,
+                "pair ({i}, {i}) must be None"
+            );
+        }
+    }
+
+    /// Triad element lookup is total over the canonical branch range.
+    #[test]
+    fn test_triad_element_all_branches() {
+        // Thân(8) · Tý(0) · Thìn(4) → Thủy
+        assert_eq!(triad_element(0), Some(TriadElement::Thuy));
+        assert_eq!(triad_element(4), Some(TriadElement::Thuy));
+        assert_eq!(triad_element(8), Some(TriadElement::Thuy));
+        // Tỵ(5) · Dậu(9) · Sửu(1) → Kim
+        assert_eq!(triad_element(1), Some(TriadElement::Kim));
+        assert_eq!(triad_element(5), Some(TriadElement::Kim));
+        assert_eq!(triad_element(9), Some(TriadElement::Kim));
+        // Dần(2) · Ngọ(6) · Tuất(10) → Hỏa
+        assert_eq!(triad_element(2), Some(TriadElement::Hoa));
+        assert_eq!(triad_element(6), Some(TriadElement::Hoa));
+        assert_eq!(triad_element(10), Some(TriadElement::Hoa));
+        // Hợi(11) · Mão(3) · Mùi(7) → Mộc
+        assert_eq!(triad_element(3), Some(TriadElement::Moc));
+        assert_eq!(triad_element(7), Some(TriadElement::Moc));
+        assert_eq!(triad_element(11), Some(TriadElement::Moc));
+    }
+
+    // --- branch-relations-golden.json cross-check ---
+
+    use serde::Deserialize;
+
+    #[derive(Debug, Deserialize)]
+    struct GoldenDataset {
+        #[allow(dead_code)]
+        metadata: GoldenMetadata,
+        entries: Vec<GoldenEntry>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[allow(dead_code)]
+    struct GoldenMetadata {
+        schema: String,
+        entry_count: usize,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(tag = "name")]
+    enum GoldenEntry {
+        #[serde(rename = "luc_xung_pairs")]
+        LucXungPairs { pairs: Vec<LucXungPair> },
+        #[serde(rename = "tam_hop_triads")]
+        TamHopTriads { triads: Vec<TamHopTriad> },
+        #[serde(rename = "xiang_xing_canonical_pairs")]
+        XiangXingPairs { cases: Vec<XiangXingCase> },
+        #[serde(rename = "xiang_xing_self_punishment")]
+        XiangXingSelf { branches: Vec<XiangXingSelfBranch> },
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct LucXungPair {
+        day_chi_index: usize,
+        #[allow(dead_code)]
+        day_chi: String,
+        expected_luc_xung_index: usize,
+        #[allow(dead_code)]
+        expected_luc_xung: String,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct TamHopTriad {
+        element: String,
+        members: Vec<usize>,
+        #[allow(dead_code)]
+        branches: Vec<String>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct XiangXingCase {
+        kind: String,
+        a: usize,
+        b: usize,
+        #[serde(default)]
+        #[allow(dead_code)]
+        note: String,
+        #[serde(default)]
+        triad: Option<String>,
+        #[serde(default)]
+        reason: Option<String>,
+        #[serde(default)]
+        aggressor: Option<usize>,
+        #[serde(default)]
+        victim: Option<usize>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct XiangXingSelfBranch {
+        index: usize,
+        #[allow(dead_code)]
+        branch: String,
+        expected_kind: String,
+    }
+
+    const GOLDEN_JSON: &str = include_str!("../../data/almanac/branch-relations-golden.json");
+
+    #[test]
+    fn golden_luc_xung_pairs_match_canonical() {
+        let dataset: GoldenDataset =
+            serde_json::from_str(GOLDEN_JSON).expect("branch-relations-golden.json must parse");
+        for entry in &dataset.entries {
+            if let GoldenEntry::LucXungPairs { pairs } = entry {
+                for p in pairs {
+                    let partner_name = luc_xung(p.day_chi_index);
+                    let partner_index = CHI.iter().position(|c| *c == partner_name).unwrap();
+                    assert_eq!(
+                        partner_index, p.expected_luc_xung_index,
+                        "day_chi_index {}: luc_xung partner mismatch",
+                        p.day_chi_index
+                    );
+                }
             }
         }
-
-        // Verify the 4 groups are correct: 寅卯巳, 子辰丑, 申酉亥, 午午
-        assert!(seen.contains(&"Dần".to_string()));
-        assert!(seen.contains(&"Mão".to_string()));
-        assert!(seen.contains(&"Tỵ".to_string()));
-        assert!(seen.contains(&"Tý".to_string()));
-        assert!(seen.contains(&"Thìn".to_string()));
-        assert!(seen.contains(&"Sửu".to_string()));
-        assert!(seen.contains(&"Thân".to_string()));
-        assert!(seen.contains(&"Dậu".to_string()));
-        assert!(seen.contains(&"Hợi".to_string()));
-        assert!(seen.contains(&"Ngọ".to_string()));
-
-        // Mùi and Tuất should NOT have Tương hình (not in any group)
-        let mui_group = get_xiang_xing(7); // Mùi
-        assert_eq!(
-            mui_group,
-            Vec::<String>::new(),
-            "Mùi should not have Tương hình"
-        );
-
-        let tuat_group = get_xiang_xing(10); // Tuất
-        assert_eq!(
-            tuat_group,
-            Vec::<String>::new(),
-            "Tuất should not have Tương hình"
-        );
     }
 
     #[test]
-    fn test_xiang_xing_self_punishment() {
-        // Ngọ Ngọ self-punishment: should return [Ngọ, Ngọ, Ngọ] not just [Ngọ]
-        let ngo_group = get_xiang_xing(6); // Ngọ is index 6
-        assert_eq!(
-            ngo_group.len(),
-            3,
-            "Ngọ self-punishment should return 3 entries"
-        );
-        assert!(
-            ngo_group.iter().all(|s| s == "Ngọ"),
-            "All members should be Ngọ for self-punishment"
-        );
+    fn golden_tam_hop_triads_match_canonical() {
+        let dataset: GoldenDataset =
+            serde_json::from_str(GOLDEN_JSON).expect("branch-relations-golden.json must parse");
+        for entry in &dataset.entries {
+            if let GoldenEntry::TamHopTriads { triads } = entry {
+                assert_eq!(triads.len(), 4, "expected exactly 4 canonical triads");
+                for t in triads {
+                    let expected = match t.element.as_str() {
+                        "thuy" => TriadElement::Thuy,
+                        "kim" => TriadElement::Kim,
+                        "hoa" => TriadElement::Hoa,
+                        "moc" => TriadElement::Moc,
+                        other => panic!("unknown triad element in golden: {other}"),
+                    };
+                    for &idx in &t.members {
+                        assert_eq!(
+                            triad_element(idx),
+                            Some(expected),
+                            "branch {idx} should map to triad element {:?}",
+                            expected
+                        );
+                    }
+                }
+            }
+        }
     }
 
     #[test]
-    fn test_xiang_xing_returns_correct_groups() {
-        // 寅卯巳 returns [Dần, Mão, Tỵ]
-        let dan_group = get_xiang_xing(2); // Dần is index 2
-        assert_eq!(dan_group.len(), 3);
-        assert!(dan_group.contains(&"Dần".to_string()));
-        assert!(dan_group.contains(&"Mão".to_string()));
-        assert!(dan_group.contains(&"Tỵ".to_string()));
+    fn golden_xiang_xing_pairs_match_canonical() {
+        use crate::almanac::types::BranchRef;
+        let dataset: GoldenDataset =
+            serde_json::from_str(GOLDEN_JSON).expect("branch-relations-golden.json must parse");
+        for entry in &dataset.entries {
+            if let GoldenEntry::XiangXingPairs { cases } = entry {
+                for c in cases {
+                    let actual = xiang_xing_pair(c.a, c.b);
+                    match c.kind.as_str() {
+                        "none" => assert_eq!(
+                            actual,
+                            PunishmentKind::None,
+                            "({a}, {b}) must be None",
+                            a = c.a,
+                            b = c.b
+                        ),
+                        "completed_triad" => {
+                            let triad = match c.triad.as_deref() {
+                                Some("hoa") => TriadElement::Hoa,
+                                Some("kim") => TriadElement::Kim,
+                                Some("moc") => TriadElement::Moc,
+                                Some("thuy") => TriadElement::Thuy,
+                                other => panic!("unknown triad in golden: {other:?}"),
+                            };
+                            assert_eq!(
+                                actual,
+                                PunishmentKind::CompletedTriad { triad },
+                                "({a}, {b}) must be CompletedTriad({triad:?})",
+                                a = c.a,
+                                b = c.b
+                            );
+                        }
+                        "directed_pair" => {
+                            let aggressor = c.aggressor.expect("aggressor in golden");
+                            let victim = c.victim.expect("victim in golden");
+                            assert_eq!(
+                                actual,
+                                PunishmentKind::DirectedPair {
+                                    aggressor: BranchRef::new(aggressor),
+                                    victim: BranchRef::new(victim),
+                                },
+                                "({a}, {b}) must be DirectedPair",
+                                a = c.a,
+                                b = c.b
+                            );
+                        }
+                        "unavailable" => {
+                            assert!(
+                                matches!(actual, PunishmentKind::Unavailable { .. }),
+                                "({a}, {b}) must be Unavailable, got {actual:?}",
+                                a = c.a,
+                                b = c.b
+                            );
+                            if let Some(expected_reason) = &c.reason {
+                                if let PunishmentKind::Unavailable { reason } = &actual {
+                                    assert!(
+                                        reason.contains(expected_reason)
+                                            || expected_reason.contains(reason.as_str()),
+                                        "Unavailable reason mismatch: actual={reason:?}, expected={expected_reason:?}"
+                                    );
+                                }
+                            }
+                        }
+                        other => panic!("unknown xiang_xing kind in golden: {other}"),
+                    }
+                }
+            }
+        }
+    }
 
-        // 子辰丑 returns [Tý, Thìn, Sửu]
-        let ty_group = get_xiang_xing(0); // Tý is index 0
-        assert_eq!(ty_group.len(), 3);
-        assert!(ty_group.contains(&"Tý".to_string()));
-        assert!(ty_group.contains(&"Thìn".to_string()));
-        assert!(ty_group.contains(&"Sửu".to_string()));
+    #[test]
+    fn golden_xiang_xing_self_punishment_matches_canonical() {
+        use crate::almanac::types::BranchRef;
+        let dataset: GoldenDataset =
+            serde_json::from_str(GOLDEN_JSON).expect("branch-relations-golden.json must parse");
+        for entry in &dataset.entries {
+            if let GoldenEntry::XiangXingSelf { branches } = entry {
+                assert_eq!(branches.len(), 12, "expected all 12 branches");
+                for b in branches {
+                    let actual = xiang_xing_self(b.index);
+                    match b.expected_kind.as_str() {
+                        "self_punishment" => assert_eq!(
+                            actual,
+                            PunishmentKind::SelfPunishment {
+                                branch: BranchRef::new(b.index),
+                            },
+                            "branch {} ({}) must be SelfPunishment",
+                            b.index,
+                            b.branch
+                        ),
+                        "none" => assert_eq!(
+                            actual,
+                            PunishmentKind::None,
+                            "branch {} ({}) must be None",
+                            b.index,
+                            b.branch
+                        ),
+                        other => panic!("unknown self kind in golden: {other}"),
+                    }
+                }
+            }
+        }
     }
 
     // --- get_xung_hop integration ---

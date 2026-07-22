@@ -1,0 +1,101 @@
+{
+  "metadata": {
+    "schema": "branch-relations/v1",
+    "description": "Canonical branch-relation golden fixtures. Locks the source-cited taxonomy from docs/architecture/personal-day-audit/branch-relation-decision.md: 寅巳申 (Vô ân / Fire triad), 丑未戌 (Trì thế / Earth triad), 子卯 (Vô lễ / directed Tý → Mão), 自刑 (self for {Thìn, Ngọ, Dậu, Hợi}). Two-branch 丑未戌 is Unavailable. Strict canonical only — no sub-school variants.",
+    "source_ids": ["khcbppt", "san-ming-tong-hui", "yuan-hai-zi-ping", "di-tian-sui"],
+    "generated": "2026-07-22",
+    "entry_count": 4
+  },
+  "entries": [
+    {
+      "name": "luc_xung_pairs",
+      "description": "All 12 lục xung pairs. day_chi_index → expected luc_xung partner (canonical +6 mod 12).",
+      "pairs": [
+        { "day_chi_index": 0,  "day_chi": "Tý",    "expected_luc_xung_index": 6,  "expected_luc_xung": "Ngọ" },
+        { "day_chi_index": 1,  "day_chi": "Sửu",   "expected_luc_xung_index": 7,  "expected_luc_xung": "Mùi" },
+        { "day_chi_index": 2,  "day_chi": "Dần",   "expected_luc_xung_index": 8,  "expected_luc_xung": "Thân" },
+        { "day_chi_index": 3,  "day_chi": "Mão",   "expected_luc_xung_index": 9,  "expected_luc_xung": "Dậu" },
+        { "day_chi_index": 4,  "day_chi": "Thìn",  "expected_luc_xung_index": 10, "expected_luc_xung": "Tuất" },
+        { "day_chi_index": 5,  "day_chi": "Tỵ",    "expected_luc_xung_index": 11, "expected_luc_xung": "Hợi" },
+        { "day_chi_index": 6,  "day_chi": "Ngọ",   "expected_luc_xung_index": 0,  "expected_luc_xung": "Tý" },
+        { "day_chi_index": 7,  "day_chi": "Mùi",   "expected_luc_xung_index": 1,  "expected_luc_xung": "Sửu" },
+        { "day_chi_index": 8,  "day_chi": "Thân",  "expected_luc_xung_index": 2,  "expected_luc_xung": "Dần" },
+        { "day_chi_index": 9,  "day_chi": "Dậu",   "expected_luc_xung_index": 3,  "expected_luc_xung": "Mão" },
+        { "day_chi_index": 10, "day_chi": "Tuất",  "expected_luc_xung_index": 4,  "expected_luc_xung": "Thìn" },
+        { "day_chi_index": 11, "day_chi": "Hợi",   "expected_luc_xung_index": 5,  "expected_luc_xung": "Tỵ" }
+      ]
+    },
+    {
+      "name": "tam_hop_triads",
+      "description": "All 4 canonical Tam hợp triads. day_chi_index → expected triad element and the 3 sorted branch members.",
+      "triads": [
+        {
+          "element": "thuy",
+          "members": [0, 4, 8],
+          "branches": ["Tý", "Thìn", "Thân"]
+        },
+        {
+          "element": "kim",
+          "members": [1, 5, 9],
+          "branches": ["Sửu", "Tỵ", "Dậu"]
+        },
+        {
+          "element": "hoa",
+          "members": [2, 6, 10],
+          "branches": ["Dần", "Ngọ", "Tuất"]
+        },
+        {
+          "element": "moc",
+          "members": [3, 7, 11],
+          "branches": ["Mão", "Mùi", "Hợi"]
+        }
+      ]
+    },
+    {
+      "name": "xiang_xing_canonical_pairs",
+      "description": "All canonical Tương hình (相刑) pair facts. Two-branch 丑未戌 is Unavailable (incomplete Trì thế). 子卯 is a directed pair (Tý → Mão). 寅巳申 mutual 3-branch pairs are CompletedTriad(Hỏa).",
+      "cases": [
+        { "kind": "none",                       "a": 0,  "b": 1,  "note": "Tý–Sửu is Lục hợp, not a punishment" },
+        { "kind": "none",                       "a": 0,  "b": 2,  "note": "Tý–Dần is unrelated, not a punishment" },
+        { "kind": "none",                       "a": 2,  "b": 3,  "note": "Dần–Mão is NOT a punishment (audit-flagged defect now fixed)" },
+        { "kind": "none",                       "a": 0,  "b": 4,  "note": "Tý–Thìn is NOT a punishment (was in the old broken XIANGXING[1])" },
+        { "kind": "none",                       "a": 1,  "b": 4,  "note": "Sửu–Thìn is NOT a punishment" },
+        { "kind": "none",                       "a": 8,  "b": 9,  "note": "Thân–Dậu is NOT a punishment (was in the old broken XIANGXING[2])" },
+        { "kind": "none",                       "a": 8,  "b": 11, "note": "Thân–Hợi is NOT a punishment" },
+        { "kind": "none",                       "a": 9,  "b": 11, "note": "Dậu–Hợi is NOT a punishment" },
+        { "kind": "completed_triad",            "a": 2,  "b": 5,  "triad": "hoa",  "note": "Dần–Tỵ in 寅巳申 Vô ân" },
+        { "kind": "completed_triad",            "a": 2,  "b": 8,  "triad": "hoa",  "note": "Dần–Thân in 寅巳申 Vô ân" },
+        { "kind": "completed_triad",            "a": 5,  "b": 8,  "triad": "hoa",  "note": "Tỵ–Thân in 寅巳申 Vô ân" },
+        { "kind": "completed_triad",            "a": 5,  "b": 2,  "triad": "hoa",  "note": "reverse direction — same triad" },
+        { "kind": "completed_triad",            "a": 8,  "b": 2,  "triad": "hoa",  "note": "reverse direction — same triad" },
+        { "kind": "completed_triad",            "a": 8,  "b": 5,  "triad": "hoa",  "note": "reverse direction — same triad" },
+        { "kind": "unavailable",                "a": 1,  "b": 7,  "reason": "incomplete Trì thế triad (丑未戌)" },
+        { "kind": "unavailable",                "a": 1,  "b": 10, "reason": "incomplete Trì thế triad (丑未戌)" },
+        { "kind": "unavailable",                "a": 7,  "b": 10, "reason": "incomplete Trì thế triad (丑未戌)" },
+        { "kind": "unavailable",                "a": 7,  "b": 1,  "reason": "incomplete Trì thế triad (丑未戌) (reverse direction)" },
+        { "kind": "unavailable",                "a": 10, "b": 1,  "reason": "incomplete Trì thế triad (丑未戌) (reverse direction)" },
+        { "kind": "unavailable",                "a": 10, "b": 7,  "reason": "incomplete Trì thế triad (丑未戌) (reverse direction)" },
+        { "kind": "directed_pair",              "a": 0,  "b": 3,  "aggressor": 0, "victim": 3, "note": "Tý → Mão Vô lễ" },
+        { "kind": "directed_pair",              "a": 3,  "b": 0,  "aggressor": 0, "victim": 3, "note": "reverse input order, same direction Tý → Mão" }
+      ]
+    },
+    {
+      "name": "xiang_xing_self_punishment",
+      "description": "Self-punishment (自刑) for {Thìn, Ngọ, Dậu, Hợi}. All other branches return None for same-branch.",
+      "branches": [
+        { "index": 0,  "branch": "Tý",   "expected_kind": "none" },
+        { "index": 1,  "branch": "Sửu",  "expected_kind": "none" },
+        { "index": 2,  "branch": "Dần",  "expected_kind": "none" },
+        { "index": 3,  "branch": "Mão",  "expected_kind": "none" },
+        { "index": 4,  "branch": "Thìn", "expected_kind": "self_punishment" },
+        { "index": 5,  "branch": "Tỵ",   "expected_kind": "none" },
+        { "index": 6,  "branch": "Ngọ",  "expected_kind": "self_punishment" },
+        { "index": 7,  "branch": "Mùi",  "expected_kind": "none" },
+        { "index": 8,  "branch": "Thân", "expected_kind": "none" },
+        { "index": 9,  "branch": "Dậu",  "expected_kind": "self_punishment" },
+        { "index": 10, "branch": "Tuất", "expected_kind": "none" },
+        { "index": 11, "branch": "Hợi",  "expected_kind": "self_punishment" }
+      ]
+    }
+  ]
+}

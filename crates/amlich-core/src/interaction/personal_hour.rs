@@ -132,11 +132,14 @@ fn compute_hour_score(
         ThapThanLabel::ThatSat => -10,                         // Seven Killings = pressure
     };
 
-    // Branch harmony/conflict
+    // Branch harmony/conflict — consume the typed branch relation.
     if branch_rel.luc_hop {
         score += 15;
     }
-    if branch_rel.tam_hop {
+    // Tam hợp only counts when the two branches are distinct members
+    // of the same triad; same-branch is not a positive Tam hợp pair
+    // (see `BranchRelation::is_tam_hop_pair` and the audit doc).
+    if branch_rel.is_tam_hop_pair() {
         score += 10;
     }
     if branch_rel.luc_xung {
@@ -145,7 +148,15 @@ fn compute_hour_score(
     if branch_rel.tuong_hai {
         score -= 10;
     }
-    if branch_rel.tuong_hinh {
+    // Tương hình subtracts only for actual punishments
+    // (directed, completed triad, or self-punishment). Unavailable
+    // two-branch incomplete triads do not score.
+    if matches!(
+        branch_rel.tuong_hinh,
+        crate::almanac::types::PunishmentKind::DirectedPair { .. }
+            | crate::almanac::types::PunishmentKind::CompletedTriad { .. }
+            | crate::almanac::types::PunishmentKind::SelfPunishment { .. }
+    ) {
         score -= 10;
     }
 
@@ -447,5 +458,73 @@ mod tests {
                 slot.slot_index
             );
         }
+    }
+
+    /// Regression for amlich-mwbp.4: the personal-hour row whose chi
+    /// equals the birth hour chi (same branch) must not receive the
+    /// `+10` Tam hợp score bonus. The old code reported `tam_hop = true`
+    /// for same-branch (membership) and the personal-hour scoring
+    /// applied the +10, which was the audit's headline defect.
+    #[test]
+    fn same_branch_hour_row_does_not_get_tam_hop_bonus() {
+        // Birth hour = Tý (slot 0, chi_index 0). The day stem Giáp seeds
+        // the Tý hour to "Giáp Tý", so the Tý row exists in the matrix.
+        let day = CanChi::new(0, 0); // Giáp Tý
+        let chart = make_chart((0, 0), (2, 2), (4, 4), (0, 0)); // hour_pillar = Tý(0)
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
+
+        // Find the row whose chi matches the birth hour chi (Tý).
+        let ty_row = matrix
+            .hours
+            .iter()
+            .find(|h| h.chi_index == 0)
+            .expect("Tý row must exist");
+
+        // The branch relation for the Tý row vs the Tý birth hour is
+        // same-branch. The new contract must mark it as same-branch
+        // and must NOT report a friendly tam_hợp pair.
+        assert!(ty_row.branch_relation_to_birth_hour.same_branch);
+        assert_eq!(
+            ty_row.branch_relation_to_birth_hour.tam_hop_member,
+            Some(crate::almanac::types::TriadElement::Thuy),
+            "same-branch is still a Thủy triad member"
+        );
+        assert!(
+            !ty_row.branch_relation_to_birth_hour.is_tam_hop_pair(),
+            "same-branch is NOT a friendly tam_hợp pair"
+        );
+    }
+
+    /// Regression for amlich-mwbp.4: the 寅巳申 (Vô ân chi hình)
+    /// canonical relation is exposed as `CompletedTriad(Hỏa)`. A row
+    /// whose chi is in this punishment group and whose birth hour is
+    /// also in it must report a `has_conflict()`.
+    ///
+    /// Note: 寅巳申 (Dần, Tỵ, Thân) is the punishment group, NOT the
+    /// Hỏa Tam hợp triad (which is 寅午戌 = Dần, Ngọ, Tuất). The
+    /// "Hỏa" label here is the punishment-group element per the
+    /// source-cited decision brief.
+    #[test]
+    fn fire_triad_pair_reports_completed_triad_and_conflict() {
+        // Birth hour = Dần (chi_index 2, in 寅巳申). The Tỵ row
+        // (chi_index 5) is also in 寅巳申 — it must report a
+        // CompletedTriad(Hỏa) Tương hình.
+        let day = CanChi::new(0, 0);
+        let chart = make_chart((0, 0), (2, 2), (4, 4), (0, 2)); // hour_pillar = Dần(2)
+        let matrix = compute_personal_hour_matrix(&day, &chart, &balanced_dist()).expect("matrix");
+
+        // The Tỵ row (slot 5).
+        let ty_row = matrix
+            .hours
+            .iter()
+            .find(|h| h.chi_index == 5)
+            .expect("Tỵ row must exist");
+        assert_eq!(
+            ty_row.branch_relation_to_birth_hour.tuong_hinh,
+            crate::almanac::types::PunishmentKind::CompletedTriad {
+                triad: crate::almanac::types::TriadElement::Hoa
+            }
+        );
+        assert!(ty_row.branch_relation_to_birth_hour.has_conflict());
     }
 }
