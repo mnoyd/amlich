@@ -1035,6 +1035,79 @@ export interface PersonalDayMetricsDto {
     has_personal_recommendations: boolean;
 }
 
+export interface PersonalDayNormalizedBirthDto {
+    day: number;
+    month: number;
+    year: number;
+    has_time: boolean;
+    has_gender: boolean;
+    has_location: boolean;
+    has_solar_time_policy: boolean;
+}
+
+export interface PersonalDayAxisOutcomeDto {
+    axis: string;
+    score?: number | null;
+    verdict: string;
+    unavailable_reason?: string | null;
+}
+
+export interface PersonalDayAxesDto {
+    generic_day_quality: PersonalDayAxisOutcomeDto;
+    intent_fit: PersonalDayAxisOutcomeDto;
+    personal_alignment: PersonalDayAxisOutcomeDto;
+    annual_pressure: PersonalDayAxisOutcomeDto;
+    evidence_coverage: PersonalDayAxisOutcomeDto;
+}
+
+export interface PersonalDayDecisionDto {
+    bucket: string;
+    confidence: string;
+    semantic: string;
+    primary_conclusion: string;
+    decision_score?: number | null;
+    context_is_clear: boolean;
+}
+
+export interface PersonalDayContributionDto {
+    contribution_id: string;
+    axis: string;
+    polarity: string;
+    strength: number;
+    policy_id: string;
+    policy_version: string;
+    ruleset_id: string;
+    ruleset_version: string;
+    source_family: string;
+    source_id: string;
+    method: string;
+    note?: string | null;
+}
+
+export interface PersonalDayEvidenceDto {
+    has_chart: boolean;
+    has_analysis: boolean;
+    has_yearly_han: boolean;
+    has_kua: boolean;
+    recommendation_count: number;
+}
+
+export interface PersonalDayAssessmentDto {
+    ruleset_id: string;
+    ruleset_version: string;
+    policy_id: string;
+    policy_version: string;
+    profile: string;
+    intent: string;
+    capability_tier: BirthDataTierDto;
+    normalized_birth: PersonalDayNormalizedBirthDto;
+    axes: PersonalDayAxesDto;
+    decision: PersonalDayDecisionDto;
+    contributions: PersonalDayContributionDto[];
+    unavailable_sections: UnavailableSectionDto[];
+    evidence: PersonalDayEvidenceDto;
+}
+
 export interface PersonalDayAdvisoryDto {
     summary: string;
     severity: string;
@@ -1046,6 +1119,7 @@ export interface PersonalDayAdvisoryDto {
     cautions: string[];
     reasoning_bucket?: string | null;
     reasoning_confidence?: string | null;
+    canonical_assessment?: PersonalDayAssessmentDto | null;
 }
 
 export interface PersonalDayReportDto {
@@ -1059,6 +1133,7 @@ export interface PersonalDayReportDto {
     analysis: PersonalDayAnalysisDto;
     computed_metrics: PersonalDayMetricsDto;
     advisory: PersonalDayAdvisoryDto;
+    canonical_assessment?: PersonalDayAssessmentDto | null;
 }
 
 export type PillarKindDto = 'year' | 'month' | 'day' | 'hour';
@@ -1186,6 +1261,7 @@ export interface PersonalDayMatrixReportDto {
     direction_merge?: DirectionMergeMatrixDto | null;
     domain_day_boost?: DomainDayBoostMatrixDto | null;
     unavailable_sections: UnavailableSectionDto[];
+    canonical_assessment?: PersonalDayAssessmentDto | null;
 }
 
 export interface HourSelectionQueryDto {
@@ -1234,6 +1310,7 @@ export interface HourSelectionAnalysisDto {
     bad_hours: HourInfoDto[];
     top_recommendation?: HourInfoDto | null;
     canonical?: HourSelectionReasoningExportDto | null;
+    canonical_assessment?: PersonalDayAssessmentDto | null;
 }
 
 export interface HourSelectionMetricsDto {
@@ -1249,6 +1326,7 @@ export interface HourSelectionAdvisoryDto {
     best_windows: string[];
     caution_windows: string[];
     canonical?: HourSelectionReasoningExportDto | null;
+    canonical_assessment?: PersonalDayAssessmentDto | null;
 }
 
 export interface HourSelectionReportDto {

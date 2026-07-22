@@ -117,12 +117,86 @@ export type PersonalDayAnalysisDto = {
   unavailable_sections: UnavailableSectionDto[];
 };
 
+export type PersonalDayNormalizedBirthDto = {
+  day: number;
+  month: number;
+  year: number;
+  has_time: boolean;
+  has_gender: boolean;
+  has_location: boolean;
+  has_solar_time_policy: boolean;
+};
+
+export type PersonalDayAxisOutcomeDto = {
+  axis: string;
+  score?: number | null;
+  verdict: string;
+  unavailable_reason?: string | null;
+};
+
+export type PersonalDayAxesDto = {
+  generic_day_quality: PersonalDayAxisOutcomeDto;
+  intent_fit: PersonalDayAxisOutcomeDto;
+  personal_alignment: PersonalDayAxisOutcomeDto;
+  annual_pressure: PersonalDayAxisOutcomeDto;
+  evidence_coverage: PersonalDayAxisOutcomeDto;
+};
+
+export type PersonalDayDecisionDto = {
+  bucket: string;
+  confidence: string;
+  semantic: string;
+  primary_conclusion: string;
+  decision_score?: number | null;
+  context_is_clear: boolean;
+};
+
+export type PersonalDayContributionDto = {
+  contribution_id: string;
+  axis: string;
+  polarity: string;
+  strength: number;
+  policy_id: string;
+  policy_version: string;
+  ruleset_id: string;
+  ruleset_version: string;
+  source_family: string;
+  source_id: string;
+  method: string;
+  note?: string | null;
+};
+
+export type PersonalDayEvidenceDto = {
+  has_chart: boolean;
+  has_analysis: boolean;
+  has_yearly_han: boolean;
+  has_kua: boolean;
+  recommendation_count: number;
+};
+
+export type PersonalDayAssessmentDto = {
+  ruleset_id: string;
+  ruleset_version: string;
+  policy_id: string;
+  policy_version: string;
+  profile: string;
+  intent: string;
+  capability_tier: BirthDataTierDto;
+  normalized_birth: PersonalDayNormalizedBirthDto;
+  axes: PersonalDayAxesDto;
+  decision: PersonalDayDecisionDto;
+  contributions: PersonalDayContributionDto[];
+  unavailable_sections: UnavailableSectionDto[];
+  evidence: PersonalDayEvidenceDto;
+};
+
 export type PersonalDayReportDto = {
   chart: PersonalDayChartDto;
   decision_export: InitiationOpeningDecisionExportDto;
   graph: ReasoningGraphExportDto;
   analysis: PersonalDayAnalysisDto;
   computed_metrics: PersonalDayMetricsDto;
+  canonical_assessment?: PersonalDayAssessmentDto | null;
 };
 
 export type BranchRelationDto = {
@@ -228,4 +302,5 @@ export type PersonalDayMatrixReportDto = {
   direction_merge?: DirectionMergeMatrixDto | null;
   domain_day_boost?: DomainDayBoostMatrixDto | null;
   unavailable_sections: UnavailableSectionDto[];
+  canonical_assessment?: PersonalDayAssessmentDto | null;
 };
