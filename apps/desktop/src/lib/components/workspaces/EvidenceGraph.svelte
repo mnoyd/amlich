@@ -4,12 +4,17 @@
     import { fetchPersonalDayReport } from '$lib/api/invoke';
     import type {
         DecisionConfidenceDto,
+        EdgeEffectDto,
         InitiationOpeningDecisionExportDto,
         InitiationRecommendationBucketDto,
+        NodeKindDto,
         PersonalDayReportDto,
         ReasoningConclusionSemanticDto,
+        ReasoningEdgeExportDto,
         ReasoningEvidenceEnvelopeDto,
         ReasoningEvidenceSourceFamilyDto,
+        ReasoningNodeExportDto,
+        ReasoningNodeSeverityDto,
         ReasoningNoteDto,
     } from '$lib/api/types';
 
@@ -34,6 +39,7 @@
     let loadToken = 0;
     let activeLens: Lens = 'vi_sao';
     let profileInput: UserProfile = {};
+    let selectedNodeId: string | null = null;
 
     $: parsedBirthYear = parseOptionalInt(birthYear);
     $: parsedBirthMonth = parseOptionalInt(birthMonth);
@@ -51,6 +57,13 @@
     $: if ($selectedDate) {
         loadReport($selectedDate, profileInput);
     }
+
+    $: graph = report?.graph ?? null;
+    $: nodeGroups = groupNodesByKind(graph?.nodes ?? []);
+    $: nodesById = new Map((graph?.nodes ?? []).map((n) => [n.id, n]));
+    $: selectedNode = selectedNodeId ? nodesById.get(selectedNodeId) ?? null : null;
+    $: incomingEdges = edgesTouching(graph?.edges ?? [], selectedNodeId, 'in');
+    $: outgoingEdges = edgesTouching(graph?.edges ?? [], selectedNodeId, 'out');
 
     const bucketLabel: Record<InitiationRecommendationBucketDto, string> = {
         avoid: 'Tránh',
@@ -178,6 +191,67 @@
             },
         ];
     }
+
+    const kindLabel: Record<NodeKindDto, string> = {
+        fact: 'Fact',
+        interpreted_signal: 'Signal',
+        decision_target: 'Decision',
+    };
+
+    const kindOrder: NodeKindDto[] = ['decision_target', 'interpreted_signal', 'fact'];
+
+    const severityLabel: Record<ReasoningNodeSeverityDto, string> = {
+        auspicious: 'cat',
+        inauspicious: 'hung',
+        hard_taboo: 'hard taboo',
+        soft_taboo: 'soft taboo',
+        hoang_dao: 'hoàng đạo',
+        hac_dao: 'hạc đạo',
+    };
+
+    const severityClass: Record<ReasoningNodeSeverityDto, string> = {
+        auspicious: 'text-nen',
+        hoang_dao: 'text-nen',
+        inauspicious: 'text-ky',
+        hac_dao: 'text-ky',
+        hard_taboo: 'text-ky',
+        soft_taboo: 'text-tranh',
+    };
+
+    const effectLabel: Record<EdgeEffectDto, string> = {
+        supports: 'hỗ trợ',
+        weakens: 'làm yếu',
+        overrides: 'ghi đè',
+        conflicts_with: 'xung đột',
+        conditions: 'điều kiện',
+    };
+
+    const effectClass: Record<EdgeEffectDto, string> = {
+        supports: 'text-nen',
+        weakens: 'text-tranh',
+        overrides: 'text-ky',
+        conflicts_with: 'text-ky',
+        conditions: 'text-ink-light',
+    };
+
+    type NodeGroup = { kind: NodeKindDto; label: string; nodes: ReasoningNodeExportDto[] };
+
+    function groupNodesByKind(nodes: ReasoningNodeExportDto[]): NodeGroup[] {
+        const buckets: Record<NodeKindDto, ReasoningNodeExportDto[]> = {
+            fact: [],
+            interpreted_signal: [],
+            decision_target: [],
+        };
+        for (const node of nodes) buckets[node.kind].push(node);
+        return kindOrder
+            .filter((kind) => buckets[kind].length > 0)
+            .map((kind) => ({ kind, label: kindLabel[kind], nodes: buckets[kind] }));
+    }
+
+    function edgesTouching(edges: ReasoningEdgeExportDto[], nodeId: string | null, side: 'in' | 'out'): ReasoningEdgeExportDto[] {
+        if (!nodeId) return [];
+        return edges.filter((edge) => (side === 'in' ? edge.to_node_id === nodeId : edge.from_node_id === nodeId));
+    }
 </script>
 
 <div class="h-full flex flex-col overflow-hidden">
@@ -303,7 +377,127 @@
                     </div>
                 {/if}
             {:else if activeLens === 'yeu_to'}
-                <p class="text-ink-light italic font-mono">Yếu Tố lens — nodes and edges tree arrives in the next commit.</p>
+                {#if graph}
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="space-y-6">
+                            {#each nodeGroups as group (group.kind)}
+                                <section>
+                                    <h3 class="text-lg font-mono font-bold mb-3 uppercase tracking-wider text-ink-light flex items-center gap-2">
+                                        {group.label}
+                                        <span class="text-xs font-normal">({group.nodes.length})</span>
+                                    </h3>
+                                    <ul class="space-y-2">
+                                        {#each group.nodes as node (node.id)}
+                                            <li>
+                                                <button
+                                                    type="button"
+                                                    class="w-full text-left card-dense focus-ring"
+                                                    class:border-l-hoangdao={selectedNodeId === node.id}
+                                                    class:bg-parchment-dark={selectedNodeId === node.id}
+                                                    onclick={() => (selectedNodeId = selectedNodeId === node.id ? null : node.id)}
+                                                >
+                                                    <div class="flex items-start justify-between gap-2">
+                                                        <span class="text-sm font-medium">{node.summary_vi}</span>
+                                                        {#if node.severity}
+                                                            <span class="text-xs font-mono uppercase {severityClass[node.severity]}">
+                                                                {severityLabel[node.severity]}
+                                                            </span>
+                                                        {/if}
+                                                    </div>
+                                                    {#if node.axis}
+                                                        <span class="text-xs text-ink-light font-mono mt-1">{node.axis.replaceAll('_', ' ')}</span>
+                                                    {/if}
+                                                </button>
+                                            </li>
+                                        {/each}
+                                    </ul>
+                                </section>
+                            {/each}
+                        </div>
+
+                        <div class="lg:sticky lg:top-0 self-start">
+                            {#if selectedNode}
+                                {@const node = selectedNode}
+                                <div class="card-dense border-l-4 border-l-hoangdao space-y-4">
+                                    <div>
+                                        <div class="text-xs font-mono uppercase text-ink-light">{node.id}</div>
+                                        <p class="font-bold text-lg mt-1">{node.summary_vi}</p>
+                                        <div class="flex flex-wrap gap-1 mt-2">
+                                            <span class="badge-cothe">{kindLabel[node.kind]}</span>
+                                            {#if node.axis}
+                                                <span class="badge-cothe">{node.axis.replaceAll('_', ' ')}</span>
+                                            {/if}
+                                            {#if node.severity}
+                                                <span class="badge-evidence">{severityLabel[node.severity]}</span>
+                                            {/if}
+                                            {#each node.tags as tag (tag)}
+                                                <span class="text-xs font-mono text-ink-light">#{tag}</span>
+                                            {/each}
+                                        </div>
+                                    </div>
+
+                                    {#if node.evidence.length}
+                                        <div>
+                                            <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Evidence</h4>
+                                            <ul class="space-y-1">
+                                                {#each node.evidence as env, i (node.id + '-ev-' + i)}
+                                                    <li class="text-xs font-mono text-ink-light">
+                                                        <span class="badge-evidence">{sourceFamilyLabel[env.source_family]}</span>
+                                                        <span class="ml-1">{env.method} · {env.source_id}</span>
+                                                    </li>
+                                                {/each}
+                                            </ul>
+                                        </div>
+                                    {/if}
+
+                                    {#if incomingEdges.length}
+                                        <div>
+                                            <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Incoming ({incomingEdges.length})</h4>
+                                            <ul class="space-y-2">
+                                                {#each incomingEdges as edge, i ('in-' + i)}
+                                                    {@const neighbor = nodesById.get(edge.from_node_id)}
+                                                    <li class="border-l-2 border-ink-border pl-2">
+                                                        <div class="flex items-center gap-2 text-xs font-mono">
+                                                            <span class="{effectClass[edge.effect]}">{effectLabel[edge.effect]}</span>
+                                                            <span class="text-ink-light">· w{edge.weight}</span>
+                                                        </div>
+                                                        <p class="text-sm mt-0.5">{neighbor?.summary_vi ?? edge.from_node_id}</p>
+                                                    </li>
+                                                {/each}
+                                            </ul>
+                                        </div>
+                                    {/if}
+
+                                    {#if outgoingEdges.length}
+                                        <div>
+                                            <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Outgoing ({outgoingEdges.length})</h4>
+                                            <ul class="space-y-2">
+                                                {#each outgoingEdges as edge, i ('out-' + i)}
+                                                    {@const neighbor = nodesById.get(edge.to_node_id)}
+                                                    <li class="border-l-2 border-ink-border pl-2">
+                                                        <div class="flex items-center gap-2 text-xs font-mono">
+                                                            <span class="{effectClass[edge.effect]}">{effectLabel[edge.effect]}</span>
+                                                            <span class="text-ink-light">· w{edge.weight}</span>
+                                                        </div>
+                                                        <p class="text-sm mt-0.5">{neighbor?.summary_vi ?? edge.to_node_id}</p>
+                                                    </li>
+                                                {/each}
+                                            </ul>
+                                        </div>
+                                    {/if}
+                                </div>
+                            {:else}
+                                <div class="card-dense text-sm text-ink-light italic">
+                                    Select a node on the left to inspect its evidence and connections.
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
+                {:else}
+                    <div class="card-dense text-sm text-ink-light italic">
+                        No reasoning graph for this day. Enter a birth date to compute the personal reasoning bundle.
+                    </div>
+                {/if}
             {:else if activeLens === 'truc'}
                 <p class="text-ink-light italic font-mono">Trục lens — axis scores arrive in the next commit.</p>
             {:else if activeLens === 'nguon'}
