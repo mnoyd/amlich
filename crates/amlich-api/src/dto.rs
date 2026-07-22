@@ -1152,6 +1152,101 @@ pub struct PersonalDayAdvisoryDto {
     pub reasoning_bucket: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reasoning_confidence: Option<String>,
+    /// Canonical PersonalDayAssessment projection (amlich-mwbp.6). All five
+    /// axes, the stable contribution set, the assessment decision, and
+    /// unavailable sections live here as the single source of truth that
+    /// every other advisory/metrics/analysis field derives from. Absent
+    /// for legacy callers that bypass the assessment.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub canonical_assessment: Option<PersonalDayAssessmentDto>,
+}
+
+/// Slim, additive DTO projection of the canonical
+/// [`amlich_core::assessment::PersonalDayAssessment`]. Stable serialization
+/// is enforced by the parity tests in `personal_day_parity_contract.rs` and
+/// standalone-vs-aggregate fixtures.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PersonalDayAssessmentDto {
+    pub ruleset_id: String,
+    pub ruleset_version: String,
+    pub policy_id: String,
+    pub policy_version: String,
+    pub profile: String,
+    pub intent: String,
+    pub capability_tier: BirthDataTierDto,
+    pub normalized_birth: PersonalDayNormalizedBirthDto,
+    pub axes: PersonalDayAxesDto,
+    pub decision: PersonalDayDecisionDto,
+    pub contributions: Vec<PersonalDayContributionDto>,
+    pub unavailable_sections: Vec<UnavailableSectionDto>,
+    pub evidence: PersonalDayEvidenceDto,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PersonalDayNormalizedBirthDto {
+    pub day: i32,
+    pub month: i32,
+    pub year: i32,
+    pub has_time: bool,
+    pub has_gender: bool,
+    pub has_location: bool,
+    pub has_solar_time_policy: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PersonalDayAxesDto {
+    pub generic_day_quality: PersonalDayAxisOutcomeDto,
+    pub intent_fit: PersonalDayAxisOutcomeDto,
+    pub personal_alignment: PersonalDayAxisOutcomeDto,
+    pub annual_pressure: PersonalDayAxisOutcomeDto,
+    pub evidence_coverage: PersonalDayAxisOutcomeDto,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PersonalDayAxisOutcomeDto {
+    pub axis: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub score: Option<f32>,
+    pub verdict: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unavailable_reason: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PersonalDayDecisionDto {
+    pub bucket: String,
+    pub confidence: String,
+    pub semantic: String,
+    pub primary_conclusion: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub decision_score: Option<f32>,
+    pub context_is_clear: bool,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PersonalDayContributionDto {
+    pub contribution_id: String,
+    pub axis: String,
+    pub polarity: String,
+    pub strength: f32,
+    pub policy_id: String,
+    pub policy_version: String,
+    pub ruleset_id: String,
+    pub ruleset_version: String,
+    pub source_family: String,
+    pub source_id: String,
+    pub method: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PersonalDayEvidenceDto {
+    pub has_chart: bool,
+    pub has_analysis: bool,
+    pub has_yearly_han: bool,
+    pub has_kua: bool,
+    pub recommendation_count: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1169,6 +1264,11 @@ pub struct PersonalDayReportDto {
     pub analysis: PersonalDayAnalysisDto,
     pub computed_metrics: PersonalDayMetricsDto,
     pub advisory: PersonalDayAdvisoryDto,
+    /// Canonical assessment projection. When present, this is the single
+    /// source of truth the advisory/metrics/analysis fields all derive
+    /// from (amlich-mwbp.6).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub canonical_assessment: Option<PersonalDayAssessmentDto>,
 }
 
 /// Query for the personal day matrix report.

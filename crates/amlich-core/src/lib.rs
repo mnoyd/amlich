@@ -10,6 +10,7 @@
 pub mod advisory;
 pub mod almanac;
 pub mod analysis_envelope;
+pub mod assessment;
 pub mod bazi;
 pub mod birth;
 pub mod canchi;
@@ -52,6 +53,12 @@ pub use crate::almanac::yearly_han::{
     compute_yearly_han, HanSeverity, YearlyHanAssessment, YearlyHanInput,
 };
 pub use crate::analysis_envelope::AnalysisEnvelope;
+pub use crate::assessment::{
+    assess_personal_day, AssessmentAxes, AssessmentAxis, AssessmentInputs, AxisOutcome,
+    ContributionPolarity, DecisionContribution, EvidenceCoverage, NormalizedBirth,
+    PersonalDayAssessment, PersonalDayAssessmentBuilder, PersonalDayDecision, SourceEvidence,
+    UnavailableSection, ASSESSMENT_POLICY_ID, ASSESSMENT_POLICY_VERSION,
+};
 pub use crate::bazi::{
     analyze_bazi_chart, build_annual_pillar, build_bazi_advisory, build_bazi_chart,
     build_bazi_report, build_bazi_report_with_options, build_bazi_timing_report,

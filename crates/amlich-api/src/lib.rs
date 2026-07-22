@@ -1138,6 +1138,14 @@ pub fn get_personal_day_advisory(
     let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
     let reasoning =
         get_personal_day_reasoning_bundle(query, birth_year, birth_month, birth_day, gender)?;
+    let canonical_assessment = build_personal_day_canonical_assessment(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+        None,
+    )?;
     let mut highlights = Vec::new();
     let mut cautions = Vec::new();
     // amlich-mwbp.5: missing-profile messages are tracked separately so
@@ -1245,36 +1253,17 @@ pub fn get_personal_day_advisory(
         }
     }
 
-    let reasoning_bucket = reasoning
-        .as_ref()
-        .map(|bundle| bundle.decision.recommendation_bucket.as_str().to_string());
-    let reasoning_confidence = reasoning
-        .as_ref()
-        .map(|bundle| format!("{:?}", bundle.decision.confidence).to_lowercase());
+    // Severity, summary, and verdict semantics are derived from the
+    // canonical PersonalDayAssessment (amlich-mwbp.6). The assessment
+    // applies hard-veto precedence and evidence-coverage-derived confidence,
+    // so the surface cannot inflate severity from missing-context strings.
+    let (severity, summary) =
+        advisory_severity_and_summary(&canonical_assessment, &cautions, &highlights);
 
-    let severity = if cautions.len() >= 4 {
-        "high"
-    } else if !cautions.is_empty() {
-        "medium"
-    } else {
-        "low"
-    }
-    .to_string();
-
-    let summary = if !cautions.is_empty() {
-        format!(
-            "Personal day view has {} caution signal(s) and {} highlight(s).",
-            cautions.len(),
-            highlights.len()
-        )
-    } else if !highlights.is_empty() {
-        format!(
-            "Personal day view is broadly supportive with {} highlight signal(s).",
-            highlights.len()
-        )
-    } else {
-        "Personal day view has limited personalized context.".to_string()
-    };
+    // canonical assessment supplies bucket/confidence (single source of truth).
+    let reasoning_bucket = Some(canonical_assessment.decision.bucket.as_str().to_string());
+    let reasoning_confidence =
+        Some(format!("{:?}", canonical_assessment.decision.confidence).to_lowercase());
 
     if recommended_actions.is_empty() && !highlights.is_empty() {
         recommended_actions
@@ -1307,7 +1296,55 @@ pub fn get_personal_day_advisory(
         unavailable_context,
         reasoning_bucket,
         reasoning_confidence,
+        canonical_assessment: Some(PersonalDayAssessmentDto::from(&canonical_assessment)),
     })
+}
+
+fn advisory_severity_and_summary(
+    assessment: &amlich_core::assessment::PersonalDayAssessment,
+    cautions: &[String],
+    highlights: &[String],
+) -> (String, String) {
+    use amlich_core::reasoning::RecommendationBucket as RB;
+    let severity = match assessment.decision.bucket {
+        RB::Avoid => "high".to_string(),
+        RB::Cautious => "medium".to_string(),
+        RB::Favorable => {
+            if cautions.is_empty() {
+                "low".to_string()
+            } else {
+                "medium".to_string()
+            }
+        }
+        RB::Mixed => {
+            if cautions.len() >= 4 {
+                "high".to_string()
+            } else if cautions.is_empty() {
+                "low".to_string()
+            } else {
+                "medium".to_string()
+            }
+        }
+    };
+
+    let summary = if !cautions.is_empty() {
+        format!(
+            "Personal day view: {} ({} caution signal(s), {} highlight(s)).",
+            assessment.decision.primary_conclusion,
+            cautions.len(),
+            highlights.len()
+        )
+    } else if !highlights.is_empty() {
+        format!(
+            "Personal day view: {} ({} highlight signal(s)).",
+            assessment.decision.primary_conclusion,
+            highlights.len()
+        )
+    } else {
+        "Personal day view has limited personalized context.".to_string()
+    };
+
+    (severity, summary)
 }
 
 pub fn get_personal_day_report(
@@ -1320,6 +1357,14 @@ pub fn get_personal_day_report(
     let advisory = get_personal_day_advisory(query, birth_year, birth_month, birth_day, gender)?;
     let reasoning =
         get_personal_day_reasoning_bundle(query, birth_year, birth_month, birth_day, gender)?;
+    let canonical_assessment = build_personal_day_canonical_assessment(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+        None,
+    )?;
     Ok(PersonalDayReportDto {
         summary: advisory.summary.clone(),
         severity: advisory.severity.clone(),
@@ -1339,7 +1384,55 @@ pub fn get_personal_day_report(
             gender,
         )?,
         advisory,
+        canonical_assessment: Some(PersonalDayAssessmentDto::from(&canonical_assessment)),
     })
+}
+
+/// Build the canonical PersonalDayAssessment for the personal-day surface.
+/// Single seam used by both `get_personal_day_advisory` and
+/// `get_personal_day_report` so standalone and aggregate calls produce
+/// identical assessments on normalized inputs (amlich-mwbp.6).
+///
+/// `intent_override` lets callers force the intent (used by the matrix path)
+/// without exposing the symmetric `ConsultationIntent::OpeningBusiness`
+/// default to every consumer.
+fn build_personal_day_canonical_assessment(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+    intent_override: Option<amlich_core::ConsultationIntent>,
+) -> Result<amlich_core::assessment::PersonalDayAssessment, String> {
+    let profile = amlich_core::BirthProfile {
+        day: birth_day.unwrap_or(query.day),
+        month: birth_month.unwrap_or(query.month),
+        year: birth_year.unwrap_or(query.year),
+        time: None,
+        timezone: query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
+        longitude: None,
+        use_solar_time: false,
+        gender,
+        location_name: None,
+    };
+
+    let intent = intent_override.unwrap_or(amlich_core::ConsultationIntent::OpeningBusiness);
+
+    let enabled_pack_refs: Vec<&str> = query.enabled_pack_ids.iter().map(String::as_str).collect();
+
+    let snapshot = amlich_core::calculate_day_snapshot_with_recommendation_request(
+        query.day,
+        query.month,
+        query.year,
+        query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
+        query.ruleset_id.as_deref(),
+        Some(intent.event_kind()),
+        &enabled_pack_refs,
+    )?;
+
+    Ok(amlich_core::assessment::PersonalDayAssessment::assess(
+        snapshot, profile, intent,
+    ))
 }
 
 fn get_hour_selection_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {

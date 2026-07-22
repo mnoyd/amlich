@@ -1639,3 +1639,127 @@ impl From<&amlich_core::bazi::types::ThanSatResult> for ThanSatResultDto {
         }
     }
 }
+
+// ---------------------------------------------------------------------------
+// amlich-mwbp.6: Canonical PersonalDayAssessment DTO projection.
+// ---------------------------------------------------------------------------
+
+fn capability_tier_to_dto(tier: amlich_core::BirthDataTier) -> BirthDataTierDto {
+    match tier {
+        amlich_core::BirthDataTier::Anonymous => BirthDataTierDto::Anonymous,
+        amlich_core::BirthDataTier::Date => BirthDataTierDto::Date,
+        amlich_core::BirthDataTier::Datetime => BirthDataTierDto::Datetime,
+    }
+}
+
+fn polarity_to_string(polarity: amlich_core::assessment::ContributionPolarity) -> String {
+    match polarity {
+        amlich_core::assessment::ContributionPolarity::Favorable => "favorable".to_string(),
+        amlich_core::assessment::ContributionPolarity::Avoid => "avoid".to_string(),
+        amlich_core::assessment::ContributionPolarity::Neutral => "neutral".to_string(),
+        amlich_core::assessment::ContributionPolarity::Info => "info".to_string(),
+    }
+}
+
+fn axis_outcome_to_dto(
+    outcome: &amlich_core::assessment::AxisOutcome,
+) -> crate::dto::PersonalDayAxisOutcomeDto {
+    crate::dto::PersonalDayAxisOutcomeDto {
+        axis: outcome.axis.as_str().to_string(),
+        score: outcome.score,
+        verdict: outcome.verdict.clone(),
+        unavailable_reason: outcome.unavailable_reason.clone(),
+    }
+}
+
+impl From<&amlich_core::assessment::AxisOutcome> for crate::dto::PersonalDayAxisOutcomeDto {
+    fn from(outcome: &amlich_core::assessment::AxisOutcome) -> Self {
+        axis_outcome_to_dto(outcome)
+    }
+}
+
+impl From<&amlich_core::assessment::PersonalDayAssessment>
+    for crate::dto::PersonalDayAssessmentDto
+{
+    fn from(value: &amlich_core::assessment::PersonalDayAssessment) -> Self {
+        let sections: Vec<crate::dto::UnavailableSectionDto> = value
+            .unavailable_sections
+            .iter()
+            .map(|s| crate::dto::UnavailableSectionDto {
+                section: s.section.clone(),
+                reason: s.reason.clone(),
+                required_fields: s.required_fields.clone(),
+            })
+            .collect();
+
+        let axes = crate::dto::PersonalDayAxesDto {
+            generic_day_quality: axis_outcome_to_dto(&value.axes.generic_day_quality),
+            intent_fit: axis_outcome_to_dto(&value.axes.intent_fit),
+            personal_alignment: axis_outcome_to_dto(&value.axes.personal_alignment),
+            annual_pressure: axis_outcome_to_dto(&value.axes.annual_pressure),
+            evidence_coverage: axis_outcome_to_dto(&value.axes.evidence_coverage),
+        };
+
+        let decision = crate::dto::PersonalDayDecisionDto {
+            bucket: value.decision.bucket.as_str().to_string(),
+            confidence: format!("{:?}", value.decision.confidence).to_lowercase(),
+            semantic: value.decision.semantic.clone(),
+            primary_conclusion: value.decision.primary_conclusion.clone(),
+            decision_score: value.decision.decision_score,
+            context_is_clear: value.decision.context_is_clear,
+        };
+
+        let contributions: Vec<crate::dto::PersonalDayContributionDto> = value
+            .contributions
+            .iter()
+            .map(|c| crate::dto::PersonalDayContributionDto {
+                contribution_id: c.contribution_id.clone(),
+                axis: c.axis.as_str().to_string(),
+                polarity: polarity_to_string(c.polarity),
+                strength: c.strength,
+                policy_id: c.policy_id.clone(),
+                policy_version: c.policy_version.clone(),
+                ruleset_id: c.ruleset_id.clone(),
+                ruleset_version: c.ruleset_version.clone(),
+                source_family: c.source_evidence.source_family.clone(),
+                source_id: c.source_evidence.source_id.clone(),
+                method: c.source_evidence.method.clone(),
+                note: c.note.clone(),
+            })
+            .collect();
+
+        let normalized = crate::dto::PersonalDayNormalizedBirthDto {
+            day: value.normalized_birth.day,
+            month: value.normalized_birth.month,
+            year: value.normalized_birth.year,
+            has_time: value.normalized_birth.has_time,
+            has_gender: value.normalized_birth.has_gender,
+            has_location: value.normalized_birth.has_location,
+            has_solar_time_policy: value.normalized_birth.has_solar_time_policy,
+        };
+
+        let evidence = crate::dto::PersonalDayEvidenceDto {
+            has_chart: value.evidence.has_chart,
+            has_analysis: value.evidence.has_analysis,
+            has_yearly_han: value.evidence.has_yearly_han,
+            has_kua: value.evidence.has_kua,
+            recommendation_count: value.evidence.recommendation_count,
+        };
+
+        Self {
+            ruleset_id: value.ruleset_id.clone(),
+            ruleset_version: value.ruleset_version.clone(),
+            policy_id: value.policy_id.clone(),
+            policy_version: value.policy_version.clone(),
+            profile: value.profile.clone(),
+            intent: value.intent.event_kind().to_string(),
+            capability_tier: capability_tier_to_dto(value.capability_tier),
+            normalized_birth: normalized,
+            axes,
+            decision,
+            contributions,
+            unavailable_sections: sections,
+            evidence,
+        }
+    }
+}

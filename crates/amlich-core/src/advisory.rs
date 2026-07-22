@@ -6,7 +6,8 @@ use crate::{
         synthesize_daily_recommendations_with_layers, ActivityId, DailyRecommendations,
         RecommendationPackLookupError, RecommendationSynthesisContext,
     },
-    almanac::tu_menh::compute_kua,
+    assessment::PersonalDayAssessment,
+    birth::BirthProfile,
     canchi::get_year_canchi,
     julian::jd_from_date,
     lunar::{convert_solar_to_lunar, LunarDate},
@@ -253,17 +254,23 @@ pub fn build_personalized_day_selection(
         enabled_pack_ids,
     )?;
 
-    let recommendations = snapshot
-        .contextual_recommendations
-        .clone()
-        .unwrap_or_else(|| snapshot.daily_recommendations.clone());
-    let advisory = score_day_selection(
-        &snapshot.context,
-        &snapshot,
-        recommendations,
-        intent,
-        birth.as_ref(),
-    );
+    let profile = birth
+        .as_ref()
+        .map(BirthProfile::from_birth_input)
+        .unwrap_or_else(|| BirthProfile {
+            day,
+            month,
+            year,
+            time: None,
+            timezone: VIETNAM_TIMEZONE,
+            longitude: None,
+            use_solar_time: false,
+            gender: None,
+            location_name: None,
+        });
+
+    let assessment = PersonalDayAssessment::assess(snapshot.clone(), profile, intent);
+    let advisory = project_scored_advice(&assessment, &snapshot);
 
     Ok(PersonalizedDaySelection {
         intent,
@@ -273,86 +280,130 @@ pub fn build_personalized_day_selection(
     })
 }
 
-pub fn score_day_selection(
-    context: &DayContext,
+/// Build a [`ScoredAdvice`] projected from the canonical
+/// [`PersonalDayAssessment`]. Replaces the legacy [`score_day_selection`]
+/// numeric formula: the canonical verdict now lives on the assessment and
+/// this projection is the only path that should emit advisory scores.
+pub fn project_scored_advice(
+    assessment: &PersonalDayAssessment,
     snapshot: &DaySnapshot,
-    recommendations: DailyRecommendations,
-    intent: ConsultationIntent,
-    birth: Option<&BirthInput>,
 ) -> ScoredAdvice {
-    let mut score = 50;
-    let mut reasons = vec![format!(
+    use crate::reasoning::RecommendationBucket as RB;
+
+    let bucket = assessment.decision.bucket;
+    let verdict = match bucket {
+        RB::Favorable => "strong_match",
+        RB::Mixed => "good_match",
+        RB::Cautious => "mixed",
+        RB::Avoid => "weak_match",
+    };
+
+    let decision_score = assessment
+        .decision
+        .decision_score
+        .map(|s| (s * 100.0).round() as i32)
+        .unwrap_or(50);
+    let score = decision_score.clamp(0, 100);
+
+    let confidence = match assessment.decision.confidence {
+        crate::reasoning::DecisionConfidence::High => "high",
+        crate::reasoning::DecisionConfidence::Medium => "medium",
+        crate::reasoning::DecisionConfidence::Low => "low",
+    };
+
+    let mut reasons: Vec<String> = Vec::new();
+    let mut warnings: Vec<String> = Vec::new();
+
+    reasons.push(format!(
         "Ngày {} có trực {} và {} hoạt động được đánh giá.",
-        context.canchi.day.full,
+        snapshot.context.canchi.day.full,
         snapshot.day_fortune.truc.name,
-        recommendations.activities.len()
-    )];
-    let mut warnings = Vec::new();
+        assessment.evidence.recommendation_count
+    ));
 
-    if let Some(primary) = recommendations
-        .activities
+    if let Some(intent_contrib) = assessment
+        .contributions
         .iter()
-        .find(|activity| activity.activity_id == intent.primary_activity())
+        .find(|c| c.axis == crate::assessment::AssessmentAxis::IntentFit)
     {
-        use crate::almanac::recommendation::RecommendationBucket;
-
-        match primary.bucket {
-            RecommendationBucket::Nen => score += 25,
-            RecommendationBucket::CoThe => score += 10,
-            RecommendationBucket::Tranh => score -= 15,
-            RecommendationBucket::KyManh => score -= 30,
+        if let Some(note) = intent_contrib.note.as_ref() {
+            reasons.push(format!(
+                "Hoạt động chính '{}' được xếp nhóm qua policy {}@{}.",
+                note, intent_contrib.policy_id, intent_contrib.policy_version
+            ));
         }
-
-        reasons.push(format!(
-            "Hoạt động chính '{}' được xếp nhóm {:?}.",
-            primary.label.vi, primary.bucket
-        ));
     } else {
         warnings.push("Chưa có rule chuyên biệt mạnh cho mục đích này.".to_string());
     }
 
     if !snapshot.day_fortune.taboos.is_empty() {
-        score -= (snapshot.day_fortune.taboos.len() as i32).min(3) * 5;
         reasons.push(format!(
             "Ngày có {} điều kiêng kỵ được ghi nhận.",
             snapshot.day_fortune.taboos.len()
         ));
     }
 
-    if let Some(birth) = birth {
-        apply_birth_compatibility(
-            &mut score,
-            &mut reasons,
-            &mut warnings,
-            birth,
-            context,
-            snapshot,
+    if matches!(bucket, RB::Cautious | RB::Avoid) {
+        warnings.push(assessment.decision.primary_conclusion.clone());
+    }
+
+    for contrib in assessment.contributions.iter().filter(|c| {
+        c.axis == crate::assessment::AssessmentAxis::PersonalAlignment
+            && matches!(c.polarity, crate::assessment::ContributionPolarity::Avoid)
+    }) {
+        warnings.push(format!(
+            "Cá nhân hóa: {} (strength={:.2}, policy={}@{})",
+            contrib.contribution_id, contrib.strength, contrib.policy_id, contrib.policy_version
+        ));
+    }
+
+    for contrib in assessment.contributions.iter().filter(|c| {
+        c.axis == crate::assessment::AssessmentAxis::PersonalAlignment
+            && matches!(
+                c.polarity,
+                crate::assessment::ContributionPolarity::Favorable
+            )
+    }) {
+        reasons.push(format!(
+            "Cá nhân hóa: {} (strength={:.2}, policy={}@{})",
+            contrib.contribution_id, contrib.strength, contrib.policy_id, contrib.policy_version
+        ));
+    }
+
+    if !assessment.evidence.has_chart && !assessment.evidence.has_yearly_han {
+        warnings.push(
+            "Thiếu thông tin sinh nên chưa cá nhân hóa đầy đủ theo tuổi/mệnh/Hạn năm.".to_string(),
         );
-    } else {
-        warnings
-            .push("Chưa có dữ liệu sinh nên chưa cá nhân hóa đầy đủ theo tuổi/mệnh.".to_string());
     }
 
-    let verdict = if score >= 75 {
-        "strong_match"
-    } else if score >= 60 {
-        "good_match"
-    } else if score >= 45 {
-        "mixed"
-    } else {
-        "weak_match"
-    }
-    .to_string();
+    let evidence_envelopes: Vec<EvidenceEnvelope> = assessment
+        .contributions
+        .iter()
+        .take(5)
+        .map(|c| EvidenceEnvelope {
+            source_family: c.source_evidence.source_family.clone(),
+            source_id: c.source_evidence.source_id.clone(),
+            method: c.source_evidence.method.clone(),
+            profile: assessment.profile.clone(),
+            note: format!(
+                "{}@{} ({})",
+                c.policy_id, c.policy_version, c.contribution_id
+            ),
+        })
+        .collect();
 
-    let confidence = if birth.is_some() { "medium" } else { "low" }.to_string();
+    let recommendations = snapshot
+        .contextual_recommendations
+        .clone()
+        .unwrap_or_else(|| snapshot.daily_recommendations.clone());
 
     ScoredAdvice {
         summary_vi: recommendations.summary_vi.clone(),
         summary_en: recommendations.summary_en.clone(),
         scoring: AdvisoryScoring {
-            score: score.clamp(0, 100),
-            verdict,
-            confidence,
+            score,
+            verdict: verdict.to_string(),
+            confidence: confidence.to_string(),
         },
         reasons,
         warnings,
@@ -360,92 +411,38 @@ pub fn score_day_selection(
             "{}@{}",
             snapshot.ruleset_id, snapshot.ruleset_version
         )],
-        evidence: vec![EvidenceEnvelope {
-            source_family: "amlich_core".to_string(),
-            source_id: snapshot.ruleset_id.clone(),
-            method: "phase0_phase1_foundation".to_string(),
-            profile: snapshot.profile.clone(),
-            note: format!("intent={}", intent.event_kind()),
-        }],
+        evidence: evidence_envelopes,
         recommendations,
     }
 }
 
-fn apply_birth_compatibility(
-    score: &mut i32,
-    reasons: &mut Vec<String>,
-    warnings: &mut Vec<String>,
-    birth: &BirthInput,
-    context: &DayContext,
+/// Legacy compatibility entry point. Routes through the canonical
+/// assessment via [`build_personalized_day_selection`]'s input collection
+/// then projects the resulting [`ScoredAdvice`]. Kept in the public
+/// surface during the migration window so existing test fixtures and
+/// downstream consumers stay green.
+pub fn score_day_selection(
+    _context: &DayContext,
     snapshot: &DaySnapshot,
-) {
-    let birth_year = birth.birth_year_canchi();
-    let day_chi = snapshot.context.canchi.day.chi.as_str();
-
-    if birth_year.chi == day_chi {
-        *score += 6;
-        reasons.push(format!(
-            "Chi ngày {} trùng chi tuổi {}, thiên về đồng khí.",
-            day_chi, birth_year.full
-        ));
-    } else if snapshot.day_fortune.xung_hop.luc_xung == birth_year.chi {
-        *score -= 20;
-        warnings.push(format!(
-            "Chi ngày {} rơi vào lục xung với tuổi {}.",
-            day_chi, birth_year.full
-        ));
-    } else if snapshot
-        .day_fortune
-        .xung_hop
-        .tam_hop
-        .iter()
-        .any(|chi| chi == &birth_year.chi)
-    {
-        *score += 12;
-        reasons.push(format!(
-            "Ngày nằm trong tam hợp với tuổi {}.",
-            birth_year.full
-        ));
-    } else if snapshot.day_fortune.xung_hop.liu_he.as_deref() == Some(birth_year.chi.as_str()) {
-        *score += 8;
-        reasons.push(format!("Ngày có lục hợp với tuổi {}.", birth_year.full));
-    } else if snapshot.day_fortune.xung_hop.xiang_hai.as_deref() == Some(birth_year.chi.as_str()) {
-        *score -= 8;
-        warnings.push(format!("Ngày có tương hại với tuổi {}.", birth_year.full));
-    } else {
-        reasons.push(format!(
-            "Đã đối chiếu tuổi {} với chi ngày {} ở mức xung/hợp cơ bản.",
-            birth_year.full, context.canchi.day.full
-        ));
-    }
-
-    if let Some(gender) = birth.gender {
-        let kua = compute_kua(birth.year, gender);
-        let favorable = kua
-            .favorable_directions
-            .iter()
-            .any(|direction| direction.to_string() == snapshot.day_fortune.travel.xuat_hanh_huong);
-        let unfavorable = kua
-            .unfavorable_directions
-            .iter()
-            .any(|direction| direction.to_string() == snapshot.day_fortune.travel.xuat_hanh_huong);
-
-        if favorable {
-            *score += 6;
-            reasons.push(format!(
-                "Hướng xuất hành {} trùng nhóm hướng tốt của cung mệnh {}.",
-                snapshot.day_fortune.travel.xuat_hanh_huong, kua.kua
-            ));
-        } else if unfavorable {
-            *score -= 6;
-            warnings.push(format!(
-                "Hướng xuất hành {} rơi vào nhóm hướng bất lợi của cung mệnh {}.",
-                snapshot.day_fortune.travel.xuat_hanh_huong, kua.kua
-            ));
-        }
-    } else {
-        warnings.push("Thiếu giới tính nên chưa đối chiếu thêm theo cung mệnh/Kua.".to_string());
-    }
+    _recommendations: DailyRecommendations,
+    intent: ConsultationIntent,
+    birth: Option<&BirthInput>,
+) -> ScoredAdvice {
+    let profile = birth
+        .map(BirthProfile::from_birth_input)
+        .unwrap_or_else(|| BirthProfile {
+            day: snapshot.context.solar.day,
+            month: snapshot.context.solar.month,
+            year: snapshot.context.solar.year,
+            time: None,
+            timezone: VIETNAM_TIMEZONE,
+            longitude: None,
+            use_solar_time: false,
+            gender: None,
+            location_name: None,
+        });
+    let assessment = PersonalDayAssessment::assess(snapshot.clone(), profile, intent);
+    project_scored_advice(&assessment, snapshot)
 }
 
 pub fn compute_day_context_from_birth(birth: &BirthInput) -> DayContext {

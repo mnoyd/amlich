@@ -331,6 +331,34 @@ fn personal_day_reasoning_bundle_stays_absent_consistently_when_profile_is_incom
     assert!(report.analysis.decision.is_none());
     assert!(report.analysis.decision_export.is_none());
     assert!(report.analysis.graph.is_none());
-    assert!(report.advisory.reasoning_bucket.is_none());
-    assert!(report.advisory.reasoning_confidence.is_none());
+
+    // amlich-mwbp.6: the canonical PersonalDayAssessment still produces a
+    // bucket (it derives from capability/evidence coverage, not from
+    // birth-input reachability for the graph path), so `reasoning_bucket`
+    // and `reasoning_confidence` are populated from the assessment now.
+    // The assessment itself stays genuinely unavailable for the sections
+    // that depend on birth time; see `canonical_assessment` for full
+    // transparency.
+    assert!(report.advisory.reasoning_bucket.is_some());
+    assert!(report.advisory.reasoning_confidence.is_some());
+
+    if let Some(assessment) = report.canonical_assessment.as_ref() {
+        // Birth time is missing, so the personal-hour section must be marked
+        // unavailable even when year+gender are present.
+        assert!(
+            assessment
+                .unavailable_sections
+                .iter()
+                .any(|s| s.section == "personal_hours"),
+            "personal_hours should be unavailable when birth time is missing"
+        );
+        // The canonical axes must always be exposed, with at least one axis
+        // score present so downstream parity checks can compare.
+        assert!(!assessment.axes.generic_day_quality.verdict.is_empty());
+        assert!(!assessment.decision.primary_conclusion.is_empty());
+    } else {
+        panic!(
+            "amlich-mwbp.6: canonical_assessment must be populated on every personal-day report"
+        );
+    }
 }

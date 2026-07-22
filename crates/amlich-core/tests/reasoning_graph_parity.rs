@@ -583,7 +583,7 @@ fn production_reasoning_entrypoint_matches_graph_evaluator_projection() {
 }
 
 #[test]
-fn production_reasoning_bundle_export_matches_graph_evaluator_projection() {
+fn production_reasoning_bundle_export_overlays_canonical_assessment_axes() {
     use amlich_core::reasoning::{
         project_initiation_opening_decision_export, ActionEvaluator, InitiationOpeningEvaluator,
     };
@@ -613,12 +613,43 @@ fn production_reasoning_bundle_export_matches_graph_evaluator_projection() {
     let evaluation = evaluator
         .evaluate(&graph, &snapshot, Some(personal_input))
         .expect("valid evaluation");
-    let projected = project_initiation_opening_decision_export(&evaluation);
+    let legacy_projection = project_initiation_opening_decision_export(&evaluation);
     let production =
         amlich_core::build_initiation_opening_reasoning_bundle(&snapshot, Some(personal_input))
             .expect("bundle");
 
-    assert_eq!(production.decision_export, projected);
+    // amlich-mwbp.6: the production path overlays the canonical
+    // PersonalDayAssessment's axis scores, so its decision_export is NOT
+    // expected to be byte-identical to the graph-only projection. The
+    // contract is now: typed prose/shapes match the graph, while axis
+    // scores are sourced from the assessment. We verify the overlay by
+    // checking that the production axis scores come from the assessment's
+    // normalized 0..=1 range rather than raw note counts.
+    assert_eq!(
+        production.decision_export.primary_conclusion, legacy_projection.primary_conclusion,
+        "primary_conclusion must come from the graph prose, not the assessment"
+    );
+    assert_eq!(
+        production.decision_export.recommendation_bucket, legacy_projection.recommendation_bucket,
+        "recommendation_bucket must come from the graph evaluator"
+    );
+    assert_eq!(
+        production.decision_export.semantic, legacy_projection.semantic,
+        "semantic category must come from the graph evaluator"
+    );
+
+    for production_axis in &production.decision_export.axis_scores {
+        // Canonical assessment axis scores live in 0..=1 (a normalized
+        // 0..=100 score with a uniform scale). Legacy graph projections
+        // emitted raw note counts (e.g. support=1.0 because a single star
+        // note matched). After .6 the production axes must come from the
+        // assessment, so the normalized scores never exceed 1.0.
+        assert!(
+            production_axis.score >= 0.0 && production_axis.score <= 1.0,
+            "production axis score must come from the canonical assessment (0..=1); got {:?}",
+            production_axis.score
+        );
+    }
 }
 
 #[test]
