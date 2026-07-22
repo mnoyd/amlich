@@ -64,6 +64,10 @@
     $: selectedNode = selectedNodeId ? nodesById.get(selectedNodeId) ?? null : null;
     $: incomingEdges = edgesTouching(graph?.edges ?? [], selectedNodeId, 'in');
     $: outgoingEdges = edgesTouching(graph?.edges ?? [], selectedNodeId, 'out');
+    $: canonicalRows = report ? canonicalAxisRows(report) : [];
+    $: reasoningAxes = report?.decision_export?.axis_scores ?? [];
+    $: familyRows = report ? sourceFamilyBreakdown(report) : [];
+    $: familyTotal = totalFamilyCount(familyRows);
 
     const bucketLabel: Record<InitiationRecommendationBucketDto, string> = {
         avoid: 'Tránh',
@@ -251,6 +255,127 @@
     function edgesTouching(edges: ReasoningEdgeExportDto[], nodeId: string | null, side: 'in' | 'out'): ReasoningEdgeExportDto[] {
         if (!nodeId) return [];
         return edges.filter((edge) => (side === 'in' ? edge.to_node_id === nodeId : edge.from_node_id === nodeId));
+    }
+
+    const canonicalAxisLabel: Record<string, string> = {
+        generic_day_quality: 'Chất lượng ngày',
+        intent_fit: 'Phù hợp ý định',
+        personal_alignment: 'Tương hợp cá nhân',
+        annual_pressure: 'Áp lực năm',
+        evidence_coverage: 'Độ phủ bằng chứng',
+    };
+
+    const canonicalAxisOrder = [
+        'generic_day_quality',
+        'intent_fit',
+        'personal_alignment',
+        'annual_pressure',
+        'evidence_coverage',
+    ];
+
+    const reasoningAxisLabel: Record<string, string> = {
+        support: 'Hỗ trợ',
+        resistance: 'Kháng cự',
+        stability: 'Ổn định',
+        personal_alignment: 'Tương hợp cá nhân',
+        timing_fit: 'Phù hợp thời điểm',
+        context_clarity: 'Rõ ngữ cảnh',
+    };
+
+    function scoreBarWidth(score: number | null | undefined): number {
+        if (score === null || score === undefined || !Number.isFinite(score)) return 0;
+        return Math.max(0, Math.min(100, ((score + 1) / 2) * 100));
+    }
+
+    function scoreClass(score: number | null | undefined): string {
+        if (score === null || score === undefined) return 'text-ink-light';
+        if (score >= 0.35) return 'text-nen';
+        if (score <= -0.35) return 'text-ky';
+        return 'text-ink';
+    }
+
+    type CanonicalAxisRow = {
+        key: string;
+        axis: string;
+        score?: number | null;
+        verdict: string;
+        unavailable_reason?: string | null;
+    };
+
+    function canonicalAxisRows(report: PersonalDayReportDto): CanonicalAxisRow[] {
+        const axes = report.canonical_assessment?.axes;
+        if (!axes) return [];
+        const lookup: Record<string, CanonicalAxisRow> = {
+            generic_day_quality: { key: 'generic_day_quality', axis: axes.generic_day_quality.axis, score: axes.generic_day_quality.score ?? null, verdict: axes.generic_day_quality.verdict, unavailable_reason: axes.generic_day_quality.unavailable_reason ?? null },
+            intent_fit: { key: 'intent_fit', axis: axes.intent_fit.axis, score: axes.intent_fit.score ?? null, verdict: axes.intent_fit.verdict, unavailable_reason: axes.intent_fit.unavailable_reason ?? null },
+            personal_alignment: { key: 'personal_alignment', axis: axes.personal_alignment.axis, score: axes.personal_alignment.score ?? null, verdict: axes.personal_alignment.verdict, unavailable_reason: axes.personal_alignment.unavailable_reason ?? null },
+            annual_pressure: { key: 'annual_pressure', axis: axes.annual_pressure.axis, score: axes.annual_pressure.score ?? null, verdict: axes.annual_pressure.verdict, unavailable_reason: axes.annual_pressure.unavailable_reason ?? null },
+            evidence_coverage: { key: 'evidence_coverage', axis: axes.evidence_coverage.axis, score: axes.evidence_coverage.score ?? null, verdict: axes.evidence_coverage.verdict, unavailable_reason: axes.evidence_coverage.unavailable_reason ?? null },
+        };
+        return canonicalAxisOrder.map((key) => lookup[key]).filter((row): row is CanonicalAxisRow => row !== null);
+    }
+
+    type FamilyBreakdown = {
+        family: ReasoningEvidenceSourceFamilyDto;
+        label: string;
+        nodes: number;
+        edges: number;
+        notes: number;
+        total: number;
+    };
+
+    function sourceFamilyBreakdown(report: PersonalDayReportDto): FamilyBreakdown[] {
+        const counts = new Map<ReasoningEvidenceSourceFamilyDto, { nodes: number; edges: number; notes: number }>();
+        const ensure = (family: ReasoningEvidenceSourceFamilyDto) => {
+            let entry = counts.get(family);
+            if (!entry) {
+                entry = { nodes: 0, edges: 0, notes: 0 };
+                counts.set(family, entry);
+            }
+            return entry;
+        };
+
+        for (const node of report.graph?.nodes ?? []) {
+            for (const env of node.evidence ?? []) ensure(env.source_family).nodes += 1;
+        }
+        for (const edge of report.graph?.edges ?? []) {
+            for (const env of edge.evidence ?? []) ensure(env.source_family).edges += 1;
+        }
+        const decision = report.decision_export;
+        if (decision) {
+            const notes = [
+                ...decision.strongest_supports,
+                ...decision.strongest_resistances,
+                ...decision.override_factors,
+                ...decision.conflict_notes,
+            ];
+            for (const note of notes) {
+                for (const env of note.provenance ?? []) ensure(env.source_family).notes += 1;
+            }
+        }
+
+        const allFamilies: ReasoningEvidenceSourceFamilyDto[] = [
+            'snapshot', 'interaction', 'bazi', 'axis', 'almanac_rule', 'insight', 'derived',
+        ];
+        return allFamilies
+            .map((family) => {
+                const entry = counts.get(family) ?? { nodes: 0, edges: 0, notes: 0 };
+                const total = entry.nodes + entry.edges + entry.notes;
+                return {
+                    family,
+                    label: sourceFamilyLabel[family],
+                    nodes: entry.nodes,
+                    edges: entry.edges,
+                    notes: entry.notes,
+                    total,
+                };
+            })
+            .filter((row) => row.total > 0)
+            .sort((a, b) => b.total - a.total);
+    }
+
+    function totalFamilyCount(rows: FamilyBreakdown[]): number {
+        return rows.reduce((sum, row) => sum + row.total, 0);
     }
 </script>
 
@@ -499,9 +624,102 @@
                     </div>
                 {/if}
             {:else if activeLens === 'truc'}
-                <p class="text-ink-light italic font-mono">Trục lens — axis scores arrive in the next commit.</p>
+                {#if canonicalRows.length}
+                    <section class="mb-10">
+                        <h3 class="text-2xl font-mono font-bold mb-4">Trục đánh giá</h3>
+                        <div class="card-dense space-y-4">
+                            {#each canonicalRows as axis (axis.key)}
+                                <div>
+                                    <div class="flex justify-between items-baseline gap-2 mb-1">
+                                        <span class="font-mono text-sm uppercase tracking-wider">
+                                            {canonicalAxisLabel[axis.key] ?? axis.axis}
+                                        </span>
+                                        <span class="font-mono text-sm {scoreClass(axis.score)}">
+                                            {#if axis.score === null || axis.score === undefined}
+                                                n/a
+                                            {:else}
+                                                {axis.score.toFixed(2)}
+                                            {/if}
+                                        </span>
+                                    </div>
+                                    <div class="w-full bg-parchment-dark rounded-full h-1.5 overflow-hidden">
+                                        <div class="bg-hoangdao h-1.5 rounded-full" style="width: {scoreBarWidth(axis.score)}%"></div>
+                                    </div>
+                                    {#if axis.unavailable_reason}
+                                        <p class="text-xs text-tranh font-mono mt-1">⚠ {axis.unavailable_reason}</p>
+                                    {:else if axis.verdict}
+                                        <p class="text-xs text-ink-light mt-1">{axis.verdict}</p>
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
+                    </section>
+                {/if}
+
+                {#if reasoningAxes.length}
+                    <section>
+                        <h3 class="text-xl font-mono font-bold mb-3 uppercase tracking-wider text-ink-light">
+                            {canonicalRows.length ? 'Lens lý luận (6 trục)' : 'Trục lý luận'}
+                        </h3>
+                        <div class="card-dense space-y-3">
+                            {#each reasoningAxes as axis (axis.axis)}
+                                <div>
+                                    <div class="flex justify-between text-xs font-mono mb-1 uppercase">
+                                        <span>{reasoningAxisLabel[axis.axis] ?? axis.axis.replaceAll('_', ' ')}</span>
+                                        <span class={scoreClass(axis.score)}>{axis.score.toFixed(2)}</span>
+                                    </div>
+                                    <div class="w-full bg-parchment-dark rounded-full h-1.5 overflow-hidden">
+                                        <div class="bg-hoangdao h-1.5 rounded-full" style="width: {scoreBarWidth(axis.score)}%"></div>
+                                    </div>
+                                    {#if axis.strongest_summary_vi}
+                                        <p class="text-xs text-ink-light mt-1">{axis.strongest_summary_vi}</p>
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
+                    </section>
+                {:else if !canonicalRows.length}
+                    <div class="card-dense text-sm text-ink-light italic">
+                        No axis data available. Enter a birth date to compute personal assessment.
+                    </div>
+                {/if}
             {:else if activeLens === 'nguon'}
-                <p class="text-ink-light italic font-mono">Nguồn lens — source family legend arrives in the next commit.</p>
+                {#if familyRows.length}
+                    <section>
+                        <h3 class="text-2xl font-mono font-bold mb-1">Nguồn bằng chứng</h3>
+                        <p class="text-sm text-ink-light font-mono mb-4">{familyTotal} envelope{familyTotal === 1 ? '' : 's'} across {familyRows.length} source {familyRows.length === 1 ? 'family' : 'families'}</p>
+                        <div class="space-y-2">
+                            {#each familyRows as row (row.family)}
+                                <div class="card-dense">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="badge-evidence">{row.label}</span>
+                                            <span class="text-xs font-mono text-ink-light uppercase">{row.family}</span>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-mono font-bold">{row.total}</span>
+                                            <span class="text-xs font-mono text-ink-light">
+                                                ({((row.total / familyTotal) * 100).toFixed(0)}%)
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="w-full bg-parchment-dark rounded-full h-1.5 overflow-hidden">
+                                        <div class="bg-evidence h-1.5 rounded-full" style="width: {((row.total / familyTotal) * 100).toFixed(2)}%"></div>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 mt-2 text-xs font-mono text-ink-light">
+                                        <div>Nodes: <span class="text-ink">{row.nodes}</span></div>
+                                        <div>Edges: <span class="text-ink">{row.edges}</span></div>
+                                        <div>Notes: <span class="text-ink">{row.notes}</span></div>
+                                    </div>
+                                </div>
+                            {/each}
+                        </div>
+                    </section>
+                {:else}
+                    <div class="card-dense text-sm text-ink-light italic">
+                        No evidence envelopes for this day.
+                    </div>
+                {/if}
             {:else if activeLens === 'dev'}
                 <p class="text-ink-light italic font-mono">Dev lens — raw graph dump arrives in the next commit.</p>
             {/if}
