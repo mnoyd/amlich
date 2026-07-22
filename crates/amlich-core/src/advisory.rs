@@ -91,6 +91,19 @@ impl BirthInput {
     }
 }
 
+/// Legacy numeric scoring envelope carried by [`ScoredAdvice`].
+///
+/// **Compatibility projection (amlich-mwbp.7).** The `score`, `verdict`,
+/// and `confidence` strings are NOT an independent verdict — they are
+/// projected from the canonical
+/// [`PersonalDayAssessment`](crate::assessment::PersonalDayAssessment) by
+/// [`project_scored_advice`]. This struct remains in the public surface
+/// during the migration window so existing test fixtures and downstream
+/// consumers stay green; consumers should prefer reading
+/// `canonical_assessment` directly when available.
+///
+/// See `docs/architecture/personal-day-audit/REPAIR-PLAN.md` "Legacy
+/// `score_day_selection` / `AdvisoryScoring`" row of the ownership table.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AdvisoryScoring {
     pub score: i32,
@@ -421,6 +434,12 @@ pub fn project_scored_advice(
 /// then projects the resulting [`ScoredAdvice`]. Kept in the public
 /// surface during the migration window so existing test fixtures and
 /// downstream consumers stay green.
+///
+/// **Compatibility projection (amlich-mwbp.7).** This function does not
+/// compute an independent verdict: it builds the canonical
+/// [`PersonalDayAssessment`] once and projects `ScoredAdvice` from it via
+/// [`project_scored_advice`]. Consumers that need the raw verdict should
+/// call [`PersonalDayAssessment::assess`] directly.
 pub fn score_day_selection(
     _context: &DayContext,
     snapshot: &DaySnapshot,
@@ -502,6 +521,13 @@ pub fn synthesize_advisory_recommendations(
     synthesize_daily_recommendations_with_layers(&ctx, &[])
 }
 
+/// Rank a date range for a given `intent`, returning the top-N candidates.
+///
+/// **Compatibility projection (amlich-mwbp.7).** Each
+/// [`RankedDateCandidate::score`] and `verdict` is projected from the
+/// canonical [`PersonalDayAssessment`] via [`project_scored_advice`] (one
+/// assessment built per candidate day). This function does not compute
+/// an independent verdict — it only sorts day-level projections.
 pub fn rank_dates_for_intent(
     range: &DateRangeInput,
     intent: ConsultationIntent,
@@ -566,6 +592,22 @@ pub fn rank_dates_for_intent(
     Ok(ranked)
 }
 
+/// Rank the twelve traditional hour slots for a given `intent`.
+///
+/// **Compatibility ranking projection (amlich-mwbp.7).** The numeric
+/// `score` on each [`RankedHourCandidate`] is a deterministic ordering
+/// heuristic over Hoàng Đạo membership + intent/birth-compatibility
+/// bonuses — it is NOT a day-verdict score and is not comparable to the
+/// canonical
+/// [`PersonalDayAssessment::decision`](crate::assessment::PersonalDayDecision)
+/// score. Consumers must read the canonical verdict off
+/// `canonical_assessment` (attached by the amlich-api hour-selection
+/// surfaces) and use this ranking only to pick among hour slots that the
+/// day verdict already permits.
+///
+/// The deeper rework (typed contributions for hour slots, intent-policy
+/// ranking) is owned by amlich-mwbp.8; this function only carries an
+/// explicit compatibility label during the migration window.
 pub fn rank_hours_for_intent(
     day: i32,
     month: i32,

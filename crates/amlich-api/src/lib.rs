@@ -938,7 +938,7 @@ fn personal_birth_input(
     birth_day: Option<i32>,
     gender: Option<&str>,
 ) -> Option<amlich_core::BirthInput> {
-    let gender = gender.and_then(|g| parse_gender(g));
+    let gender = gender.and_then(parse_gender);
     Some(amlich_core::BirthInput {
         day: birth_day?,
         month: birth_month?,
@@ -1456,6 +1456,55 @@ fn get_hour_selection_reasoning(
     )
 }
 
+/// amlich-mwbp.7: build the canonical PersonalDayAssessment for the
+/// hour-selection surface so the hour ranking cannot present an
+/// independent verdict. The hour surface inherits the Travel intent (its
+/// historical default), and the assessment supplies the single
+/// bucket/confidence/axes/contributions the consumer should read.
+///
+/// Returns `None` when the birth profile cannot be built (e.g. anonymous
+/// callers) — in that case no assessment is attached and the hour
+/// ranking stands on its own compatibility label.
+fn build_hour_selection_canonical_assessment(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<&str>,
+) -> Option<amlich_core::assessment::PersonalDayAssessment> {
+    let gender = gender.and_then(parse_gender);
+    let day = birth_day.unwrap_or(query.day);
+    let month = birth_month.unwrap_or(query.month);
+    let year = birth_year.unwrap_or(query.year);
+    let profile = amlich_core::BirthProfile {
+        day,
+        month,
+        year,
+        time: None,
+        timezone: query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
+        longitude: None,
+        use_solar_time: false,
+        gender,
+        location_name: None,
+    };
+    let enabled_pack_refs: Vec<&str> = query.enabled_pack_ids.iter().map(String::as_str).collect();
+    let snapshot = amlich_core::calculate_day_snapshot_with_recommendation_request(
+        query.day,
+        query.month,
+        query.year,
+        query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
+        query.ruleset_id.as_deref(),
+        Some(amlich_core::ConsultationIntent::Travel.event_kind()),
+        &enabled_pack_refs,
+    )
+    .ok()?;
+    Some(amlich_core::assessment::PersonalDayAssessment::assess(
+        snapshot,
+        profile,
+        amlich_core::ConsultationIntent::Travel,
+    ))
+}
+
 pub fn get_hour_selection_chart(query: &DateQuery) -> Result<HourSelectionChartDto, String> {
     let info = get_hour_selection_day_info(query)?;
     Ok(HourSelectionChartDto {
@@ -1486,6 +1535,15 @@ pub fn get_hour_selection_analysis(
         .filter(|hour| !hour.is_good)
         .cloned()
         .collect();
+    let canonical_assessment = build_hour_selection_canonical_assessment(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+    )
+    .as_ref()
+    .map(PersonalDayAssessmentDto::from);
     Ok(HourSelectionAnalysisDto {
         intent: reasoning.intent.event_kind().to_string(),
         summary_vi: reasoning.summary_vi.clone(),
@@ -1503,6 +1561,7 @@ pub fn get_hour_selection_analysis(
                 is_good: candidate.is_auspicious,
             }),
         canonical: Some(reasoning.export(birth.as_ref())),
+        canonical_assessment,
     })
 }
 
@@ -1531,6 +1590,15 @@ pub fn get_hour_selection_advisory(
     let reasoning =
         get_hour_selection_reasoning(query, birth_year, birth_month, birth_day, gender)?;
     let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
+    let canonical_assessment = build_hour_selection_canonical_assessment(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+    )
+    .as_ref()
+    .map(PersonalDayAssessmentDto::from);
     Ok(HourSelectionAdvisoryDto {
         intent: reasoning.intent.event_kind().to_string(),
         summary_vi: reasoning.summary_vi.clone(),
@@ -1548,6 +1616,7 @@ pub fn get_hour_selection_advisory(
             .map(|hour| format!("{} {}", hour.chi_name, hour.time_range))
             .collect(),
         canonical: Some(reasoning.export(birth.as_ref())),
+        canonical_assessment,
     })
 }
 
@@ -1685,6 +1754,30 @@ pub fn get_personal_day_matrix_report(
         &day_ctx.tiet_khi.name,
     );
 
+    // amlich-mwbp.7: build the canonical PersonalDayAssessment once and
+    // project from it. The matrix surface emits raw interaction signals
+    // (day_person, element_resonance, personal_hours, direction_merge,
+    // domain_day_boost) — it MUST NOT compute an independent verdict.
+    // Every numeric/semantic verdict on this surface flows from the
+    // attached `canonical_assessment`. See REPAIR-PLAN.md P1.1 and the
+    // "Personal-day matrix API" row of the consumer migration map.
+    let profile = birth_profile_from_query(birth)?;
+    let enabled_pack_refs: Vec<&str> = date.enabled_pack_ids.iter().map(String::as_str).collect();
+    let snapshot = amlich_core::calculate_day_snapshot_with_recommendation_request(
+        date.day,
+        date.month,
+        date.year,
+        tz,
+        date.ruleset_id.as_deref(),
+        Some(amlich_core::ConsultationIntent::OpeningBusiness.event_kind()),
+        &enabled_pack_refs,
+    )?;
+    let canonical_assessment = amlich_core::assessment::PersonalDayAssessment::assess(
+        snapshot,
+        profile,
+        amlich_core::ConsultationIntent::OpeningBusiness,
+    );
+
     // Matrix 1: Day-Person
     let day_person = compute_day_person_matrix(day_canchi, chart);
 
@@ -1724,6 +1817,27 @@ pub fn get_personal_day_matrix_report(
         )
     });
 
+    // amlich-mwbp.7: unify unavailable_sections with the canonical
+    // assessment so the surface never silently hides a missing capability
+    // the assessment already flagged. Matrix-specific sections (e.g.
+    // personal_hours requiring a Bazi chart, domain_day_boost requiring
+    // gender) are preserved; assessment-derived sections are merged in
+    // when they are not already present.
+    let mut unavailable_sections =
+        matrix_unavailable_sections_with_gender(&tier, chart.input.gender.is_some());
+    for section in &canonical_assessment.unavailable_sections {
+        let already_present = unavailable_sections
+            .iter()
+            .any(|existing| existing.section == section.section);
+        if !already_present {
+            unavailable_sections.push(UnavailableSectionDto {
+                section: section.section.clone(),
+                reason: section.reason.clone(),
+                required_fields: section.required_fields.clone(),
+            });
+        }
+    }
+
     Ok(PersonalDayMatrixReportDto {
         input: PersonalDayMatrixQueryDto {
             birth: birth.clone(),
@@ -1735,10 +1849,8 @@ pub fn get_personal_day_matrix_report(
         personal_hours,
         direction_merge,
         domain_day_boost,
-        unavailable_sections: matrix_unavailable_sections_with_gender(
-            &tier,
-            chart.input.gender.is_some(),
-        ),
+        unavailable_sections,
+        canonical_assessment: Some(PersonalDayAssessmentDto::from(&canonical_assessment)),
     })
 }
 

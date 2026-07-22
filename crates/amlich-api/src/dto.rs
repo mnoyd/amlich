@@ -1304,6 +1304,14 @@ pub struct PersonalDayMatrixReportDto {
     pub domain_day_boost: Option<amlich_core::interaction::types::DomainDayBoostMatrix>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub unavailable_sections: Vec<UnavailableSectionDto>,
+    /// Canonical PersonalDayAssessment projection (amlich-mwbp.7). The
+    /// matrix surface emits raw interaction signals only — it MUST NOT
+    /// compute an independent verdict. The single canonical verdict,
+    /// confidence, axes, and contributions live here so every consumer
+    /// sees the same decision the advisory/report surfaces project.
+    /// Additive `Option<T>` for backward compatibility.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub canonical_assessment: Option<PersonalDayAssessmentDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1330,6 +1338,13 @@ pub struct HourSelectionAnalysisDto {
     pub top_recommendation: Option<HourInfoDto>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub canonical: Option<amlich_core::HourSelectionReasoningExport>,
+    /// Canonical PersonalDayAssessment projection (amlich-mwbp.7). The
+    /// hour surface's `canonical` ranked-hours export is a compatibility
+    /// ranking projection; the single canonical day verdict, confidence,
+    /// and contribution set live here so consumers cannot read an
+    /// independent verdict off the hour ranking. Additive `Option<T>`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub canonical_assessment: Option<PersonalDayAssessmentDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1348,6 +1363,11 @@ pub struct HourSelectionAdvisoryDto {
     pub caution_windows: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub canonical: Option<amlich_core::HourSelectionReasoningExport>,
+    /// Canonical PersonalDayAssessment projection (amlich-mwbp.7). See
+    /// [`HourSelectionAnalysisDto::canonical_assessment`] for the
+    /// single-verdict contract.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub canonical_assessment: Option<PersonalDayAssessmentDto>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
