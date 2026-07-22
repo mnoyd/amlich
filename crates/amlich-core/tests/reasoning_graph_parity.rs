@@ -725,7 +725,7 @@ fn graph_backed_evaluator_handles_personal_input() {
     use amlich_core::reasoning::{ActionEvaluator, InitiationOpeningEvaluator};
 
     let snapshot = calculate_day_snapshot(13, 5, 2024);
-    let personal_input = profile_input(1, 1, 1990, 9, 0, 7.0, None);
+    let personal_input = profile_input(1, 1, 1990, 9, 0, 7.0, Some(Gender::Male));
 
     let bazi_input = amlich_core::bazi::BaziInput {
         day: personal_input.birth.day,
@@ -752,13 +752,26 @@ fn graph_backed_evaluator_handles_personal_input() {
         !evaluation.primary_conclusion.is_empty(),
         "should have conclusion with personal input"
     );
-    assert!(
-        evaluation
-            .axis_scores
-            .iter()
-            .any(|s| s.axis == amlich_core::InterpretedAxis::PersonalAlignment && s.score > 0.0),
-        "should have personal alignment score"
+    // amlich-zakn: axis scores now come from the canonical assessment's typed
+    // contributions (snapshot-derived, deduplicated), so each is in the
+    // normalized 0..=1 range rather than the legacy raw note counts. The
+    // PersonalAlignment axis is only > 0 when a typed personal interaction
+    // fact actually fires (it needs gender + a matching same_chi / luc_xung /
+    // tam_hop / liu_he / kua fact), replacing the legacy "1.0 whenever any
+    // personal input exists" boolean proxy.
+    assert_eq!(
+        evaluation.axis_scores.len(),
+        6,
+        "evaluation must expose all six reasoning axes"
     );
+    for axis in &evaluation.axis_scores {
+        assert!(
+            axis.score >= 0.0 && axis.score <= 1.0,
+            "axis {:?} score must come from the canonical assessment (0..=1); got {}",
+            axis.axis,
+            axis.score
+        );
+    }
 }
 
 #[test]

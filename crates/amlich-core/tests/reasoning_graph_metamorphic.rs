@@ -1,17 +1,12 @@
-//! Failing-first metamorphic tests for amlich-mwbp.8.
+//! Metamorphic invariants for the initiation/opening reasoning path
+//! (amlich-mwbp.8).
 //!
 //! These tests freeze the design-independent acceptance-criteria invariants
 //! for the reasoning-graph migration as defined in
 //! docs/architecture/personal-day-audit/REPAIR-PLAN.md ("freeze the failing
-//! regression/metamorphic cases" before implementation). They are currently
-//! RED against the existing pipeline and are therefore `#[ignore]`-gated so
-//! the workspace stays CI-green.
-//!
-//! How to use:
-//!   - Run the red baseline: `cargo test -p amlich-core --test
-//!     reasoning_graph_metamorphic -- --ignored`.
-//!   - Each implementation phase (amlich-2q5n / amlich-zakn) removes the
-//!     `#[ignore]` from the test(s) it turns green.
+//! regression/metamorphic cases" before implementation). They were landed
+//! RED and `#[ignore]`-gated under amlich-s5v1, then un-ignored as each
+//! implementation phase turned them green (amlich-2q5n, amlich-zakn).
 //!
 //! Invariants locked here:
 //!   1. Duplicate-evidence monotonicity — re-emitting an existing fact node
@@ -56,7 +51,6 @@ fn duplicate_node(node: &SemanticNode, suffix: &str) -> SemanticNode {
 }
 
 #[test]
-#[ignore = "amlich-mwbp.8: duplicate evidence must not inflate the decision (turns green in amlich-zakn)"]
 fn duplicate_evidence_does_not_inflate_decision() {
     let (snapshot, graph) = graph_for(3, 1, 2024);
     let evaluator = InitiationOpeningEvaluator::new();
@@ -139,7 +133,6 @@ fn select_subgraph_drops_unrelated_concepts() {
 }
 
 #[test]
-#[ignore = "amlich-mwbp.8: every scored axis must resolve to provenance (turns green in amlich-zakn)"]
 fn strongest_notes_resolve_to_provenance() {
     let (snapshot, graph) = graph_for(3, 1, 2024);
     let evaluator = InitiationOpeningEvaluator::new();

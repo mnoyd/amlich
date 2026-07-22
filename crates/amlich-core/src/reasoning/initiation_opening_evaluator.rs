@@ -1,6 +1,9 @@
 use crate::semantic_graph::{NodeConcept, SemanticGraph, SemanticNode};
 
+use crate::advisory::ConsultationIntent;
 use crate::almanac::recommendation::evidence::{collect_truc_hits, BaseDirection};
+use crate::assessment::PersonalDayAssessment;
+use crate::birth::BirthProfile;
 use crate::insight_data::find_truc_insight;
 use crate::reasoning::action_evaluator::{ActionEvaluation, ActionEvaluator};
 use crate::reasoning::types::{
@@ -8,6 +11,7 @@ use crate::reasoning::types::{
     ReasoningConclusionSemantic, ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
 };
 use crate::reasoning::PersonalReasoningInput;
+use crate::types::VIETNAM_TIMEZONE;
 use crate::DaySnapshot;
 
 pub struct InitiationOpeningEvaluator;
@@ -30,6 +34,39 @@ const INITIATION_OPENING_ALLOWED_CONCEPTS: &[NodeConcept] = &[
 
 fn concept_is_allowed(concept: NodeConcept) -> bool {
     INITIATION_OPENING_ALLOWED_CONCEPTS.contains(&concept)
+}
+
+/// Build the [`BirthProfile`] the canonical assessment consumes, mirroring the
+/// construction in `reasoning::synthesis` so the evaluator and the export
+/// orchestrator see the same normalized profile. `personal_input = None`
+/// yields an anonymous date-only profile (the inquiry date with no birth
+/// time/gender), which the assessment builder supports via its capability
+/// tiers. The resulting assessment is snapshot-derived, so it is invariant to
+/// graph-node multiplicity — the property `amlich-zakn` relies on to make
+/// axis scores duplicate-monotone and provenance-backed.
+///
+/// NOTE: building the assessment here and again in `synthesis` is temporary
+/// duplicate work; consolidating both behind one per-request build is the
+/// scope of `amlich-9z7i`.
+fn assessment_profile(
+    snapshot: &DaySnapshot,
+    personal_input: Option<&PersonalReasoningInput>,
+) -> BirthProfile {
+    let (timezone, gender) = match personal_input {
+        Some(p) => (p.birth.timezone, p.birth.gender),
+        None => (VIETNAM_TIMEZONE, None),
+    };
+    BirthProfile {
+        day: snapshot.context.solar.day,
+        month: snapshot.context.solar.month,
+        year: snapshot.context.solar.year,
+        time: None,
+        timezone,
+        longitude: None,
+        use_solar_time: false,
+        gender,
+        location_name: None,
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -648,10 +685,6 @@ impl ActionEvaluator for InitiationOpeningEvaluator {
         let resistance_score = resistance_notes.len() as f32;
         let conflict_count = conflict_notes.len();
 
-        let stability_score =
-            self.score_axis(graph, snapshot, personal_input, InterpretedAxis::Stability);
-        let timing_fit_score =
-            self.score_axis(graph, snapshot, personal_input, InterpretedAxis::TimingFit);
         let context_clarity_score = self.score_axis(
             graph,
             snapshot,
@@ -680,29 +713,27 @@ impl ActionEvaluator for InitiationOpeningEvaluator {
         let suggested_hours = self.suggested_hours(snapshot, personal_input);
         let suggested_directions = self.suggested_directions(snapshot, personal_input);
 
-        let axis_scores = vec![
-            ReasoningAxisScore {
-                axis: InterpretedAxis::Support,
-                score: support_score,
-                strongest_node_id: support_notes.first().and_then(|n| n.node_id.clone()),
-                strongest_summary_vi: support_notes.first().map(|n| n.summary_vi.clone()),
-            },
-            ReasoningAxisScore {
-                axis: InterpretedAxis::Resistance,
-                score: resistance_score,
-                strongest_node_id: resistance_notes.first().and_then(|n| n.node_id.clone()),
-                strongest_summary_vi: resistance_notes.first().map(|n| n.summary_vi.clone()),
-            },
-            stability_score,
-            ReasoningAxisScore {
-                axis: InterpretedAxis::PersonalAlignment,
-                score: if personal_input.is_some() { 1.0 } else { 0.0 },
-                strongest_node_id: None,
-                strongest_summary_vi: None,
-            },
-            timing_fit_score,
-            context_clarity_score,
-        ];
+        // amlich-zakn: axis scores come from the canonical assessment's typed
+        // contributions (snapshot-derived, deduplicated by stable
+        // contribution_id), not from raw graph-node counts. This makes the
+        // scores invariant to duplicate evidence (re-emitting a fact node can
+        // no longer inflate an axis) and gives every scored axis a
+        // contribution-backed `strongest_node_id`. Axes with no typed
+        // contribution backing are reported at score 0.0 so a non-zero score
+        // always implies provenance. The decision bucket/confidence/semantic
+        // above remain graph-derived; full parity-gated retirement of that
+        // path is `amlich-0q2f`.
+        let mut axis_scores = PersonalDayAssessment::assess(
+            snapshot.clone(),
+            assessment_profile(snapshot, personal_input),
+            ConsultationIntent::OpeningBusiness,
+        )
+        .axis_scores();
+        for axis in axis_scores.iter_mut() {
+            if axis.strongest_node_id.is_none() {
+                axis.score = 0.0;
+            }
+        }
 
         let mut referenced_node_ids = Vec::new();
         for note in support_notes
