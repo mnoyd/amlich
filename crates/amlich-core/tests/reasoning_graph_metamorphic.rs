@@ -101,7 +101,6 @@ fn duplicate_evidence_does_not_inflate_decision() {
 }
 
 #[test]
-#[ignore = "amlich-mwbp.8: initiation/opening must be isolated to its allowlist subgraph (turns green in amlich-2q5n)"]
 fn select_subgraph_drops_unrelated_concepts() {
     let (snapshot, graph) = graph_for(3, 1, 2024);
 

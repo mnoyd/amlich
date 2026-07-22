@@ -12,6 +12,26 @@ use crate::DaySnapshot;
 
 pub struct InitiationOpeningEvaluator;
 
+/// Concepts the initiation/opening action is allowed to read. Finding A-R04
+/// (amlich-mwbp.8): the evaluator must consume exactly these day-fact
+/// concepts, so [`InitiationOpeningEvaluator::select_subgraph`] filters the
+/// merged reasoning graph down to this allowlist. Anything outside it — solar
+/// term, ritual, hexagram, matrix debug rows, future builder output — must
+/// not be able to alter the decision.
+const INITIATION_OPENING_ALLOWED_CONCEPTS: &[NodeConcept] = &[
+    NodeConcept::Truc,
+    NodeConcept::DayDeity,
+    NodeConcept::Star,
+    NodeConcept::XungHop,
+    NodeConcept::Taboo,
+    NodeConcept::InteractionRow,
+    NodeConcept::HoangDaoHour,
+];
+
+fn concept_is_allowed(concept: NodeConcept) -> bool {
+    INITIATION_OPENING_ALLOWED_CONCEPTS.contains(&concept)
+}
+
 #[derive(Debug, Clone, Copy, Default)]
 struct TrucOpeningSignal {
     opening_avoid_count: usize,
@@ -585,7 +605,25 @@ impl ActionEvaluator for InitiationOpeningEvaluator {
         _snapshot: &DaySnapshot,
         _personal_input: Option<&PersonalReasoningInput>,
     ) -> Result<SemanticGraph, String> {
-        Ok(graph.clone())
+        // amlich-mwbp.8 (finding A-R04): isolate the initiation/opening action
+        // to its allowlisted subgraph instead of returning a full clone. The
+        // evaluator only consumes the day-fact concepts listed in
+        // [`INITIATION_OPENING_ALLOWED_CONCEPTS`]; filtering the rest out
+        // means future graph builders cannot leak action-irrelevant facts
+        // (solar term, ritual, hexagram, matrix debug rows, ...) into the
+        // decision. [`SemanticGraph::add_edge`] silently drops any edge that
+        // references a removed node, so the subgraph stays internally
+        // consistent without an explicit edge filter.
+        let mut subgraph = SemanticGraph::new();
+        for node in graph.nodes().values() {
+            if concept_is_allowed(node.concept) {
+                subgraph.add_node(node.clone());
+            }
+        }
+        for edge in graph.edges().values() {
+            subgraph.add_edge(edge.clone());
+        }
+        Ok(subgraph)
     }
 
     fn evaluate(
@@ -594,6 +632,13 @@ impl ActionEvaluator for InitiationOpeningEvaluator {
         snapshot: &DaySnapshot,
         personal_input: Option<&PersonalReasoningInput>,
     ) -> Result<ActionEvaluation, String> {
+        // amlich-mwbp.8 (finding A-R04): evaluate over the allowlisted
+        // subgraph so unrelated context nodes cannot alter the
+        // initiation/opening decision. `select_subgraph` is idempotent, so
+        // re-evaluating an already-filtered graph is safe.
+        let subgraph = self.select_subgraph(graph, snapshot, personal_input)?;
+        let graph = &subgraph;
+
         let support_notes = self.extract_support_evidence(graph, snapshot);
         let resistance_notes = self.extract_resistance_evidence(graph);
         let override_notes = self.extract_override_evidence(graph);
