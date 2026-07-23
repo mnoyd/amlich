@@ -11,9 +11,9 @@
 //! descriptor and is NEVER wired into `interaction/direction_merge.rs` in v1.5.
 
 pub mod annual;
-pub mod daily;
 pub mod aspects;
 pub mod combined;
+pub mod daily;
 pub mod golden;
 pub mod monthly;
 pub mod period;
@@ -24,9 +24,11 @@ pub mod types;
 
 // Re-exports — public API surface for fengshui module consumers.
 pub use annual::{compute_yearly_flying_stars, YearPolarity};
-pub use daily::compute_daily_flying_stars;
-pub use aspects::{compute_palace_aspects, lookup_star_pair_aspect, FsCitation, FsConfidenceTier, StarPairAspect};
+pub use aspects::{
+    compute_palace_aspects, lookup_star_pair_aspect, FsCitation, FsConfidenceTier, StarPairAspect,
+};
 pub use combined::{compute_combined_overlay, CombinedFlyingStarLayout};
+pub use daily::compute_daily_flying_stars;
 pub use golden::{
     load_daily_flying_stars_golden, load_flying_stars_golden, DeferralMarker, GoldenConfidence,
     KnownDivergence, PhiTinhGoldenCase, PhiTinhGoldenDataset,
@@ -42,6 +44,5 @@ pub use stars::{flying_star_from_u8, star_metadata};
 // so external-crate test consumers can import the additive `DailyFlyingStarLayout`
 // sibling struct and the extended `FlyingStarPeriod` enum.
 pub use types::{
-    minimal_evidence, DailyFlyingStarLayout, FlyingStar, FlyingStarLayout, FlyingStarPeriod,
-    Palace,
+    minimal_evidence, DailyFlyingStarLayout, FlyingStar, FlyingStarLayout, FlyingStarPeriod, Palace,
 };

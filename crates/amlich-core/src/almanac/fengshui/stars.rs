@@ -12,8 +12,7 @@ use serde::Deserialize;
 use crate::almanac::fengshui::types::FlyingStar;
 
 // Path depth: fengshui/ -> almanac/ -> src/ -> crate root -> data/
-const FLYING_STARS_JSON: &str =
-    include_str!("../../../data/almanac/flying_stars.json");
+const FLYING_STARS_JSON: &str = include_str!("../../../data/almanac/flying_stars.json");
 
 static FLYING_STARS_META: OnceLock<FlyingStarsMeta> = OnceLock::new();
 
@@ -57,7 +56,7 @@ fn load_stars_inner() -> FlyingStarsMeta {
     for star in &meta.stars {
         let n = star.number;
         assert!(
-            n >= 1 && n <= 9,
+            (1..=9).contains(&n),
             "star number {n} is out of range 1..=9"
         );
         assert!(
@@ -66,8 +65,8 @@ fn load_stars_inner() -> FlyingStarsMeta {
         );
         seen[n as usize] = true;
     }
-    for n in 1..=9usize {
-        assert!(seen[n], "star number {n} is missing from flying_stars.json");
+    for (n, &present) in seen.iter().enumerate().skip(1) {
+        assert!(present, "star number {n} is missing from flying_stars.json");
     }
 
     meta

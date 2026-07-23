@@ -10,14 +10,13 @@
 //! Imports via `use amlich_core::...` as an external consumer would.
 
 use amlich_core::almanac::fengshui::{
-    base_palaces_for_van, compute_combined_overlay, compute_monthly_flying_stars,
-    compute_period, compute_yearly_flying_stars, load_flying_stars_golden,
-    GoldenConfidence, TietKhiScanner,
+    base_palaces_for_van, compute_combined_overlay, compute_monthly_flying_stars, compute_period,
+    compute_yearly_flying_stars, load_flying_stars_golden, GoldenConfidence, TietKhiScanner,
 };
 // `KnownDivergence` is referenced by Test G (FND-08) — imported for completeness.
+use amlich_core::almanac::fengshui::types::FlyingStarPeriod;
 #[allow(unused_imports)]
 use amlich_core::almanac::fengshui::KnownDivergence;
-use amlich_core::almanac::fengshui::types::FlyingStarPeriod;
 use amlich_core::julian::jd_from_date;
 
 // ---------------------------------------------------------------------------
@@ -36,16 +35,13 @@ fn test_a_lo_shu_invariants_all_vans() {
 
         // Sum == 45
         let sum: u32 = values.iter().map(|&v| v as u32).sum();
-        assert_eq!(
-            sum, 45,
-            "Van {van}: Lo Shu sum should be 45, got {sum}"
-        );
+        assert_eq!(sum, 45, "Van {van}: Lo Shu sum should be 45, got {sum}");
 
         // Each 1..=9 exactly once
         let mut seen = [false; 10];
         for &v in &values {
             assert!(
-                v >= 1 && v <= 9,
+                (1..=9).contains(&v),
                 "Van {van}: star value {v} is outside 1..=9"
             );
             assert!(
@@ -54,14 +50,16 @@ fn test_a_lo_shu_invariants_all_vans() {
             );
             seen[v as usize] = true;
         }
-        for n in 1usize..=9 {
-            assert!(seen[n], "Van {van}: star {n} is missing from the palace layout");
+        for (n, &present) in seen.iter().enumerate().skip(1) {
+            assert!(
+                present,
+                "Van {van}: star {n} is missing from the palace layout"
+            );
         }
 
         // Center palace (index 4 = Center in Palace::ALL) == van
         assert_eq!(
-            palaces[4] as u8,
-            van,
+            palaces[4] as u8, van,
             "Van {van}: center palace should be {van}, got {} (Lo Shu center violation)",
             palaces[4] as u8
         );
@@ -139,13 +137,19 @@ fn test_c_golden_annual_coverage() {
     let ds = load_flying_stars_golden();
 
     // Build a lookup from year to divergence for annual cases
-    let divergent_years: std::collections::HashMap<i32, &amlich_core::almanac::fengshui::KnownDivergence> = ds
+    let divergent_years: std::collections::HashMap<
+        i32,
+        &amlich_core::almanac::fengshui::KnownDivergence,
+    > = ds
         .known_divergences
         .iter()
         .filter_map(|d| {
             // Parse "annual YYYY" format
             if d.case.starts_with("annual ") {
-                d.case["annual ".len()..].parse::<i32>().ok().map(|y| (y, d))
+                d.case["annual ".len()..]
+                    .parse::<i32>()
+                    .ok()
+                    .map(|y| (y, d))
             } else {
                 None
             }
@@ -167,31 +171,21 @@ fn test_c_golden_annual_coverage() {
             // For divergent cases: assert the divergence is logged (not silently corrected)
             let div_entry = divergent_years[&case.year];
             assert_eq!(
-                div_entry.our_value,
-                computed_center,
+                div_entry.our_value, computed_center,
                 "divergent case year={}: our_value {} should match computed center {}",
-                case.year,
-                div_entry.our_value,
-                computed_center
+                case.year, div_entry.our_value, computed_center
             );
             // The expected_center in the golden case should also match our tiebreaker value
             assert_eq!(
-                case.expected_center,
-                computed_center,
+                case.expected_center, computed_center,
                 "divergent case year={}: golden expected_center {} != computed {}",
-                case.year,
-                case.expected_center,
-                computed_center
+                case.year, case.expected_center, computed_center
             );
         } else {
             assert_eq!(
-                computed_center,
-                case.expected_center,
+                computed_center, case.expected_center,
                 "annual case '{}' year={}: expected center={}, got center={}",
-                case.id,
-                case.year,
-                case.expected_center,
-                computed_center
+                case.id, case.year, case.expected_center, computed_center
             );
         }
 
@@ -238,14 +232,9 @@ fn test_d_golden_monthly_cases() {
         let month = case.month.expect("monthly case must have month set");
         let layout = compute_monthly_flying_stars(case.year, month, &scanner);
         assert_eq!(
-            layout.center_star as u8,
-            case.expected_center,
+            layout.center_star as u8, case.expected_center,
             "monthly case '{}' year={} month={}: expected center={}, got {}",
-            case.id,
-            case.year,
-            month,
-            case.expected_center,
-            layout.center_star as u8
+            case.id, case.year, month, case.expected_center, layout.center_star as u8
         );
     }
 }
@@ -267,13 +256,9 @@ fn test_d_golden_period_cases() {
         let jd = case.jd.expect("period case must have jd set");
         let period = compute_period(jd, &scanner);
         assert_eq!(
-            period.van,
-            case.van,
+            period.van, case.van,
             "period case '{}' jd={}: expected van={}, got van={}",
-            case.id,
-            jd,
-            case.van,
-            period.van
+            case.id, jd, case.van, period.van
         );
     }
 }
@@ -298,10 +283,7 @@ fn test_e_combined_overlay_smoke_2024_m1() {
     );
 
     if let FlyingStarPeriod::Van { van } = overlay.van_layout.period {
-        assert_eq!(
-            van, 9,
-            "2024 van_layout should be Van 9, got Van {van}"
-        );
+        assert_eq!(van, 9, "2024 van_layout should be Van 9, got Van {van}");
     } else {
         panic!(
             "expected van_layout.period to be Van variant, got {:?}",
@@ -310,8 +292,7 @@ fn test_e_combined_overlay_smoke_2024_m1() {
     }
 
     assert_eq!(
-        overlay.evidence.method,
-        "rule.composite.flying_stars",
+        overlay.evidence.method, "rule.composite.flying_stars",
         "composite evidence method should be 'rule.composite.flying_stars'"
     );
 }
@@ -323,13 +304,11 @@ fn test_e_combined_overlay_annual_center_2024() {
     let overlay = compute_combined_overlay(2024, 1, &scanner);
 
     assert_eq!(
-        overlay.annual_layout.center_star as u8,
-        4,
+        overlay.annual_layout.center_star as u8, 4,
         "2024 annual center should be 4 (Tu Luc)"
     );
     assert_eq!(
-        overlay.monthly_layout.center_star as u8,
-        2,
+        overlay.monthly_layout.center_star as u8, 2,
         "2024 month-1 center should be 2 (Nhi Hac, group 2)"
     );
 }
@@ -342,13 +321,11 @@ fn test_e_combined_overlay_mirrors_components() {
 
     for i in 0..9 {
         assert_eq!(
-            overlay.palace_overlays[i].0,
-            overlay.annual_layout.palaces[i],
+            overlay.palace_overlays[i].0, overlay.annual_layout.palaces[i],
             "palace_overlays[{i}].0 should equal annual_layout.palaces[{i}]"
         );
         assert_eq!(
-            overlay.palace_overlays[i].1,
-            overlay.monthly_layout.palaces[i],
+            overlay.palace_overlays[i].1, overlay.monthly_layout.palaces[i],
             "palace_overlays[{i}].1 should equal monthly_layout.palaces[{i}]"
         );
     }
@@ -446,10 +423,9 @@ fn test_g_1960_divergence_deferred() {
     );
 
     // The deferral marker itself must be present and populated.
-    let deferral = div
-        .deferral
-        .as_ref()
-        .expect("FND-08: 1960 KnownDivergence must carry a deferral marker (PendingExternalReview)");
+    let deferral = div.deferral.as_ref().expect(
+        "FND-08: 1960 KnownDivergence must carry a deferral marker (PendingExternalReview)",
+    );
 
     assert!(
         !deferral.reason.trim().is_empty(),

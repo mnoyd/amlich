@@ -86,10 +86,8 @@ pub fn compute_combined_overlay(
     let annual_layout = compute_yearly_flying_stars(year, scanner);
     let monthly_layout = compute_monthly_flying_stars(year, month, scanner);
 
-    let mut overlays = [(FlyingStar::NhatBach, FlyingStar::NhatBach); 9];
-    for i in 0..9 {
-        overlays[i] = (annual_layout.palaces[i], monthly_layout.palaces[i]);
-    }
+    let overlays: [(FlyingStar, FlyingStar); 9] =
+        std::array::from_fn(|i| (annual_layout.palaces[i], monthly_layout.palaces[i]));
 
     CombinedFlyingStarLayout {
         year,
@@ -130,8 +128,7 @@ mod tests {
         let result = compute_combined_overlay(2024, 1, &scanner());
         for i in 0..9 {
             assert_eq!(
-                result.palace_overlays[i].0,
-                result.annual_layout.palaces[i],
+                result.palace_overlays[i].0, result.annual_layout.palaces[i],
                 "palace_overlays[{i}].0 (annual) should equal annual_layout.palaces[{i}]"
             );
         }
@@ -143,8 +140,7 @@ mod tests {
         let result = compute_combined_overlay(2024, 1, &scanner());
         for i in 0..9 {
             assert_eq!(
-                result.palace_overlays[i].1,
-                result.monthly_layout.palaces[i],
+                result.palace_overlays[i].1, result.monthly_layout.palaces[i],
                 "palace_overlays[{i}].1 (monthly) should equal monthly_layout.palaces[{i}]"
             );
         }
@@ -168,7 +164,10 @@ mod tests {
         if let FlyingStarPeriod::Yearly { year } = result.annual_layout.period {
             assert_eq!(year, 2024);
         } else {
-            panic!("Expected Yearly period, got {:?}", result.annual_layout.period);
+            panic!(
+                "Expected Yearly period, got {:?}",
+                result.annual_layout.period
+            );
         }
     }
 
@@ -180,7 +179,10 @@ mod tests {
             assert_eq!(year, 2024);
             assert_eq!(month, 1);
         } else {
-            panic!("Expected Monthly period, got {:?}", result.monthly_layout.period);
+            panic!(
+                "Expected Monthly period, got {:?}",
+                result.monthly_layout.period
+            );
         }
     }
 
@@ -188,21 +190,32 @@ mod tests {
     #[test]
     fn test_combined_overlay_four_evidence_methods() {
         let result = compute_combined_overlay(2024, 1, &scanner());
-        assert_eq!(result.annual_layout.evidence.method, "phi_tinh.nien",
-            "annual evidence method should be phi_tinh.nien");
-        assert_eq!(result.monthly_layout.evidence.method, "phi_tinh.nguyet",
-            "monthly evidence method should be phi_tinh.nguyet");
-        assert_eq!(result.van_layout.evidence.method, "phi_tinh.van",
-            "van evidence method should be phi_tinh.van");
-        assert_eq!(result.evidence.method, "rule.composite.flying_stars",
-            "composite evidence method should be rule.composite.flying_stars");
+        assert_eq!(
+            result.annual_layout.evidence.method, "phi_tinh.nien",
+            "annual evidence method should be phi_tinh.nien"
+        );
+        assert_eq!(
+            result.monthly_layout.evidence.method, "phi_tinh.nguyet",
+            "monthly evidence method should be phi_tinh.nguyet"
+        );
+        assert_eq!(
+            result.van_layout.evidence.method, "phi_tinh.van",
+            "van evidence method should be phi_tinh.van"
+        );
+        assert_eq!(
+            result.evidence.method, "rule.composite.flying_stars",
+            "composite evidence method should be rule.composite.flying_stars"
+        );
     }
 
     /// Composite evidence has source_id == SOURCE_HUYEN_KHONG and family == AlmanacRule.
     #[test]
     fn test_combined_overlay_composite_evidence_source() {
         let result = compute_combined_overlay(2024, 1, &scanner());
-        assert_eq!(result.evidence.source_id, crate::sources::SOURCE_HUYEN_KHONG);
+        assert_eq!(
+            result.evidence.source_id,
+            crate::sources::SOURCE_HUYEN_KHONG
+        );
         assert!(matches!(
             result.evidence.source_family,
             crate::reasoning::ReasoningEvidenceSourceFamily::AlmanacRule
@@ -220,18 +233,25 @@ mod tests {
         assert_eq!(roundtripped.year, original.year);
         assert_eq!(roundtripped.month, original.month);
         assert_eq!(roundtripped.evidence.method, original.evidence.method);
-        assert_eq!(roundtripped.annual_layout.evidence.method, original.annual_layout.evidence.method);
-        assert_eq!(roundtripped.monthly_layout.evidence.method, original.monthly_layout.evidence.method);
-        assert_eq!(roundtripped.van_layout.evidence.method, original.van_layout.evidence.method);
+        assert_eq!(
+            roundtripped.annual_layout.evidence.method,
+            original.annual_layout.evidence.method
+        );
+        assert_eq!(
+            roundtripped.monthly_layout.evidence.method,
+            original.monthly_layout.evidence.method
+        );
+        assert_eq!(
+            roundtripped.van_layout.evidence.method,
+            original.van_layout.evidence.method
+        );
         for i in 0..9 {
             assert_eq!(
-                roundtripped.palace_overlays[i].0,
-                original.palace_overlays[i].0,
+                roundtripped.palace_overlays[i].0, original.palace_overlays[i].0,
                 "palace_overlays[{i}].0 mismatch after round-trip"
             );
             assert_eq!(
-                roundtripped.palace_overlays[i].1,
-                original.palace_overlays[i].1,
+                roundtripped.palace_overlays[i].1, original.palace_overlays[i].1,
                 "palace_overlays[{i}].1 mismatch after round-trip"
             );
         }

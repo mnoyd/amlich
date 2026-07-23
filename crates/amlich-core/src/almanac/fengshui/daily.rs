@@ -43,12 +43,12 @@ fn pivot_kind(name: &str) -> PivotKind {
 
 fn pivot_starting_star(name: &str) -> u8 {
     match name {
-        "Đông Chí" => 1,    // Nhất Bạch
+        "Đông Chí" => 1,            // Nhất Bạch
         "Vũ Thuỷ" | "Vũ Thủy" => 7, // Thất Xích
-        "Cốc Vũ" => 4,     // Tứ Lục
-        "Hạ Chí" => 9,     // Cửu Tử
-        "Xử Thử" => 3,     // Tam Bích
-        "Sương Giáng" => 6, // Lục Bạch
+        "Cốc Vũ" => 4,              // Tứ Lục
+        "Hạ Chí" => 9,              // Cửu Tử
+        "Xử Thử" => 3,              // Tam Bích
+        "Sương Giáng" => 6,         // Lục Bạch
         _ => panic!("not a daily-pivot Trung Khí: {name}"),
     }
 }
@@ -221,7 +221,11 @@ mod tests {
     }
 
     fn note(layout: &DailyFlyingStarLayout) -> &str {
-        layout.evidence.note.as_deref().expect("daily evidence note")
+        layout
+            .evidence
+            .note
+            .as_deref()
+            .expect("daily evidence note")
     }
 
     fn raw_pivot_for_date(scanner: &TietKhiScanner, date: (i32, u32, u32)) -> (String, i32) {
@@ -258,7 +262,14 @@ mod tests {
     fn test_daily_pivots_for_year_returns_six_pivots() {
         let result = daily_pivots_for_year(&scanner(), 2024);
         assert!(result.len() >= 6, "expected at least the 6 daily pivots");
-        for name in ["Đông Chí", "Vũ Thủy", "Cốc Vũ", "Hạ Chí", "Xử Thử", "Sương Giáng"] {
+        for name in [
+            "Đông Chí",
+            "Vũ Thủy",
+            "Cốc Vũ",
+            "Hạ Chí",
+            "Xử Thử",
+            "Sương Giáng",
+        ] {
             assert!(
                 result.iter().any(|(pivot_name, _)| pivot_name == name),
                 "missing pivot {name}"
@@ -287,8 +298,8 @@ mod tests {
                 assert!(!seen[n as usize], "duplicate star {n} for {date:?}");
                 seen[n as usize] = true;
             }
-            for n in 1usize..=9 {
-                assert!(seen[n], "missing star {n} for {date:?}");
+            for (n, &present) in seen.iter().enumerate().skip(1) {
+                assert!(present, "missing star {n} for {date:?}");
             }
             assert_eq!(layout.palaces[4], layout.center_star);
         }
@@ -396,19 +407,15 @@ mod tests {
             .map(|(_, jd)| jd)
             .expect("Đông Chí pivot");
         let (dong_day, dong_month, dong_year) = jd_to_date(dong_chi_jd);
-        let (after_name, _) = raw_pivot_for_date(
-            &scanner,
-            (dong_year, dong_month as u32, dong_day as u32),
-        );
+        let (after_name, _) =
+            raw_pivot_for_date(&scanner, (dong_year, dong_month as u32, dong_day as u32));
         assert_eq!(after_name, "Đông Chí");
 
         let mut prior_jd = dong_chi_jd - 1;
         let prior_name = loop {
             let (prior_day, prior_month, prior_year) = jd_to_date(prior_jd);
-            let (name, _) = raw_pivot_for_date(
-                &scanner,
-                (prior_year, prior_month as u32, prior_day as u32),
-            );
+            let (name, _) =
+                raw_pivot_for_date(&scanner, (prior_year, prior_month as u32, prior_day as u32));
             if name != "Đông Chí" {
                 break name;
             }

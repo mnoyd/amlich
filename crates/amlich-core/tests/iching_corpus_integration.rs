@@ -23,9 +23,7 @@
 //! (which are identical because both enums carry `#[serde(rename_all =
 //! "snake_case")]`).
 
-use amlich_core::iching::{
-    all_hexagrams, get_hexagram, KingWenHexagram, COMPOSITION_TABLE,
-};
+use amlich_core::iching::{all_hexagrams, get_hexagram, KingWenHexagram, COMPOSITION_TABLE};
 use unicode_normalization::is_nfc;
 
 // ---------------------------------------------------------------------------
@@ -39,12 +37,10 @@ use unicode_normalization::is_nfc;
 #[test]
 fn lookup_all_64_indices_succeed() {
     for kw in 1..=64u8 {
-        let index = KingWenHexagram::new(kw).unwrap_or_else(|| {
-            panic!("KingWenHexagram::new({kw}) must construct for 1..=64")
-        });
-        let entry = get_hexagram(index).unwrap_or_else(|| {
-            panic!("get_hexagram(King Wen #{kw}) returned None")
-        });
+        let index = KingWenHexagram::new(kw)
+            .unwrap_or_else(|| panic!("KingWenHexagram::new({kw}) must construct for 1..=64"));
+        let entry = get_hexagram(index)
+            .unwrap_or_else(|| panic!("get_hexagram(King Wen #{kw}) returned None"));
         assert_eq!(
             entry.king_wen_index, index,
             "returned entry king_wen_index mismatch for #{kw}"
@@ -70,10 +66,10 @@ fn lookup_all_64_indices_succeed() {
         // would have rejected an unknown variant at load). We exercise them
         // by serializing back to their snake_case name (catches accidental
         // representation drift if the enum were ever re-encoded).
-        let upper_name = serde_json::to_string(&entry.upper_trigram)
-            .expect("upper_trigram serializes");
-        let lower_name = serde_json::to_string(&entry.lower_trigram)
-            .expect("lower_trigram serializes");
+        let upper_name =
+            serde_json::to_string(&entry.upper_trigram).expect("upper_trigram serializes");
+        let lower_name =
+            serde_json::to_string(&entry.lower_trigram).expect("lower_trigram serializes");
         assert!(
             !upper_name.is_empty() && upper_name.starts_with('"'),
             "upper_trigram for #{kw} did not serialize to a JSON string: {upper_name}"
@@ -208,8 +204,14 @@ fn every_text_field_is_nfc_normalized() {
     for entry in all_hexagrams() {
         let kw = entry.king_wen_index.0;
         assert!(is_nfc(&entry.vi_name), "vi_name not NFC for King Wen #{kw}");
-        assert!(is_nfc(&entry.thoai_tu), "thoai_tu not NFC for King Wen #{kw}");
-        assert!(is_nfc(&entry.cat_hung), "cat_hung not NFC for King Wen #{kw}");
+        assert!(
+            is_nfc(&entry.thoai_tu),
+            "thoai_tu not NFC for King Wen #{kw}"
+        );
+        assert!(
+            is_nfc(&entry.cat_hung),
+            "cat_hung not NFC for King Wen #{kw}"
+        );
         for (i, line) in entry.hao_tu.iter().enumerate() {
             assert!(
                 is_nfc(line),
@@ -225,10 +227,7 @@ fn every_text_field_is_nfc_normalized() {
         }
         if let Some(lines) = &entry.hao_tu_en {
             for (i, line) in lines.iter().enumerate() {
-                assert!(
-                    is_nfc(line),
-                    "hao_tu_en[{i}] not NFC for King Wen #{kw}"
-                );
+                assert!(is_nfc(line), "hao_tu_en[{i}] not NFC for King Wen #{kw}");
             }
         }
     }
@@ -253,7 +252,12 @@ fn provenance_ledger_has_64_rows_all_pending() {
             trimmed.starts_with("| ")
                 && trimmed
                     .get(2..)
-                    .map(|rest| rest.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false))
+                    .map(|rest| {
+                        rest.chars()
+                            .next()
+                            .map(|c| c.is_ascii_digit())
+                            .unwrap_or(false)
+                    })
                     .unwrap_or(false)
         })
         .collect();

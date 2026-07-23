@@ -22,10 +22,7 @@ impl Widget for StatusFooterWidget<'_> {
     fn render(self, area: Rect, buf: &mut Buffer) {
         if self.app.is_calendar_view() {
             let line = Line::from(vec![
-                Span::styled(
-                    "j/k: di chuyển  ",
-                    Style::default().fg(Color::DarkGray),
-                ),
+                Span::styled("j/k: di chuyển  ", Style::default().fg(Color::DarkGray)),
                 Span::styled("[ ]: đổi tháng  ", Style::default().fg(Color::DarkGray)),
                 Span::styled(
                     "Enter: chọn  Esc: đóng",
@@ -33,7 +30,9 @@ impl Widget for StatusFooterWidget<'_> {
                 ),
             ]);
 
-            Paragraph::new(line).alignment(Alignment::Center).render(area, buf);
+            Paragraph::new(line)
+                .alignment(Alignment::Center)
+                .render(area, buf);
             return;
         }
 
@@ -43,7 +42,9 @@ impl Widget for StatusFooterWidget<'_> {
                 Style::default().fg(Color::DarkGray),
             )]);
 
-            Paragraph::new(line).alignment(Alignment::Center).render(area, buf);
+            Paragraph::new(line)
+                .alignment(Alignment::Center)
+                .render(area, buf);
             return;
         }
 

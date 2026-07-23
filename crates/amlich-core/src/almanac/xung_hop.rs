@@ -286,13 +286,13 @@ mod tests {
     #[test]
     fn luc_xung_all_pairs_symmetric() {
         // Every branch's xung must point back to itself
-        for i in 0..12 {
+        for (i, chi) in CHI.iter().enumerate() {
             let j = CHI.iter().position(|c| *c == luc_xung(i)).unwrap();
             assert_eq!(
                 luc_xung(j),
-                CHI[i],
+                *chi,
                 "luc_xung must be symmetric: {} <-> {}",
-                CHI[i],
+                chi,
                 CHI[j]
             );
         }
@@ -386,12 +386,12 @@ mod tests {
     #[test]
     fn test_liu_he_complete_coverage() {
         // All 12 branches should find a partner
-        for i in 0..12 {
+        for (i, chi) in CHI.iter().enumerate() {
             let partner = get_liu_he(i);
             assert_ne!(
-                partner, CHI[i],
+                partner, *chi,
                 "Branch {} should have a different harmony partner",
-                CHI[i]
+                chi
             );
         }
     }
@@ -399,14 +399,14 @@ mod tests {
     #[test]
     fn test_liu_he_symmetric() {
         // Every pair should be bidirectional
-        for i in 0..12 {
+        for (i, chi) in CHI.iter().enumerate() {
             let partner = get_liu_he(i);
             let partner_idx = CHI.iter().position(|c| *c == partner).unwrap();
             let reverse = get_liu_he(partner_idx);
             assert_eq!(
-                reverse, CHI[i],
+                reverse, *chi,
                 "Lục hợp should be symmetric: {} <-> {}",
-                CHI[i], partner
+                chi, partner
             );
         }
     }
@@ -436,12 +436,12 @@ mod tests {
     #[test]
     fn test_xiang_hai_complete_coverage() {
         // All 12 branches should find a harm partner
-        for i in 0..12 {
+        for (i, chi) in CHI.iter().enumerate() {
             let partner = get_xiang_hai(i);
             assert_ne!(
-                partner, CHI[i],
+                partner, *chi,
                 "Branch {} should have a different harm partner",
-                CHI[i]
+                chi
             );
         }
     }
@@ -449,14 +449,14 @@ mod tests {
     #[test]
     fn test_xiang_hai_symmetric() {
         // Every pair should be bidirectional
-        for i in 0..12 {
+        for (i, chi) in CHI.iter().enumerate() {
             let partner = get_xiang_hai(i);
             let partner_idx = CHI.iter().position(|c| *c == partner).unwrap();
             let reverse = get_xiang_hai(partner_idx);
             assert_eq!(
-                reverse, CHI[i],
+                reverse, *chi,
                 "Tương hại should be symmetric: {} <-> {}",
-                CHI[i], partner
+                chi, partner
             );
         }
     }

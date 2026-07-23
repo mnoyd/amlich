@@ -18,8 +18,8 @@ const FORBIDDEN_LITERALS: &[&str] = &[
     "\"tam-menh-thong-hoi\"",
     "\"vn-folk-ritual\"",
     "\"huyen-khong\"",
-    "\"kinh-dich\"",        // NEW v1.7 (Phase 20-01, FND-09)
-    "\"mai-hoa-dich-so\"",  // NEW v1.7 (Phase 20-01, FND-09)
+    "\"kinh-dich\"",       // NEW v1.7 (Phase 20-01, FND-09)
+    "\"mai-hoa-dich-so\"", // NEW v1.7 (Phase 20-01, FND-09)
 ];
 
 fn collect_rs_files(dir: &Path, out: &mut Vec<PathBuf>) {

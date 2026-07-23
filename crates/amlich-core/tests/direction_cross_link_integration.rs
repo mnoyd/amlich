@@ -28,12 +28,14 @@
 use amlich_core::almanac::tu_menh::Direction;
 use amlich_core::reasoning::direction_composite::{
     build_direction_cross_link, build_direction_cross_link_date,
-    build_direction_cross_link_personal, project_to_summary, Agreement, COMPOSITE_DIRECTION_CROSS_LINK,
-    DATE_ONLY_BIRTH_CHI_INDEX, DIRECTION_ORDER,
+    build_direction_cross_link_personal, project_to_summary, Agreement,
+    COMPOSITE_DIRECTION_CROSS_LINK, DATE_ONLY_BIRTH_CHI_INDEX, DIRECTION_ORDER,
 };
 use amlich_core::reasoning::{DirectionCrossLink, ReasoningNodeSeverity};
 use amlich_core::sources::{SOURCE_HUYEN_KHONG, SOURCE_KHCBPPT};
-use amlich_core::{calculate_day_snapshot, enrich_day_snapshot_with_direction_cross_link, DaySnapshot};
+use amlich_core::{
+    calculate_day_snapshot, enrich_day_snapshot_with_direction_cross_link, DaySnapshot,
+};
 
 /// Snapshot fixture: 2024-02-10 (solar) = lunar 2024-01-01 Giáp Thìn.
 ///
@@ -64,8 +66,7 @@ fn personal_result_has_eight_cells_in_locked_direction_order() {
     assert_eq!(cross.cells.len(), 8);
     for (i, expected) in DIRECTION_ORDER.iter().enumerate() {
         assert_eq!(
-            cross.cells[i].direction,
-            *expected,
+            cross.cells[i].direction, *expected,
             "personal cell {} direction must match DIRECTION_ORDER",
             i
         );
@@ -84,8 +85,7 @@ fn personal_result_has_eight_cells_in_locked_direction_order() {
 #[test]
 fn personal_result_carries_thai_tue_record_at_year_direction() {
     let snap = fixture_snapshot();
-    let cross =
-        build_direction_cross_link_personal(&snap, 10).expect("personal builder");
+    let cross = build_direction_cross_link_personal(&snap, 10).expect("personal builder");
     // Year Thìn → Thái Tuế direction Southeast
     let southeast_idx = cell_index_for(Direction::Southeast);
     let taboo = cross.cells[southeast_idx]
@@ -104,11 +104,7 @@ fn personal_result_carries_tam_sat_overlap_on_three_directions() {
     let snap = fixture_snapshot();
     let cross = build_direction_cross_link_personal(&snap, 0).expect("personal builder");
     // Year Thìn (Water triad) → Tam Sát: Dần (NE), Ngọ (S), Tuất (NW)
-    let tam_sat_directions = [
-        Direction::Northeast,
-        Direction::South,
-        Direction::Northwest,
-    ];
+    let tam_sat_directions = [Direction::Northeast, Direction::South, Direction::Northwest];
     let mut tam_sat_hits = 0;
     for cell in cross.cells.iter() {
         if let Some(taboo) = cell.khcbppt.as_ref() {
@@ -169,13 +165,17 @@ fn date_result_still_carries_tam_sat_and_sat_phuong() {
     let tam_sat_cells = cross
         .cells
         .iter()
-        .filter(|c| c
-            .khcbppt
-            .as_ref()
-            .map(|t| !t.tam_sat_branches.is_empty())
-            .unwrap_or(false))
+        .filter(|c| {
+            c.khcbppt
+                .as_ref()
+                .map(|t| !t.tam_sat_branches.is_empty())
+                .unwrap_or(false)
+        })
         .count();
-    assert_eq!(tam_sat_cells, 3, "date variant must still surface three Tam Sát directions");
+    assert_eq!(
+        tam_sat_cells, 3,
+        "date variant must still surface three Tam Sát directions"
+    );
     // Sát Phương still present on the South cell
     let south_idx = cell_index_for(Direction::South);
     let taboo = cross.cells[south_idx]
@@ -219,11 +219,7 @@ fn agreement_variants_distribution_is_well_formed() {
     let cross = build_direction_cross_link_personal(&snap, 0).expect("personal builder");
     // At least one cell with KHCBPPT data + huyen-khong data → populated
     // variant from {Agreement, Conflict, BothSilent}.
-    let populated_khcbppt_cells = cross
-        .cells
-        .iter()
-        .filter(|c| c.khcbppt.is_some())
-        .count();
+    let populated_khcbppt_cells = cross.cells.iter().filter(|c| c.khcbppt.is_some()).count();
     assert!(
         populated_khcbppt_cells >= 1,
         "expected at least one cell with KHCBPPT data"
@@ -259,10 +255,21 @@ fn summary_vi_is_non_empty_vietnamese_with_date_content() {
     );
     // Vietnamese diacritics sanity check (at least one of the typical
     // directional words appears).
-    let has_vn = ["hướng", "Liên kết", "cấm kỵ", "cung số", "Thái Tuế", "Tam Sát"]
-        .iter()
-        .any(|w| cross.summary_vi.contains(w));
-    assert!(has_vn, "summary_vi must carry Vietnamese wording; got: {}", cross.summary_vi);
+    let has_vn = [
+        "hướng",
+        "Liên kết",
+        "cấm kỵ",
+        "cung số",
+        "Thái Tuế",
+        "Tam Sát",
+    ]
+    .iter()
+    .any(|w| cross.summary_vi.contains(w));
+    assert!(
+        has_vn,
+        "summary_vi must carry Vietnamese wording; got: {}",
+        cross.summary_vi
+    );
 }
 
 #[test]
@@ -434,8 +441,8 @@ fn ordinary_calculation_leaves_direction_cross_link_absent_and_omits_from_json()
 fn enrichment_attaches_summary_and_leaves_input_unchanged() {
     let snap = fixture_snapshot();
     let before_json = serde_json::to_string(&snap).expect("serialize before");
-    let enriched = enrich_day_snapshot_with_direction_cross_link(&snap, 0)
-        .expect("personal enrichment");
+    let enriched =
+        enrich_day_snapshot_with_direction_cross_link(&snap, 0).expect("personal enrichment");
     assert!(enriched.direction_cross_link.is_some());
     assert!(
         snap.direction_cross_link.is_none(),
@@ -451,21 +458,23 @@ fn enrichment_attaches_summary_and_leaves_input_unchanged() {
 #[test]
 fn enriched_summary_round_trips_byte_equal() {
     let snap = fixture_snapshot();
-    let enriched = enrich_day_snapshot_with_direction_cross_link(&snap, 0)
-        .expect("personal enrichment");
+    let enriched =
+        enrich_day_snapshot_with_direction_cross_link(&snap, 0).expect("personal enrichment");
     let json = serde_json::to_string(&enriched).expect("serialize enriched");
     let round: DaySnapshot = serde_json::from_str(&json).expect("deserialize enriched");
     let re_json = serde_json::to_string(&round).expect("re-serialize enriched");
-    assert_eq!(json, re_json, "enriched snapshot must round-trip byte-equal");
+    assert_eq!(
+        json, re_json,
+        "enriched snapshot must round-trip byte-equal"
+    );
     assert!(round.direction_cross_link.is_some());
 }
 
 #[test]
 fn enrichment_dispatches_sentinel_to_date_builder() {
     let snap = fixture_snapshot();
-    let enriched =
-        enrich_day_snapshot_with_direction_cross_link(&snap, DATE_ONLY_BIRTH_CHI_INDEX)
-            .expect("sentinel enrichment");
+    let enriched = enrich_day_snapshot_with_direction_cross_link(&snap, DATE_ONLY_BIRTH_CHI_INDEX)
+        .expect("sentinel enrichment");
     let summary = enriched
         .direction_cross_link
         .as_ref()

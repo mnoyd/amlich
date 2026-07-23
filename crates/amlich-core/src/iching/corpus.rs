@@ -59,15 +59,17 @@ static HEXAGRAMS: OnceLock<Vec<HexagramEntry>> = OnceLock::new();
 pub fn all_hexagrams() -> &'static [HexagramEntry] {
     HEXAGRAMS
         .get_or_init(|| {
-            let file: HexagramFile = serde_json::from_str(HEXAGRAMS_JSON).unwrap_or_else(|e| {
-                panic!("Failed to parse iching corpus: {e}")
-            });
+            let file: HexagramFile = serde_json::from_str(HEXAGRAMS_JSON)
+                .unwrap_or_else(|e| panic!("Failed to parse iching corpus: {e}"));
             assert_eq!(
                 file.schema_version, EXPECTED_SCHEMA_VERSION,
                 "iching corpus schema_version must equal {:?} (ADR-0005); found {:?}",
                 EXPECTED_SCHEMA_VERSION, file.schema_version
             );
-            file.entries.into_iter().map(normalize_and_validate).collect()
+            file.entries
+                .into_iter()
+                .map(normalize_and_validate)
+                .collect()
         })
         .as_slice()
 }
@@ -154,9 +156,8 @@ mod tests {
     fn every_index_lookup_succeeds() {
         for kw in 1..=64u8 {
             let index = KingWenHexagram::new(kw).expect("1..=64 must construct");
-            let entry = get_hexagram(index).unwrap_or_else(|| {
-                panic!("get_hexagram(KingWenHexagram({kw})) returned None")
-            });
+            let entry = get_hexagram(index)
+                .unwrap_or_else(|| panic!("get_hexagram(KingWenHexagram({kw})) returned None"));
             assert_eq!(
                 entry.king_wen_index, index,
                 "returned entry king_wen_index mismatch for #{kw}"
@@ -208,7 +209,8 @@ mod tests {
         let a = all_hexagrams();
         let b = all_hexagrams();
         assert_eq!(
-            a.as_ptr(), b.as_ptr(),
+            a.as_ptr(),
+            b.as_ptr(),
             "OnceLock should return the same slice on subsequent calls"
         );
         assert_eq!(a.len(), b.len());
@@ -219,13 +221,26 @@ mod tests {
     #[test]
     fn every_text_field_is_nfc() {
         for entry in all_hexagrams() {
-            assert!(is_nfc(&entry.vi_name), "vi_name not NFC for #{}", entry.king_wen_index.0);
-            assert!(is_nfc(&entry.thoai_tu), "thoai_tu not NFC for #{}", entry.king_wen_index.0);
-            assert!(is_nfc(&entry.cat_hung), "cat_hung not NFC for #{}", entry.king_wen_index.0);
+            assert!(
+                is_nfc(&entry.vi_name),
+                "vi_name not NFC for #{}",
+                entry.king_wen_index.0
+            );
+            assert!(
+                is_nfc(&entry.thoai_tu),
+                "thoai_tu not NFC for #{}",
+                entry.king_wen_index.0
+            );
+            assert!(
+                is_nfc(&entry.cat_hung),
+                "cat_hung not NFC for #{}",
+                entry.king_wen_index.0
+            );
             for (i, line) in entry.hao_tu.iter().enumerate() {
                 assert!(
                     is_nfc(line),
-                    "hao_tu[{i}] not NFC for #{}", entry.king_wen_index.0
+                    "hao_tu[{i}] not NFC for #{}",
+                    entry.king_wen_index.0
                 );
             }
         }

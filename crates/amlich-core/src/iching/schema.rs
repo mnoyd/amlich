@@ -180,70 +180,70 @@ impl KingWenHexagram {
 /// sequence is NOT alphabetically ordered — every tuple was checked against
 /// the classical 8×8 upper×lower trigram grid.
 pub const COMPOSITION_TABLE: [(TienThienTrigram, TienThienTrigram); 64] = [
-    (TienThienTrigram::Kien, TienThienTrigram::Kien),   // #1  Thuần Kiền (Qián)
-    (TienThienTrigram::Khon, TienThienTrigram::Khon),   // #2  Thuần Khôn (Kūn)
-    (TienThienTrigram::Kham, TienThienTrigram::Chan),   // #3  Truân (Zhūn) — water above thunder
-    (TienThienTrigram::Can, TienThienTrigram::Kham),    // #4  Mông (Méng) — mountain above water
-    (TienThienTrigram::Kien, TienThienTrigram::Kham),   // #5  Nhu (Xū) — heaven above water
-    (TienThienTrigram::Kham, TienThienTrigram::Kien),   // #6  Tụng (Sòng) — water above heaven
-    (TienThienTrigram::Khon, TienThienTrigram::Kham),   // #7  Sư (Shī) — earth above water
-    (TienThienTrigram::Kham, TienThienTrigram::Khon),   // #8  Tỷ (Bǐ) — water above earth
-    (TienThienTrigram::Ton, TienThienTrigram::Kien),    // #9  Tiểu Súc (Xiǎo Chù) — wind above heaven
-    (TienThienTrigram::Kien, TienThienTrigram::Doai),   // #10 Lữ (Lǚ) — heaven above lake
-    (TienThienTrigram::Khon, TienThienTrigram::Kien),   // #11 Thái (Tài) — earth above heaven
-    (TienThienTrigram::Kien, TienThienTrigram::Khon),   // #12 Bỉ (Pǐ) — heaven above earth
-    (TienThienTrigram::Kien, TienThienTrigram::Ly),     // #13 Đồng Nhân (Tóng Rén) — heaven above fire
-    (TienThienTrigram::Ly, TienThienTrigram::Kien),     // #14 Đại Hữu (Dà Yǒu) — fire above heaven
-    (TienThienTrigram::Khon, TienThienTrigram::Can),    // #15 Khiêm (Qiān) — earth above mountain
-    (TienThienTrigram::Chan, TienThienTrigram::Khon),   // #16 Dự (Yù) — thunder above earth
-    (TienThienTrigram::Doai, TienThienTrigram::Chan),   // #17 Tùy (Suí) — lake above thunder
-    (TienThienTrigram::Can, TienThienTrigram::Ton),     // #18 Cổ (Gǔ) — mountain above wind
-    (TienThienTrigram::Khon, TienThienTrigram::Doai),   // #19 Lâm (Lín) — earth above lake
-    (TienThienTrigram::Ton, TienThienTrigram::Khon),    // #20 Quan (Guān) — wind above earth
-    (TienThienTrigram::Ly, TienThienTrigram::Chan),     // #21 Phệ Hạp (Shì Hé) — fire above thunder
-    (TienThienTrigram::Can, TienThienTrigram::Ly),      // #22 Bí (Bì) — mountain above fire
-    (TienThienTrigram::Can, TienThienTrigram::Khon),    // #23 Bác (Bō) — mountain above earth
-    (TienThienTrigram::Khon, TienThienTrigram::Chan),   // #24 Phục (Fù) — earth above thunder
-    (TienThienTrigram::Kien, TienThienTrigram::Chan),   // #25 Vô Vọng (Wú Wàng) — heaven above thunder
-    (TienThienTrigram::Can, TienThienTrigram::Kien),    // #26 Đại Súc (Dà Chù) — mountain above heaven
-    (TienThienTrigram::Can, TienThienTrigram::Chan),    // #27 Di (Yí) — mountain above thunder
-    (TienThienTrigram::Doai, TienThienTrigram::Ton),    // #28 Đại Quá (Dà Guò) — lake above wind
-    (TienThienTrigram::Kham, TienThienTrigram::Kham),   // #29 Thuần Khảm (Kǎn) — water above water
-    (TienThienTrigram::Ly, TienThienTrigram::Ly),       // #30 Thuần Ly (Lí) — fire above fire
-    (TienThienTrigram::Doai, TienThienTrigram::Can),    // #31 Hàm (Xián) — lake above mountain
-    (TienThienTrigram::Chan, TienThienTrigram::Ton),    // #32 Hằng (Héng) — thunder above wind
-    (TienThienTrigram::Kien, TienThienTrigram::Can),    // #33 Độn (Dùn) — heaven above mountain
-    (TienThienTrigram::Chan, TienThienTrigram::Kien),   // #34 Đại Tráng (Dà Zhuàng) — thunder above heaven
-    (TienThienTrigram::Ly, TienThienTrigram::Khon),     // #35 Tấn (Jìn) — fire above earth
-    (TienThienTrigram::Khon, TienThienTrigram::Ly),     // #36 Minh Di (Míng Yí) — earth above fire
-    (TienThienTrigram::Ton, TienThienTrigram::Ly),      // #37 Gia Nhân (Jiā Rén) — wind above fire
-    (TienThienTrigram::Ly, TienThienTrigram::Doai),     // #38 Khuê (Kuí) — fire above lake
-    (TienThienTrigram::Kham, TienThienTrigram::Can),    // #39 Kiển (Jiǎn) — water above mountain
-    (TienThienTrigram::Chan, TienThienTrigram::Kham),   // #40 Giải (Xiè) — thunder above water
-    (TienThienTrigram::Can, TienThienTrigram::Doai),    // #41 Tổn (Sǔn) — mountain above lake
-    (TienThienTrigram::Ton, TienThienTrigram::Chan),    // #42 Ích (Yì) — wind above thunder
-    (TienThienTrigram::Doai, TienThienTrigram::Kien),   // #43 Quải (Guài) — lake above heaven
-    (TienThienTrigram::Kien, TienThienTrigram::Ton),    // #44 Cấu (Gòu) — heaven above wind
-    (TienThienTrigram::Doai, TienThienTrigram::Khon),   // #45 Tụy (Cuì) — lake above earth
-    (TienThienTrigram::Khon, TienThienTrigram::Ton),    // #46 Thăng (Shēng) — earth above wind
-    (TienThienTrigram::Doai, TienThienTrigram::Kham),   // #47 Khốn (Kùn) — lake above water
-    (TienThienTrigram::Kham, TienThienTrigram::Ton),    // #48 Tỉnh (Jǐng) — water above wind
-    (TienThienTrigram::Doai, TienThienTrigram::Ly),     // #49 Cách (Gé) — lake above fire
-    (TienThienTrigram::Ly, TienThienTrigram::Ton),      // #50 Đỉnh (Dǐng) — fire above wind
-    (TienThienTrigram::Chan, TienThienTrigram::Chan),   // #51 Thuần Chấn (Zhèn) — thunder above thunder
-    (TienThienTrigram::Can, TienThienTrigram::Can),     // #52 Thuần Cấn (Gèn) — mountain above mountain
-    (TienThienTrigram::Ton, TienThienTrigram::Can),     // #53 Tiệm (Jiàn) — wind above mountain
-    (TienThienTrigram::Chan, TienThienTrigram::Doai),   // #54 Quy Muội (Guī Mèi) — thunder above lake
-    (TienThienTrigram::Chan, TienThienTrigram::Ly),     // #55 Phong (Fēng) — thunder above fire
-    (TienThienTrigram::Ly, TienThienTrigram::Can),      // #56 Lữ (Lǚ) — fire above mountain
-    (TienThienTrigram::Ton, TienThienTrigram::Ton),     // #57 Thuần Tốn (Xùn) — wind above wind
-    (TienThienTrigram::Doai, TienThienTrigram::Doai),   // #58 Thuần Đoài (Duì) — lake above lake
-    (TienThienTrigram::Ton, TienThienTrigram::Kham),    // #59 Hoán (Huàn) — wind above water
-    (TienThienTrigram::Kham, TienThienTrigram::Doai),   // #60 Tiết (Jié) — water above lake
-    (TienThienTrigram::Ton, TienThienTrigram::Doai),    // #61 Trung Phu (Zhōng Fú) — wind above lake
-    (TienThienTrigram::Chan, TienThienTrigram::Can),    // #62 Tiểu Quá (Xiǎo Guò) — thunder above mountain
-    (TienThienTrigram::Kham, TienThienTrigram::Ly),     // #63 Ký Tế (Jì Jì) — water above fire
-    (TienThienTrigram::Ly, TienThienTrigram::Kham),     // #64 Vị Tế (Wèi Jì) — fire above water
+    (TienThienTrigram::Kien, TienThienTrigram::Kien), // #1  Thuần Kiền (Qián)
+    (TienThienTrigram::Khon, TienThienTrigram::Khon), // #2  Thuần Khôn (Kūn)
+    (TienThienTrigram::Kham, TienThienTrigram::Chan), // #3  Truân (Zhūn) — water above thunder
+    (TienThienTrigram::Can, TienThienTrigram::Kham),  // #4  Mông (Méng) — mountain above water
+    (TienThienTrigram::Kien, TienThienTrigram::Kham), // #5  Nhu (Xū) — heaven above water
+    (TienThienTrigram::Kham, TienThienTrigram::Kien), // #6  Tụng (Sòng) — water above heaven
+    (TienThienTrigram::Khon, TienThienTrigram::Kham), // #7  Sư (Shī) — earth above water
+    (TienThienTrigram::Kham, TienThienTrigram::Khon), // #8  Tỷ (Bǐ) — water above earth
+    (TienThienTrigram::Ton, TienThienTrigram::Kien),  // #9  Tiểu Súc (Xiǎo Chù) — wind above heaven
+    (TienThienTrigram::Kien, TienThienTrigram::Doai), // #10 Lữ (Lǚ) — heaven above lake
+    (TienThienTrigram::Khon, TienThienTrigram::Kien), // #11 Thái (Tài) — earth above heaven
+    (TienThienTrigram::Kien, TienThienTrigram::Khon), // #12 Bỉ (Pǐ) — heaven above earth
+    (TienThienTrigram::Kien, TienThienTrigram::Ly), // #13 Đồng Nhân (Tóng Rén) — heaven above fire
+    (TienThienTrigram::Ly, TienThienTrigram::Kien), // #14 Đại Hữu (Dà Yǒu) — fire above heaven
+    (TienThienTrigram::Khon, TienThienTrigram::Can), // #15 Khiêm (Qiān) — earth above mountain
+    (TienThienTrigram::Chan, TienThienTrigram::Khon), // #16 Dự (Yù) — thunder above earth
+    (TienThienTrigram::Doai, TienThienTrigram::Chan), // #17 Tùy (Suí) — lake above thunder
+    (TienThienTrigram::Can, TienThienTrigram::Ton), // #18 Cổ (Gǔ) — mountain above wind
+    (TienThienTrigram::Khon, TienThienTrigram::Doai), // #19 Lâm (Lín) — earth above lake
+    (TienThienTrigram::Ton, TienThienTrigram::Khon), // #20 Quan (Guān) — wind above earth
+    (TienThienTrigram::Ly, TienThienTrigram::Chan), // #21 Phệ Hạp (Shì Hé) — fire above thunder
+    (TienThienTrigram::Can, TienThienTrigram::Ly),  // #22 Bí (Bì) — mountain above fire
+    (TienThienTrigram::Can, TienThienTrigram::Khon), // #23 Bác (Bō) — mountain above earth
+    (TienThienTrigram::Khon, TienThienTrigram::Chan), // #24 Phục (Fù) — earth above thunder
+    (TienThienTrigram::Kien, TienThienTrigram::Chan), // #25 Vô Vọng (Wú Wàng) — heaven above thunder
+    (TienThienTrigram::Can, TienThienTrigram::Kien), // #26 Đại Súc (Dà Chù) — mountain above heaven
+    (TienThienTrigram::Can, TienThienTrigram::Chan), // #27 Di (Yí) — mountain above thunder
+    (TienThienTrigram::Doai, TienThienTrigram::Ton), // #28 Đại Quá (Dà Guò) — lake above wind
+    (TienThienTrigram::Kham, TienThienTrigram::Kham), // #29 Thuần Khảm (Kǎn) — water above water
+    (TienThienTrigram::Ly, TienThienTrigram::Ly),    // #30 Thuần Ly (Lí) — fire above fire
+    (TienThienTrigram::Doai, TienThienTrigram::Can), // #31 Hàm (Xián) — lake above mountain
+    (TienThienTrigram::Chan, TienThienTrigram::Ton), // #32 Hằng (Héng) — thunder above wind
+    (TienThienTrigram::Kien, TienThienTrigram::Can), // #33 Độn (Dùn) — heaven above mountain
+    (TienThienTrigram::Chan, TienThienTrigram::Kien), // #34 Đại Tráng (Dà Zhuàng) — thunder above heaven
+    (TienThienTrigram::Ly, TienThienTrigram::Khon),   // #35 Tấn (Jìn) — fire above earth
+    (TienThienTrigram::Khon, TienThienTrigram::Ly),   // #36 Minh Di (Míng Yí) — earth above fire
+    (TienThienTrigram::Ton, TienThienTrigram::Ly),    // #37 Gia Nhân (Jiā Rén) — wind above fire
+    (TienThienTrigram::Ly, TienThienTrigram::Doai),   // #38 Khuê (Kuí) — fire above lake
+    (TienThienTrigram::Kham, TienThienTrigram::Can),  // #39 Kiển (Jiǎn) — water above mountain
+    (TienThienTrigram::Chan, TienThienTrigram::Kham), // #40 Giải (Xiè) — thunder above water
+    (TienThienTrigram::Can, TienThienTrigram::Doai),  // #41 Tổn (Sǔn) — mountain above lake
+    (TienThienTrigram::Ton, TienThienTrigram::Chan),  // #42 Ích (Yì) — wind above thunder
+    (TienThienTrigram::Doai, TienThienTrigram::Kien), // #43 Quải (Guài) — lake above heaven
+    (TienThienTrigram::Kien, TienThienTrigram::Ton),  // #44 Cấu (Gòu) — heaven above wind
+    (TienThienTrigram::Doai, TienThienTrigram::Khon), // #45 Tụy (Cuì) — lake above earth
+    (TienThienTrigram::Khon, TienThienTrigram::Ton),  // #46 Thăng (Shēng) — earth above wind
+    (TienThienTrigram::Doai, TienThienTrigram::Kham), // #47 Khốn (Kùn) — lake above water
+    (TienThienTrigram::Kham, TienThienTrigram::Ton),  // #48 Tỉnh (Jǐng) — water above wind
+    (TienThienTrigram::Doai, TienThienTrigram::Ly),   // #49 Cách (Gé) — lake above fire
+    (TienThienTrigram::Ly, TienThienTrigram::Ton),    // #50 Đỉnh (Dǐng) — fire above wind
+    (TienThienTrigram::Chan, TienThienTrigram::Chan), // #51 Thuần Chấn (Zhèn) — thunder above thunder
+    (TienThienTrigram::Can, TienThienTrigram::Can), // #52 Thuần Cấn (Gèn) — mountain above mountain
+    (TienThienTrigram::Ton, TienThienTrigram::Can), // #53 Tiệm (Jiàn) — wind above mountain
+    (TienThienTrigram::Chan, TienThienTrigram::Doai), // #54 Quy Muội (Guī Mèi) — thunder above lake
+    (TienThienTrigram::Chan, TienThienTrigram::Ly), // #55 Phong (Fēng) — thunder above fire
+    (TienThienTrigram::Ly, TienThienTrigram::Can),  // #56 Lữ (Lǚ) — fire above mountain
+    (TienThienTrigram::Ton, TienThienTrigram::Ton), // #57 Thuần Tốn (Xùn) — wind above wind
+    (TienThienTrigram::Doai, TienThienTrigram::Doai), // #58 Thuần Đoài (Duì) — lake above lake
+    (TienThienTrigram::Ton, TienThienTrigram::Kham), // #59 Hoán (Huàn) — wind above water
+    (TienThienTrigram::Kham, TienThienTrigram::Doai), // #60 Tiết (Jié) — water above lake
+    (TienThienTrigram::Ton, TienThienTrigram::Doai), // #61 Trung Phu (Zhōng Fú) — wind above lake
+    (TienThienTrigram::Chan, TienThienTrigram::Can), // #62 Tiểu Quá (Xiǎo Guò) — thunder above mountain
+    (TienThienTrigram::Kham, TienThienTrigram::Ly),  // #63 Ký Tế (Jì Jì) — water above fire
+    (TienThienTrigram::Ly, TienThienTrigram::Kham),  // #64 Vị Tế (Wèi Jì) — fire above water
 ];
 
 /// Compose a Tiên Thiên upper+lower trigram pair into the King Wen hexagram
@@ -373,12 +373,17 @@ mod tests {
     fn tien_thien_trigram_serde_stability() {
         for variant in TienThienTrigram::ALL {
             let json = serde_json::to_string(&variant).expect("serialize");
-            let roundtripped: TienThienTrigram =
-                serde_json::from_str(&json).expect("deserialize");
-            assert_eq!(variant, roundtripped, "round-trip failed for {variant:?} ({json})");
+            let roundtripped: TienThienTrigram = serde_json::from_str(&json).expect("deserialize");
+            assert_eq!(
+                variant, roundtripped,
+                "round-trip failed for {variant:?} ({json})"
+            );
         }
         // Spot-check the canonical Mai Hoa boundary value (Tiên Thiên 1 = Kiền).
-        assert_eq!(serde_json::to_string(&TienThienTrigram::Kien).unwrap(), "\"kien\"");
+        assert_eq!(
+            serde_json::to_string(&TienThienTrigram::Kien).unwrap(),
+            "\"kien\""
+        );
     }
 
     /// Serde stability for `HauThienTrigram`.
@@ -386,9 +391,11 @@ mod tests {
     fn hau_thien_trigram_serde_stability() {
         for variant in HauThienTrigram::ALL {
             let json = serde_json::to_string(&variant).expect("serialize");
-            let roundtripped: HauThienTrigram =
-                serde_json::from_str(&json).expect("deserialize");
-            assert_eq!(variant, roundtripped, "round-trip failed for {variant:?} ({json})");
+            let roundtripped: HauThienTrigram = serde_json::from_str(&json).expect("deserialize");
+            assert_eq!(
+                variant, roundtripped,
+                "round-trip failed for {variant:?} ({json})"
+            );
         }
         // Spot-check: Hậu Thiên Khảm = Lo Shu 1.
         assert_eq!(HauThienTrigram::Kham as u8, 1);
@@ -406,8 +413,7 @@ mod tests {
             let kw = KingWenHexagram::new(n).expect("1..=64 must construct");
             assert_eq!(kw.0, n);
             let json = serde_json::to_string(&kw).expect("serialize");
-            let roundtripped: KingWenHexagram =
-                serde_json::from_str(&json).expect("deserialize");
+            let roundtripped: KingWenHexagram = serde_json::from_str(&json).expect("deserialize");
             assert_eq!(kw, roundtripped, "round-trip failed for King Wen #{n}");
         }
     }

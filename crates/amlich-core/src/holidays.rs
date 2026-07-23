@@ -13,7 +13,7 @@ use crate::types::VIETNAM_TIMEZONE;
 /// Information about a Vietnamese holiday
 #[derive(Debug, Clone)]
 pub struct Holiday {
-    pub id: Option<String>,            // stable id from corpus; None for auto-generated entries (Mùng 1, Rằm, Thanh Minh)
+    pub id: Option<String>, // stable id from corpus; None for auto-generated entries (Mùng 1, Rằm, Thanh Minh)
     pub name: String,
     pub description: String,
     pub lunar_date: Option<LunarDate>,
@@ -173,7 +173,7 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
         .unwrap_or((5, 4, solar_year));
 
     holidays.push(Holiday {
-        id: None,                      // auto-generated from solar term; no corpus id
+        id: None, // auto-generated from solar term; no corpus id
         name: "Tết Thanh Minh".to_string(),
         description: "Tomb Sweeping Day (Solar calendar)".to_string(),
         lunar_date: None,
@@ -206,7 +206,7 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
 
     let mothers_day = nth_weekday_of_month(solar_year, 5, 0, 2);
     holidays.push(Holiday {
-        id: None,                      // floating computed date; no corpus id
+        id: None, // floating computed date; no corpus id
         name: "Ngày của Mẹ".to_string(),
         description: "Mother's Day (2nd Sunday of May)".to_string(),
         lunar_date: None,
@@ -220,7 +220,7 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
 
     let fathers_day = nth_weekday_of_month(solar_year, 6, 0, 3);
     holidays.push(Holiday {
-        id: None,                      // floating computed date; no corpus id
+        id: None, // floating computed date; no corpus id
         name: "Ngày của Cha".to_string(),
         description: "Father's Day (3rd Sunday of June)".to_string(),
         lunar_date: None,
@@ -237,7 +237,7 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
         let mung_mot_name = format!("Mùng 1 tháng {}", month);
         if let Some(h) = create_lunar_holiday(
             LunarHolidayInput {
-                id: None,              // auto-generated Mùng 1; no corpus id
+                id: None, // auto-generated Mùng 1; no corpus id
                 name: &mung_mot_name,
                 lunar_day: 1,
                 lunar_month: month,
@@ -254,7 +254,7 @@ pub fn get_vietnamese_holidays(solar_year: i32) -> Vec<Holiday> {
         let ram_name = format!("Rằm tháng {}", month);
         if let Some(h) = create_lunar_holiday(
             LunarHolidayInput {
-                id: None,              // auto-generated Rằm; no corpus id
+                id: None, // auto-generated Rằm; no corpus id
                 name: &ram_name,
                 lunar_day: 15,
                 lunar_month: month,

@@ -48,13 +48,13 @@ impl ConvergenceView {
 
         let mut hit_to_activity: std::collections::HashMap<String, String> =
             std::collections::HashMap::new();
-        for (_, edge) in graph.edges() {
+        for edge in graph.edges().values() {
             if matches!(edge.label.concept, EdgeConcept::TargetsActivity) {
                 hit_to_activity.insert(edge.from_node_id.clone(), edge.to_node_id.clone());
             }
         }
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             match node.concept {
                 NodeConcept::Activity => {
                     clusters.insert("recommendation-activities".to_string());
@@ -113,7 +113,7 @@ impl ConvergenceView {
                         matches!(e.label.concept, EdgeConcept::OriginatesFrom)
                             && graph
                                 .get_node(&e.to_node_id)
-                                .map_or(false, |n| n.concept == NodeConcept::RecommendationHit)
+                                .is_some_and(|n| n.concept == NodeConcept::RecommendationHit)
                     });
 
                     if has_hit_origin {

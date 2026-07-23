@@ -10,11 +10,11 @@
 //!
 //! Imports via `use amlich_core::...` as an external consumer would.
 
+use amlich_core::almanac::fengshui::types::FlyingStar;
 use amlich_core::almanac::fengshui::{
     compute_combined_overlay, compute_palace_aspects, element_hint_for_palace, is_danger_palace,
     lookup_star_pair_aspect, TietKhiScanner,
 };
-use amlich_core::almanac::fengshui::types::FlyingStar;
 
 /// All 9 FlyingStar variants in order for reuse across tests.
 const ALL_STARS: [FlyingStar; 9] = [
@@ -42,22 +42,14 @@ fn all_81_pairs_lookup_ordered() {
         for &b in &ALL_STARS {
             let asp = lookup_star_pair_aspect(a, b);
             assert_eq!(
-                asp.star_a,
-                a as u8,
+                asp.star_a, a as u8,
                 "star_a mismatch for pair ({:?}, {:?}): expected {}, got {}",
-                a,
-                b,
-                a as u8,
-                asp.star_a
+                a, b, a as u8, asp.star_a
             );
             assert_eq!(
-                asp.star_b,
-                b as u8,
+                asp.star_b, b as u8,
                 "star_b mismatch for pair ({:?}, {:?}): expected {}, got {}",
-                a,
-                b,
-                b as u8,
-                asp.star_b
+                a, b, b as u8, asp.star_b
             );
         }
     }
@@ -91,12 +83,9 @@ fn aspect_provenance_discipline() {
     for (a, b) in sample_pairs {
         let asp = lookup_star_pair_aspect(a, b);
         assert_eq!(
-            asp.source_id,
-            "huyen-khong",
+            asp.source_id, "huyen-khong",
             "pair ({:?},{:?}): expected source_id 'huyen-khong', got '{}'",
-            a,
-            b,
-            asp.source_id
+            a, b, asp.source_id
         );
         assert!(
             !asp.original_citation.title.is_empty(),
@@ -126,21 +115,20 @@ fn compute_palace_aspects_matches_overlay() {
         aspects.len()
     );
 
-    for i in 0..9 {
-        let (annual_star, monthly_star) = overlay.palace_overlays[i];
+    for (i, (aspect, &(annual_star, monthly_star))) in aspects
+        .iter()
+        .zip(overlay.palace_overlays.iter())
+        .enumerate()
+    {
         assert_eq!(
-            aspects[i].star_a,
-            annual_star as u8,
+            aspect.star_a, annual_star as u8,
             "palace {i}: aspects.star_a {} != overlay annual star {}",
-            aspects[i].star_a,
-            annual_star as u8
+            aspect.star_a, annual_star as u8
         );
         assert_eq!(
-            aspects[i].star_b,
-            monthly_star as u8,
+            aspect.star_b, monthly_star as u8,
             "palace {i}: aspects.star_b {} != overlay monthly star {}",
-            aspects[i].star_b,
-            monthly_star as u8
+            aspect.star_b, monthly_star as u8
         );
     }
 }
@@ -207,8 +195,7 @@ fn element_hint_present_for_danger_stars() {
         "NguHoang RemedyHint.hint_text_vi must not be empty"
     );
     assert_eq!(
-        h.source_id,
-        "huyen-khong",
+        h.source_id, "huyen-khong",
         "NguHoang RemedyHint.source_id must be 'huyen-khong', got '{}'",
         h.source_id
     );
@@ -235,8 +222,7 @@ fn element_hint_present_for_danger_stars() {
         "NhiHac RemedyHint.hint_text_vi must not be empty"
     );
     assert_eq!(
-        h.source_id,
-        "huyen-khong",
+        h.source_id, "huyen-khong",
         "NhiHac RemedyHint.source_id must be 'huyen-khong', got '{}'",
         h.source_id
     );
@@ -310,10 +296,7 @@ fn no_product_names_in_corpora() {
                 if lower.contains(term) {
                     violations.push(format!(
                         "StarPairAspect ({},{}) name contains forbidden term '{}': '{}'",
-                        asp.star_a,
-                        asp.star_b,
-                        term,
-                        asp.name
+                        asp.star_a, asp.star_b, term, asp.name
                     ));
                 }
             }

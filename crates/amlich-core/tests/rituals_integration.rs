@@ -8,8 +8,7 @@
 
 use amlich_core::holidays::get_vietnamese_holidays;
 use amlich_core::rituals::{
-    all_rituals, find_van_khan_for_event, find_van_khan_for_snapshot, LeapPolicy,
-    RitualEventKey,
+    all_rituals, find_van_khan_for_event, find_van_khan_for_snapshot, LeapPolicy, RitualEventKey,
 };
 use amlich_core::{calculate_day_snapshot, DaySnapshot};
 
@@ -18,8 +17,7 @@ use amlich_core::{calculate_day_snapshot, DaySnapshot};
 // relative path resolves because tests/ lives under crates/amlich-core/tests/
 // and the ledger lives under crates/amlich-core/data/rituals/ — same shape as
 // the existing JSON `include_str!` paths in corpus.rs.
-const PROVENANCE_AUDIT_MD: &str =
-    include_str!("../data/rituals/provenance_audit.md");
+const PROVENANCE_AUDIT_MD: &str = include_str!("../data/rituals/provenance_audit.md");
 
 // ─── Test 1: RIT-01 Tết snapshot wiring ──────────────────────────────────────
 #[test]
@@ -30,10 +28,12 @@ fn tet_nguyen_dan_2024_snapshot_returns_tet_ritual() {
     assert!(!hits.is_empty(), "Tết 2024 should return ≥ 1 ritual");
 
     let has_tet_holiday_key = hits.iter().any(|entry| {
-        entry.event_keys.iter().any(|k| matches!(
-            k,
-            RitualEventKey::HolidayId { value } if value == "tet-nguyen-dan"
-        ))
+        entry.event_keys.iter().any(|k| {
+            matches!(
+                k,
+                RitualEventKey::HolidayId { value } if value == "tet-nguyen-dan"
+            )
+        })
     });
     assert!(
         has_tet_holiday_key,
@@ -64,7 +64,8 @@ fn vong_snapshot_returns_ram_thang_gieng_via_snapshot_path() {
     // snapshot. If hits is empty (or missing the fixture), the snapshot-path
     // Sóc/Vọng plumbing is broken — fail loudly.
     assert!(
-        hits.iter().any(|r| r.ritual_id == "van-khan-ram-thang-gieng"),
+        hits.iter()
+            .any(|r| r.ritual_id == "van-khan-ram-thang-gieng"),
         "Vọng 2024-02-24 must return 'van-khan-ram-thang-gieng' via the snapshot path; \
          got: {:?}",
         hits.iter().map(|r| &r.ritual_id).collect::<Vec<_>>()
@@ -75,19 +76,22 @@ fn vong_snapshot_returns_ram_thang_gieng_via_snapshot_path() {
     // LunarDate (current month/day + policy), SolarTerm (current tiết khí),
     // Always. A hit with none of those is a matcher bug.
     for entry in &hits {
-        let via_day_15 = entry.event_keys.iter().any(|k| matches!(
-            k,
-            RitualEventKey::LunarDate { day: 15, .. }
-        ));
-        let via_holiday = entry.event_keys.iter().any(|k| matches!(
-            k,
-            RitualEventKey::HolidayId { .. }
-        ));
-        let via_solar_term = entry.event_keys.iter().any(|k| matches!(
-            k,
-            RitualEventKey::SolarTerm { .. }
-        ));
-        let via_always = entry.event_keys.iter().any(|k| matches!(k, RitualEventKey::Always));
+        let via_day_15 = entry
+            .event_keys
+            .iter()
+            .any(|k| matches!(k, RitualEventKey::LunarDate { day: 15, .. }));
+        let via_holiday = entry
+            .event_keys
+            .iter()
+            .any(|k| matches!(k, RitualEventKey::HolidayId { .. }));
+        let via_solar_term = entry
+            .event_keys
+            .iter()
+            .any(|k| matches!(k, RitualEventKey::SolarTerm { .. }));
+        let via_always = entry
+            .event_keys
+            .iter()
+            .any(|k| matches!(k, RitualEventKey::Always));
         assert!(
             via_day_15 || via_holiday || via_solar_term || via_always,
             "ritual {} fired on Vọng 2024-02-24 but has no day-15/holiday/solar-term/always event key",
@@ -200,7 +204,9 @@ fn leap_month_only_needle_does_not_match_canonical_only_entry() {
     };
     let canonical_hits = find_van_khan_for_event(&canonical_needle);
     assert!(
-        canonical_hits.iter().any(|r| r.ritual_id == "van-khan-doan-ngo"),
+        canonical_hits
+            .iter()
+            .any(|r| r.ritual_id == "van-khan-doan-ngo"),
         "Đoan Ngọ (CanonicalMonthOnly) MUST match a CanonicalMonthOnly needle"
     );
 }
@@ -253,9 +259,8 @@ fn every_ledger_row_passes_invariants() {
             "row {}: date_reviewed is empty",
             r.ritual_id
         );
-        ledger::validate_marker(&r.reviewer).unwrap_or_else(|e| {
-            panic!("row {}: invalid reviewer marker: {}", r.ritual_id, e)
-        });
+        ledger::validate_marker(&r.reviewer)
+            .unwrap_or_else(|e| panic!("row {}: invalid reviewer marker: {}", r.ritual_id, e));
     }
 
     // Legacy `pending` placeholder must be gone
@@ -403,9 +408,7 @@ mod ledger {
             // Match the separator row immediately under the header.
             if line == SEPARATOR {
                 if !header_seen {
-                    panic!(
-                        "provenance_audit.md line {line_num}: separator row before any header"
-                    );
+                    panic!("provenance_audit.md line {line_num}: separator row before any header");
                 }
                 continue;
             }
@@ -475,7 +478,7 @@ mod ledger {
     ///   - Opens with `ExternalReviewPending(` and closes with `)`.
     ///   - `expected_review_date="<non-empty>"`
     ///   - `reason="<non-empty>"`
-    /// Optional substring:
+    ///     Optional substring:
     ///   - `assigned_to="<non-empty>"` (absent is allowed; if present, value
     ///     must be non-empty).
     pub fn validate_marker(reviewer: &str) -> Result<(), String> {
@@ -496,9 +499,8 @@ mod ledger {
         }
 
         // reason="<value>" — value must be non-empty.
-        let reason_value = extract_named_value(inner, "reason").ok_or_else(|| {
-            format!("marker missing reason=\"...\"; inner={inner:?}")
-        })?;
+        let reason_value = extract_named_value(inner, "reason")
+            .ok_or_else(|| format!("marker missing reason=\"...\"; inner={inner:?}"))?;
         if reason_value.is_empty() {
             return Err("reason value is empty".into());
         }

@@ -50,8 +50,7 @@ pub struct FlyingStarsBaseTable {
     tables: Vec<VanTable>,
 }
 
-const FLYING_STARS_BASE_JSON: &str =
-    include_str!("../../../data/almanac/flying_stars_base.json");
+const FLYING_STARS_BASE_JSON: &str = include_str!("../../../data/almanac/flying_stars_base.json");
 
 static FLYING_STARS_BASE: OnceLock<FlyingStarsBaseTable> = OnceLock::new();
 
@@ -78,7 +77,7 @@ pub fn validate_van_table(van: u8, palaces: &[u8; 9]) {
     let mut seen = [false; 10];
     for &v in palaces {
         assert!(
-            v >= 1 && v <= 9,
+            (1..=9).contains(&v),
             "Lo Shu range violation for Vận {van}: value {v} is outside 1..=9"
         );
         assert!(
@@ -105,9 +104,8 @@ pub fn validate_van_table(van: u8, palaces: &[u8; 9]) {
 /// Returns a `&'static` reference backed by `OnceLock`.
 pub fn load_flying_stars_base() -> &'static FlyingStarsBaseTable {
     FLYING_STARS_BASE.get_or_init(|| {
-        let table: FlyingStarsBaseTable =
-            serde_json::from_str(FLYING_STARS_BASE_JSON)
-                .expect("Failed to parse flying_stars_base.json");
+        let table: FlyingStarsBaseTable = serde_json::from_str(FLYING_STARS_BASE_JSON)
+            .expect("Failed to parse flying_stars_base.json");
 
         // Validate all 9 Vận tables.
         assert_eq!(

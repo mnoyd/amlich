@@ -335,10 +335,10 @@ mod direction_tests {
 
     #[test]
     fn all_12_year_branches_covered() {
-        for i in 0..12 {
+        for (i, chi) in CHI.iter().enumerate() {
             let r = thai_tue_direction(i);
             assert_eq!(r.year_chi_index, i);
-            assert_eq!(r.year_chi, CHI[i]);
+            assert_eq!(r.year_chi, *chi);
             assert_eq!(r.evidence.source_id, SOURCE_KHCBPPT);
             assert_eq!(r.evidence.method, "thai_tue_year_branch_to_direction");
             assert_eq!(r.evidence.profile, "baseline");

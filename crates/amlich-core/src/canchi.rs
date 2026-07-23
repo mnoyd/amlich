@@ -72,7 +72,7 @@ pub fn get_month_canchi(lunar_month: i32, lunar_year: i32, is_leap_month: bool) 
     let first_month_can = first_month_can_table[year_can_index];
 
     // Calculate current month stem (offset from month 1)
-    let can_index = normalize_index(first_month_can as i32 + (lunar_month - 1), 10);
+    let can_index = normalize_index(first_month_can + (lunar_month - 1), 10);
 
     let mut result = CanChi::new(can_index, chi_index);
 

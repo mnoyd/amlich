@@ -22,8 +22,7 @@ const FORBIDDEN_TYPE_NAMES: &[&str] = &[
 
 #[test]
 fn direction_merge_does_not_import_flying_star_or_daily_flying_star() {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("src/interaction/direction_merge.rs");
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/interaction/direction_merge.rs");
     let contents = fs::read_to_string(&path).expect("read direction_merge.rs");
 
     let mut violations: Vec<String> = Vec::new();

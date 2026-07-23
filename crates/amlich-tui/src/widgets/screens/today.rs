@@ -11,8 +11,8 @@ use crate::widgets::{
     action_board::ActionBoardWidget, almanac::AlmanacGridWidget,
     direction_panel::DirectionPanelWidget, event_summary::EventSummaryWidget,
     guidance::GuidanceWidget, guidance_panel::GuidancePanelWidget, hero::HeroWidget,
-    mini_calendar::MiniCalendarWidget, risk::RiskWidget, timeline::TimelineWidget,
-    tietkhi::TietKhiWidget, travel::TravelWidget,
+    mini_calendar::MiniCalendarWidget, risk::RiskWidget, tietkhi::TietKhiWidget,
+    timeline::TimelineWidget, travel::TravelWidget,
 };
 use crate::{
     layout::LayoutMode,
@@ -161,9 +161,8 @@ fn render_standard_verbose(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
     GuidanceWidget::new(app, mode).render(chunks[3], buf);
     RiskWidget::new(app, mode).render(chunks[4], buf);
 
-    let application =
-        Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
-            .split(chunks[5]);
+    let application = Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
+        .split(chunks[5]);
     DirectionPanelWidget::new(app, mode).render(application[0], buf);
     TravelWidget::new(app, mode).render(application[1], buf);
 

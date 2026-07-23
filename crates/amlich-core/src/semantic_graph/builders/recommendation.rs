@@ -33,13 +33,11 @@ impl RecommendationEvidenceGraphBuilder {
             gio_hoang_dao: format!("hoang_dao_hours:day:{}:hoang_dao", tz_suffix),
         };
 
-        let builder = Self {
+        Self {
             graph: SemanticGraph::new(),
             profile: profile.to_string(),
             day_fact_ids,
-        };
-
-        builder
+        }
     }
 
     pub fn with_day_snapshot_graph(mut self, snapshot_graph: &SemanticGraph) -> Self {
@@ -171,35 +169,35 @@ impl RecommendationEvidenceGraphBuilder {
                     self.graph.add_edge(edge);
                 }
             }
-            crate::almanac::recommendation::RecommendationEvidenceSource::XungHop => {
-                if self.graph.has_node(&self.day_fact_ids.xung_hop) {
-                    let edge = SemanticEdge::new(
-                        &self.day_fact_ids.xung_hop,
-                        hit_node_id,
-                        EdgeConcept::OriginatesFrom,
-                    );
-                    self.graph.add_edge(edge);
-                }
+            crate::almanac::recommendation::RecommendationEvidenceSource::XungHop
+                if self.graph.has_node(&self.day_fact_ids.xung_hop) =>
+            {
+                let edge = SemanticEdge::new(
+                    &self.day_fact_ids.xung_hop,
+                    hit_node_id,
+                    EdgeConcept::OriginatesFrom,
+                );
+                self.graph.add_edge(edge);
             }
-            crate::almanac::recommendation::RecommendationEvidenceSource::Travel => {
-                if self.graph.has_node(&self.day_fact_ids.travel) {
-                    let edge = SemanticEdge::new(
-                        &self.day_fact_ids.travel,
-                        hit_node_id,
-                        EdgeConcept::OriginatesFrom,
-                    );
-                    self.graph.add_edge(edge);
-                }
+            crate::almanac::recommendation::RecommendationEvidenceSource::Travel
+                if self.graph.has_node(&self.day_fact_ids.travel) =>
+            {
+                let edge = SemanticEdge::new(
+                    &self.day_fact_ids.travel,
+                    hit_node_id,
+                    EdgeConcept::OriginatesFrom,
+                );
+                self.graph.add_edge(edge);
             }
-            crate::almanac::recommendation::RecommendationEvidenceSource::GioHoangDao => {
-                if self.graph.has_node(&self.day_fact_ids.gio_hoang_dao) {
-                    let edge = SemanticEdge::new(
-                        &self.day_fact_ids.gio_hoang_dao,
-                        hit_node_id,
-                        EdgeConcept::OriginatesFrom,
-                    );
-                    self.graph.add_edge(edge);
-                }
+            crate::almanac::recommendation::RecommendationEvidenceSource::GioHoangDao
+                if self.graph.has_node(&self.day_fact_ids.gio_hoang_dao) =>
+            {
+                let edge = SemanticEdge::new(
+                    &self.day_fact_ids.gio_hoang_dao,
+                    hit_node_id,
+                    EdgeConcept::OriginatesFrom,
+                );
+                self.graph.add_edge(edge);
             }
             _ => {}
         }
@@ -387,7 +385,7 @@ mod tests {
             &hits,
         );
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             assert!(
                 !node.provenance.is_empty(),
                 "node {} should have provenance",

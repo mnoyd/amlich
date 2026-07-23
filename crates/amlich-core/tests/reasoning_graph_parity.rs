@@ -391,7 +391,7 @@ fn boundary_parity_cases_cover_timezone_and_local_day_edges() {
         assert!(
             case.expect_conflict_visibility
                 == (!decision.context_is_clear || !decision.conflict_notes.is_empty())
-                || case.expect_override_visibility == !decision.override_factors.is_empty(),
+                || case.expect_override_visibility != decision.override_factors.is_empty(),
             "{} should preserve declared boundary visibility",
             case.id
         );

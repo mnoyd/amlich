@@ -298,7 +298,7 @@ mod tests {
         let snapshot = calculate_day_snapshot(10, 2, 2024);
         let graph = build_reasoning_input_graph(&snapshot, None).expect("valid graph");
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             assert!(
                 !node.provenance.is_empty(),
                 "node {} should have provenance",
@@ -325,7 +325,7 @@ mod tests {
 
         let graph = build_reasoning_input_graph(&snapshot, Some(&bazi_input)).expect("valid graph");
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             assert!(
                 !node.provenance.is_empty(),
                 "node {} should have provenance",

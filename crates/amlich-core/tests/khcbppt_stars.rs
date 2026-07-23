@@ -174,10 +174,4 @@ fn report_star_rule_sparsity() {
         no_contextual_count,
         dataset.entries.len()
     );
-
-    // Always passes -- informational only
-    assert!(
-        true,
-        "sparsity report is informational, this assertion never fails"
-    );
 }

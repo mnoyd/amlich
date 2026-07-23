@@ -18,16 +18,11 @@ const EVENT_KIND_OPTIONS: [&str; 4] = [
     "travel",
 ];
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum CausalityFocus {
+    #[default]
     SummaryList,
     DetailFlow(String),
-}
-
-impl Default for CausalityFocus {
-    fn default() -> Self {
-        Self::SummaryList
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -67,24 +62,27 @@ impl UserExplanationLens {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub enum GraphInspectorFocus {
+    #[default]
     Summary,
     ClusterList,
-    ClusterNodes { cluster: String },
-    NodeDetail { node_id: String },
-    NodeSubgraph { node_id: String },
-    NodeEdges { node_id: String },
+    ClusterNodes {
+        cluster: String,
+    },
+    NodeDetail {
+        node_id: String,
+    },
+    NodeSubgraph {
+        node_id: String,
+    },
+    NodeEdges {
+        node_id: String,
+    },
     Search,
     ReasoningLens,
     RecommendationLens,
     ConvergenceLens,
-}
-
-impl Default for GraphInspectorFocus {
-    fn default() -> Self {
-        Self::Summary
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

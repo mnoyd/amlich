@@ -117,8 +117,12 @@ pub fn derive_bien_que(cast: &MaiHoaCast) -> BienQue {
 
     // Build the 6-line array: lower lines first (b→t), then upper lines.
     let mut lines = [
-        lower_lines[0], lower_lines[1], lower_lines[2],
-        upper_lines[0], upper_lines[1], upper_lines[2],
+        lower_lines[0],
+        lower_lines[1],
+        lower_lines[2],
+        upper_lines[0],
+        upper_lines[1],
+        upper_lines[2],
     ];
 
     // Flip the động hào bit.
@@ -159,10 +163,7 @@ mod tests {
             );
             // Round-trip.
             let back = lines_to_trigram(lines);
-            assert_eq!(
-                back, t,
-                "round-trip failed: {t:?} -> {lines:?} -> {back:?}"
-            );
+            assert_eq!(back, t, "round-trip failed: {t:?} -> {lines:?} -> {back:?}");
         }
         assert_eq!(seen.len(), 8, "expected 8 distinct 3-line patterns");
     }
@@ -294,12 +295,7 @@ mod tests {
             ("King", "WenHexagram"),
         ]
         .iter()
-        .flat_map(|(a, b)| {
-            [
-                format!("impl From<{a}{b}"),
-                format!("impl<{a}{b}> From"),
-            ]
-        })
+        .flat_map(|(a, b)| [format!("impl From<{a}{b}"), format!("impl<{a}{b}> From")])
         .collect();
         for needle in &needles {
             assert!(

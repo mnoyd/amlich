@@ -290,8 +290,6 @@ pub fn get_days_to_nearest_tiet_khi(jd: i32) -> i32 {
     }
 }
 
-/// Calculate signed days from input JD to nearest Solar Term (Tiết Khí)
-
 #[cfg(test)]
 mod tests {
     use super::*;

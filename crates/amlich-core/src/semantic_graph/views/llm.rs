@@ -61,7 +61,7 @@ impl LlmGraphSlice {
         let all_edge_ids: Vec<String> = graph.edges().keys().cloned().collect();
 
         let mut acc = NodeViewAccumulator::new();
-        for (_node_id, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             acc.accumulate(node);
         }
 

@@ -29,7 +29,9 @@ impl Widget for HeaderTabsWidget<'_> {
                     .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             )]);
-            Paragraph::new(line).alignment(Alignment::Center).render(area, buf);
+            Paragraph::new(line)
+                .alignment(Alignment::Center)
+                .render(area, buf);
             return;
         }
 
@@ -40,7 +42,11 @@ impl Widget for HeaderTabsWidget<'_> {
             let label = match self.mode {
                 LayoutMode::Small => {
                     if v != &self.app.active_view {
-                        format!(" {}.{} ", index, v.short_label().chars().take(3).collect::<String>())
+                        format!(
+                            " {}.{} ",
+                            index,
+                            v.short_label().chars().take(3).collect::<String>()
+                        )
                     } else {
                         format!("[{}.{}]", index, v.short_label())
                     }

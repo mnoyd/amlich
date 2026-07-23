@@ -36,15 +36,15 @@ use crate::iching::bien_que::BienQue;
 use crate::iching::mai_hoa::MaiHoaCast;
 use crate::iching::schema::KingWenHexagram;
 use crate::iching::the_dung::{CatHung, TheDungClassification};
-use crate::iching::{classify_the_dung, cast_mai_hoa, derive_bien_que, get_hexagram};
+use crate::iching::{cast_mai_hoa, classify_the_dung, derive_bien_que, get_hexagram};
 use crate::reasoning::{
     ActionEvaluation, ActionEvaluator, PersonalReasoningInput, ReasoningEvidenceEnvelope,
 };
-use crate::ActionId;
-use crate::ReasoningEvidenceSourceFamily;
 use crate::semantic_graph::SemanticGraph;
 use crate::sources::{SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO};
+use crate::ActionId;
 use crate::DaySnapshot;
+use crate::ReasoningEvidenceSourceFamily;
 use unicode_normalization::{is_nfc, UnicodeNormalization};
 
 // ===========================================================================
@@ -88,7 +88,7 @@ pub struct IChingQuery {
 impl IChingQuery {
     /// Build a query from a [`DaySnapshot`] + user-supplied `chi_hour_index`
     /// + optional `question_vi`. Canonical public surface for Tier-0
-    /// consultation.
+    ///   consultation.
     ///
     /// Validation:
     /// - `chi_hour_index` must be `0..=11` (returns `Err` otherwise).
@@ -138,7 +138,7 @@ impl IChingQuery {
     /// - `lunar_month` ∈ 1..=12
     /// - `lunar_day` ∈ 1..=30
     /// - `chi_hour_index` ∈ 0..=11
-    /// Returns `Err` on any out-of-range value.
+    ///   Returns `Err` on any out-of-range value.
     pub fn from_lunar_inputs(
         lunar_year_branch: u8,
         lunar_month: u8,
@@ -152,14 +152,10 @@ impl IChingQuery {
             ));
         }
         if !(1..=12).contains(&lunar_month) {
-            return Err(format!(
-                "lunar_month must be in 1..=12; got {lunar_month}"
-            ));
+            return Err(format!("lunar_month must be in 1..=12; got {lunar_month}"));
         }
         if !(1..=30).contains(&lunar_day) {
-            return Err(format!(
-                "lunar_day must be in 1..=30; got {lunar_day}"
-            ));
+            return Err(format!("lunar_day must be in 1..=30; got {lunar_day}"));
         }
         if chi_hour_index > 11 {
             return Err(format!(
@@ -379,10 +375,7 @@ impl IChingEvaluator {
     /// Convenience: evaluate + project to summary. The `snapshot` is unused
     /// on the Tier-0 path; carried in the signature for the future
     /// personal-context-aware path.
-    pub fn evaluate(
-        &self,
-        snapshot: &DaySnapshot,
-    ) -> Result<IChingCastSummary, String> {
+    pub fn evaluate(&self, snapshot: &DaySnapshot) -> Result<IChingCastSummary, String> {
         let evaluation = self.evaluate_consultation(snapshot)?;
         Ok(self.to_summary(&evaluation))
     }
@@ -528,16 +521,16 @@ pub(crate) fn cat_hung_str(v: CatHung) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::advisory::{BirthInput, ConsultationIntent};
+    use crate::almanac::tu_menh::Gender;
     use crate::iching::schema::{HauThienTrigram, KingWenHexagram, TienThienTrigram};
     use crate::reasoning::ReasoningEvidenceEnvelope;
-    use crate::ReasoningEvidenceSourceFamily;
     use crate::semantic_graph::SemanticGraph;
     use crate::sources::{SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO};
     use crate::DaySnapshot;
-    use crate::advisory::{BirthInput, ConsultationIntent};
-    use crate::almanac::tu_menh::Gender;
-    use unicode_normalization::is_nfc;
+    use crate::ReasoningEvidenceSourceFamily;
     use crate::VIETNAM_TIMEZONE;
+    use unicode_normalization::is_nfc;
 
     /// Convenience: a populated snapshot for testing.
     fn sample_snapshot() -> DaySnapshot {
@@ -552,12 +545,8 @@ mod tests {
     #[test]
     fn iching_query_from_snapshot_derives_lunar_inputs() {
         let snap = sample_snapshot();
-        let query = IChingQuery::from_snapshot(
-            &snap,
-            Some("việc làm".to_string()),
-            9,
-        )
-        .expect("valid inputs");
+        let query = IChingQuery::from_snapshot(&snap, Some("việc làm".to_string()), 9)
+            .expect("valid inputs");
         assert_eq!(query.chi_hour_index, 9);
         assert_eq!(query.question_vi.as_deref(), Some("việc làm"));
         // lunar_year_branch derives from snapshot's year chi_index.
@@ -575,7 +564,8 @@ mod tests {
             err.contains("chi_hour_index"),
             "error must mention chi_hour_index; got: {err}"
         );
-        let err_high = IChingQuery::from_snapshot(&snap, None, 255).expect_err("hour 255 must fail");
+        let err_high =
+            IChingQuery::from_snapshot(&snap, None, 255).expect_err("hour 255 must fail");
         assert!(err_high.contains("chi_hour_index"));
     }
 
@@ -593,7 +583,10 @@ mod tests {
         // NFC must have recomposed the combining grave into a precomposed
         // ì (U+00EC). Verify by checking `is_nfc()` directly AND by
         // looking for the precomposed char in the stored string.
-        assert!(is_nfc(&stored), "stored question_vi must be NFC; got: {stored:?}");
+        assert!(
+            is_nfc(&stored),
+            "stored question_vi must be NFC; got: {stored:?}"
+        );
         assert!(
             stored.contains('\u{00EC}'),
             "stored string must contain the precomposed ì (U+00EC) after NFC; got: {stored}"
@@ -603,8 +596,7 @@ mod tests {
     #[test]
     fn iching_query_rejects_whitespace_only_question() {
         let snap = sample_snapshot();
-        let query =
-            IChingQuery::from_snapshot(&snap, Some("   \t  ".to_string()), 5).expect("ok");
+        let query = IChingQuery::from_snapshot(&snap, Some("   \t  ".to_string()), 5).expect("ok");
         assert!(
             query.question_vi.is_none(),
             "whitespace-only question_vi must normalise to None; got: {:?}",
@@ -773,13 +765,8 @@ mod tests {
         let evaluator = IChingEvaluator::new(query);
         // Empty graph is fine — the trait-shape adapter doesn't read it.
         let graph = SemanticGraph::new();
-        let empty = <IChingEvaluator as ActionEvaluator>::evaluate(
-            &evaluator,
-            &graph,
-            &snap,
-            None,
-        )
-        .expect("Tier-0 evaluate with None personal_input");
+        let empty = <IChingEvaluator as ActionEvaluator>::evaluate(&evaluator, &graph, &snap, None)
+            .expect("Tier-0 evaluate with None personal_input");
         assert_eq!(empty.action_id, ActionId::IChing);
 
         // With personal_input too — the I Ching baseline ignores it.
@@ -828,13 +815,9 @@ mod tests {
         // DaySnapshotGraphBuilder adds Hexagram nodes; the IChing evaluator
         // doesn't filter. Just exercise the trait method.
         let graph = SemanticGraph::new();
-        let selected = <IChingEvaluator as ActionEvaluator>::select_subgraph(
-            &evaluator,
-            &graph,
-            &snap,
-            None,
-        )
-        .expect("select_subgraph succeeds");
+        let selected =
+            <IChingEvaluator as ActionEvaluator>::select_subgraph(&evaluator, &graph, &snap, None)
+                .expect("select_subgraph succeeds");
         assert_eq!(
             selected.nodes().len(),
             graph.nodes().len(),
@@ -911,12 +894,7 @@ mod tests {
             ("King", "WenHexagram"),
         ]
         .iter()
-        .flat_map(|(a, b)| {
-            [
-                format!("impl From<{a}{b}"),
-                format!("impl<{a}{b}> From"),
-            ]
-        })
+        .flat_map(|(a, b)| [format!("impl From<{a}{b}"), format!("impl<{a}{b}> From")])
         .collect();
         for needle in &needles {
             assert!(
@@ -959,7 +937,10 @@ mod tests {
 
     #[test]
     fn composite_iching_consultation_constant_has_expected_value() {
-        assert_eq!(COMPOSITE_ICHING_CONSULTATION, "rule.composite.iching_consultation");
+        assert_eq!(
+            COMPOSITE_ICHING_CONSULTATION,
+            "rule.composite.iching_consultation"
+        );
     }
 
     /// ──────────────────────────────────────────────────────────────────
@@ -1035,7 +1016,10 @@ mod tests {
         // standalone test so the GREEN code is forced to populate the
         // exact envelope ordering documented in the plan.
         let expected_methods = [
-            "cast_mai_hoa", "derive_bien_que", "corpus_lookup", "iching_consultation",
+            "cast_mai_hoa",
+            "derive_bien_que",
+            "corpus_lookup",
+            "iching_consultation",
         ];
         let snap = sample_snapshot();
         let query = IChingQuery::from_snapshot(&snap, None, 9).expect("query");

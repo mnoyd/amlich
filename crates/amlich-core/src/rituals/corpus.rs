@@ -24,34 +24,22 @@ use crate::sources::SOURCE_VN_FOLK_RITUAL;
 // Corpus file constants (one include_str! per category file)
 // Plan 12-01 batch — spring/summer festivals (26 entries)
 // ---------------------------------------------------------------------------
-const TET_NGUYEN_DAN_JSON: &str =
-    include_str!("../../data/rituals/tet-nguyen-dan.json");
-const NGUYEN_TIEU_JSON: &str =
-    include_str!("../../data/rituals/nguyen-tieu.json");
-const HAN_THUC_JSON: &str =
-    include_str!("../../data/rituals/han-thuc.json");
-const THANH_MINH_JSON: &str =
-    include_str!("../../data/rituals/thanh-minh.json");
-const DOAN_NGO_JSON: &str =
-    include_str!("../../data/rituals/doan-ngo.json");
-const PHAT_DAN_JSON: &str =
-    include_str!("../../data/rituals/phat-dan.json");
+const TET_NGUYEN_DAN_JSON: &str = include_str!("../../data/rituals/tet-nguyen-dan.json");
+const NGUYEN_TIEU_JSON: &str = include_str!("../../data/rituals/nguyen-tieu.json");
+const HAN_THUC_JSON: &str = include_str!("../../data/rituals/han-thuc.json");
+const THANH_MINH_JSON: &str = include_str!("../../data/rituals/thanh-minh.json");
+const DOAN_NGO_JSON: &str = include_str!("../../data/rituals/doan-ngo.json");
+const PHAT_DAN_JSON: &str = include_str!("../../data/rituals/phat-dan.json");
 
 // ---------------------------------------------------------------------------
 // Plan 12-02 batch — autumn/winter festivals + life events + daily (34 entries)
 // ---------------------------------------------------------------------------
-const VU_LAN_JSON: &str =
-    include_str!("../../data/rituals/vu-lan.json");
-const TRUNG_THU_JSON: &str =
-    include_str!("../../data/rituals/trung-thu.json");
-const TRUNG_CUU_HA_NGUYEN_JSON: &str =
-    include_str!("../../data/rituals/trung-cuu-ha-nguyen.json");
-const ONG_TAO_JSON: &str =
-    include_str!("../../data/rituals/ong-tao.json");
-const LIFE_EVENTS_JSON: &str =
-    include_str!("../../data/rituals/life-events.json");
-const SOC_VONG_JSON: &str =
-    include_str!("../../data/rituals/soc-vong.json");
+const VU_LAN_JSON: &str = include_str!("../../data/rituals/vu-lan.json");
+const TRUNG_THU_JSON: &str = include_str!("../../data/rituals/trung-thu.json");
+const TRUNG_CUU_HA_NGUYEN_JSON: &str = include_str!("../../data/rituals/trung-cuu-ha-nguyen.json");
+const ONG_TAO_JSON: &str = include_str!("../../data/rituals/ong-tao.json");
+const LIFE_EVENTS_JSON: &str = include_str!("../../data/rituals/life-events.json");
+const SOC_VONG_JSON: &str = include_str!("../../data/rituals/soc-vong.json");
 const GIA_TIEN_THUONG_NHAT_JSON: &str =
     include_str!("../../data/rituals/gia-tien-thuong-nhat.json");
 
@@ -97,11 +85,7 @@ pub fn all_rituals() -> &'static [RitualEntry] {
             let mut all: Vec<RitualEntry> = Vec::new();
             for (i, json) in ALL_CORPUS_JSONS.iter().enumerate() {
                 let file: RitualFile = serde_json::from_str(json)
-                    .unwrap_or_else(|e| {
-                        panic!(
-                            "Failed to parse corpus file index {i}: {e}"
-                        )
-                    });
+                    .unwrap_or_else(|e| panic!("Failed to parse corpus file index {i}: {e}"));
                 assert_eq!(
                     file.schema_version, EXPECTED_SCHEMA_VERSION,
                     "corpus file index {i} schema_version must equal {:?} (ADR-0001); found {:?}",
@@ -203,19 +187,47 @@ mod tests {
     #[test]
     fn every_text_field_is_nfc_normalized() {
         for entry in all_rituals() {
-            assert!(is_nfc(&entry.title_vi), "title_vi not NFC for {}", entry.ritual_id);
-            assert!(is_nfc(&entry.invocation_text_vi), "invocation_text_vi not NFC for {}", entry.ritual_id);
-            if let Some(t) = &entry.title_en { assert!(is_nfc(t), "title_en not NFC"); }
-            if let Some(b) = &entry.body_en { assert!(is_nfc(b), "body_en not NFC"); }
+            assert!(
+                is_nfc(&entry.title_vi),
+                "title_vi not NFC for {}",
+                entry.ritual_id
+            );
+            assert!(
+                is_nfc(&entry.invocation_text_vi),
+                "invocation_text_vi not NFC for {}",
+                entry.ritual_id
+            );
+            if let Some(t) = &entry.title_en {
+                assert!(is_nfc(t), "title_en not NFC");
+            }
+            if let Some(b) = &entry.body_en {
+                assert!(is_nfc(b), "body_en not NFC");
+            }
             for off in &entry.offerings {
-                assert!(is_nfc(&off.name_vi), "offering name_vi not NFC for {}", entry.ritual_id);
-                if let Some(s) = &off.name_en { assert!(is_nfc(s), "offering name_en not NFC"); }
-                if let Some(s) = &off.quantity { assert!(is_nfc(s), "offering quantity not NFC"); }
-                if let Some(s) = &off.notes { assert!(is_nfc(s), "offering notes not NFC"); }
+                assert!(
+                    is_nfc(&off.name_vi),
+                    "offering name_vi not NFC for {}",
+                    entry.ritual_id
+                );
+                if let Some(s) = &off.name_en {
+                    assert!(is_nfc(s), "offering name_en not NFC");
+                }
+                if let Some(s) = &off.quantity {
+                    assert!(is_nfc(s), "offering quantity not NFC");
+                }
+                if let Some(s) = &off.notes {
+                    assert!(is_nfc(s), "offering notes not NFC");
+                }
             }
             for step in &entry.preparation_steps {
-                assert!(is_nfc(&step.description_vi), "step description_vi not NFC for {}", entry.ritual_id);
-                if let Some(s) = &step.description_en { assert!(is_nfc(s), "step description_en not NFC"); }
+                assert!(
+                    is_nfc(&step.description_vi),
+                    "step description_vi not NFC for {}",
+                    entry.ritual_id
+                );
+                if let Some(s) = &step.description_en {
+                    assert!(is_nfc(s), "step description_en not NFC");
+                }
             }
             for note in &entry.notes {
                 assert!(is_nfc(note), "note not NFC for {}", entry.ritual_id);
@@ -227,7 +239,11 @@ mod tests {
     fn get_or_init_is_idempotent() {
         let a = all_rituals();
         let b = all_rituals();
-        assert_eq!(a.as_ptr(), b.as_ptr(), "OnceLock should return the same slice on subsequent calls");
+        assert_eq!(
+            a.as_ptr(),
+            b.as_ptr(),
+            "OnceLock should return the same slice on subsequent calls"
+        );
         assert_eq!(a.len(), b.len());
     }
 
@@ -235,7 +251,9 @@ mod tests {
     fn known_ritual_id_is_present() {
         let rituals = all_rituals();
         assert!(
-            rituals.iter().any(|r| r.ritual_id == "van-khan-tet-don-gian"),
+            rituals
+                .iter()
+                .any(|r| r.ritual_id == "van-khan-tet-don-gian"),
             "expected ritual_id 'van-khan-tet-don-gian' to be present (fixture entry 1)"
         );
     }

@@ -166,12 +166,12 @@ mod tests {
         let mut seen = [false; 10];
         for &p in &Palace::ALL {
             let n = p as u8;
-            assert!(n >= 1 && n <= 9);
+            assert!((1..=9).contains(&n));
             assert!(!seen[n as usize], "Duplicate Lo Shu number {n}");
             seen[n as usize] = true;
         }
-        for n in 1..=9usize {
-            assert!(seen[n], "Lo Shu number {n} missing from Palace::ALL");
+        for (n, &present) in seen.iter().enumerate().skip(1) {
+            assert!(present, "Lo Shu number {n} missing from Palace::ALL");
         }
     }
 
@@ -190,7 +190,10 @@ mod tests {
     fn test_palace_to_direction_stub() {
         for &p in &Palace::ALL {
             let dir = palace_to_direction(p);
-            assert!(!dir.is_empty(), "palace_to_direction returned empty string for {p:?}");
+            assert!(
+                !dir.is_empty(),
+                "palace_to_direction returned empty string for {p:?}"
+            );
         }
         // Spot-check the canonical North palace
         assert_eq!(palace_to_direction(Palace::N), "N");
@@ -220,14 +223,18 @@ mod tests {
         let cases = [
             FlyingStarPeriod::Van { van: 9 },
             FlyingStarPeriod::Yearly { year: 2025 },
-            FlyingStarPeriod::Monthly { year: 2025, month: 3 },
-            FlyingStarPeriod::Daily { date: (2024, 12, 25) },
+            FlyingStarPeriod::Monthly {
+                year: 2025,
+                month: 3,
+            },
+            FlyingStarPeriod::Daily {
+                date: (2024, 12, 25),
+            },
         ];
         for original in cases {
-            let json = serde_json::to_string(&original)
-                .expect("serialization failed");
-            let roundtripped: FlyingStarPeriod = serde_json::from_str(&json)
-                .expect("deserialization failed");
+            let json = serde_json::to_string(&original).expect("serialization failed");
+            let roundtripped: FlyingStarPeriod =
+                serde_json::from_str(&json).expect("deserialization failed");
             assert_eq!(original, roundtripped, "round-trip failed for {original:?}");
         }
     }
@@ -236,7 +243,9 @@ mod tests {
     #[test]
     fn test_daily_flying_star_layout_period_serde() {
         let layout = DailyFlyingStarLayout {
-            period: FlyingStarPeriod::Daily { date: (2024, 12, 25) },
+            period: FlyingStarPeriod::Daily {
+                date: (2024, 12, 25),
+            },
             palaces: [FlyingStar::NhatBach; 9],
             center_star: FlyingStar::NhatBach,
             evidence: minimal_evidence(),

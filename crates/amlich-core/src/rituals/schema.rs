@@ -65,15 +65,21 @@ pub enum LifeEventKind {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum RitualEventKey {
-    HolidayId { value: String },
+    HolidayId {
+        value: String,
+    },
     LunarDate {
         month: u8,
         day: u8,
         #[serde(default)]
         leap_month_policy: LeapPolicy,
     },
-    SolarTerm { name: String },
-    LifeEvent { event: LifeEventKind },
+    SolarTerm {
+        name: String,
+    },
+    LifeEvent {
+        event: LifeEventKind,
+    },
     Always,
 }
 
@@ -190,9 +196,18 @@ impl OfferingRef {
         name_en: Option<String>,
         source_id: String,
     ) -> Self {
-        debug_assert!(!offering_id.is_empty(), "OfferingRef::offering_id must be non-empty");
-        debug_assert!(!name_vi.is_empty(), "OfferingRef::name_vi must be non-empty");
-        debug_assert!(!source_id.is_empty(), "OfferingRef::source_id must be non-empty");
+        debug_assert!(
+            !offering_id.is_empty(),
+            "OfferingRef::offering_id must be non-empty"
+        );
+        debug_assert!(
+            !name_vi.is_empty(),
+            "OfferingRef::name_vi must be non-empty"
+        );
+        debug_assert!(
+            !source_id.is_empty(),
+            "OfferingRef::source_id must be non-empty"
+        );
         Self {
             offering_id,
             name_vi,
@@ -287,7 +302,14 @@ mod tests {
         assert_eq!(entry.confidence, RitualConfidenceTier::Primary);
         // Verify event_keys decoded correctly
         assert_eq!(entry.event_keys.len(), 2);
-        assert_eq!(entry.event_keys[1], RitualEventKey::LunarDate { month: 1, day: 1, leap_month_policy: LeapPolicy::CanonicalMonthOnly });
+        assert_eq!(
+            entry.event_keys[1],
+            RitualEventKey::LunarDate {
+                month: 1,
+                day: 1,
+                leap_month_policy: LeapPolicy::CanonicalMonthOnly
+            }
+        );
     }
 
     // Test 2: A JSON with an unknown field fails to deserialize.
@@ -353,7 +375,10 @@ mod tests {
     #[test]
     fn unknown_variant_tag_fails() {
         let result: Result<RitualVariantTag, _> = serde_json::from_str(r#""unknown""#);
-        assert!(result.is_err(), "unknown variant tag should fail deserialization");
+        assert!(
+            result.is_err(),
+            "unknown variant tag should fail deserialization"
+        );
     }
 
     // Test 5: LunarDateMatch::MonthDay defaults leap_month_policy to CanonicalMonthOnly when absent.
@@ -396,14 +421,21 @@ mod tests {
             SOURCE_VN_FOLK_RITUAL.to_string(),
         );
         let json2 = serde_json::to_string(&r2).expect("serialize");
-        assert!(!json2.contains("name_en"), "name_en must be absent in JSON when None");
+        assert!(
+            !json2.contains("name_en"),
+            "name_en must be absent in JSON when None"
+        );
         let recovered2: OfferingRef = serde_json::from_str(&json2).expect("deserialize");
         assert_eq!(recovered2, r2);
 
         // Unknown field rejected by deny_unknown_fields
-        let bad_json = r#"{"offering_id":"x","name_vi":"y","source_id":"vn-folk-ritual","bogus":1}"#;
+        let bad_json =
+            r#"{"offering_id":"x","name_vi":"y","source_id":"vn-folk-ritual","bogus":1}"#;
         let err: Result<OfferingRef, _> = serde_json::from_str(bad_json);
-        assert!(err.is_err(), "deny_unknown_fields must reject unknown fields");
+        assert!(
+            err.is_err(),
+            "deny_unknown_fields must reject unknown fields"
+        );
 
         // INT-07 typed-source_id discipline: source_id is `crate::sources::SourceId`
         // (a String alias). Confirm compile-time type identity.
@@ -429,19 +461,30 @@ mod tests {
         assert_eq!(recovered, metadata);
 
         // Round-trip with cross_source_curing absent (skip_serializing_if honored)
-        let empty = RitualMetadata { cross_source_curing: None };
+        let empty = RitualMetadata {
+            cross_source_curing: None,
+        };
         let json_empty = serde_json::to_string(&empty).expect("serialize");
-        assert!(!json_empty.contains("cross_source_curing"),
-                "cross_source_curing must be absent in JSON when None; got: {json_empty}");
+        assert!(
+            !json_empty.contains("cross_source_curing"),
+            "cross_source_curing must be absent in JSON when None; got: {json_empty}"
+        );
 
         // deny_unknown_fields on RitualMetadata rejects unknown fields
         let bad = r#"{"cross_source_curing": [], "bogus": 1}"#;
         let err: Result<RitualMetadata, _> = serde_json::from_str(bad);
-        assert!(err.is_err(), "deny_unknown_fields must reject unknown fields on RitualMetadata");
+        assert!(
+            err.is_err(),
+            "deny_unknown_fields must reject unknown fields on RitualMetadata"
+        );
 
         // deny_unknown_fields on CrossSourceCure rejects unknown fields
-        let bad_cure = r#"{"element_cure_for":"Kim","source_id":"huyen-khong","rationale_vi":"x","bogus":1}"#;
+        let bad_cure =
+            r#"{"element_cure_for":"Kim","source_id":"huyen-khong","rationale_vi":"x","bogus":1}"#;
         let err_cure: Result<CrossSourceCure, _> = serde_json::from_str(bad_cure);
-        assert!(err_cure.is_err(), "deny_unknown_fields must reject unknown fields on CrossSourceCure");
+        assert!(
+            err_cure.is_err(),
+            "deny_unknown_fields must reject unknown fields on CrossSourceCure"
+        );
     }
 }

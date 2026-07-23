@@ -98,9 +98,7 @@ pub fn compute_monthly_flying_stars(
     let ascending = year_is_ascending(year);
     let palaces = fill_palaces(center, ascending);
 
-    let note = format!(
-        "year={year};month={month};group={leader};center={center}"
-    );
+    let note = format!("year={year};month={month};group={leader};center={center}");
     let evidence = ReasoningEvidenceEnvelope {
         source_family: ReasoningEvidenceSourceFamily::AlmanacRule,
         source_id: SOURCE_HUYEN_KHONG.to_string(),
@@ -135,15 +133,21 @@ mod tests {
     /// 2024 = Giáp Thìn, chi_index=4 (Thìn) => group 2.
     #[test]
     fn test_month_group_2024_thìn_is_2() {
-        assert_eq!(month_group(2024), 2,
-            "2024 Thìn (chi_index 4) should be group 2");
+        assert_eq!(
+            month_group(2024),
+            2,
+            "2024 Thìn (chi_index 4) should be group 2"
+        );
     }
 
     /// 2025 = Ất Tỵ, chi_index=5 (Tỵ) => group 8.
     #[test]
     fn test_month_group_2025_tỵ_is_8() {
-        assert_eq!(month_group(2025), 8,
-            "2025 Tỵ (chi_index 5) should be group 8");
+        assert_eq!(
+            month_group(2025),
+            8,
+            "2025 Tỵ (chi_index 5) should be group 8"
+        );
     }
 
     /// Tý year: 2020 = Canh Tý, chi_index=0 => group 5.
@@ -156,21 +160,33 @@ mod tests {
     /// Mão year: 2023 = Quý Mão, chi_index=3 => group 5.
     #[test]
     fn test_month_group_mao_year_is_5() {
-        assert_eq!(month_group(2023), 5, "Mão year (chi_index 3) should be group 5");
+        assert_eq!(
+            month_group(2023),
+            5,
+            "Mão year (chi_index 3) should be group 5"
+        );
     }
 
     /// Dần year => group 8.
     #[test]
     fn test_month_group_dan_year_is_8() {
         // 2022 = Nhâm Dần, chi_index=2 (Dần)
-        assert_eq!(month_group(2022), 8, "Dần year (chi_index 2) should be group 8");
+        assert_eq!(
+            month_group(2022),
+            8,
+            "Dần year (chi_index 2) should be group 8"
+        );
     }
 
     /// Sửu year => group 2.
     #[test]
     fn test_month_group_suu_year_is_2() {
         // 2021 = Tân Sửu, chi_index=1 (Sửu)
-        assert_eq!(month_group(2021), 2, "Sửu year (chi_index 1) should be group 2");
+        assert_eq!(
+            month_group(2021),
+            2,
+            "Sửu year (chi_index 1) should be group 2"
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -192,8 +208,11 @@ mod tests {
     /// Group-leader=2, month=3 => center=9 (wrap from 1 down to 9).
     #[test]
     fn test_monthly_center_group2_month3_wraps() {
-        assert_eq!(monthly_center(2, 3), 9,
-            "Descending from 2: m=1→2, m=2→1, m=3→9 (wrap)");
+        assert_eq!(
+            monthly_center(2, 3),
+            9,
+            "Descending from 2: m=1→2, m=2→1, m=3→9 (wrap)"
+        );
     }
 
     /// Group-leader=2, month=4 => center=8.
@@ -222,15 +241,19 @@ mod tests {
     #[test]
     fn test_compute_monthly_2024_m1_center_is_2() {
         let layout = compute_monthly_flying_stars(2024, 1, &scanner());
-        assert_eq!(layout.center_star as u8, 2,
-            "2024 Thìn year, month 1: expected center=2");
+        assert_eq!(
+            layout.center_star as u8, 2,
+            "2024 Thìn year, month 1: expected center=2"
+        );
     }
 
     /// period is Monthly { year: 2024, month: 1 }.
     #[test]
     fn test_compute_monthly_period_variant() {
         let layout = compute_monthly_flying_stars(2024, 1, &scanner());
-        if let crate::almanac::fengshui::types::FlyingStarPeriod::Monthly { year, month } = layout.period {
+        if let crate::almanac::fengshui::types::FlyingStarPeriod::Monthly { year, month } =
+            layout.period
+        {
             assert_eq!(year, 2024);
             assert_eq!(month, 1);
         } else {
@@ -245,7 +268,7 @@ mod tests {
         let mut seen = [false; 10];
         for &s in &layout.palaces {
             let n = s as u8;
-            assert!(n >= 1 && n <= 9, "star {n} out of range");
+            assert!((1..=9).contains(&n), "star {n} out of range");
             assert!(!seen[n as usize], "duplicate star {n}");
             seen[n as usize] = true;
         }
@@ -256,7 +279,10 @@ mod tests {
     fn test_compute_monthly_evidence_method() {
         let layout = compute_monthly_flying_stars(2024, 1, &scanner());
         assert_eq!(layout.evidence.method, "phi_tinh.nguyet");
-        assert_eq!(layout.evidence.source_id, crate::sources::SOURCE_HUYEN_KHONG);
+        assert_eq!(
+            layout.evidence.source_id,
+            crate::sources::SOURCE_HUYEN_KHONG
+        );
     }
 
     /// Month=0 panics (out of range).
@@ -281,7 +307,7 @@ mod tests {
             let mut seen = [false; 10];
             for &s in &layout.palaces {
                 let n = s as u8;
-                assert!(n >= 1 && n <= 9, "month {month}: star {n} out of range");
+                assert!((1..=9).contains(&n), "month {month}: star {n} out of range");
                 assert!(!seen[n as usize], "month {month}: duplicate star {n}");
                 seen[n as usize] = true;
             }
@@ -292,7 +318,9 @@ mod tests {
     #[test]
     fn test_compute_monthly_2024_m2_center_is_1() {
         let layout = compute_monthly_flying_stars(2024, 2, &scanner());
-        assert_eq!(layout.center_star as u8, 1,
-            "2024 group=2, month=2: center should be 1");
+        assert_eq!(
+            layout.center_star as u8, 1,
+            "2024 group=2, month=2: center should be 1"
+        );
     }
 }

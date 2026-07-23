@@ -34,4 +34,6 @@ pub use mai_hoa::{cast_mai_hoa, MaiHoaCast};
 pub use schema::{
     compose, HauThienTrigram, HexagramEntry, KingWenHexagram, TienThienTrigram, COMPOSITION_TABLE,
 };
-pub use the_dung::{classify_the_dung, trigram_element, CatHung, TheDungClassification, TheDungRelation};
+pub use the_dung::{
+    classify_the_dung, trigram_element, CatHung, TheDungClassification, TheDungRelation,
+};

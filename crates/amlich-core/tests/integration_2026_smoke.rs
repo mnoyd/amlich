@@ -19,9 +19,9 @@
 use amlich_core::almanac::fengshui::{
     compute_combined_overlay, compute_palace_aspects, compute_period, TietKhiScanner,
 };
+use amlich_core::calculate_day_snapshot;
 use amlich_core::julian::{jd_from_date, jd_to_date};
 use amlich_core::rituals::find_van_khan_for_snapshot;
-use amlich_core::calculate_day_snapshot;
 use amlich_core::semantic_graph::build_day_snapshot_graph;
 use amlich_core::semantic_graph::{EdgeConcept, NodeConcept};
 
@@ -284,7 +284,8 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
     // Sóc (lunar day 1) of solar months 3, 6, 9, 12 of 2026
     // (WARNING 3: this filters on SOLAR month; the test verifies >=5 entries)
     let soc_dates = collect_lunar_day_dates(1);
-    let filtered: Vec<(i32, i32, i32)> = soc_dates.into_iter()
+    let filtered: Vec<(i32, i32, i32)> = soc_dates
+        .into_iter()
         .filter(|(_, m, _)| [3, 6, 9, 12].contains(m))
         .collect();
     dates.extend(filtered);
@@ -317,10 +318,13 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
 
         // 3. flying_stars (annual + monthly) MUST be populated with 9 palace_overlays
         // BLOCKER 7 FIX: explicit assertions on annual + monthly components
-        let fs = snap.flying_stars.as_ref()
+        let fs = snap
+            .flying_stars
+            .as_ref()
             .expect("flying_stars must be Some for all dates");
         assert_eq!(
-            fs.palace_overlays.len(), 9,
+            fs.palace_overlays.len(),
+            9,
             "flying_stars.palace_overlays must have exactly 9 entries for {y:04}-{m:02}-{d:02}"
         );
         // BLOCKER 7 FIX: annual + monthly FlyingStar components are populated.
@@ -356,14 +360,14 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
         }
 
         // 2. applicable_rituals — if non-empty, offering_refs MUST be populated
-        let rituals = snap.applicable_rituals.as_ref()
+        let rituals = snap
+            .applicable_rituals
+            .as_ref()
             .expect("applicable_rituals must be Some");
         if !rituals.is_empty() {
             // 2a. offering_refs MUST be Some AND non-empty
             let refs = snap.offering_refs.as_ref()
-                .expect(&format!(
-                    "offering_refs must be Some when applicable_rituals is non-empty for {y:04}-{m:02}-{d:02}"
-                ));
+                .unwrap_or_else(|| panic!("offering_refs must be Some when applicable_rituals is non-empty for {y:04}-{m:02}-{d:02}"));
             assert!(
                 !refs.is_empty(),
                 "offering_refs must be non-empty when applicable_rituals is non-empty for {y:04}-{m:02}-{d:02}"
@@ -371,9 +375,7 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
 
             // 2b. offerings (flat-string) MUST be Some AND non-empty
             let flat = snap.offerings.as_ref()
-                .expect(&format!(
-                    "offerings (flat-string) must be Some when applicable_rituals is non-empty for {y:04}-{m:02}-{d:02}"
-                ));
+                .unwrap_or_else(|| panic!("offerings (flat-string) must be Some when applicable_rituals is non-empty for {y:04}-{m:02}-{d:02}"));
             assert!(
                 !flat.is_empty(),
                 "offerings (flat-string) must be non-empty when applicable_rituals is non-empty for {y:04}-{m:02}-{d:02}"
@@ -390,7 +392,9 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
 
             // 2c + 2d. Semantic-graph MUST contain ≥1 Offering node + ≥1 RecommendsOffering edge
             let graph = build_day_snapshot_graph(&snap);
-            let offering_node_count = graph.nodes().values()
+            let offering_node_count = graph
+                .nodes()
+                .values()
                 .filter(|n| matches!(n.concept, NodeConcept::Offering))
                 .count();
             assert!(
@@ -399,7 +403,9 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
                 offering_node_count
             );
 
-            let rec_edges: Vec<_> = graph.edges().values()
+            let rec_edges: Vec<_> = graph
+                .edges()
+                .values()
                 .filter(|e| matches!(e.label.concept, EdgeConcept::RecommendsOffering))
                 .collect();
             let rec_edge_count = rec_edges.len();
@@ -420,9 +426,13 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
             // to_node_id is an Offering node, AND at least one edge has dual-source
             // provenance. (Per-edge vn-folk-ritual provenance is required for ALL edges.)
             for edge in &rec_edges {
-                let from = graph.nodes().get(&edge.from_node_id)
+                let from = graph
+                    .nodes()
+                    .get(&edge.from_node_id)
                     .expect("from_node must exist");
-                let to = graph.nodes().get(&edge.to_node_id)
+                let to = graph
+                    .nodes()
+                    .get(&edge.to_node_id)
                     .expect("to_node must exist");
                 assert!(
                     matches!(from.concept, NodeConcept::Ritual),
@@ -435,7 +445,9 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
                     to.concept
                 );
 
-                let entries = graph.provenance().get(&edge.edge_id)
+                let entries = graph
+                    .provenance()
+                    .get(&edge.edge_id)
                     .expect("RecommendsOffering edge must have provenance entries");
                 assert!(
                     entries.iter().any(|p| p.source_id.as_str() == "vn-folk-ritual"),
@@ -446,9 +458,7 @@ fn e2e_2026_smoke_offering_wiring_on_representative_dates() {
                 // For Tết 2026 specifically (the date where van-khan-tet-day-du
                 // is annotated with cross_source_curing), at least one edge's
                 // provenance must contain BOTH source_ids.
-                let source_ids: Vec<&str> = entries.iter()
-                    .map(|p| p.source_id.as_str())
-                    .collect();
+                let source_ids: Vec<&str> = entries.iter().map(|p| p.source_id.as_str()).collect();
                 if source_ids.contains(&"vn-folk-ritual") && source_ids.contains(&"huyen-khong") {
                     found_dual_source = true;
                 }
@@ -521,7 +531,7 @@ fn e2e_2026_smoke_v17_iching_and_cross_link_wiring_on_representative_dates() {
     use amlich_core::reasoning::DATE_ONLY_BIRTH_CHI_INDEX;
     use amlich_core::semantic_graph::build_day_snapshot_graph;
     use amlich_core::sources::{
-        SOURCE_KHCBPPT, SOURCE_KINH_DICH, SOURCE_HUYEN_KHONG, SOURCE_MAI_HOA_DICH_SO,
+        SOURCE_HUYEN_KHONG, SOURCE_KHCBPPT, SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO,
     };
     // enrich_day_snapshot_with_iching + enrich_day_snapshot_with_direction_cross_link
     // are re-exported at the crate root by lib.rs (lines 313, 350).
@@ -727,11 +737,13 @@ fn e2e_2026_smoke_v17_iching_and_cross_link_wiring_on_representative_dates() {
         // Uses the date-only variant (no birth data required) — mirrors the
         // Tier-0 discipline.
         // -------------------------------------------------------------
-        let enriched_both =
-            enrich_day_snapshot_with_direction_cross_link(&enriched_iching, DATE_ONLY_BIRTH_CHI_INDEX)
-                .expect(
-                "enrich_day_snapshot_with_direction_cross_link must succeed for {y:04}-{m:02}-{d:02}"
-            );
+        let enriched_both = enrich_day_snapshot_with_direction_cross_link(
+            &enriched_iching,
+            DATE_ONLY_BIRTH_CHI_INDEX,
+        )
+        .expect(
+            "enrich_day_snapshot_with_direction_cross_link must succeed for {y:04}-{m:02}-{d:02}",
+        );
 
         // Field is populated.
         assert!(
@@ -772,7 +784,10 @@ fn e2e_2026_smoke_v17_iching_and_cross_link_wiring_on_representative_dates() {
             cross.evidence.len()
         );
         let has_khcbppt = cross.evidence.iter().any(|e| e.source_id == SOURCE_KHCBPPT);
-        let has_huyen_khong = cross.evidence.iter().any(|e| e.source_id == SOURCE_HUYEN_KHONG);
+        let has_huyen_khong = cross
+            .evidence
+            .iter()
+            .any(|e| e.source_id == SOURCE_HUYEN_KHONG);
         let has_composite = cross
             .evidence
             .iter()

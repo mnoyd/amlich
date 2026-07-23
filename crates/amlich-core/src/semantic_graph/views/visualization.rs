@@ -38,7 +38,7 @@ impl VisualizationGraph {
         let mut nodes = Vec::new();
         let mut edges = Vec::new();
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             let cluster = cluster_for_node_id(&node.node_id, node.concept);
             let semantic_kind = node.concept.label().as_str().to_string();
             let shape_hint = shape_hint_for_node(node.concept);
@@ -57,7 +57,7 @@ impl VisualizationGraph {
             });
         }
 
-        for (_, edge) in graph.edges() {
+        for edge in graph.edges().values() {
             let semantic_kind = edge.label.concept.label().as_str().to_string();
             edges.push(VisualizationEdge {
                 edge_id: edge.edge_id.clone(),
@@ -114,9 +114,10 @@ fn shape_hint_for_node(concept: NodeConcept) -> Option<String> {
 
         NodeConcept::RecommendationHit => Some("diamond".to_string()),
 
-        NodeConcept::Ritual | NodeConcept::FlyingStar | NodeConcept::Offering | NodeConcept::Hexagram => {
-            Some("box".to_string())
-        }
+        NodeConcept::Ritual
+        | NodeConcept::FlyingStar
+        | NodeConcept::Offering
+        | NodeConcept::Hexagram => Some("box".to_string()),
     }
 }
 
@@ -295,11 +296,11 @@ mod tests {
             viz.nodes.iter().map(|n| n.cluster.clone()).collect();
 
         assert!(
-            clusters.contains(&"day-core".to_string()),
+            clusters.contains("day-core"),
             "connected graph should have day-core cluster"
         );
         assert!(
-            clusters.contains(&"recommendation-evidence".to_string()),
+            clusters.contains("recommendation-evidence"),
             "connected graph should have recommendation-evidence cluster"
         );
     }

@@ -456,7 +456,7 @@ fn semantic_projection_preserves_node_kinds() {
 
 #[test]
 fn semantic_projection_preserves_serialization_shape() {
-    let graph = build_graph(&parity_corpus().first().unwrap());
+    let graph = build_graph(parity_corpus().first().unwrap());
     let value = serde_json::to_value(&graph).expect("serialize");
     let obj = value.as_object().expect("graph object");
 

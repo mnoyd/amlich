@@ -22,7 +22,15 @@ pub struct CausalityEdge {
 
 pub fn extract_causality_tree(inspection: &DebugSemanticGraphInspection) -> Vec<CausalityNode> {
     let mut focal_nodes = Vec::new();
-    let focal_kinds = ["star", "deity", "taboo", "hoang_dao_hour", "xung_hop", "truc", "day_deity"];
+    let focal_kinds = [
+        "star",
+        "deity",
+        "taboo",
+        "hoang_dao_hour",
+        "xung_hop",
+        "truc",
+        "day_deity",
+    ];
 
     let nodes_map: HashMap<_, _> = inspection
         .visualization

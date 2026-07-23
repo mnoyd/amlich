@@ -113,6 +113,7 @@ impl InteractionGraphBuilder {
         self.graph.add_edge(edge);
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn add_ten_god_relation_node(
         &mut self,
         _matrix_id: &str,

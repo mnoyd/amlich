@@ -23,10 +23,11 @@ pub fn find_van_khan_for_snapshot(snapshot: &DaySnapshot) -> Vec<&'static Ritual
     all_rituals()
         .iter()
         .filter(|entry| {
-            entry
-                .event_keys
-                .iter()
-                .any(|haystack| needles.iter().any(|needle| event_key_matches(haystack, needle)))
+            entry.event_keys.iter().any(|haystack| {
+                needles
+                    .iter()
+                    .any(|needle| event_key_matches(haystack, needle))
+            })
         })
         .collect()
 }
@@ -119,8 +120,16 @@ fn event_key_matches(haystack: &RitualEventKey, needle: &RitualEventKey) -> bool
         (SolarTerm { name: a }, SolarTerm { name: b }) => a == b,
         (LifeEvent { event: a }, LifeEvent { event: b }) => a == b,
         (
-            LunarDate { month: m1, day: d1, leap_month_policy: p },
-            LunarDate { month: m2, day: d2, leap_month_policy: q },
+            LunarDate {
+                month: m1,
+                day: d1,
+                leap_month_policy: p,
+            },
+            LunarDate {
+                month: m2,
+                day: d2,
+                leap_month_policy: q,
+            },
         ) => {
             if m1 != m2 || d1 != d2 {
                 return false;
@@ -131,7 +140,10 @@ fn event_key_matches(haystack: &RitualEventKey, needle: &RitualEventKey) -> bool
                 (p, q),
                 (LeapPolicy::Either, _)
                     | (_, LeapPolicy::Either)
-                    | (LeapPolicy::CanonicalMonthOnly, LeapPolicy::CanonicalMonthOnly)
+                    | (
+                        LeapPolicy::CanonicalMonthOnly,
+                        LeapPolicy::CanonicalMonthOnly
+                    )
                     | (LeapPolicy::LeapMonthOnly, LeapPolicy::LeapMonthOnly)
             )
         }
@@ -160,7 +172,9 @@ mod tests {
     // RIT-02: direct lookup by HolidayId returns ≥ 1 entry for Tết.
     #[test]
     fn find_van_khan_for_event_holiday_id_tet() {
-        let needle = RitualEventKey::HolidayId { value: "tet-nguyen-dan".to_string() };
+        let needle = RitualEventKey::HolidayId {
+            value: "tet-nguyen-dan".to_string(),
+        };
         let hits = find_van_khan_for_event(&needle);
         assert!(!hits.is_empty(), "expected ≥ 1 entry for tet-nguyen-dan");
     }
@@ -195,22 +209,31 @@ mod tests {
         // Haystack-side Always matches any needle.
         assert!(event_key_matches(
             &RitualEventKey::Always,
-            &RitualEventKey::HolidayId { value: "x".to_string() }
+            &RitualEventKey::HolidayId {
+                value: "x".to_string()
+            }
         ));
         // Needle-side Always must NOT match a non-Always haystack — that would
         // cause every entry to fire on every snapshot (Phase 11 integration
         // test `vong_snapshot_returns_ram_thang_gieng_via_snapshot_path` is the
         // falsifier).
         assert!(!event_key_matches(
-            &RitualEventKey::HolidayId { value: "x".to_string() },
+            &RitualEventKey::HolidayId {
+                value: "x".to_string()
+            },
             &RitualEventKey::Always
         ));
         // Always ↔ Always still matches.
-        assert!(event_key_matches(&RitualEventKey::Always, &RitualEventKey::Always));
+        assert!(event_key_matches(
+            &RitualEventKey::Always,
+            &RitualEventKey::Always
+        ));
         // The "fall-through" Always-entry from fixtures.json is reachable by
         // querying with an Always needle.
         let hits = find_van_khan_for_event(&RitualEventKey::Always);
-        assert!(hits.iter().any(|r| r.ritual_id == "van-khan-gia-tien-hang-ngay"));
+        assert!(hits
+            .iter()
+            .any(|r| r.ritual_id == "van-khan-gia-tien-hang-ngay"));
     }
 
     // RIT-07: leap policy semantics — canonical entry MUST NOT match leap snapshot.
@@ -226,16 +249,30 @@ mod tests {
             day: 5,
             leap_month_policy: LeapPolicy::LeapMonthOnly,
         };
-        assert!(!event_key_matches(&canonical, &leap),
-            "CanonicalMonthOnly must NOT match LeapMonthOnly");
+        assert!(
+            !event_key_matches(&canonical, &leap),
+            "CanonicalMonthOnly must NOT match LeapMonthOnly"
+        );
     }
 
     // RIT-07: `Either` matches both leap and canonical sides.
     #[test]
     fn leap_policy_either_matches_both() {
-        let either = RitualEventKey::LunarDate { month: 1, day: 1, leap_month_policy: LeapPolicy::Either };
-        let canonical = RitualEventKey::LunarDate { month: 1, day: 1, leap_month_policy: LeapPolicy::CanonicalMonthOnly };
-        let leap = RitualEventKey::LunarDate { month: 1, day: 1, leap_month_policy: LeapPolicy::LeapMonthOnly };
+        let either = RitualEventKey::LunarDate {
+            month: 1,
+            day: 1,
+            leap_month_policy: LeapPolicy::Either,
+        };
+        let canonical = RitualEventKey::LunarDate {
+            month: 1,
+            day: 1,
+            leap_month_policy: LeapPolicy::CanonicalMonthOnly,
+        };
+        let leap = RitualEventKey::LunarDate {
+            month: 1,
+            day: 1,
+            leap_month_policy: LeapPolicy::LeapMonthOnly,
+        };
         assert!(event_key_matches(&either, &canonical));
         assert!(event_key_matches(&either, &leap));
         assert!(event_key_matches(&canonical, &either));
@@ -245,9 +282,21 @@ mod tests {
     // Different month or day → no match regardless of policy.
     #[test]
     fn lunar_date_month_or_day_mismatch_never_matches() {
-        let a = RitualEventKey::LunarDate { month: 1, day: 1, leap_month_policy: LeapPolicy::Either };
-        let b = RitualEventKey::LunarDate { month: 1, day: 2, leap_month_policy: LeapPolicy::Either };
-        let c = RitualEventKey::LunarDate { month: 2, day: 1, leap_month_policy: LeapPolicy::Either };
+        let a = RitualEventKey::LunarDate {
+            month: 1,
+            day: 1,
+            leap_month_policy: LeapPolicy::Either,
+        };
+        let b = RitualEventKey::LunarDate {
+            month: 1,
+            day: 2,
+            leap_month_policy: LeapPolicy::Either,
+        };
+        let c = RitualEventKey::LunarDate {
+            month: 2,
+            day: 1,
+            leap_month_policy: LeapPolicy::Either,
+        };
         assert!(!event_key_matches(&a, &b));
         assert!(!event_key_matches(&a, &c));
     }

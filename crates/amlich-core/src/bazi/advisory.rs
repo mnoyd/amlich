@@ -480,7 +480,7 @@ fn least_present_elements(distribution: &ElementDistribution) -> Vec<FiveElement
 
 fn most_present_elements(distribution: &ElementDistribution) -> Vec<FiveElement> {
     let mut pairs = element_pairs(distribution);
-    pairs.sort_by(|left, right| right.1.cmp(&left.1));
+    pairs.sort_by_key(|item| std::cmp::Reverse(item.1));
     pairs.into_iter().map(|(element, _)| element).collect()
 }
 

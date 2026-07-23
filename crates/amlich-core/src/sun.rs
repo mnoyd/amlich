@@ -75,7 +75,7 @@ mod tests {
         for jd in test_jds {
             let sl = sun_longitude(jd);
             assert!(
-                sl >= 0.0 && sl < 2.0 * PI,
+                (0.0..2.0 * PI).contains(&sl),
                 "Sun longitude {} not in [0, 2π)",
                 sl
             );
@@ -94,7 +94,7 @@ mod tests {
         for day in test_days {
             let sl = get_sun_longitude(day, 7.0);
             assert!(
-                sl >= 0 && sl <= 11,
+                (0..=11).contains(&sl),
                 "Sun longitude index {} not in [0, 11]",
                 sl
             );
@@ -111,7 +111,7 @@ mod tests {
             let sl = sun_longitude(jd);
 
             // Sun longitude should be between 0 and 2π
-            assert!(sl >= 0.0 && sl < 2.0 * PI);
+            assert!((0.0..2.0 * PI).contains(&sl));
         }
     }
 

@@ -52,12 +52,15 @@ const EXPECTED_ROWS: &[(&[&str; 3], &[&str; 3], &[Direction; 3])] = &[
         &["Hợi", "Mão", "Mùi"],
         &[Direction::Northwest, Direction::East, Direction::Southwest],
     ),
-];/// Map a year-chi name to its index in the locked table.
+];
+/// Map a year-chi name to its index in the locked table.
 fn chi_index(name: &str) -> usize {
     const CHI: [&str; 12] = [
         "Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi",
     ];
-    CHI.iter().position(|c| *c == name).unwrap_or_else(|| panic!("unknown chi: {name}"))
+    CHI.iter()
+        .position(|c| *c == name)
+        .unwrap_or_else(|| panic!("unknown chi: {name}"))
 }
 
 // ---------------------------------------------------------------------------
@@ -246,11 +249,13 @@ fn tam_sat_result_is_distinct_module_from_sat_phuong() {
     // returns South — but the two APIs operate on different chi axes
     // (year vs day) and return different shapes. They are sibling APIs,
     // not duplicates.
-    assert!(tam_sat
-        .tam_sat_directions
-        .iter()
-        .any(|d| matches!(d, Direction::South)),
-        "Tam Sát for Tý year must include South (Ngọ → South) per the locked mapping");
+    assert!(
+        tam_sat
+            .tam_sat_directions
+            .iter()
+            .any(|d| matches!(d, Direction::South)),
+        "Tam Sát for Tý year must include South (Ngọ → South) per the locked mapping"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -263,6 +268,9 @@ fn tam_sat_result_round_trips_serde() {
     let json = serde_json::to_string(&r).expect("serialize TamSatDirectionResult");
     let recovered: TamSatDirectionResult =
         serde_json::from_str(&json).expect("deserialize TamSatDirectionResult");
-    assert_eq!(recovered, r, "TamSatDirectionResult must round-trip byte-equal");
+    assert_eq!(
+        recovered, r,
+        "TamSatDirectionResult must round-trip byte-equal"
+    );
     assert_eq!(recovered.year_chi, "Mão");
 }

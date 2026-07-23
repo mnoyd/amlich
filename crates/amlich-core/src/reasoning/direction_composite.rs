@@ -287,9 +287,8 @@ fn composite_severity(severities: &[ReasoningNodeSeverity; 8]) -> ReasoningNodeS
         ReasoningNodeSeverity::SoftTaboo,
         ReasoningNodeSeverity::HardTaboo,
     ];
-    let counts: [usize; 6] = std::array::from_fn(|i| {
-        severities.iter().filter(|&&s| s == variants[i]).count()
-    });
+    let counts: [usize; 6] =
+        std::array::from_fn(|i| severities.iter().filter(|&&s| s == variants[i]).count());
     let max_count = *counts.iter().max().expect("non-empty counts");
     variants
         .iter()
@@ -302,9 +301,9 @@ fn composite_severity(severities: &[ReasoningNodeSeverity; 8]) -> ReasoningNodeS
 
 /// Per-direction agreement logic.
 ///
-/// - `(Some, Some)`   → `Agreement` if both sides are cautionary,
-///                      `BothSilent` if both are silent,
-///                      `Conflict` if only one is cautionary.
+/// - `(Some, Some)` → `Agreement` if both sides are cautionary,
+///   `BothSilent` if both are silent,
+///   `Conflict` if only one is cautionary.
 /// - `(Some, None)`   → `KhcbpptOnly`.
 /// - `(None, Some)`   → `HuyenKhongOnly`.
 /// - `(None, None)`   → `None` (the serialized triple-state).
@@ -317,7 +316,8 @@ fn agreement(
         (Some(_), None) => Some(Agreement::KhcbpptOnly),
         (None, Some(_)) => Some(Agreement::HuyenKhongOnly),
         (Some(k), Some(h)) => {
-            let k_caut = severity_rank(k.severity) >= severity_rank(ReasoningNodeSeverity::Inauspicious);
+            let k_caut =
+                severity_rank(k.severity) >= severity_rank(ReasoningNodeSeverity::Inauspicious);
             let h_caut = severity_rank(huyen_khong_severity(h))
                 >= severity_rank(ReasoningNodeSeverity::Inauspicious);
             Some(match (k_caut, h_caut) {
@@ -357,8 +357,7 @@ fn personal_thai_tue_record(
 ) -> Option<(Direction, Vec<ThaiTueConflictKind>)> {
     let year_direction = thai_tue_direction(year_chi_index).direction;
     let conflicts = compute_thai_tue(birth_chi_index, year_chi_index).conflicts;
-    let conflict_kinds: Vec<ThaiTueConflictKind> =
-        conflicts.iter().map(|c| c.kind).collect();
+    let conflict_kinds: Vec<ThaiTueConflictKind> = conflicts.iter().map(|c| c.kind).collect();
     Some((year_direction, conflict_kinds))
 }
 
@@ -397,10 +396,7 @@ fn khcbppt_severity(
 }
 
 /// Vietnamese per-direction summary for the KHCBPPT side.
-fn khcbppt_summary_vi(
-    direction: Direction,
-    taboo: &DirectionalTaboo,
-) -> String {
+fn khcbppt_summary_vi(direction: Direction, taboo: &DirectionalTaboo) -> String {
     let vn = direction_to_vn(direction);
     let mut bits: Vec<String> = Vec::new();
     if let Some(tt) = taboo.thai_tue.as_ref() {
@@ -438,12 +434,9 @@ fn khcbppt_summary_vi(
 /// `Err` when the snapshot lacks the annual overlay (the cross-link cannot
 /// surface the palace side without it).
 fn build_huyen_khong_cells(snapshot: &DaySnapshot) -> Result<[HuyenKhongCell; 8], String> {
-    let fs = snapshot
-        .flying_stars
-        .as_ref()
-        .ok_or_else(|| String::from(
-            "direction cross-link requires snapshot.flying_stars to be populated"
-        ))?;
+    let fs = snapshot.flying_stars.as_ref().ok_or_else(|| {
+        String::from("direction cross-link requires snapshot.flying_stars to be populated")
+    })?;
     let hints = fs.palace_safety_hints.as_ref();
     Ok(std::array::from_fn(|i| {
         let palace_idx = PALACE_INDICES_BY_DIRECTION[i];
@@ -521,7 +514,11 @@ fn build_summary_vi(
             let taboo = c.khcbppt.as_ref()?;
             let has_signal = !taboo.tam_sat_branches.is_empty()
                 || taboo.sat_phuong_direction.is_some()
-                || taboo.thai_tue.as_ref().map(|t| !t.conflict_kinds.is_empty()).unwrap_or(false);
+                || taboo
+                    .thai_tue
+                    .as_ref()
+                    .map(|t| !t.conflict_kinds.is_empty())
+                    .unwrap_or(false);
             if has_signal {
                 Some(direction_to_vn(c.direction))
             } else {
@@ -653,11 +650,14 @@ fn build_personal_khcbppt_cells(
         } else {
             None
         };
-        let thai_tue_here: Option<DirectionalThaiTue> = if thai_tue_direction_opt == Some(direction) {
-            thai_tue_record.as_ref().map(|(_, kinds)| DirectionalThaiTue {
-                direction,
-                conflict_kinds: kinds.clone(),
-            })
+        let thai_tue_here: Option<DirectionalThaiTue> = if thai_tue_direction_opt == Some(direction)
+        {
+            thai_tue_record
+                .as_ref()
+                .map(|(_, kinds)| DirectionalThaiTue {
+                    direction,
+                    conflict_kinds: kinds.clone(),
+                })
         } else {
             None
         };
@@ -742,6 +742,7 @@ fn build_date_khcbppt_cells(
 }
 
 /// Build a `DirectionCrossLink` from already-assembled sides + metadata.
+#[allow(clippy::too_many_arguments)]
 fn assemble_cross_link(
     khcbppt: [Option<DirectionalTaboo>; 8],
     huyen_khong: [HuyenKhongCell; 8],
@@ -846,13 +847,13 @@ pub fn build_direction_cross_link_personal(
     let khcbppt = build_personal_khcbppt_cells(year_chi_index, day_chi_index, birth_chi_index);
     let huyen_khong = build_huyen_khong_cells(snapshot)?;
     let tam_sat = tam_sat_direction(year_chi_index);
-    let tam_sat_branches: Vec<String> = tam_sat.tam_sat_branches.iter().cloned().collect();
-    let fs = snapshot.flying_stars.as_ref().expect("checked by build_huyen_khong_cells");
-    let center_star = fs.center_star as u8;
-    let center_hint = fs
-        .palace_safety_hints
+    let tam_sat_branches: Vec<String> = tam_sat.tam_sat_branches.to_vec();
+    let fs = snapshot
+        .flying_stars
         .as_ref()
-        .and_then(|h| h[4].clone());
+        .expect("checked by build_huyen_khong_cells");
+    let center_star = fs.center_star as u8;
+    let center_hint = fs.palace_safety_hints.as_ref().and_then(|h| h[4].clone());
 
     Ok(assemble_cross_link(
         khcbppt,
@@ -886,13 +887,13 @@ pub fn build_direction_cross_link_date(
     let khcbppt = build_date_khcbppt_cells(year_chi_index, day_chi_index);
     let huyen_khong = build_huyen_khong_cells(snapshot)?;
     let tam_sat = tam_sat_direction(year_chi_index);
-    let tam_sat_branches: Vec<String> = tam_sat.tam_sat_branches.iter().cloned().collect();
-    let fs = snapshot.flying_stars.as_ref().expect("checked by build_huyen_khong_cells");
-    let center_star = fs.center_star as u8;
-    let center_hint = fs
-        .palace_safety_hints
+    let tam_sat_branches: Vec<String> = tam_sat.tam_sat_branches.to_vec();
+    let fs = snapshot
+        .flying_stars
         .as_ref()
-        .and_then(|h| h[4].clone());
+        .expect("checked by build_huyen_khong_cells");
+    let center_star = fs.center_star as u8;
+    let center_hint = fs.palace_safety_hints.as_ref().and_then(|h| h[4].clone());
 
     Ok(assemble_cross_link(
         khcbppt,
@@ -1135,21 +1136,14 @@ mod tests {
     #[test]
     fn build_personal_cross_link_carries_exactly_three_evidence_envelopes() {
         let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
-        let cross = build_direction_cross_link_personal(&snapshot, 10)
-            .expect("personal builder");
+        let cross = build_direction_cross_link_personal(&snapshot, 10).expect("personal builder");
         assert_eq!(cross.evidence.len(), 3);
-        assert_eq!(
-            cross.evidence[0].source_id,
-            crate::sources::SOURCE_KHCBPPT
-        );
+        assert_eq!(cross.evidence[0].source_id, crate::sources::SOURCE_KHCBPPT);
         assert_eq!(
             cross.evidence[1].source_id,
             crate::sources::SOURCE_HUYEN_KHONG
         );
-        assert_eq!(
-            cross.evidence[2].source_id,
-            COMPOSITE_DIRECTION_CROSS_LINK
-        );
+        assert_eq!(cross.evidence[2].source_id, COMPOSITE_DIRECTION_CROSS_LINK);
         // The huyen-khong primitive's method value is locked at runtime.
         let huyen_method = cross.evidence[1].method.clone();
         let mut expected = String::from("phi");
@@ -1170,8 +1164,7 @@ mod tests {
     #[test]
     fn project_to_summary_carries_cross_link_source() {
         let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
-        let cross = build_direction_cross_link_personal(&snapshot, 10)
-            .expect("personal builder");
+        let cross = build_direction_cross_link_personal(&snapshot, 10).expect("personal builder");
         let summary = project_to_summary(&cross);
         assert_eq!(summary.cross_link_source, COMPOSITE_DIRECTION_CROSS_LINK);
         assert_eq!(summary.cells.len(), 8);
@@ -1197,9 +1190,7 @@ mod tests {
             DATE_ONLY_BIRTH_CHI_INDEX,
         )
         .expect("sentinel enrichment should dispatch to date builder");
-        let summary = enriched
-            .direction_cross_link
-            .expect("summary attached");
+        let summary = enriched.direction_cross_link.expect("summary attached");
         assert_eq!(summary.birth_chi_index, DATE_ONLY_BIRTH_CHI_INDEX);
     }
 

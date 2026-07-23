@@ -72,7 +72,7 @@ impl RecommendationEvidenceGraphView {
         let mut total_avoid_hits = 0;
         let mut clusters = std::collections::HashSet::new();
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             match node.concept {
                 NodeConcept::Activity => {
                     let label_vi = node
@@ -147,7 +147,7 @@ impl RecommendationEvidenceGraphView {
         let mut favor_hits = Vec::new();
         let mut avoid_hits = Vec::new();
 
-        for (_, edge) in graph.edges() {
+        for edge in graph.edges().values() {
             if edge.to_node_id == activity_node_id
                 && matches!(edge.label.concept, EdgeConcept::TargetsActivity)
             {

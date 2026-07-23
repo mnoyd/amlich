@@ -882,7 +882,7 @@ fn ordered_elements(distribution: &ElementDistribution) -> Vec<(FiveElement, u16
         (FiveElement::Kim, distribution.kim),
         (FiveElement::Thuy, distribution.thuy),
     ];
-    values.sort_by(|left, right| right.1.cmp(&left.1));
+    values.sort_by_key(|item| std::cmp::Reverse(item.1));
     values
 }
 
@@ -899,7 +899,7 @@ fn ordered_ten_gods(distribution: &TenGodDistribution) -> Vec<(ThapThanLabel, u8
         (ThapThanLabel::ChinhAn, distribution.chinh_an),
         (ThapThanLabel::ThienAn, distribution.thien_an),
     ];
-    values.sort_by(|left, right| right.1.cmp(&left.1));
+    values.sort_by_key(|item| std::cmp::Reverse(item.1));
     values
 }
 

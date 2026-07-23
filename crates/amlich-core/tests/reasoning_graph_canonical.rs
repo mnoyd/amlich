@@ -1,7 +1,7 @@
 use amlich_core::{
     build_initiation_opening_reasoning, build_initiation_opening_reasoning_bundle,
     calculate_day_snapshot, calculate_day_snapshot_with_timezone,
-    reasoning::{PersonalReasoningInput, ReasoningNodeSeverity, RecommendationBucket},
+    reasoning::{PersonalReasoningInput, RecommendationBucket},
     BirthInput, ConsultationIntent, Gender,
 };
 use serde_json::Value;

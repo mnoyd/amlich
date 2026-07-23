@@ -89,7 +89,8 @@ pub fn extract_decision_stack(
                 }
             }
             "star" => {
-                if node.label.contains("cát tinh") || node.label.contains("Nhị thập bát tú") {
+                if node.label.contains("cát tinh") || node.label.contains("Nhị thập bát tú")
+                {
                     Some(DecisionRole::Support)
                 } else if node.label.contains("sát tinh") {
                     Some(DecisionRole::Resistance)
@@ -173,10 +174,17 @@ mod tests {
     };
     use std::collections::HashMap;
 
-    fn blank_inspection(nodes: Vec<VisualizationNode>, edges: Vec<VisualizationEdge>) -> DebugSemanticGraphInspection {
+    fn blank_inspection(
+        nodes: Vec<VisualizationNode>,
+        edges: Vec<VisualizationEdge>,
+    ) -> DebugSemanticGraphInspection {
         DebugSemanticGraphInspection {
             surface: "test".to_string(),
-            date: DebugInspectionDate { year: 2024, month: 2, day: 10 },
+            date: DebugInspectionDate {
+                year: 2024,
+                month: 2,
+                day: 10,
+            },
             visualization: VisualizationGraph { nodes, edges },
             summary: DebugInspectionSummary {
                 total_nodes: 0,
@@ -239,10 +247,7 @@ mod tests {
 
     #[test]
     fn truc_without_severity_is_skipped() {
-        let inspection = blank_inspection(
-            vec![node("t3", "truc", "Trực gì đó", None)],
-            vec![],
-        );
+        let inspection = blank_inspection(vec![node("t3", "truc", "Trực gì đó", None)], vec![]);
         let stack = extract_decision_stack(&inspection);
         assert!(stack.is_empty());
     }
@@ -260,10 +265,8 @@ mod tests {
 
     #[test]
     fn day_deity_hac_dao_maps_to_resistance() {
-        let inspection = blank_inspection(
-            vec![node("dd2", "day_deity", "Giờ Hạc Đạo", None)],
-            vec![],
-        );
+        let inspection =
+            blank_inspection(vec![node("dd2", "day_deity", "Giờ Hạc Đạo", None)], vec![]);
         let stack = extract_decision_stack(&inspection);
         assert_eq!(stack.len(), 1);
         assert_eq!(stack[0].role, DecisionRole::Resistance);
@@ -271,10 +274,7 @@ mod tests {
 
     #[test]
     fn day_deity_other_is_skipped() {
-        let inspection = blank_inspection(
-            vec![node("dd3", "day_deity", "Tỳ", None)],
-            vec![],
-        );
+        let inspection = blank_inspection(vec![node("dd3", "day_deity", "Tỳ", None)], vec![]);
         let stack = extract_decision_stack(&inspection);
         assert!(stack.is_empty());
     }
@@ -336,10 +336,7 @@ mod tests {
 
     #[test]
     fn star_other_is_skipped() {
-        let inspection = blank_inspection(
-            vec![node("s4", "star", "Sao gì đó lạ", None)],
-            vec![],
-        );
+        let inspection = blank_inspection(vec![node("s4", "star", "Sao gì đó lạ", None)], vec![]);
         let stack = extract_decision_stack(&inspection);
         assert!(stack.is_empty());
     }
@@ -357,10 +354,7 @@ mod tests {
 
     #[test]
     fn xung_hop_xung_maps_to_conflict() {
-        let inspection = blank_inspection(
-            vec![node("xh1", "xung_hop", "Xung Thân", None)],
-            vec![],
-        );
+        let inspection = blank_inspection(vec![node("xh1", "xung_hop", "Xung Thân", None)], vec![]);
         let stack = extract_decision_stack(&inspection);
         assert_eq!(stack.len(), 1);
         assert_eq!(stack[0].role, DecisionRole::Conflict);
@@ -378,10 +372,7 @@ mod tests {
 
     #[test]
     fn xung_hop_hop_only_is_skipped() {
-        let inspection = blank_inspection(
-            vec![node("xh3", "xung_hop", "hợp Mão", None)],
-            vec![],
-        );
+        let inspection = blank_inspection(vec![node("xh3", "xung_hop", "hợp Mão", None)], vec![]);
         let stack = extract_decision_stack(&inspection);
         assert!(stack.is_empty());
     }
@@ -399,10 +390,7 @@ mod tests {
 
     #[test]
     fn unknown_kind_is_skipped() {
-        let inspection = blank_inspection(
-            vec![node("u1", "unknown_kind", "Bla", None)],
-            vec![],
-        );
+        let inspection = blank_inspection(vec![node("u1", "unknown_kind", "Bla", None)], vec![]);
         let stack = extract_decision_stack(&inspection);
         assert!(stack.is_empty());
     }

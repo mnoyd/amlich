@@ -39,8 +39,8 @@
 
 use amlich_core::almanac::types::FiveElement;
 use amlich_core::iching::{
-    cast_mai_hoa, classify_the_dung, load_mai_hoa_golden, CatHung, MaiHoaCast,
-    TheDungRelation, TienThienTrigram,
+    cast_mai_hoa, classify_the_dung, load_mai_hoa_golden, CatHung, MaiHoaCast, TheDungRelation,
+    TienThienTrigram,
 };
 
 // ---------------------------------------------------------------------------
@@ -89,7 +89,7 @@ fn the_dung_dung_khac_the_is_hung() {
         chi_hour_index: 0,
         upper_trigram: TienThienTrigram::Kien, // Kim (Dụng)
         lower_trigram: TienThienTrigram::Chan, // Mộc (Thể)
-        dong_hao: 4,                            // → upper is Dụng
+        dong_hao: 4,                           // → upper is Dụng
         chu_que: amlich_core::iching::KingWenHexagram(5), // compose(Kiền, Chấn)
     };
     let td = classify_the_dung(&cast);
@@ -115,7 +115,7 @@ fn the_dung_dung_sinh_the_is_cat() {
         chi_hour_index: 0,
         upper_trigram: TienThienTrigram::Kien, // Kim (Thể)
         lower_trigram: TienThienTrigram::Can,  // Tho (Dụng)
-        dong_hao: 1,                            // → lower is Dụng
+        dong_hao: 1,                           // → lower is Dụng
         chu_que: amlich_core::iching::KingWenHexagram(33), // compose(Kiền, Cấn)
     };
     let td = classify_the_dung(&cast);
@@ -141,7 +141,7 @@ fn the_dung_the_khac_dung_is_cat() {
         chi_hour_index: 0,
         upper_trigram: TienThienTrigram::Chan, // Mộc (Dụng)
         lower_trigram: TienThienTrigram::Kien, // Kim (Thể)
-        dong_hao: 4,                            // → upper is Dụng
+        dong_hao: 4,                           // → upper is Dụng
         chu_que: amlich_core::iching::KingWenHexagram(34), // compose(Chấn, Kiền)
     };
     let td = classify_the_dung(&cast);
@@ -167,7 +167,7 @@ fn the_dung_the_sinh_dung_is_hung() {
         chi_hour_index: 0,
         upper_trigram: TienThienTrigram::Chan, // Mộc (Thể)
         lower_trigram: TienThienTrigram::Ly,   // Hoa (Dụng)
-        dong_hao: 1,                            // → lower is Dụng
+        dong_hao: 1,                           // → lower is Dụng
         chu_que: amlich_core::iching::KingWenHexagram(55), // compose(Chấn, Ly)
     };
     let td = classify_the_dung(&cast);
@@ -241,7 +241,8 @@ fn golden_cases_match_cast_mai_hoa_output() {
         );
 
         assert_eq!(
-            cast.upper_trigram, case.expected.upper,
+            cast.upper_trigram,
+            case.expected.upper,
             "case '{}' (year_branch={}, month={}, day={}, hour={}): \
              expected upper={:?}, got {:?}",
             case.id,
@@ -255,23 +256,17 @@ fn golden_cases_match_cast_mai_hoa_output() {
         assert_eq!(
             cast.lower_trigram, case.expected.lower,
             "case '{}': expected lower={:?}, got {:?}",
-            case.id,
-            case.expected.lower,
-            cast.lower_trigram
+            case.id, case.expected.lower, cast.lower_trigram
         );
         assert_eq!(
             cast.dong_hao, case.expected.dong_hao,
             "case '{}': expected dong_hao={}, got {}",
-            case.id,
-            case.expected.dong_hao,
-            cast.dong_hao
+            case.id, case.expected.dong_hao, cast.dong_hao
         );
         assert_eq!(
             cast.chu_que, case.expected.king_wen,
             "case '{}': expected king_wen={:?}, got {:?}",
-            case.id,
-            case.expected.king_wen,
-            cast.chu_que
+            case.id, case.expected.king_wen, cast.chu_que
         );
     }
 }
@@ -336,12 +331,7 @@ fn crit3_isolation_no_from_impls_in_new_modules() {
         ("King", "WenHexagram"),
     ]
     .iter()
-    .flat_map(|(a, b)| {
-        [
-            format!("impl From<{a}{b}"),
-            format!("impl<{a}{b}> From"),
-        ]
-    })
+    .flat_map(|(a, b)| [format!("impl From<{a}{b}"), format!("impl<{a}{b}> From")])
     .collect();
 
     for needle in &needles {

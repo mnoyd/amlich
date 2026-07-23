@@ -201,13 +201,38 @@ mod tests {
         // (constructor-and-rename-stable). If a future commit changes the
         // mapping, this test fails with a loud message naming the pair.
         let cases: Vec<(ProvenanceSource, Family, &str, &str)> = vec![
-            (ProvenanceSource::Snapshot, Family::Snapshot, "snap", "compute_day_context"),
-            (ProvenanceSource::Interaction, Family::Interaction, "interaction.x", "y"),
+            (
+                ProvenanceSource::Snapshot,
+                Family::Snapshot,
+                "snap",
+                "compute_day_context",
+            ),
+            (
+                ProvenanceSource::Interaction,
+                Family::Interaction,
+                "interaction.x",
+                "y",
+            ),
             (ProvenanceSource::Bazi, Family::Bazi, "bazi.x", "y"),
-            (ProvenanceSource::AlmanacRule, Family::AlmanacRule, "khcbppt", "thai_tue"),
+            (
+                ProvenanceSource::AlmanacRule,
+                Family::AlmanacRule,
+                "khcbppt",
+                "thai_tue",
+            ),
             (ProvenanceSource::Insight, Family::Insight, "insight.x", "y"),
-            (ProvenanceSource::Derived, Family::Derived, "rule.composite.direction_cross_link", "v17.read_only_join"),
-            (ProvenanceSource::IChing, Family::IChing, "kinh-dich", "corpus_lookup"),
+            (
+                ProvenanceSource::Derived,
+                Family::Derived,
+                "rule.composite.direction_cross_link",
+                "v17.read_only_join",
+            ),
+            (
+                ProvenanceSource::IChing,
+                Family::IChing,
+                "kinh-dich",
+                "corpus_lookup",
+            ),
         ];
         for (source, family, source_id, method) in cases {
             let entry = ProvenanceEntry::new(source, source_id, method);

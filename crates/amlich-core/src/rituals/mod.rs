@@ -19,15 +19,13 @@
 //! Hán-character pollution is rejected by the CI guard
 //! `tests/ritual_han_guard.rs`. NFC normalization happens at corpus load time.
 
-pub mod schema;
 mod corpus;
 mod matcher;
+pub mod schema;
 
-pub use schema::*;
 pub use corpus::all_rituals;
 pub use matcher::{
-    find_van_khan_for_event,
-    find_van_khan_for_life_event,
-    find_van_khan_for_snapshot,
+    find_van_khan_for_event, find_van_khan_for_life_event, find_van_khan_for_snapshot,
     get_ritual_by_id,
 };
+pub use schema::*;

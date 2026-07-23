@@ -332,12 +332,7 @@ mod tests {
             ("King", "WenHexagram"),
         ]
         .iter()
-        .flat_map(|(a, b)| {
-            [
-                format!("impl From<{a}{b}"),
-                format!("impl<{a}{b}> From"),
-            ]
-        })
+        .flat_map(|(a, b)| [format!("impl From<{a}{b}"), format!("impl<{a}{b}> From")])
         .collect();
         for needle in &needles {
             assert!(

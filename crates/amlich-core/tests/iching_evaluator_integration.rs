@@ -29,20 +29,20 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use amlich_core::{
-    calculate_day_snapshot, enrich_day_snapshot_with_iching,
-};
+use amlich_core::{calculate_day_snapshot, enrich_day_snapshot_with_iching};
 
+use amlich_core::advisory::{BirthInput, ConsultationIntent};
+use amlich_core::almanac::tu_menh::Gender;
 use amlich_core::iching::{
-    classify_the_dung, cast_mai_hoa, derive_bien_que, IChingEvaluator, IChingQuery,
-    IChingCastSummary, COMPOSITE_ICHING_CONSULTATION,
+    cast_mai_hoa, classify_the_dung, derive_bien_que, IChingCastSummary, IChingEvaluator,
+    IChingQuery, COMPOSITE_ICHING_CONSULTATION,
 };
-use amlich_core::reasoning::{ActionEvaluator, PersonalReasoningInput, ReasoningEvidenceSourceFamily};
+use amlich_core::reasoning::{
+    ActionEvaluator, PersonalReasoningInput, ReasoningEvidenceSourceFamily,
+};
 use amlich_core::semantic_graph::{ProvenanceEntry, ProvenanceSource, SemanticGraph};
 use amlich_core::sources::{SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO};
 use amlich_core::VIETNAM_TIMEZONE;
-use amlich_core::advisory::{BirthInput, ConsultationIntent};
-use amlich_core::almanac::tu_menh::Gender;
 
 /// Convenience: a populated snapshot for testing.
 fn sample_snapshot() -> amlich_core::DaySnapshot {
@@ -54,7 +54,7 @@ fn sample_snapshot() -> amlich_core::DaySnapshot {
 // ───────────────────────────────────────────────────────────────────────
 
 /// 1. `IChingQuery::from_snapshot` derives lunar inputs from the snapshot,
-/// NFC-normalises the question, and accepts the canonical Tier-0 inputs.
+///    NFC-normalises the question, and accepts the canonical Tier-0 inputs.
 #[test]
 fn iching_query_from_snapshot_derives_lunar_inputs() {
     let snap = sample_snapshot();
@@ -70,7 +70,7 @@ fn iching_query_from_snapshot_derives_lunar_inputs() {
 }
 
 /// 2. `chi_hour_index > 11` (or otherwise out-of-range) is rejected with an
-/// error message that mentions the field name.
+///    error message that mentions the field name.
 #[test]
 fn iching_query_rejects_invalid_hour_index() {
     let snap = sample_snapshot();
@@ -79,13 +79,12 @@ fn iching_query_rejects_invalid_hour_index() {
         err.contains("chi_hour_index"),
         "error must mention chi_hour_index; got: {err}"
     );
-    let err_high =
-        IChingQuery::from_snapshot(&snap, None, 255).expect_err("hour 255 must fail");
+    let err_high = IChingQuery::from_snapshot(&snap, None, 255).expect_err("hour 255 must fail");
     assert!(err_high.contains("chi_hour_index"));
 }
 
 /// 3. A question containing combining diacritics (NFD form) is NFC-normalised
-/// in the stored `question_vi`.
+///    in the stored `question_vi`.
 #[test]
 fn iching_query_nfc_normalises_question() {
     let snap = sample_snapshot();
@@ -101,7 +100,7 @@ fn iching_query_nfc_normalises_question() {
 }
 
 /// 4. A whitespace-only `question_vi` is normalised to `None` rather than
-/// stored verbatim.
+///    stored verbatim.
 #[test]
 fn iching_query_rejects_whitespace_only_question() {
     let snap = sample_snapshot();
@@ -118,8 +117,8 @@ fn iching_query_rejects_whitespace_only_question() {
 // ───────────────────────────────────────────────────────────────────────
 
 /// 5. The evaluation's evidence vector contains ≥2 primitive envelopes
-/// with distinct source_ids including `mai-hoa-dich-so` AND `kinh-dich`,
-/// plus exactly 1 composite envelope with source_id = `rule.composite.iching_consultation`.
+///    with distinct source_ids including `mai-hoa-dich-so` AND `kinh-dich`,
+///    plus exactly 1 composite envelope with source_id = `rule.composite.iching_consultation`.
 #[test]
 fn iching_evaluator_emits_at_least_two_primitive_source_ids_plus_one_composite() {
     let snap = sample_snapshot();
@@ -183,8 +182,8 @@ fn iching_evaluator_emits_at_least_two_primitive_source_ids_plus_one_composite()
 }
 
 /// 6. The evaluator REUSES cast_mai_hoa + derive_bien_que + classify_the_dung
-/// directly — no re-implementation. Proves by re-deriving the same inputs via
-/// the Phase 22 surface and asserting equality on the relevant fields.
+///    directly — no re-implementation. Proves by re-deriving the same inputs via
+///    the Phase 22 surface and asserting equality on the relevant fields.
 #[test]
 fn iching_evaluator_uses_phase_22_surface() {
     let snap = sample_snapshot();
@@ -217,18 +216,14 @@ fn iching_evaluator_uses_phase_22_surface() {
 }
 
 /// 7. Two `evaluate_consultation` calls with the same query + snapshot
-/// return equal `IChingEvaluation` values (determinism invariant).
+///    return equal `IChingEvaluation` values (determinism invariant).
 #[test]
 fn iching_evaluator_is_deterministic() {
     let snap = sample_snapshot();
     let query = IChingQuery::from_snapshot(&snap, None, 8).expect("query");
     let evaluator = IChingEvaluator::new(query);
-    let a = evaluator
-        .evaluate_consultation(&snap)
-        .expect("first eval");
-    let b = evaluator
-        .evaluate_consultation(&snap)
-        .expect("second eval");
+    let a = evaluator.evaluate_consultation(&snap).expect("first eval");
+    let b = evaluator.evaluate_consultation(&snap).expect("second eval");
     assert_eq!(
         a, b,
         "evaluate_consultation must be deterministic (no RNG, no wall-clock)"
@@ -236,9 +231,9 @@ fn iching_evaluator_is_deterministic() {
 }
 
 /// 8. The I Ching baseline works at Tier-0 with NO birth data. The
-/// `ActionEvaluator::evaluate` adapter ignores the `personal_input`
-/// parameter — both None and Some(&personal_input) return Ok(empty
-/// ActionEvaluation) with the same fields.
+///    `ActionEvaluator::evaluate` adapter ignores the `personal_input`
+///    parameter — both None and Some(&personal_input) return Ok(empty
+///    ActionEvaluation) with the same fields.
 #[test]
 fn iching_evaluator_works_at_tier_0_with_no_birth_data() {
     let snap = sample_snapshot();
@@ -285,12 +280,15 @@ fn iching_evaluator_works_at_tier_0_with_no_birth_data() {
 // ───────────────────────────────────────────────────────────────────────
 
 /// 9. The enrichment helper does NOT mutate the input snapshot. After
-/// calling `enrich_day_snapshot_with_iching`, the original snapshot's
-/// `iching_cast` field remains `None`.
+///    calling `enrich_day_snapshot_with_iching`, the original snapshot's
+///    `iching_cast` field remains `None`.
 #[test]
 fn enrich_day_snapshot_with_iching_does_not_mutate_input() {
     let snap = sample_snapshot();
-    assert!(snap.iching_cast.is_none(), "precondition: original iching_cast is None");
+    assert!(
+        snap.iching_cast.is_none(),
+        "precondition: original iching_cast is None"
+    );
     let query = IChingQuery::from_snapshot(&snap, None, 9).expect("query");
     let enriched = enrich_day_snapshot_with_iching(&snap, query).expect("enrich");
     assert!(
@@ -304,7 +302,7 @@ fn enrich_day_snapshot_with_iching_does_not_mutate_input() {
 }
 
 /// 10. The populated `iching_cast` summary has all expected fields populated
-/// with non-empty values (named golden contract).
+///     with non-empty values (named golden contract).
 #[test]
 fn enrich_day_snapshot_with_iching_populates_owned_summary() {
     let snap = sample_snapshot();
@@ -327,10 +325,7 @@ fn enrich_day_snapshot_with_iching_populates_owned_summary() {
     );
     assert!(summary.moving_line >= 1 && summary.moving_line <= 6);
     assert!(
-        matches!(
-            summary.cat_hung_summary.as_str(),
-            "cat" | "binh" | "hung"
-        ),
+        matches!(summary.cat_hung_summary.as_str(), "cat" | "binh" | "hung"),
         "cat_hung_summary must be one of cat/binh/hung; got: {}",
         summary.cat_hung_summary
     );
@@ -352,7 +347,7 @@ fn enrich_day_snapshot_with_iching_populates_owned_summary() {
 }
 
 /// 11. Ordinary `calculate_day_snapshot(...)` produces a snapshot whose
-/// `iching_cast` field stays `None`. No auto-population.
+///     `iching_cast` field stays `None`. No auto-population.
 #[test]
 fn ordinary_day_snapshot_has_iching_cast_none() {
     let snap = calculate_day_snapshot(10, 2, 2024);
@@ -363,7 +358,7 @@ fn ordinary_day_snapshot_has_iching_cast_none() {
 }
 
 /// 12. When `iching_cast` is None, the serialized JSON does NOT contain the
-/// `"iching_cast"` key (additive `Option<T>` + `skip_serializing_if` discipline).
+///     `"iching_cast"` key (additive `Option<T>` + `skip_serializing_if` discipline).
 #[test]
 fn ordinary_day_snapshot_does_not_serialize_iching_cast_key() {
     let snap = calculate_day_snapshot(10, 2, 2024);
@@ -375,8 +370,8 @@ fn ordinary_day_snapshot_does_not_serialize_iching_cast_key() {
 }
 
 /// 13. Enriched snapshots serialize WITH `"iching_cast"` AND round-trip
-/// byte-equally via serde JSON (proves the additive field coexists with
-/// v1.6 fields).
+///     byte-equally via serde JSON (proves the additive field coexists with
+///     v1.6 fields).
 #[test]
 fn iching_cast_byte_equal_round_trip() {
     let snap = calculate_day_snapshot(10, 2, 2024);
@@ -389,8 +384,7 @@ fn iching_cast_byte_equal_round_trip() {
         "enriched snapshot must serialize WITH iching_cast; got: {json1}"
     );
 
-    let recovered: amlich_core::DaySnapshot =
-        serde_json::from_str(&json1).expect("deserialize");
+    let recovered: amlich_core::DaySnapshot = serde_json::from_str(&json1).expect("deserialize");
     let json2 = serde_json::to_string(&recovered).expect("reserialize");
     assert_eq!(
         json1, json2,
@@ -425,7 +419,7 @@ fn iching_cast_byte_equal_round_trip() {
 }
 
 /// 14. Explicitly clearing `iching_cast` to `None` makes the key absent from
-/// the serialized JSON (per IChingCastSummary: Option<T> + skip-if-none).
+///     the serialized JSON (per IChingCastSummary: Option<T> + skip-if-none).
 #[test]
 fn iching_cast_absent_in_json_when_none() {
     let snap = calculate_day_snapshot(10, 2, 2024);
@@ -448,14 +442,13 @@ fn iching_cast_absent_in_json_when_none() {
 // ───────────────────────────────────────────────────────────────────────
 
 /// 15. `ProvenanceSource::IChing` maps to `ReasoningEvidenceSourceFamily::IChing`
-/// via `to_reasoning_evidence()`. Mirrors the inline test
-/// `to_reasoning_evidence_maps_iching_to_iching_family`, exercised here from
-/// the external crate path.
+///     via `to_reasoning_evidence()`. Mirrors the inline test
+///     `to_reasoning_evidence_maps_iching_to_iching_family`, exercised here from
+///     the external crate path.
 #[test]
 fn iching_provenance_source_maps_to_iching_family() {
-    let entry =
-        ProvenanceEntry::new(ProvenanceSource::IChing, SOURCE_KINH_DICH, "corpus_lookup")
-            .with_note("Black-box integration variant of the mapping test");
+    let entry = ProvenanceEntry::new(ProvenanceSource::IChing, SOURCE_KINH_DICH, "corpus_lookup")
+        .with_note("Black-box integration variant of the mapping test");
     let envelope = entry.to_reasoning_evidence();
     assert_eq!(
         envelope.source_family,
@@ -471,10 +464,10 @@ fn iching_provenance_source_maps_to_iching_family() {
 // ───────────────────────────────────────────────────────────────────────
 
 /// 16. CRIT-3 isolation guard: the evaluator module must NOT define any
-/// cross-newtype `From` impl between TienThienTrigram / HauThienTrigram /
-/// KingWenHexagram. Uses RUNTIME-BUILT needles so this test's own doc text
-/// (which legitimately names the forbidden pattern families) does not
-/// false-positive.
+///     cross-newtype `From` impl between TienThienTrigram / HauThienTrigram /
+///     KingWenHexagram. Uses RUNTIME-BUILT needles so this test's own doc text
+///     (which legitimately names the forbidden pattern families) does not
+///     false-positive.
 #[test]
 fn crit3_isolation_no_cross_newtype_from_impls_in_evaluator() {
     const SRC: &str = include_str!("../src/iching/evaluator.rs");
@@ -484,12 +477,7 @@ fn crit3_isolation_no_cross_newtype_from_impls_in_evaluator() {
         ("King", "WenHexagram"),
     ]
     .iter()
-    .flat_map(|(a, b)| {
-        [
-            format!("impl From<{a}{b}"),
-            format!("impl<{a}{b}> From"),
-        ]
-    })
+    .flat_map(|(a, b)| [format!("impl From<{a}{b}"), format!("impl<{a}{b}> From")])
     .collect();
     for needle in &needles {
         assert!(
@@ -505,10 +493,10 @@ fn crit3_isolation_no_cross_newtype_from_impls_in_evaluator() {
 // ───────────────────────────────────────────────────────────────────────
 
 /// 17. WASM-safety guard: the evaluator module must NOT contain filesystem,
-/// wall-clock, or RNG usages. Uses RUNTIME-BUILT needles so the test's own
-/// rationale text (which mentions the forbidden patterns by NAME in doc
-/// comments) does not self-trip. Mirrors the v1.7 corpus.rs / the_dung.rs
-/// discipline.
+///     wall-clock, or RNG usages. Uses RUNTIME-BUILT needles so the test's own
+///     rationale text (which mentions the forbidden patterns by NAME in doc
+///     comments) does not self-trip. Mirrors the v1.7 corpus.rs / the_dung.rs
+///     discipline.
 #[test]
 fn wasm_safety_no_fs_no_utc_no_rand_in_evaluator() {
     const SRC: &str = include_str!("../src/iching/evaluator.rs");
@@ -561,9 +549,7 @@ fn source_id_guard_passes_for_new_evaluator_module() {
                     '{' => current_brace_depth += 1,
                     '}' => {
                         current_brace_depth -= 1;
-                        if in_cfg_test_block
-                            && current_brace_depth <= brace_depth_at_cfg_test
-                        {
+                        if in_cfg_test_block && current_brace_depth <= brace_depth_at_cfg_test {
                             in_cfg_test_block = false;
                             brace_depth_at_cfg_test = -1;
                         }

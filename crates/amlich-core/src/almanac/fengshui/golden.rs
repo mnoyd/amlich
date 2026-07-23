@@ -222,9 +222,8 @@ pub fn load_flying_stars_golden() -> &'static PhiTinhGoldenDataset {
 /// `pivot` field recording the actual Trung Khí pivot governing each date.
 pub fn load_daily_flying_stars_golden() -> &'static PhiTinhGoldenDataset {
     FLYING_STARS_DAILY_GOLDEN.get_or_init(|| {
-        let dataset: PhiTinhGoldenDataset =
-            serde_json::from_str(FLYING_STARS_DAILY_GOLDEN_JSON)
-                .expect("Failed to parse flying_stars_daily_golden.json");
+        let dataset: PhiTinhGoldenDataset = serde_json::from_str(FLYING_STARS_DAILY_GOLDEN_JSON)
+            .expect("Failed to parse flying_stars_daily_golden.json");
         validate_phi_tinh_golden(&dataset);
         dataset
     })
@@ -325,22 +324,43 @@ mod tests {
     #[test]
     fn golden_dataset_van7_coverage() {
         let ds = load_flying_stars_golden();
-        let count = ds.cases.iter().filter(|c| c.kind == "annual" && c.van == 7).count();
-        assert!(count >= 10, "expected >= 10 Van 7 annual cases, got {count}");
+        let count = ds
+            .cases
+            .iter()
+            .filter(|c| c.kind == "annual" && c.van == 7)
+            .count();
+        assert!(
+            count >= 10,
+            "expected >= 10 Van 7 annual cases, got {count}"
+        );
     }
 
     #[test]
     fn golden_dataset_van8_coverage() {
         let ds = load_flying_stars_golden();
-        let count = ds.cases.iter().filter(|c| c.kind == "annual" && c.van == 8).count();
-        assert!(count >= 10, "expected >= 10 Van 8 annual cases, got {count}");
+        let count = ds
+            .cases
+            .iter()
+            .filter(|c| c.kind == "annual" && c.van == 8)
+            .count();
+        assert!(
+            count >= 10,
+            "expected >= 10 Van 8 annual cases, got {count}"
+        );
     }
 
     #[test]
     fn golden_dataset_van9_coverage() {
         let ds = load_flying_stars_golden();
-        let count = ds.cases.iter().filter(|c| c.kind == "annual" && c.van == 9).count();
-        assert!(count >= 10, "expected >= 10 Van 9 annual cases, got {count}");
+        let count = ds
+            .cases
+            .iter()
+            .filter(|c| c.kind == "annual" && c.van == 9)
+            .count();
+        assert!(
+            count >= 10,
+            "expected >= 10 Van 9 annual cases, got {count}"
+        );
     }
 
     #[test]
@@ -384,15 +404,25 @@ mod tests {
     fn golden_dataset_period_cases_exist() {
         let ds = load_flying_stars_golden();
         let count = ds.cases.iter().filter(|c| c.kind == "period").count();
-        assert!(count >= 2, "expected >= 2 period boundary cases, got {count}");
+        assert!(
+            count >= 2,
+            "expected >= 2 period boundary cases, got {count}"
+        );
     }
 
     #[test]
     fn golden_dataset_cross_validation_cases_exist() {
         let ds = load_flying_stars_golden();
         // ADR-0003 open question #3: Thuong/Trung Nguyen cross-validation
-        let pre_1984 = ds.cases.iter().filter(|c| c.kind == "annual" && c.year < 1984).count();
-        assert!(pre_1984 >= 2, "expected >= 2 pre-1984 cross-validation cases, got {pre_1984}");
+        let pre_1984 = ds
+            .cases
+            .iter()
+            .filter(|c| c.kind == "annual" && c.year < 1984)
+            .count();
+        assert!(
+            pre_1984 >= 2,
+            "expected >= 2 pre-1984 cross-validation cases, got {pre_1984}"
+        );
     }
 
     #[test]
@@ -406,7 +436,10 @@ mod tests {
         );
 
         let daily_count = ds.cases.iter().filter(|c| c.kind == "daily").count();
-        assert!(daily_count >= 30, "expected >= 30 daily cases, got {daily_count}");
+        assert!(
+            daily_count >= 30,
+            "expected >= 30 daily cases, got {daily_count}"
+        );
 
         for van in 7u8..=9 {
             let count = ds
@@ -414,7 +447,10 @@ mod tests {
                 .iter()
                 .filter(|c| c.kind == "daily" && c.van == van)
                 .count();
-            assert!(count >= 10, "expected >= 10 daily cases for Van {van}, got {count}");
+            assert!(
+                count >= 10,
+                "expected >= 10 daily cases for Van {van}, got {count}"
+            );
         }
 
         // Every daily case must carry the additive `pivot` field.

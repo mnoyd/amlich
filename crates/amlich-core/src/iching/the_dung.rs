@@ -218,7 +218,7 @@ pub struct TheDungClassification {
 ///    - else if `generates(the_element, dung_element)` → `TheSinhDung`,
 ///    - else if `controls(the_element, dung_element)` → `TheKhacDung`,
 ///    - else `controls(dung_element, the_element)` → `DungKhacThe`.
-///    (Sinh + khắc cycles are complementary so the final else is exhaustive.)
+///      (Sinh + khắc cycles are complementary so the final else is exhaustive.)
 /// 5. `verdict = relation.cat_hung()`.
 pub fn classify_the_dung(cast: &MaiHoaCast) -> TheDungClassification {
     // 1. Determine Dụng trigram by động hào position.
@@ -476,16 +476,37 @@ mod tests {
     #[test]
     fn sinh_khac_cycles_match_classical_tables() {
         // sinh cycle: Moc -> Hoa -> Tho -> Kim -> Thuy -> Moc.
-        assert!(generates(FiveElement::Moc, FiveElement::Hoa), "Moc sinh Hoa");
-        assert!(generates(FiveElement::Hoa, FiveElement::Tho), "Hoa sinh Tho");
-        assert!(generates(FiveElement::Tho, FiveElement::Kim), "Tho sinh Kim");
-        assert!(generates(FiveElement::Kim, FiveElement::Thuy), "Kim sinh Thuy");
-        assert!(generates(FiveElement::Thuy, FiveElement::Moc), "Thuy sinh Moc");
+        assert!(
+            generates(FiveElement::Moc, FiveElement::Hoa),
+            "Moc sinh Hoa"
+        );
+        assert!(
+            generates(FiveElement::Hoa, FiveElement::Tho),
+            "Hoa sinh Tho"
+        );
+        assert!(
+            generates(FiveElement::Tho, FiveElement::Kim),
+            "Tho sinh Kim"
+        );
+        assert!(
+            generates(FiveElement::Kim, FiveElement::Thuy),
+            "Kim sinh Thuy"
+        );
+        assert!(
+            generates(FiveElement::Thuy, FiveElement::Moc),
+            "Thuy sinh Moc"
+        );
 
         // khắc cycle: Moc -> Tho -> Thuy -> Hoa -> Kim -> Moc.
         assert!(controls(FiveElement::Moc, FiveElement::Tho), "Moc khac Tho");
-        assert!(controls(FiveElement::Tho, FiveElement::Thuy), "Tho khac Thuy");
-        assert!(controls(FiveElement::Thuy, FiveElement::Hoa), "Thuy khac Hoa");
+        assert!(
+            controls(FiveElement::Tho, FiveElement::Thuy),
+            "Tho khac Thuy"
+        );
+        assert!(
+            controls(FiveElement::Thuy, FiveElement::Hoa),
+            "Thuy khac Hoa"
+        );
         assert!(controls(FiveElement::Hoa, FiveElement::Kim), "Hoa khac Kim");
         assert!(controls(FiveElement::Kim, FiveElement::Moc), "Kim khac Moc");
     }
@@ -514,12 +535,7 @@ mod tests {
             ("King", "WenHexagram"),
         ]
         .iter()
-        .flat_map(|(a, b)| {
-            [
-                format!("impl From<{a}{b}"),
-                format!("impl<{a}{b}> From"),
-            ]
-        })
+        .flat_map(|(a, b)| [format!("impl From<{a}{b}"), format!("impl<{a}{b}> From")])
         .collect();
         for needle in &needles {
             assert!(

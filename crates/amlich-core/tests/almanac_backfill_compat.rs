@@ -10,25 +10,23 @@
 //!
 //!   1. `legacy_*_json_without_evidence_deserializes_to_none`
 //!      — A v1.6 JSON object lacking the `evidence` key still deserialises
-//!        cleanly because the field is `Option<RuleEvidence>` and serde
-//!        defaults absent optionals to `None`. This is the BC guarantee for
-//!        any external consumer that persisted v1.6 outputs.
+//!      cleanly because the field is `Option<RuleEvidence>` and serde
+//!      defaults absent optionals to `None`. This is the BC guarantee for
+//!      any external consumer that persisted v1.6 outputs.
 //!
 //!   2. `populated_*_result_round_trips_byte_equal`
 //!      — A v1.7-populated result (now carrying KHCBPPT evidence) serialises
-//!        → deserialises → re-serialises to byte-equal JSON, AND the
-//!        populated `evidence.source_id` equals `SOURCE_KHCBPPT` ("khcbppt").
+//!      → deserialises → re-serialises to byte-equal JSON, AND the
+//!      populated `evidence.source_id` equals `SOURCE_KHCBPPT` ("khcbppt").
 //!
 //!   3. `backfill_preserves_*`
 //!      — Cross-checks proving the backfills do not change the pre-existing
-//!        behavior (`has_conflict`, conflict kinds, day-chi `direction`).
+//!      behavior (`has_conflict`, conflict kinds, day-chi `direction`).
 //!
 //! Imports via `use amlich_core::...` as an external consumer would (black-box).
 
 use amlich_core::almanac::sat_phuong::{get_sat_phuong, SatPhuongResult};
-use amlich_core::almanac::thai_tue::{
-    compute_thai_tue, ThaiTueConflictKind, ThaiTueResult,
-};
+use amlich_core::almanac::thai_tue::{compute_thai_tue, ThaiTueConflictKind, ThaiTueResult};
 use amlich_core::sources::SOURCE_KHCBPPT;
 
 // ---------------------------------------------------------------------------
@@ -54,7 +52,10 @@ fn legacy_thai_tue_json_without_evidence_deserializes_to_none() {
     );
     assert!(decoded.has_conflict);
     assert_eq!(decoded.conflicts.len(), 1);
-    assert!(matches!(decoded.conflicts[0].kind, ThaiTueConflictKind::Truc));
+    assert!(matches!(
+        decoded.conflicts[0].kind,
+        ThaiTueConflictKind::Truc
+    ));
 }
 
 /// A v1.7-populated `ThaiTueResult` (now carrying KHCBPPT evidence) must
@@ -89,8 +90,7 @@ fn populated_thai_tue_result_round_trips_byte_equal() {
         "ThaiTueResult round-trip must be byte-equal after the XLK-01 backfill"
     );
     assert_eq!(
-        round_tripped.evidence,
-        current.evidence,
+        round_tripped.evidence, current.evidence,
         "ThaiTueResult.evidence must survive the round-trip"
     );
 }
@@ -145,8 +145,7 @@ fn populated_sat_phuong_result_round_trips_byte_equal() {
         "SatPhuongResult round-trip must be byte-equal after the XLK-01 backfill"
     );
     assert_eq!(
-        round_tripped.evidence,
-        current.evidence,
+        round_tripped.evidence, current.evidence,
         "SatPhuongResult.evidence must survive the round-trip"
     );
 }

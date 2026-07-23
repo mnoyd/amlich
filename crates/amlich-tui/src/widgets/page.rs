@@ -10,10 +10,7 @@ use crate::layout::LayoutMode;
 use crate::state::{AppState, PageSection};
 
 use super::{
-    screens::{
-        graph_inspector::GraphInspectorScreenWidget,
-        today::TodayScreenWidget,
-    },
+    screens::{graph_inspector::GraphInspectorScreenWidget, today::TodayScreenWidget},
     week_strip::WeekStripWidget,
 };
 

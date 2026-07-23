@@ -113,7 +113,7 @@ pub fn cast_mai_hoa(
     // CRIT-2 lock: use the named helper, NOT `sum % k` or `(sum % k) + 1`.
     let upper_idx = mai_hoa_remainder(sum_base, 8) as u8; // 1..=8
     let lower_idx = mai_hoa_remainder(sum_full, 8) as u8; // 1..=8
-    let dong_hao = mai_hoa_remainder(sum_full, 6) as u8;  // 1..=6
+    let dong_hao = mai_hoa_remainder(sum_full, 6) as u8; // 1..=6
 
     let upper = TienThienTrigram::ALL[(upper_idx - 1) as usize];
     let lower = TienThienTrigram::ALL[(lower_idx - 1) as usize];
@@ -193,7 +193,10 @@ mod tests {
         // Spot-check one more tuple.
         let c = cast_mai_hoa(0, 1, 1, 0);
         let d = cast_mai_hoa(0, 1, 1, 0);
-        assert_eq!(c, d, "cast_mai_hoa must be deterministic across inputs (pure function)");
+        assert_eq!(
+            c, d,
+            "cast_mai_hoa must be deterministic across inputs (pure function)"
+        );
     }
 
     /// Worked non-boundary derivation: `(1, 1, 1, 1)`.
@@ -227,12 +230,20 @@ mod tests {
                         assert!(
                             (1..=6).contains(&cast.dong_hao),
                             "dong_hao out of 1..=6 range: {} for inputs ({},{},{},{})",
-                            cast.dong_hao, year_branch, month, day, hour
+                            cast.dong_hao,
+                            year_branch,
+                            month,
+                            day,
+                            hour
                         );
                         assert!(
                             (1..=64).contains(&cast.chu_que.0),
                             "chu_que out of 1..=64 range: {} for inputs ({},{},{},{})",
-                            cast.chu_que.0, year_branch, month, day, hour
+                            cast.chu_que.0,
+                            year_branch,
+                            month,
+                            day,
+                            hour
                         );
                     }
                 }
@@ -263,10 +274,7 @@ mod tests {
         .flat_map(|(a, b)| {
             let pat1 = format!("{a}{b}"); // not used directly
             let _ = pat1;
-            [
-                format!("impl From<{a}{b}"),
-                format!("impl<{a}{b}> From"),
-            ]
+            [format!("impl From<{a}{b}"), format!("impl<{a}{b}> From")]
         })
         .collect();
         for needle in &needles {

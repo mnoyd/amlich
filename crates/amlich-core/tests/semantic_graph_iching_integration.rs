@@ -25,15 +25,11 @@
 use std::fs;
 use std::path::Path;
 
-use amlich_core::{
-    calculate_day_snapshot, enrich_day_snapshot_with_iching, DaySnapshot,
-};
 use amlich_core::iching::IChingQuery;
-use amlich_core::semantic_graph::{
-    EdgeConcept, NodeConcept, SemanticGraph,
-};
-use amlich_core::sources::{SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO};
 use amlich_core::semantic_graph::build_day_snapshot_graph;
+use amlich_core::semantic_graph::{EdgeConcept, NodeConcept, SemanticGraph};
+use amlich_core::sources::{SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO};
+use amlich_core::{calculate_day_snapshot, enrich_day_snapshot_with_iching, DaySnapshot};
 
 /// Convenience: a populated snapshot for testing.
 fn sample_snapshot() -> DaySnapshot {
@@ -44,8 +40,8 @@ fn sample_snapshot() -> DaySnapshot {
 /// no birth data).
 fn enriched_snapshot() -> DaySnapshot {
     let snap = sample_snapshot();
-    let query = IChingQuery::from_snapshot(&snap, Some("việc".to_string()), 9)
-        .expect("valid query");
+    let query =
+        IChingQuery::from_snapshot(&snap, Some("việc".to_string()), 9).expect("valid query");
     enrich_day_snapshot_with_iching(&snap, query).expect("enrichment succeeds")
 }
 
@@ -54,7 +50,7 @@ fn enriched_snapshot() -> DaySnapshot {
 // ───────────────────────────────────────────────────────────────────────
 
 /// 1. Enriched snapshot produces EXACTLY 2 distinct `NodeConcept::Hexagram`
-/// nodes (primary chu + bien) and their node_ids differ.
+///    nodes (primary chu + bien) and their node_ids differ.
 #[test]
 fn iching_graph_has_two_distinct_hexagram_nodes_when_enriched() {
     let enriched = enriched_snapshot();
@@ -83,8 +79,8 @@ fn iching_graph_has_two_distinct_hexagram_nodes_when_enriched() {
 }
 
 /// 2. The graph contains EXACTLY 1 `EdgeConcept::Transforms` edge whose
-/// `from_node_id` is the primary Hexagram node AND `to_node_id` is the
-/// bien Hexagram node.
+///    `from_node_id` is the primary Hexagram node AND `to_node_id` is the
+///    bien Hexagram node.
 #[test]
 fn iching_graph_has_transforms_edge_between_chu_and_bien() {
     let enriched = enriched_snapshot();
@@ -128,7 +124,7 @@ fn iching_graph_has_transforms_edge_between_chu_and_bien() {
 }
 
 /// 3. The graph contains EXACTLY 2 `EdgeConcept::LocatedAt` edges — one
-/// from each Hexagram node to the day root.
+///    from each Hexagram node to the day root.
 #[test]
 fn iching_graph_has_located_at_edges_from_each_hexagram_to_day_root() {
     let enriched = enriched_snapshot();
@@ -168,7 +164,7 @@ fn iching_graph_has_located_at_edges_from_each_hexagram_to_day_root() {
 }
 
 /// 4. Each Hexagram node carries EXACTLY 2 provenance entries — one with
-/// `source_id == SOURCE_MAI_HOA_DICH_SO` AND one with `source_id ==
+///    `source_id == SOURCE_MAI_HOA_DICH_SO` AND one with `source_id ==
 /// SOURCE_KINH_DICH` (CRIT-6 dual-source pattern).
 #[test]
 fn iching_graph_hexagram_nodes_carry_dual_source_provenance() {
@@ -190,8 +186,11 @@ fn iching_graph_hexagram_nodes_carry_dual_source_provenance() {
             node.node_id,
             node.provenance
         );
-        let source_ids: Vec<&str> =
-            node.provenance.iter().map(|p| p.source_id.as_str()).collect();
+        let source_ids: Vec<&str> = node
+            .provenance
+            .iter()
+            .map(|p| p.source_id.as_str())
+            .collect();
         assert!(
             source_ids.contains(&SOURCE_MAI_HOA_DICH_SO),
             "Hexagram node {} provenance must include SOURCE_MAI_HOA_DICH_SO; got {:?}",
@@ -208,7 +207,7 @@ fn iching_graph_hexagram_nodes_carry_dual_source_provenance() {
 }
 
 /// 5. The two Hexagram node ids match `"iching:chu:<kw>:YYYY-MM-DD:+7"`
-/// and `"iching:bien:<kw>:YYYY-MM-DD:+7"` patterns respectively.
+///    and `"iching:bien:<kw>:YYYY-MM-DD:+7"` patterns respectively.
 #[test]
 fn iching_graph_hexagram_stable_keys_are_role_bearing() {
     let enriched = enriched_snapshot();
@@ -242,8 +241,8 @@ fn iching_graph_hexagram_stable_keys_are_role_bearing() {
 }
 
 /// 6. An ordinary `calculate_day_snapshot(...)` (no IChing enrichment)
-/// produces a graph with ZERO `NodeConcept::Hexagram` nodes — no implicit
-/// wiring.
+///    produces a graph with ZERO `NodeConcept::Hexagram` nodes — no implicit
+///    wiring.
 #[test]
 fn iching_graph_ordinary_snapshot_has_no_hexagram_nodes() {
     let snap = sample_snapshot();
@@ -261,12 +260,12 @@ fn iching_graph_ordinary_snapshot_has_no_hexagram_nodes() {
 }
 
 /// 7. CRIT-3 grep guard — `add_iching_facts` MUST NOT reference
-/// `FlyingStar`. The substring `"FlyingStar"` in day_snapshot.rs is
-/// expected to occur ONLY inside `add_flying_star_facts`.
+///    `FlyingStar`. The substring `"FlyingStar"` in day_snapshot.rs is
+///    expected to occur ONLY inside `add_flying_star_facts`.
 #[test]
 fn iching_graph_no_flyingstar_in_iching_method() {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("src/semantic_graph/builders/day_snapshot.rs");
+    let path =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("src/semantic_graph/builders/day_snapshot.rs");
     let src = fs::read_to_string(&path).expect("read day_snapshot.rs");
 
     // Find the byte ranges of the two methods.
@@ -289,7 +288,7 @@ fn iching_graph_no_flyingstar_in_iching_method() {
 }
 
 /// 8. Both Hexagram nodes' tags include the King Wen index
-/// (`"king_wen=<N>"`) AND the role marker (`"role=chu"` / `"role=bien"`).
+///    (`"king_wen=<N>"`) AND the role marker (`"role=chu"` / `"role=bien"`).
 #[test]
 fn iching_graph_hexagram_node_tags_include_king_wen_and_role() {
     let enriched = enriched_snapshot();
@@ -334,10 +333,10 @@ fn iching_graph_hexagram_node_tags_include_king_wen_and_role() {
 }
 
 /// 9. The Transforms + LocatedAt edges are present after enrichment (not
-/// silently dropped by `SemanticGraph::add_edge` because both endpoints
-/// exist). Asserted via `graph.edges().len()` counts: enriched snapshots
-/// must have strictly more edges than ordinary snapshots, and the new
-/// edges must be in the Transforms / LocatedAt sets.
+///    silently dropped by `SemanticGraph::add_edge` because both endpoints
+///    exist). Asserted via `graph.edges().len()` counts: enriched snapshots
+///    must have strictly more edges than ordinary snapshots, and the new
+///    edges must be in the Transforms / LocatedAt sets.
 #[test]
 fn iching_graph_edges_only_present_after_nodes_inserted() {
     let ordinary = sample_snapshot();
@@ -364,8 +363,14 @@ fn iching_graph_edges_only_present_after_nodes_inserted() {
         .values()
         .filter(|e| matches!(e.label.concept, EdgeConcept::LocatedAt))
         .count();
-    assert!(transforms_count >= 1, "Enriched graph must have >=1 Transforms edge; got {transforms_count}");
-    assert!(located_at_count >= 2, "Enriched graph must have >=2 LocatedAt edges; got {located_at_count}");
+    assert!(
+        transforms_count >= 1,
+        "Enriched graph must have >=1 Transforms edge; got {transforms_count}"
+    );
+    assert!(
+        located_at_count >= 2,
+        "Enriched graph must have >=2 LocatedAt edges; got {located_at_count}"
+    );
 
     // The ordinary graph must NOT have any Transforms edges (sanity check
     // — Hexagram nodes don't exist, so Transforms is not emitted).
@@ -385,10 +390,10 @@ fn iching_graph_edges_only_present_after_nodes_inserted() {
 // ───────────────────────────────────────────────────────────────────────
 
 /// 10. IChing-only enrichment does NOT wire a directional composite node
-/// from `add_direction_composite_facts`. The `enrich_day_snapshot_with_iching`
-/// helper does NOT populate `direction_cross_link`. The graph contains
-/// ZERO `cross_link:` stable-key nodes (the existing daily travel direction
-/// node is allowed — that node is NOT from this method).
+///     from `add_direction_composite_facts`. The `enrich_day_snapshot_with_iching`
+///     helper does NOT populate `direction_cross_link`. The graph contains
+///     ZERO `cross_link:` stable-key nodes (the existing daily travel direction
+///     node is allowed — that node is NOT from this method).
 #[test]
 fn iching_only_enrichment_does_not_wire_directional_composite() {
     let enriched = enriched_snapshot();
@@ -408,11 +413,11 @@ fn iching_only_enrichment_does_not_wire_directional_composite() {
 }
 
 /// 11. The populated directional composite test exercises the
-/// `add_direction_composite_facts` method when `direction_cross_link` is
-/// `Some(...)`. Phase 23 has shipped `DirectionCrossLinkSummary` + the
-/// `enrich_day_snapshot_with_direction_cross_link` helper. The test is
-/// active here (Phase 23 fully shipped) — verifies the composite wiring
-/// end-to-end.
+///     `add_direction_composite_facts` method when `direction_cross_link` is
+///     `Some(...)`. Phase 23 has shipped `DirectionCrossLinkSummary` + the
+///     `enrich_day_snapshot_with_direction_cross_link` helper. The test is
+///     active here (Phase 23 fully shipped) — verifies the composite wiring
+///     end-to-end.
 #[test]
 fn direction_composite_facts_wires_populated_state() {
     let snap = sample_snapshot();
@@ -425,9 +430,7 @@ fn direction_composite_facts_wires_populated_state() {
     let cross_link_node = graph
         .nodes()
         .values()
-        .find(|n| {
-            matches!(n.concept, NodeConcept::Direction) && n.node_id.contains("cross_link:")
-        })
+        .find(|n| matches!(n.concept, NodeConcept::Direction) && n.node_id.contains("cross_link:"))
         .expect("Directional composite node must exist after direction_cross_link enrichment");
 
     // The composite node must carry 3 provenance entries: KHCBPPT + Huyền-Không
@@ -478,7 +481,7 @@ fn direction_composite_facts_wires_populated_state() {
 }
 
 /// 12. `direction_cross_link` is absent in JSON when `None` (additive DTO
-/// discipline).
+///     discipline).
 #[test]
 fn direction_cross_link_absent_in_ordinary_snapshot_json() {
     let snap = sample_snapshot();
@@ -490,7 +493,7 @@ fn direction_cross_link_absent_in_ordinary_snapshot_json() {
 }
 
 /// 13. `direction_cross_link` byte-equal round-trips when populated. The
-/// summary is serde-compatible end-to-end.
+///     summary is serde-compatible end-to-end.
 #[test]
 fn direction_cross_link_round_trip_when_populated() {
     let snap = sample_snapshot();

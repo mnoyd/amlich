@@ -42,7 +42,7 @@ pub enum YearPolarity {
 /// Return the polarity of `year` from its Heavenly Stem index.
 pub fn year_polarity(year: i32) -> YearPolarity {
     let cc = crate::canchi::get_year_canchi(year);
-    if cc.can_index % 2 == 0 {
+    if cc.can_index.is_multiple_of(2) {
         YearPolarity::Duong
     } else {
         YearPolarity::Am
@@ -78,10 +78,10 @@ pub fn nien_center(year: i32) -> u8 {
     //   delta = year - 2024
     //   raw = ((4 - 1 - delta.rem_euclid(9) as i32) % 9 + 9) % 9 + 1
     let delta = year - 2024;
-    let offset = delta.rem_euclid(9) as i32; // 0..=8 for any direction
-    // For delta=0 => offset=0 => raw = 4  ✓
-    // For delta=1 => offset=1 => raw = 3  ✓ (2025)
-    // For delta=-1 => offset=8 => raw = (4-1-8)%9+9)%9+1 = (-5%9+9)%9+1 = 4+1=5 ✓ (2023)
+    let offset = delta.rem_euclid(9); // 0..=8 for any direction
+                                      // For delta=0 => offset=0 => raw = 4  ✓
+                                      // For delta=1 => offset=1 => raw = 3  ✓ (2025)
+                                      // For delta=-1 => offset=8 => raw = (4-1-8)%9+9)%9+1 = (-5%9+9)%9+1 = 4+1=5 ✓ (2023)
     let raw = ((4_i32 - 1 - offset).rem_euclid(9)) + 1;
     raw as u8
 }
@@ -204,15 +204,21 @@ mod tests {
     /// Giáp year (can_index 0, even) => Duong.
     #[test]
     fn test_year_polarity_2024_duong() {
-        assert_eq!(year_polarity(2024), YearPolarity::Duong,
-            "2024 is Giáp Thìn, can_index 0 (even) => Duong");
+        assert_eq!(
+            year_polarity(2024),
+            YearPolarity::Duong,
+            "2024 is Giáp Thìn, can_index 0 (even) => Duong"
+        );
     }
 
     /// Ất year (can_index 1, odd) => Am.
     #[test]
     fn test_year_polarity_2025_am() {
-        assert_eq!(year_polarity(2025), YearPolarity::Am,
-            "2025 is Ất Tỵ, can_index 1 (odd) => Am");
+        assert_eq!(
+            year_polarity(2025),
+            YearPolarity::Am,
+            "2025 is Ất Tỵ, can_index 1 (odd) => Am"
+        );
     }
 
     /// year_is_ascending: 2024 => false (Duong = descending), 2025 => true.
@@ -279,13 +285,22 @@ mod tests {
                 let mut seen = [false; 10];
                 for &s in &palaces {
                     let n = s as u8;
-                    assert!(n >= 1 && n <= 9, "star {n} out of range for center={center}");
-                    assert!(!seen[n as usize], "duplicate star {n} for center={center}, ascending={ascending}");
+                    assert!(
+                        (1..=9).contains(&n),
+                        "star {n} out of range for center={center}"
+                    );
+                    assert!(
+                        !seen[n as usize],
+                        "duplicate star {n} for center={center}, ascending={ascending}"
+                    );
                     seen[n as usize] = true;
                 }
                 // Center palace is at index 4 in Palace::ALL order.
-                assert_eq!(palaces[4] as u8, center,
-                    "center palace mismatch: expected {center}, got {:?}", palaces[4]);
+                assert_eq!(
+                    palaces[4] as u8, center,
+                    "center palace mismatch: expected {center}, got {:?}",
+                    palaces[4]
+                );
             }
         }
     }
@@ -298,8 +313,10 @@ mod tests {
     #[test]
     fn test_compute_yearly_2024_center_is_4() {
         let layout = compute_yearly_flying_stars(2024, &scanner());
-        assert_eq!(layout.center_star as u8, 4,
-            "2024 annual center should be 4 (Tứ Lục)");
+        assert_eq!(
+            layout.center_star as u8, 4,
+            "2024 annual center should be 4 (Tứ Lục)"
+        );
         assert_eq!(layout.palaces.len(), 9);
         if let FlyingStarPeriod::Yearly { year } = layout.period {
             assert_eq!(year, 2024);
@@ -322,7 +339,7 @@ mod tests {
         let mut seen = [false; 10];
         for &s in &layout.palaces {
             let n = s as u8;
-            assert!(n >= 1 && n <= 9);
+            assert!((1..=9).contains(&n));
             assert!(!seen[n as usize], "duplicate star {n}");
             seen[n as usize] = true;
         }
@@ -333,7 +350,10 @@ mod tests {
     fn test_compute_yearly_evidence_method() {
         let layout = compute_yearly_flying_stars(2024, &scanner());
         assert_eq!(layout.evidence.method, "phi_tinh.nien");
-        assert_eq!(layout.evidence.source_id, crate::sources::SOURCE_HUYEN_KHONG);
+        assert_eq!(
+            layout.evidence.source_id,
+            crate::sources::SOURCE_HUYEN_KHONG
+        );
     }
 
     /// Pre-1984 year (e.g. 1960) has "confidence=high" in evidence note
@@ -342,8 +362,10 @@ mod tests {
     fn test_compute_yearly_pre_1984_high_confidence() {
         let layout = compute_yearly_flying_stars(1960, &scanner());
         let note = layout.evidence.note.as_deref().unwrap_or("");
-        assert!(note.contains("confidence=high"),
-            "Pre-1984 evidence should contain 'confidence=high' after ADR-0003a, got: {note:?}");
+        assert!(
+            note.contains("confidence=high"),
+            "Pre-1984 evidence should contain 'confidence=high' after ADR-0003a, got: {note:?}"
+        );
     }
 
     /// Post-1984 year (2024) has "confidence=high" in evidence note.
@@ -351,7 +373,9 @@ mod tests {
     fn test_compute_yearly_post_1984_high_confidence() {
         let layout = compute_yearly_flying_stars(2024, &scanner());
         let note = layout.evidence.note.as_deref().unwrap_or("");
-        assert!(note.contains("confidence=high"),
-            "Post-1984 evidence should contain 'confidence=high', got: {note:?}");
+        assert!(
+            note.contains("confidence=high"),
+            "Post-1984 evidence should contain 'confidence=high', got: {note:?}"
+        );
     }
 }

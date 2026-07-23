@@ -117,20 +117,19 @@ fn validate_aspects_corpus(c: &StarPairAspectsCorpus) {
         let b = asp.star_b as usize;
 
         assert!(
-            a >= 1 && a <= 9,
+            (1..=9).contains(&a),
             "aspect star_a={} is out of range 1..=9",
             asp.star_a
         );
         assert!(
-            b >= 1 && b <= 9,
+            (1..=9).contains(&b),
             "aspect star_b={} is out of range 1..=9",
             asp.star_b
         );
         assert!(
             !seen[a][b],
             "duplicate ordered pair ({},{}) in flying_star_aspects.json",
-            asp.star_a,
-            asp.star_b
+            asp.star_a, asp.star_b
         );
         seen[a][b] = true;
 
@@ -151,13 +150,11 @@ fn validate_aspects_corpus(c: &StarPairAspectsCorpus) {
     }
 
     // Assert all 81 ordered pairs are present.
-    for a in 1..=9usize {
-        for b in 1..=9usize {
+    for (a, row) in seen.iter().enumerate().skip(1) {
+        for (b, &present) in row.iter().enumerate().skip(1) {
             assert!(
-                seen[a][b],
-                "ordered pair ({},{}) is missing from flying_star_aspects.json",
-                a,
-                b
+                present,
+                "ordered pair ({a},{b}) is missing from flying_star_aspects.json"
             );
         }
     }
@@ -337,19 +334,15 @@ mod tests {
         assert_eq!(aspects.len(), 9);
 
         // Cross-check with the combined overlay directly.
-        let overlay = crate::almanac::fengshui::combined::compute_combined_overlay(2024, 1, &scanner);
-        for i in 0..9 {
-            let (annual, monthly) = overlay.palace_overlays[i];
-            assert_eq!(
-                aspects[i].star_a,
-                annual as u8,
-                "palace {i} star_a mismatch"
-            );
-            assert_eq!(
-                aspects[i].star_b,
-                monthly as u8,
-                "palace {i} star_b mismatch"
-            );
+        let overlay =
+            crate::almanac::fengshui::combined::compute_combined_overlay(2024, 1, &scanner);
+        for (i, (aspect, &(annual, monthly))) in aspects
+            .iter()
+            .zip(overlay.palace_overlays.iter())
+            .enumerate()
+        {
+            assert_eq!(aspect.star_a, annual as u8, "palace {i} star_a mismatch");
+            assert_eq!(aspect.star_b, monthly as u8, "palace {i} star_b mismatch");
         }
     }
 }

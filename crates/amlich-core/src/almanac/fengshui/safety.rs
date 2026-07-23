@@ -151,9 +151,8 @@ fn validate_safety_corpus(c: &SafetyCorpus) {
         );
     }
 
-    assert_eq!(
-        c.schema_version.is_empty(),
-        false,
+    assert!(
+        !c.schema_version.is_empty(),
         "schema_version must be non-empty in flying_stars_safety.json"
     );
 }
@@ -192,12 +191,16 @@ pub fn is_danger_palace(star: FlyingStar) -> bool {
 /// - `original_citation` — bibliographic citation with non-empty `title`.
 pub fn element_hint_for_palace(star: FlyingStar) -> Option<RemedyHint> {
     let star_num = star as u8;
-    safety_corpus().hints.iter().find(|row| row.star == star_num).map(|row| RemedyHint {
-        element: row.element.clone(),
-        hint_text_vi: row.hint_text_vi.clone(),
-        source_id: row.source_id.clone(),
-        original_citation: row.original_citation.clone(),
-    })
+    safety_corpus()
+        .hints
+        .iter()
+        .find(|row| row.star == star_num)
+        .map(|row| RemedyHint {
+            element: row.element.clone(),
+            hint_text_vi: row.hint_text_vi.clone(),
+            source_id: row.source_id.clone(),
+            original_citation: row.original_citation.clone(),
+        })
 }
 
 // ---------------------------------------------------------------------------
@@ -214,20 +217,47 @@ mod tests {
     /// Stars 5 and 2 are the danger stars: is_danger_palace returns true for them.
     #[test]
     fn test_is_danger_palace_true_for_ngu_hoang_and_nhi_hac() {
-        assert!(is_danger_palace(FlyingStar::NguHoang), "NguHoang (5) must be danger");
-        assert!(is_danger_palace(FlyingStar::NhiHac), "NhiHac (2) must be danger");
+        assert!(
+            is_danger_palace(FlyingStar::NguHoang),
+            "NguHoang (5) must be danger"
+        );
+        assert!(
+            is_danger_palace(FlyingStar::NhiHac),
+            "NhiHac (2) must be danger"
+        );
     }
 
     /// The remaining 7 stars are NOT danger stars.
     #[test]
     fn test_is_danger_palace_false_for_other_seven_stars() {
-        assert!(!is_danger_palace(FlyingStar::NhatBach), "NhatBach (1) is not danger");
-        assert!(!is_danger_palace(FlyingStar::TamBich), "TamBich (3) is not danger");
-        assert!(!is_danger_palace(FlyingStar::TuLuc), "TuLuc (4) is not danger");
-        assert!(!is_danger_palace(FlyingStar::LucBach), "LucBach (6) is not danger");
-        assert!(!is_danger_palace(FlyingStar::ThatXich), "ThatXich (7) is not danger");
-        assert!(!is_danger_palace(FlyingStar::BatBach), "BatBach (8) is not danger");
-        assert!(!is_danger_palace(FlyingStar::CuuTu), "CuuTu (9) is not danger");
+        assert!(
+            !is_danger_palace(FlyingStar::NhatBach),
+            "NhatBach (1) is not danger"
+        );
+        assert!(
+            !is_danger_palace(FlyingStar::TamBich),
+            "TamBich (3) is not danger"
+        );
+        assert!(
+            !is_danger_palace(FlyingStar::TuLuc),
+            "TuLuc (4) is not danger"
+        );
+        assert!(
+            !is_danger_palace(FlyingStar::LucBach),
+            "LucBach (6) is not danger"
+        );
+        assert!(
+            !is_danger_palace(FlyingStar::ThatXich),
+            "ThatXich (7) is not danger"
+        );
+        assert!(
+            !is_danger_palace(FlyingStar::BatBach),
+            "BatBach (8) is not danger"
+        );
+        assert!(
+            !is_danger_palace(FlyingStar::CuuTu),
+            "CuuTu (9) is not danger"
+        );
     }
 
     // --- element_hint_for_palace: load-dependent (RED until Task 2 lands JSON) ---
@@ -296,6 +326,9 @@ mod tests {
         }}"#
         );
         let result: Result<RemedyHint, _> = serde_json::from_str(&bad_json);
-        assert!(result.is_err(), "deny_unknown_fields should reject extra field");
+        assert!(
+            result.is_err(),
+            "deny_unknown_fields should reject extra field"
+        );
     }
 }

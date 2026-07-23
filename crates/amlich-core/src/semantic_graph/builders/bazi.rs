@@ -519,7 +519,7 @@ mod tests {
 
         let graph = build_bazi_profile_graph(&chart, &analysis);
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             assert!(
                 !node.provenance.is_empty(),
                 "node {} should have provenance",
@@ -628,7 +628,7 @@ mod tests {
 
         let graph = build_bazi_profile_graph(&chart, &analysis);
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             assert!(
                 !node.provenance.is_empty(),
                 "node {} should have provenance",

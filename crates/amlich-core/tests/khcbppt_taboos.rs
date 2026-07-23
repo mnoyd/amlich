@@ -117,10 +117,4 @@ fn validate_taboo_coverage_by_rule() {
         "\n=== TABOO RULE COVERAGE REPORT ===\n  Rules in golden: {:?}\n  Rules in impl:   {:?}\n=== END COVERAGE REPORT ===\n",
         golden_sorted, impl_sorted
     );
-
-    // Always passes -- informational only
-    assert!(
-        true,
-        "coverage report is informational, this assertion never fails"
-    );
 }

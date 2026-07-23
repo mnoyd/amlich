@@ -79,7 +79,7 @@ pub fn debug_inspect_semantic_graph(
     let visualization = VisualizationGraph::from_semantic_graph(&graph);
 
     let mut acc = NodeViewAccumulator::new();
-    for (_, node) in graph.nodes() {
+    for node in graph.nodes().values() {
         acc.accumulate(node);
     }
 

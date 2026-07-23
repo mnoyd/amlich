@@ -152,7 +152,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                         GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(1),
                         GraphInspectorFocus::ReasoningLens
                         | GraphInspectorFocus::RecommendationLens
-                        | GraphInspectorFocus::ConvergenceLens => app.graph_inspector_move_cursor(1),
+                        | GraphInspectorFocus::ConvergenceLens => {
+                            app.graph_inspector_move_cursor(1)
+                        }
                         _ => app.graph_inspector_move_cursor(1),
                     }
                 }
@@ -167,7 +169,9 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
                         GraphInspectorFocus::Search => app.graph_inspector_search_move_cursor(-1),
                         GraphInspectorFocus::ReasoningLens
                         | GraphInspectorFocus::RecommendationLens
-                        | GraphInspectorFocus::ConvergenceLens => app.graph_inspector_move_cursor(-1),
+                        | GraphInspectorFocus::ConvergenceLens => {
+                            app.graph_inspector_move_cursor(-1)
+                        }
                         _ => app.graph_inspector_move_cursor(-1),
                     }
                 }
@@ -240,15 +244,15 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             KeyCode::Enter => app.apply_personal_profile(),
             KeyCode::Tab | KeyCode::Right | KeyCode::Char('l') => app.personal_next_field(),
             KeyCode::BackTab | KeyCode::Left | KeyCode::Char('h') => app.personal_previous_field(),
-            KeyCode::Up | KeyCode::Char('k') => {
-                if app.personal_focus == crate::state::PersonalField::Gender {
-                    app.personal_cycle_gender(-1);
-                }
+            KeyCode::Up | KeyCode::Char('k')
+                if app.personal_focus == crate::state::PersonalField::Gender =>
+            {
+                app.personal_cycle_gender(-1);
             }
-            KeyCode::Down | KeyCode::Char('j') => {
-                if app.personal_focus == crate::state::PersonalField::Gender {
-                    app.personal_cycle_gender(1);
-                }
+            KeyCode::Down | KeyCode::Char('j')
+                if app.personal_focus == crate::state::PersonalField::Gender =>
+            {
+                app.personal_cycle_gender(1);
             }
             KeyCode::Backspace => app.personal_backspace(),
             KeyCode::Char(c) => {

@@ -12,7 +12,7 @@ struct SolarHolidaysFile {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SolarHolidayData {
-    pub id: String,                    // stable id from solar-holidays.json
+    pub id: String, // stable id from solar-holidays.json
     pub solar_day: i32,
     pub solar_month: i32,
     pub category: String,
@@ -44,7 +44,7 @@ struct LunarFestivalsFile {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LunarFestivalData {
-    pub id: String,                    // stable id from lunar-festivals.json
+    pub id: String, // stable id from lunar-festivals.json
     pub lunar_day: i32,
     pub lunar_month: i32,
     #[serde(default)]

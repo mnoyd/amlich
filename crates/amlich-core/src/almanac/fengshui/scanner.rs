@@ -90,7 +90,7 @@ mod tests {
         assert_eq!(month, 2, "Lập Xuân 2024 should be in February");
         // Lập Xuân 2024 is Feb 4
         assert!(
-            day >= 3 && day <= 6,
+            (3..=6).contains(&day),
             "Lập Xuân 2024 day expected 3-6, got {day}"
         );
     }

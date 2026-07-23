@@ -173,20 +173,18 @@ impl InitiationOpeningEvaluator {
             }
         }
 
-        for (_, node) in graph.nodes() {
-            if node.concept == NodeConcept::Taboo {
-                if node.severity.is_some() {
-                    notes.push(ReasoningNote {
-                        node_id: Some(node.node_id.clone()),
-                        summary_vi: node.summary_vi.clone(),
-                        tags: vec!["resistance".to_string(), "taboo".to_string()],
-                        provenance: node
-                            .provenance
-                            .iter()
-                            .map(|p| p.to_reasoning_evidence())
-                            .collect(),
-                    });
-                }
+        for node in graph.nodes().values() {
+            if node.concept == NodeConcept::Taboo && node.severity.is_some() {
+                notes.push(ReasoningNote {
+                    node_id: Some(node.node_id.clone()),
+                    summary_vi: node.summary_vi.clone(),
+                    tags: vec!["resistance".to_string(), "taboo".to_string()],
+                    provenance: node
+                        .provenance
+                        .iter()
+                        .map(|p| p.to_reasoning_evidence())
+                        .collect(),
+                });
             }
         }
 
@@ -209,7 +207,7 @@ impl InitiationOpeningEvaluator {
     fn extract_override_evidence(&self, graph: &SemanticGraph) -> Vec<ReasoningNote> {
         let mut notes = Vec::new();
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             if node.concept == NodeConcept::Taboo {
                 if let Some(ref severity) = node.severity {
                     if severity == "hard" {
@@ -494,6 +492,7 @@ impl InitiationOpeningEvaluator {
         (semantic, bucket, confidence, context_is_clear)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn synthesize_primary_conclusion(
         &self,
         semantic: ReasoningConclusionSemantic,

@@ -94,11 +94,7 @@ fn cargo_dependency_tree_unchanged_from_v16() {
             // above, but guard against nested-table entries just in case.
             continue;
         }
-        let name = trimmed
-            .split('=')
-            .next()
-            .unwrap_or(trimmed)
-            .trim();
+        let name = trimmed.split('=').next().unwrap_or(trimmed).trim();
         names.push(name);
     }
 
@@ -142,11 +138,11 @@ fn cargo_dependency_tree_unchanged_from_v16() {
 /// golden cases cross-checked against ≥2 independent sources per case.
 /// Phase 22-02 shipped `mai_hoa_golden.json` with 12 cases × 2 sources each
 /// + 2 KnownDivergence rows (SC1 already met at the data level). The
-/// Phase 22-02 loader (`load_mai_hoa_golden`) already validates these
-/// invariants at load time. This test re-asserts the same invariants
-/// EXPLICITLY at the INT-13 level so a future weakening of the loader
-/// would still trip this test — making this the formal Phase 25 closure
-/// sentinel for SC1.
+///   Phase 22-02 loader (`load_mai_hoa_golden`) already validates these
+///   invariants at load time. This test re-asserts the same invariants
+///   EXPLICITLY at the INT-13 level so a future weakening of the loader
+///   would still trip this test — making this the formal Phase 25 closure
+///   sentinel for SC1.
 ///
 /// The test asserts:
 /// - ≥10 cases (SC1 count).
@@ -181,10 +177,7 @@ fn int13_golden_dataset_cross_source_discipline_holds() {
             case.id,
             case.sources.len()
         );
-        let has_nhantu = case
-            .sources
-            .iter()
-            .any(|s| s.source.contains("nhantu.net"));
+        let has_nhantu = case.sources.iter().any(|s| s.source.contains("nhantu.net"));
         assert!(
             has_nhantu,
             "INT-13 SC1 violation: case '{}' must have at least one nhantu.net source entry; \

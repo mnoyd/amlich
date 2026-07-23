@@ -1892,21 +1892,19 @@ fn render_convergence_lens_entries(
                 },
             ]));
 
-            if selected {
-                if !entry.provenance.is_empty() {
-                    lines.push(Line::from(vec![Span::styled(
-                        "     provenance:",
-                        Style::default().fg(Color::Cyan),
-                    )]));
-                    for prov in entry.provenance.iter().take(3) {
-                        lines.push(Line::from(vec![
-                            Span::raw("       "),
-                            Span::styled(
-                                format!("[{:?}] {}", prov.source_family, prov.source_id),
-                                Style::default().fg(Color::DarkGray),
-                            ),
-                        ]));
-                    }
+            if selected && !entry.provenance.is_empty() {
+                lines.push(Line::from(vec![Span::styled(
+                    "     provenance:",
+                    Style::default().fg(Color::Cyan),
+                )]));
+                for prov in entry.provenance.iter().take(3) {
+                    lines.push(Line::from(vec![
+                        Span::raw("       "),
+                        Span::styled(
+                            format!("[{:?}] {}", prov.source_family, prov.source_id),
+                            Style::default().fg(Color::DarkGray),
+                        ),
+                    ]));
                 }
             }
         }
@@ -1929,435 +1927,6 @@ fn provenance_source_family_label(entry: &amlich_core::ReasoningEvidenceEnvelope
         Family::Insight => "insight",
         Family::Derived => "derived",
         Family::IChing => "iching",
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::state::{AppState, ExplorerAction, ExplorerField, ExplorerSelection, PageSection};
-    use amlich_api::{
-        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
-    };
-    use chrono::NaiveDate;
-
-    fn sample_app() -> AppState {
-        let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
-        let ruleset_catalog = vec![RulesetCatalogEntryDto {
-            id: "vn_baseline_v1".to_string(),
-            canonical_id: "vn_baseline_v1".to_string(),
-            version: "v1".to_string(),
-            region: "vn".to_string(),
-            profile: "baseline".to_string(),
-            schema_version: "amlich.engine/v1".to_string(),
-            is_default: true,
-            aliases: vec![],
-            defaults: RulesetDefaultsDto {
-                tz_offset: 7.0,
-                meridian: None,
-            },
-            source_notes: vec![],
-        }];
-        let recommendation_pack_catalog = vec![RecommendationPackCatalogEntryDto {
-            pack_id: "pack.nhi_thap_bat_tu.v1".to_string(),
-            request_field: "enabled_pack_ids".to_string(),
-            version: "v1".to_string(),
-            source_family: "traditional".to_string(),
-            mode: "advisory".to_string(),
-        }];
-        let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
-        AppState {
-            running: true,
-            date,
-            scroll_offset: 0,
-            content_height: 0,
-            viewport_height: 0,
-            bundle: None,
-            personal_matrix: None,
-            is_loading: false,
-            error_msg: None,
-            ruleset_catalog,
-            recommendation_pack_catalog,
-            applied_selection: selection.clone(),
-            staged_selection: selection,
-            explorer_focus: ExplorerField::Date,
-            explorer_action: ExplorerAction::Apply,
-            pack_cursor: 0,
-            show_guidance_details: false,
-            show_tietkhi_details: false,
-            show_evidence: false,
-            show_week_strip: true,
-            show_graph_recommendations: false,
-            verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
-            focused_section: PageSection::Hero,
-            zoomed_section: None,
-            expanded_sections: Default::default(),
-            app_mode: crate::state::AppMode::Normal,
-            search_input: String::new(),
-            personal_focus: crate::state::PersonalField::BirthYear,
-            personal_draft: crate::state::PersonalDraft {
-                birth_year: String::new(),
-                birth_month: String::new(),
-                birth_day: String::new(),
-                birth_hour: String::new(),
-                birth_minute: String::new(),
-                gender: None,
-            },
-            calendar_cursor: date,
-            navigation_history: Vec::new(),
-            active_view: crate::state::ActiveView::GraphInspector,
-            view_history: Vec::new(),
-            graph_inspector_focus: crate::state::GraphInspectorFocus::Summary,
-            graph_inspector_cursor: 0,
-            graph_inspector_search_query: String::new(),
-            graph_inspector_search_cursor: 0,
-            graph_inspector_focus_before_search: None,
-            graph_inspector_lens: crate::state::GraphInspectorLens::General,
-            dev_inspector_mode: true,
-            explanation_lens: crate::state::UserExplanationLens::ViSao,
-            causality_focus: crate::state::CausalityFocus::SummaryList,
-        }
-    }
-
-    fn render_text(app: &AppState) -> String {
-        let area = Rect::new(0, 0, 100, 40);
-        let mut buf = Buffer::empty(area);
-        GraphInspectorScreenWidget::new(app, LayoutMode::Large).render(area, &mut buf);
-        (0..area.height)
-            .map(|y| {
-                (0..area.width)
-                    .map(|x| buf[(x, y)].symbol())
-                    .collect::<String>()
-                    .trim_end()
-                    .to_string()
-            })
-            .collect::<Vec<_>>()
-            .join("\n")
-    }
-
-    #[test]
-    fn graph_inspector_renders_header_and_summary() {
-        let app = sample_app();
-        let text = render_text(&app);
-
-        assert!(text.contains("Đồ Thị Ngữ Nghĩa"));
-        assert!(text.contains("Tổng Quan"));
-        assert!(text.contains("Graph Preview"));
-        assert!(text.contains("Tổng nodes:"));
-        assert!(text.contains("Tổng edges:"));
-        assert!(text.contains("Cluster Counts"));
-        assert!(text.contains("Severity Counts") || text.contains("Semantic Kind Counts"));
-    }
-
-    #[test]
-    fn graph_inspector_shows_recommendation_toggle_status() {
-        let app = sample_app();
-        let text = render_text(&app);
-
-        assert!(text.contains("TẮT"));
-    }
-
-    #[test]
-    fn graph_inspector_with_recommendations_shows_enabled() {
-        let mut app = sample_app();
-        app.show_graph_recommendations = true;
-        let text = render_text(&app);
-
-        assert!(text.contains("BẬT"));
-    }
-
-    #[test]
-    fn render_node_detail_shows_provenance_fields() {
-        let node = amlich_core::semantic_graph::VisualizationNode {
-            node_id: "node:test".to_string(),
-            label: "Node Test".to_string(),
-            cluster: "reasoning".to_string(),
-            semantic_kind: "recommendation_hit".to_string(),
-            severity: Some("caution".to_string()),
-            provenance: vec![amlich_core::ReasoningEvidenceEnvelope {
-                source_family: amlich_core::ReasoningEvidenceSourceFamily::AlmanacRule,
-                source_id: "rule:demo".to_string(),
-                method: "derive_demo".to_string(),
-                note: Some("Example provenance note".to_string()),
-            }],
-            shape_hint: Some("diamond".to_string()),
-        };
-        let area = Rect::new(0, 0, 100, 30);
-        let mut buf = Buffer::empty(area);
-
-        render_node_detail(Some(&node), &[], "node:test", area, &mut buf);
-
-        let text = (0..area.height)
-            .map(|y| {
-                (0..area.width)
-                    .map(|x| buf[(x, y)].symbol())
-                    .collect::<String>()
-                    .trim_end()
-                    .to_string()
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        assert!(text.contains("Provenance:"));
-        assert!(text.contains("family: almanac_rule"));
-        assert!(text.contains("source_id: rule:demo"));
-        assert!(text.contains("method:    derive_demo"));
-        assert!(text.contains("note:      Example provenance note"));
-    }
-
-    #[test]
-    fn render_node_detail_shows_absent_provenance_message() {
-        let node = amlich_core::semantic_graph::VisualizationNode {
-            node_id: "node:test".to_string(),
-            label: "Node Test".to_string(),
-            cluster: "reasoning".to_string(),
-            semantic_kind: "recommendation_hit".to_string(),
-            severity: None,
-            provenance: vec![],
-            shape_hint: None,
-        };
-        let area = Rect::new(0, 0, 100, 30);
-        let mut buf = Buffer::empty(area);
-
-        render_node_detail(Some(&node), &[], "node:test", area, &mut buf);
-
-        let text = (0..area.height)
-            .map(|y| {
-                (0..area.width)
-                    .map(|x| buf[(x, y)].symbol())
-                    .collect::<String>()
-                    .trim_end()
-                    .to_string()
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        assert!(text.contains("Không có provenance cho node này."));
-    }
-
-    #[test]
-    fn render_local_subgraph_shows_focal_and_directional_neighbors() {
-        let node = amlich_core::semantic_graph::VisualizationNode {
-            node_id: "node:focal".to_string(),
-            label: "Focal Node".to_string(),
-            cluster: "reasoning".to_string(),
-            semantic_kind: "recommendation_hit".to_string(),
-            severity: Some("caution".to_string()),
-            provenance: vec![],
-            shape_hint: Some("diamond".to_string()),
-        };
-        let incoming_node = amlich_core::semantic_graph::VisualizationNode {
-            node_id: "node:source".to_string(),
-            label: "Source Node".to_string(),
-            cluster: "snapshot".to_string(),
-            semantic_kind: "day_snapshot".to_string(),
-            severity: None,
-            provenance: vec![],
-            shape_hint: Some("box".to_string()),
-        };
-        let outgoing_node = amlich_core::semantic_graph::VisualizationNode {
-            node_id: "node:target".to_string(),
-            label: "Target Activity".to_string(),
-            cluster: "recommendation".to_string(),
-            semantic_kind: "activity".to_string(),
-            severity: Some("favorable".to_string()),
-            provenance: vec![],
-            shape_hint: Some("box".to_string()),
-        };
-        let incoming_edge = amlich_core::semantic_graph::VisualizationEdge {
-            edge_id: "edge:in".to_string(),
-            from_id: incoming_node.node_id.clone(),
-            to_id: node.node_id.clone(),
-            label: "supports".to_string(),
-            semantic_kind: "support".to_string(),
-            weight: 1,
-        };
-        let outgoing_edge = amlich_core::semantic_graph::VisualizationEdge {
-            edge_id: "edge:out".to_string(),
-            from_id: node.node_id.clone(),
-            to_id: outgoing_node.node_id.clone(),
-            label: "targets_activity".to_string(),
-            semantic_kind: "targets_activity".to_string(),
-            weight: 2,
-        };
-        let area = Rect::new(0, 0, 120, 20);
-        let mut buf = Buffer::empty(area);
-
-        render_local_subgraph(
-            Some(&node),
-            &[&incoming_edge, &outgoing_edge],
-            &[node.clone(), incoming_node, outgoing_node],
-            area,
-            &mut buf,
-        );
-
-        let text = (0..area.height)
-            .map(|y| {
-                (0..area.width)
-                    .map(|x| buf[(x, y)].symbol())
-                    .collect::<String>()
-                    .trim_end()
-                    .to_string()
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        assert!(text.contains("Local Subgraph"));
-        assert!(text.contains("[FOCAL !] Focal Node"));
-        assert!(text.contains("Source Node"));
-        assert!(text.contains("Target Activity"));
-        assert!(text.contains("Enter/l opens the full edge list."));
-    }
-
-    #[test]
-    fn render_local_subgraph_uses_compact_layout_on_narrow_width() {
-        let node = amlich_core::semantic_graph::VisualizationNode {
-            node_id: "node:focal".to_string(),
-            label: "Focal Node".to_string(),
-            cluster: "reasoning".to_string(),
-            semantic_kind: "recommendation_hit".to_string(),
-            severity: None,
-            provenance: vec![],
-            shape_hint: Some("diamond".to_string()),
-        };
-        let outgoing_node = amlich_core::semantic_graph::VisualizationNode {
-            node_id: "node:target".to_string(),
-            label: "Target Activity".to_string(),
-            cluster: "recommendation".to_string(),
-            semantic_kind: "activity".to_string(),
-            severity: None,
-            provenance: vec![],
-            shape_hint: Some("box".to_string()),
-        };
-        let outgoing_edge = amlich_core::semantic_graph::VisualizationEdge {
-            edge_id: "edge:out".to_string(),
-            from_id: node.node_id.clone(),
-            to_id: outgoing_node.node_id.clone(),
-            label: "targets_activity".to_string(),
-            semantic_kind: "targets_activity".to_string(),
-            weight: 2,
-        };
-        let area = Rect::new(0, 0, 72, 16);
-        let mut buf = Buffer::empty(area);
-
-        render_local_subgraph(
-            Some(&node),
-            &[&outgoing_edge],
-            &[node.clone(), outgoing_node],
-            area,
-            &mut buf,
-        );
-
-        let text = (0..area.height)
-            .map(|y| {
-                (0..area.width)
-                    .map(|x| buf[(x, y)].symbol())
-                    .collect::<String>()
-                    .trim_end()
-                    .to_string()
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        assert!(text.contains("Incoming"));
-        assert!(text.contains("Outgoing"));
-        assert!(text.contains("Enter/l: xem edge list"));
-    }
-
-    #[test]
-    fn hoat_dong_view_renders_title() {
-        let mut app = sample_app();
-        app.dev_inspector_mode = false;
-        app.explanation_lens = UserExplanationLens::HoatDong;
-        let text = render_text(&app);
-        assert!(text.contains("Hoạt Động"));
-    }
-
-    #[test]
-    fn hoat_dong_view_empty_state() {
-        let mut app = sample_app();
-        app.dev_inspector_mode = false;
-        app.explanation_lens = UserExplanationLens::HoatDong;
-        let text = render_text(&app);
-        assert!(!text.contains("Không có hoạt động cho ngày này"));
-        assert!(
-            text.contains("Kỵ mạnh")
-                || text.contains("Tránh")
-                || text.contains("Có thể")
-                || text.contains("Nên")
-        );
-    }
-
-    #[test]
-    fn nguon_view_renders_title() {
-        let mut app = sample_app();
-        app.dev_inspector_mode = false;
-        app.explanation_lens = UserExplanationLens::Nguon;
-        let text = render_text(&app);
-        assert!(text.contains("Xuất Xứ"));
-    }
-
-    #[test]
-    fn nguon_view_shows_source_data() {
-        let mut app = sample_app();
-        app.dev_inspector_mode = false;
-        app.explanation_lens = UserExplanationLens::Nguon;
-        let text = render_text(&app);
-        assert!(text.contains("nhóm xuất xứ") || text.contains("Không có dấu vết xuất xứ"));
-    }
-
-    #[test]
-    fn yeu_to_lens_shows_user_facing_title() {
-        let mut app = sample_app();
-        app.dev_inspector_mode = false;
-        app.explanation_lens = UserExplanationLens::YeuTo;
-        let text = render_text(&app);
-        assert!(text.contains("Yếu Tố"));
-        assert!(!text.contains("Causality Map"));
-    }
-
-    #[test]
-    fn default_non_dev_renders_vi_sao() {
-        let mut app = sample_app();
-        app.dev_inspector_mode = false;
-        app.explanation_lens = UserExplanationLens::ViSao;
-        let text = render_text(&app);
-        assert!(text.contains("Vì Sao Kết Luận"));
-        assert!(text.contains("Kết luận:"));
-        assert!(text.contains("Tin cậy:"));
-    }
-
-    #[test]
-    fn d_switches_to_debug_graph_mode() {
-        let mut app = sample_app();
-        app.dev_inspector_mode = false;
-        app.explanation_lens = UserExplanationLens::ViSao;
-        let text_non_dev = render_text(&app);
-        assert!(text_non_dev.contains("Vì Sao Kết Luận"));
-
-        app.dev_inspector_mode = true;
-        let text_dev = render_text(&app);
-        assert!(text_dev.contains("Đồ Thị Ngữ Nghĩa"));
-    }
-
-    #[test]
-    fn small_layout_renders_without_panic() {
-        let mut app = sample_app();
-        app.dev_inspector_mode = false;
-        let area = Rect::new(0, 0, 40, 15);
-        let mut buf = Buffer::empty(area);
-        GraphInspectorScreenWidget::new(&app, LayoutMode::Small).render(area, &mut buf);
-        let text = (0..area.height)
-            .map(|y| {
-                (0..area.width)
-                    .map(|x| buf[(x, y)].symbol())
-                    .collect::<String>()
-                    .trim_end()
-                    .to_string()
-            })
-            .collect::<Vec<_>>()
-            .join("\n");
-        assert!(!text.is_empty());
     }
 }
 
@@ -3759,4 +3328,433 @@ fn render_nguon_detail(entry: Option<&SourceLensGroup>, area: Rect, buf: &mut Bu
     Paragraph::new(lines)
         .wrap(Wrap { trim: true })
         .render(inner, buf);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::state::{AppState, ExplorerAction, ExplorerField, ExplorerSelection, PageSection};
+    use amlich_api::{
+        RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+    };
+    use chrono::NaiveDate;
+
+    fn sample_app() -> AppState {
+        let date = NaiveDate::from_ymd_opt(2026, 3, 12).expect("valid date");
+        let ruleset_catalog = vec![RulesetCatalogEntryDto {
+            id: "vn_baseline_v1".to_string(),
+            canonical_id: "vn_baseline_v1".to_string(),
+            version: "v1".to_string(),
+            region: "vn".to_string(),
+            profile: "baseline".to_string(),
+            schema_version: "amlich.engine/v1".to_string(),
+            is_default: true,
+            aliases: vec![],
+            defaults: RulesetDefaultsDto {
+                tz_offset: 7.0,
+                meridian: None,
+            },
+            source_notes: vec![],
+        }];
+        let recommendation_pack_catalog = vec![RecommendationPackCatalogEntryDto {
+            pack_id: "pack.nhi_thap_bat_tu.v1".to_string(),
+            request_field: "enabled_pack_ids".to_string(),
+            version: "v1".to_string(),
+            source_family: "traditional".to_string(),
+            mode: "advisory".to_string(),
+        }];
+        let selection = ExplorerSelection::defaults(date, &ruleset_catalog);
+        AppState {
+            running: true,
+            date,
+            scroll_offset: 0,
+            content_height: 0,
+            viewport_height: 0,
+            bundle: None,
+            personal_matrix: None,
+            is_loading: false,
+            error_msg: None,
+            ruleset_catalog,
+            recommendation_pack_catalog,
+            applied_selection: selection.clone(),
+            staged_selection: selection,
+            explorer_focus: ExplorerField::Date,
+            explorer_action: ExplorerAction::Apply,
+            pack_cursor: 0,
+            show_guidance_details: false,
+            show_tietkhi_details: false,
+            show_evidence: false,
+            show_week_strip: true,
+            show_graph_recommendations: false,
+            verbosity: crate::state::ui_prefs::VerbosityMode::Compact,
+            focused_section: PageSection::Hero,
+            zoomed_section: None,
+            expanded_sections: Default::default(),
+            app_mode: crate::state::AppMode::Normal,
+            search_input: String::new(),
+            personal_focus: crate::state::PersonalField::BirthYear,
+            personal_draft: crate::state::PersonalDraft {
+                birth_year: String::new(),
+                birth_month: String::new(),
+                birth_day: String::new(),
+                birth_hour: String::new(),
+                birth_minute: String::new(),
+                gender: None,
+            },
+            calendar_cursor: date,
+            navigation_history: Vec::new(),
+            active_view: crate::state::ActiveView::GraphInspector,
+            view_history: Vec::new(),
+            graph_inspector_focus: crate::state::GraphInspectorFocus::Summary,
+            graph_inspector_cursor: 0,
+            graph_inspector_search_query: String::new(),
+            graph_inspector_search_cursor: 0,
+            graph_inspector_focus_before_search: None,
+            graph_inspector_lens: crate::state::GraphInspectorLens::General,
+            dev_inspector_mode: true,
+            explanation_lens: crate::state::UserExplanationLens::ViSao,
+            causality_focus: crate::state::CausalityFocus::SummaryList,
+        }
+    }
+
+    fn render_text(app: &AppState) -> String {
+        let area = Rect::new(0, 0, 100, 40);
+        let mut buf = Buffer::empty(area);
+        GraphInspectorScreenWidget::new(app, LayoutMode::Large).render(area, &mut buf);
+        (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    #[test]
+    fn graph_inspector_renders_header_and_summary() {
+        let app = sample_app();
+        let text = render_text(&app);
+
+        assert!(text.contains("Đồ Thị Ngữ Nghĩa"));
+        assert!(text.contains("Tổng Quan"));
+        assert!(text.contains("Graph Preview"));
+        assert!(text.contains("Tổng nodes:"));
+        assert!(text.contains("Tổng edges:"));
+        assert!(text.contains("Cluster Counts"));
+        assert!(text.contains("Severity Counts") || text.contains("Semantic Kind Counts"));
+    }
+
+    #[test]
+    fn graph_inspector_shows_recommendation_toggle_status() {
+        let app = sample_app();
+        let text = render_text(&app);
+
+        assert!(text.contains("TẮT"));
+    }
+
+    #[test]
+    fn graph_inspector_with_recommendations_shows_enabled() {
+        let mut app = sample_app();
+        app.show_graph_recommendations = true;
+        let text = render_text(&app);
+
+        assert!(text.contains("BẬT"));
+    }
+
+    #[test]
+    fn render_node_detail_shows_provenance_fields() {
+        let node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:test".to_string(),
+            label: "Node Test".to_string(),
+            cluster: "reasoning".to_string(),
+            semantic_kind: "recommendation_hit".to_string(),
+            severity: Some("caution".to_string()),
+            provenance: vec![amlich_core::ReasoningEvidenceEnvelope {
+                source_family: amlich_core::ReasoningEvidenceSourceFamily::AlmanacRule,
+                source_id: "rule:demo".to_string(),
+                method: "derive_demo".to_string(),
+                note: Some("Example provenance note".to_string()),
+            }],
+            shape_hint: Some("diamond".to_string()),
+        };
+        let area = Rect::new(0, 0, 100, 30);
+        let mut buf = Buffer::empty(area);
+
+        render_node_detail(Some(&node), &[], "node:test", area, &mut buf);
+
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(text.contains("Provenance:"));
+        assert!(text.contains("family: almanac_rule"));
+        assert!(text.contains("source_id: rule:demo"));
+        assert!(text.contains("method:    derive_demo"));
+        assert!(text.contains("note:      Example provenance note"));
+    }
+
+    #[test]
+    fn render_node_detail_shows_absent_provenance_message() {
+        let node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:test".to_string(),
+            label: "Node Test".to_string(),
+            cluster: "reasoning".to_string(),
+            semantic_kind: "recommendation_hit".to_string(),
+            severity: None,
+            provenance: vec![],
+            shape_hint: None,
+        };
+        let area = Rect::new(0, 0, 100, 30);
+        let mut buf = Buffer::empty(area);
+
+        render_node_detail(Some(&node), &[], "node:test", area, &mut buf);
+
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(text.contains("Không có provenance cho node này."));
+    }
+
+    #[test]
+    fn render_local_subgraph_shows_focal_and_directional_neighbors() {
+        let node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:focal".to_string(),
+            label: "Focal Node".to_string(),
+            cluster: "reasoning".to_string(),
+            semantic_kind: "recommendation_hit".to_string(),
+            severity: Some("caution".to_string()),
+            provenance: vec![],
+            shape_hint: Some("diamond".to_string()),
+        };
+        let incoming_node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:source".to_string(),
+            label: "Source Node".to_string(),
+            cluster: "snapshot".to_string(),
+            semantic_kind: "day_snapshot".to_string(),
+            severity: None,
+            provenance: vec![],
+            shape_hint: Some("box".to_string()),
+        };
+        let outgoing_node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:target".to_string(),
+            label: "Target Activity".to_string(),
+            cluster: "recommendation".to_string(),
+            semantic_kind: "activity".to_string(),
+            severity: Some("favorable".to_string()),
+            provenance: vec![],
+            shape_hint: Some("box".to_string()),
+        };
+        let incoming_edge = amlich_core::semantic_graph::VisualizationEdge {
+            edge_id: "edge:in".to_string(),
+            from_id: incoming_node.node_id.clone(),
+            to_id: node.node_id.clone(),
+            label: "supports".to_string(),
+            semantic_kind: "support".to_string(),
+            weight: 1,
+        };
+        let outgoing_edge = amlich_core::semantic_graph::VisualizationEdge {
+            edge_id: "edge:out".to_string(),
+            from_id: node.node_id.clone(),
+            to_id: outgoing_node.node_id.clone(),
+            label: "targets_activity".to_string(),
+            semantic_kind: "targets_activity".to_string(),
+            weight: 2,
+        };
+        let area = Rect::new(0, 0, 120, 20);
+        let mut buf = Buffer::empty(area);
+
+        render_local_subgraph(
+            Some(&node),
+            &[&incoming_edge, &outgoing_edge],
+            &[node.clone(), incoming_node, outgoing_node],
+            area,
+            &mut buf,
+        );
+
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(text.contains("Local Subgraph"));
+        assert!(text.contains("[FOCAL !] Focal Node"));
+        assert!(text.contains("Source Node"));
+        assert!(text.contains("Target Activity"));
+        assert!(text.contains("Enter/l opens the full edge list."));
+    }
+
+    #[test]
+    fn render_local_subgraph_uses_compact_layout_on_narrow_width() {
+        let node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:focal".to_string(),
+            label: "Focal Node".to_string(),
+            cluster: "reasoning".to_string(),
+            semantic_kind: "recommendation_hit".to_string(),
+            severity: None,
+            provenance: vec![],
+            shape_hint: Some("diamond".to_string()),
+        };
+        let outgoing_node = amlich_core::semantic_graph::VisualizationNode {
+            node_id: "node:target".to_string(),
+            label: "Target Activity".to_string(),
+            cluster: "recommendation".to_string(),
+            semantic_kind: "activity".to_string(),
+            severity: None,
+            provenance: vec![],
+            shape_hint: Some("box".to_string()),
+        };
+        let outgoing_edge = amlich_core::semantic_graph::VisualizationEdge {
+            edge_id: "edge:out".to_string(),
+            from_id: node.node_id.clone(),
+            to_id: outgoing_node.node_id.clone(),
+            label: "targets_activity".to_string(),
+            semantic_kind: "targets_activity".to_string(),
+            weight: 2,
+        };
+        let area = Rect::new(0, 0, 72, 16);
+        let mut buf = Buffer::empty(area);
+
+        render_local_subgraph(
+            Some(&node),
+            &[&outgoing_edge],
+            &[node.clone(), outgoing_node],
+            area,
+            &mut buf,
+        );
+
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(text.contains("Incoming"));
+        assert!(text.contains("Outgoing"));
+        assert!(text.contains("Enter/l: xem edge list"));
+    }
+
+    #[test]
+    fn hoat_dong_view_renders_title() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::HoatDong;
+        let text = render_text(&app);
+        assert!(text.contains("Hoạt Động"));
+    }
+
+    #[test]
+    fn hoat_dong_view_empty_state() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::HoatDong;
+        let text = render_text(&app);
+        assert!(!text.contains("Không có hoạt động cho ngày này"));
+        assert!(
+            text.contains("Kỵ mạnh")
+                || text.contains("Tránh")
+                || text.contains("Có thể")
+                || text.contains("Nên")
+        );
+    }
+
+    #[test]
+    fn nguon_view_renders_title() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::Nguon;
+        let text = render_text(&app);
+        assert!(text.contains("Xuất Xứ"));
+    }
+
+    #[test]
+    fn nguon_view_shows_source_data() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::Nguon;
+        let text = render_text(&app);
+        assert!(text.contains("nhóm xuất xứ") || text.contains("Không có dấu vết xuất xứ"));
+    }
+
+    #[test]
+    fn yeu_to_lens_shows_user_facing_title() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::YeuTo;
+        let text = render_text(&app);
+        assert!(text.contains("Yếu Tố"));
+        assert!(!text.contains("Causality Map"));
+    }
+
+    #[test]
+    fn default_non_dev_renders_vi_sao() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::ViSao;
+        let text = render_text(&app);
+        assert!(text.contains("Vì Sao Kết Luận"));
+        assert!(text.contains("Kết luận:"));
+        assert!(text.contains("Tin cậy:"));
+    }
+
+    #[test]
+    fn d_switches_to_debug_graph_mode() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::ViSao;
+        let text_non_dev = render_text(&app);
+        assert!(text_non_dev.contains("Vì Sao Kết Luận"));
+
+        app.dev_inspector_mode = true;
+        let text_dev = render_text(&app);
+        assert!(text_dev.contains("Đồ Thị Ngữ Nghĩa"));
+    }
+
+    #[test]
+    fn small_layout_renders_without_panic() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        let area = Rect::new(0, 0, 40, 15);
+        let mut buf = Buffer::empty(area);
+        GraphInspectorScreenWidget::new(&app, LayoutMode::Small).render(area, &mut buf);
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+        assert!(!text.is_empty());
+    }
 }

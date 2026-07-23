@@ -332,7 +332,7 @@ impl DaySnapshotGraphBuilder {
                 &taboo.evidence,
             )
             .unwrap_or_else(|| {
-                ProvenanceEntry::snapshot(node_id.clone(), &format!("taboo_{}", taboo.rule_id))
+                ProvenanceEntry::snapshot(node_id.clone(), format!("taboo_{}", taboo.rule_id))
             });
 
             let node = SemanticNode::new(
@@ -431,7 +431,7 @@ impl DaySnapshotGraphBuilder {
             travel.tai_than.clone(),
             travel.hy_than.clone(),
         ])
-        .with_provenance(provenance)        // existing khcbppt-family entry
+        .with_provenance(provenance) // existing khcbppt-family entry
         .with_provenance(huyen_khong_prov); // NEW — INT-04 multi-source
 
         self.graph.add_node(node);
@@ -490,12 +490,17 @@ impl DaySnapshotGraphBuilder {
             fs.palace_overlays.len()
         );
 
-        let node_id =
-            SemanticId::new("flying_star", format!("day:{}:flying_stars", self.tz_suffix))
-                .to_node_id();
+        let node_id = SemanticId::new(
+            "flying_star",
+            format!("day:{}:flying_stars", self.tz_suffix),
+        )
+        .to_node_id();
         let prov = ProvenanceEntry::almanac_rule(SOURCE_HUYEN_KHONG, "phi_tinh.combined_overlay");
         let node = SemanticNode::new(
-            SemanticId::new("flying_star", format!("day:{}:flying_stars", self.tz_suffix)),
+            SemanticId::new(
+                "flying_star",
+                format!("day:{}:flying_stars", self.tz_suffix),
+            ),
             NodeConcept::FlyingStar,
             NodeOrigin::Fact,
             summary,
@@ -503,13 +508,15 @@ impl DaySnapshotGraphBuilder {
         .with_provenance(prov);
 
         self.graph.add_node(node);
-        self.graph
-            .add_edge(SemanticEdge::new(&self.day_root_id, &node_id, EdgeConcept::Composes));
+        self.graph.add_edge(SemanticEdge::new(
+            &self.day_root_id,
+            &node_id,
+            EdgeConcept::Composes,
+        ));
 
         // OccupiesPalace edge from FlyingStar to Direction node — exercises new edge concept (INT-04)
         let direction_id =
-            SemanticId::new("direction", format!("travel:day:{}:all", self.tz_suffix))
-                .to_node_id();
+            SemanticId::new("direction", format!("travel:day:{}:all", self.tz_suffix)).to_node_id();
         self.graph.add_edge(SemanticEdge::new(
             &node_id,
             &direction_id,
@@ -521,8 +528,10 @@ impl DaySnapshotGraphBuilder {
         // its element drives Vận-wide auspice and pairs with the OccupiesPalace edge to give
         // the aggregate node both a spatial (palace) and an elemental (Ngũ Hành) handle.
         let element = star_metadata(fs.center_star).element.as_str();
-        let element_node_id_raw =
-            SemanticId::new("element", format!("flying_star:day:{}:center", self.tz_suffix));
+        let element_node_id_raw = SemanticId::new(
+            "element",
+            format!("flying_star:day:{}:center", self.tz_suffix),
+        );
         let element_node_id = element_node_id_raw.clone().to_node_id();
         let element_prov =
             ProvenanceEntry::almanac_rule(SOURCE_HUYEN_KHONG, "phi_tinh.center_star.element");
@@ -592,7 +601,9 @@ impl DaySnapshotGraphBuilder {
             serde_json::Value::Null
         };
         if !payload_value.is_null() {
-            self.graph.nodes_mut().get_mut(&node_id)
+            self.graph
+                .nodes_mut()
+                .get_mut(&node_id)
                 .expect("Ritual node just added")
                 .payload = Some(payload_value);
         }
@@ -657,27 +668,22 @@ impl DaySnapshotGraphBuilder {
                 let offering_node_id_raw = SemanticId::new(
                     "offering",
                     format!(
-                        "ritual:{ritual_id}:offering:{idx}:day:{}:{}",
-                        format!(
-                            "{:04}-{:02}-{:02}",
-                            snapshot.context.solar.year,
-                            snapshot.context.solar.month,
-                            snapshot.context.solar.day
-                        ),
+                        "ritual:{ritual_id}:offering:{idx}:day:{:04}-{:02}-{:02}:{}",
+                        snapshot.context.solar.year,
+                        snapshot.context.solar.month,
+                        snapshot.context.solar.day,
                         self.tz_suffix
                     ),
                 );
                 let offering_node_id = offering_node_id_raw.clone().to_node_id();
 
                 // Emit Offering node — single SOURCE_VN_FOLK_RITUAL provenance via constructor.
-                let offering_prov = ProvenanceEntry::almanac_rule(
-                    SOURCE_VN_FOLK_RITUAL,
-                    "ritual.offering_lookup",
-                )
-                .with_note(format!(
-                    "offering_id={};ritual_id={};rationale=lễ vật của nghi lễ",
-                    offering_ref.offering_id, ritual_id
-                ));
+                let offering_prov =
+                    ProvenanceEntry::almanac_rule(SOURCE_VN_FOLK_RITUAL, "ritual.offering_lookup")
+                        .with_note(format!(
+                            "offering_id={};ritual_id={};rationale=lễ vật của nghi lễ",
+                            offering_ref.offering_id, ritual_id
+                        ));
                 let offering_node = SemanticNode::new(
                     offering_node_id_raw,
                     NodeConcept::Offering,
@@ -737,14 +743,11 @@ impl DaySnapshotGraphBuilder {
                 for (cure_source_id, element_cure_for) in &cross_cures {
                     self.graph.track_provenance(
                         &edge_id,
-                        ProvenanceEntry::almanac_rule(
-                            cure_source_id,
-                            "ritual.cross_source_cure",
-                        )
-                        .with_note(format!(
-                            "ritual={};offering_id={};element_cure_for={}",
-                            ritual_id, offering_ref.offering_id, element_cure_for
-                        )),
+                        ProvenanceEntry::almanac_rule(cure_source_id, "ritual.cross_source_cure")
+                            .with_note(format!(
+                                "ritual={};offering_id={};element_cure_for={}",
+                                ritual_id, offering_ref.offering_id, element_cure_for
+                            )),
                     );
                 }
             }
@@ -784,9 +787,7 @@ impl DaySnapshotGraphBuilder {
 
         let date_str = format!(
             "{:04}-{:02}-{:02}",
-            snapshot.context.solar.year,
-            snapshot.context.solar.month,
-            snapshot.context.solar.day
+            snapshot.context.solar.year, snapshot.context.solar.month, snapshot.context.solar.day
         );
 
         let chu_kw = summary.chu_king_wen_index();
@@ -798,43 +799,36 @@ impl DaySnapshotGraphBuilder {
 
         // CRIT-6 dual-source provenance per node: casting source_id
         // (SOURCE_MAI_HOA_DICH_SO) + corpus source_id (SOURCE_KINH_DICH).
-        let chu_prov_cast = ProvenanceEntry::almanac_rule(
-            SOURCE_MAI_HOA_DICH_SO,
-            "iching.cast_mai_hoa",
-        )
-        .with_note(format!(
-            "king_wen={};moving_line={}",
-            chu_kw, summary.cast.dong_hao
-        ));
+        let chu_prov_cast =
+            ProvenanceEntry::almanac_rule(SOURCE_MAI_HOA_DICH_SO, "iching.cast_mai_hoa").with_note(
+                format!("king_wen={};moving_line={}", chu_kw, summary.cast.dong_hao),
+            );
         let chu_prov_corpus =
-            ProvenanceEntry::almanac_rule(SOURCE_KINH_DICH, "iching.corpus_lookup")
-                .with_note(format!(
+            ProvenanceEntry::almanac_rule(SOURCE_KINH_DICH, "iching.corpus_lookup").with_note(
+                format!(
                     "king_wen={};vi_name={}",
                     chu_kw, summary.chu_hexagram_vi_name
-                ));
-        let bien_prov_cast = ProvenanceEntry::almanac_rule(
-            SOURCE_MAI_HOA_DICH_SO,
-            "iching.derive_bien_que",
-        )
-        .with_note(format!(
-            "king_wen={};flipped_dong_hao={}",
-            bien_kw, summary.bien_que.flipped_dong_hao
-        ));
-        let bien_prov_corpus =
-            ProvenanceEntry::almanac_rule(SOURCE_KINH_DICH, "iching.corpus_lookup")
+                ),
+            );
+        let bien_prov_cast =
+            ProvenanceEntry::almanac_rule(SOURCE_MAI_HOA_DICH_SO, "iching.derive_bien_que")
                 .with_note(format!(
+                    "king_wen={};flipped_dong_hao={}",
+                    bien_kw, summary.bien_que.flipped_dong_hao
+                ));
+        let bien_prov_corpus =
+            ProvenanceEntry::almanac_rule(SOURCE_KINH_DICH, "iching.corpus_lookup").with_note(
+                format!(
                     "king_wen={};vi_name={}",
                     bien_kw, summary.bien_hexagram_vi_name
-                ));
+                ),
+            );
 
         let chu_node = SemanticNode::new(
             chu_id_raw,
             NodeConcept::Hexagram,
             NodeOrigin::Fact,
-            format!(
-                "Quẻ chủ #{} {}",
-                chu_kw, summary.chu_hexagram_vi_name
-            ),
+            format!("Quẻ chủ #{} {}", chu_kw, summary.chu_hexagram_vi_name),
         )
         .with_tags(vec![
             format!("king_wen={}", chu_kw),
@@ -850,10 +844,7 @@ impl DaySnapshotGraphBuilder {
             bien_id_raw,
             NodeConcept::Hexagram,
             NodeOrigin::Fact,
-            format!(
-                "Quẻ biến #{} {}",
-                bien_kw, summary.bien_hexagram_vi_name
-            ),
+            format!("Quẻ biến #{} {}", bien_kw, summary.bien_hexagram_vi_name),
         )
         .with_tags(vec![
             format!("king_wen={}", bien_kw),
@@ -903,14 +894,9 @@ impl DaySnapshotGraphBuilder {
 
         let date_str = format!(
             "{:04}-{:02}-{:02}",
-            snapshot.context.solar.year,
-            snapshot.context.solar.month,
-            snapshot.context.solar.day
+            snapshot.context.solar.year, snapshot.context.solar.month, snapshot.context.solar.day
         );
-        let node_id_raw = SemanticId::new(
-            "direction",
-            format!("cross_link:{}:+7", date_str),
-        );
+        let node_id_raw = SemanticId::new("direction", format!("cross_link:{}:+7", date_str));
         let node_id = node_id_raw.clone().to_node_id();
 
         // Phase 23's locked CRIT-6 dual-source pattern: distinct primitive
@@ -918,14 +904,12 @@ impl DaySnapshotGraphBuilder {
         // `DirectionCrossLinkSummary.cross_link_source` (which carries
         // the composite `rule.composite.direction_cross_link` value per
         // ADR-0007).
-        let khcbppt_prov = ProvenanceEntry::almanac_rule(
-            SOURCE_KHCBPPT,
-            "thai_tue_tam_sat_directional",
-        )
-        .with_note(format!(
-            "day_chi_index={};birth_chi_index={}",
-            cross.day_chi_index, cross.birth_chi_index
-        ));
+        let khcbppt_prov =
+            ProvenanceEntry::almanac_rule(SOURCE_KHCBPPT, "thai_tue_tam_sat_directional")
+                .with_note(format!(
+                    "day_chi_index={};birth_chi_index={}",
+                    cross.day_chi_index, cross.birth_chi_index
+                ));
         let huyen_khong_prov =
             ProvenanceEntry::almanac_rule(SOURCE_HUYEN_KHONG, "phi_tinh.palace_overlay")
                 .with_note(format!("day_chi_index={}", cross.day_chi_index));
@@ -942,10 +926,7 @@ impl DaySnapshotGraphBuilder {
             node_id_raw,
             NodeConcept::Direction,
             NodeOrigin::Fact,
-            format!(
-                "Cross-link KHCBPPT×Huyền-Không ({})",
-                cross.cross_link_kind
-            ),
+            format!("Cross-link KHCBPPT×Huyền-Không ({})", cross.cross_link_kind),
         )
         .with_tags(vec![
             format!("cross_link_kind={}", cross.cross_link_kind),
@@ -1045,7 +1026,7 @@ mod tests {
         let snapshot = calculate_day_snapshot(10, 2, 2024);
         let graph = build_day_snapshot_graph(&snapshot);
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             assert!(
                 !node.provenance.is_empty(),
                 "node {} should have provenance",
@@ -1125,7 +1106,7 @@ mod tests {
         let snapshot = calculate_day_snapshot(10, 2, 2024);
         let graph = build_day_snapshot_graph(&snapshot);
 
-        for (_, node) in graph.nodes() {
+        for node in graph.nodes().values() {
             assert!(
                 !node.provenance.is_empty(),
                 "node {} should have provenance",
@@ -1277,8 +1258,7 @@ mod tests {
 
         // --- Verify CarriesElement edge: FlyingStar node connects to its center-star Element node ---
         let fs_node_id = flying_star_node.node_id.clone();
-        let element_node_id =
-            SemanticId::new("element", "flying_star:day:+7:center").to_node_id();
+        let element_node_id = SemanticId::new("element", "flying_star:day:+7:center").to_node_id();
         let carries_element_edge = graph
             .edges()
             .values()
@@ -1340,7 +1320,11 @@ mod tests {
             node.provenance
         );
 
-        let source_ids: Vec<&str> = node.provenance.iter().map(|p| p.source_id.as_str()).collect();
+        let source_ids: Vec<&str> = node
+            .provenance
+            .iter()
+            .map(|p| p.source_id.as_str())
+            .collect();
         assert!(
             source_ids.contains(&"huyen-khong"),
             "Direction node must have a huyen-khong provenance entry; got: {:?}",
@@ -1482,7 +1466,9 @@ mod tests {
                 .get(&edge.edge_id)
                 .expect("RecommendsOffering edge must have provenance entries");
             assert!(
-                entries.iter().any(|p| p.source_id.as_str() == "vn-folk-ritual"),
+                entries
+                    .iter()
+                    .any(|p| p.source_id.as_str() == "vn-folk-ritual"),
                 "RecommendsOffering edge provenance must include vn-folk-ritual"
             );
         }

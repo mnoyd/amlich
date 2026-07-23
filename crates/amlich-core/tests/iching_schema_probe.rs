@@ -25,8 +25,8 @@
 //! This test passing means Phase 21 can author the 64 corpus entries against
 //! a frozen schema.
 
-use amlich_core::iching::{HauThienTrigram, HexagramEntry, KingWenHexagram};
 use amlich_core::almanac::fengshui::golden::DeferralMarker;
+use amlich_core::iching::{HauThienTrigram, HexagramEntry, KingWenHexagram};
 
 /// Round-trip the trickiest single entry: hexagram #2 Khôn with 7 hao_tu,
 /// NFC diacritics, a reviewer free-text marker, and a populated
@@ -87,7 +87,10 @@ fn hexagram_entry_one_entry_serde_round_trip() {
         "7-hao_tu rule for hexagrams 1 & 2 — got {}",
         roundtripped.hao_tu.len()
     );
-    assert_eq!(entry.hao_tu, roundtripped.hao_tu, "hao_tu entries round-trip");
+    assert_eq!(
+        entry.hao_tu, roundtripped.hao_tu,
+        "hao_tu entries round-trip"
+    );
 
     // 5. `pending_review: Some(DeferralMarker { ... })` survives serialisation
     //    (the v1.6 RIT-14 reuse).
@@ -116,7 +119,9 @@ fn hexagram_entry_one_entry_serde_round_trip() {
         roundtripped.reviewer
     );
     assert!(
-        roundtripped.reviewer.contains("expected_review_date=\"2026-12-31\""),
+        roundtripped
+            .reviewer
+            .contains("expected_review_date=\"2026-12-31\""),
         "reviewer marker sub-fields preserved: {:?}",
         roundtripped.reviewer
     );
@@ -178,9 +183,18 @@ fn hexagram_entry_reserved_en_fields_absent_round_trip_as_none() {
     let entry: HexagramEntry = serde_json::from_str(&json).expect("deserialize");
 
     // All reserved *_en fields default to None when absent.
-    assert!(entry.vi_name_en.is_none(), "vi_name_en must be None when absent");
-    assert!(entry.thoai_tu_en.is_none(), "thoai_tu_en must be None when absent");
-    assert!(entry.hao_tu_en.is_none(), "hao_tu_en must be None when absent");
+    assert!(
+        entry.vi_name_en.is_none(),
+        "vi_name_en must be None when absent"
+    );
+    assert!(
+        entry.thoai_tu_en.is_none(),
+        "thoai_tu_en must be None when absent"
+    );
+    assert!(
+        entry.hao_tu_en.is_none(),
+        "hao_tu_en must be None when absent"
+    );
     assert!(
         entry.pending_review.is_none(),
         "pending_review must be None when absent"
@@ -216,5 +230,8 @@ fn hau_thien_trigram_deserialises_from_snake_case_name() {
     let json = serde_json::json!("khon").to_string();
     let trigram: HauThienTrigram = serde_json::from_str(&json).expect("deserialize");
     assert_eq!(trigram, HauThienTrigram::Khon);
-    assert_eq!(trigram as u8, 2, "Hậu Thiên Khôn = Lo Shu 2 (Pitfall 1 pin)");
+    assert_eq!(
+        trigram as u8, 2,
+        "Hậu Thiên Khôn = Lo Shu 2 (Pitfall 1 pin)"
+    );
 }

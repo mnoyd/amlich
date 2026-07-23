@@ -11,8 +11,7 @@ use amlich_core::almanac::fengshui::{
     compute_daily_flying_stars, load_daily_flying_stars_golden, TietKhiScanner,
 };
 
-const DAILY_GOLDEN_JSON: &str =
-    include_str!("../data/almanac/flying_stars_daily_golden.json");
+const DAILY_GOLDEN_JSON: &str = include_str!("../data/almanac/flying_stars_daily_golden.json");
 
 /// Coverage floor gate: >= 30 daily cases, >= 10 per Vận (7/8/9), >= 2 sources
 /// per case, Thẩm Thị tiebreaker cited, additive `pivot` field present on every
@@ -64,17 +63,18 @@ fn daily_golden_dataset_per_case_algorithm_resolution() {
     // Reconstruct each case's date from the embedded JSON (the dataset does not
     // carry month/day on the case struct — only jd + year). We parse the JD
     // from the JSON to reconstruct the date, then feed it to the algorithm.
-    let raw: serde_json::Value = serde_json::from_str(DAILY_GOLDEN_JSON)
-        .expect("failed to parse daily golden JSON in test");
+    let raw: serde_json::Value =
+        serde_json::from_str(DAILY_GOLDEN_JSON).expect("failed to parse daily golden JSON in test");
 
     let cases_json = raw
         .get("cases")
         .and_then(|c| c.as_array())
         .expect("cases array in daily golden JSON");
 
-    let daily_cases: Vec<_> = cases_json.iter().filter(|c| {
-        c.get("kind").and_then(|k| k.as_str()) == Some("daily")
-    }).collect();
+    let daily_cases: Vec<_> = cases_json
+        .iter()
+        .filter(|c| c.get("kind").and_then(|k| k.as_str()) == Some("daily"))
+        .collect();
     assert!(
         daily_cases.len() >= 30,
         "need >= 30 daily cases for resolution sampling, got {}",
@@ -87,10 +87,7 @@ fn daily_golden_dataset_per_case_algorithm_resolution() {
         if sampled >= 10 {
             break;
         }
-        let id = case_json
-            .get("id")
-            .and_then(|v| v.as_str())
-            .unwrap_or("?");
+        let id = case_json.get("id").and_then(|v| v.as_str()).unwrap_or("?");
         let year = case_json
             .get("year")
             .and_then(|v| v.as_i64())

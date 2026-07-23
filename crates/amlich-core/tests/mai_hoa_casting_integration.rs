@@ -112,11 +112,26 @@ fn casting_is_deterministic_and_rng_free() {
 
     // 20 distinct tuples, each repeated 3x.
     let tuples: Vec<(u8, u8, u8, u8)> = vec![
-        (0, 1, 1, 0), (1, 2, 3, 4), (2, 3, 5, 6), (3, 4, 7, 8),
-        (4, 5, 9, 10), (5, 6, 11, 0), (6, 7, 13, 2), (7, 8, 15, 4),
-        (8, 9, 17, 6), (9, 10, 19, 8), (10, 11, 21, 10), (11, 12, 23, 0),
-        (0, 6, 12, 6), (3, 9, 15, 9), (6, 12, 18, 0), (9, 1, 21, 3),
-        (1, 7, 13, 5), (4, 10, 16, 8), (7, 1, 19, 11), (11, 8, 30, 0),
+        (0, 1, 1, 0),
+        (1, 2, 3, 4),
+        (2, 3, 5, 6),
+        (3, 4, 7, 8),
+        (4, 5, 9, 10),
+        (5, 6, 11, 0),
+        (6, 7, 13, 2),
+        (7, 8, 15, 4),
+        (8, 9, 17, 6),
+        (9, 10, 19, 8),
+        (10, 11, 21, 10),
+        (11, 12, 23, 0),
+        (0, 6, 12, 6),
+        (3, 9, 15, 9),
+        (6, 12, 18, 0),
+        (9, 1, 21, 3),
+        (1, 7, 13, 5),
+        (4, 10, 16, 8),
+        (7, 1, 19, 11),
+        (11, 8, 30, 0),
     ];
     assert_eq!(tuples.len(), 20);
     for t in tuples {
@@ -372,12 +387,7 @@ fn crit3_isolation_no_cross_newtype_from_impls() {
         ("King", "WenHexagram"),
     ]
     .iter()
-    .flat_map(|(a, b)| {
-        [
-            format!("impl From<{a}{b}"),
-            format!("impl<{a}{b}> From"),
-        ]
-    })
+    .flat_map(|(a, b)| [format!("impl From<{a}{b}"), format!("impl<{a}{b}> From")])
     .collect();
 
     for src_name in [("mai_hoa.rs", MAI_HOA_SRC), ("bien_que.rs", BIEN_QUE_SRC)] {

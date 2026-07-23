@@ -167,7 +167,9 @@ pub fn tam_sat_direction(year_chi_index: usize) -> TamSatDirectionResult {
             // references the discoverable provenance artifact and carries an
             // explicit PendingExternalReview marker for the exact page citation.
             method: "tam_sat_opposite_triad".to_string(),
-            profile: "baseline | provenance: data/almanac/tam_sat_provenance.md | PendingExternalReview".to_string(),
+            profile:
+                "baseline | provenance: data/almanac/tam_sat_provenance.md | PendingExternalReview"
+                    .to_string(),
         },
     }
 }

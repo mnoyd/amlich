@@ -1,8 +1,7 @@
 use amlich_core::semantic_graph::{
-    ConceptLabel, EdgeConcept, GraphMergeError, GraphOntology, GraphValidationError, LlmGraphSlice,
-    NodeConcept, NodeOrigin, ProvenanceEntry, ProvenanceSource, SemanticEdge, SemanticEdgeId,
-    SemanticEdgeLabel, SemanticGraph, SemanticId, SemanticNode, SemanticNodeId, SubgraphView,
-    VisualizationGraph,
+    ConceptLabel, EdgeConcept, GraphMergeError, GraphOntology, LlmGraphSlice, NodeConcept,
+    NodeOrigin, ProvenanceEntry, ProvenanceSource, SemanticEdge, SemanticEdgeId, SemanticEdgeLabel,
+    SemanticGraph, SemanticId, SemanticNode, SemanticNodeId, SubgraphView, VisualizationGraph,
 };
 
 #[test]
