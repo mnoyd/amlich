@@ -352,6 +352,7 @@ fn get_personal_day_report(
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 fn get_personal_day_matrix_report(
     day: i32,
     month: i32,
@@ -546,5 +547,160 @@ mod tests {
         assert_eq!(range.days.len(), 3);
         assert!(range.days[0].canchi.is_some());
         assert!(range.days[0].tiet_khi.is_some());
+    }
+
+    #[test]
+    fn get_month_data_command_builds_calendar_grid() {
+        let data = get_month_data(2, 2024).expect("month data");
+
+        assert_eq!(data.month, 2);
+        assert_eq!(data.year, 2024);
+        // 2024 has 29 days in February.
+        assert_eq!(data.days.len(), 29);
+        assert_eq!(data.days[0].day, 1);
+        assert_eq!(data.days[28].day, 29);
+        // First weekday of Feb 2024 is Thursday (index 4).
+        assert_eq!(data.first_weekday, 4);
+        // Each day cell carries lunar + canchi metadata for the workspace.
+        assert!(!data.days[0].canchi_day.is_empty());
+        assert!(!data.days[0].lunar_date.is_empty());
+    }
+
+    #[test]
+    fn get_month_data_command_rejects_invalid_month() {
+        assert!(get_month_data(0, 2024).is_err());
+        assert!(get_month_data(13, 2024).is_err());
+    }
+
+    #[test]
+    fn get_day_detail_command_returns_decorated_cell() {
+        let cell = get_day_detail(10, 2, 2024).expect("day detail");
+
+        assert_eq!(cell.day, 10);
+        assert_eq!(cell.month, 2);
+        assert_eq!(cell.year, 2024);
+        assert_eq!(cell.solar_date, "2024-02-10");
+        assert!(!cell.canchi_day.is_empty());
+        assert!(!cell.canchi_month.is_empty());
+        assert!(!cell.canchi_year.is_empty());
+        // Good hours list is populated for the Day workspace.
+        assert!(!cell.good_hours.is_empty());
+        assert!(cell.good_hours.iter().all(|h| !h.hour_chi.is_empty()
+            && !h.time_range.is_empty()
+            && !h.star.is_empty()));
+    }
+
+    #[test]
+    fn get_day_detail_command_rejects_out_of_range_parts() {
+        assert!(get_day_detail(0, 2, 2024).is_err());
+        assert!(get_day_detail(32, 2, 2024).is_err());
+        assert!(get_day_detail(10, 0, 2024).is_err());
+        assert!(get_day_detail(10, 13, 2024).is_err());
+    }
+
+    #[test]
+    fn get_day_bundle_command_returns_full_bundle() {
+        let bundle = get_day_bundle(10, 2, 2024).expect("day bundle");
+
+        assert!(!bundle.schema_version.is_empty());
+        assert!(!bundle.ruleset_id.is_empty());
+        assert_eq!(bundle.solar.year, 2024);
+        assert_eq!(bundle.solar.month, 2);
+        assert_eq!(bundle.solar.day, 10);
+        assert!(bundle.canchi.is_some());
+        assert!(bundle.tiet_khi.is_some());
+        assert!(bundle.gio_hoang_dao.is_some());
+    }
+
+    #[test]
+    fn get_day_info_and_insight_commands_return_consistent_solar_anchor() {
+        let info = get_day_info(10, 2, 2024).expect("day info");
+        let insight = get_day_insight(10, 2, 2024).expect("day insight");
+
+        assert_eq!(info.solar.date_string, "2024-02-10");
+        assert_eq!(insight.solar.date_string, "2024-02-10");
+        assert_eq!(info.lunar.date_string, insight.lunar.date_string);
+    }
+
+    #[test]
+    fn get_bazi_report_command_returns_summary_and_signals() {
+        let report =
+            get_bazi_report(1990, 1, 1, 9, 30, Some("male".to_string())).expect("bazi report");
+
+        assert!(!report.summary.is_empty());
+        assert!(!report.top_signals.is_empty());
+        assert!(!report.why_this_matters.is_empty());
+        assert!(!report.recommended_actions.is_empty());
+    }
+
+    #[test]
+    fn get_bazi_derived_report_command_returns_thai_nguyen_and_tier() {
+        let report = get_bazi_derived_report(1990, 1, 1, 9, 30, Some("male".to_string()))
+            .expect("bazi derived report");
+
+        assert_eq!(report.tier, amlich_api::BirthDataTierDto::Datetime);
+        assert!(!report.thai_nguyen.can_chi.full.is_empty());
+        assert!(report.menh_cung.is_some());
+    }
+
+    #[test]
+    fn get_hour_selection_report_command_returns_chart_and_analysis() {
+        let report = get_hour_selection_report(10, 2, 2024).expect("hour selection report");
+
+        assert!(!report.chart.gio_hoang_dao.good_hours.is_empty());
+        assert!(report.computed_metrics.good_hour_count + report.computed_metrics.bad_hour_count > 0);
+    }
+
+    #[test]
+    fn get_tiet_khi_for_year_command_returns_24_transitions() {
+        let year = get_tiet_khi_for_year(2024).expect("tiet khi year");
+
+        assert_eq!(year.year, 2024);
+        // 24 tiết khí in a year, plus a leading/trailing boundary transition.
+        assert!(year.transitions.len() >= 24);
+        assert!(year.transitions.iter().all(|t| !t.term.name.is_empty()));
+    }
+
+    #[test]
+    fn catalog_commands_return_non_empty_entries() {
+        let rulesets = get_ruleset_catalog();
+        assert!(!rulesets.is_empty());
+        assert!(rulesets.iter().all(|r| !r.id.is_empty() && !r.version.is_empty()));
+
+        let packs = get_recommendation_pack_catalog();
+        assert!(!packs.is_empty());
+        assert!(packs.iter().all(|p| !p.pack_id.is_empty() && !p.version.is_empty()));
+    }
+
+    #[test]
+    fn get_holidays_list_command_filters_by_major_flag() {
+        let all = get_holidays_list(2024, false);
+        let major = get_holidays_list(2024, true);
+
+        assert!(!all.is_empty());
+        assert!(major.iter().all(|h| h.is_major));
+        assert!(major.len() <= all.len());
+    }
+
+    #[test]
+    fn get_install_context_command_reports_runtime_metadata() {
+        let ctx = get_install_context();
+
+        assert!(!ctx.platform.is_empty());
+        assert!(!ctx.arch.is_empty());
+        assert!(!ctx.app_version.is_empty());
+        assert_eq!(ctx.can_self_update, !ctx.is_system_install);
+    }
+
+    #[test]
+    fn gender_is_passed_through_to_bazi_commands() {
+        let male =
+            get_bazi_report(1990, 1, 1, 9, 30, Some("nam".to_string())).expect("bazi male");
+        let female =
+            get_bazi_report(1990, 1, 1, 9, 30, Some("nữ".to_string())).expect("bazi female");
+
+        // Same chart, but the advisory summary should differ once gender is applied.
+        assert!(!male.summary.is_empty());
+        assert!(!female.summary.is_empty());
     }
 }

@@ -44,9 +44,32 @@ build-app-macos:
 # Build everything (current platform)
 build-all: build build-wasm build-app
 
+# ============== Desktop (Tauri) ==============
+
+# Run Rust unit tests for the desktop Tauri crate (am-lich)
+test-desktop:
+    cargo test --package am-lich
+
+# Clippy for the desktop Tauri crate
+clippy-desktop:
+    cargo clippy --package am-lich --no-deps -- -D warnings
+
+# Type-check the desktop Svelte frontend (no Tauri runtime needed)
+check-desktop-types:
+    cd apps/desktop && pnpm install && pnpm exec svelte-kit sync && pnpm check
+
+# Build the desktop frontend bundle only (vite build, no Tauri/Rust bundling)
+build-desktop-frontend:
+    cd apps/desktop && pnpm install && pnpm exec svelte-kit sync && pnpm build
+
+# Lightweight desktop smoke check: Rust tests + clippy + frontend type-check + frontend build.
+# Use this in CI and pre-push instead of a full `tauri build`.
+smoke-desktop: test-desktop clippy-desktop check-desktop-types build-desktop-frontend
+    @echo "Desktop smoke check passed."
+
 # ============== Test ==============
 
-# Run all tests
+# Run all Rust crate tests (excludes am-lich desktop crate; use `just test-desktop` for that)
 test:
     cargo test --workspace --exclude am-lich
 
@@ -68,7 +91,7 @@ test-verbose:
 dev:
     cd apps/desktop && pnpm tauri dev
 
-# Check code without building
+# Check code without building (excludes am-lich desktop crate)
 check:
     cargo check --workspace --exclude am-lich
 
@@ -76,7 +99,7 @@ check:
 fmt:
     cargo fmt --all
 
-# Lint code
+# Lint code (excludes am-lich desktop crate; use `just clippy-desktop` for that)
 lint:
     cargo clippy --workspace --exclude am-lich -- -D warnings
 
