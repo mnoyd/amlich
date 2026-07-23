@@ -1117,6 +1117,13 @@ export interface PersonalDayAdvisoryDto {
     priority_order: string[];
     highlights: string[];
     cautions: string[];
+    /**
+     * Missing-profile / missing-context messages that the Rust side separates
+     * from `cautions` (amlich-mwbp.5) so `severity` reflects only genuine
+     * adverse day signals. Omitted on the wire when empty
+     * (`#[serde(skip_serializing_if = "Vec::is_empty")]`).
+     */
+    unavailable_context?: string[];
     reasoning_bucket?: string | null;
     reasoning_confidence?: string | null;
     canonical_assessment?: PersonalDayAssessmentDto | null;

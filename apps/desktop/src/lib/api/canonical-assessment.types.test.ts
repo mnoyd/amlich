@@ -143,6 +143,30 @@ type _AssessmentKeys = AssertTrue<
     >
 >;
 
+// PersonalDayAdvisoryDto field set, locked against the Rust serde contract in
+// crates/amlich-api/src/dto.rs. `unavailable_context` is `Vec<String>` with
+// `skip_serializing_if = "Vec::is_empty"`, so on the wire it is OMITTED when
+// empty — the TS side mirrors that as an optional field. The key still appears
+// in `keyof` regardless of optionality, so this assertion catches drift in
+// either direction. (amlich-am5l)
+type _AdvisoryKeys = AssertTrue<
+    Equals<
+        keyof PersonalDayAdvisoryDto,
+        | 'summary'
+        | 'severity'
+        | 'top_signals'
+        | 'why_this_matters'
+        | 'recommended_actions'
+        | 'priority_order'
+        | 'highlights'
+        | 'cautions'
+        | 'unavailable_context'
+        | 'reasoning_bucket'
+        | 'reasoning_confidence'
+        | 'canonical_assessment'
+    >
+>;
+
 // ---------------------------------------------------------------------------
 // Reasoning graph contracts (locked against crates/amlich-core/src/reasoning/types.rs).
 // Consumed by the Evidence Graph workspace (amlich-01mx).
@@ -378,10 +402,47 @@ const _minimalAlsoInsights: InsightsPersonalDayAssessmentDto = MINIMAL_ASSESSMEN
 // enum contract ('anonymous' | 'date' | 'datetime').
 const _capabilityTierLiteral: 'datetime' = COMPLETE_ASSESSMENT.capability_tier;
 
+// ---------------------------------------------------------------------------
+// Advisory fixtures (amlich-am5l): prove `unavailable_context` is genuinely
+// optional (omittable, matching `skip_serializing_if = "Vec::is_empty"`) AND
+// that it accepts the missing-profile/missing-context messages the Rust side
+// separates out of `cautions`. `satisfies` rejects excess properties on the
+// object literal, so this also locks the advisory field set at the value level.
+// ---------------------------------------------------------------------------
+
+const ADVISORY_WITHOUT_UNAVAILABLE_CONTEXT = {
+    summary: 'Ngày ổn, chưa đủ dữ liệu cá nhân.',
+    severity: 'low',
+    top_signals: ['trực phù hợp'],
+    why_this_matters: ['Trực khai trương hợp ý định.'],
+    recommended_actions: ['Chờ dữ liệu giờ sinh'],
+    priority_order: ['personal_alignment'],
+    highlights: ['trực phù hợp'],
+    cautions: [],
+} satisfies PersonalDayAdvisoryDto;
+
+const ADVISORY_WITH_UNAVAILABLE_CONTEXT = {
+    summary: 'Ngày ổn, thiếu dữ liệu cá nhân.',
+    severity: 'low',
+    top_signals: ['trực phù hợp'],
+    why_this_matters: ['Trực khai trương hợp ý định.'],
+    recommended_actions: ['Cung cấp giờ sinh để kích hoạt phân tích cá nhân'],
+    priority_order: ['personal_alignment'],
+    highlights: ['trực phù hợp'],
+    cautions: [],
+    unavailable_context: [
+        'missing kua profile context',
+        'missing dai van timing context',
+        'ten gods analysis unavailable',
+    ],
+} satisfies PersonalDayAdvisoryDto;
+
 // Silence "declared but never read" for the value-level fixtures.
 export const _fixtures = {
     complete: COMPLETE_ASSESSMENT,
     minimal: MINIMAL_ASSESSMENT,
     minimalAlsoInsights: _minimalAlsoInsights,
     capabilityTierLiteral: _capabilityTierLiteral,
+    advisoryWithoutUnavailableContext: ADVISORY_WITHOUT_UNAVAILABLE_CONTEXT,
+    advisoryWithUnavailableContext: ADVISORY_WITH_UNAVAILABLE_CONTEXT,
 };
