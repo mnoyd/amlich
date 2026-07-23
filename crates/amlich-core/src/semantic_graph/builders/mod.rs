@@ -10,7 +10,9 @@ pub use interaction::{
     build_day_person_matrix_graph, build_direction_merge_matrix_graph,
     build_personal_hour_matrix_graph,
 };
-pub use merge::{build_reasoning_input_graph, ReasoningInputGraph};
+pub use merge::{
+    build_reasoning_input_graph, build_reasoning_input_graph_with_facts, ReasoningInputGraph,
+};
 #[allow(unused)]
 pub use recommendation::build_recommendation_evidence_graph;
 pub use recommendation::build_recommendation_evidence_graph_connected;

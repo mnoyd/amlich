@@ -12,6 +12,7 @@ use super::types::{BranchRelation, DayPersonMatrix, ElementInteraction, PillarIn
 /// producing Thập Thần (stem-to-stem), Xung/Hợp (branch-to-branch), and element
 /// interaction data for each available pillar.
 pub fn compute_day_person_matrix(day_canchi: &CanChi, chart: &BaziChart) -> DayPersonMatrix {
+    crate::build_count::day_person_matrix_built();
     let day_stem = HeavenlyStem::ALL[day_canchi.can_index];
     let day_master_stem = HeavenlyStem::ALL[chart.day_master.can_index];
 

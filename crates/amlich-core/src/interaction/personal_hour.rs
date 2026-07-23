@@ -37,6 +37,7 @@ pub fn compute_personal_hour_matrix(
     chart: &BaziChart,
     element_dist: &ElementDistribution,
 ) -> Option<PersonalHourMatrix> {
+    crate::build_count::personal_hour_matrix_built();
     let day_stem = HeavenlyStem::ALL[day_canchi.can_index];
     let day_master_stem = HeavenlyStem::ALL[chart.day_master.can_index];
     let birth_hour_chi_index = chart.hour_pillar.as_ref()?.can_chi.chi_index;

@@ -107,6 +107,7 @@ pub fn analyze_bazi_chart(chart: &BaziChart) -> BaziAnalysisReport {
 }
 
 pub fn compute_element_distribution(chart: &BaziChart) -> ElementDistribution {
+    crate::build_count::element_distribution_built();
     let mut distribution = ElementDistribution {
         moc: 0,
         hoa: 0,

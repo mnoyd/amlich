@@ -13,6 +13,7 @@ pub mod analysis_envelope;
 pub mod assessment;
 pub mod bazi;
 pub mod birth;
+pub mod build_count;
 pub mod canchi;
 pub mod gio_hoang_dao;
 pub mod holiday_data;
@@ -272,6 +273,7 @@ pub fn calculate_day_snapshot_with_recommendation_request(
     event_kind: Option<&str>,
     enabled_pack_ids: &[&str],
 ) -> Result<DaySnapshot, String> {
+    crate::build_count::snapshot_built();
     calculate_day_snapshot_internal(
         day,
         month,
@@ -307,6 +309,26 @@ pub fn build_initiation_opening_reasoning_bundle(
     personal_input: Option<&PersonalReasoningInput>,
 ) -> Result<reasoning::InitiationOpeningReasoningBundle, String> {
     reasoning::build_initiation_opening_reasoning_bundle(snapshot, personal_input)
+}
+
+/// Build the reasoning bundle reusing a precomputed
+/// [`reasoning::PersonalAssessmentFacts`] and the canonical
+/// [`assessment::PersonalDayAssessment`] so the chart, the matrices, and
+/// the assessment are not rebuilt alongside the graph build. Per-request
+/// request paths must use this entry point — see REPAIR-PLAN.md P2
+/// (`amlich-mwbp.8` finding A-R11).
+pub fn build_initiation_opening_reasoning_bundle_with_facts(
+    snapshot: &DaySnapshot,
+    personal_input: Option<&PersonalReasoningInput>,
+    facts: Option<&reasoning::PersonalAssessmentFacts>,
+    canonical_assessment: Option<&assessment::PersonalDayAssessment>,
+) -> Result<reasoning::InitiationOpeningReasoningBundle, String> {
+    reasoning::build_initiation_opening_reasoning_bundle_with_facts(
+        snapshot,
+        personal_input,
+        facts,
+        canonical_assessment,
+    )
 }
 
 /// Phase 23 (XLK-03) immutable enrichment: clone the snapshot, build the

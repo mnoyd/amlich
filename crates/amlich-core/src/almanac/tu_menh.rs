@@ -179,6 +179,7 @@ impl KuaResult {
 /// assert_eq!(result.group, amlich_core::almanac::tu_menh::KuaGroup::East);
 /// ```
 pub fn compute_kua(birth_year: i32, gender: Gender) -> KuaResult {
+    crate::build_count::kua_computed();
     let convention = ConventionMetadata::project_default();
 
     // Sum the digits of the birth year to a single digit

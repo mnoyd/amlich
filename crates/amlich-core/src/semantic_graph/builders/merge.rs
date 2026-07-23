@@ -1,8 +1,5 @@
-use crate::almanac::tu_menh::compute_kua;
-use crate::bazi::{analyze_bazi_chart, build_bazi_chart, compute_element_distribution, BaziInput};
-use crate::interaction::day_person::compute_day_person_matrix;
-use crate::interaction::direction_merge::compute_direction_merge;
-use crate::interaction::personal_hour::compute_personal_hour_matrix;
+use crate::bazi::BaziInput;
+use crate::reasoning::PersonalAssessmentFacts;
 use crate::semantic_graph::SemanticGraph;
 use crate::DaySnapshot;
 
@@ -30,9 +27,16 @@ impl ReasoningInputGraph {
         }
     }
 
-    pub fn from_day_and_bazi(
+    /// Build the reasoning input graph from a snapshot and a Bazi input,
+    /// reusing a precomputed [`PersonalAssessmentFacts`] so the chart and
+    /// interaction matrices are not recomputed. The [`BaziInput`] is only
+    /// used to derive the profile root id; the Bazi chart and matrices come
+    /// from `facts` (a single source of truth shared with the fact-node
+    /// projection and the evaluator).
+    pub fn from_day_and_bazi_with_facts(
         snapshot: &DaySnapshot,
         bazi_input: &BaziInput,
+        facts: &PersonalAssessmentFacts,
     ) -> Result<Self, String> {
         use crate::semantic_graph::builders::{
             build_bazi_profile_graph, build_day_person_matrix_graph, build_day_snapshot_graph,
@@ -40,9 +44,7 @@ impl ReasoningInputGraph {
         };
 
         let mut day_graph = build_day_snapshot_graph(snapshot);
-        let chart = build_bazi_chart(bazi_input.clone())?;
-        let analysis = analyze_bazi_chart(&chart);
-        let bazi_graph = build_bazi_profile_graph(&chart, &analysis);
+        let bazi_graph = build_bazi_profile_graph(&facts.chart, &facts.analysis);
 
         day_graph
             .merge(bazi_graph)
@@ -61,39 +63,31 @@ impl ReasoningInputGraph {
         let tz = format!("tz{:.1}", bazi_input.timezone);
         let profile_root_id = format!("bazi_profile:{}:{}", dob_str, tz);
 
-        let day_person_matrix = compute_day_person_matrix(&snapshot.context.canchi.day, &chart);
-        let day_person_graph =
-            build_day_person_matrix_graph(&day_root_id, &profile_root_id, &day_person_matrix)?;
+        let day_person_graph = build_day_person_matrix_graph(
+            &day_root_id,
+            &profile_root_id,
+            &facts.day_person_matrix,
+        )?;
         day_graph
             .merge(day_person_graph)
             .map_err(|e| format!("matrix merge error: {:?}", e))?;
 
-        let element_dist = compute_element_distribution(&chart);
-        if let Some(personal_hour_matrix) =
-            compute_personal_hour_matrix(&snapshot.context.canchi.day, &chart, &element_dist)
-        {
+        if let Some(personal_hour_matrix) = &facts.personal_hour_matrix {
             let personal_hour_graph = build_personal_hour_matrix_graph(
                 &day_root_id,
                 &profile_root_id,
-                &personal_hour_matrix,
+                personal_hour_matrix,
             )?;
             day_graph
                 .merge(personal_hour_graph)
                 .map_err(|e| format!("matrix merge error: {:?}", e))?;
         }
 
-        if let Some(gender) = bazi_input.gender {
-            let kua = compute_kua(bazi_input.year, gender);
-            let direction_matrix = compute_direction_merge(
-                &snapshot.context.canchi.day,
-                &snapshot.day_fortune.travel.tai_than,
-                &snapshot.day_fortune.travel.hy_than,
-                &kua,
-            );
+        if let Some(direction_matrix) = &facts.direction_merge_matrix {
             let direction_graph = build_direction_merge_matrix_graph(
                 &day_root_id,
                 &profile_root_id,
-                &direction_matrix,
+                direction_matrix,
             )?;
             day_graph
                 .merge(direction_graph)
@@ -105,6 +99,27 @@ impl ReasoningInputGraph {
             day_root_id,
             profile_root_id: Some(profile_root_id),
         })
+    }
+
+    pub fn from_day_and_bazi(
+        snapshot: &DaySnapshot,
+        bazi_input: &BaziInput,
+    ) -> Result<Self, String> {
+        let personal = crate::reasoning::PersonalReasoningInput::from_birth(
+            crate::BirthInput {
+                day: bazi_input.day,
+                month: bazi_input.month,
+                year: bazi_input.year,
+                hour: bazi_input.time_known.then_some(bazi_input.hour),
+                minute: bazi_input.time_known.then_some(bazi_input.minute),
+                timezone: bazi_input.timezone,
+                gender: bazi_input.gender,
+                location_name: None,
+            },
+            crate::ConsultationIntent::OpeningBusiness,
+        );
+        let facts = PersonalAssessmentFacts::build(&personal, snapshot)?;
+        Self::from_day_and_bazi_with_facts(snapshot, bazi_input, &facts)
     }
 
     pub fn has_profile(&self) -> bool {
@@ -119,6 +134,25 @@ pub fn build_reasoning_input_graph(
     let reasoning = match bazi_input {
         Some(input) => ReasoningInputGraph::from_day_and_bazi(snapshot, input)?,
         None => ReasoningInputGraph::from_day_snapshot(snapshot),
+    };
+    Ok(reasoning.graph)
+}
+
+/// Build the reasoning input graph reusing a precomputed
+/// [`PersonalAssessmentFacts`], so the chart and matrices are not recomputed
+/// alongside the graph build. Callers that already have facts (per-request
+/// request paths) must use this entry point to avoid duplicate work.
+pub fn build_reasoning_input_graph_with_facts(
+    snapshot: &DaySnapshot,
+    bazi_input: Option<&BaziInput>,
+    facts: Option<&PersonalAssessmentFacts>,
+) -> Result<SemanticGraph, String> {
+    let reasoning = match (bazi_input, facts) {
+        (Some(input), Some(facts)) => {
+            ReasoningInputGraph::from_day_and_bazi_with_facts(snapshot, input, facts)?
+        }
+        (Some(input), None) => ReasoningInputGraph::from_day_and_bazi(snapshot, input)?,
+        (None, _) => ReasoningInputGraph::from_day_snapshot(snapshot),
     };
     Ok(reasoning.graph)
 }

@@ -1065,6 +1065,7 @@ impl PersonalDayAssessment {
         profile: BirthProfile,
         intent: ConsultationIntent,
     ) -> Self {
+        crate::build_count::canonical_assessment_built();
         PersonalDayAssessmentBuilder::new(snapshot, profile, intent).build()
     }
 

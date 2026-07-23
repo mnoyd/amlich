@@ -12,6 +12,7 @@ use crate::{
 };
 
 pub fn build_bazi_chart(input: BaziInput) -> Result<BaziChart, String> {
+    crate::build_count::bazi_chart_built();
     let lunar_date = convert_solar_to_lunar(input.day, input.month, input.year, input.timezone);
     let year_pillar = get_year_canchi(lunar_date.year);
     let month_pillar = get_month_canchi(lunar_date.month, lunar_date.year, lunar_date.is_leap);

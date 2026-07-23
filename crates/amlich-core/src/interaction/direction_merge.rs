@@ -31,6 +31,7 @@ pub fn compute_direction_merge(
     hy_than: &str,
     kua: &KuaResult,
 ) -> DirectionMergeMatrix {
+    crate::build_count::direction_merge_matrix_built();
     let phuc_than = get_phuc_than(day_canchi.can_index);
     let sat_phuong = get_sat_phuong(day_canchi.chi_index);
 

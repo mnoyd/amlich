@@ -10,7 +10,7 @@ use crate::reasoning::types::{
     interpret_severity, ActionId, DecisionConfidence, InterpretedAxis, ReasoningAxisScore,
     ReasoningConclusionSemantic, ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
 };
-use crate::reasoning::PersonalReasoningInput;
+use crate::reasoning::{PersonalAssessmentFacts, PersonalReasoningInput};
 use crate::types::VIETNAM_TIMEZONE;
 use crate::DaySnapshot;
 
@@ -45,9 +45,10 @@ fn concept_is_allowed(concept: NodeConcept) -> bool {
 /// graph-node multiplicity — the property `amlich-zakn` relies on to make
 /// axis scores duplicate-monotone and provenance-backed.
 ///
-/// NOTE: building the assessment here and again in `synthesis` is temporary
-/// duplicate work; consolidating both behind one per-request build is the
-/// scope of `amlich-9z7i`.
+/// Kept as a documentation seam for the legacy `evaluate` trait method;
+/// per-request paths now reuse the cached canonical assessment via
+/// `evaluate_with_facts` (amlich-mwbp.8 P2 finding A-R11).
+#[allow(dead_code)]
 fn assessment_profile(
     snapshot: &DaySnapshot,
     personal_input: Option<&PersonalReasoningInput>,
@@ -531,13 +532,28 @@ impl InitiationOpeningEvaluator {
         }
     }
 
+    /// Legacy snapshot-based variant. Per-request paths call
+    /// `suggested_hours_with_facts` directly (amlich-mwbp.8 P2 finding A-R11).
+    #[allow(dead_code)]
     fn suggested_hours(
         &self,
         snapshot: &DaySnapshot,
         personal_input: Option<&PersonalReasoningInput>,
     ) -> Vec<String> {
+        self.suggested_hours_with_facts(snapshot, personal_input, None)
+    }
+
+    fn suggested_hours_with_facts(
+        &self,
+        snapshot: &DaySnapshot,
+        personal_input: Option<&PersonalReasoningInput>,
+        facts: Option<&PersonalAssessmentFacts>,
+    ) -> Vec<String> {
         if let Some(personal_input) = personal_input {
-            let personal_hours = personal_input.suggested_hours(snapshot);
+            let personal_hours = match facts {
+                Some(facts) => personal_input.suggested_hours_from_facts(facts),
+                None => personal_input.suggested_hours(snapshot),
+            };
             if !personal_hours.is_empty() {
                 return personal_hours;
             }
@@ -558,13 +574,28 @@ impl InitiationOpeningEvaluator {
             .collect()
     }
 
+    /// Legacy snapshot-based variant. Per-request paths call
+    /// `suggested_directions_with_facts` directly (amlich-mwbp.8 P2 finding A-R11).
+    #[allow(dead_code)]
     fn suggested_directions(
         &self,
         snapshot: &DaySnapshot,
         personal_input: Option<&PersonalReasoningInput>,
     ) -> Vec<String> {
+        self.suggested_directions_with_facts(snapshot, personal_input, None)
+    }
+
+    fn suggested_directions_with_facts(
+        &self,
+        snapshot: &DaySnapshot,
+        personal_input: Option<&PersonalReasoningInput>,
+        facts: Option<&PersonalAssessmentFacts>,
+    ) -> Vec<String> {
         if let Some(personal_input) = personal_input {
-            let personal_directions = personal_input.suggested_directions(snapshot);
+            let personal_directions = match facts {
+                Some(facts) => personal_input.suggested_directions_from_facts(facts),
+                None => personal_input.suggested_directions(snapshot),
+            };
             if !personal_directions.is_empty() {
                 return personal_directions;
             }
@@ -622,6 +653,114 @@ impl InitiationOpeningEvaluator {
             },
         ))
     }
+
+    /// Evaluate reusing a precomputed [`PersonalAssessmentFacts`] and
+    /// [`PersonalDayAssessment`] so the chart, the matrices, and the
+    /// canonical assessment are not rebuilt alongside the evaluation.
+    /// Per-request request paths must use this entry point — see
+    /// REPAIR-PLAN.md P2 (`amlich-mwbp.8` finding A-R11).
+    pub fn evaluate_with_facts(
+        &self,
+        graph: &SemanticGraph,
+        snapshot: &DaySnapshot,
+        personal_input: Option<&PersonalReasoningInput>,
+        facts: Option<&PersonalAssessmentFacts>,
+        canonical_assessment: Option<&PersonalDayAssessment>,
+    ) -> Result<ActionEvaluation, String> {
+        // amlich-mwbp.8 (finding A-R04): evaluate over the allowlisted
+        // subgraph so unrelated context nodes cannot alter the
+        // initiation/opening decision. `select_subgraph` is idempotent, so
+        // re-evaluating an already-filtered graph is safe.
+        let subgraph = self.select_subgraph(graph, snapshot, personal_input)?;
+        let graph = &subgraph;
+
+        let support_notes = self.extract_support_evidence(graph, snapshot);
+        let resistance_notes = self.extract_resistance_evidence(graph);
+        let override_notes = self.extract_override_evidence(graph);
+        let conflict_notes = self.extract_conflict_evidence(graph);
+
+        let support_score = support_notes.len() as f32;
+        let resistance_score = resistance_notes.len() as f32;
+        let conflict_count = conflict_notes.len();
+
+        let context_clarity_score = self.score_axis(
+            graph,
+            snapshot,
+            personal_input,
+            InterpretedAxis::ContextClarity,
+        );
+
+        let (semantic, bucket, confidence, context_is_clear) = self.synthesize_semantic(
+            support_score,
+            resistance_score,
+            &override_notes,
+            conflict_count,
+            context_clarity_score.score,
+        );
+
+        let primary_conclusion = self.synthesize_primary_conclusion(
+            semantic,
+            bucket,
+            support_score,
+            resistance_score,
+            &override_notes,
+            &support_notes,
+            &resistance_notes,
+        );
+
+        let suggested_hours = self.suggested_hours_with_facts(snapshot, personal_input, facts);
+        let suggested_directions =
+            self.suggested_directions_with_facts(snapshot, personal_input, facts);
+
+        // amlich-zakn: axis scores come from the canonical assessment's typed
+        // contributions (snapshot-derived, deduplicated by stable
+        // contribution_id), not from raw graph-node counts. This makes the
+        // scores invariant to duplicate evidence (re-emitting a fact node can
+        // no longer inflate an axis) and gives every scored axis a
+        // contribution-backed `strongest_node_id`. Axes with no typed
+        // contribution backing are reported at score 0.0 so a non-zero score
+        // always implies provenance. The decision bucket/confidence/semantic
+        // above remain graph-derived; full parity-gated retirement of that
+        // path is `amlich-0q2f`.
+        let evaluation_axis_scores = canonical_assessment
+            .map(|a| a.axis_scores())
+            .unwrap_or_default();
+        let mut axis_scores = evaluation_axis_scores;
+        for axis in axis_scores.iter_mut() {
+            if axis.strongest_node_id.is_none() {
+                axis.score = 0.0;
+            }
+        }
+
+        let mut referenced_node_ids = Vec::new();
+        for note in support_notes
+            .iter()
+            .chain(resistance_notes.iter())
+            .chain(override_notes.iter())
+        {
+            if let Some(ref node_id) = note.node_id {
+                referenced_node_ids.push(node_id.clone());
+            }
+        }
+
+        Ok(ActionEvaluation {
+            action_id: ActionId::InitiationOpening,
+            bucket,
+            confidence,
+            semantic,
+            context_is_clear,
+            primary_conclusion,
+            strongest_supports: support_notes,
+            strongest_resistances: resistance_notes,
+            override_factors: override_notes,
+            conflict_notes,
+            suggested_hours,
+            suggested_directions,
+            axis_scores,
+            referenced_node_ids,
+            referenced_edge_ids: Vec::new(),
+        })
+    }
 }
 
 impl Default for InitiationOpeningEvaluator {
@@ -668,99 +807,35 @@ impl ActionEvaluator for InitiationOpeningEvaluator {
         snapshot: &DaySnapshot,
         personal_input: Option<&PersonalReasoningInput>,
     ) -> Result<ActionEvaluation, String> {
-        // amlich-mwbp.8 (finding A-R04): evaluate over the allowlisted
-        // subgraph so unrelated context nodes cannot alter the
-        // initiation/opening decision. `select_subgraph` is idempotent, so
-        // re-evaluating an already-filtered graph is safe.
-        let subgraph = self.select_subgraph(graph, snapshot, personal_input)?;
-        let graph = &subgraph;
-
-        let support_notes = self.extract_support_evidence(graph, snapshot);
-        let resistance_notes = self.extract_resistance_evidence(graph);
-        let override_notes = self.extract_override_evidence(graph);
-        let conflict_notes = self.extract_conflict_evidence(graph);
-
-        let support_score = support_notes.len() as f32;
-        let resistance_score = resistance_notes.len() as f32;
-        let conflict_count = conflict_notes.len();
-
-        let context_clarity_score = self.score_axis(
+        // amlich-mwbp.8 P2: the trait-level `evaluate` keeps its legacy
+        // signature and rebuilds the assessment internally so callers
+        // that go through the trait do not duplicate the consumer API. The
+        // consolidated per-request path uses `evaluate_with_facts` directly
+        // and supplies the cached canonical assessment.
+        let profile = BirthProfile {
+            day: snapshot.context.solar.day,
+            month: snapshot.context.solar.month,
+            year: snapshot.context.solar.year,
+            time: None,
+            timezone: personal_input
+                .map(|p| p.birth.timezone)
+                .unwrap_or(VIETNAM_TIMEZONE),
+            longitude: None,
+            use_solar_time: false,
+            gender: personal_input.and_then(|p| p.birth.gender),
+            location_name: None,
+        };
+        let canonical_assessment = PersonalDayAssessment::assess(
+            snapshot.clone(),
+            profile,
+            ConsultationIntent::OpeningBusiness,
+        );
+        self.evaluate_with_facts(
             graph,
             snapshot,
             personal_input,
-            InterpretedAxis::ContextClarity,
-        );
-
-        let (semantic, bucket, confidence, context_is_clear) = self.synthesize_semantic(
-            support_score,
-            resistance_score,
-            &override_notes,
-            conflict_count,
-            context_clarity_score.score,
-        );
-
-        let primary_conclusion = self.synthesize_primary_conclusion(
-            semantic,
-            bucket,
-            support_score,
-            resistance_score,
-            &override_notes,
-            &support_notes,
-            &resistance_notes,
-        );
-
-        let suggested_hours = self.suggested_hours(snapshot, personal_input);
-        let suggested_directions = self.suggested_directions(snapshot, personal_input);
-
-        // amlich-zakn: axis scores come from the canonical assessment's typed
-        // contributions (snapshot-derived, deduplicated by stable
-        // contribution_id), not from raw graph-node counts. This makes the
-        // scores invariant to duplicate evidence (re-emitting a fact node can
-        // no longer inflate an axis) and gives every scored axis a
-        // contribution-backed `strongest_node_id`. Axes with no typed
-        // contribution backing are reported at score 0.0 so a non-zero score
-        // always implies provenance. The decision bucket/confidence/semantic
-        // above remain graph-derived; full parity-gated retirement of that
-        // path is `amlich-0q2f`.
-        let mut axis_scores = PersonalDayAssessment::assess(
-            snapshot.clone(),
-            assessment_profile(snapshot, personal_input),
-            ConsultationIntent::OpeningBusiness,
+            None,
+            Some(&canonical_assessment),
         )
-        .axis_scores();
-        for axis in axis_scores.iter_mut() {
-            if axis.strongest_node_id.is_none() {
-                axis.score = 0.0;
-            }
-        }
-
-        let mut referenced_node_ids = Vec::new();
-        for note in support_notes
-            .iter()
-            .chain(resistance_notes.iter())
-            .chain(override_notes.iter())
-        {
-            if let Some(ref node_id) = note.node_id {
-                referenced_node_ids.push(node_id.clone());
-            }
-        }
-
-        Ok(ActionEvaluation {
-            action_id: ActionId::InitiationOpening,
-            bucket,
-            confidence,
-            semantic,
-            context_is_clear,
-            primary_conclusion,
-            strongest_supports: support_notes,
-            strongest_resistances: resistance_notes,
-            override_factors: override_notes,
-            conflict_notes,
-            suggested_hours,
-            suggested_directions,
-            axis_scores,
-            referenced_node_ids,
-            referenced_edge_ids: Vec::new(),
-        })
     }
 }

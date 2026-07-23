@@ -585,9 +585,10 @@ mod tests {
         assert!(!cell.canchi_year.is_empty());
         // Good hours list is populated for the Day workspace.
         assert!(!cell.good_hours.is_empty());
-        assert!(cell.good_hours.iter().all(|h| !h.hour_chi.is_empty()
-            && !h.time_range.is_empty()
-            && !h.star.is_empty()));
+        assert!(cell
+            .good_hours
+            .iter()
+            .all(|h| !h.hour_chi.is_empty() && !h.time_range.is_empty() && !h.star.is_empty()));
     }
 
     #[test]
@@ -648,7 +649,9 @@ mod tests {
         let report = get_hour_selection_report(10, 2, 2024).expect("hour selection report");
 
         assert!(!report.chart.gio_hoang_dao.good_hours.is_empty());
-        assert!(report.computed_metrics.good_hour_count + report.computed_metrics.bad_hour_count > 0);
+        assert!(
+            report.computed_metrics.good_hour_count + report.computed_metrics.bad_hour_count > 0
+        );
     }
 
     #[test]
@@ -665,11 +668,15 @@ mod tests {
     fn catalog_commands_return_non_empty_entries() {
         let rulesets = get_ruleset_catalog();
         assert!(!rulesets.is_empty());
-        assert!(rulesets.iter().all(|r| !r.id.is_empty() && !r.version.is_empty()));
+        assert!(rulesets
+            .iter()
+            .all(|r| !r.id.is_empty() && !r.version.is_empty()));
 
         let packs = get_recommendation_pack_catalog();
         assert!(!packs.is_empty());
-        assert!(packs.iter().all(|p| !p.pack_id.is_empty() && !p.version.is_empty()));
+        assert!(packs
+            .iter()
+            .all(|p| !p.pack_id.is_empty() && !p.version.is_empty()));
     }
 
     #[test]
@@ -694,8 +701,7 @@ mod tests {
 
     #[test]
     fn gender_is_passed_through_to_bazi_commands() {
-        let male =
-            get_bazi_report(1990, 1, 1, 9, 30, Some("nam".to_string())).expect("bazi male");
+        let male = get_bazi_report(1990, 1, 1, 9, 30, Some("nam".to_string())).expect("bazi male");
         let female =
             get_bazi_report(1990, 1, 1, 9, 30, Some("nữ".to_string())).expect("bazi female");
 

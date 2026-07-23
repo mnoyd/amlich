@@ -416,7 +416,21 @@ pub fn get_day_insight_with_profile(
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<DayInsightDto, String> {
     let day_info = get_day_info(query)?;
+    build_day_insight_from_day_info(query, &day_info, birth_year, birth_month, birth_day, gender)
+}
 
+/// Build a [`DayInsightDto`] from a precomputed [`DayInfoDto`] instead of
+/// rebuilding the snapshot. Per-request paths that already have a snapshot
+/// (e.g. [`build_personal_day_context`]) must use this helper so the day's
+/// normalized input is not recomputed — see REPAIR-PLAN.md P2.
+fn build_day_insight_from_day_info(
+    query: &DateQuery,
+    day_info: &DayInfoDto,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> Result<DayInsightDto, String> {
     let festival = lunar_festivals()
         .iter()
         .find(|item| {
@@ -763,8 +777,8 @@ pub fn get_day_insight_with_profile(
     };
 
     Ok(DayInsightDto {
-        solar: day_info.solar,
-        lunar: day_info.lunar,
+        solar: day_info.solar.clone(),
+        lunar: day_info.lunar.clone(),
         festival,
         holiday,
         canchi,
@@ -959,33 +973,6 @@ fn parse_gender(gender: &str) -> Option<amlich_core::almanac::tu_menh::Gender> {
     }
 }
 
-fn get_personal_day_reasoning_bundle(
-    query: &DateQuery,
-    birth_year: Option<i32>,
-    birth_month: Option<i32>,
-    birth_day: Option<i32>,
-    gender: Option<amlich_core::almanac::tu_menh::Gender>,
-) -> Result<Option<amlich_core::reasoning::InitiationOpeningReasoningBundle>, String> {
-    let Some(personal_input) = personal_reasoning_input(birth_year, birth_month, birth_day, gender)
-    else {
-        return Ok(None);
-    };
-    let enabled_pack_ids: Vec<&str> = query.enabled_pack_ids.iter().map(String::as_str).collect();
-
-    let snapshot = amlich_core::calculate_day_snapshot_with_recommendation_request(
-        query.day,
-        query.month,
-        query.year,
-        query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
-        query.ruleset_id.as_deref(),
-        query.event_kind.as_deref(),
-        &enabled_pack_ids,
-    )?;
-
-    amlich_core::build_initiation_opening_reasoning_bundle(&snapshot, Some(&personal_input))
-        .map(Some)
-}
-
 fn matrix_unavailable_sections(tier: &BirthDataTierDto) -> Vec<UnavailableSectionDto> {
     match tier {
         BirthDataTierDto::Date => vec![unavailable_section(
@@ -1038,16 +1025,29 @@ pub fn get_personal_day_chart(
     birth_day: Option<i32>,
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayChartDto, String> {
-    let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
-    let tier = personal_birth_data_tier(birth_year, birth_month, birth_day, gender);
-    Ok(PersonalDayChartDto {
-        input: personal_day_query(query, birth_year, birth_month, birth_day, gender),
+    let ctx = build_personal_day_context(query, birth_year, birth_month, birth_day, gender)?;
+    Ok(build_personal_day_chart_dto(&ctx))
+}
+
+/// Build the [`PersonalDayChartDto`] from a precomputed
+/// [`PersonalDayContext`] so the snapshot is not recomputed.
+fn build_personal_day_chart_dto(ctx: &PersonalDayContext) -> PersonalDayChartDto {
+    let insight = &ctx.insight;
+    let tier = personal_birth_data_tier(ctx.birth_year, ctx.birth_month, ctx.birth_day, ctx.gender);
+    PersonalDayChartDto {
+        input: personal_day_query(
+            &ctx.query,
+            ctx.birth_year,
+            ctx.birth_month,
+            ctx.birth_day,
+            ctx.gender,
+        ),
         tier,
-        solar: insight.solar,
-        lunar: insight.lunar,
-        canchi: insight.canchi,
-        tiet_khi: insight.tiet_khi,
-    })
+        solar: insight.solar.clone(),
+        lunar: insight.lunar.clone(),
+        canchi: insight.canchi.clone(),
+        tiet_khi: insight.tiet_khi.clone(),
+    }
 }
 
 pub fn get_personal_day_analysis(
@@ -1057,10 +1057,18 @@ pub fn get_personal_day_analysis(
     birth_day: Option<i32>,
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayAnalysisDto, String> {
-    let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
-    let tier = personal_birth_data_tier(birth_year, birth_month, birth_day, gender);
-    let reasoning =
-        get_personal_day_reasoning_bundle(query, birth_year, birth_month, birth_day, gender)?;
+    let ctx = build_personal_day_context(query, birth_year, birth_month, birth_day, gender)?;
+    build_personal_day_analysis_dto(&ctx)
+}
+
+/// Build the [`PersonalDayAnalysisDto`] from a precomputed
+/// [`PersonalDayContext`] so the snapshot is not recomputed.
+fn build_personal_day_analysis_dto(
+    ctx: &PersonalDayContext,
+) -> Result<PersonalDayAnalysisDto, String> {
+    let insight = &ctx.insight;
+    let reasoning = ctx.reasoning_bundle.as_ref();
+    let tier = personal_birth_data_tier(ctx.birth_year, ctx.birth_month, ctx.birth_day, ctx.gender);
     Ok(PersonalDayAnalysisDto {
         tier: tier.clone(),
         decision: reasoning.as_ref().map(|bundle| bundle.decision.clone()),
@@ -1068,12 +1076,12 @@ pub fn get_personal_day_analysis(
             .as_ref()
             .map(|bundle| bundle.decision_export.clone()),
         graph: reasoning.as_ref().map(|bundle| bundle.graph.clone()),
-        ten_gods: insight.ten_gods,
-        xung_hop: insight.xung_hop,
-        tang_can: insight.tang_can,
-        tu_menh: insight.tu_menh,
-        dai_van: insight.dai_van,
-        yearly_han: insight.yearly_han,
+        ten_gods: insight.ten_gods.clone(),
+        xung_hop: insight.xung_hop.clone(),
+        tang_can: insight.tang_can.clone(),
+        tu_menh: insight.tu_menh.clone(),
+        dai_van: insight.dai_van.clone(),
+        yearly_han: insight.yearly_han.clone(),
         unavailable_sections: personal_day_unavailable_sections(&tier),
     })
 }
@@ -1085,8 +1093,15 @@ pub fn get_personal_day_metrics(
     birth_day: Option<i32>,
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayMetricsDto, String> {
-    let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
-    let tier = personal_birth_data_tier(birth_year, birth_month, birth_day, gender);
+    let ctx = build_personal_day_context(query, birth_year, birth_month, birth_day, gender)?;
+    Ok(build_personal_day_metrics_dto(&ctx))
+}
+
+/// Build the [`PersonalDayMetricsDto`] from a precomputed
+/// [`PersonalDayContext`] so the snapshot is not recomputed.
+fn build_personal_day_metrics_dto(ctx: &PersonalDayContext) -> PersonalDayMetricsDto {
+    let insight = &ctx.insight;
+    let tier = personal_birth_data_tier(ctx.birth_year, ctx.birth_month, ctx.birth_day, ctx.gender);
     let mut available_sections = Vec::new();
     if insight.ten_gods.is_some() {
         available_sections.push("ten_gods".to_string());
@@ -1108,16 +1123,16 @@ pub fn get_personal_day_metrics(
     }
 
     let profile_completeness = [
-        birth_year.is_some(),
-        birth_month.is_some(),
-        birth_day.is_some(),
-        gender.is_some(),
+        ctx.birth_year.is_some(),
+        ctx.birth_month.is_some(),
+        ctx.birth_day.is_some(),
+        ctx.gender.is_some(),
     ]
     .into_iter()
     .filter(|value| *value)
     .count() as u8;
 
-    Ok(PersonalDayMetricsDto {
+    PersonalDayMetricsDto {
         tier: tier.clone(),
         profile_completeness,
         has_personal_recommendations: insight.tu_menh.is_some()
@@ -1125,7 +1140,7 @@ pub fn get_personal_day_metrics(
             || insight.yearly_han.is_some(),
         available_sections,
         unavailable_sections: personal_day_unavailable_sections(&tier),
-    })
+    }
 }
 
 pub fn get_personal_day_advisory(
@@ -1135,17 +1150,20 @@ pub fn get_personal_day_advisory(
     birth_day: Option<i32>,
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayAdvisoryDto, String> {
-    let insight = get_day_insight_with_profile(query, birth_year, birth_month, birth_day, gender)?;
-    let reasoning =
-        get_personal_day_reasoning_bundle(query, birth_year, birth_month, birth_day, gender)?;
-    let canonical_assessment = build_personal_day_canonical_assessment(
-        query,
-        birth_year,
-        birth_month,
-        birth_day,
-        gender,
-        None,
-    )?;
+    let ctx = build_personal_day_context(query, birth_year, birth_month, birth_day, gender)?;
+    build_personal_day_advisory_dto(&ctx)
+}
+
+/// Build the [`PersonalDayAdvisoryDto`] from a precomputed
+/// [`PersonalDayContext`]. Per-request request paths must use this helper so
+/// the canonical assessment, the reasoning bundle, and the day insight are
+/// not recomputed (amlich-mwbp.8 P2 finding A-R11).
+fn build_personal_day_advisory_dto(
+    ctx: &PersonalDayContext,
+) -> Result<PersonalDayAdvisoryDto, String> {
+    let insight = &ctx.insight;
+    let reasoning = ctx.reasoning_bundle.as_ref();
+    let canonical_assessment = &ctx.canonical_assessment;
     let mut highlights = Vec::new();
     let mut cautions = Vec::new();
     // amlich-mwbp.5: missing-profile messages are tracked separately so
@@ -1156,7 +1174,7 @@ pub fn get_personal_day_advisory(
     let mut why_this_matters = Vec::new();
     let mut recommended_actions = Vec::new();
 
-    if let Some(bundle) = &reasoning {
+    if let Some(bundle) = reasoning {
         top_signals.push(bundle.decision.primary_conclusion.clone());
         for support in &bundle.decision.strongest_supports {
             highlights.push(support.clone());
@@ -1258,7 +1276,7 @@ pub fn get_personal_day_advisory(
     // applies hard-veto precedence and evidence-coverage-derived confidence,
     // so the surface cannot inflate severity from missing-context strings.
     let (severity, summary) =
-        advisory_severity_and_summary(&canonical_assessment, &cautions, &highlights);
+        advisory_severity_and_summary(canonical_assessment, &cautions, &highlights);
 
     // canonical assessment supplies bucket/confidence (single source of truth).
     let reasoning_bucket = Some(canonical_assessment.decision.bucket.as_str().to_string());
@@ -1296,7 +1314,7 @@ pub fn get_personal_day_advisory(
         unavailable_context,
         reasoning_bucket,
         reasoning_confidence,
-        canonical_assessment: Some(PersonalDayAssessmentDto::from(&canonical_assessment)),
+        canonical_assessment: Some(PersonalDayAssessmentDto::from(canonical_assessment)),
     })
 }
 
@@ -1354,57 +1372,127 @@ pub fn get_personal_day_report(
     birth_day: Option<i32>,
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<PersonalDayReportDto, String> {
-    let advisory = get_personal_day_advisory(query, birth_year, birth_month, birth_day, gender)?;
-    let reasoning =
-        get_personal_day_reasoning_bundle(query, birth_year, birth_month, birth_day, gender)?;
-    let canonical_assessment = build_personal_day_canonical_assessment(
-        query,
-        birth_year,
-        birth_month,
-        birth_day,
-        gender,
-        None,
-    )?;
+    // amlich-mwbp.8 P2 consolidation: build the snapshot, the canonical
+    // assessment, the personal facts, and the reasoning bundle ONCE per
+    // request, then derive every sub-DTO from the cache. The previous
+    // implementation rebuilt the snapshot ~9 times and the assessment ~4
+    // times along the path through `get_personal_day_advisory`,
+    // `get_personal_day_chart`, `get_personal_day_analysis`, and
+    // `get_personal_day_metrics`.
+    let ctx = build_personal_day_context(query, birth_year, birth_month, birth_day, gender)?;
+    let advisory = build_personal_day_advisory_dto(&ctx)?;
+    let reasoning = ctx.reasoning_bundle.clone();
+    let chart = build_personal_day_chart_dto(&ctx);
+    let analysis = build_personal_day_analysis_dto(&ctx)?;
+    let computed_metrics = build_personal_day_metrics_dto(&ctx);
     Ok(PersonalDayReportDto {
         summary: advisory.summary.clone(),
         severity: advisory.severity.clone(),
         top_signals: advisory.top_signals.clone(),
-        chart: get_personal_day_chart(query, birth_year, birth_month, birth_day, gender)?,
+        chart,
         decision: reasoning.as_ref().map(|bundle| bundle.decision.clone()),
         decision_export: reasoning
             .as_ref()
             .map(|bundle| bundle.decision_export.clone()),
         graph: reasoning.as_ref().map(|bundle| bundle.graph.clone()),
-        analysis: get_personal_day_analysis(query, birth_year, birth_month, birth_day, gender)?,
-        computed_metrics: get_personal_day_metrics(
-            query,
-            birth_year,
-            birth_month,
-            birth_day,
-            gender,
-        )?,
+        analysis,
+        computed_metrics,
         advisory,
-        canonical_assessment: Some(PersonalDayAssessmentDto::from(&canonical_assessment)),
+        canonical_assessment: Some(PersonalDayAssessmentDto::from(&ctx.canonical_assessment)),
     })
 }
 
-/// Build the canonical PersonalDayAssessment for the personal-day surface.
-/// Single seam used by both `get_personal_day_advisory` and
-/// `get_personal_day_report` so standalone and aggregate calls produce
-/// identical assessments on normalized inputs (amlich-mwbp.6).
-///
-/// `intent_override` lets callers force the intent (used by the matrix path)
-/// without exposing the symmetric `ConsultationIntent::OpeningBusiness`
-/// default to every consumer.
-fn build_personal_day_canonical_assessment(
+/// Per-request cache for the personal-day surface. Holds the day insight,
+/// canonical assessment, and reasoning bundle so the sub-DTO builders don't
+/// each rebuild them. See `build_personal_day_context` (amlich-mwbp.8 P2
+/// finding A-R11).
+struct PersonalDayContext {
+    query: DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+    insight: DayInsightDto,
+    canonical_assessment: amlich_core::assessment::PersonalDayAssessment,
+    reasoning_bundle: Option<amlich_core::InitiationOpeningReasoningBundle>,
+}
+
+fn build_personal_day_context(
     query: &DateQuery,
     birth_year: Option<i32>,
     birth_month: Option<i32>,
     birth_day: Option<i32>,
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
-    intent_override: Option<amlich_core::ConsultationIntent>,
-) -> Result<amlich_core::assessment::PersonalDayAssessment, String> {
-    let profile = amlich_core::BirthProfile {
+) -> Result<PersonalDayContext, String> {
+    let intent = amlich_core::ConsultationIntent::OpeningBusiness;
+    let snapshot = build_personal_day_snapshot(query, intent)?;
+    let profile = build_personal_birth_profile(query, birth_year, birth_month, birth_day, gender);
+    let canonical_assessment =
+        build_personal_canonical_assessment(profile, snapshot.clone(), intent);
+
+    let personal_input = personal_reasoning_input(birth_year, birth_month, birth_day, gender);
+    let personal_facts = personal_input
+        .as_ref()
+        .map(|p| amlich_core::reasoning::PersonalAssessmentFacts::build(p, &snapshot))
+        .transpose()?;
+    let reasoning_bundle = if let Some(personal) = personal_input.as_ref() {
+        Some(
+            amlich_core::build_initiation_opening_reasoning_bundle_with_facts(
+                &snapshot,
+                Some(personal),
+                personal_facts.as_ref(),
+                Some(&canonical_assessment),
+            )?,
+        )
+    } else {
+        None
+    };
+
+    let day_info = DayInfoDto::from(&snapshot);
+    let insight = build_day_insight_from_day_info(
+        query,
+        &day_info,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+    )?;
+
+    Ok(PersonalDayContext {
+        query: query.clone(),
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+        insight,
+        canonical_assessment,
+        reasoning_bundle,
+    })
+}
+
+/// Build the canonical PersonalDayAssessment from a precomputed snapshot
+/// and profile. Unified seam used by both the personal-day and
+/// hour-selection builds so the two paths don't drift on canonical inputs
+/// (amlich-mwbp.8 P2 consolidation).
+fn build_personal_canonical_assessment(
+    profile: amlich_core::BirthProfile,
+    snapshot: amlich_core::DaySnapshot,
+    intent: amlich_core::ConsultationIntent,
+) -> amlich_core::assessment::PersonalDayAssessment {
+    amlich_core::assessment::PersonalDayAssessment::assess(snapshot, profile, intent)
+}
+
+/// Build the normalized `BirthProfile` for the personal surfaces. The
+/// personal-day surface does not carry birth time, so it uses the inquiry
+/// date as a fallback for the day/month/year scalars.
+fn build_personal_birth_profile(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<amlich_core::almanac::tu_menh::Gender>,
+) -> amlich_core::BirthProfile {
+    amlich_core::BirthProfile {
         day: birth_day.unwrap_or(query.day),
         month: birth_month.unwrap_or(query.month),
         year: birth_year.unwrap_or(query.year),
@@ -1414,13 +1502,19 @@ fn build_personal_day_canonical_assessment(
         use_solar_time: false,
         gender,
         location_name: None,
-    };
+    }
+}
 
-    let intent = intent_override.unwrap_or(amlich_core::ConsultationIntent::OpeningBusiness);
-
+/// Build the normalized `DaySnapshot` for the personal surfaces using the
+/// supplied intent. Single seam so every surface consumes the same
+/// snapshot bytes — used by `get_personal_day_report` to dedupe the
+/// ~9x rebuilds that previously happened along the request path.
+fn build_personal_day_snapshot(
+    query: &DateQuery,
+    intent: amlich_core::ConsultationIntent,
+) -> Result<amlich_core::DaySnapshot, String> {
     let enabled_pack_refs: Vec<&str> = query.enabled_pack_ids.iter().map(String::as_str).collect();
-
-    let snapshot = amlich_core::calculate_day_snapshot_with_recommendation_request(
+    amlich_core::calculate_day_snapshot_with_recommendation_request(
         query.day,
         query.month,
         query.year,
@@ -1428,11 +1522,7 @@ fn build_personal_day_canonical_assessment(
         query.ruleset_id.as_deref(),
         Some(intent.event_kind()),
         &enabled_pack_refs,
-    )?;
-
-    Ok(amlich_core::assessment::PersonalDayAssessment::assess(
-        snapshot, profile, intent,
-    ))
+    )
 }
 
 fn get_hour_selection_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
@@ -1473,34 +1563,12 @@ fn build_hour_selection_canonical_assessment(
     gender: Option<&str>,
 ) -> Option<amlich_core::assessment::PersonalDayAssessment> {
     let gender = gender.and_then(parse_gender);
-    let day = birth_day.unwrap_or(query.day);
-    let month = birth_month.unwrap_or(query.month);
-    let year = birth_year.unwrap_or(query.year);
-    let profile = amlich_core::BirthProfile {
-        day,
-        month,
-        year,
-        time: None,
-        timezone: query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
-        longitude: None,
-        use_solar_time: false,
-        gender,
-        location_name: None,
-    };
-    let enabled_pack_refs: Vec<&str> = query.enabled_pack_ids.iter().map(String::as_str).collect();
-    let snapshot = amlich_core::calculate_day_snapshot_with_recommendation_request(
-        query.day,
-        query.month,
-        query.year,
-        query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE),
-        query.ruleset_id.as_deref(),
-        Some(amlich_core::ConsultationIntent::Travel.event_kind()),
-        &enabled_pack_refs,
-    )
-    .ok()?;
-    Some(amlich_core::assessment::PersonalDayAssessment::assess(
-        snapshot,
+    let profile = build_personal_birth_profile(query, birth_year, birth_month, birth_day, gender);
+    let snapshot =
+        build_personal_day_snapshot(query, amlich_core::ConsultationIntent::Travel).ok()?;
+    Some(build_personal_canonical_assessment(
         profile,
+        snapshot,
         amlich_core::ConsultationIntent::Travel,
     ))
 }
@@ -1627,12 +1695,167 @@ pub fn get_hour_selection_report(
     birth_day: Option<i32>,
     gender: Option<&str>,
 ) -> Result<HourSelectionReportDto, String> {
+    // amlich-mwbp.8 P2 consolidation: build the snapshot, canonical
+    // assessment, and reasoning ONCE per request, then derive the chart,
+    // analysis, metrics, and advisory DTOs from the cache. The previous
+    // implementation rebuilt the snapshot 3x and the assessment 2x along
+    // the path through `get_hour_selection_chart/analysis/metrics/advisory`.
+    let snapshot = build_personal_day_snapshot(query, amlich_core::ConsultationIntent::Travel)?;
+    let info = DayInfoDto::from(&snapshot);
+    let selection_reasoning = get_hour_selection_reasoning_from_snapshot(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+    )?;
+    let canonical_assessment = build_personal_canonical_assessment(
+        build_personal_birth_profile(
+            query,
+            birth_year,
+            birth_month,
+            birth_day,
+            parse_gender_opt(gender),
+        ),
+        snapshot.clone(),
+        amlich_core::ConsultationIntent::Travel,
+    );
+
     Ok(HourSelectionReportDto {
-        chart: get_hour_selection_chart(query)?,
-        analysis: get_hour_selection_analysis(query, birth_year, birth_month, birth_day, gender)?,
-        computed_metrics: get_hour_selection_metrics(query)?,
-        advisory: get_hour_selection_advisory(query, birth_year, birth_month, birth_day, gender)?,
+        chart: build_hour_selection_chart_dto(query, &info),
+        analysis: build_hour_selection_analysis_dto(
+            &info,
+            &selection_reasoning,
+            &canonical_assessment,
+            birth_year,
+            birth_month,
+            birth_day,
+            gender,
+        ),
+        computed_metrics: build_hour_selection_metrics_dto(&info),
+        advisory: build_hour_selection_advisory_dto(
+            &selection_reasoning,
+            &canonical_assessment,
+            birth_year,
+            birth_month,
+            birth_day,
+            gender,
+        ),
     })
+}
+
+fn parse_gender_opt(gender: Option<&str>) -> Option<amlich_core::almanac::tu_menh::Gender> {
+    gender.and_then(parse_gender)
+}
+
+fn get_hour_selection_reasoning_from_snapshot(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<&str>,
+) -> Result<amlich_core::HourSelectionReasoning, String> {
+    let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
+    amlich_core::build_hour_selection_reasoning(
+        query.day,
+        query.month,
+        query.year,
+        amlich_core::ConsultationIntent::Travel,
+        birth.as_ref(),
+    )
+}
+
+fn build_hour_selection_chart_dto(query: &DateQuery, info: &DayInfoDto) -> HourSelectionChartDto {
+    HourSelectionChartDto {
+        input: HourSelectionQueryDto {
+            date: query.clone(),
+        },
+        solar: info.solar.clone(),
+        lunar: info.lunar.clone(),
+        gio_hoang_dao: info.gio_hoang_dao.clone(),
+    }
+}
+
+fn build_hour_selection_metrics_dto(info: &DayInfoDto) -> HourSelectionMetricsDto {
+    let total = info.gio_hoang_dao.all_hours.len();
+    let good = info.gio_hoang_dao.good_hour_count;
+    HourSelectionMetricsDto {
+        good_hour_count: good,
+        bad_hour_count: total.saturating_sub(good),
+        good_hour_ratio: if total == 0 {
+            0.0
+        } else {
+            good as f32 / total as f32
+        },
+    }
+}
+
+fn build_hour_selection_analysis_dto(
+    info: &DayInfoDto,
+    reasoning: &amlich_core::HourSelectionReasoning,
+    canonical_assessment: &amlich_core::assessment::PersonalDayAssessment,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<&str>,
+) -> HourSelectionAnalysisDto {
+    let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
+    let bad_hours = info
+        .gio_hoang_dao
+        .all_hours
+        .iter()
+        .filter(|hour| !hour.is_good)
+        .cloned()
+        .collect();
+    HourSelectionAnalysisDto {
+        intent: reasoning.intent.event_kind().to_string(),
+        summary_vi: reasoning.summary_vi.clone(),
+        summary_en: reasoning.summary_en.clone(),
+        good_hours: info.gio_hoang_dao.good_hours.clone(),
+        bad_hours,
+        top_recommendation: reasoning
+            .top_recommendation
+            .as_ref()
+            .map(|candidate| HourInfoDto {
+                hour_index: 0,
+                hour_chi: candidate.chi_name.clone(),
+                time_range: candidate.time_range.clone(),
+                star: candidate.note_vi.clone(),
+                is_good: candidate.is_auspicious,
+            }),
+        canonical: Some(reasoning.export(birth.as_ref())),
+        canonical_assessment: Some(PersonalDayAssessmentDto::from(canonical_assessment)),
+    }
+}
+
+fn build_hour_selection_advisory_dto(
+    reasoning: &amlich_core::HourSelectionReasoning,
+    canonical_assessment: &amlich_core::assessment::PersonalDayAssessment,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    gender: Option<&str>,
+) -> HourSelectionAdvisoryDto {
+    let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
+    HourSelectionAdvisoryDto {
+        intent: reasoning.intent.event_kind().to_string(),
+        summary_vi: reasoning.summary_vi.clone(),
+        summary_en: reasoning.summary_en.clone(),
+        best_windows: reasoning
+            .ranked_hours
+            .iter()
+            .filter(|hour| hour.is_auspicious)
+            .map(|hour| format!("{} {}", hour.chi_name, hour.time_range))
+            .collect(),
+        caution_windows: reasoning
+            .ranked_hours
+            .iter()
+            .filter(|hour| !hour.is_auspicious)
+            .map(|hour| format!("{} {}", hour.chi_name, hour.time_range))
+            .collect(),
+        canonical: Some(reasoning.export(birth.as_ref())),
+        canonical_assessment: Some(PersonalDayAssessmentDto::from(canonical_assessment)),
+    }
 }
 
 /// Lookup Na Am by 1-based cycle index (1-60)

@@ -5,17 +5,23 @@ use crate::semantic_graph::{NodeConcept, SemanticGraph};
 use crate::DaySnapshot;
 
 use super::export::{axis_for_node, severity_for_node, tags_for_node};
+use super::personal::{PersonalAssessmentFacts, PersonalReasoningInput};
 use super::types::{
     interpret_severity, ActionId, EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdgeExport,
     ReasoningEdgeJustification, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily,
     ReasoningGraphExport, ReasoningNodeExport, ReasoningNodeSeverity,
 };
 
-pub fn project_semantic_graph_export(
+/// Project the reasoning graph reusing a precomputed
+/// [`PersonalAssessmentFacts`]. Per-request request paths must use this
+/// variant so the fact-node projection does not rebuild the chart and
+/// matrices — see REPAIR-PLAN.md P2 (`amlich-mwbp.8` finding A-R11).
+pub fn project_semantic_graph_export_with_facts(
     graph: &SemanticGraph,
     _evaluation: &super::action_evaluator::ActionEvaluation,
     snapshot: &DaySnapshot,
-    personal_input: Option<&super::personal::PersonalReasoningInput>,
+    personal_input: Option<&PersonalReasoningInput>,
+    facts: Option<&PersonalAssessmentFacts>,
 ) -> ReasoningGraphExport {
     let mut nodes = Vec::new();
     let mut edges = Vec::new();
@@ -91,13 +97,83 @@ pub fn project_semantic_graph_export(
     }
 
     if let Some(personal) = personal_input {
-        add_personal_nodes_and_edges(&mut nodes, &mut edges, snapshot, personal, graph);
+        let personal_nodes = if let Some(facts) = facts {
+            personal.build_fact_nodes_from_facts(facts)
+        } else {
+            personal.build_fact_nodes(snapshot).unwrap_or_default()
+        };
+        add_personal_node_edges(&mut nodes, &mut edges, personal_nodes);
     }
 
     ReasoningGraphExport {
         action_id: ActionId::InitiationOpening,
         nodes,
         edges,
+    }
+}
+
+/// Legacy snapshot-based projection kept for callers that go through
+/// `build_initiation_opening_reasoning_bundle` (no precomputed facts).
+/// Per-request paths must use [`project_semantic_graph_export_with_facts`]
+/// instead — see REPAIR-PLAN.md P2 (`amlich-mwbp.8` finding A-R11).
+#[allow(dead_code)]
+pub fn project_semantic_graph_export(
+    graph: &SemanticGraph,
+    _evaluation: &super::action_evaluator::ActionEvaluation,
+    snapshot: &DaySnapshot,
+    personal_input: Option<&super::personal::PersonalReasoningInput>,
+) -> ReasoningGraphExport {
+    project_semantic_graph_export_with_facts(graph, _evaluation, snapshot, personal_input, None)
+}
+
+fn add_personal_node_edges(
+    nodes: &mut Vec<ReasoningNodeExport>,
+    edges: &mut Vec<ReasoningEdgeExport>,
+    personal_nodes: Vec<super::personal::PersonalFactNode>,
+) {
+    for raw_node in personal_nodes {
+        let id = raw_node.id.clone();
+        let node_export = ReasoningNodeExport {
+            id: id.clone(),
+            kind: NodeKind::Fact,
+            axis: axis_for_node(&id),
+            severity: severity_for_node(&id, raw_node.severity.as_deref(), &raw_node.summary_vi),
+            tags: tags_for_node(&id),
+            summary_vi: raw_node.summary_vi,
+            evidence: raw_node.evidence,
+        };
+
+        match id.as_str() {
+            "fact.personal.day_person_matrix" => {
+                let effect = personal_alignment_effect(&node_export.summary_vi);
+                edges.push(make_edge(
+                    &id,
+                    InterpretedAxis::PersonalAlignment.signal_node_id(),
+                    effect,
+                    if effect == EdgeEffect::Overrides {
+                        2
+                    } else {
+                        1
+                    },
+                    ReasoningEdgeJustification::PersonalDayAlignment,
+                    node_export.evidence.clone(),
+                ));
+            }
+            "fact.personal.personal_hour_matrix" => {
+                let effect = personal_hour_effect(&node_export.summary_vi);
+                edges.push(make_edge(
+                    &id,
+                    InterpretedAxis::PersonalAlignment.signal_node_id(),
+                    effect,
+                    1,
+                    ReasoningEdgeJustification::PersonalHourAlignment,
+                    node_export.evidence.clone(),
+                ));
+            }
+            _ => {}
+        }
+
+        nodes.push(node_export);
     }
 }
 
@@ -462,63 +538,6 @@ fn add_hours_edges(hours_node: &ReasoningNodeExport, edges: &mut Vec<ReasoningEd
             ReasoningEdgeJustification::HoangDaoHourSupport,
             hours_node.evidence.clone(),
         ));
-    }
-}
-
-fn add_personal_nodes_and_edges(
-    nodes: &mut Vec<ReasoningNodeExport>,
-    edges: &mut Vec<ReasoningEdgeExport>,
-    snapshot: &DaySnapshot,
-    personal: &super::personal::PersonalReasoningInput,
-    _graph: &SemanticGraph,
-) {
-    let personal_nodes = match personal.build_fact_nodes(snapshot) {
-        Ok(n) => n,
-        Err(_) => return,
-    };
-    for raw_node in personal_nodes {
-        let id = raw_node.id.clone();
-        let node_export = ReasoningNodeExport {
-            id: id.clone(),
-            kind: NodeKind::Fact,
-            axis: axis_for_node(&id),
-            severity: severity_for_node(&id, raw_node.severity.as_deref(), &raw_node.summary_vi),
-            tags: tags_for_node(&id),
-            summary_vi: raw_node.summary_vi,
-            evidence: raw_node.evidence,
-        };
-
-        match id.as_str() {
-            "fact.personal.day_person_matrix" => {
-                let effect = personal_alignment_effect(&node_export.summary_vi);
-                edges.push(make_edge(
-                    &id,
-                    InterpretedAxis::PersonalAlignment.signal_node_id(),
-                    effect,
-                    if effect == EdgeEffect::Overrides {
-                        2
-                    } else {
-                        1
-                    },
-                    ReasoningEdgeJustification::PersonalDayAlignment,
-                    node_export.evidence.clone(),
-                ));
-            }
-            "fact.personal.personal_hour_matrix" => {
-                let effect = personal_hour_effect(&node_export.summary_vi);
-                edges.push(make_edge(
-                    &id,
-                    InterpretedAxis::PersonalAlignment.signal_node_id(),
-                    effect,
-                    1,
-                    ReasoningEdgeJustification::PersonalHourAlignment,
-                    node_export.evidence.clone(),
-                ));
-            }
-            _ => {}
-        }
-
-        nodes.push(node_export);
     }
 }
 

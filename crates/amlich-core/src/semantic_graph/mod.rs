@@ -8,7 +8,10 @@ mod provenance;
 mod selectors;
 mod views;
 
-pub use builders::{build_day_snapshot_graph, build_reasoning_input_graph, ReasoningInputGraph};
+pub use builders::{
+    build_day_snapshot_graph, build_reasoning_input_graph, build_reasoning_input_graph_with_facts,
+    ReasoningInputGraph,
+};
 pub use edge::{SemanticEdge, SemanticEdgeId, SemanticEdgeLabel};
 pub use graph::{GraphMergeError, GraphValidationError, SemanticGraph};
 pub use ids::SemanticId;
