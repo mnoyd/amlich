@@ -1,9 +1,11 @@
 <script lang="ts">
     import { selectedDate, userProfile } from '$lib/stores';
     import type { UserProfile } from '$lib/stores';
-    import { fetchPersonalDayReport } from '$lib/api/invoke';
+    import { fetchDebugSemanticGraph, fetchPersonalDayReport } from '$lib/api/invoke';
     import type {
         DecisionConfidenceDto,
+        DebugSemanticGraphResponseDto,
+        DebugVisualizationNodeDto,
         EdgeEffectDto,
         InitiationOpeningDecisionExportDto,
         InitiationRecommendationBucketDto,
@@ -72,6 +74,56 @@
     $: devEdges = graph?.edges ?? [];
     $: devSeverityCounts = severityCounts(devNodes);
     $: devEffectCounts = effectCounts(devEdges);
+
+    // Clustered debug inspection (amlich-4gef). Richer than report.graph:
+    // clusters nodes, adds shape_hint, and includes recommendation evidence.
+    // Loaded on demand from the Dev lens; defaults off.
+    let inspection: DebugSemanticGraphResponseDto | null = null;
+    let inspectionLoading = false;
+    let inspectionError: string | null = null;
+    let inspectionToken = 0;
+    let showClustered = false;
+    let inspectionDay = 0;
+    let inspectionMonth = 0;
+    let inspectionYear = 0;
+
+    $: if (report && activeLens === 'dev' && showClustered) {
+        const { day, month, year } = currentDayParts($selectedDate);
+        if (day !== inspectionDay || month !== inspectionMonth || year !== inspectionYear) {
+            loadInspection(day, month, year);
+        }
+    }
+
+    async function loadInspection(day: number, month: number, year: number) {
+        const token = ++inspectionToken;
+        inspectionDay = day;
+        inspectionMonth = month;
+        inspectionYear = year;
+        inspectionLoading = true;
+        inspectionError = null;
+        try {
+            inspection = await fetchDebugSemanticGraph(day, month, year, true);
+        } catch (e: unknown) {
+            if (token !== inspectionToken) return;
+            inspection = null;
+            inspectionError = e instanceof Error ? e.message : 'Failed to load debug semantic graph';
+        } finally {
+            if (token === inspectionToken) inspectionLoading = false;
+        }
+    }
+
+    function toggleClustered() {
+        showClustered = !showClustered;
+        if (showClustered && !inspection && !inspectionLoading && $selectedDate) {
+            const { day, month, year } = currentDayParts($selectedDate);
+            loadInspection(day, month, year);
+        }
+    }
+
+    $: inspectionClusters = inspection
+        ? groupInspectionNodesByCluster(inspection.visualization.nodes)
+        : [];
+    $: inspectionEdges = inspection?.visualization.edges ?? [];
 
     const bucketLabel: Record<InitiationRecommendationBucketDto, string> = {
         avoid: 'Tránh',
@@ -259,6 +311,35 @@
     function edgesTouching(edges: ReasoningEdgeExportDto[], nodeId: string | null, side: 'in' | 'out'): ReasoningEdgeExportDto[] {
         if (!nodeId) return [];
         return edges.filter((edge) => (side === 'in' ? edge.to_node_id === nodeId : edge.from_node_id === nodeId));
+    }
+
+    type InspectionClusterGroup = {
+        cluster: string;
+        nodes: DebugVisualizationNodeDto[];
+        kinds: string[];
+    };
+
+    function groupInspectionNodesByCluster(nodes: DebugVisualizationNodeDto[]): InspectionClusterGroup[] {
+        const buckets = new Map<string, DebugVisualizationNodeDto[]>();
+        for (const node of nodes) {
+            const list = buckets.get(node.cluster);
+            if (list) list.push(node);
+            else buckets.set(node.cluster, [node]);
+        }
+        return [...buckets.entries()]
+            .map(([cluster, list]) => ({
+                cluster,
+                nodes: list,
+                kinds: [...new Set(list.map((n) => n.semantic_kind))],
+            }))
+            .sort((a, b) => b.nodes.length - a.nodes.length);
+    }
+
+    function countEntries(map: Record<string, number> | undefined): { key: string; count: number }[] {
+        if (!map) return [];
+        return Object.entries(map)
+            .map(([key, count]) => ({ key, count }))
+            .sort((a, b) => b.count - a.count);
     }
 
     const canonicalAxisLabel: Record<string, string> = {
@@ -764,6 +845,139 @@
                     <span class="badge-evidence">DEV LENS</span>
                     <span class="ml-2 text-ink-light">Raw graph dump — internal IDs, justifications, and evidence envelopes as the engine sees them.</span>
                 </div>
+
+                <div class="card-dense mb-6 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <div class="text-sm font-bold">Clustered inspection</div>
+                        <p class="text-xs text-ink-light font-mono mt-0.5">
+                            DebugSemanticGraphInspection — clusters, shape_hint, recommendation evidence.
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        class="px-3 py-1.5 font-mono text-xs uppercase tracking-wider border border-ink-border focus-ring transition-colors"
+                        class:bg-evidence={showClustered}
+                        class:text-ink={showClustered}
+                        class:text-ink-light={!showClustered}
+                        onclick={toggleClustered}
+                    >
+                        {showClustered ? 'Hide clustered' : 'Show clustered'}
+                    </button>
+                </div>
+
+                {#if showClustered}
+                    {#if inspectionLoading}
+                        <div class="card-dense mb-6">
+                            <span class="text-ink-light font-mono animate-pulse text-sm">Loading clustered inspection...</span>
+                        </div>
+                    {:else if inspectionError}
+                        <div class="bg-ky/10 text-ky p-3 rounded font-mono border border-ky/20 mb-6 text-sm">
+                            {inspectionError}
+                        </div>
+                    {:else if inspection}
+                        {@const clusterCounts = countEntries(inspection.cluster_counts)}
+                        {@const kindCounts = countEntries(inspection.semantic_kind_counts)}
+                        {@const sevCounts = countEntries(inspection.severity_counts)}
+
+                        <section class="mb-8">
+                            <h3 class="text-xl font-mono font-bold mb-3">Clustered summary</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                <div class="card-dense">
+                                    <div class="text-xs font-mono uppercase text-ink-light">Nodes</div>
+                                    <div class="text-2xl font-bold">{inspection.summary.total_nodes}</div>
+                                </div>
+                                <div class="card-dense">
+                                    <div class="text-xs font-mono uppercase text-ink-light">Edges</div>
+                                    <div class="text-2xl font-bold">{inspection.summary.total_edges}</div>
+                                </div>
+                                <div class="card-dense">
+                                    <div class="text-xs font-mono uppercase text-ink-light">Clusters</div>
+                                    <div class="text-2xl font-bold">{inspection.summary.clusters.length}</div>
+                                </div>
+                                <div class="card-dense">
+                                    <div class="text-xs font-mono uppercase text-ink-light">Rec. evidence</div>
+                                    <div class="text-sm font-bold mt-1">
+                                        {inspection.summary.has_recommendation_evidence ? 'yes' : 'no'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {#if clusterCounts.length}
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    {#each clusterCounts as row (row.key)}
+                                        <span class="badge-evidence">{row.key}: {row.count}</span>
+                                    {/each}
+                                </div>
+                            {/if}
+                            {#if kindCounts.length}
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    {#each kindCounts as row (row.key)}
+                                        <span class="badge-cothe">{row.key}: {row.count}</span>
+                                    {/each}
+                                </div>
+                            {/if}
+                            {#if sevCounts.length}
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    {#each sevCounts as row (row.key)}
+                                        <span class="badge-cothe">sev:{row.key}: {row.count}</span>
+                                    {/each}
+                                </div>
+                            {/if}
+                        </section>
+
+                        <section class="mb-8">
+                            <h3 class="text-xl font-mono font-bold mb-3">
+                                Nodes by cluster ({inspection.visualization.nodes.length})
+                            </h3>
+                            <div class="space-y-4">
+                                {#each inspectionClusters as group (group.cluster)}
+                                    <div>
+                                        <h4 class="text-sm font-mono uppercase tracking-wider text-ink-light mb-2">
+                                            {group.cluster}
+                                            <span class="text-xs font-normal">({group.nodes.length} · kinds: {group.kinds.join(', ')})</span>
+                                        </h4>
+                                        <div class="space-y-2">
+                                            {#each group.nodes as node (node.node_id)}
+                                                <div class="card-dense font-mono text-xs">
+                                                    <div class="flex flex-wrap items-baseline gap-2">
+                                                        <span class="font-bold text-ink">{node.node_id}</span>
+                                                        <span class="text-ink-light">{node.semantic_kind}</span>
+                                                        {#if node.severity}
+                                                            <span class="text-tranh">sev={node.severity}</span>
+                                                        {/if}
+                                                        {#if node.shape_hint}
+                                                            <span class="badge-evidence">shape: {node.shape_hint}</span>
+                                                        {/if}
+                                                    </div>
+                                                    <p class="text-sm font-sans mt-1">{node.label}</p>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    </div>
+                                {/each}
+                            </div>
+                        </section>
+
+                        <section class="mb-8">
+                            <h3 class="text-xl font-mono font-bold mb-3">
+                                Clustered edges ({inspectionEdges.length})
+                            </h3>
+                            <div class="space-y-2">
+                                {#each inspectionEdges as edge, i ('insp-edge-' + i)}
+                                    <div class="card-dense font-mono text-xs">
+                                        <div class="flex flex-wrap items-baseline gap-2">
+                                            <span class="font-bold text-ink">{edge.from_id}</span>
+                                            <span class="text-ink-light">—{edge.semantic_kind}→</span>
+                                            <span class="font-bold text-ink">{edge.to_id}</span>
+                                            <span class="text-ink-light">w={edge.weight}</span>
+                                        </div>
+                                        <p class="text-sm font-sans mt-1">{edge.label}</p>
+                                    </div>
+                                {/each}
+                            </div>
+                        </section>
+                    {/if}
+                {/if}
 
                 {#if graph}
                     <section class="mb-8">

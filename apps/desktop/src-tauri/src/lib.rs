@@ -8,15 +8,16 @@ use amlich_api::v2::{
 };
 use amlich_api::{
     get_bazi_derived_report as api_get_bazi_derived_report, get_bazi_report as api_get_bazi_report,
-    get_day_info_for_date, get_day_insight_for_date, get_holidays,
+    get_day_info_for_date, get_day_insight_for_date,
+    get_debug_semantic_graph_inspection as api_get_debug_semantic_graph_inspection, get_holidays,
     get_hour_selection_report as api_get_hour_selection_report,
     get_personal_day_matrix_report as api_get_personal_day_matrix_report,
     get_personal_day_report as api_get_personal_day_report,
     get_recommendation_pack_catalog as api_get_recommendation_pack_catalog,
     get_ruleset_catalog as api_get_ruleset_catalog, BaziDerivedReportDto, BaziQuery, BaziReportDto,
-    DateQuery, DayInfoDto, DayInsightDto, HolidayDto, HourSelectionReportDto,
-    PersonalDayMatrixReportDto, PersonalDayReportDto, RecommendationPackCatalogEntryDto,
-    RulesetCatalogEntryDto,
+    DateQuery, DayInfoDto, DayInsightDto, DebugSemanticGraphQueryDto,
+    DebugSemanticGraphResponseDto, HolidayDto, HourSelectionReportDto, PersonalDayMatrixReportDto,
+    PersonalDayReportDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto,
 };
 
 #[derive(Debug, Serialize, Clone)]
@@ -392,6 +393,22 @@ fn get_personal_day_matrix_report(
 }
 
 #[tauri::command]
+fn get_debug_semantic_graph_inspection(
+    day: i32,
+    month: i32,
+    year: i32,
+    include_recommendations: Option<bool>,
+) -> Result<DebugSemanticGraphResponseDto, String> {
+    validate_date_parts(day, month)?;
+    api_get_debug_semantic_graph_inspection(&DebugSemanticGraphQueryDto {
+        day,
+        month,
+        year,
+        include_recommendations: include_recommendations.unwrap_or(false),
+    })
+}
+
+#[tauri::command]
 fn get_install_context() -> InstallContext {
     let executable_path = std::env::current_exe()
         .ok()
@@ -448,6 +465,7 @@ pub fn run() {
             get_holidays_list,
             get_personal_day_report,
             get_personal_day_matrix_report,
+            get_debug_semantic_graph_inspection,
             get_install_context
         ])
         .run(tauri::generate_context!())
@@ -697,6 +715,33 @@ mod tests {
         assert!(!ctx.arch.is_empty());
         assert!(!ctx.app_version.is_empty());
         assert_eq!(ctx.can_self_update, !ctx.is_system_install);
+    }
+
+    #[test]
+    fn get_debug_semantic_graph_inspection_command_returns_clustered_visualization() {
+        let response = get_debug_semantic_graph_inspection(10, 2, 2024, Some(true))
+            .expect("debug semantic graph inspection");
+
+        assert_eq!(response.surface, "debug_semantic_graph_inspector");
+        assert_eq!(response.date.year, 2024);
+        assert_eq!(response.date.month, 2);
+        assert_eq!(response.date.day, 10);
+        assert!(response.summary.total_nodes > 0);
+        assert!(!response.visualization.nodes.is_empty());
+        // Clustered/shape-hinted richness is the whole point of this surface
+        // (vs. the reasoning graph already on PersonalDayReportDto).
+        assert!(response
+            .visualization
+            .nodes
+            .iter()
+            .all(|n| !n.cluster.is_empty() && !n.semantic_kind.is_empty()));
+        assert!(response.summary.has_recommendation_evidence);
+    }
+
+    #[test]
+    fn get_debug_semantic_graph_inspection_command_rejects_invalid_date_parts() {
+        assert!(get_debug_semantic_graph_inspection(0, 2, 2024, None).is_err());
+        assert!(get_debug_semantic_graph_inspection(10, 13, 2024, None).is_err());
     }
 
     #[test]

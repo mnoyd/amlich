@@ -4,7 +4,7 @@ import type {
     BaziReportDto, BaziDerivedReportDto, HourSelectionReportDto,
     RulesetCatalogEntryDto, RecommendationPackCatalogEntryDto,
     HolidayDto, PersonalDayReportDto, PersonalDayMatrixReportDto,
-    TietKhiYearDto
+    TietKhiYearDto, DebugSemanticGraphResponseDto
 } from './types';
 
 export type DayRangeRequest = {
@@ -63,4 +63,8 @@ export async function fetchPersonalDayReport(day: number, month: number, year: n
 
 export async function fetchPersonalDayMatrixReport(day: number, month: number, year: number, birthYear: number, birthMonth: number, birthDay: number, birthHour: number, birthMinute: number, gender?: string): Promise<PersonalDayMatrixReportDto> {
     return invoke('get_personal_day_matrix_report', { day, month, year, birthYear, birthMonth, birthDay, birthHour, birthMinute, gender });
+}
+
+export async function fetchDebugSemanticGraph(day: number, month: number, year: number, includeRecommendations: boolean = false): Promise<DebugSemanticGraphResponseDto> {
+    return invoke('get_debug_semantic_graph_inspection', { day, month, year, includeRecommendations });
 }

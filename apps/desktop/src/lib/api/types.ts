@@ -1440,3 +1440,70 @@ export type ApiInclude =
     | 'recommendations'
     | 'insight'
     | 'evidence';
+
+// ---------------------------------------------------------------------------
+// Debug semantic graph inspection (amlich-4gef).
+// Source of truth: crates/amlich-api/src/dto.rs (DebugSemanticGraph* DTOs).
+// Surface: amlich_api::get_debug_semantic_graph_inspection, wrapped by the
+// `get_debug_semantic_graph_inspection` Tauri command. Richer than the
+// reasoning graph on PersonalDayReportDto — clusters nodes, adds shape_hint,
+// and includes recommendation evidence.
+//
+// Note: Rust DTOs do NOT use `skip_serializing_if = "Option::is_none"` for
+// DebugVisualizationNodeDto, so `severity` and `shape_hint` are emitted as
+// `null` (not omitted) when absent — mirrored here as `string | null`.
+// ---------------------------------------------------------------------------
+
+export interface DebugSemanticGraphQueryDto {
+    day: number;
+    month: number;
+    year: number;
+    include_recommendations?: boolean;
+}
+
+export interface DebugInspectionDateDto {
+    year: number;
+    month: number;
+    day: number;
+}
+
+export interface DebugInspectionSummaryDto {
+    total_nodes: number;
+    total_edges: number;
+    clusters: string[];
+    semantic_kinds: string[];
+    has_recommendation_evidence: boolean;
+}
+
+export interface DebugVisualizationNodeDto {
+    node_id: string;
+    label: string;
+    cluster: string;
+    semantic_kind: string;
+    severity: string | null;
+    shape_hint: string | null;
+}
+
+export interface DebugVisualizationEdgeDto {
+    edge_id: string;
+    from_id: string;
+    to_id: string;
+    label: string;
+    semantic_kind: string;
+    weight: number;
+}
+
+export interface DebugVisualizationDto {
+    nodes: DebugVisualizationNodeDto[];
+    edges: DebugVisualizationEdgeDto[];
+}
+
+export interface DebugSemanticGraphResponseDto {
+    surface: string;
+    date: DebugInspectionDateDto;
+    visualization: DebugVisualizationDto;
+    summary: DebugInspectionSummaryDto;
+    cluster_counts: Record<string, number>;
+    semantic_kind_counts: Record<string, number>;
+    severity_counts: Record<string, number>;
+}
