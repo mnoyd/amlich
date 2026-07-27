@@ -3726,6 +3726,40 @@ mod tests {
     }
 
     #[test]
+    fn vi_sao_view_renders_decision_stack_role_labels() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::ViSao;
+        let text = render_text(&app);
+
+        let role_group_headers = ["Kháng cự", "Hỗ trợ", "Bổ sung"];
+        let present_count = role_group_headers
+            .iter()
+            .filter(|role| text.contains(*role))
+            .count();
+        assert!(
+            present_count >= 1,
+            "expected at least one decision-stack role group header, got {} in text:\n{}",
+            present_count,
+            text
+        );
+
+        assert!(
+            text.contains("Vai trò:"),
+            "expected selected entry detail to render role label, missing 'Vai trò:' in text:\n{}",
+            text
+        );
+
+        let detail_role_labels = ["Cản trở", "Hỗ trợ", "Bổ sung", "Lấn át", "Xung đột"];
+        let detail_present = detail_role_labels.iter().any(|label| text.contains(label));
+        assert!(
+            detail_present,
+            "expected one of {:?} to appear as the selected entry's role label",
+            detail_role_labels
+        );
+    }
+
+    #[test]
     fn d_switches_to_debug_graph_mode() {
         let mut app = sample_app();
         app.dev_inspector_mode = false;
@@ -3756,5 +3790,51 @@ mod tests {
             .collect::<Vec<_>>()
             .join("\n");
         assert!(!text.is_empty());
+    }
+
+    #[test]
+    fn small_layout_keeps_selected_detail_accessible() {
+        let mut app = sample_app();
+        app.dev_inspector_mode = false;
+        app.explanation_lens = UserExplanationLens::ViSao;
+        app.graph_inspector_cursor = 0;
+        let area = Rect::new(0, 0, 40, 15);
+        let mut buf = Buffer::empty(area);
+        GraphInspectorScreenWidget::new(&app, LayoutMode::Small).render(area, &mut buf);
+        let text = (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        assert!(
+            text.contains("Vì Sao Kết Luận"),
+            "expected the Vì Sao screen to render even on small layout"
+        );
+
+        let role_labels = ["Kháng cự", "Hỗ trợ", "Bổ sung"];
+        let has_role_group = role_labels.iter().any(|role| text.contains(role));
+        let has_detail_role = text.contains("Vai trò:");
+        assert!(
+            has_role_group || has_detail_role,
+            "expected selected decision-stack entry to remain accessible on small layout; \
+             neither a role group header ({:?}) nor 'Vai trò:' detail was found in:\n{}",
+            role_labels,
+            text
+        );
+
+        app.graph_inspector_cursor = 1;
+        let mut buf2 = Buffer::empty(area);
+        GraphInspectorScreenWidget::new(&app, LayoutMode::Small).render(area, &mut buf2);
+        let _ = (0..area.height).map(|y| {
+            (0..area.width)
+                .map(|x| buf2[(x, y)].symbol())
+                .collect::<String>()
+        });
     }
 }

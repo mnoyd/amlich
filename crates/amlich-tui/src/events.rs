@@ -580,6 +580,42 @@ mod tests {
     }
 
     #[test]
+    fn explanation_lens_cycles_through_full_vi_sao_yeu_to_hoat_dong_nguon() {
+        let mut app = sample_app_state();
+        app.active_view = ActiveView::GraphInspector;
+        app.dev_inspector_mode = false;
+        assert_eq!(
+            app.explanation_lens,
+            crate::state::UserExplanationLens::ViSao
+        );
+
+        dispatch_key(&mut app, KeyCode::Char('/'), KeyModifiers::NONE);
+        assert_eq!(
+            app.explanation_lens,
+            crate::state::UserExplanationLens::YeuTo
+        );
+
+        dispatch_key(&mut app, KeyCode::Char('/'), KeyModifiers::NONE);
+        assert_eq!(
+            app.explanation_lens,
+            crate::state::UserExplanationLens::HoatDong
+        );
+
+        dispatch_key(&mut app, KeyCode::Char('/'), KeyModifiers::NONE);
+        assert_eq!(
+            app.explanation_lens,
+            crate::state::UserExplanationLens::Nguon
+        );
+
+        dispatch_key(&mut app, KeyCode::Char('/'), KeyModifiers::NONE);
+        assert_eq!(
+            app.explanation_lens,
+            crate::state::UserExplanationLens::ViSao,
+            "expected the lens cycle to wrap back to ViSao after Nguon"
+        );
+    }
+
+    #[test]
     fn bracket_cycles_dev_graph_inspector_lens() {
         let mut app = sample_app_state();
         app.active_view = ActiveView::GraphInspector;
