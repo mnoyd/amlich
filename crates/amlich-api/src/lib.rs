@@ -416,13 +416,26 @@ pub fn get_day_insight_with_profile(
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
 ) -> Result<DayInsightDto, String> {
     let day_info = get_day_info(query)?;
-    build_day_insight_from_day_info(query, &day_info, birth_year, birth_month, birth_day, gender)
+    build_day_insight_from_day_info(
+        query,
+        &day_info,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+        None,
+    )
 }
 
 /// Build a [`DayInsightDto`] from a precomputed [`DayInfoDto`] instead of
 /// rebuilding the snapshot. Per-request paths that already have a snapshot
 /// (e.g. [`build_personal_day_context`]) must use this helper so the day's
 /// normalized input is not recomputed — see REPAIR-PLAN.md P2.
+///
+/// `kua` carries an optionally precomputed Kua so the Tu Menh insight does
+/// not recompute it when the caller already has one (the personal-day
+/// report path threads a single Kua through every consumer — `amlich-efkp`).
+/// `None` falls back to computing from `(birth_year, gender)`.
 fn build_day_insight_from_day_info(
     query: &DateQuery,
     day_info: &DayInfoDto,
@@ -430,6 +443,7 @@ fn build_day_insight_from_day_info(
     birth_month: Option<i32>,
     birth_day: Option<i32>,
     gender: Option<amlich_core::almanac::tu_menh::Gender>,
+    kua: Option<&amlich_core::almanac::tu_menh::KuaResult>,
 ) -> Result<DayInsightDto, String> {
     let festival = lunar_festivals()
         .iter()
@@ -613,48 +627,58 @@ fn build_day_insight_from_day_info(
             .collect(),
     });
 
-    // Birth-dependent: Tu Menh (Kua)
-    let tu_menh = match (birth_year, gender) {
-        (Some(by), Some(g)) => {
-            use amlich_core::almanac::tu_menh::compute_kua;
-            use amlich_core::insight_data::{find_kua_group_insight, find_kua_insight};
-            let kua_result = compute_kua(by, g);
-            let group_id = format!("{:?}", kua_result.group);
-            let kua_insight = find_kua_insight(kua_result.kua);
-            let group_insight = find_kua_group_insight(&group_id);
-            let empty_text = || LocalizedTextDto {
-                vi: String::new(),
-                en: String::new(),
+    // Birth-dependent: Tu Menh (Kua). Prefer the caller-provided Kua so the
+    // personal-day report path does not recompute it (amlich-efkp); fall
+    // back to deriving it from `(birth_year, gender)` for standalone callers.
+    // The fallback is computed lazily so a non-empty `kua` argument never
+    // triggers a redundant `compute_kua`.
+    let fallback_kua;
+    let tu_menh = match kua {
+        Some(k) => Some(k),
+        None => {
+            fallback_kua = match (birth_year, gender) {
+                (Some(by), Some(g)) => Some(amlich_core::almanac::tu_menh::compute_kua(by, g)),
+                _ => None,
             };
-            Some(TuMenhInsightDto {
-                kua: kua_result.kua,
-                group: group_id,
-                trigram: kua_insight
-                    .map(|k| LocalizedTextDto::from(&k.trigram))
-                    .unwrap_or_else(empty_text),
-                direction: kua_insight
-                    .map(|k| LocalizedTextDto::from(&k.direction))
-                    .unwrap_or_else(empty_text),
-                meaning: kua_insight
-                    .map(|k| LocalizedTextDto::from(&k.meaning))
-                    .unwrap_or_else(empty_text),
-                group_meaning: group_insight
-                    .map(|g| LocalizedTextDto::from(&g.meaning))
-                    .unwrap_or_else(empty_text),
-                favorable_directions: kua_result
-                    .favorable_directions
-                    .iter()
-                    .map(|d| format!("{:?}", d))
-                    .collect(),
-                unfavorable_directions: kua_result
-                    .unfavorable_directions
-                    .iter()
-                    .map(|d| format!("{:?}", d))
-                    .collect(),
-            })
+            fallback_kua.as_ref()
         }
-        _ => None,
-    };
+    }
+    .map(|kua_result| {
+        use amlich_core::insight_data::{find_kua_group_insight, find_kua_insight};
+        let group_id = format!("{:?}", kua_result.group);
+        let kua_insight = find_kua_insight(kua_result.kua);
+        let group_insight = find_kua_group_insight(&group_id);
+        let empty_text = || LocalizedTextDto {
+            vi: String::new(),
+            en: String::new(),
+        };
+        TuMenhInsightDto {
+            kua: kua_result.kua,
+            group: group_id,
+            trigram: kua_insight
+                .map(|k| LocalizedTextDto::from(&k.trigram))
+                .unwrap_or_else(empty_text),
+            direction: kua_insight
+                .map(|k| LocalizedTextDto::from(&k.direction))
+                .unwrap_or_else(empty_text),
+            meaning: kua_insight
+                .map(|k| LocalizedTextDto::from(&k.meaning))
+                .unwrap_or_else(empty_text),
+            group_meaning: group_insight
+                .map(|g| LocalizedTextDto::from(&g.meaning))
+                .unwrap_or_else(empty_text),
+            favorable_directions: kua_result
+                .favorable_directions
+                .iter()
+                .map(|d| format!("{:?}", d))
+                .collect(),
+            unfavorable_directions: kua_result
+                .unfavorable_directions
+                .iter()
+                .map(|d| format!("{:?}", d))
+                .collect(),
+        }
+    });
 
     // Birth-dependent: Dai Van
     let dai_van = match (birth_day, birth_month, birth_year, gender) {
@@ -1427,13 +1451,33 @@ fn build_personal_day_context(
     let intent = amlich_core::ConsultationIntent::OpeningBusiness;
     let snapshot = build_personal_day_snapshot(query, intent)?;
     let profile = build_personal_birth_profile(query, birth_year, birth_month, birth_day, gender);
-    let canonical_assessment =
-        build_personal_canonical_assessment(profile, snapshot.clone(), intent);
+
+    // Compute the Kua exactly once per request (amlich-efkp) and thread it
+    // through the canonical assessment, the personal facts bundle, and the
+    // Tu Menh insight so the three consumers stop independently calling
+    // `compute_kua(birth_year, gender)`.
+    let kua = match (birth_year, gender) {
+        (Some(by), Some(g)) => Some(amlich_core::almanac::tu_menh::compute_kua(by, g)),
+        _ => None,
+    };
+
+    let canonical_assessment = amlich_core::assessment::PersonalDayAssessment::assess_with_kua(
+        snapshot.clone(),
+        profile,
+        intent,
+        kua.as_ref(),
+    );
 
     let personal_input = personal_reasoning_input(birth_year, birth_month, birth_day, gender);
     let personal_facts = personal_input
         .as_ref()
-        .map(|p| amlich_core::reasoning::PersonalAssessmentFacts::build(p, &snapshot))
+        .map(|p| {
+            amlich_core::reasoning::PersonalAssessmentFacts::build_with_kua(
+                p,
+                &snapshot,
+                kua.as_ref(),
+            )
+        })
         .transpose()?;
     let reasoning_bundle = if let Some(personal) = personal_input.as_ref() {
         Some(
@@ -1456,6 +1500,7 @@ fn build_personal_day_context(
         birth_month,
         birth_day,
         gender,
+        kua.as_ref(),
     )?;
 
     Ok(PersonalDayContext {

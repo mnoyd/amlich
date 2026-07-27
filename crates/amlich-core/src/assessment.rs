@@ -1069,6 +1069,27 @@ impl PersonalDayAssessment {
         PersonalDayAssessmentBuilder::new(snapshot, profile, intent).build()
     }
 
+    /// Like [`assess`](Self::assess) but accepts a precomputed Kua so the
+    /// assessment path does not independently recompute it. The personal-day
+    /// report path threads a single Kua through the assessment, the facts
+    /// bundle, and the Tu Menh insight so `build_count::kua_computations`
+    /// stays at one per request — see `amlich-efkp`. `KuaResult` is small and
+    /// [`Clone`], so the seam takes it by reference.
+    pub fn assess_with_kua(
+        snapshot: DaySnapshot,
+        profile: BirthProfile,
+        intent: ConsultationIntent,
+        kua: Option<&KuaResult>,
+    ) -> Self {
+        crate::build_count::canonical_assessment_built();
+        let builder = PersonalDayAssessmentBuilder::new(snapshot, profile, intent);
+        let builder = match kua {
+            Some(k) => builder.with_kua(Ok(k.clone())),
+            None => builder,
+        };
+        builder.build()
+    }
+
     pub fn project_to_initiation_opening_decision(&self) -> InitiationOpeningDecision {
         let primary = self.decision.primary_conclusion.clone();
         let bucket = self.decision.bucket;

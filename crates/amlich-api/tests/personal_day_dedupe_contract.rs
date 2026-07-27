@@ -97,14 +97,13 @@ fn personal_day_report_with_profile_builds_one_snapshot_and_one_assessment() {
         "element distribution must be built once per personal-day report (got {})",
         counters.element_distributions
     );
-    // Kua is currently consumed by three subsystems (assessment,
-    // calculate_dai_van, and direction_merge) that each compute it
-    // independently; deduplicating it across those subsystems is a
-    // follow-up — see REPAIR-PLAN.md P2. We pin the current count so the
-    // refactor cannot regress this surface.
-    assert!(
-        counters.kua_computations > 0 && counters.kua_computations <= 3,
-        "Kua must be computed at most 3 times per personal-day report (got {})",
+    // Kua is computed exactly once per request and threaded through the
+    // canonical assessment, the personal facts bundle, and the Tu Menh
+    // insight (amlich-efkp). Previously each subsystem computed it
+    // independently — see REPAIR-PLAN.md P2.
+    assert_eq!(
+        counters.kua_computations, 1,
+        "Kua must be computed exactly once per personal-day report (got {})",
         counters.kua_computations
     );
     assert_eq!(

@@ -44,6 +44,24 @@ impl PersonalAssessmentFacts {
         personal: &PersonalReasoningInput,
         snapshot: &DaySnapshot,
     ) -> Result<Self, String> {
+        let kua = personal
+            .birth
+            .gender
+            .map(|gender| compute_kua(personal.birth.year, gender));
+        Self::build_with_kua(personal, snapshot, kua.as_ref())
+    }
+
+    /// Like [`build`](Self::build) but accepts a precomputed Kua so the
+    /// facts bundle does not independently recompute it. The personal-day
+    /// report path threads a single Kua through the assessment, the facts
+    /// bundle, and the Tu Menh insight so `build_count::kua_computations`
+    /// stays at one per request — see `amlich-efkp`. `KuaResult` is small
+    /// and [`Clone`], so the seam takes it by reference.
+    pub fn build_with_kua(
+        personal: &PersonalReasoningInput,
+        snapshot: &DaySnapshot,
+        kua: Option<&KuaResult>,
+    ) -> Result<Self, String> {
         let chart = build_bazi_chart(personal.to_bazi_input())?;
         let analysis = analyze_bazi_chart(&chart);
         // Reuse the element distribution that `analyze_bazi_chart` already
@@ -56,17 +74,13 @@ impl PersonalAssessmentFacts {
             None,
             &crate::bazi::default_bazi_scoring_matrix_set(),
         );
-        let kua = personal
-            .birth
-            .gender
-            .map(|gender| compute_kua(personal.birth.year, gender));
         let day_person_matrix = compute_day_person_matrix(&snapshot.context.canchi.day, &chart);
         let personal_hour_matrix = compute_personal_hour_matrix(
             &snapshot.context.canchi.day,
             &chart,
             &element_distribution,
         );
-        let direction_merge_matrix = kua.as_ref().map(|kua_result| {
+        let direction_merge_matrix = kua.map(|kua_result| {
             compute_direction_merge(
                 &snapshot.context.canchi.day,
                 &snapshot.day_fortune.travel.tai_than,
@@ -74,6 +88,7 @@ impl PersonalAssessmentFacts {
                 kua_result,
             )
         });
+        let kua = kua.cloned();
         Ok(Self {
             chart,
             analysis,
