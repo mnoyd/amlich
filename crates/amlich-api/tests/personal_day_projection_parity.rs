@@ -14,8 +14,9 @@
 //!   single verdict attached as `canonical_assessment`),
 //! - the **hour-selection** analysis/advisory surfaces (compatibility
 //!   ranking + canonical day verdict),
-//! - the **legacy `AdvisoryScoring`** shadow vs. canonical decision
-//!   confidence mapping.
+//! - the legacy advisory confidence/severity shadow vs. canonical decision
+//!   confidence mapping (the `AdvisoryScoring`/`score_day_selection`
+//!   compatibility surface was retired in `amlich-0q2f`).
 
 use amlich_api::{
     get_hour_selection_advisory, get_hour_selection_analysis, get_personal_day_advisory,

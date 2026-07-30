@@ -2,7 +2,7 @@
 //!
 //! Locks the core contract that `PersonalDayAssessment::assess(...)` is
 //! deterministic and stable across multiple calls so downstream
-//! `score_day_selection` (standalone advisory) and `get_personal_day_report`
+//! `assess_personal_day` (standalone advisory) and `get_personal_day_report`
 //! (aggregate) can project identical axes and contribution IDs from the
 //! same inputs. See bead `amlich-mwbp.6`.
 
@@ -203,4 +203,47 @@ fn policy_metadata_is_locked() {
     // requires a deliberate update here.
     assert_eq!(ASSESSMENT_POLICY_ID, "personal-day-assessment");
     assert_eq!(ASSESSMENT_POLICY_VERSION, "v1");
+}
+
+#[test]
+fn canonical_decision_carries_score_bucket_and_confidence() {
+    // amlich-0q2f: the legacy `AdvisoryScoring` / `ScoredAdvice` /
+    // `score_day_selection` / `rank_dates_for_intent` compatibility surface
+    // (which projected `score`/`verdict`/`confidence` strings) has been
+    // retired because it had no production consumers. This test locks the
+    // parity property that the canonical `PersonalDayDecision` still exposes
+    // every value those projections derived from — `decision_score`,
+    // `bucket`, and `confidence` — so removing the legacy structs does not
+    // lose the capability.
+    let snapshot = snapshot_2024_02_10();
+    let assessment = assess_personal_day(snapshot, full_profile(), ConsultationIntent::Wedding);
+
+    assert!(
+        assessment.decision.decision_score.is_some(),
+        "canonical decision must carry a normalized decision_score"
+    );
+    let score = assessment.decision.decision_score.unwrap();
+    assert!(
+        (0.0..=1.0).contains(&score),
+        "decision_score must be a normalized 0..=1 value, got {score}"
+    );
+
+    assert!(
+        matches!(
+            assessment.decision.confidence,
+            amlich_core::reasoning::DecisionConfidence::Low
+                | amlich_core::reasoning::DecisionConfidence::Medium
+                | amlich_core::reasoning::DecisionConfidence::High
+        ),
+        "canonical decision must carry a typed confidence"
+    );
+
+    let bucket = format!("{:?}", assessment.decision.bucket).to_lowercase();
+    assert!(
+        matches!(
+            bucket.as_str(),
+            "favorable" | "mixed" | "cautious" | "avoid"
+        ),
+        "canonical decision must carry a typed bucket, got {bucket}"
+    );
 }

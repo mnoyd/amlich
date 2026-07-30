@@ -1,4 +1,3 @@
-use chrono::Datelike;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -6,14 +5,12 @@ use crate::{
         synthesize_daily_recommendations_with_layers, ActivityId, DailyRecommendations,
         RecommendationPackLookupError, RecommendationSynthesisContext,
     },
-    assessment::PersonalDayAssessment,
-    birth::BirthProfile,
     canchi::get_year_canchi,
     julian::jd_from_date,
     lunar::{convert_solar_to_lunar, LunarDate},
     tietkhi::get_tiet_khi,
     types::{CanChi, VIETNAM_TIMEZONE},
-    CanChiSet, DayContext, DaySnapshot, SolarDate,
+    CanChiSet, DayContext, SolarDate,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -89,75 +86,6 @@ impl BirthInput {
     pub fn birth_year_canchi(&self) -> CanChi {
         get_year_canchi(self.to_lunar_date().year)
     }
-}
-
-/// Legacy numeric scoring envelope carried by [`ScoredAdvice`].
-///
-/// **Compatibility projection (amlich-mwbp.7).** The `score`, `verdict`,
-/// and `confidence` strings are NOT an independent verdict — they are
-/// projected from the canonical
-/// [`PersonalDayAssessment`](crate::assessment::PersonalDayAssessment) by
-/// [`project_scored_advice`]. This struct remains in the public surface
-/// during the migration window so existing test fixtures and downstream
-/// consumers stay green; consumers should prefer reading
-/// `canonical_assessment` directly when available.
-///
-/// See `docs/architecture/personal-day-audit/REPAIR-PLAN.md` "Legacy
-/// `score_day_selection` / `AdvisoryScoring`" row of the ownership table.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct AdvisoryScoring {
-    pub score: i32,
-    pub verdict: String,
-    pub confidence: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct EvidenceEnvelope {
-    pub source_family: String,
-    pub source_id: String,
-    pub method: String,
-    pub profile: String,
-    pub note: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct ScoredAdvice {
-    pub summary_vi: String,
-    pub summary_en: String,
-    pub scoring: AdvisoryScoring,
-    pub reasons: Vec<String>,
-    pub warnings: Vec<String>,
-    pub applied_rulesets: Vec<String>,
-    pub evidence: Vec<EvidenceEnvelope>,
-    pub recommendations: DailyRecommendations,
-}
-
-#[derive(Debug, Clone)]
-pub struct PersonalizedDaySelection {
-    pub intent: ConsultationIntent,
-    pub birth: Option<BirthInput>,
-    pub snapshot: DaySnapshot,
-    pub advisory: ScoredAdvice,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct DateRangeInput {
-    pub start_day: i32,
-    pub start_month: i32,
-    pub start_year: i32,
-    pub end_day: i32,
-    pub end_month: i32,
-    pub end_year: i32,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RankedDateCandidate {
-    pub day: i32,
-    pub month: i32,
-    pub year: i32,
-    pub score: i32,
-    pub verdict: String,
-    pub summary_vi: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -249,221 +177,6 @@ impl HourSelectionReasoning {
     }
 }
 
-pub fn build_personalized_day_selection(
-    day: i32,
-    month: i32,
-    year: i32,
-    intent: ConsultationIntent,
-    birth: Option<BirthInput>,
-    enabled_pack_ids: &[&str],
-) -> Result<PersonalizedDaySelection, String> {
-    let snapshot = crate::calculate_day_snapshot_with_recommendation_request(
-        day,
-        month,
-        year,
-        VIETNAM_TIMEZONE,
-        None,
-        Some(intent.event_kind()),
-        enabled_pack_ids,
-    )?;
-
-    let profile = birth
-        .as_ref()
-        .map(BirthProfile::from_birth_input)
-        .unwrap_or_else(|| BirthProfile {
-            day,
-            month,
-            year,
-            time: None,
-            timezone: VIETNAM_TIMEZONE,
-            longitude: None,
-            use_solar_time: false,
-            gender: None,
-            location_name: None,
-        });
-
-    let assessment = PersonalDayAssessment::assess(snapshot.clone(), profile, intent);
-    let advisory = project_scored_advice(&assessment, &snapshot);
-
-    Ok(PersonalizedDaySelection {
-        intent,
-        birth,
-        snapshot,
-        advisory,
-    })
-}
-
-/// Build a [`ScoredAdvice`] projected from the canonical
-/// [`PersonalDayAssessment`]. Replaces the legacy [`score_day_selection`]
-/// numeric formula: the canonical verdict now lives on the assessment and
-/// this projection is the only path that should emit advisory scores.
-pub fn project_scored_advice(
-    assessment: &PersonalDayAssessment,
-    snapshot: &DaySnapshot,
-) -> ScoredAdvice {
-    use crate::reasoning::RecommendationBucket as RB;
-
-    let bucket = assessment.decision.bucket;
-    let verdict = match bucket {
-        RB::Favorable => "strong_match",
-        RB::Mixed => "good_match",
-        RB::Cautious => "mixed",
-        RB::Avoid => "weak_match",
-    };
-
-    let decision_score = assessment
-        .decision
-        .decision_score
-        .map(|s| (s * 100.0).round() as i32)
-        .unwrap_or(50);
-    let score = decision_score.clamp(0, 100);
-
-    let confidence = match assessment.decision.confidence {
-        crate::reasoning::DecisionConfidence::High => "high",
-        crate::reasoning::DecisionConfidence::Medium => "medium",
-        crate::reasoning::DecisionConfidence::Low => "low",
-    };
-
-    let mut reasons: Vec<String> = Vec::new();
-    let mut warnings: Vec<String> = Vec::new();
-
-    reasons.push(format!(
-        "Ngày {} có trực {} và {} hoạt động được đánh giá.",
-        snapshot.context.canchi.day.full,
-        snapshot.day_fortune.truc.name,
-        assessment.evidence.recommendation_count
-    ));
-
-    if let Some(intent_contrib) = assessment
-        .contributions
-        .iter()
-        .find(|c| c.axis == crate::assessment::AssessmentAxis::IntentFit)
-    {
-        if let Some(note) = intent_contrib.note.as_ref() {
-            reasons.push(format!(
-                "Hoạt động chính '{}' được xếp nhóm qua policy {}@{}.",
-                note, intent_contrib.policy_id, intent_contrib.policy_version
-            ));
-        }
-    } else {
-        warnings.push("Chưa có rule chuyên biệt mạnh cho mục đích này.".to_string());
-    }
-
-    if !snapshot.day_fortune.taboos.is_empty() {
-        reasons.push(format!(
-            "Ngày có {} điều kiêng kỵ được ghi nhận.",
-            snapshot.day_fortune.taboos.len()
-        ));
-    }
-
-    if matches!(bucket, RB::Cautious | RB::Avoid) {
-        warnings.push(assessment.decision.primary_conclusion.clone());
-    }
-
-    for contrib in assessment.contributions.iter().filter(|c| {
-        c.axis == crate::assessment::AssessmentAxis::PersonalAlignment
-            && matches!(c.polarity, crate::assessment::ContributionPolarity::Avoid)
-    }) {
-        warnings.push(format!(
-            "Cá nhân hóa: {} (strength={:.2}, policy={}@{})",
-            contrib.contribution_id, contrib.strength, contrib.policy_id, contrib.policy_version
-        ));
-    }
-
-    for contrib in assessment.contributions.iter().filter(|c| {
-        c.axis == crate::assessment::AssessmentAxis::PersonalAlignment
-            && matches!(
-                c.polarity,
-                crate::assessment::ContributionPolarity::Favorable
-            )
-    }) {
-        reasons.push(format!(
-            "Cá nhân hóa: {} (strength={:.2}, policy={}@{})",
-            contrib.contribution_id, contrib.strength, contrib.policy_id, contrib.policy_version
-        ));
-    }
-
-    if !assessment.evidence.has_chart && !assessment.evidence.has_yearly_han {
-        warnings.push(
-            "Thiếu thông tin sinh nên chưa cá nhân hóa đầy đủ theo tuổi/mệnh/Hạn năm.".to_string(),
-        );
-    }
-
-    let evidence_envelopes: Vec<EvidenceEnvelope> = assessment
-        .contributions
-        .iter()
-        .take(5)
-        .map(|c| EvidenceEnvelope {
-            source_family: c.source_evidence.source_family.clone(),
-            source_id: c.source_evidence.source_id.clone(),
-            method: c.source_evidence.method.clone(),
-            profile: assessment.profile.clone(),
-            note: format!(
-                "{}@{} ({})",
-                c.policy_id, c.policy_version, c.contribution_id
-            ),
-        })
-        .collect();
-
-    let recommendations = snapshot
-        .contextual_recommendations
-        .clone()
-        .unwrap_or_else(|| snapshot.daily_recommendations.clone());
-
-    ScoredAdvice {
-        summary_vi: recommendations.summary_vi.clone(),
-        summary_en: recommendations.summary_en.clone(),
-        scoring: AdvisoryScoring {
-            score,
-            verdict: verdict.to_string(),
-            confidence: confidence.to_string(),
-        },
-        reasons,
-        warnings,
-        applied_rulesets: vec![format!(
-            "{}@{}",
-            snapshot.ruleset_id, snapshot.ruleset_version
-        )],
-        evidence: evidence_envelopes,
-        recommendations,
-    }
-}
-
-/// Legacy compatibility entry point. Routes through the canonical
-/// assessment via [`build_personalized_day_selection`]'s input collection
-/// then projects the resulting [`ScoredAdvice`]. Kept in the public
-/// surface during the migration window so existing test fixtures and
-/// downstream consumers stay green.
-///
-/// **Compatibility projection (amlich-mwbp.7).** This function does not
-/// compute an independent verdict: it builds the canonical
-/// [`PersonalDayAssessment`] once and projects `ScoredAdvice` from it via
-/// [`project_scored_advice`]. Consumers that need the raw verdict should
-/// call [`PersonalDayAssessment::assess`] directly.
-pub fn score_day_selection(
-    _context: &DayContext,
-    snapshot: &DaySnapshot,
-    _recommendations: DailyRecommendations,
-    intent: ConsultationIntent,
-    birth: Option<&BirthInput>,
-) -> ScoredAdvice {
-    let profile = birth
-        .map(BirthProfile::from_birth_input)
-        .unwrap_or_else(|| BirthProfile {
-            day: snapshot.context.solar.day,
-            month: snapshot.context.solar.month,
-            year: snapshot.context.solar.year,
-            time: None,
-            timezone: VIETNAM_TIMEZONE,
-            longitude: None,
-            use_solar_time: false,
-            gender: None,
-            location_name: None,
-        });
-    let assessment = PersonalDayAssessment::assess(snapshot.clone(), profile, intent);
-    project_scored_advice(&assessment, snapshot)
-}
-
 pub fn compute_day_context_from_birth(birth: &BirthInput) -> DayContext {
     let jd = jd_from_date(birth.day, birth.month, birth.year);
     let lunar = birth.to_lunar_date();
@@ -519,77 +232,6 @@ pub fn synthesize_advisory_recommendations(
 ) -> Result<DailyRecommendations, RecommendationPackLookupError> {
     let ctx = build_recommendation_context(context, day_fortune, intent, enabled_pack_ids);
     synthesize_daily_recommendations_with_layers(&ctx, &[])
-}
-
-/// Rank a date range for a given `intent`, returning the top-N candidates.
-///
-/// **Compatibility projection (amlich-mwbp.7).** Each
-/// [`RankedDateCandidate::score`] and `verdict` is projected from the
-/// canonical [`PersonalDayAssessment`] via [`project_scored_advice`] (one
-/// assessment built per candidate day). This function does not compute
-/// an independent verdict — it only sorts day-level projections.
-pub fn rank_dates_for_intent(
-    range: &DateRangeInput,
-    intent: ConsultationIntent,
-    birth: Option<BirthInput>,
-    enabled_pack_ids: &[&str],
-    top_n: usize,
-) -> Result<Vec<RankedDateCandidate>, String> {
-    let start = chrono::NaiveDate::from_ymd_opt(
-        range.start_year,
-        range.start_month as u32,
-        range.start_day as u32,
-    )
-    .ok_or_else(|| "invalid start date".to_string())?;
-    let end = chrono::NaiveDate::from_ymd_opt(
-        range.end_year,
-        range.end_month as u32,
-        range.end_day as u32,
-    )
-    .ok_or_else(|| "invalid end date".to_string())?;
-
-    if start > end {
-        return Err("start date must be before or equal to end date".to_string());
-    }
-
-    let mut ranked = Vec::new();
-    let mut current = start;
-
-    while current <= end {
-        let selection = build_personalized_day_selection(
-            current.day() as i32,
-            current.month() as i32,
-            current.year(),
-            intent,
-            birth.clone(),
-            enabled_pack_ids,
-        )?;
-
-        ranked.push(RankedDateCandidate {
-            day: current.day() as i32,
-            month: current.month() as i32,
-            year: current.year(),
-            score: selection.advisory.scoring.score,
-            verdict: selection.advisory.scoring.verdict.clone(),
-            summary_vi: selection.advisory.summary_vi.clone(),
-        });
-
-        current = current
-            .succ_opt()
-            .ok_or_else(|| "date iteration overflow".to_string())?;
-    }
-
-    ranked.sort_by(|left, right| {
-        right
-            .score
-            .cmp(&left.score)
-            .then_with(|| left.year.cmp(&right.year))
-            .then_with(|| left.month.cmp(&right.month))
-            .then_with(|| left.day.cmp(&right.day))
-    });
-
-    ranked.truncate(top_n);
-    Ok(ranked)
 }
 
 /// Rank the twelve traditional hour slots for a given `intent`.
@@ -737,23 +379,6 @@ mod tests {
     }
 
     #[test]
-    fn personalized_day_selection_builds_scored_advice() {
-        let result = build_personalized_day_selection(
-            10,
-            2,
-            2024,
-            ConsultationIntent::ContractSigning,
-            None,
-            &[],
-        )
-        .expect("selection");
-
-        assert_eq!(result.intent, ConsultationIntent::ContractSigning);
-        assert!(!result.advisory.summary_vi.is_empty());
-        assert!((0..=100).contains(&result.advisory.scoring.score));
-    }
-
-    #[test]
     fn advisory_context_can_synthesize_intent_recommendations() {
         let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
         let recommendations = synthesize_advisory_recommendations(
@@ -771,63 +396,11 @@ mod tests {
     }
 
     #[test]
-    fn rank_dates_returns_best_candidates_in_score_order() {
-        let ranked = rank_dates_for_intent(
-            &DateRangeInput {
-                start_day: 10,
-                start_month: 2,
-                start_year: 2024,
-                end_day: 12,
-                end_month: 2,
-                end_year: 2024,
-            },
-            ConsultationIntent::ContractSigning,
-            None,
-            &[],
-            2,
-        )
-        .expect("ranked dates");
-
-        assert_eq!(ranked.len(), 2);
-        assert!(ranked[0].score >= ranked[1].score);
-    }
-
-    #[test]
     fn rank_hours_prioritizes_auspicious_slots() {
         let ranked = rank_hours_for_intent(10, 2, 2024, ConsultationIntent::Travel, None)
             .expect("ranked hours");
 
         assert!(!ranked.is_empty());
         assert!(ranked[0].score >= ranked[ranked.len() - 1].score);
-    }
-
-    #[test]
-    fn birth_compatibility_affects_selection_score() {
-        let without_birth =
-            build_personalized_day_selection(10, 2, 2024, ConsultationIntent::Travel, None, &[])
-                .expect("baseline");
-        let with_birth = build_personalized_day_selection(
-            10,
-            2,
-            2024,
-            ConsultationIntent::Travel,
-            Some(BirthInput {
-                day: 10,
-                month: 2,
-                year: 2024,
-                hour: None,
-                minute: None,
-                timezone: VIETNAM_TIMEZONE,
-                gender: Some(crate::almanac::tu_menh::Gender::Male),
-                location_name: None,
-            }),
-            &[],
-        )
-        .expect("personalized");
-
-        assert_ne!(
-            without_birth.advisory.scoring.score,
-            with_birth.advisory.scoring.score
-        );
     }
 }
