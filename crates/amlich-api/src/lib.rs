@@ -1347,27 +1347,7 @@ fn advisory_severity_and_summary(
     cautions: &[String],
     highlights: &[String],
 ) -> (String, String) {
-    use amlich_core::reasoning::RecommendationBucket as RB;
-    let severity = match assessment.decision.bucket {
-        RB::Avoid => "high".to_string(),
-        RB::Cautious => "medium".to_string(),
-        RB::Favorable => {
-            if cautions.is_empty() {
-                "low".to_string()
-            } else {
-                "medium".to_string()
-            }
-        }
-        RB::Mixed => {
-            if cautions.len() >= 4 {
-                "high".to_string()
-            } else if cautions.is_empty() {
-                "low".to_string()
-            } else {
-                "medium".to_string()
-            }
-        }
-    };
+    let severity = severity_for_bucket(assessment.decision.bucket, cautions.is_empty()).to_string();
 
     let summary = if !cautions.is_empty() {
         format!(
@@ -1387,6 +1367,28 @@ fn advisory_severity_and_summary(
     };
 
     (severity, summary)
+}
+
+/// Map a canonical decision bucket to the advisory severity label.
+///
+/// Severity derives from the bucket + caution *presence* only. It must never
+/// derive from an arbitrary caution-message count: the former
+/// `cautions.len() >= 4` override let incomplete-profile caution strings
+/// inflate a Mixed day to "high", violating the safety acceptance that
+/// medical/burial/contract outputs must not gain high confidence from caution
+/// counts alone (amlich-0q2f). Extracted as a pure helper so the policy is
+/// unit-testable without constructing a full `PersonalDayAssessment`.
+fn severity_for_bucket(
+    bucket: amlich_core::reasoning::RecommendationBucket,
+    cautions_empty: bool,
+) -> &'static str {
+    use amlich_core::reasoning::RecommendationBucket as RB;
+    match bucket {
+        RB::Avoid => "high",
+        RB::Cautious => "medium",
+        RB::Favorable | RB::Mixed if cautions_empty => "low",
+        RB::Favorable | RB::Mixed => "medium",
+    }
 }
 
 pub fn get_personal_day_report(
@@ -2150,4 +2152,29 @@ fn compute_han_count(
 
     let assessment = compute_yearly_han(&input, birth_chi_index, current_year_chi_index);
     Some(assessment.han_count)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::severity_for_bucket;
+    use amlich_core::reasoning::RecommendationBucket as RB;
+
+    #[test]
+    fn severity_never_inflates_from_caution_count() {
+        // amlich-0q2f: a Mixed bucket with many caution signals must stay
+        // "medium", never "high". The former `cautions.len() >= 4` override
+        // is gone; only Avoid reaches "high".
+        assert_eq!(severity_for_bucket(RB::Avoid, true), "high");
+        assert_eq!(severity_for_bucket(RB::Avoid, false), "high");
+        assert_eq!(severity_for_bucket(RB::Cautious, true), "medium");
+        assert_eq!(severity_for_bucket(RB::Cautious, false), "medium");
+
+        assert_eq!(severity_for_bucket(RB::Favorable, true), "low");
+        assert_eq!(severity_for_bucket(RB::Favorable, false), "medium");
+
+        // The regression target: Mixed + cautions present (any count) must
+        // be "medium", never "high".
+        assert_eq!(severity_for_bucket(RB::Mixed, true), "low");
+        assert_eq!(severity_for_bucket(RB::Mixed, false), "medium");
+    }
 }
