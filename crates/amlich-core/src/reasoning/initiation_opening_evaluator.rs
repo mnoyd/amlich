@@ -758,7 +758,6 @@ impl InitiationOpeningEvaluator {
             suggested_directions,
             axis_scores,
             referenced_node_ids,
-            referenced_edge_ids: Vec::new(),
         })
     }
 }

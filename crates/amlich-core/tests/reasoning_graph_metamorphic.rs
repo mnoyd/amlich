@@ -170,3 +170,32 @@ fn strongest_notes_resolve_to_provenance() {
         );
     }
 }
+
+/// Edge provenance is carried on the exported graph's edges
+/// (`ReasoningEdgeExport.evidence`), not on `ActionEvaluation`. This locks
+/// the parity property that justifies retiring the dead
+/// `ActionEvaluation::referenced_edge_ids` contract (always empty, never
+/// read) — `amlich-0q2f` / `amlich-mwbp.8`.
+#[test]
+fn edge_provenance_lives_on_graph_export_not_evaluation() {
+    use amlich_core::build_initiation_opening_reasoning_bundle;
+
+    let (snapshot, _graph) = graph_for(3, 1, 2024);
+    let bundle = build_initiation_opening_reasoning_bundle(&snapshot, None).expect("bundle");
+    let export = &bundle.graph;
+
+    // The export is the canonical provenance surface for edges: every edge
+    // carries its own evidence envelope, so a parallel edge-id list on the
+    // evaluation would be redundant.
+    assert!(
+        !export.edges.is_empty(),
+        "fixture graph must expose at least one reasoning edge"
+    );
+    assert!(
+        export
+            .edges
+            .iter()
+            .all(|edge| !edge.evidence.is_empty() || !edge.tags.is_empty()),
+        "edges must self-describe provenance via evidence/tags"
+    );
+}

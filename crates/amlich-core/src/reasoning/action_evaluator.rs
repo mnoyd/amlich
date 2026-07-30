@@ -23,7 +23,6 @@ pub struct ActionEvaluation {
     pub suggested_directions: Vec<String>,
     pub axis_scores: Vec<ReasoningAxisScore>,
     pub referenced_node_ids: Vec<String>,
-    pub referenced_edge_ids: Vec<String>,
 }
 
 impl ActionEvaluation {
@@ -43,7 +42,6 @@ impl ActionEvaluation {
             suggested_directions: Vec::new(),
             axis_scores: Vec::new(),
             referenced_node_ids: Vec::new(),
-            referenced_edge_ids: Vec::new(),
         }
     }
 }
