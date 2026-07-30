@@ -469,7 +469,7 @@ impl DaySnapshotGraphBuilder {
             ),
         )
         .with_tags(good_hour_names)
-        .with_severity(gio_hoang_dao.good_hour_count.to_string())
+        .with_severity_if(gio_hoang_dao.good_hour_count > 0, "has_good_hours")
         .with_provenance(provenance);
 
         self.graph.add_node(node);

@@ -18,7 +18,6 @@ use super::{ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily};
 pub struct PersonalFactNode {
     pub id: String,
     pub summary_vi: String,
-    pub severity: Option<String>,
     pub evidence: Vec<ReasoningEvidenceEnvelope>,
 }
 
@@ -124,7 +123,6 @@ impl PersonalReasoningInput {
         let mut nodes = vec![PersonalFactNode {
             id: "fact.personal.day_person_matrix".to_string(),
             summary_vi: summarize_day_person_matrix(&facts.day_person_matrix),
-            severity: None,
             evidence: vec![interaction_evidence(
                 "interaction.day_person.compute_day_person_matrix",
                 "day_person_matrix",
@@ -135,7 +133,6 @@ impl PersonalReasoningInput {
             nodes.push(PersonalFactNode {
                 id: "fact.personal.personal_hour_matrix".to_string(),
                 summary_vi: summarize_personal_hour_matrix(personal_hour),
-                severity: Some(personal_hour.hours.len().to_string()),
                 evidence: vec![interaction_evidence(
                     "interaction.personal_hour.compute_personal_hour_matrix",
                     "personal_hour_matrix",
@@ -144,14 +141,13 @@ impl PersonalReasoningInput {
         }
 
         if let Some(direction_merge) = &facts.direction_merge_matrix {
-            let kua = facts
+            let _kua = facts
                 .kua
                 .as_ref()
                 .expect("direction_merge_matrix requires kua (gated in build)");
             nodes.push(PersonalFactNode {
                 id: "fact.personal.direction_merge".to_string(),
                 summary_vi: summarize_direction_merge(direction_merge),
-                severity: Some(kua.kua.to_string()),
                 evidence: vec![interaction_evidence(
                     "interaction.direction_merge.compute_direction_merge",
                     "direction_merge",
@@ -175,7 +171,6 @@ impl PersonalReasoningInput {
                     .collect::<Vec<_>>()
                     .join(", ")
             ),
-            severity: None,
             evidence: vec![bazi_evidence(
                 "bazi.compute_bazi_metrics",
                 "profile_analysis",

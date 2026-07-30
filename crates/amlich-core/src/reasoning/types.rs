@@ -199,10 +199,18 @@ pub fn interpret_severity(
                 None
             }
         }
-        "hoang_dao_hours" => severity
-            .and_then(|s| s.parse::<usize>().ok())
-            .filter(|&count| count > 0)
-            .map(|_| ReasoningNodeSeverity::Auspicious),
+        "hoang_dao_hours" => {
+            // Favorability is signaled by a non-numeric presence marker on
+            // the semantic node (see `with_severity_if`); the good-hour
+            // count itself lives in the summary text and snapshot, never in
+            // the severity slot (amlich-0q2f: no overloaded numeric
+            // severities).
+            if severity.is_some() {
+                Some(ReasoningNodeSeverity::Auspicious)
+            } else {
+                None
+            }
+        }
         "xung_hop" => {
             if summary_vi.starts_with("Xung") && !summary_vi.contains(", hợp ") {
                 Some(ReasoningNodeSeverity::Inauspicious)

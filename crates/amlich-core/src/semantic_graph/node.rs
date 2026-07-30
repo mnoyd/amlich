@@ -64,6 +64,17 @@ impl SemanticNode {
         self
     }
 
+    /// Conditionally attach a non-numeric severity classification when
+    /// `condition` holds. Used to mark favorability without overloading the
+    /// severity slot with a numeric count (amlich-0q2f).
+    pub fn with_severity_if(self, condition: bool, severity: &str) -> Self {
+        if condition {
+            self.with_severity(severity)
+        } else {
+            self
+        }
+    }
+
     pub fn with_tags(mut self, tags: impl Into<Vec<String>>) -> Self {
         self.tags = tags.into();
         self

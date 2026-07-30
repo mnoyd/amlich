@@ -56,8 +56,8 @@ fn build_fact_nodes_from_facts_matches_snapshot_based_variant() {
             cached.id
         );
         assert_eq!(
-            cached.severity, rebuilt.severity,
-            "fact-node severity must match for id={} (cached vs snapshot-based)",
+            cached.evidence, rebuilt.evidence,
+            "fact-node evidence must match for id={} (cached vs snapshot-based)",
             cached.id
         );
     }

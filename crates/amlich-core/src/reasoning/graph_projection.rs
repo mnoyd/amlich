@@ -137,7 +137,10 @@ fn add_personal_node_edges(
             id: id.clone(),
             kind: NodeKind::Fact,
             axis: axis_for_node(&id),
-            severity: severity_for_node(&id, raw_node.severity.as_deref(), &raw_node.summary_vi),
+            // Personal fact nodes carry no severity classification: their
+            // favorability is expressed via typed edges/summary, not via an
+            // overloaded severity slot (amlich-0q2f).
+            severity: None,
             tags: tags_for_node(&id),
             summary_vi: raw_node.summary_vi,
             evidence: raw_node.evidence,
@@ -333,12 +336,16 @@ fn build_travel_direction_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
 
 fn build_hoang_dao_hours_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
     let summary_vi = snapshot.context.gio_hoang_dao.summary.clone();
-    let severity_str = snapshot.context.gio_hoang_dao.good_hour_count.to_string();
+    // Drive favorability from the boolean count check, not by encoding the
+    // count as a severity string (amlich-0q2f: no overloaded numeric
+    // severities).
+    let severity_str =
+        (snapshot.context.gio_hoang_dao.good_hour_count > 0).then_some("has_good_hours");
     ReasoningNodeExport {
         id: "fact.day.hoang_dao_hours".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.hoang_dao_hours"),
-        severity: severity_for_node("fact.day.hoang_dao_hours", Some(&severity_str), &summary_vi),
+        severity: severity_for_node("fact.day.hoang_dao_hours", severity_str, &summary_vi),
         tags: tags_for_node("fact.day.hoang_dao_hours"),
         summary_vi,
         evidence: vec![snapshot_evidence(

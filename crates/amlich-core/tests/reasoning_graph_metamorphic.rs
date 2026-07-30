@@ -199,3 +199,26 @@ fn edge_provenance_lives_on_graph_export_not_evaluation() {
         "edges must self-describe provenance via evidence/tags"
     );
 }
+
+/// Severity slots must never carry numeric counts. The hoang-dao-hours
+/// favorability is signaled by a non-numeric presence marker, and personal
+/// fact nodes carry no severity at all. Locks the "no overloaded numeric
+/// severities" acceptance from `amlich-0q2f`.
+#[test]
+fn severity_slots_never_carry_numeric_counts() {
+    use amlich_core::build_reasoning_input_graph;
+
+    let (snapshot, _g) = graph_for(10, 2, 2024);
+    let graph = build_reasoning_input_graph(&snapshot, None).expect("graph");
+
+    for node in graph.nodes().values() {
+        if let Some(sev) = node.severity.as_deref() {
+            assert!(
+                sev.parse::<usize>().is_err(),
+                "severity slot must not carry a numeric value (concept={:?}, severity={sev:?}); \
+                 counts belong in the summary/snapshot, not the severity field",
+                node.concept
+            );
+        }
+    }
+}

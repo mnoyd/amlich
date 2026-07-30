@@ -73,11 +73,7 @@ impl EvidenceSelectors {
             .values()
             .filter(|node| {
                 node.concept == NodeConcept::HoangDaoHour
-                    && node
-                        .severity
-                        .as_ref()
-                        .and_then(|s| s.parse::<usize>().ok())
-                        .is_some_and(|count| count > 0)
+                    && node.severity.as_deref() == Some("has_good_hours")
             })
             .map(|node| node.node_id.clone())
             .collect()
