@@ -195,22 +195,6 @@ pub struct DirectionCrossLinkSummary {
 // Private helpers — pure functions over the locked DTO + Direction enum.
 // =========================================================================
 
-/// Private Vietnamese-string copy of the existing `direction_merge.rs`
-/// mapping. Per CONTEXT.md §"Deferred Ideas" the consolidation into a
-/// public `Direction::as_vn_str()` method is out of scope for Phase 23.
-fn direction_to_vn(d: Direction) -> &'static str {
-    match d {
-        Direction::North => "Bắc",
-        Direction::Northeast => "Đông Bắc",
-        Direction::East => "Đông",
-        Direction::Southeast => "Đông Nam",
-        Direction::South => "Nam",
-        Direction::Southwest => "Tây Nam",
-        Direction::West => "Tây",
-        Direction::Northwest => "Tây Bắc",
-    }
-}
-
 /// Map a Vietnamese cardinal/intercardinal name back to its `Direction`.
 /// Returns `None` for unknown strings (used for the Sát Phương day-chi
 /// string match).
@@ -397,7 +381,7 @@ fn khcbppt_severity(
 
 /// Vietnamese per-direction summary for the KHCBPPT side.
 fn khcbppt_summary_vi(direction: Direction, taboo: &DirectionalTaboo) -> String {
-    let vn = direction_to_vn(direction);
+    let vn = direction.as_vn_str();
     let mut bits: Vec<String> = Vec::new();
     if let Some(tt) = taboo.thai_tue.as_ref() {
         if tt.conflict_kinds.is_empty() {
@@ -449,7 +433,7 @@ fn build_huyen_khong_cells(snapshot: &DaySnapshot) -> Result<[HuyenKhongCell; 8]
         let direction = DIRECTION_ORDER[i];
         let safety_hint_vi = hints.and_then(|h| h[palace_idx].clone());
         let summary_vi = {
-            let vn = direction_to_vn(direction);
+            let vn = direction.as_vn_str();
             match safety_hint_vi.as_ref() {
                 Some(hint) => format!(
                     "Cung số {} tại hướng {}: sao thường niên {}, {}", // intentional Vietnamese text
@@ -520,7 +504,7 @@ fn build_summary_vi(
                     .map(|t| !t.conflict_kinds.is_empty())
                     .unwrap_or(false);
             if has_signal {
-                Some(direction_to_vn(c.direction))
+                Some(c.direction.as_vn_str())
             } else {
                 None
             }

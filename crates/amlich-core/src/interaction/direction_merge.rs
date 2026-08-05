@@ -89,21 +89,7 @@ pub fn compute_direction_merge(
 
 /// Check if a Kua Direction array contains a direction matching the Vietnamese string.
 fn kua_has_direction(dirs: &[Direction; 4], vn_dir: &str) -> bool {
-    dirs.iter().any(|d| direction_to_vn(d) == vn_dir)
-}
-
-/// Convert Direction enum to Vietnamese direction string.
-fn direction_to_vn(d: &Direction) -> &'static str {
-    match d {
-        Direction::North => "Bắc",
-        Direction::Northeast => "Đông Bắc",
-        Direction::East => "Đông",
-        Direction::Southeast => "Đông Nam",
-        Direction::South => "Nam",
-        Direction::Southwest => "Tây Nam",
-        Direction::West => "Tây",
-        Direction::Northwest => "Tây Bắc",
-    }
+    dirs.iter().any(|d| d.as_vn_str() == vn_dir)
 }
 
 /// Check if two Vietnamese direction strings match.
