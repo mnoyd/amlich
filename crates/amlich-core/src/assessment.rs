@@ -60,6 +60,7 @@ use crate::{
 
 pub mod extraction;
 pub mod feature;
+pub mod hour_ranking;
 pub mod interactions;
 pub mod policy;
 pub mod trace;
