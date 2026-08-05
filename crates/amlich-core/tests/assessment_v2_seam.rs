@@ -77,6 +77,18 @@ fn no_gender_only() -> BirthProfile {
     }
 }
 
+/// A profile that triggers the `veto.annual.han_severe` veto on the
+/// 2024-02-10 snapshot: birth year 1985 hits Hạn High severity. Used to
+/// give the v1/v2 parity grid and the dedicated veto tests coverage of
+/// the named-veto decision path (amlich-l0wu).
+fn han_severe_profile() -> BirthProfile {
+    BirthProfile {
+        year: 1985,
+        gender: Some(Gender::Female),
+        ..full_profile()
+    }
+}
+
 /// Build a v1 assessment with the legacy default entry point.
 fn v1(
     snapshot: DaySnapshot,
@@ -439,6 +451,9 @@ fn v1_v2_full_parity_across_intent_and_capability_grid() {
         no_time_only(),
         no_gender_only(),
         no_time_no_gender(),
+        // amlich-l0wu: include a veto-firing profile so the parity grid
+        // covers the named-veto decision path, not just the weighted path.
+        han_severe_profile(),
     ] {
         for intent in ALL_INTENTS {
             assert_v1_v2_full_parity(&snapshot, &profile, intent);
@@ -495,11 +510,13 @@ fn v2_trace_decision_aggregation_records_axis_weights_and_bucket() {
         "trace decision_score must match the assessment decision_score"
     );
 
-    // baseline_v2 does not populate the veto or interaction sections;
-    // those are layered in by amlich-l0wu and amlich-47wn.
+    // The 1990-Male full-profile fixture on 2024-02-10 happens to fire no
+    // named veto (its Hạn severity is below High). See
+    // `v2_surfaces_named_veto_events_when_conditions_fire` for the
+    // veto-populated case. Interactions stay empty until amlich-47wn.
     assert!(
         trace.vetoes.is_empty(),
-        "baseline_v2 must not emit named vetoes (amlich-l0wu)"
+        "this fixture is veto-free; a populated-veto fixture is covered separately"
     );
     assert!(
         trace.interactions.is_empty(),
@@ -528,27 +545,308 @@ fn v2_trace_round_trips_through_serde() {
 #[test]
 fn v2_preserves_hard_veto_override_under_baseline_parity() {
     // The legacy v1 builder forces an Avoid bucket when any avoid
-    // contribution has strength >= 0.8 (the implicit veto). baseline_v2
-    // preserves this behavior; lifting it into named vetoes is
-    // amlich-l0wu. Pick a fixture where the override fires — the
-    // 2024-02-10 snapshot's Hạn assessment hits Critical severity for
-    // the 1990 birth year, which maps to strength 1.0.
+    // contribution has strength >= 0.8 (the implicit veto). Under
+    // amlich-l0wu the v2 policy replaces the threshold with named
+    // [`VetoEvent`]s that fire on the same source-data states; the
+    // decision bucket and score must stay byte-identical to v1.
+    //
+    // Fixture: the 2024-02-10 snapshot + 1985 birth year hits Hạn High
+    // severity, which fires `veto.annual.han_severe`.
     let snapshot = snapshot_2024_02_10();
-    let v1 = v1(
-        snapshot.clone(),
-        full_profile(),
+    let profile = han_severe_profile();
+
+    for intent in ALL_INTENTS {
+        let v1 = v1(snapshot.clone(), profile.clone(), intent);
+        let v2 = v2(&snapshot, &profile, intent);
+
+        assert_eq!(
+            v1.decision.bucket, v2.decision.bucket,
+            "bucket divergence on veto-firing fixture for {:?}",
+            intent
+        );
+        assert_eq!(
+            v1.decision.decision_score, v2.decision.decision_score,
+            "score divergence on veto-firing fixture for {:?}",
+            intent
+        );
+        assert_eq!(
+            v1.decision.semantic, v2.decision.semantic,
+            "semantic divergence on veto-firing fixture for {:?}",
+            intent
+        );
+        assert_eq!(
+            v2.decision.bucket,
+            RecommendationBucket::Avoid,
+            "veto must force Avoid for {:?}",
+            intent
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// amlich-l0wu: Named hard vetoes.
+//
+// Acceptance criteria covered below:
+//   - Named hard vetoes cannot be cancelled by favorable weights.
+//   - Ordinary negative contributions do not become vetoes by threshold
+//     accident.
+//   - Missing inputs are excluded and reported (unavailable evidence is
+//     distinct from neutral evidence).
+// ---------------------------------------------------------------------------
+
+fn snapshot_2024_12_25() -> DaySnapshot {
+    amlich_core::calculate_day_snapshot_with_timezone(25, 12, 2024, VIETNAM_TIMEZONE)
+}
+
+fn snapshot_2024_05_05() -> DaySnapshot {
+    amlich_core::calculate_day_snapshot_with_timezone(5, 5, 2024, VIETNAM_TIMEZONE)
+}
+
+#[test]
+fn v2_surfaces_named_veto_events_when_conditions_fire() {
+    // Each veto type that fires under real data is covered by a distinct
+    // fixture. The veto event must carry a stable veto_id, a non-empty
+    // reason, the originating axis, and source evidence.
+
+    // veto.annual.han_severe — 2024-02-10 + 1985 birth year → Hạn High.
+    let assessment = v2(
+        &snapshot_2024_02_10(),
+        &han_severe_profile(),
         ConsultationIntent::Wedding,
     );
-    let v2 = v2(&snapshot, &full_profile(), ConsultationIntent::Wedding);
+    let trace = assessment.trace.as_ref().expect("v2 trace");
+    assert!(
+        trace
+            .vetoes
+            .iter()
+            .any(|v| v.veto_id == "veto.annual.han_severe"
+                && v.axis == AssessmentAxis::AnnualPressure
+                && !v.reason.is_empty()
+                && !v.source_evidence.source_id.is_empty()),
+        "expected a named han_severe veto with full attribution, got {:?}",
+        trace.vetoes
+    );
 
-    // Both paths agree on the bucket and on the override semantic.
-    assert_eq!(v1.decision.bucket, v2.decision.bucket);
-    let trace = v2.trace.as_ref().expect("v2 trace");
-    let _ = trace; // baseline_v2 keeps the override inside synthesize_decision;
-                   // amlich-l0wu will surface it via trace.vetoes.
-                   // Sanity: the trace decision aggregation records the resulting bucket.
-    assert_eq!(trace.decision.bucket as u8, v2.decision.bucket as u8);
-    // RecommendationBucket is represented identically; the cast above
-    // is just a robustness check that the enum variants align.
-    let _ = RecommendationBucket::Avoid;
+    // veto.personal.luc_xung — 2024-12-25 + 1990 birth year.
+    let assessment = v2(
+        &snapshot_2024_12_25(),
+        &full_profile(),
+        ConsultationIntent::Wedding,
+    );
+    let trace = assessment.trace.as_ref().expect("v2 trace");
+    assert!(
+        trace
+            .vetoes
+            .iter()
+            .any(|v| v.veto_id == "veto.personal.luc_xung"
+                && v.axis == AssessmentAxis::PersonalAlignment
+                && !v.reason.is_empty()),
+        "expected a named luc_xung veto with PersonalAlignment axis, got {:?}",
+        trace.vetoes
+    );
+
+    // veto.recommendation.ky_manh — 2024-05-05 + Wedding intent (Cưới hỏi
+    // lands in the KyManh bucket).
+    let assessment = v2(
+        &snapshot_2024_05_05(),
+        &full_profile(),
+        ConsultationIntent::Wedding,
+    );
+    let trace = assessment.trace.as_ref().expect("v2 trace");
+    assert!(
+        trace
+            .vetoes
+            .iter()
+            .any(|v| v.veto_id == "veto.recommendation.ky_manh" && !v.reason.is_empty()),
+        "expected a named ky_manh veto, got {:?}",
+        trace.vetoes
+    );
+}
+
+#[test]
+fn named_veto_cannot_be_cancelled_by_favorable_weights() {
+    // Core amlich-l0wu guarantee: a hard veto forces Avoid regardless of
+    // how favorable the weighted axes are. The han_severe fixture vetoes
+    // via AnnualPressure; even if the other axes are favorable the
+    // decision must be Avoid.
+    let snapshot = snapshot_2024_02_10();
+    let profile = han_severe_profile();
+
+    for intent in ALL_INTENTS {
+        let assessment = v2(&snapshot, &profile, intent);
+        let trace = assessment.trace.as_ref().expect("v2 trace");
+        assert!(
+            !trace.vetoes.is_empty(),
+            "veto must fire for {:?} on the han_severe fixture",
+            intent
+        );
+        assert_eq!(
+            assessment.decision.bucket,
+            RecommendationBucket::Avoid,
+            "named veto must force Avoid for {:?}, regardless of weighted axes",
+            intent
+        );
+        // The veto override semantic matches v1's hard_veto semantic.
+        assert_eq!(
+            assessment.decision.semantic, "override_avoid",
+            "veto must use the override_avoid semantic for {:?}",
+            intent
+        );
+    }
+}
+
+#[test]
+fn ordinary_negative_contribution_does_not_become_veto() {
+    // The v2 policy must not promote an ordinary negative contribution
+    // into a veto merely because its strength crossed a threshold. The
+    // 1990-Male full-profile Wedding fixture on 2024-02-10 carries
+    // negative contributions (e.g. taboos, possibly unfavorable personal
+    // signals) but no declared veto condition fires, so the trace stays
+    // veto-free and the decision is NOT forced to Avoid by a veto.
+    let assessment = v2(
+        &snapshot_2024_02_10(),
+        &full_profile(),
+        ConsultationIntent::Wedding,
+    );
+    let trace = assessment.trace.as_ref().expect("v2 trace");
+
+    // The fixture has at least one Avoid contribution (the day-fortune
+    // taboo signal) but no veto event — the negative contribution did
+    // not cross into veto territory.
+    let has_avoid = assessment.contributions.iter().any(|c| {
+        matches!(
+            c.polarity,
+            amlich_core::assessment::ContributionPolarity::Avoid
+        )
+    });
+    assert!(
+        has_avoid,
+        "fixture must carry at least one Avoid contribution for the test to be meaningful"
+    );
+    assert!(
+        trace.vetoes.is_empty(),
+        "ordinary Avoid contributions must not become vetoes; got {:?}",
+        trace.vetoes
+    );
+    assert_ne!(
+        assessment.decision.bucket,
+        RecommendationBucket::Avoid,
+        "no veto and no KyManh override: the decision must not be Avoid"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// amlich-l0wu: Unavailable evidence is distinct from neutral evidence.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn unavailable_features_are_explicitly_reported_in_trace() {
+    // Capability gaps must surface as explicit *unavailable* feature
+    // observations in the trace, distinct from neutral/available
+    // features. Explanations can read the trace and tell the user what
+    // evidence was missing.
+    let assessment = v2(
+        &snapshot_2024_02_10(),
+        &no_time_no_gender(),
+        ConsultationIntent::Wedding,
+    );
+    let trace = assessment.trace.as_ref().expect("v2 trace");
+
+    let unavailable: Vec<_> = trace
+        .features
+        .iter()
+        .filter(|f| f.is_unavailable())
+        .collect();
+    assert!(
+        !unavailable.is_empty(),
+        "no-gender/no-time profile must emit explicit unavailable feature observations"
+    );
+
+    // Each unavailable observation projects to None (excluded from
+    // aggregation) and carries a non-empty reason.
+    for feature in &unavailable {
+        assert!(
+            feature.signed_value().is_none(),
+            "unavailable feature {:?} must project to None, not zero",
+            feature.feature_id
+        );
+        assert!(
+            feature.is_unavailable(),
+            "unavailable feature {:?} must carry an Unavailable reason",
+            feature.feature_id
+        );
+    }
+
+    // The gender-gapped profile surfaces personal-interaction and Hạn
+    // features as unavailable; the time-gapped profile surfaces timing.
+    let unavailable_ids: Vec<_> = unavailable.iter().map(|f| f.feature_id).collect();
+    assert!(
+        unavailable_ids.contains(&AssessmentFeatureId::AnnualThaiTue),
+        "no-gender profile must mark AnnualThaiTue unavailable, got {:?}",
+        unavailable_ids
+    );
+    assert!(
+        unavailable_ids.contains(&AssessmentFeatureId::PersonalLucXung),
+        "no-gender profile must mark PersonalLucXung unavailable, got {:?}",
+        unavailable_ids
+    );
+    assert!(
+        unavailable_ids.contains(&AssessmentFeatureId::TimingHoangDaoRatio),
+        "no-time profile must mark TimingHoangDaoRatio unavailable, got {:?}",
+        unavailable_ids
+    );
+
+    // Available features in the same trace are distinct: they carry real
+    // signed values, not the unavailable mask.
+    let available: Vec<_> = trace
+        .features
+        .iter()
+        .filter(|f| !f.is_unavailable())
+        .collect();
+    assert!(
+        !available.is_empty(),
+        "some features must still be available on the same trace"
+    );
+    for feature in &available {
+        assert!(
+            feature.signed_value().is_some(),
+            "available feature {:?} must project to a real signed value",
+            feature.feature_id
+        );
+    }
+}
+
+#[test]
+fn unavailable_features_do_not_leak_into_contributions_or_aggregation() {
+    // The unavailable feature observations are trace-only: they must not
+    // appear in the v1-compatible contributions list (which filters them
+    // out) and must not count toward any axis subtotal.
+    let assessment = v2(
+        &snapshot_2024_02_10(),
+        &no_gender_only(),
+        ConsultationIntent::Wedding,
+    );
+
+    // Contributions list is v1-compatible: no unavailable entries.
+    for contribution in &assessment.contributions {
+        assert!(
+            !matches!(
+                contribution.availability,
+                amlich_core::assessment::AvailabilityState::Unavailable { .. }
+            ),
+            "unavailable feature {:?} leaked into the contributions list",
+            contribution.contribution_id
+        );
+    }
+
+    // The PersonalAlignment axis stays unavailable (None), not a
+    // neutral 0.5 — the unavailable observation did not perturb the score.
+    assert!(
+        assessment.axes.personal_alignment.score.is_none(),
+        "PersonalAlignment must stay unavailable (None) with no gender"
+    );
+    assert!(
+        assessment.axes.annual_pressure.score.is_none(),
+        "AnnualPressure must stay unavailable (None) with no gender"
+    );
 }

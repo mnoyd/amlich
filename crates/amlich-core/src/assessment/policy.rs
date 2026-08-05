@@ -21,24 +21,30 @@
 //! These are layered on top in follow-up issues and intentionally have
 //! empty placeholders in the trace:
 //!
-//! - Named hard vetoes (`amlich-l0wu`) — baseline_v2 preserves the legacy
-//!   `polarity == Avoid && strength >= 0.8` implicit veto behavior.
 //! - Intent-aware axis weights (`amlich-lxu3`) — baseline_v2 uses equal
 //!   weights across the four scored axes.
 //! - Declared interaction features (`amlich-47wn`).
+//!
+//! Named hard vetoes (`amlich-l0wu`) ARE populated under `baseline_v2`:
+//! the legacy `polarity == Avoid && strength >= 0.8` implicit threshold
+//! was lifted into explicit, source-attributed [`VetoEvent`]s that fire
+//! on the same source-data states for v1 decision parity.
 
 use crate::{
     advisory::ConsultationIntent,
     almanac::recommendation::{DailyRecommendations, RecommendationBucket},
     assessment::{
-        extraction::{extract_features, resolve_assessment_inputs, ResolvedAssessmentInputs},
+        extraction::{
+            extract_features, extract_vetoes, resolve_assessment_inputs, ResolvedAssessmentInputs,
+        },
         feature::{polarity_sign, FeatureObservation},
         trace::{
             AssessmentTrace, AxisAggregation, AxisContributor, AxisWeight, DecisionAggregation,
+            VetoEvent,
         },
-        AssessmentAxes, AssessmentAxis, AssessmentInputs, AxisOutcome, ContributionPolarity,
-        DecisionContribution, EvidenceCoverage, NormalizedBirth, PersonalDayAssessment,
-        PersonalDayDecision, UnavailableSection,
+        AssessmentAxes, AssessmentAxis, AssessmentInputs, AxisOutcome, DecisionContribution,
+        EvidenceCoverage, NormalizedBirth, PersonalDayAssessment, PersonalDayDecision,
+        UnavailableSection,
     },
     birth::{BirthCapability, BirthProfile},
     reasoning::{DecisionConfidence, RecommendationBucket as ReasoningBucket},
@@ -61,12 +67,6 @@ pub const ASSESSMENT_POLICY_V2_VERSION: &str = "v2";
 /// (`amlich-lxu3`) replace it with policy-table weights.
 const V1_AXIS_DELTA_MULTIPLIER: f32 = 0.3;
 
-/// Legacy implicit-veto threshold carried over from v1: an avoid
-/// contribution with strength at or above this value forces an `Avoid`
-/// bucket under baseline_v2. Named hard vetoes (`amlich-l0wu`) replace
-/// this with explicit [`AssessmentTrace::vetoes`] entries.
-const V1_IMPLICIT_VETO_THRESHOLD: f32 = 0.8;
-
 /// Versioned policy that owns the v2 personal-day scoring pipeline.
 ///
 /// Construct via [`AssessmentPolicy::baseline_v2`] for the v1-parity
@@ -79,7 +79,6 @@ pub struct AssessmentPolicy {
     policy_id: String,
     policy_version: String,
     axis_delta_multiplier: f32,
-    implicit_veto_threshold: f32,
 }
 
 impl Default for AssessmentPolicy {
@@ -97,7 +96,6 @@ impl AssessmentPolicy {
             policy_id: ASSESSMENT_POLICY_V2_ID.to_string(),
             policy_version: ASSESSMENT_POLICY_V2_VERSION.to_string(),
             axis_delta_multiplier: V1_AXIS_DELTA_MULTIPLIER,
-            implicit_veto_threshold: V1_IMPLICIT_VETO_THRESHOLD,
         }
     }
 
@@ -133,6 +131,7 @@ impl AssessmentPolicy {
 
         let resolved = resolve_assessment_inputs(snapshot, profile, capability, inputs);
         let features = extract_features(snapshot, profile, intent, capability, &resolved);
+        let vetoes = extract_vetoes(snapshot, profile, intent, capability, &resolved);
 
         let evidence = build_evidence_coverage(&resolved);
 
@@ -144,6 +143,7 @@ impl AssessmentPolicy {
         let (decision, decision_aggregation) = self.synthesize_decision(
             &axes,
             &contributions,
+            &vetoes,
             &capability,
             resolved.recommendations.as_ref(),
             intent,
@@ -167,7 +167,7 @@ impl AssessmentPolicy {
             features,
             axes: axis_aggregations,
             decision: decision_aggregation,
-            vetoes: Vec::new(),
+            vetoes,
             interactions: Vec::new(),
         };
 
@@ -238,10 +238,16 @@ impl AssessmentPolicy {
                     )
                 }
                 AssessmentAxis::AnnualPressure
-                    if !features.iter().any(|f| f.feature_id.default_axis() == axis) =>
+                    if !features
+                        .iter()
+                        .any(|f| f.feature_id.default_axis() == axis && !f.is_unavailable()) =>
                 {
                     // v1 parity: AnnualPressure is unavailable when no
                     // yearly Hạn assessment could be produced (no gender).
+                    // The check counts only *available* features because
+                    // amlich-l0wu now emits explicit unavailable
+                    // observations for capability gaps — those should not
+                    // flip the axis to "available with neutral score".
                     let reason = "requires gender for yearly Hạn assessment";
                     (
                         AxisOutcome::unavailable(axis, reason),
@@ -367,21 +373,27 @@ impl AssessmentPolicy {
         (outcome, trace)
     }
 
-    /// Synthesize the final decision. baseline_v2 preserves the v1
-    /// behavior: implicit hard veto, recommendation-bucket overrides, and
-    /// equal-weight averaging across the four scored axes.
+    /// Synthesize the final decision. Under baseline_v2, named hard
+    /// vetoes (`amlich-l0wu`) force the `Avoid` bucket with deterministic
+    /// precedence before any weighted suitability aggregation. The
+    /// remaining paths (recommendation-bucket overrides, equal-weight axis
+    /// averaging) reproduce the v1 decision formula.
     fn synthesize_decision(
         &self,
         axes: &AssessmentAxes,
         contributions: &[DecisionContribution],
+        vetoes: &[VetoEvent],
         capability: &BirthCapability,
         recommendations: Option<&DailyRecommendations>,
         intent: ConsultationIntent,
     ) -> (PersonalDayDecision, DecisionAggregation) {
-        let hard_veto = contributions.iter().any(|c| {
-            matches!(c.polarity, ContributionPolarity::Avoid)
-                && c.strength >= self.implicit_veto_threshold
-        });
+        // Named hard vetoes win over any weighted signal (amlich-l0wu).
+        // The veto list is produced by [`extract_vetoes`] from explicit
+        // domain declarations — an ordinary negative contribution can no
+        // longer flip the decision to `Avoid` merely by crossing a
+        // strength threshold.
+        let hard_veto = !vetoes.is_empty();
+        let _ = contributions; // contributions no longer drive the veto; kept for future weighting
 
         let axis_scores: [(AssessmentAxis, Option<f32>); 4] = [
             (

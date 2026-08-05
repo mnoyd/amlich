@@ -249,3 +249,79 @@ fn policy_version_is_locked_for_this_migration() {
         assessment.policy_version
     );
 }
+
+// ---------------------------------------------------------------------------
+// amlich-l0wu: Veto-forced decision projects correctly through the API DTO.
+//
+// The API still uses the v1 builder until the stability gate (amlich-31oa)
+// promotes v2. v1's hard_veto and v2's named vetoes produce byte-identical
+// decisions (locked by assessment_v2_seam::v1_v2_full_parity_*). This test
+// pins the DTO-side projection: a veto-firing fixture must reach the API
+// consumer as `bucket: "avoid"` with the veto-override score, regardless of
+// how favorable the weighted axes are.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn veto_forced_decision_projects_to_avoid_through_dto() {
+    // 1985 birth year hits Hạn High severity on 2024-02-10, which fires a
+    // hard veto (v1 implicit; v2 named `veto.annual.han_severe`).
+    let query = sample_query();
+    let report = get_personal_day_report(
+        &query,
+        Some(1985),
+        Some(1),
+        Some(1),
+        Some(amlich_core::almanac::tu_menh::Gender::Female),
+    )
+    .expect("report");
+    let assessment = report.canonical_assessment.as_ref().expect("assessment");
+
+    assert_eq!(
+        assessment.decision.bucket, "avoid",
+        "a veto-firing fixture must project to the avoid bucket through the DTO"
+    );
+    assert_eq!(
+        assessment.decision.semantic, "override_avoid",
+        "the veto override semantic must propagate to the DTO"
+    );
+    // The veto forces a fixed low score (~0.15), independent of the
+    // weighted axis average.
+    let score = assessment
+        .decision
+        .decision_score
+        .expect("veto decision carries a score");
+    assert!(
+        score <= 0.2,
+        "veto-forced decision score must be the override floor, got {score}"
+    );
+}
+
+#[test]
+fn unavailable_sections_project_through_dto_for_capability_gaps() {
+    // The no-gender query must surface the unavailable sections through
+    // the DTO so API consumers can explain what evidence was missing
+    // (amlich-l0wu: missing inputs are reported).
+    let query = sample_query();
+    let report = get_personal_day_report(&query, None, None, None, None).expect("report");
+    let assessment = report.canonical_assessment.as_ref().expect("assessment");
+
+    assert!(
+        !assessment.unavailable_sections.is_empty(),
+        "no-birth-info query must report unavailable sections through the DTO"
+    );
+    let section_names: Vec<&str> = assessment
+        .unavailable_sections
+        .iter()
+        .map(|s| s.section.as_str())
+        .collect();
+    assert!(
+        section_names.contains(&"personal_alignment"),
+        "personal_alignment section must be reported unavailable without gender, got {:?}",
+        section_names
+    );
+    assert!(
+        section_names.contains(&"annual_han"),
+        "annual_han section must be reported unavailable without gender, got {:?}",
+        section_names
+    );
+}

@@ -16,11 +16,10 @@
 //!
 //! ## Placeholders for future issues
 //!
-//! `vetoes` and `interactions` are intentionally empty under `baseline_v2`:
-//! separating hard vetoes from weighted contributions is `amlich-l0wu`, and
-//! declared interaction features land in `amlich-47wn`. The trace shape is
-//! defined now so those issues extend the policy without rewriting the
-//! transport contract.
+//! `interactions` is intentionally empty under `baseline_v2`; declared
+//! interaction features land in `amlich-47wn`. `vetoes` IS populated under
+//! `baseline_v2` (`amlich-l0wu`): the legacy `strength >= 0.8` implicit
+//! threshold was lifted into explicit, source-attributed [`VetoEvent`]s.
 
 use serde::{Deserialize, Serialize};
 
@@ -45,9 +44,11 @@ pub struct AssessmentTrace {
     /// Final decision aggregation: axis weights used, available/unavailable
     /// axis split, decision score, and bucket.
     pub decision: DecisionAggregation,
-    /// Hard vetoes applied before weighted aggregation. Empty under
-    /// `baseline_v2` (preserved-v1 behavior treats `strength >= 0.8` avoid
-    /// contributions as a veto internally; `amlich-l0wu` lifts them here).
+    /// Hard vetoes applied before weighted aggregation. Populated under
+    /// `baseline_v2` by [`crate::assessment::extraction::extract_vetoes`]
+    /// (`amlich-l0wu`): the legacy `strength >= 0.8` implicit threshold was
+    /// lifted into named, source-attributed veto events that fire on the
+    /// same source-data states for v1 decision parity.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub vetoes: Vec<VetoEvent>,
     /// Declared interaction terms evaluated by the policy. Empty under
@@ -119,14 +120,21 @@ pub struct AxisWeight {
     pub weight: f32,
 }
 
-/// A hard veto event applied by the policy. Empty under `baseline_v2`;
-/// `amlich-l0wu` replaces the legacy `strength >= 0.8` implicit veto with
-/// named, source-attributed veto events.
+/// A hard veto event applied by the policy. Each veto carries a stable
+/// `veto_id`, the axis the constraint originates from, a human-readable
+/// reason, and full source evidence. Populated under `baseline_v2` by
+/// [`crate::assessment::extraction::extract_vetoes`] (`amlich-l0wu`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct VetoEvent {
+    /// Stable, policy-versioned veto identifier (e.g.
+    /// `veto.personal.luc_xung`). Never reused; renaming or repurposing
+    /// requires a policy version bump.
     pub veto_id: String,
+    /// Axis the veto originates from, for explanation grouping.
     pub axis: AssessmentAxis,
+    /// Human-readable reason the veto fired.
     pub reason: String,
+    /// Source evidence attributing the veto to its domain provenance.
     pub source_evidence: SourceEvidence,
 }
 

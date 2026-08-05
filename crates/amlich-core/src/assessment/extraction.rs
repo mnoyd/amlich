@@ -15,6 +15,15 @@
 //!    [`crate::assessment::AssessmentPolicy`]. Extraction is deterministic
 //!    and never invents domain coefficients: every observation carries the
 //!    legacy strength so `baseline_v2` reproduces v1 axis scores exactly.
+//!    Capability-gated features that the current profile cannot support
+//!    are emitted as explicit *unavailable* observations so the trace can
+//!    explain what evidence was missing (amlich-l0wu).
+//!
+//! 3. [`extract_vetoes`] — named, source-attributed hard veto events
+//!    declared from the same source facts. Vetoes are separate from
+//!    weighted contributions: a veto forces the `Avoid` bucket with
+//!    deterministic precedence regardless of how favorable the weighted
+//!    axes are (amlich-l0wu).
 
 use crate::{
     advisory::ConsultationIntent,
@@ -25,7 +34,8 @@ use crate::{
     },
     assessment::{
         feature::{AssessmentFeatureId, FeatureObservation},
-        AssessmentInputs, ContributionPolarity, SourceEvidence,
+        trace::VetoEvent,
+        AssessmentAxis, AssessmentInputs, ContributionPolarity, SourceEvidence,
     },
     bazi::{
         analysis::{analyze_bazi_chart, BaziAnalysisReport},
@@ -414,18 +424,221 @@ pub(super) fn extract_features(
         }
     }
 
-    // Feature identifiers that have no observed value under the current
-    // capability profile are intentionally omitted rather than emitted as
-    // zero. The v2 policy surfaces them in the trace's unavailable list
-    // based on the resolved capability, so callers can explain what was
-    // missing without extracting phantom signals. The unavailable axes
-    // (PersonalAlignment without gender, AnnualPressure without gender,
-    // timing-derived contributions without birth time) are handled at
-    // policy-aggregation time to stay in lock-step with v1's
-    // axis-unavailable reporting.
+    // --- Explicit unavailable observations for capability gaps ----------
+    // (amlich-l0wu) Feature identifiers that the current profile cannot
+    // support are emitted as explicit `Unavailable` observations rather
+    // than silently omitted, so the trace's feature list self-describes
+    // what evidence was missing. The policy aggregation excludes them
+    // from the denominator (unavailable != zero, per amlich-7bm4), and
+    // explanations can surface them distinctly from neutral evidence.
+    //
+    // Only capability-gated feature families are emitted as unavailable.
+    // Features that are simply "not triggered today" (e.g. no Tam Hop
+    // match, no favorable Kua direction) stay omitted — they are not
+    // missing evidence, just non-occurring signals.
+    if !capability.has_gender {
+        features.push(FeatureObservation::unavailable(
+            AssessmentFeatureId::PersonalLucXung,
+            "personal.luc_xung.unavailable",
+            "requires gender for personal day-branch interaction",
+            interaction_evidence("luc_xung_lookup", None),
+            ruleset_id.clone(),
+            ruleset_version.clone(),
+        ));
+        features.push(FeatureObservation::unavailable(
+            AssessmentFeatureId::KuaDirectionMatch,
+            "personal.kua.unavailable",
+            "requires gender for Kua direction matching",
+            SourceEvidence {
+                source_family: "interaction".to_string(),
+                source_id: SOURCE_VN_FOLK.to_string(),
+                method: "kua_match".to_string(),
+                profile: profile_id.clone(),
+                note: None,
+            },
+            ruleset_id.clone(),
+            ruleset_version.clone(),
+        ));
+        features.push(FeatureObservation::unavailable(
+            AssessmentFeatureId::AnnualThaiTue,
+            "annual.han.unavailable",
+            "requires gender for yearly Hạn assessment",
+            almanac_evidence("yearly_han", None),
+            ruleset_id.clone(),
+            ruleset_version.clone(),
+        ));
+    }
+    if !capability.has_time {
+        features.push(FeatureObservation::unavailable(
+            AssessmentFeatureId::TimingHoangDaoRatio,
+            "timing.hoang_dao_ratio.unavailable",
+            "requires explicit birth time for personal timing context",
+            almanac_evidence("gio_hoang_dao_ratio", None),
+            ruleset_id.clone(),
+            ruleset_version.clone(),
+        ));
+    }
 
     let _ = profile_id; // already captured by closure clones where needed
     features
+}
+
+/// Extract named, source-attributed hard veto events from the resolved
+/// personal-day facts.
+///
+/// Bead: `amlich-l0wu`. Replaces the legacy v1 `polarity == Avoid &&
+/// strength >= 0.8` implicit threshold with explicit, semantically
+/// declared constraint events. Each veto carries a stable `veto_id`, the
+/// axis the constraint originates from, a human-readable reason, and full
+/// source evidence — so an explanation can name *why* a day was vetoed
+/// rather than pointing at a numeric threshold.
+///
+/// ## Parity contract
+///
+/// For `baseline_v2`, the veto conditions are calibrated to fire on
+/// exactly the same source-data states that produced an `Avoid` feature
+/// at strength `>= 0.8` under v1, so user-visible decision buckets and
+/// scores remain byte-identical to v1. The mechanism change is
+/// intentional: an ordinary negative contribution can no longer become a
+/// veto merely by crossing a strength threshold. A future policy version
+/// may emit an `Avoid` observation at strength `0.9` that is *not* a veto
+/// (because it is not declared here), which was impossible under v1.
+///
+/// ## Precedence
+///
+/// Vetoes are emitted in a stable, deterministic order
+/// (`personal.luc_xung`, `annual.han_severe`,
+/// `recommendation.ky_manh`, `day_fortune.taboos`). The decision
+/// synthesizer applies them before any weighted suitability aggregation:
+/// any veto present forces the `Avoid` bucket regardless of how
+/// favorable the weighted axes are.
+pub(super) fn extract_vetoes(
+    snapshot: &DaySnapshot,
+    profile: &BirthProfile,
+    intent: ConsultationIntent,
+    capability: BirthCapability,
+    resolved: &ResolvedAssessmentInputs,
+) -> Vec<VetoEvent> {
+    let profile_id = snapshot.profile.clone();
+    let ruleset_id = snapshot.ruleset_id.clone();
+    let ruleset_version = snapshot.ruleset_version.clone();
+
+    let interaction_evidence = |method: &'static str, note: Option<String>| SourceEvidence {
+        source_family: "interaction".to_string(),
+        source_id: SOURCE_KHCBPPT.to_string(),
+        method: method.to_string(),
+        profile: profile_id.clone(),
+        note,
+    };
+    let almanac_evidence = |method: &'static str, note: Option<String>| SourceEvidence {
+        source_family: "almanac_rule".to_string(),
+        source_id: SOURCE_KHCBPPT.to_string(),
+        method: method.to_string(),
+        profile: profile_id.clone(),
+        note,
+    };
+
+    let mut vetoes: Vec<VetoEvent> = Vec::new();
+
+    // --- Personal Lục xung (requires gender) ---------------------------
+    // The day's Lục xung branch matches the birth-year branch: a hard
+    // personal-day clash that vetoes regardless of intent.
+    if capability.has_gender {
+        let birth_year = get_year_canchi(
+            convert_solar_to_lunar(profile.day, profile.month, profile.year, profile.timezone).year,
+        );
+        let xung_hop = &snapshot.day_fortune.xung_hop;
+        if xung_hop.luc_xung == birth_year.chi {
+            vetoes.push(VetoEvent {
+                veto_id: "veto.personal.luc_xung".to_string(),
+                axis: AssessmentAxis::PersonalAlignment,
+                reason: "Day branch clashes with birth-year branch (Lục xung)".to_string(),
+                source_evidence: interaction_evidence(
+                    "luc_xung_lookup",
+                    Some(format!(
+                        "day_luc_xung={} birth_year_chi={}",
+                        xung_hop.luc_xung, birth_year.chi
+                    )),
+                ),
+            });
+        }
+    }
+
+    // --- Severe yearly Hạn (High / Critical severity) ------------------
+    // The yearly Hạn envelope aggregates Tam Tai / Kim Lau / Hoang Oc /
+    // Thai Tue / Sao Hạn. At High or Critical severity the combined
+    // annual pressure is a hard constraint.
+    if let Some(han) = resolved.yearly_han.as_ref() {
+        if matches!(han.severity, HanSeverity::High | HanSeverity::Critical) {
+            vetoes.push(VetoEvent {
+                veto_id: "veto.annual.han_severe".to_string(),
+                axis: AssessmentAxis::AnnualPressure,
+                reason: format!("Yearly Hạn at {:?} severity", han.severity),
+                source_evidence: almanac_evidence(
+                    "yearly_han",
+                    Some(format!(
+                        "count={} severity={:?}",
+                        han.han_count, han.severity
+                    )),
+                ),
+            });
+        }
+    }
+
+    // --- KyManh (forbidden) recommendation -----------------------------
+    // A forbidden recommendation for any activity is a hard veto. When
+    // the forbidden activity is the intent's primary, the veto
+    // originates from the IntentFit axis; otherwise from
+    // GenericDayQuality (where non-primary recommendations land).
+    if let Some(rec) = resolved.recommendations.as_ref() {
+        if let Some(activity) = rec
+            .activities
+            .iter()
+            .find(|a| matches!(a.bucket, RecommendationBucket::KyManh))
+        {
+            let is_primary = activity.activity_id == intent.primary_activity();
+            vetoes.push(VetoEvent {
+                veto_id: "veto.recommendation.ky_manh".to_string(),
+                axis: if is_primary {
+                    AssessmentAxis::IntentFit
+                } else {
+                    AssessmentAxis::GenericDayQuality
+                },
+                reason: format!("KyManh (forbidden) recommendation: {}", activity.label.vi),
+                source_evidence: SourceEvidence {
+                    source_family: "almanac_rule".to_string(),
+                    source_id: SOURCE_KHCBPPT.to_string(),
+                    method: "recommendation_synthesis".to_string(),
+                    profile: profile_id.clone(),
+                    note: Some(format!(
+                        "activity={} bucket=KyManh primary={}",
+                        activity.activity_id.as_str(),
+                        is_primary
+                    )),
+                },
+            });
+        }
+    }
+
+    // --- Stacked day-fortune taboos (3 or more) ------------------------
+    // Three or more day-fortune taboos stacked on the same day indicate a
+    // structurally conflicted day that vetoes regardless of personal
+    // alignment.
+    let taboo_count = snapshot.day_fortune.taboos.len();
+    if taboo_count >= 3 {
+        vetoes.push(VetoEvent {
+            veto_id: "veto.day_fortune.taboos".to_string(),
+            axis: AssessmentAxis::GenericDayQuality,
+            reason: format!("{taboo_count} day-fortune taboos stacked"),
+            source_evidence: almanac_evidence(
+                "day_fortune.taboos",
+                Some(format!("count={taboo_count}")),
+            ),
+        });
+    }
+
+    let _ = (ruleset_id, ruleset_version); // ruleset provenance flows through the features
+    vetoes
 }
 
 /// Map a recommendation bucket to its v1 parity `(polarity, strength)`.
