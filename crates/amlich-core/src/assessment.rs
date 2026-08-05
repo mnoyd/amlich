@@ -43,14 +43,10 @@ use crate::{
     advisory::ConsultationIntent,
     almanac::{
         recommendation::{DailyRecommendations, RecommendationBucket},
-        tu_menh::{compute_kua, KuaResult},
-        yearly_han::{compute_yearly_han, HanSeverity, YearlyHanAssessment, YearlyHanInput},
+        tu_menh::KuaResult,
+        yearly_han::{HanSeverity, YearlyHanAssessment},
     },
-    bazi::{
-        analysis::{analyze_bazi_chart, BaziAnalysisReport},
-        chart::build_bazi_chart,
-        types::BaziChart,
-    },
+    bazi::{analysis::BaziAnalysisReport, types::BaziChart},
     birth::{BirthCapability, BirthDataTier, BirthProfile, BirthTime},
     canchi::get_year_canchi,
     lunar::convert_solar_to_lunar,
@@ -59,8 +55,19 @@ use crate::{
         RecommendationBucket as ReasoningBucket,
     },
     sources::{SOURCE_KHCBPPT, SOURCE_VN_FOLK},
-    types::VIETNAM_TIMEZONE,
     DaySnapshot,
+};
+
+pub mod extraction;
+pub mod feature;
+pub mod policy;
+pub mod trace;
+
+pub use feature::{AssessmentFeatureId, FeatureObservation};
+pub use policy::{AssessmentPolicy, ASSESSMENT_POLICY_V2_ID, ASSESSMENT_POLICY_V2_VERSION};
+pub use trace::{
+    AssessmentTrace, AxisAggregation, AxisContributor, AxisWeight, DecisionAggregation,
+    InteractionTerm, VetoEvent,
 };
 
 /// Stable policy identifier for the personal-day assessment. Co-versioned
@@ -271,6 +278,13 @@ pub struct PersonalDayAssessment {
     pub decision: PersonalDayDecision,
     pub unavailable_sections: Vec<UnavailableSection>,
     pub evidence: EvidenceCoverage,
+    /// Calculation trace emitted by the v2 [`AssessmentPolicy`]. Populated
+    /// when the assessment was built via `AssessmentPolicy::evaluate`;
+    /// `None` for the legacy v1 builder. The trace is the substrate for
+    /// the Evidence Graph projection (`amlich-8tdm`) and is omitted from
+    /// serialized output when absent so the v1 wire contract is unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trace: Option<AssessmentTrace>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -340,77 +354,16 @@ impl PersonalDayAssessmentBuilder {
         let ruleset_version = snapshot.ruleset_version.clone();
         let profile_id = snapshot.profile.clone();
 
-        // --- Chart ---
-        let chart: Option<BaziChart> = match inputs.chart {
-            Some(Ok(c)) => Some(c),
-            Some(Err(_)) => None,
-            None => {
-                if capability.has_time {
-                    build_bazi_chart(bazi_input_from_profile(&profile)).ok()
-                } else {
-                    None
-                }
-            }
-        };
-        let chart = chart.filter(|c| c.input.time_known);
-
-        let analysis: Option<BaziAnalysisReport> = match inputs.analysis {
-            Some(Ok(a)) => Some(a),
-            Some(Err(_)) => None,
-            None => chart.as_ref().map(analyze_bazi_chart),
-        };
-
-        // --- Yearly Hạn (requires gender only) ---
-        let yearly_han: Option<YearlyHanAssessment> = match inputs.yearly_han {
-            Some(Ok(h)) => Some(h),
-            Some(Err(_)) => None,
-            None => profile.gender.map(|gender| {
-                let birth_lunar_year = convert_solar_to_lunar(
-                    profile.day,
-                    profile.month,
-                    profile.year,
-                    profile.timezone,
-                )
-                .year;
-                let current_lunar_year = convert_solar_to_lunar(
-                    snapshot.context.solar.day,
-                    snapshot.context.solar.month,
-                    snapshot.context.solar.year,
-                    VIETNAM_TIMEZONE,
-                )
-                .year;
-                let birth_year_chi = get_year_canchi(birth_lunar_year).chi_index;
-                let current_year_chi = snapshot.context.canchi.year.chi_index;
-                compute_yearly_han(
-                    &YearlyHanInput {
-                        birth_lunar_year,
-                        current_lunar_year,
-                        gender,
-                    },
-                    birth_year_chi,
-                    current_year_chi,
-                )
-            }),
-        };
-
-        // --- Kua (requires gender only) ---
-        let kua: Option<KuaResult> = match inputs.kua {
-            Some(Ok(k)) => Some(k),
-            Some(Err(_)) => None,
-            None => profile
-                .gender
-                .map(|gender| compute_kua(profile.year, gender)),
-        };
-
-        // --- Recommendations ---
-        let recommendations: Option<DailyRecommendations> = match inputs.recommendations {
-            Some(Ok(r)) => Some(r),
-            Some(Err(_)) => None,
-            None => snapshot
-                .contextual_recommendations
-                .clone()
-                .or_else(|| Some(snapshot.daily_recommendations.clone())),
-        };
+        // Resolve upstream signals through the shared seam so the legacy
+        // v1 builder and the v2 [`AssessmentPolicy`] feed byte-identical
+        // inputs into the assessment pipeline (amlich-mwbp.6 parity).
+        let resolved =
+            extraction::resolve_assessment_inputs(&snapshot, &profile, capability, inputs);
+        let chart = resolved.chart;
+        let analysis = resolved.analysis;
+        let yearly_han = resolved.yearly_han;
+        let kua = resolved.kua;
+        let recommendations = resolved.recommendations;
 
         // --- Coverage flags ---
         let evidence = EvidenceCoverage {
@@ -861,6 +814,7 @@ impl PersonalDayAssessmentBuilder {
             decision,
             unavailable_sections,
             evidence,
+            trace: None,
         }
     }
 }
@@ -1043,22 +997,6 @@ fn unavailable_section(
     }
 }
 
-fn bazi_input_from_profile(profile: &BirthProfile) -> crate::bazi::types::BaziInput {
-    let (hour, minute) = profile.time.map(|t| (t.hour, t.minute)).unwrap_or((0, 0));
-    crate::bazi::types::BaziInput {
-        day: profile.day,
-        month: profile.month,
-        year: profile.year,
-        hour,
-        minute,
-        time_known: profile.time.is_some(),
-        timezone: profile.timezone,
-        longitude: profile.longitude,
-        use_solar_time: profile.use_solar_time,
-        gender: profile.gender,
-    }
-}
-
 impl PersonalDayAssessment {
     pub fn assess(
         snapshot: DaySnapshot,
@@ -1217,6 +1155,7 @@ pub fn assess_personal_day(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::types::VIETNAM_TIMEZONE;
 
     fn base_snapshot() -> DaySnapshot {
         crate::calculate_day_snapshot_with_timezone(10, 2, 2024, VIETNAM_TIMEZONE)
