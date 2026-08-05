@@ -99,6 +99,27 @@ impl fmt::Display for Direction {
     }
 }
 
+impl Direction {
+    /// Vietnamese display name for the direction, matching the strings
+    /// used in `xuat_hanh_huong` / `tai_than` / `hy_than` and the
+    /// direction-merge matrix. This is the canonical shared mapping;
+    /// feature extraction and interactions must compare Kua directions
+    /// against Vietnamese day-fortune strings via this accessor rather
+    /// than against [`Self`]'s English `Display` output.
+    pub fn as_vn_str(&self) -> &'static str {
+        match self {
+            Direction::North => "Bắc",
+            Direction::Northeast => "Đông Bắc",
+            Direction::East => "Đông",
+            Direction::Southeast => "Đông Nam",
+            Direction::South => "Nam",
+            Direction::Southwest => "Tây Nam",
+            Direction::West => "Tây",
+            Direction::Northwest => "Tây Bắc",
+        }
+    }
+}
+
 /// Metadata documenting the convention used for Kua calculation
 ///
 /// This structure allows the API consumer to understand exactly which

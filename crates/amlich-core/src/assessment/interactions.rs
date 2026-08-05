@@ -348,10 +348,10 @@ pub(super) fn extract_interactions(
 
     // 4. kua_direction × travel_intent
     //    Fires when a favorable Kua direction matches the day's xuất
-    //    hành direction AND the intent is Travel. Reads raw Kua data
-    //    directly because the KuaDirectionMatch feature extraction has a
-    //    pre-existing Vietnamese/English direction-name mismatch (filed as
-    //    a separate bead); the interaction uses a correct mapping.
+    //    hành direction AND the intent is Travel. The interaction does
+    //    its own direction check against raw Kua data (rather than
+    //    gating on the KuaDirectionMatch feature observation) so that
+    //    the Travel-specific evidence method is attributed correctly.
     if intent == ConsultationIntent::Travel {
         if let Some(kua_result) = resolved.kua.as_ref() {
             let xuat_hanh = &snapshot.day_fortune.travel.xuat_hanh_huong;
@@ -474,39 +474,18 @@ fn is_major_life_event(intent: ConsultationIntent) -> bool {
     )
 }
 
-/// Map a Vietnamese direction name (as used in `xuat_hanh_huong`) to a
-/// normalized lowercase key for comparison with Kua directions.
-fn vietnamese_direction_key(name: &str) -> &str {
-    match name.trim() {
-        "Bắc" => "north",
-        "Đông Bắc" => "northeast",
-        "Đông" => "east",
-        "Đông Nam" => "southeast",
-        "Nam" => "south",
-        "Tây Nam" => "southwest",
-        "Tây" => "west",
-        "Tây Bắc" => "northwest",
-        _ => "",
-    }
-}
-
 /// Check whether the day's xuất hành direction is among the Kua group's
-/// favorable directions. Uses a correct Vietnamese→English mapping,
-/// unlike the pre-existing feature-extraction code which compares English
-/// `Direction::to_string()` output against Vietnamese `xuat_hanh_huong`
-/// strings (a separate bug filed from this bead).
+/// favorable directions. Compares the Vietnamese `xuat_hanh_huong` string
+/// against each favorable [`Direction`] via [`Direction::as_vn_str`].
 fn kua_direction_is_favorable(
     kua_result: &crate::almanac::tu_menh::KuaResult,
     xuat_hanh: &str,
 ) -> bool {
-    let day_dir = vietnamese_direction_key(xuat_hanh);
-    if day_dir.is_empty() {
-        return false;
-    }
+    let day_dir = xuat_hanh.trim();
     kua_result
         .favorable_directions
         .iter()
-        .any(|d| d.to_string().to_lowercase() == day_dir)
+        .any(|d| d.as_vn_str() == day_dir)
 }
 
 // ---------------------------------------------------------------------------

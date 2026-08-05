@@ -850,3 +850,86 @@ fn unavailable_features_do_not_leak_into_contributions_or_aggregation() {
         "AnnualPressure must stay unavailable (None) with no gender"
     );
 }
+
+// ---------------------------------------------------------------------------
+// amlich-h85g parity fixture: KuaDirectionMatch feature extraction.
+//
+// Before amlich-h85g, the v1 builder (`assessment.rs`) and the v2 extractor
+// (`extraction.rs`) compared `Direction::to_string()` (English) against
+// `xuat_hanh_huong` (Vietnamese), so `KuaDirectionMatch` was dead code and
+// PersonalAlignment never received the Kua direction contribution. This
+// fixture pins a date where the 1990-Male Kua group's favorable directions
+// actually overlap the day's xuất hành direction so the feature fires
+// identically on v1 and v2 — locking the parity contract that amlich-h85g
+// restores.
+// ---------------------------------------------------------------------------
+
+fn snapshot_2024_01_01() -> DaySnapshot {
+    amlich_core::calculate_day_snapshot_with_timezone(1, 1, 2024, VIETNAM_TIMEZONE)
+}
+
+#[test]
+fn kua_direction_match_feature_fires_consistently_v1_v2() {
+    let snapshot = snapshot_2024_01_01();
+    let profile = full_profile();
+
+    // v1 builder (assessment.rs) and v2 extractor (extraction.rs) both
+    // emit a KuaDirectionMatch contribution for this fixture. Prior to
+    // amlich-h85g the comparison was English vs Vietnamese and neither
+    // side ever fired; the assertion below would fail with the feature
+    // absent from both the v1 contributions list and the v2 trace.
+    let v1_assessment = v1(snapshot.clone(), profile.clone(), ConsultationIntent::Wedding);
+    let v2_assessment = v2(&snapshot, &profile, ConsultationIntent::Wedding);
+
+    let v1_contribution = v1_assessment
+        .contributions
+        .iter()
+        .find(|c| c.contribution_id == "personal.kua_favorable")
+        .expect("v1 must emit personal.kua_favorable on fixture where xuất hành matches a favorable Kua direction");
+    assert_eq!(v1_contribution.axis, AssessmentAxis::PersonalAlignment);
+    assert_eq!(
+        v1_contribution.polarity,
+        amlich_core::assessment::ContributionPolarity::Favorable
+    );
+    assert!((v1_contribution.strength - 0.4).abs() < 1e-6);
+
+    let v2_trace = v2_assessment
+        .trace
+        .as_ref()
+        .expect("v2 must attach a trace");
+    let v2_feature = v2_trace
+        .features
+        .iter()
+        .find(|f| f.feature_id == AssessmentFeatureId::KuaDirectionMatch)
+        .expect("v2 trace must emit KuaDirectionMatch on fixture where xuất hành matches a favorable Kua direction");
+    assert_eq!(
+        v2_feature.polarity,
+        amlich_core::assessment::ContributionPolarity::Favorable,
+        "KuaDirectionMatch must be Favorable when the xuất hành direction is in the Kua favorable set"
+    );
+    assert!(
+        (v2_feature.strength - 0.4).abs() < 1e-6,
+        "v2 KuaDirectionMatch strength must match v1 contribution strength"
+    );
+
+    // v1/v2 parity: the contribution-id sets must match exactly — both
+    // sides newly emit `personal.kua_favorable` and they agree on every
+    // other contribution. This is the parity contract amlich-h85g
+    // restores; a future regression that desyncs the two paths will trip
+    // this assertion.
+    let v1_ids: Vec<&str> = v1_assessment
+        .contributions
+        .iter()
+        .map(|c| c.contribution_id.as_str())
+        .collect();
+    let v2_ids: Vec<String> = v2_assessment
+        .contributions
+        .iter()
+        .map(|c| c.contribution_id.clone())
+        .collect();
+    assert_eq!(
+        v1_ids,
+        v2_ids.iter().map(String::as_str).collect::<Vec<_>>(),
+        "v1/v2 contribution-id sets must match (amlich-h85g parity)"
+    );
+}

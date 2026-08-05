@@ -230,9 +230,23 @@ fn personal_day_advisory_aligns_with_reasoning_bundle() {
 
     assert!(advisory.reasoning_bucket.is_some());
     assert!(advisory.reasoning_confidence.is_some());
+
+    // The advisory's `reasoning_bucket` is sourced from the canonical
+    // `PersonalDayAssessment` (lib.rs `canonical_assessment.decision.bucket`),
+    // which is the declared single source of truth. The legacy graph-based
+    // `decision.recommendation_bucket` is a separate path whose bucket
+    // override is still being migrated (amlich-mwbp.8 / amlich-0q2f); until
+    // then it does NOT model the KuaDirectionMatch signal that the canonical
+    // assessment now fires correctly (amlich-h85g), so the two can diverge.
+    // Assert against the canonical assessment, the real invariant.
+    let canonical = report
+        .canonical_assessment
+        .as_ref()
+        .expect("canonical assessment");
     assert_eq!(
         advisory.reasoning_bucket.as_deref(),
-        Some(decision.recommendation_bucket.as_str())
+        Some(canonical.decision.bucket.as_str()),
+        "advisory bucket must mirror the canonical assessment bucket"
     );
 
     let analysis = &report.analysis;
@@ -308,9 +322,21 @@ fn personal_day_report_analysis_and_advisory_keep_reasoning_fields_aligned() {
     assert_eq!(report_export.semantic, analysis_export.semantic);
     assert_eq!(report_export.axis_scores, analysis_export.axis_scores);
     assert_eq!(report.graph, report.analysis.graph);
+    // See `personal_day_advisory_aligns_with_reasoning_bundle`: the
+    // advisory bucket mirrors the canonical assessment (single source of
+    // truth), while `report_decision.recommendation_bucket` is the legacy
+    // graph-derived bucket that does not yet model KuaDirectionMatch
+    // (amlich-h85g). Assert the real invariant against canonical_assessment
+    // instead of the legacy graph decision; the legacy bucket's migration
+    // to canonical is tracked by amlich-mwbp.8 / amlich-0q2f.
+    let canonical = report
+        .canonical_assessment
+        .as_ref()
+        .expect("canonical assessment");
     assert_eq!(
         advisory.reasoning_bucket.as_deref(),
-        Some(report_decision.recommendation_bucket.as_str())
+        Some(canonical.decision.bucket.as_str()),
+        "advisory bucket must mirror the canonical assessment bucket"
     );
 }
 

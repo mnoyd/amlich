@@ -329,7 +329,7 @@ pub(super) fn extract_features(
         if kua_result
             .favorable_directions
             .iter()
-            .any(|d| d.to_string() == *xuat_hanh)
+            .any(|d| d.as_vn_str() == xuat_hanh.as_str())
         {
             features.push(FeatureObservation::observed(
                 AssessmentFeatureId::KuaDirectionMatch,
@@ -349,7 +349,7 @@ pub(super) fn extract_features(
         } else if kua_result
             .unfavorable_directions
             .iter()
-            .any(|d| d.to_string() == *xuat_hanh)
+            .any(|d| d.as_vn_str() == xuat_hanh.as_str())
         {
             features.push(FeatureObservation::observed(
                 AssessmentFeatureId::KuaDirectionMatch,

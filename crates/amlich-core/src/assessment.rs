@@ -610,7 +610,7 @@ impl PersonalDayAssessmentBuilder {
             if kua_result
                 .favorable_directions
                 .iter()
-                .any(|d| d.to_string() == *xuat_hanh)
+                .any(|d| d.as_vn_str() == xuat_hanh.as_str())
             {
                 contributions.push(DecisionContribution {
                     contribution_id: "personal.kua_favorable".to_string(),
@@ -634,7 +634,7 @@ impl PersonalDayAssessmentBuilder {
             } else if kua_result
                 .unfavorable_directions
                 .iter()
-                .any(|d| d.to_string() == *xuat_hanh)
+                .any(|d| d.as_vn_str() == xuat_hanh.as_str())
             {
                 contributions.push(DecisionContribution {
                     contribution_id: "personal.kua_unfavorable".to_string(),
