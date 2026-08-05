@@ -18,7 +18,7 @@
 //!
 //! ## Policy variants
 //!
-//! Two opt-in constructors coexist under this module:
+//! Three opt-in constructors coexist under this module:
 //!
 //! - [`AssessmentPolicy::baseline_v2`] — the v1-parity baseline (`v2`).
 //!   Uses equal weights across the four scored axes; locked by the
@@ -29,13 +29,14 @@
 //!   produce different final projections from the same axis scores.
 //!   Divergences from v1/baseline_v2 are intentional and reviewed in
 //!   `assessment_v2_1_intent_weights`.
+//! - [`AssessmentPolicy::interaction_aware_v2`] — the v2.2
+//!   interaction-aware variant (`amlich-47wn`). Layers declared
+//!   interaction features on top of v2.1: axis subtotals still come from
+//!   feature aggregation, then interaction deltas are applied as a
+//!   post-processing step. Divergences from v2.1 are intentional and
+//!   reviewed in `assessment_v2_2_interactions`.
 //!
 //! ## Out of scope here
-//!
-//! These are layered on top in follow-up issues and intentionally have
-//! empty placeholders in the trace:
-//!
-//! - Declared interaction features (`amlich-47wn`).
 //!
 //! Named hard vetoes (`amlich-l0wu`) ARE populated under `baseline_v2`
 //! and `intent_weighted_v2`. The legacy
@@ -51,6 +52,10 @@ use crate::{
             extract_features, extract_vetoes, resolve_assessment_inputs, ResolvedAssessmentInputs,
         },
         feature::{polarity_sign, FeatureObservation},
+        interactions::{
+            apply_interaction_deltas, extract_interactions, InteractionWeightTable,
+            INTERACTION_WEIGHTS_V2_2,
+        },
         trace::{
             AssessmentTrace, AxisAggregation, AxisContributor, AxisWeight, DecisionAggregation,
             VetoEvent,
@@ -84,6 +89,14 @@ pub const ASSESSMENT_POLICY_V2_VERSION: &str = "v2";
 /// `v1` byte-for-byte; only the final decision aggregation changes.
 pub const ASSESSMENT_POLICY_V2_1_VERSION: &str = "v2.1";
 
+/// Version of the v2.2 interaction-aware policy (`amlich-47wn`). Layers
+/// declared interaction features on top of the v2.1 intent-aware policy:
+/// axis subtotals are computed from features as in v2/v2.1, then
+/// interaction deltas (`weight × value`) are applied as a post-processing
+/// step to the relevant axis subtotals. The interaction weights come from
+/// [`INTERACTION_WEIGHTS_V2_2`].
+pub const ASSESSMENT_POLICY_V2_2_VERSION: &str = "v2.2";
+
 /// Legacy axis-aggregation multiplier carried over from v1 so baseline_v2
 /// reproduces v1 axis scores exactly. The v2.1 intent-aware variant
 /// (`amlich-lxu3`) keeps this multiplier for axis subtotals and only
@@ -110,6 +123,11 @@ pub struct AssessmentPolicy {
     /// `intent_weighted_v2` case) the aggregation uses per-intent
     /// weights from the table, renormalized over the available axes.
     intent_axis_weights: Option<&'static IntentAxisWeightTable>,
+    /// Optional interaction weight table. When `None` (v2 / v2.1) no
+    /// interaction terms are evaluated. When `Some` (v2.2
+    /// `interaction_aware_v2`) declared interactions are extracted and
+    /// their deltas applied to axis subtotals after feature aggregation.
+    interaction_weights: Option<&'static InteractionWeightTable>,
 }
 
 impl Default for AssessmentPolicy {
@@ -128,6 +146,7 @@ impl AssessmentPolicy {
             policy_version: ASSESSMENT_POLICY_V2_VERSION.to_string(),
             axis_delta_multiplier: V1_AXIS_DELTA_MULTIPLIER,
             intent_axis_weights: None,
+            interaction_weights: None,
         }
     }
 
@@ -147,6 +166,27 @@ impl AssessmentPolicy {
             policy_version: ASSESSMENT_POLICY_V2_1_VERSION.to_string(),
             axis_delta_multiplier: V1_AXIS_DELTA_MULTIPLIER,
             intent_axis_weights: Some(&INTENT_AXIS_WEIGHTS_V2_1),
+            interaction_weights: None,
+        }
+    }
+
+    /// Interaction-aware v2.2 policy (`amlich-47wn`). Layers declared
+    /// interaction features on top of the v2.1 intent-aware policy: same
+    /// feature model, same intent-aware axis weights for the decision
+    /// aggregation, plus typed interaction terms that apply synergistic
+    /// deltas to axis subtotals after feature aggregation.
+    ///
+    /// Interactions fire only on explicitly declared conditions (spec: "No
+    /// interaction is inferred merely because two source facts coexist").
+    /// Each interaction can fire at most once per assessment, so duplicate
+    /// inputs cannot inflate results.
+    pub fn interaction_aware_v2() -> Self {
+        Self {
+            policy_id: ASSESSMENT_POLICY_V2_ID.to_string(),
+            policy_version: ASSESSMENT_POLICY_V2_2_VERSION.to_string(),
+            axis_delta_multiplier: V1_AXIS_DELTA_MULTIPLIER,
+            intent_axis_weights: Some(&INTENT_AXIS_WEIGHTS_V2_1),
+            interaction_weights: Some(&INTERACTION_WEIGHTS_V2_2),
         }
     }
 
@@ -184,12 +224,37 @@ impl AssessmentPolicy {
         let features = extract_features(snapshot, profile, intent, capability, &resolved);
         let vetoes = extract_vetoes(snapshot, profile, intent, capability, &resolved);
 
+        // Declared interaction terms (amlich-47wn). Only the v2.2 policy
+        // wires in an interaction weight table; v2 / v2.1 produce no
+        // interactions, preserving their parity contracts.
+        let interactions = match self.interaction_weights {
+            Some(table) => extract_interactions(
+                &features,
+                snapshot,
+                profile,
+                intent,
+                &capability,
+                &resolved,
+                table,
+            ),
+            None => Vec::new(),
+        };
+
         let evidence = build_evidence_coverage(&resolved);
 
         let contributions =
             project_features_to_contributions(&features, &self.policy_id, &self.policy_version);
 
-        let (axes, axis_aggregations) = self.aggregate_axes(&features, &capability);
+        let (mut axes, mut axis_aggregations) = self.aggregate_axes(&features, &capability);
+
+        // Apply interaction deltas to axis subtotals after feature
+        // aggregation (amlich-47wn). Each interaction contributes
+        // `weight × value` to its target axis; the subtotal is clamped to
+        // [0, 1] and the verdict refreshed. Under v2 / v2.1 this is a
+        // no-op (interactions is empty).
+        if !interactions.is_empty() {
+            apply_interaction_deltas(&mut axes, &mut axis_aggregations, &interactions);
+        }
 
         let (decision, decision_aggregation) = self.synthesize_decision(
             &axes,
@@ -219,7 +284,7 @@ impl AssessmentPolicy {
             axes: axis_aggregations,
             decision: decision_aggregation,
             vetoes,
-            interactions: Vec::new(),
+            interactions,
         };
 
         PersonalDayAssessment {

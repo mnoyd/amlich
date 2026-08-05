@@ -16,10 +16,12 @@
 //!
 //! ## Placeholders for future issues
 //!
-//! `interactions` is intentionally empty under `baseline_v2`; declared
-//! interaction features land in `amlich-47wn`. `vetoes` IS populated under
-//! `baseline_v2` (`amlich-l0wu`): the legacy `strength >= 0.8` implicit
-//! threshold was lifted into explicit, source-attributed [`VetoEvent`]s.
+//! `interactions` is intentionally empty under `baseline_v2` and
+//! `intent_weighted_v2`; declared interaction features land in the v2.2
+//! `interaction_aware_v2` policy (`amlich-47wn`). `vetoes` IS populated
+//! under `baseline_v2` (`amlich-l0wu`): the legacy `strength >= 0.8`
+//! implicit threshold was lifted into explicit, source-attributed
+//! [`VetoEvent`]s.
 
 use serde::{Deserialize, Serialize};
 
@@ -52,7 +54,8 @@ pub struct AssessmentTrace {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub vetoes: Vec<VetoEvent>,
     /// Declared interaction terms evaluated by the policy. Empty under
-    /// `baseline_v2`; populated by `amlich-47wn`.
+    /// `baseline_v2` and `intent_weighted_v2`; populated by the v2.2
+    /// `interaction_aware_v2` policy (`amlich-47wn`).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub interactions: Vec<InteractionTerm>,
 }
@@ -139,11 +142,34 @@ pub struct VetoEvent {
 }
 
 /// A declared interaction term evaluated by the policy. Empty under
-/// `baseline_v2`; `amlich-47wn` introduces typed interaction features.
+/// `baseline_v2` and `intent_weighted_v2`; populated by the v2.2
+/// `interaction_aware_v2` policy (`amlich-47wn`).
+///
+/// Each term represents a synergistic effect between two or more feature
+/// observations that the linear axis aggregation does not capture on its
+/// own. The term carries its own source evidence and target axis so the
+/// Evidence Graph projection (`amlich-8tdm`) can explain *why* the
+/// interaction fired and *where* it moved the score.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct InteractionTerm {
+    /// Stable, policy-versioned interaction identifier (e.g.
+    /// `interaction.hard_taboo_activity`). Never reused; renaming or
+    /// repurposing requires a policy version bump.
     pub interaction_id: String,
+    /// Feature observations whose co-occurrence triggers this interaction.
     pub feature_ids: Vec<crate::assessment::feature::AssessmentFeatureId>,
+    /// Axis the interaction contributes its delta to.
+    pub axis: AssessmentAxis,
+    /// Signed interaction magnitude in `[-1, 1]` — the product of the
+    /// triggering conditions' strengths, projected into the signed value
+    /// space. Positive for favorable synergies, negative for adverse ones.
     pub value: f32,
+    /// Policy weight applied to `value` to produce the axis delta
+    /// (`delta = weight × value`). Versioned by the interaction weight
+    /// table.
     pub weight: f32,
+    /// Source evidence attributing the interaction to its domain provenance.
+    pub source_evidence: SourceEvidence,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
 }
