@@ -16,19 +16,32 @@
 //! (`PersonalDayAssessment::assess`), and v2 is opt-in via
 //! [`AssessmentPolicy::baseline_v2`].
 //!
+//! ## Policy variants
+//!
+//! Two opt-in constructors coexist under this module:
+//!
+//! - [`AssessmentPolicy::baseline_v2`] — the v1-parity baseline (`v2`).
+//!   Uses equal weights across the four scored axes; locked by the
+//!   `assessment_v2_seam::v1_v2_full_parity_*` suite.
+//! - [`AssessmentPolicy::intent_weighted_v2`] — the v2.1 intent-aware
+//!   variant (`amlich-lxu3`). Replaces the equal-weight aggregation with
+//!   the sparse [`IntentAxisWeightTable`] so different intents can
+//!   produce different final projections from the same axis scores.
+//!   Divergences from v1/baseline_v2 are intentional and reviewed in
+//!   `assessment_v2_1_intent_weights`.
+//!
 //! ## Out of scope here
 //!
 //! These are layered on top in follow-up issues and intentionally have
 //! empty placeholders in the trace:
 //!
-//! - Intent-aware axis weights (`amlich-lxu3`) — baseline_v2 uses equal
-//!   weights across the four scored axes.
 //! - Declared interaction features (`amlich-47wn`).
 //!
-//! Named hard vetoes (`amlich-l0wu`) ARE populated under `baseline_v2`:
-//! the legacy `polarity == Avoid && strength >= 0.8` implicit threshold
-//! was lifted into explicit, source-attributed [`VetoEvent`]s that fire
-//! on the same source-data states for v1 decision parity.
+//! Named hard vetoes (`amlich-l0wu`) ARE populated under `baseline_v2`
+//! and `intent_weighted_v2`. The legacy
+//! `polarity == Avoid && strength >= 0.8` implicit threshold was lifted
+//! into explicit, source-attributed [`VetoEvent`]s that fire on the same
+//! source-data states for v1 decision parity.
 
 use crate::{
     advisory::ConsultationIntent,
@@ -42,6 +55,7 @@ use crate::{
             AssessmentTrace, AxisAggregation, AxisContributor, AxisWeight, DecisionAggregation,
             VetoEvent,
         },
+        weights::{IntentAxisWeightTable, INTENT_AXIS_WEIGHTS_V2_1},
         AssessmentAxes, AssessmentAxis, AssessmentInputs, AxisOutcome, DecisionContribution,
         EvidenceCoverage, NormalizedBirth, PersonalDayAssessment, PersonalDayDecision,
         UnavailableSection,
@@ -57,28 +71,45 @@ use crate::{
 /// synthesis MUST bump the version.
 pub const ASSESSMENT_POLICY_V2_ID: &str = "personal-day-assessment";
 
-/// Current version of the v2 policy. v2 introduces the feature-vector
-/// model, source-attributed observations, and calculation trace while
-/// preserving v1 axis scores and decision buckets under `baseline_v2`.
+/// Current version of the v2 baseline policy. v2 introduces the
+/// feature-vector model, source-attributed observations, and calculation
+/// trace while preserving v1 axis scores and decision buckets under
+/// `baseline_v2`.
 pub const ASSESSMENT_POLICY_V2_VERSION: &str = "v2";
 
+/// Version of the v2.1 intent-aware policy (`amlich-lxu3`). Layers the
+/// sparse, policy-versioned [`IntentAxisWeightTable`] on top of the v2
+/// feature model so the final decision projection reflects what each
+/// consultation intent emphasizes. Axis subtotals still match `v2` and
+/// `v1` byte-for-byte; only the final decision aggregation changes.
+pub const ASSESSMENT_POLICY_V2_1_VERSION: &str = "v2.1";
+
 /// Legacy axis-aggregation multiplier carried over from v1 so baseline_v2
-/// reproduces v1 axis scores exactly. Future policy versions
-/// (`amlich-lxu3`) replace it with policy-table weights.
+/// reproduces v1 axis scores exactly. The v2.1 intent-aware variant
+/// (`amlich-lxu3`) keeps this multiplier for axis subtotals and only
+/// changes the final decision aggregation via
+/// [`IntentAxisWeightTable`].
 const V1_AXIS_DELTA_MULTIPLIER: f32 = 0.3;
 
 /// Versioned policy that owns the v2 personal-day scoring pipeline.
 ///
 /// Construct via [`AssessmentPolicy::baseline_v2`] for the v1-parity
-/// baseline. Callers feed the same `(inputs, snapshot, profile, intent)`
-/// they would have fed the legacy builder; the policy returns a fully
-/// built [`PersonalDayAssessment`] with the calculation [`AssessmentTrace`]
-/// attached.
+/// baseline, or via [`AssessmentPolicy::intent_weighted_v2`] for the
+/// intent-aware v2.1 variant (`amlich-lxu3`). Callers feed the same
+/// `(inputs, snapshot, profile, intent)` they would have fed the legacy
+/// builder; the policy returns a fully built [`PersonalDayAssessment`]
+/// with the calculation [`AssessmentTrace`] attached.
 #[derive(Debug, Clone)]
 pub struct AssessmentPolicy {
     policy_id: String,
     policy_version: String,
     axis_delta_multiplier: f32,
+    /// Optional intent×axis weight table. When `None` (the v1-parity
+    /// `baseline_v2` case) the decision aggregation uses equal weights
+    /// across the available scored axes. When `Some` (the v2.1
+    /// `intent_weighted_v2` case) the aggregation uses per-intent
+    /// weights from the table, renormalized over the available axes.
+    intent_axis_weights: Option<&'static IntentAxisWeightTable>,
 }
 
 impl Default for AssessmentPolicy {
@@ -96,6 +127,26 @@ impl AssessmentPolicy {
             policy_id: ASSESSMENT_POLICY_V2_ID.to_string(),
             policy_version: ASSESSMENT_POLICY_V2_VERSION.to_string(),
             axis_delta_multiplier: V1_AXIS_DELTA_MULTIPLIER,
+            intent_axis_weights: None,
+        }
+    }
+
+    /// Intent-aware v2.1 policy (`amlich-lxu3`). Same feature model and
+    /// axis aggregation as [`baseline_v2`](Self::baseline_v2) — axis
+    /// subtotals still match v1 byte-for-byte — but the final decision
+    /// aggregation uses per-intent axis weights from
+    /// [`INTENT_AXIS_WEIGHTS_V2_1`] instead of an equal-weight average,
+    /// so different intents can produce different final projections.
+    ///
+    /// Weights of unavailable axes are excluded and the remaining
+    /// weights renormalize to sum to 1.0, preserving the
+    /// "unavailable is not zero" contract from `amlich-7bm4`.
+    pub fn intent_weighted_v2() -> Self {
+        Self {
+            policy_id: ASSESSMENT_POLICY_V2_ID.to_string(),
+            policy_version: ASSESSMENT_POLICY_V2_1_VERSION.to_string(),
+            axis_delta_multiplier: V1_AXIS_DELTA_MULTIPLIER,
+            intent_axis_weights: Some(&INTENT_AXIS_WEIGHTS_V2_1),
         }
     }
 
@@ -376,8 +427,13 @@ impl AssessmentPolicy {
     /// Synthesize the final decision. Under baseline_v2, named hard
     /// vetoes (`amlich-l0wu`) force the `Avoid` bucket with deterministic
     /// precedence before any weighted suitability aggregation. The
-    /// remaining paths (recommendation-bucket overrides, equal-weight axis
-    /// averaging) reproduce the v1 decision formula.
+    /// remaining paths (recommendation-bucket overrides, axis averaging)
+    /// reproduce the v1 decision formula.
+    ///
+    /// Under v2.1 (`amlich-lxu3`), the axis averaging is replaced by an
+    /// intent-specific weight vector from
+    /// [`INTENT_AXIS_WEIGHTS_V2_1`], renormalized over the available
+    /// axes so a capability gap cannot inflate the score.
     fn synthesize_decision(
         &self,
         axes: &AssessmentAxes,
@@ -418,25 +474,13 @@ impl AssessmentPolicy {
             .collect();
         let available_axes: Vec<AssessmentAxis> = available.iter().map(|(a, _)| *a).collect();
 
-        let equal_weight = if available.is_empty() {
-            0.0
-        } else {
-            1.0 / available.len() as f32
-        };
-        let axis_weights: Vec<AxisWeight> = available
-            .iter()
-            .map(|(axis, _)| AxisWeight {
-                axis: *axis,
-                weight: equal_weight,
-            })
-            .collect();
-
-        let average_score = if available.is_empty() {
-            None
-        } else {
-            let sum: f32 = available.iter().map(|(_, s)| *s).sum();
-            Some(sum / available.len() as f32)
-        };
+        // Pick the axis weights for the available axes. baseline_v2
+        // (intent_axis_weights == None) keeps the equal-weight aggregate
+        // for v1 parity; v2.1 (Some table) uses the per-intent weights,
+        // renormalized over the available axes so a missing axis cannot
+        // inflate the score (amlich-lxu3 contract).
+        let (axis_weights, average_score) =
+            self.aggregate_decision_score(&available, intent, &available_axes);
 
         let intent_primary_bucket = recommendations.and_then(|rec| {
             rec.activities
@@ -501,6 +545,76 @@ impl AssessmentPolicy {
         };
 
         (decision, aggregation)
+    }
+
+    /// Combine the available axis scores into a single decision projection.
+    /// Returns the per-axis [`AxisWeight`] entries (after renormalization,
+    /// so they sum to 1.0 over the available axes) and the resulting
+    /// weighted-average score.
+    ///
+    /// - `baseline_v2` (no intent table): equal weights `1 / N_available`,
+    ///   matching v1 byte-for-byte.
+    /// - `intent_weighted_v2` (v2.1): per-intent weights from the table,
+    ///   renormalized over the available axes. If the table somehow
+    ///   yields a zero total for the available axes (defensive: every
+    ///   real intent×axis entry is positive), falls back to equal weight
+    ///   rather than dividing by zero.
+    fn aggregate_decision_score(
+        &self,
+        available: &[(AssessmentAxis, f32)],
+        intent: ConsultationIntent,
+        available_axes: &[AssessmentAxis],
+    ) -> (Vec<AxisWeight>, Option<f32>) {
+        if available.is_empty() {
+            return (Vec::new(), None);
+        }
+
+        let raw_weights: Vec<(AssessmentAxis, f32)> = match self.intent_axis_weights {
+            None => available.iter().map(|(axis, _)| (*axis, 1.0_f32)).collect(),
+            Some(table) => {
+                let entry = table.weights_for(intent);
+                available
+                    .iter()
+                    .map(|(axis, _)| (*axis, entry.weight_for(*axis).unwrap_or(0.0)))
+                    .collect()
+            }
+        };
+
+        let total_raw: f32 = raw_weights.iter().map(|(_, w)| *w).sum();
+        let n = available.len() as f32;
+
+        // Defensive fallback: every v2.1 table entry is positive, so this
+        // branch only triggers under a malformed future table. Keep the
+        // decision finite and report equal weights so the trace stays
+        // honest about what was actually applied.
+        let (normalized, score) = if total_raw > 0.0 {
+            let normalized: Vec<AxisWeight> = raw_weights
+                .iter()
+                .map(|(axis, w)| AxisWeight {
+                    axis: *axis,
+                    weight: *w / total_raw,
+                })
+                .collect();
+            let weighted: f32 = available
+                .iter()
+                .zip(normalized.iter())
+                .map(|((_, s), w)| *s * w.weight)
+                .sum();
+            (normalized, weighted)
+        } else {
+            let eq = 1.0 / n;
+            let normalized: Vec<AxisWeight> = available_axes
+                .iter()
+                .map(|axis| AxisWeight {
+                    axis: *axis,
+                    weight: eq,
+                })
+                .collect();
+            let sum: f32 = available.iter().map(|(_, s)| *s).sum();
+            (normalized, sum * eq)
+        };
+
+        (normalized, Some(score.clamp(0.0, 1.0)))
     }
 }
 
@@ -693,6 +807,42 @@ mod tests {
         assert_eq!(policy.policy_id(), ASSESSMENT_POLICY_V2_ID);
         assert_eq!(policy.policy_version(), ASSESSMENT_POLICY_V2_VERSION);
         assert_eq!(policy.policy_version(), "v2");
+        // baseline_v2 is the v1-parity baseline: no intent-aware
+        // weight table. The decision aggregation falls back to equal
+        // weights across the available scored axes.
+        assert!(
+            policy.intent_axis_weights.is_none(),
+            "baseline_v2 must not wire in an intent-aware weight table"
+        );
+    }
+
+    #[test]
+    fn intent_weighted_v2_policy_metadata_is_versioned() {
+        // amlich-lxu3: the v2.1 variant carries a distinct policy
+        // version and an intent-aware weight table.
+        let policy = AssessmentPolicy::intent_weighted_v2();
+        assert_eq!(policy.policy_id(), ASSESSMENT_POLICY_V2_ID);
+        assert_eq!(policy.policy_version(), ASSESSMENT_POLICY_V2_1_VERSION);
+        assert_eq!(policy.policy_version(), "v2.1");
+        let table = policy
+            .intent_axis_weights
+            .expect("v2.1 must wire in the intent-aware weight table");
+        assert_eq!(table.policy_version, ASSESSMENT_POLICY_V2_1_VERSION);
+        assert!(
+            !table.entries.is_empty(),
+            "v2.1 weight table must declare at least one intent entry"
+        );
+    }
+
+    #[test]
+    fn v2_and_v2_1_share_policy_family_but_diverge_on_version() {
+        // The policy_id family stays stable across v2 / v2.1 (callers
+        // can tell they're looking at the same assessment seam). The
+        // policy_version carries the divergence signal.
+        let v2 = AssessmentPolicy::baseline_v2();
+        let v2_1 = AssessmentPolicy::intent_weighted_v2();
+        assert_eq!(v2.policy_id(), v2_1.policy_id());
+        assert_ne!(v2.policy_version(), v2_1.policy_version());
     }
 
     #[test]
