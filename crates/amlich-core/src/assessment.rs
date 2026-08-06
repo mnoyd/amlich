@@ -67,6 +67,9 @@ pub mod trace;
 pub mod weights;
 
 pub use feature::{AssessmentFeatureId, FeatureObservation};
+pub use interactions::{
+    InteractionKind, InteractionWeight, InteractionWeightTable, INTERACTION_WEIGHTS_V2_2,
+};
 pub use policy::{
     AssessmentPolicy, ASSESSMENT_POLICY_V2_1_VERSION, ASSESSMENT_POLICY_V2_2_VERSION,
     ASSESSMENT_POLICY_V2_ID, ASSESSMENT_POLICY_V2_VERSION,
@@ -76,9 +79,6 @@ pub use trace::{
     InteractionTerm, VetoEvent,
 };
 pub use weights::{IntentAxisWeightTable, IntentAxisWeights, INTENT_AXIS_WEIGHTS_V2_1};
-pub use interactions::{
-    InteractionKind, InteractionWeight, InteractionWeightTable, INTERACTION_WEIGHTS_V2_2,
-};
 
 /// Stable policy identifier for the personal-day assessment. Co-versioned
 /// with [`ASSESSMENT_POLICY_VERSION`]: any change to score combination or

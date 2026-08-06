@@ -276,7 +276,10 @@ pub(super) fn extract_interactions(
             let kind = InteractionKind::HardTabooActivity;
             terms.push(InteractionTerm {
                 interaction_id: kind.as_str().to_string(),
-                feature_ids: vec![AssessmentFeatureId::GenericDayQuality, AssessmentFeatureId::IntentFit],
+                feature_ids: vec![
+                    AssessmentFeatureId::GenericDayQuality,
+                    AssessmentFeatureId::IntentFit,
+                ],
                 axis: kind.target_axis(),
                 value: -taboo_strength,
                 weight: weight_table.weight_for(kind),
@@ -386,9 +389,10 @@ pub(super) fn extract_interactions(
     //    Fires when yearly Hạn is active AND the intent is a major life
     //    event where Hạn is traditionally most consequential.
     if is_major_life_event(intent) {
-        if let Some(han) = features.iter().find(|f| {
-            f.feature_id == AssessmentFeatureId::AnnualThaiTue && !f.is_unavailable()
-        }) {
+        if let Some(han) = features
+            .iter()
+            .find(|f| f.feature_id == AssessmentFeatureId::AnnualThaiTue && !f.is_unavailable())
+        {
             let kind = InteractionKind::AnnualPressureActivity;
             terms.push(InteractionTerm {
                 interaction_id: kind.as_str().to_string(),
@@ -468,9 +472,7 @@ fn is_ceremonial_intent(intent: ConsultationIntent) -> bool {
 fn is_major_life_event(intent: ConsultationIntent) -> bool {
     matches!(
         intent,
-        ConsultationIntent::Wedding
-            | ConsultationIntent::MovingHouse
-            | ConsultationIntent::Burial
+        ConsultationIntent::Wedding | ConsultationIntent::MovingHouse | ConsultationIntent::Burial
     )
 }
 

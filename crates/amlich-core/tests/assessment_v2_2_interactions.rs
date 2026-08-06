@@ -68,7 +68,12 @@ fn v22(
     profile: &BirthProfile,
     intent: ConsultationIntent,
 ) -> PersonalDayAssessment {
-    AssessmentPolicy::interaction_aware_v2().evaluate(AssessmentInputs::default(), snapshot, profile, intent)
+    AssessmentPolicy::interaction_aware_v2().evaluate(
+        AssessmentInputs::default(),
+        snapshot,
+        profile,
+        intent,
+    )
 }
 
 fn v21(
@@ -76,7 +81,12 @@ fn v21(
     profile: &BirthProfile,
     intent: ConsultationIntent,
 ) -> PersonalDayAssessment {
-    AssessmentPolicy::intent_weighted_v2().evaluate(AssessmentInputs::default(), snapshot, profile, intent)
+    AssessmentPolicy::intent_weighted_v2().evaluate(
+        AssessmentInputs::default(),
+        snapshot,
+        profile,
+        intent,
+    )
 }
 
 const ALL_INTENTS: [ConsultationIntent; 9] = [
@@ -111,7 +121,12 @@ fn baseline_v2_and_v2_1_stay_interaction_free() {
     let p = profile(1990, Gender::Male);
 
     for intent in ALL_INTENTS {
-        let v2 = AssessmentPolicy::baseline_v2().evaluate(AssessmentInputs::default(), &snap, &p, intent);
+        let v2 = AssessmentPolicy::baseline_v2().evaluate(
+            AssessmentInputs::default(),
+            &snap,
+            &p,
+            intent,
+        );
         let v21 = v21(&snap, &p, intent);
 
         let v2_trace = v2.trace.as_ref().expect("v2 trace");
@@ -179,7 +194,11 @@ fn expect_interaction<'a>(
             panic!(
                 "expected interaction {} in trace, got: {:?}",
                 kind.as_str(),
-                trace.interactions.iter().map(|i| &i.interaction_id).collect::<Vec<_>>()
+                trace
+                    .interactions
+                    .iter()
+                    .map(|i| &i.interaction_id)
+                    .collect::<Vec<_>>()
             )
         })
 }
@@ -197,11 +216,18 @@ fn v2_2_hard_taboo_activity_fires_on_ceremonial_intent_with_taboos() {
     let term = expect_interaction(trace, InteractionKind::HardTabooActivity);
     assert_eq!(term.axis, AssessmentAxis::IntentFit);
     assert!(term.value < 0.0, "hard_taboo value must be negative");
-    assert_eq!(term.weight, INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::HardTabooActivity));
-    assert!(!term.source_evidence.source_id.is_empty(), "must carry source_id");
+    assert_eq!(
+        term.weight,
+        INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::HardTabooActivity)
+    );
+    assert!(
+        !term.source_evidence.source_id.is_empty(),
+        "must carry source_id"
+    );
     assert!(!term.source_evidence.method.is_empty(), "must carry method");
     assert!(
-        term.feature_ids.contains(&amlich_core::assessment::AssessmentFeatureId::GenericDayQuality),
+        term.feature_ids
+            .contains(&amlich_core::assessment::AssessmentFeatureId::GenericDayQuality),
         "must reference the taboo feature"
     );
 }
@@ -219,7 +245,10 @@ fn v2_2_personal_relation_pillar_fires_on_favorable_relation() {
     let term = expect_interaction(trace, InteractionKind::PersonalRelationPillar);
     assert_eq!(term.axis, AssessmentAxis::PersonalAlignment);
     assert!(term.value > 0.0, "personal_relation value must be positive");
-    assert_eq!(term.weight, INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::PersonalRelationPillar));
+    assert_eq!(
+        term.weight,
+        INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::PersonalRelationPillar)
+    );
     assert!(!term.source_evidence.source_id.is_empty());
 }
 
@@ -235,8 +264,14 @@ fn v2_2_weak_element_day_generation_fires_on_weak_chart_with_generating_day() {
 
     let term = expect_interaction(trace, InteractionKind::WeakElementDayGeneration);
     assert_eq!(term.axis, AssessmentAxis::PersonalAlignment);
-    assert!(term.value > 0.0, "weak_element value must be positive (supportive)");
-    assert_eq!(term.weight, INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::WeakElementDayGeneration));
+    assert!(
+        term.value > 0.0,
+        "weak_element value must be positive (supportive)"
+    );
+    assert_eq!(
+        term.weight,
+        INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::WeakElementDayGeneration)
+    );
     assert!(!term.source_evidence.source_id.is_empty());
 }
 
@@ -253,7 +288,10 @@ fn v2_2_kua_direction_travel_fires_on_favorable_direction_for_travel() {
     let term = expect_interaction(trace, InteractionKind::KuaDirectionTravel);
     assert_eq!(term.axis, AssessmentAxis::IntentFit);
     assert!(term.value > 0.0, "kua_direction value must be positive");
-    assert_eq!(term.weight, INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::KuaDirectionTravel));
+    assert_eq!(
+        term.weight,
+        INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::KuaDirectionTravel)
+    );
     assert_eq!(term.source_evidence.source_id, "vn-folk");
 }
 
@@ -270,7 +308,10 @@ fn v2_2_annual_pressure_activity_fires_on_han_with_major_life_event() {
     let term = expect_interaction(trace, InteractionKind::AnnualPressureActivity);
     assert_eq!(term.axis, AssessmentAxis::AnnualPressure);
     assert!(term.value < 0.0, "annual_pressure value must be negative");
-    assert_eq!(term.weight, INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::AnnualPressureActivity));
+    assert_eq!(
+        term.weight,
+        INTERACTION_WEIGHTS_V2_2.weight_for(InteractionKind::AnnualPressureActivity)
+    );
     assert!(!term.source_evidence.source_id.is_empty());
 }
 
@@ -294,7 +335,10 @@ fn undeclared_fact_combinations_do_not_change_scores() {
     let r21_medical = v21(&snap, &p, ConsultationIntent::Medical);
     let trace_medical = r22_medical.trace.as_ref().unwrap();
     assert!(
-        !trace_medical.interactions.iter().any(|i| i.interaction_id == "interaction.hard_taboo_activity"),
+        !trace_medical
+            .interactions
+            .iter()
+            .any(|i| i.interaction_id == "interaction.hard_taboo_activity"),
         "hard_taboo_activity must not fire for non-ceremonial intent Medical"
     );
     assert_eq!(
@@ -311,7 +355,10 @@ fn undeclared_fact_combinations_do_not_change_scores() {
     let r22_wedding = v22(&snap_travel, &p, ConsultationIntent::Wedding);
     let trace_wedding = r22_wedding.trace.as_ref().unwrap();
     assert!(
-        !trace_wedding.interactions.iter().any(|i| i.interaction_id == "interaction.kua_direction_travel"),
+        !trace_wedding
+            .interactions
+            .iter()
+            .any(|i| i.interaction_id == "interaction.kua_direction_travel"),
         "kua_direction_travel must not fire for non-Travel intent Wedding"
     );
 
@@ -321,7 +368,10 @@ fn undeclared_fact_combinations_do_not_change_scores() {
     let r22_renovation = v22(&snap_renovation, &p, ConsultationIntent::Renovation);
     let trace_renovation = r22_renovation.trace.as_ref().unwrap();
     assert!(
-        !trace_renovation.interactions.iter().any(|i| i.interaction_id == "interaction.annual_pressure_activity"),
+        !trace_renovation
+            .interactions
+            .iter()
+            .any(|i| i.interaction_id == "interaction.annual_pressure_activity"),
         "annual_pressure_activity must not fire for non-major-life-event intent Renovation"
     );
 }
@@ -393,12 +443,27 @@ fn v2_2_trace_records_interaction_terms_with_full_attribution() {
     let result = v22(&snap, &p, ConsultationIntent::Travel);
     let trace = result.trace.as_ref().unwrap();
 
-    assert!(!trace.interactions.is_empty(), "Travel fixture must produce interactions");
+    assert!(
+        !trace.interactions.is_empty(),
+        "Travel fixture must produce interactions"
+    );
     for term in &trace.interactions {
-        assert!(!term.interaction_id.is_empty(), "interaction_id must not be empty");
-        assert!(!term.feature_ids.is_empty(), "feature_ids must not be empty");
-        assert!(!term.source_evidence.source_id.is_empty(), "source_id must not be empty");
-        assert!(!term.source_evidence.method.is_empty(), "method must not be empty");
+        assert!(
+            !term.interaction_id.is_empty(),
+            "interaction_id must not be empty"
+        );
+        assert!(
+            !term.feature_ids.is_empty(),
+            "feature_ids must not be empty"
+        );
+        assert!(
+            !term.source_evidence.source_id.is_empty(),
+            "source_id must not be empty"
+        );
+        assert!(
+            !term.source_evidence.method.is_empty(),
+            "method must not be empty"
+        );
         assert_eq!(term.axis, term.axis); // axis is always set
     }
 }
@@ -466,8 +531,14 @@ fn hard_veto_still_overrides_interactions() {
     );
 
     let trace = result.trace.as_ref().unwrap();
-    assert!(!trace.vetoes.is_empty(), "veto events must still be present");
-    assert!(!trace.interactions.is_empty(), "interactions must still be recorded in the trace");
+    assert!(
+        !trace.vetoes.is_empty(),
+        "veto events must still be present"
+    );
+    assert!(
+        !trace.interactions.is_empty(),
+        "interactions must still be recorded in the trace"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -521,11 +592,17 @@ fn v2_2_all_five_interaction_kinds_fire_somewhere_in_fixture_sweep() {
     for month in 1..=12i32 {
         for day in 1..=28i32 {
             let snap = snapshot(day, month);
-            for (year, gender) in
-                [(1990, Gender::Male), (1985, Gender::Female), (1978, Gender::Male)]
-            {
+            for (year, gender) in [
+                (1990, Gender::Male),
+                (1985, Gender::Female),
+                (1978, Gender::Male),
+            ] {
                 let p = profile(year, gender);
-                for intent in [ConsultationIntent::Wedding, ConsultationIntent::Travel, ConsultationIntent::MovingHouse] {
+                for intent in [
+                    ConsultationIntent::Wedding,
+                    ConsultationIntent::Travel,
+                    ConsultationIntent::MovingHouse,
+                ] {
                     let result = policy.evaluate(AssessmentInputs::default(), &snap, &p, intent);
                     let trace = result.trace.as_ref().unwrap();
                     for term in &trace.interactions {

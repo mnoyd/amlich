@@ -878,7 +878,11 @@ fn kua_direction_match_feature_fires_consistently_v1_v2() {
     // amlich-h85g the comparison was English vs Vietnamese and neither
     // side ever fired; the assertion below would fail with the feature
     // absent from both the v1 contributions list and the v2 trace.
-    let v1_assessment = v1(snapshot.clone(), profile.clone(), ConsultationIntent::Wedding);
+    let v1_assessment = v1(
+        snapshot.clone(),
+        profile.clone(),
+        ConsultationIntent::Wedding,
+    );
     let v2_assessment = v2(&snapshot, &profile, ConsultationIntent::Wedding);
 
     let v1_contribution = v1_assessment
