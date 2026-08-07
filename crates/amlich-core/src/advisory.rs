@@ -10,7 +10,7 @@ use crate::{
     lunar::{convert_solar_to_lunar, LunarDate},
     tietkhi::get_tiet_khi,
     types::{CanChi, VIETNAM_TIMEZONE},
-    CanChiSet, DayContext, SolarDate,
+    CanChiSet, DayContext, HourRankingPolicy, RankedHourV1, SolarDate,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -236,10 +236,18 @@ pub fn synthesize_advisory_recommendations(
 
 /// Rank the twelve traditional hour slots for a given `intent`.
 ///
-/// **Compatibility ranking projection (amlich-mwbp.7).** The numeric
-/// `score` on each [`RankedHourCandidate`] is a deterministic ordering
-/// heuristic over Hoàng Đạo membership + intent/birth-compatibility
-/// bonuses — it is NOT a day-verdict score and is not comparable to the
+/// **Compatibility ranking projection (amlich-rv13.4).** This function is
+/// a thin projection of the canonical
+/// [`crate::assessment::HourRankingPolicy::baseline_v1`] policy. The new
+/// policy owns the ranking calculation and exposes normalized
+/// `0.0..=1.0` [`crate::assessment::RankedHourV1`] outputs with typed
+/// axes/contributions; this wrapper projects those values back to the
+/// legacy [`RankedHourCandidate`] integer `0..=100` score shape so
+/// existing consumers keep working through the migration window.
+///
+/// The numeric `score` on each [`RankedHourCandidate`] is a deterministic
+/// projection of the v1 `rank_score` (×100, rounded, clamped to `0..=100`)
+/// and is **not** a day-verdict score — it is not comparable to the
 /// canonical
 /// [`PersonalDayAssessment::decision`](crate::assessment::PersonalDayDecision)
 /// score. Consumers must read the canonical verdict off
@@ -247,9 +255,11 @@ pub fn synthesize_advisory_recommendations(
 /// surfaces) and use this ranking only to pick among hour slots that the
 /// day verdict already permits.
 ///
-/// The deeper rework (typed contributions for hour slots, intent-policy
-/// ranking) is owned by amlich-mwbp.8; this function only carries an
-/// explicit compatibility label during the migration window.
+/// Tie-break for exact score equality uses traditional Chi order
+/// (`chi_index` ascending) per spec §"Ranking order". This is a
+/// deliberate change from the prior alphabetical Vietnamese-name
+/// tie-break, matching the v1 policy's contract and the spec's explicit
+/// "do not tie-break alphabetically by Vietnamese Chi name" rule.
 pub fn rank_hours_for_intent(
     day: i32,
     month: i32,
@@ -258,50 +268,78 @@ pub fn rank_hours_for_intent(
     birth: Option<&BirthInput>,
 ) -> Result<Vec<RankedHourCandidate>, String> {
     let snapshot = crate::calculate_day_snapshot(day, month, year);
-    let mut ranked = Vec::new();
+    let policy = HourRankingPolicy::baseline_v1();
+    let ranked_v1 = policy.rank(&snapshot, intent, birth, None)?;
 
-    for hour in &snapshot.context.gio_hoang_dao.all_hours {
-        let mut score = if hour.is_good { 70 } else { 35 };
-        let mut note = if hour.is_good {
-            format!("Giờ {} là giờ hoàng đạo.", hour.hour_chi)
-        } else {
-            format!("Giờ {} không thuộc giờ hoàng đạo.", hour.hour_chi)
-        };
+    Ok(ranked_v1
+        .iter()
+        .map(project_ranked_hour_v1_to_legacy_candidate)
+        .collect())
+}
 
-        if intent == ConsultationIntent::Travel
-            && snapshot.day_fortune.travel.xuat_hanh_huong == "Nam"
-            && hour.is_good
-        {
-            score += 5;
-            note.push_str(" Phù hợp thêm cho xuất hành.");
-        }
+/// Project a canonical v1 [`crate::RankedHourV1`] output back
+/// to the legacy [`RankedHourCandidate`] shape used by
+/// [`rank_hours_for_intent`].
+///
+/// The projection is **monotonic** with the v1 `rank_score` (the integer
+/// score is `round(rank_score × 100).clamp(0, 100)`), so order from the
+/// v1 policy is preserved end-to-end. The Vietnamese `note_vi` text is
+/// re-derived from the v1 axes so consumers see a stable, human-readable
+/// description that reflects the policy's actual calculation rather than
+/// the legacy hand-rolled heuristic.
+fn project_ranked_hour_v1_to_legacy_candidate(v1: &RankedHourV1) -> RankedHourCandidate {
+    let note_vi = build_legacy_note_vi(v1);
+    let score = (v1.rank_score * 100.0).round().clamp(0.0, 100.0) as i32;
+    RankedHourCandidate {
+        chi_name: v1.chi_name.clone(),
+        time_range: v1.time_range.clone(),
+        is_auspicious: v1.is_auspicious,
+        score,
+        note_vi,
+    }
+}
 
-        if let Some(birth) = birth {
-            let birth_year = birth.birth_year_canchi();
-            if birth_year.chi == hour.hour_chi {
-                score += 4;
-                note.push_str(" Có đồng khí với chi tuổi.");
-            } else if snapshot.day_fortune.xung_hop.luc_xung == birth_year.chi {
-                score -= 4;
-            }
-        }
-
-        ranked.push(RankedHourCandidate {
-            chi_name: hour.hour_chi.clone(),
-            time_range: hour.time_range.clone(),
-            is_auspicious: hour.is_good,
-            score: score.clamp(0, 100),
-            note_vi: note,
-        });
+/// Compose the legacy Vietnamese `note_vi` text from the v1 axis
+/// outcomes. Mirrors the legacy format ("Giờ X là/không thuộc giờ hoàng
+/// đạo." plus optional axis clauses) so consumers reading the note see
+/// the same shape, but the facts are pulled from the v1 policy's
+/// per-axis scores instead of the legacy hand-rolled heuristic.
+fn build_legacy_note_vi(v1: &RankedHourV1) -> String {
+    let mut parts: Vec<String> = Vec::new();
+    if v1.is_auspicious {
+        parts.push(format!("Giờ {} là giờ hoàng đạo.", v1.chi_name));
+    } else {
+        parts.push(format!("Giờ {} không thuộc giờ hoàng đạo.", v1.chi_name));
     }
 
-    ranked.sort_by(|left, right| {
-        right
-            .score
-            .cmp(&left.score)
-            .then_with(|| left.chi_name.cmp(&right.chi_name))
-    });
-    Ok(ranked)
+    if let Some(score) = v1.axes.personal_hour_alignment.score {
+        // v1 personal alignment is 1.0 on match, 0.0 on clash,
+        // 0.5 on neutral; only the match is broad-compatible with the
+        // legacy "Có đồng khí với chi tuổi." clause.
+        if (score - 1.0).abs() < 1e-3 {
+            parts.push("Có đồng khí với chi tuổi.".to_string());
+        }
+    }
+
+    if let Some(score) = v1.axes.day_hour_harmony.score {
+        // v1 harmony scores: tam-hợp ≈ 0.8, lục-hợp ≈ 0.7,
+        // lục-xung ≈ 0.1, default ≈ 0.5. Surface the three named
+        // relations; the default is information-free so it stays
+        // implicit in the hoàng-đạo sentence.
+        if (score - 0.8).abs() < 1e-3 {
+            parts.push("Tam hợp với chi ngày.".to_string());
+        } else if (score - 0.7).abs() < 1e-3 {
+            parts.push("Lục hợp với chi ngày.".to_string());
+        } else if (score - 0.1).abs() < 1e-3 {
+            parts.push("Lục xung với chi ngày.".to_string());
+        }
+    }
+
+    if let Some(warning) = &v1.warning_context {
+        parts.push(format!("[Cảnh báo] {}", warning.message_vi));
+    }
+
+    parts.join(" ")
 }
 
 pub fn build_hour_selection_reasoning(
@@ -402,5 +440,306 @@ mod tests {
 
         assert!(!ranked.is_empty());
         assert!(ranked[0].score >= ranked[ranked.len() - 1].score);
+    }
+
+    // amlich-rv13.4 — legacy hour-ranking compatibility wrapper tests.
+    //
+    // The wrapper now delegates to HourRankingPolicy::baseline_v1 and
+    // projects the canonical normalized rank_score back to the legacy
+    // 0..=100 integer shape. These tests pin the broad-compat contract:
+    // every legacy caller keeps working without knowing about the v1
+    // policy, and the wrapper preserves the v1 policy's order.
+
+    fn wrapper_for(
+        date: (i32, i32, i32),
+        intent: ConsultationIntent,
+        birth: Option<&BirthInput>,
+    ) -> Vec<RankedHourCandidate> {
+        rank_hours_for_intent(date.0, date.1, date.2, intent, birth).expect("ranked hours")
+    }
+
+    #[test]
+    fn wrapper_returns_all_twelve_ranked_slots() {
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        assert_eq!(ranked.len(), 12);
+    }
+
+    #[test]
+    fn wrapper_score_projects_to_zero_hundred_range() {
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        for hour in &ranked {
+            assert!(
+                (0..=100).contains(&hour.score),
+                "legacy score must be in 0..=100; got {}",
+                hour.score
+            );
+        }
+    }
+
+    #[test]
+    fn wrapper_is_auspicious_matches_snapshot_hoang_dao_table() {
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let snapshot_chi: Vec<(&str, &str, bool)> = snapshot
+            .context
+            .gio_hoang_dao
+            .all_hours
+            .iter()
+            .map(|h| (h.hour_chi.as_str(), h.time_range.as_str(), h.is_good))
+            .collect();
+        for hour in &ranked {
+            let match_in_snapshot = snapshot_chi
+                .iter()
+                .find(|(chi, range, _)| *chi == hour.chi_name && *range == hour.time_range)
+                .expect("wrapper hour must come from snapshot");
+            assert_eq!(
+                hour.is_auspicious, match_in_snapshot.2,
+                "is_auspicious for {} must match snapshot hoang_dao table",
+                hour.chi_name
+            );
+        }
+    }
+
+    #[test]
+    fn wrapper_hoang_dao_hours_strictly_outrank_hac_dao_hours() {
+        // Broad-compat gate from the v1 spec: Hoàng Đạo hours generally
+        // rank above Hắc Đạo hours. With intent_timing_fit unavailable
+        // and no birth alignment, the wrapper must preserve the v1
+        // policy's strict separation.
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        let min_hoang_dao = ranked
+            .iter()
+            .filter(|h| h.is_auspicious)
+            .map(|h| h.score)
+            .min()
+            .expect("at least one Hoàng Đạo hour");
+        let max_hac_dao = ranked
+            .iter()
+            .filter(|h| !h.is_auspicious)
+            .map(|h| h.score)
+            .max()
+            .expect("at least one Hắc Đạo hour");
+        assert!(
+            min_hoang_dao > max_hac_dao,
+            "Hoàng Đạo hours must strictly outrank Hắc Đạo hours; \
+             min_hoang_dao={min_hoang_dao}, max_hac_dao={max_hac_dao}"
+        );
+    }
+
+    #[test]
+    fn wrapper_score_is_monotonic_with_v1_rank_score() {
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let policy = HourRankingPolicy::baseline_v1();
+        let v1 = policy
+            .rank(&snapshot, ConsultationIntent::Travel, None, None)
+            .expect("v1 rank");
+
+        // Pair wrapper hours with their v1 source by (chi_name, time_range).
+        for hour in &ranked {
+            let v1_hour = v1
+                .iter()
+                .find(|h| h.chi_name == hour.chi_name && h.time_range == hour.time_range)
+                .expect("every wrapper hour must map to a v1 hour");
+            let expected = (v1_hour.rank_score * 100.0).round().clamp(0.0, 100.0) as i32;
+            assert_eq!(
+                hour.score, expected,
+                "wrapper score for {} must equal round(v1_rank_score * 100) = {expected}, got {}",
+                v1_hour.chi_name, hour.score
+            );
+        }
+    }
+
+    #[test]
+    fn wrapper_is_deterministic_for_identical_inputs() {
+        let a = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        let b = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        assert_eq!(a, b);
+    }
+
+    #[test]
+    fn wrapper_ranking_is_invariant_to_intent_in_v1() {
+        // intent_timing_fit is uniformly unavailable in v1, so the
+        // wrapper's ranking (which derives entirely from the v1 policy)
+        // must not change across intents. The legacy Travel-intent
+        // +xuat_hanh_huong bonus is intentionally dropped because it
+        // folded a daily fact into the per-hour ranking — see
+        // amlich-rv13.4 design note.
+        let travel = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        let contract = wrapper_for((10, 2, 2024), ConsultationIntent::ContractSigning, None);
+        let wedding = wrapper_for((10, 2, 2024), ConsultationIntent::Wedding, None);
+
+        let ids = |r: &[RankedHourCandidate]| -> Vec<(String, String)> {
+            r.iter()
+                .map(|h| (h.chi_name.clone(), h.time_range.clone()))
+                .collect()
+        };
+        assert_eq!(ids(&travel), ids(&contract));
+        assert_eq!(ids(&travel), ids(&wedding));
+    }
+
+    #[test]
+    fn wrapper_tie_breaks_by_traditional_chi_order_not_alphabetical() {
+        // Per spec §"Ranking order", exact-tie tie-break uses
+        // chi_index ascending (traditional Chi order). The v1 policy
+        // already enforces this; the wrapper must inherit it rather
+        // than the prior alphabetical-Vietnamese-name fallback. We
+        // verify the property by checking that on any window of equal
+        // scores, the wrapper output's chi_index is monotonically
+        // non-decreasing.
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let chi_index_for = |chi: &str| -> usize {
+            snapshot
+                .context
+                .gio_hoang_dao
+                .all_hours
+                .iter()
+                .find(|h| h.hour_chi == chi)
+                .map(|h| h.hour_index)
+                .expect("chi must appear in snapshot table")
+        };
+        for window in ranked.windows(2) {
+            let left = &window[0];
+            let right = &window[1];
+            if left.score == right.score {
+                let left_idx = chi_index_for(&left.chi_name);
+                let right_idx = chi_index_for(&right.chi_name);
+                assert!(
+                    left_idx < right_idx,
+                    "score tie {0} must break by chi_index ascending (traditional Chi order); \
+                     got {left_chi} (idx={left_idx}) before {right_chi} (idx={right_idx})",
+                    left.score,
+                    left_chi = left.chi_name,
+                    right_chi = right.chi_name,
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn wrapper_note_vi_starts_with_hoang_dao_clause() {
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        for hour in &ranked {
+            if hour.is_auspicious {
+                assert!(
+                    hour.note_vi.contains("là giờ hoàng đạo"),
+                    "Hoàng Đạo note must mention 'là giờ hoàng đạo'; got {:?}",
+                    hour.note_vi
+                );
+            } else {
+                assert!(
+                    hour.note_vi.contains("không thuộc giờ hoàng đạo"),
+                    "Hắc Đạo note must mention 'không thuộc giờ hoàng đạo'; got {:?}",
+                    hour.note_vi
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn wrapper_note_vi_mentions_birth_year_chi_match_when_present() {
+        let birth = BirthInput {
+            day: 1,
+            month: 1,
+            year: 1990,
+            hour: None,
+            minute: None,
+            timezone: VIETNAM_TIMEZONE,
+            gender: None,
+            location_name: None,
+        };
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Wedding, Some(&birth));
+
+        // Find the wrapper hour whose v1 axes report a personal
+        // alignment match (score ≈ 1.0). That hour's note must carry
+        // the legacy "Có đồng khí với chi tuổi." clause.
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let policy = HourRankingPolicy::baseline_v1();
+        let v1 = policy
+            .rank(&snapshot, ConsultationIntent::Wedding, Some(&birth), None)
+            .expect("v1 rank");
+        let match_chi: Option<&str> = v1
+            .iter()
+            .find(|h| {
+                h.axes
+                    .personal_hour_alignment
+                    .score
+                    .map(|s| (s - 1.0).abs() < 1e-3)
+                    .unwrap_or(false)
+            })
+            .map(|h| h.chi_name.as_str());
+
+        if let Some(chi) = match_chi {
+            let matching_hour = ranked
+                .iter()
+                .find(|h| h.chi_name == chi)
+                .expect("match hour must appear in wrapper output");
+            assert!(
+                matching_hour.note_vi.contains("Có đồng khí với chi tuổi"),
+                "match hour {chi} note must carry the 'đồng khí' clause; got {:?}",
+                matching_hour.note_vi
+            );
+        }
+    }
+
+    #[test]
+    fn wrapper_note_vi_mentions_branch_relation_when_special() {
+        // At least one of tam-hợp / lục-hợp / lục-xung should appear
+        // somewhere in the wrapper output for 10/2/2024 — the snapshot
+        // has all three branches represented across its twelve slots.
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        let has_branch_clause = ranked.iter().any(|h| {
+            h.note_vi.contains("Tam hợp với chi ngày")
+                || h.note_vi.contains("Lục hợp với chi ngày")
+                || h.note_vi.contains("Lục xung với chi ngày")
+        });
+        assert!(
+            has_branch_clause,
+            "at least one wrapper hour must surface a branch-relation clause"
+        );
+    }
+
+    #[test]
+    fn wrapper_note_vi_omits_branch_clause_for_neutral_hours() {
+        let ranked = wrapper_for((10, 2, 2024), ConsultationIntent::Travel, None);
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let policy = HourRankingPolicy::baseline_v1();
+        let v1 = policy
+            .rank(&snapshot, ConsultationIntent::Travel, None, None)
+            .expect("v1 rank");
+
+        // For each wrapper hour whose v1 harmony score is the neutral
+        // 0.5 baseline, the wrapper note must NOT carry any branch
+        // clause (the neutral baseline is information-free in the legacy
+        // format).
+        for hour in &ranked {
+            let v1_hour = v1
+                .iter()
+                .find(|h| h.chi_name == hour.chi_name && h.time_range == hour.time_range)
+                .expect("v1 hour");
+            let harmony = v1_hour
+                .axes
+                .day_hour_harmony
+                .score
+                .expect("harmony is always available");
+            if (harmony - 0.5).abs() < 1e-3 {
+                assert!(
+                    !hour.note_vi.contains("Tam hợp với chi ngày"),
+                    "neutral harmony hour {} must not carry 'Tam hợp' clause",
+                    hour.chi_name
+                );
+                assert!(
+                    !hour.note_vi.contains("Lục hợp với chi ngày"),
+                    "neutral harmony hour {} must not carry 'Lục hợp' clause",
+                    hour.chi_name
+                );
+                assert!(
+                    !hour.note_vi.contains("Lục xung với chi ngày"),
+                    "neutral harmony hour {} must not carry 'Lục xung' clause",
+                    hour.chi_name
+                );
+            }
+        }
     }
 }
