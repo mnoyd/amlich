@@ -2,6 +2,7 @@
     import { selectedDate, userProfile } from '$lib/stores';
     import type { UserProfile } from '$lib/stores';
     import { fetchDebugSemanticGraph, fetchPersonalDayReport } from '$lib/api/invoke';
+    import GraphView from './GraphView.svelte';
     import type {
         DecisionConfidenceDto,
         DebugSemanticGraphResponseDto,
@@ -42,6 +43,7 @@
     let activeLens: Lens = 'vi_sao';
     let profileInput: UserProfile = {};
     let selectedNodeId: string | null = null;
+    let yeuToView: 'list' | 'graph' = 'list';
 
     $: parsedBirthYear = parseOptionalInt(birthYear);
     $: parsedBirthMonth = parseOptionalInt(birthMonth);
@@ -623,121 +625,238 @@
                 {/if}
             {:else if activeLens === 'yeu_to'}
                 {#if graph}
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="space-y-6">
-                            {#each nodeGroups as group (group.kind)}
-                                <section>
-                                    <h3 class="text-lg font-mono font-bold mb-3 uppercase tracking-wider text-ink-light flex items-center gap-2">
-                                        {group.label}
-                                        <span class="text-xs font-normal">({group.nodes.length})</span>
-                                    </h3>
-                                    <ul class="space-y-2">
-                                        {#each group.nodes as node (node.id)}
-                                            <li>
-                                                <button
-                                                    type="button"
-                                                    class="w-full text-left card-dense focus-ring"
-                                                    class:border-l-hoangdao={selectedNodeId === node.id}
-                                                    class:bg-parchment-dark={selectedNodeId === node.id}
-                                                    onclick={() => (selectedNodeId = selectedNodeId === node.id ? null : node.id)}
-                                                >
-                                                    <div class="flex items-start justify-between gap-2">
-                                                        <span class="text-sm font-medium">{node.summary_vi}</span>
-                                                        {#if node.severity}
-                                                            <span class="text-xs font-mono uppercase {severityClass[node.severity]}">
-                                                                {severityLabel[node.severity]}
-                                                            </span>
-                                                        {/if}
-                                                    </div>
-                                                    {#if node.axis}
-                                                        <span class="text-xs text-ink-light font-mono mt-1">{node.axis.replaceAll('_', ' ')}</span>
-                                                    {/if}
-                                                </button>
-                                            </li>
-                                        {/each}
-                                    </ul>
-                                </section>
-                            {/each}
-                        </div>
-
-                        <div class="lg:sticky lg:top-0 self-start">
-                            {#if selectedNode}
-                                {@const node = selectedNode}
-                                <div class="card-dense border-l-4 border-l-hoangdao space-y-4">
-                                    <div>
-                                        <div class="text-xs font-mono uppercase text-ink-light">{node.id}</div>
-                                        <p class="font-bold text-lg mt-1">{node.summary_vi}</p>
-                                        <div class="flex flex-wrap gap-1 mt-2">
-                                            <span class="badge-cothe">{kindLabel[node.kind]}</span>
-                                            {#if node.axis}
-                                                <span class="badge-cothe">{node.axis.replaceAll('_', ' ')}</span>
-                                            {/if}
-                                            {#if node.severity}
-                                                <span class="badge-evidence">{severityLabel[node.severity]}</span>
-                                            {/if}
-                                            {#each node.tags as tag (tag)}
-                                                <span class="text-xs font-mono text-ink-light">#{tag}</span>
-                                            {/each}
-                                        </div>
-                                    </div>
-
-                                    {#if node.evidence.length}
-                                        <div>
-                                            <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Evidence</h4>
-                                            <ul class="space-y-1">
-                                                {#each node.evidence as env, i (node.id + '-ev-' + i)}
-                                                    <li class="text-xs font-mono text-ink-light">
-                                                        <span class="badge-evidence">{sourceFamilyLabel[env.source_family]}</span>
-                                                        <span class="ml-1">{env.method} · {env.source_id}</span>
-                                                    </li>
-                                                {/each}
-                                            </ul>
-                                        </div>
-                                    {/if}
-
-                                    {#if incomingEdges.length}
-                                        <div>
-                                            <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Incoming ({incomingEdges.length})</h4>
-                                            <ul class="space-y-2">
-                                                {#each incomingEdges as edge, i ('in-' + i)}
-                                                    {@const neighbor = nodesById.get(edge.from_node_id)}
-                                                    <li class="border-l-2 border-ink-border pl-2">
-                                                        <div class="flex items-center gap-2 text-xs font-mono">
-                                                            <span class="{effectClass[edge.effect]}">{effectLabel[edge.effect]}</span>
-                                                            <span class="text-ink-light">· w{edge.weight}</span>
-                                                        </div>
-                                                        <p class="text-sm mt-0.5">{neighbor?.summary_vi ?? edge.from_node_id}</p>
-                                                    </li>
-                                                {/each}
-                                            </ul>
-                                        </div>
-                                    {/if}
-
-                                    {#if outgoingEdges.length}
-                                        <div>
-                                            <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Outgoing ({outgoingEdges.length})</h4>
-                                            <ul class="space-y-2">
-                                                {#each outgoingEdges as edge, i ('out-' + i)}
-                                                    {@const neighbor = nodesById.get(edge.to_node_id)}
-                                                    <li class="border-l-2 border-ink-border pl-2">
-                                                        <div class="flex items-center gap-2 text-xs font-mono">
-                                                            <span class="{effectClass[edge.effect]}">{effectLabel[edge.effect]}</span>
-                                                            <span class="text-ink-light">· w{edge.weight}</span>
-                                                        </div>
-                                                        <p class="text-sm mt-0.5">{neighbor?.summary_vi ?? edge.to_node_id}</p>
-                                                    </li>
-                                                {/each}
-                                            </ul>
-                                        </div>
-                                    {/if}
-                                </div>
-                            {:else}
-                                <div class="card-dense text-sm text-ink-light italic">
-                                    Select a node on the left to inspect its evidence and connections.
-                                </div>
-                            {/if}
-                        </div>
+                    <div class="flex items-center justify-end gap-1 mb-4">
+                        <span class="text-xs font-mono uppercase text-ink-light mr-2">Chế độ xem</span>
+                        <button
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-mono uppercase tracking-wider border-b-2 focus-ring"
+                            class:border-ink={yeuToView === 'list'}
+                            class:text-ink={yeuToView === 'list'}
+                            class:border-transparent={yeuToView !== 'list'}
+                            class:text-ink-light={yeuToView !== 'list'}
+                            onclick={() => (yeuToView = 'list')}
+                            aria-pressed={yeuToView === 'list'}
+                        >
+                            Danh sách
+                        </button>
+                        <button
+                            type="button"
+                            class="px-3 py-1.5 text-xs font-mono uppercase tracking-wider border-b-2 focus-ring"
+                            class:border-ink={yeuToView === 'graph'}
+                            class:text-ink={yeuToView === 'graph'}
+                            class:border-transparent={yeuToView !== 'graph'}
+                            class:text-ink-light={yeuToView !== 'graph'}
+                            onclick={() => (yeuToView = 'graph')}
+                            aria-pressed={yeuToView === 'graph'}
+                        >
+                            Đồ thị
+                        </button>
                     </div>
+                    {#if yeuToView === 'graph'}
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 card-dense p-4">
+                                <GraphView
+                                    nodes={graph.nodes}
+                                    edges={graph.edges}
+                                    {selectedNodeId}
+                                    onSelect={(id) => (selectedNodeId = id)}
+                                />
+                            </div>
+                            <div class="lg:sticky lg:top-0 self-start">
+                                {#if selectedNode}
+                                    {@const node = selectedNode}
+                                    <div class="card-dense border-l-4 border-l-hoangdao space-y-4">
+                                        <div>
+                                            <div class="text-xs font-mono uppercase text-ink-light">{node.id}</div>
+                                            <p class="font-bold text-lg mt-1">{node.summary_vi}</p>
+                                            <div class="flex flex-wrap gap-1 mt-2">
+                                                <span class="badge-cothe">{kindLabel[node.kind]}</span>
+                                                {#if node.axis}
+                                                    <span class="badge-cothe">{node.axis.replaceAll('_', ' ')}</span>
+                                                {/if}
+                                                {#if node.severity}
+                                                    <span class="badge-evidence">{severityLabel[node.severity]}</span>
+                                                {/if}
+                                                {#each node.tags as tag (tag)}
+                                                    <span class="text-xs font-mono text-ink-light">#{tag}</span>
+                                                {/each}
+                                            </div>
+                                        </div>
+
+                                        {#if node.evidence.length}
+                                            <div>
+                                                <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Evidence</h4>
+                                                <ul class="space-y-1">
+                                                    {#each node.evidence as env, i (node.id + '-ev-' + i)}
+                                                        <li class="text-xs font-mono text-ink-light">
+                                                            <span class="badge-evidence">{sourceFamilyLabel[env.source_family]}</span>
+                                                            <span class="ml-1">{env.method} · {env.source_id}</span>
+                                                        </li>
+                                                    {/each}
+                                                </ul>
+                                            </div>
+                                        {/if}
+
+                                        {#if incomingEdges.length}
+                                            <div>
+                                                <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Incoming ({incomingEdges.length})</h4>
+                                                <ul class="space-y-2">
+                                                    {#each incomingEdges as edge, i ('in-' + i)}
+                                                        {@const neighbor = nodesById.get(edge.from_node_id)}
+                                                        <li class="border-l-2 border-ink-border pl-2">
+                                                            <div class="flex items-center gap-2 text-xs font-mono">
+                                                                <span class="{effectClass[edge.effect]}">{effectLabel[edge.effect]}</span>
+                                                                <span class="text-ink-light">· w{edge.weight}</span>
+                                                            </div>
+                                                            <p class="text-sm mt-0.5">{neighbor?.summary_vi ?? edge.from_node_id}</p>
+                                                        </li>
+                                                    {/each}
+                                                </ul>
+                                            </div>
+                                        {/if}
+
+                                        {#if outgoingEdges.length}
+                                            <div>
+                                                <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Outgoing ({outgoingEdges.length})</h4>
+                                                <ul class="space-y-2">
+                                                    {#each outgoingEdges as edge, i ('out-' + i)}
+                                                        {@const neighbor = nodesById.get(edge.to_node_id)}
+                                                        <li class="border-l-2 border-ink-border pl-2">
+                                                            <div class="flex items-center gap-2 text-xs font-mono">
+                                                                <span class="{effectClass[edge.effect]}">{effectLabel[edge.effect]}</span>
+                                                                <span class="text-ink-light">· w{edge.weight}</span>
+                                                            </div>
+                                                            <p class="text-sm mt-0.5">{neighbor?.summary_vi ?? edge.to_node_id}</p>
+                                                        </li>
+                                                    {/each}
+                                                </ul>
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {:else}
+                                    <div class="card-dense text-sm text-ink-light italic">
+                                        Chọn một nút trên đồ thị để xem chi tiết.
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
+                    {:else}
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="space-y-6">
+                                {#each nodeGroups as group (group.kind)}
+                                    <section>
+                                        <h3 class="text-lg font-mono font-bold mb-3 uppercase tracking-wider text-ink-light flex items-center gap-2">
+                                            {group.label}
+                                            <span class="text-xs font-normal">({group.nodes.length})</span>
+                                        </h3>
+                                        <ul class="space-y-2">
+                                            {#each group.nodes as node (node.id)}
+                                                <li>
+                                                    <button
+                                                        type="button"
+                                                        class="w-full text-left card-dense focus-ring"
+                                                        class:border-l-hoangdao={selectedNodeId === node.id}
+                                                        class:bg-parchment-dark={selectedNodeId === node.id}
+                                                        onclick={() => (selectedNodeId = selectedNodeId === node.id ? null : node.id)}
+                                                    >
+                                                        <div class="flex items-start justify-between gap-2">
+                                                            <span class="text-sm font-medium">{node.summary_vi}</span>
+                                                            {#if node.severity}
+                                                                <span class="text-xs font-mono uppercase {severityClass[node.severity]}">
+                                                                    {severityLabel[node.severity]}
+                                                                </span>
+                                                            {/if}
+                                                        </div>
+                                                        {#if node.axis}
+                                                            <span class="text-xs text-ink-light font-mono mt-1">{node.axis.replaceAll('_', ' ')}</span>
+                                                        {/if}
+                                                    </button>
+                                                </li>
+                                            {/each}
+                                        </ul>
+                                    </section>
+                                {/each}
+                            </div>
+
+                            <div class="lg:sticky lg:top-0 self-start">
+                                {#if selectedNode}
+                                    {@const node = selectedNode}
+                                    <div class="card-dense border-l-4 border-l-hoangdao space-y-4">
+                                        <div>
+                                            <div class="text-xs font-mono uppercase text-ink-light">{node.id}</div>
+                                            <p class="font-bold text-lg mt-1">{node.summary_vi}</p>
+                                            <div class="flex flex-wrap gap-1 mt-2">
+                                                <span class="badge-cothe">{kindLabel[node.kind]}</span>
+                                                {#if node.axis}
+                                                    <span class="badge-cothe">{node.axis.replaceAll('_', ' ')}</span>
+                                                {/if}
+                                                {#if node.severity}
+                                                    <span class="badge-evidence">{severityLabel[node.severity]}</span>
+                                                {/if}
+                                                {#each node.tags as tag (tag)}
+                                                    <span class="text-xs font-mono text-ink-light">#{tag}</span>
+                                                {/each}
+                                            </div>
+                                        </div>
+
+                                        {#if node.evidence.length}
+                                            <div>
+                                                <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Evidence</h4>
+                                                <ul class="space-y-1">
+                                                    {#each node.evidence as env, i (node.id + '-ev-' + i)}
+                                                        <li class="text-xs font-mono text-ink-light">
+                                                            <span class="badge-evidence">{sourceFamilyLabel[env.source_family]}</span>
+                                                            <span class="ml-1">{env.method} · {env.source_id}</span>
+                                                        </li>
+                                                    {/each}
+                                                </ul>
+                                            </div>
+                                        {/if}
+
+                                        {#if incomingEdges.length}
+                                            <div>
+                                                <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Incoming ({incomingEdges.length})</h4>
+                                                <ul class="space-y-2">
+                                                    {#each incomingEdges as edge, i ('in-' + i)}
+                                                        {@const neighbor = nodesById.get(edge.from_node_id)}
+                                                        <li class="border-l-2 border-ink-border pl-2">
+                                                            <div class="flex items-center gap-2 text-xs font-mono">
+                                                                <span class="{effectClass[edge.effect]}">{effectLabel[edge.effect]}</span>
+                                                                <span class="text-ink-light">· w{edge.weight}</span>
+                                                            </div>
+                                                            <p class="text-sm mt-0.5">{neighbor?.summary_vi ?? edge.from_node_id}</p>
+                                                        </li>
+                                                    {/each}
+                                                </ul>
+                                            </div>
+                                        {/if}
+
+                                        {#if outgoingEdges.length}
+                                            <div>
+                                                <h4 class="text-xs font-mono uppercase text-ink-light mb-2">Outgoing ({outgoingEdges.length})</h4>
+                                                <ul class="space-y-2">
+                                                    {#each outgoingEdges as edge, i ('out-' + i)}
+                                                        {@const neighbor = nodesById.get(edge.to_node_id)}
+                                                        <li class="border-l-2 border-ink-border pl-2">
+                                                            <div class="flex items-center gap-2 text-xs font-mono">
+                                                                <span class="{effectClass[edge.effect]}">{effectLabel[edge.effect]}</span>
+                                                                <span class="text-ink-light">· w{edge.weight}</span>
+                                                            </div>
+                                                            <p class="text-sm mt-0.5">{neighbor?.summary_vi ?? edge.to_node_id}</p>
+                                                        </li>
+                                                    {/each}
+                                                </ul>
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {:else}
+                                    <div class="card-dense text-sm text-ink-light italic">
+                                        Select a node on the left to inspect its evidence and connections.
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
+                    {/if}
                 {:else}
                     <div class="card-dense text-sm text-ink-light italic">
                         No reasoning graph for this day. Enter a birth date to compute the personal reasoning bundle.
