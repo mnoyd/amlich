@@ -1345,6 +1345,13 @@ pub struct HourSelectionAnalysisDto {
     /// independent verdict off the hour ranking. Additive `Option<T>`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub canonical_assessment: Option<PersonalDayAssessmentDto>,
+    /// Structured day-verdict warning surfaced when the threaded
+    /// canonical assessment classifies the day as `Avoid` (amlich-rv13.5).
+    /// `None` when no assessment was threaded through or the day verdict
+    /// is anything other than `Avoid`. Additive `Option<T>` — round-trip
+    /// stays byte-equal for callers that never thread an assessment.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub warning_context: Option<amlich_core::HourRankingWarning>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1368,6 +1375,12 @@ pub struct HourSelectionAdvisoryDto {
     /// single-verdict contract.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub canonical_assessment: Option<PersonalDayAssessmentDto>,
+    /// Structured day-verdict warning surfaced when the threaded
+    /// canonical assessment classifies the day as `Avoid` (amlich-rv13.5).
+    /// See [`HourSelectionAnalysisDto::warning_context`] for the full
+    /// contract.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub warning_context: Option<amlich_core::HourRankingWarning>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

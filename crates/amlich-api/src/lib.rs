@@ -1582,6 +1582,7 @@ fn get_hour_selection_reasoning(
     birth_month: Option<i32>,
     birth_day: Option<i32>,
     gender: Option<&str>,
+    canonical_assessment: Option<&amlich_core::assessment::PersonalDayAssessment>,
 ) -> Result<amlich_core::HourSelectionReasoning, String> {
     let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
     amlich_core::build_hour_selection_reasoning(
@@ -1590,6 +1591,7 @@ fn get_hour_selection_reasoning(
         query.year,
         amlich_core::ConsultationIntent::Travel,
         birth.as_ref(),
+        canonical_assessment,
     )
 }
 
@@ -1640,8 +1642,21 @@ pub fn get_hour_selection_analysis(
     gender: Option<&str>,
 ) -> Result<HourSelectionAnalysisDto, String> {
     let info = get_hour_selection_day_info(query)?;
-    let reasoning =
-        get_hour_selection_reasoning(query, birth_year, birth_month, birth_day, gender)?;
+    let canonical_assessment_value = build_hour_selection_canonical_assessment(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+    );
+    let reasoning = get_hour_selection_reasoning(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+        canonical_assessment_value.as_ref(),
+    )?;
     let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
     let bad_hours = info
         .gio_hoang_dao
@@ -1650,15 +1665,10 @@ pub fn get_hour_selection_analysis(
         .filter(|hour| !hour.is_good)
         .cloned()
         .collect();
-    let canonical_assessment = build_hour_selection_canonical_assessment(
-        query,
-        birth_year,
-        birth_month,
-        birth_day,
-        gender,
-    )
-    .as_ref()
-    .map(PersonalDayAssessmentDto::from);
+    let canonical_assessment = canonical_assessment_value
+        .as_ref()
+        .map(PersonalDayAssessmentDto::from);
+    let warning_context = reasoning.warning_context.clone();
     Ok(HourSelectionAnalysisDto {
         intent: reasoning.intent.event_kind().to_string(),
         summary_vi: reasoning.summary_vi.clone(),
@@ -1677,6 +1687,7 @@ pub fn get_hour_selection_analysis(
             }),
         canonical: Some(reasoning.export(birth.as_ref())),
         canonical_assessment,
+        warning_context,
     })
 }
 
@@ -1702,18 +1713,26 @@ pub fn get_hour_selection_advisory(
     birth_day: Option<i32>,
     gender: Option<&str>,
 ) -> Result<HourSelectionAdvisoryDto, String> {
-    let reasoning =
-        get_hour_selection_reasoning(query, birth_year, birth_month, birth_day, gender)?;
-    let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
-    let canonical_assessment = build_hour_selection_canonical_assessment(
+    let canonical_assessment_value = build_hour_selection_canonical_assessment(
         query,
         birth_year,
         birth_month,
         birth_day,
         gender,
-    )
-    .as_ref()
-    .map(PersonalDayAssessmentDto::from);
+    );
+    let reasoning = get_hour_selection_reasoning(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+        canonical_assessment_value.as_ref(),
+    )?;
+    let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
+    let canonical_assessment = canonical_assessment_value
+        .as_ref()
+        .map(PersonalDayAssessmentDto::from);
+    let warning_context = reasoning.warning_context.clone();
     Ok(HourSelectionAdvisoryDto {
         intent: reasoning.intent.event_kind().to_string(),
         summary_vi: reasoning.summary_vi.clone(),
@@ -1732,6 +1751,7 @@ pub fn get_hour_selection_advisory(
             .collect(),
         canonical: Some(reasoning.export(birth.as_ref())),
         canonical_assessment,
+        warning_context,
     })
 }
 
@@ -1747,15 +1767,14 @@ pub fn get_hour_selection_report(
     // analysis, metrics, and advisory DTOs from the cache. The previous
     // implementation rebuilt the snapshot 3x and the assessment 2x along
     // the path through `get_hour_selection_chart/analysis/metrics/advisory`.
+    //
+    // amlich-rv13.5: thread the canonical assessment into the reasoning
+    // build so Avoid days carry the warning context on every ranked hour
+    // and the structured `warning_context` field. Build the assessment
+    // FIRST so the reasoning path consumes the same instance (no
+    // double-build on the request path).
     let snapshot = build_personal_day_snapshot(query, amlich_core::ConsultationIntent::Travel)?;
     let info = DayInfoDto::from(&snapshot);
-    let selection_reasoning = get_hour_selection_reasoning_from_snapshot(
-        query,
-        birth_year,
-        birth_month,
-        birth_day,
-        gender,
-    )?;
     let canonical_assessment = build_personal_canonical_assessment(
         build_personal_birth_profile(
             query,
@@ -1767,6 +1786,14 @@ pub fn get_hour_selection_report(
         snapshot.clone(),
         amlich_core::ConsultationIntent::Travel,
     );
+    let selection_reasoning = get_hour_selection_reasoning_from_snapshot(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        gender,
+        Some(&canonical_assessment),
+    )?;
 
     Ok(HourSelectionReportDto {
         chart: build_hour_selection_chart_dto(query, &info),
@@ -1801,6 +1828,7 @@ fn get_hour_selection_reasoning_from_snapshot(
     birth_month: Option<i32>,
     birth_day: Option<i32>,
     gender: Option<&str>,
+    canonical_assessment: Option<&amlich_core::assessment::PersonalDayAssessment>,
 ) -> Result<amlich_core::HourSelectionReasoning, String> {
     let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
     amlich_core::build_hour_selection_reasoning(
@@ -1809,6 +1837,7 @@ fn get_hour_selection_reasoning_from_snapshot(
         query.year,
         amlich_core::ConsultationIntent::Travel,
         birth.as_ref(),
+        canonical_assessment,
     )
 }
 
@@ -1854,6 +1883,7 @@ fn build_hour_selection_analysis_dto(
         .filter(|hour| !hour.is_good)
         .cloned()
         .collect();
+    let warning_context = reasoning.warning_context.clone();
     HourSelectionAnalysisDto {
         intent: reasoning.intent.event_kind().to_string(),
         summary_vi: reasoning.summary_vi.clone(),
@@ -1872,6 +1902,7 @@ fn build_hour_selection_analysis_dto(
             }),
         canonical: Some(reasoning.export(birth.as_ref())),
         canonical_assessment: Some(PersonalDayAssessmentDto::from(canonical_assessment)),
+        warning_context,
     }
 }
 
@@ -1884,6 +1915,7 @@ fn build_hour_selection_advisory_dto(
     gender: Option<&str>,
 ) -> HourSelectionAdvisoryDto {
     let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
+    let warning_context = reasoning.warning_context.clone();
     HourSelectionAdvisoryDto {
         intent: reasoning.intent.event_kind().to_string(),
         summary_vi: reasoning.summary_vi.clone(),
@@ -1902,6 +1934,7 @@ fn build_hour_selection_advisory_dto(
             .collect(),
         canonical: Some(reasoning.export(birth.as_ref())),
         canonical_assessment: Some(PersonalDayAssessmentDto::from(canonical_assessment)),
+        warning_context,
     }
 }
 

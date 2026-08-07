@@ -5,12 +5,13 @@ use crate::{
         synthesize_daily_recommendations_with_layers, ActivityId, DailyRecommendations,
         RecommendationPackLookupError, RecommendationSynthesisContext,
     },
+    assessment::PersonalDayAssessment,
     canchi::get_year_canchi,
     julian::jd_from_date,
     lunar::{convert_solar_to_lunar, LunarDate},
     tietkhi::get_tiet_khi,
     types::{CanChi, VIETNAM_TIMEZONE},
-    CanChiSet, DayContext, HourRankingPolicy, RankedHourV1, SolarDate,
+    CanChiSet, DayContext, HourRankingPolicy, HourRankingWarning, RankedHourV1, SolarDate,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -116,6 +117,14 @@ pub struct HourSelectionReasoningExport {
     pub ranked_hours: Vec<RankedHourCandidate>,
     pub auspicious_count: usize,
     pub total_hours: usize,
+    /// Structured warning context emitted by the v1 hour-ranking policy
+    /// when the supplied canonical [`PersonalDayAssessment`] classifies
+    /// the day as `Avoid`. `None` when no assessment was threaded
+    /// through, or when the day verdict is anything other than `Avoid`.
+    /// Additive `Option<T>` (amlich-rv13.5) — keeps v1.6 → v1.7 round-trip
+    /// byte-equal for callers that never thread a day assessment.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub warning_context: Option<HourRankingWarning>,
     #[serde(default)]
     pub evidence: Vec<HourSelectionEvidence>,
 }
@@ -147,6 +156,14 @@ impl HourSelectionReasoningExport {
                 note: None,
             });
         }
+        if reasoning.warning_context.is_some() {
+            evidence.push(HourSelectionEvidence {
+                source_family: "amlich_core".to_string(),
+                source_id: "hour_ranking_warning".to_string(),
+                method: "policy_rank_warning_context".to_string(),
+                note: Some("day verdict Avoid — hour ranking carries warning context".to_string()),
+            });
+        }
 
         HourSelectionReasoningExport {
             intent: reasoning.intent.event_kind().to_string(),
@@ -157,6 +174,7 @@ impl HourSelectionReasoningExport {
             ranked_hours: reasoning.ranked_hours.clone(),
             auspicious_count,
             total_hours,
+            warning_context: reasoning.warning_context.clone(),
             evidence,
         }
     }
@@ -169,6 +187,16 @@ pub struct HourSelectionReasoning {
     pub summary_en: String,
     pub top_recommendation: Option<RankedHourCandidate>,
     pub ranked_hours: Vec<RankedHourCandidate>,
+    /// Structured warning context attached by the v1 hour-ranking policy
+    /// when a threaded [`PersonalDayAssessment`] classifies the day as
+    /// `Avoid`. Carries the day bucket and Vietnamese message verbatim
+    /// from [`HourRankingWarning`]; consumers should surface it instead
+    /// of presenting the ranked hours as a recommendation that overrides
+    /// the day verdict. `None` when no assessment was threaded through,
+    /// or when the day verdict is anything other than `Avoid`. Additive
+    /// field (amlich-rv13.5).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub warning_context: Option<HourRankingWarning>,
 }
 
 impl HourSelectionReasoning {
@@ -245,6 +273,18 @@ pub fn synthesize_advisory_recommendations(
 /// legacy [`RankedHourCandidate`] integer `0..=100` score shape so
 /// existing consumers keep working through the migration window.
 ///
+/// **Day-verdict warning threading (amlich-rv13.5).** Pass
+/// `day_assessment = Some(&assessment)` when a canonical
+/// [`PersonalDayAssessment`] is available. When the assessment's day
+/// bucket is `Avoid`, the v1 policy attaches a [`HourRankingWarning`] to
+/// every ranked hour; this wrapper both embeds the warning into each
+/// candidate's Vietnamese `note_vi` (prefixed with `[Cảnh báo]`) and
+/// surfaces it as the structured `warning_context` field on the
+/// [`HourSelectionReasoning`] built by [`build_hour_selection_reasoning`].
+/// When `day_assessment` is `None` or the day verdict is anything other
+/// than `Avoid`, the warning is omitted — the ranking stays a pure
+/// rank-only projection that never restates the day verdict.
+///
 /// The numeric `score` on each [`RankedHourCandidate`] is a deterministic
 /// projection of the v1 `rank_score` (×100, rounded, clamped to `0..=100`)
 /// and is **not** a day-verdict score — it is not comparable to the
@@ -266,15 +306,32 @@ pub fn rank_hours_for_intent(
     year: i32,
     intent: ConsultationIntent,
     birth: Option<&BirthInput>,
+    day_assessment: Option<&PersonalDayAssessment>,
 ) -> Result<Vec<RankedHourCandidate>, String> {
-    let snapshot = crate::calculate_day_snapshot(day, month, year);
-    let policy = HourRankingPolicy::baseline_v1();
-    let ranked_v1 = policy.rank(&snapshot, intent, birth, None)?;
+    let ranked_v1 = rank_hours_v1(day, month, year, intent, birth, day_assessment)?;
 
     Ok(ranked_v1
         .iter()
         .map(project_ranked_hour_v1_to_legacy_candidate)
         .collect())
+}
+
+/// Shared seam that runs the v1 hour-ranking policy once and returns the
+/// canonical [`RankedHourV1`] list. Both [`rank_hours_for_intent`] and
+/// [`build_hour_selection_reasoning`] consume this so the ranking is not
+/// recomputed when both the legacy projection and the structured warning
+/// are needed in the same call path (amlich-rv13.5).
+fn rank_hours_v1(
+    day: i32,
+    month: i32,
+    year: i32,
+    intent: ConsultationIntent,
+    birth: Option<&BirthInput>,
+    day_assessment: Option<&PersonalDayAssessment>,
+) -> Result<Vec<RankedHourV1>, String> {
+    let snapshot = crate::calculate_day_snapshot(day, month, year);
+    let policy = HourRankingPolicy::baseline_v1();
+    policy.rank(&snapshot, intent, birth, day_assessment)
 }
 
 /// Project a canonical v1 [`crate::RankedHourV1`] output back
@@ -348,35 +405,60 @@ pub fn build_hour_selection_reasoning(
     year: i32,
     intent: ConsultationIntent,
     birth: Option<&BirthInput>,
+    day_assessment: Option<&PersonalDayAssessment>,
 ) -> Result<HourSelectionReasoning, String> {
-    let ranked_hours = rank_hours_for_intent(day, month, year, intent, birth)?;
+    let ranked_v1 = rank_hours_v1(day, month, year, intent, birth, day_assessment)?;
+    let warning_context = ranked_v1
+        .iter()
+        .find_map(|hour| hour.warning_context.clone());
+    let ranked_hours: Vec<RankedHourCandidate> = ranked_v1
+        .iter()
+        .map(project_ranked_hour_v1_to_legacy_candidate)
+        .collect();
     let top_recommendation = ranked_hours.first().cloned();
     let auspicious_count = ranked_hours
         .iter()
         .filter(|hour| hour.is_auspicious)
         .count();
     let summary_vi = match top_recommendation.as_ref() {
-        Some(top) => format!(
-            "Ưu tiên giờ {} ({}) cho {} vì đứng đầu xếp hạng với {} giờ hoàng đạo hỗ trợ.",
-            top.chi_name,
-            top.time_range,
-            intent.event_kind(),
-            auspicious_count
-        ),
+        Some(top) => {
+            let base = format!(
+                "Ưu tiên giờ {} ({}) cho {} vì đứng đầu xếp hạng với {} giờ hoàng đạo hỗ trợ.",
+                top.chi_name,
+                top.time_range,
+                intent.event_kind(),
+                auspicious_count
+            );
+            if let Some(warning) = &warning_context {
+                format!("{base} {}", warning.message_vi)
+            } else {
+                base
+            }
+        }
         None => format!(
             "Không có giờ phù hợp để xếp hạng cho {}.",
             intent.event_kind()
         ),
     };
     let summary_en = match top_recommendation.as_ref() {
-        Some(top) => format!(
-            "Prefer the {} hour ({}) for {} because it leads the ranking with {} auspicious windows supporting the day.",
-            top.chi_name,
-            top.time_range,
-            intent.event_kind(),
-            auspicious_count
+        Some(top) => {
+            let base = format!(
+                "Prefer the {} hour ({}) for {} because it leads the ranking with {} auspicious windows supporting the day.",
+                top.chi_name,
+                top.time_range,
+                intent.event_kind(),
+                auspicious_count
+            );
+            if let Some(warning) = &warning_context {
+                format!("{base} {}", warning.message_vi)
+            } else {
+                base
+            }
+        }
+        None => format!(
+            "No ranked hour candidates are available for {}.",
+            intent.event_kind()
         ),
-        None => format!("No ranked hour candidates are available for {}.", intent.event_kind()),
     };
 
     Ok(HourSelectionReasoning {
@@ -385,6 +467,7 @@ pub fn build_hour_selection_reasoning(
         summary_en,
         top_recommendation,
         ranked_hours,
+        warning_context,
     })
 }
 
@@ -435,7 +518,7 @@ mod tests {
 
     #[test]
     fn rank_hours_prioritizes_auspicious_slots() {
-        let ranked = rank_hours_for_intent(10, 2, 2024, ConsultationIntent::Travel, None)
+        let ranked = rank_hours_for_intent(10, 2, 2024, ConsultationIntent::Travel, None, None)
             .expect("ranked hours");
 
         assert!(!ranked.is_empty());
@@ -449,13 +532,19 @@ mod tests {
     // 0..=100 integer shape. These tests pin the broad-compat contract:
     // every legacy caller keeps working without knowing about the v1
     // policy, and the wrapper preserves the v1 policy's order.
+    //
+    // amlich-rv13.5 added the `day_assessment` parameter for threaded
+    // warning context; the `wrapper_for` helper passes `None` by default
+    // so the broad-compat tests stay isolated from the new threading
+    // behavior. Tests dedicated to the threaded warning live further
+    // down in this module.
 
     fn wrapper_for(
         date: (i32, i32, i32),
         intent: ConsultationIntent,
         birth: Option<&BirthInput>,
     ) -> Vec<RankedHourCandidate> {
-        rank_hours_for_intent(date.0, date.1, date.2, intent, birth).expect("ranked hours")
+        rank_hours_for_intent(date.0, date.1, date.2, intent, birth, None).expect("ranked hours")
     }
 
     #[test]
@@ -741,5 +830,293 @@ mod tests {
                 );
             }
         }
+    }
+
+    // -------------------------------------------------------------------
+    // amlich-rv13.5 — day-verdict warning threading tests.
+    //
+    // The wrapper must thread an optional canonical PersonalDayAssessment
+    // into the v1 hour-ranking policy. When the assessment's day bucket
+    // is `Avoid`, every ranked hour must carry a Vietnamese `[Cảnh báo]`
+    // clause in `note_vi` and the reasoning must surface the structured
+    // warning. When the assessment is absent or the bucket is anything
+    // other than `Avoid`, the warning is omitted — the ranking stays a
+    // pure rank-only projection.
+    // -------------------------------------------------------------------
+
+    fn forced_avoid_assessment(
+        snapshot: &crate::DaySnapshot,
+        intent: ConsultationIntent,
+    ) -> crate::assessment::PersonalDayAssessment {
+        use crate::almanac::tu_menh::Gender;
+        use crate::assessment::{PersonalDayAssessmentBuilder, PersonalDayDecision};
+        use crate::birth::BirthProfile;
+        let profile = BirthProfile {
+            day: 1,
+            month: 1,
+            year: 1990,
+            time: None,
+            timezone: VIETNAM_TIMEZONE,
+            longitude: None,
+            use_solar_time: false,
+            gender: Some(Gender::Male),
+            location_name: None,
+        };
+        let mut assessment =
+            PersonalDayAssessmentBuilder::new(snapshot.clone(), profile, intent).build();
+        assessment.decision = PersonalDayDecision {
+            bucket: crate::reasoning::RecommendationBucket::Avoid,
+            ..assessment.decision
+        };
+        assessment
+    }
+
+    fn forced_favorable_assessment(
+        snapshot: &crate::DaySnapshot,
+        intent: ConsultationIntent,
+    ) -> crate::assessment::PersonalDayAssessment {
+        use crate::almanac::tu_menh::Gender;
+        use crate::assessment::{PersonalDayAssessmentBuilder, PersonalDayDecision};
+        use crate::birth::BirthProfile;
+        let profile = BirthProfile {
+            day: 1,
+            month: 1,
+            year: 1990,
+            time: None,
+            timezone: VIETNAM_TIMEZONE,
+            longitude: None,
+            use_solar_time: false,
+            gender: Some(Gender::Male),
+            location_name: None,
+        };
+        let mut assessment =
+            PersonalDayAssessmentBuilder::new(snapshot.clone(), profile, intent).build();
+        assessment.decision = PersonalDayDecision {
+            bucket: crate::reasoning::RecommendationBucket::Favorable,
+            ..assessment.decision
+        };
+        assessment
+    }
+
+    #[test]
+    fn wrapper_with_avoid_day_assessment_attaches_warning_to_note_vi() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let assessment = forced_avoid_assessment(&snapshot, ConsultationIntent::Travel);
+        let ranked = rank_hours_for_intent(
+            10,
+            2,
+            2024,
+            ConsultationIntent::Travel,
+            None,
+            Some(&assessment),
+        )
+        .expect("ranked hours");
+        assert_eq!(ranked.len(), 12);
+        for hour in &ranked {
+            assert!(
+                hour.note_vi.contains("[Cảnh báo]"),
+                "Avoid day ranking must carry [Cảnh báo] in note_vi for hour {}; got {:?}",
+                hour.chi_name,
+                hour.note_vi
+            );
+            // The warning must surface the v1 policy's exact message text.
+            assert!(
+                hour.note_vi.contains("không thay đổi đánh giá ngày"),
+                "Avoid day warning must surface the v1 policy's clarification; got {:?}",
+                hour.note_vi
+            );
+        }
+    }
+
+    #[test]
+    fn wrapper_without_day_assessment_omits_warning_from_note_vi() {
+        let ranked = rank_hours_for_intent(10, 2, 2024, ConsultationIntent::Travel, None, None)
+            .expect("ranked hours");
+        for hour in &ranked {
+            assert!(
+                !hour.note_vi.contains("[Cảnh báo]"),
+                "no assessment threaded → note_vi must not carry [Cảnh báo]; got {:?}",
+                hour.note_vi
+            );
+        }
+    }
+
+    #[test]
+    fn wrapper_with_favorable_day_assessment_omits_warning_from_note_vi() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let assessment = forced_favorable_assessment(&snapshot, ConsultationIntent::Travel);
+        let ranked = rank_hours_for_intent(
+            10,
+            2,
+            2024,
+            ConsultationIntent::Travel,
+            None,
+            Some(&assessment),
+        )
+        .expect("ranked hours");
+        for hour in &ranked {
+            assert!(
+                !hour.note_vi.contains("[Cảnh báo]"),
+                "Favorable (Nên) day assessment must NOT attach warning; got {:?}",
+                hour.note_vi
+            );
+        }
+    }
+
+    #[test]
+    fn wrapper_with_avoid_day_assessment_ranking_is_unchanged_from_no_assessment() {
+        // Acceptance criterion: Avoid day assessments do not suppress
+        // hour ranking. Order and score identity must be byte-equal to
+        // the no-assessment ranking.
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let assessment = forced_avoid_assessment(&snapshot, ConsultationIntent::Travel);
+        let no_assessment =
+            rank_hours_for_intent(10, 2, 2024, ConsultationIntent::Travel, None, None)
+                .expect("no assessment");
+        let with_assessment = rank_hours_for_intent(
+            10,
+            2,
+            2024,
+            ConsultationIntent::Travel,
+            None,
+            Some(&assessment),
+        )
+        .expect("with assessment");
+        // Score and order must match; only note_vi is allowed to differ
+        // (the warning clause).
+        assert_eq!(no_assessment.len(), with_assessment.len());
+        for (lhs, rhs) in no_assessment.iter().zip(with_assessment.iter()) {
+            assert_eq!(lhs.chi_name, rhs.chi_name);
+            assert_eq!(lhs.time_range, rhs.time_range);
+            assert_eq!(lhs.is_auspicious, rhs.is_auspicious);
+            assert_eq!(
+                lhs.score, rhs.score,
+                "Avoid day must not change rank score for {}",
+                lhs.chi_name
+            );
+            // note_vi must differ — the Avoid path adds the warning clause.
+            assert_ne!(lhs.note_vi, rhs.note_vi);
+        }
+    }
+
+    #[test]
+    fn build_hour_selection_reasoning_with_avoid_day_carries_structured_warning() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let assessment = forced_avoid_assessment(&snapshot, ConsultationIntent::Travel);
+        let reasoning = build_hour_selection_reasoning(
+            10,
+            2,
+            2024,
+            ConsultationIntent::Travel,
+            None,
+            Some(&assessment),
+        )
+        .expect("reasoning");
+        let warning = reasoning
+            .warning_context
+            .as_ref()
+            .expect("Avoid day reasoning must carry structured warning_context");
+        assert_eq!(
+            warning.day_bucket,
+            crate::reasoning::RecommendationBucket::Avoid
+        );
+        assert!(!warning.message_vi.is_empty());
+        // The warning text must surface in summary_vi too so non-DTO
+        // consumers see the clarification without parsing note_vi.
+        assert!(
+            reasoning
+                .summary_vi
+                .contains("không thay đổi đánh giá ngày"),
+            "summary_vi must surface the v1 Avoid warning text; got {:?}",
+            reasoning.summary_vi
+        );
+        // And every ranked hour's note_vi must still carry the legacy
+        // [Cảnh báo] prefix.
+        for hour in &reasoning.ranked_hours {
+            assert!(hour.note_vi.contains("[Cảnh báo]"));
+        }
+    }
+
+    #[test]
+    fn build_hour_selection_reasoning_without_day_assessment_omits_warning() {
+        let reasoning =
+            build_hour_selection_reasoning(10, 2, 2024, ConsultationIntent::Travel, None, None)
+                .expect("reasoning");
+        assert!(
+            reasoning.warning_context.is_none(),
+            "no assessment → warning_context must be None"
+        );
+    }
+
+    #[test]
+    fn build_hour_selection_reasoning_with_favorable_day_omits_warning() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let assessment = forced_favorable_assessment(&snapshot, ConsultationIntent::Travel);
+        let reasoning = build_hour_selection_reasoning(
+            10,
+            2,
+            2024,
+            ConsultationIntent::Travel,
+            None,
+            Some(&assessment),
+        )
+        .expect("reasoning");
+        assert!(
+            reasoning.warning_context.is_none(),
+            "Favorable day → warning_context must be None"
+        );
+    }
+
+    #[test]
+    fn hour_selection_export_surfaces_warning_context_structurally() {
+        let snapshot = crate::calculate_day_snapshot(10, 2, 2024);
+        let assessment = forced_avoid_assessment(&snapshot, ConsultationIntent::Travel);
+        let reasoning = build_hour_selection_reasoning(
+            10,
+            2,
+            2024,
+            ConsultationIntent::Travel,
+            None,
+            Some(&assessment),
+        )
+        .expect("reasoning");
+        let export = reasoning.export(None);
+        let warning = export
+            .warning_context
+            .as_ref()
+            .expect("export must surface warning_context for Avoid days");
+        assert_eq!(
+            warning.day_bucket,
+            crate::reasoning::RecommendationBucket::Avoid
+        );
+        // The export's evidence list must include the new warning entry.
+        assert!(
+            export
+                .evidence
+                .iter()
+                .any(|e| e.source_id == "hour_ranking_warning"),
+            "export evidence must include the hour_ranking_warning entry; got {:?}",
+            export.evidence
+        );
+        // Serializing the export to JSON must include warning_context.
+        let json = serde_json::to_string(&export).expect("serialize");
+        assert!(
+            json.contains("\"warning_context\""),
+            "Avoid export JSON must include warning_context; got {json}"
+        );
+    }
+
+    #[test]
+    fn hour_selection_export_json_omits_warning_context_when_absent() {
+        let reasoning =
+            build_hour_selection_reasoning(10, 2, 2024, ConsultationIntent::Travel, None, None)
+                .expect("reasoning");
+        let export = reasoning.export(None);
+        assert!(export.warning_context.is_none());
+        let json = serde_json::to_string(&export).expect("serialize");
+        assert!(
+            !json.contains("\"warning_context\""),
+            "absent warning_context must NOT appear in JSON; got {json}"
+        );
     }
 }
