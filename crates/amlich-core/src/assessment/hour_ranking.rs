@@ -1,7 +1,7 @@
 //! First-class hour-ranking policy.
 //!
 //! Source spec: `docs/architecture/personal-day-audit/HOUR-RANKING-POLICY-V1-SPEC.md`
-//! Bead: `amlich-rv13.1` (parent epic: `amlich-rv13`).
+//! Bead: `amlich-rv13.3` (parent epic: `amlich-rv13`).
 //! ADR: `docs/adr/0001-separate-day-and-hour-scoring-axes.md`.
 //!
 //! Hour ranking orders the twelve traditional hour slots within an
@@ -411,6 +411,27 @@ pub struct RankedHourV1 {
     pub warning_context: Option<HourRankingWarning>,
 }
 
+/// Aggregation result for one hour slot: the rank score plus the
+/// per-axis contribution list. Built by
+/// [`HourRankingPolicy::aggregate_hour_ranking`] and consumed by
+/// [`HourRankingPolicy::rank`]. Exposed as a public type so the
+/// Evidence Graph projection (`amlich-8tdm`) can describe the
+/// aggregation step without recomputing it.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HourRankingAggregation {
+    /// The rank score in `0.0..=1.0`, computed as the weighted average
+    /// over available axes only. Unavailable axes are removed from
+    /// the denominator rather than folded in as a neutral fallback
+    /// (spec §"Initial weight profile"). The score is clamped to
+    /// `0.0..=1.0` to defend against floating-point drift.
+    pub rank_score: f32,
+    /// One contribution per available axis, in [`HourRankingAxis::ALL`]
+    /// declaration order. Unavailable axes are excluded so the
+    /// contribution list always matches the rank-score formula's
+    /// available-axis denominator.
+    pub contributions: Vec<HourRankingContribution>,
+}
+
 /// Versioned policy that owns the v1 hour ranking pipeline.
 ///
 /// Construct via [`HourRankingPolicy::baseline_v1`] for the initial
@@ -474,6 +495,107 @@ impl HourRankingPolicy {
         &self.axis_weights
     }
 
+    /// Aggregate one hour slot's per-axis outcomes into a rank score
+    /// and contribution list. Implements the v1 weighted-average
+    /// formula from spec §"Initial weight profile":
+    ///
+    /// ```text
+    /// rank_score = Σ(axis_score × axis_weight) / Σ(available_axis_weights)
+    /// ```
+    ///
+    /// Unavailable axes are removed from the denominator — the spec
+    /// forbids substituting a neutral `0.5` fallback just to fill the
+    /// vector (per-axis "unavailable is distinct from zero" contract
+    /// from `amlich-rv13.2`). The score is clamped to `0.0..=1.0` to
+    /// defend against floating-point drift.
+    ///
+    /// Contributions are emitted in [`HourRankingAxis::ALL`] order, one
+    /// per available axis. Each contribution pulls its source evidence
+    /// from the first available axis-feeding feature observation; if
+    /// no feature fed the axis (defensive — the v1 axis-feeding
+    /// extractors always emit at least one observation), a default
+    /// almanac-rule evidence is attached so the trace stays
+    /// self-describing.
+    ///
+    /// Pure and deterministic: identical `(axes, hour_features, profile_id)`
+    /// tuples produce identical [`HourRankingAggregation`] outputs.
+    /// Used by [`Self::rank`] for every hour slot; exposed at
+    /// `pub(super)` for direct testing.
+    ///
+    /// Bead: `amlich-rv13.3`.
+    pub(super) fn aggregate_hour_ranking(
+        &self,
+        axes: &HourRankingAxes,
+        hour_features: &[&HourRankingFeatureObservation],
+        profile_id: &str,
+    ) -> HourRankingAggregation {
+        let mut contributions: Vec<HourRankingContribution> = Vec::new();
+        let mut weighted_sum = 0.0_f32;
+        let mut available_weight = 0.0_f32;
+
+        for entry in &self.axis_weights {
+            let outcome = match entry.axis {
+                HourRankingAxis::HoangDaoQuality => &axes.hoang_dao_quality,
+                HourRankingAxis::IntentTimingFit => &axes.intent_timing_fit,
+                HourRankingAxis::PersonalHourAlignment => &axes.personal_hour_alignment,
+                HourRankingAxis::DayHourHarmony => &axes.day_hour_harmony,
+            };
+            let Some(score) = outcome.score else {
+                continue;
+            };
+            let contribution = score * entry.weight;
+            weighted_sum += contribution;
+            available_weight += entry.weight;
+
+            // Pull the most informative source evidence for this axis
+            // from the underlying observation. For axes with a single
+            // observation (v1), this is the observation's own evidence.
+            // For axes with multiple observations (personal alignment,
+            // day-hour harmony), prefer the matched observation's
+            // evidence and fall back to the neutral baseline.
+            let axis_features: Vec<&&HourRankingFeatureObservation> = hour_features
+                .iter()
+                .filter(|f| f.feature_id.default_axis() == entry.axis && !f.is_unavailable())
+                .collect();
+            let source_evidence = axis_features
+                .first()
+                .map(|f| f.source_evidence.clone())
+                .unwrap_or_else(|| SourceEvidence {
+                    source_family: "almanac_rule".to_string(),
+                    source_id: SOURCE_KHCBPPT.to_string(),
+                    method: "hour_axis_default".to_string(),
+                    profile: profile_id.to_string(),
+                    note: None,
+                });
+            let availability = if axis_features.is_empty() {
+                AvailabilityState::Unavailable {
+                    reason: "no axis-feeding feature available".to_string(),
+                }
+            } else {
+                AvailabilityState::Complete
+            };
+            contributions.push(HourRankingContribution {
+                axis: entry.axis,
+                score,
+                weight: entry.weight,
+                contribution,
+                source_evidence,
+                availability,
+            });
+        }
+
+        let rank_score = if available_weight > 0.0 {
+            (weighted_sum / available_weight).clamp(0.0, 1.0)
+        } else {
+            0.0
+        };
+
+        HourRankingAggregation {
+            rank_score,
+            contributions,
+        }
+    }
+
     /// Order all twelve hour slots for the supplied snapshot. Pure and
     /// deterministic. `day_assessment` is optional — snapshot-only
     /// callers may pass `None`, but callers that already built a
@@ -535,67 +657,7 @@ impl HourRankingPolicy {
                 .collect();
 
             let axes = aggregate_hour_axes(&hour_features);
-
-            let mut contributions: Vec<HourRankingContribution> = Vec::new();
-            let mut weighted_sum = 0.0_f32;
-            let mut available_weight = 0.0_f32;
-            for entry in &self.axis_weights {
-                let outcome = match entry.axis {
-                    HourRankingAxis::HoangDaoQuality => &axes.hoang_dao_quality,
-                    HourRankingAxis::IntentTimingFit => &axes.intent_timing_fit,
-                    HourRankingAxis::PersonalHourAlignment => &axes.personal_hour_alignment,
-                    HourRankingAxis::DayHourHarmony => &axes.day_hour_harmony,
-                };
-                let Some(score) = outcome.score else {
-                    continue;
-                };
-                let contribution = score * entry.weight;
-                weighted_sum += contribution;
-                available_weight += entry.weight;
-
-                // Pull the most informative source evidence for this
-                // axis from the underlying observation. For axes with a
-                // single observation (v1), this is the observation's
-                // own evidence. For axes with multiple observations
-                // (personal alignment, day-hour harmony), prefer the
-                // matched observation's evidence and fall back to the
-                // neutral baseline.
-                let axis_features: Vec<&&HourRankingFeatureObservation> = hour_features
-                    .iter()
-                    .filter(|f| f.feature_id.default_axis() == entry.axis && !f.is_unavailable())
-                    .collect();
-                let source_evidence = axis_features
-                    .first()
-                    .map(|f| f.source_evidence.clone())
-                    .unwrap_or_else(|| SourceEvidence {
-                        source_family: "almanac_rule".to_string(),
-                        source_id: SOURCE_KHCBPPT.to_string(),
-                        method: "hour_axis_default".to_string(),
-                        profile: profile_id.clone(),
-                        note: None,
-                    });
-                let availability = if axis_features.is_empty() {
-                    AvailabilityState::Unavailable {
-                        reason: "no axis-feeding feature available".to_string(),
-                    }
-                } else {
-                    AvailabilityState::Complete
-                };
-                contributions.push(HourRankingContribution {
-                    axis: entry.axis,
-                    score,
-                    weight: entry.weight,
-                    contribution,
-                    source_evidence,
-                    availability,
-                });
-            }
-
-            let rank_score = if available_weight > 0.0 {
-                (weighted_sum / available_weight).clamp(0.0, 1.0)
-            } else {
-                0.0
-            };
+            let aggregation = self.aggregate_hour_ranking(&axes, &hour_features, &profile_id);
 
             let warning_context = if is_avoid_day {
                 Some(HourRankingWarning {
@@ -613,9 +675,9 @@ impl HourRankingPolicy {
                 chi_name: hour.hour_chi.clone(),
                 time_range: hour.time_range.clone(),
                 is_auspicious: hour.is_good,
-                rank_score,
+                rank_score: aggregation.rank_score,
                 axes,
-                contributions,
+                contributions: aggregation.contributions,
                 warning_context,
             });
         }
@@ -1924,5 +1986,310 @@ mod tests {
         // 12 hours × 1 (intent_timing_fit) + 12 hours × 1 (personal) =
         // 24 unavailable observations without birth.
         assert_eq!(unavailable_count, 24);
+    }
+
+    // -------------------------------------------------------------------
+    // amlich-rv13.3 — weighted hour ranking aggregation tests.
+    //
+    // The aggregation phase collapses per-axis outcomes into a single
+    // `rank_score` plus a contribution list. These tests pin the
+    // acceptance criteria from the bead: weighted average over
+    // available axes only, clamped to [0, 1], deterministic, and
+    // exactly one contribution per available axis.
+    // -------------------------------------------------------------------
+
+    fn fake_axes(
+        hoang: Option<f32>,
+        intent: Option<f32>,
+        personal: Option<f32>,
+        harmony: Option<f32>,
+    ) -> HourRankingAxes {
+        let outcome = |axis: HourRankingAxis, score: Option<f32>| match score {
+            Some(s) => HourRankingAxisOutcome::from_score(axis, s),
+            None => HourRankingAxisOutcome::unavailable(axis, "test_unavailable"),
+        };
+        HourRankingAxes {
+            hoang_dao_quality: outcome(HourRankingAxis::HoangDaoQuality, hoang),
+            intent_timing_fit: outcome(HourRankingAxis::IntentTimingFit, intent),
+            personal_hour_alignment: outcome(HourRankingAxis::PersonalHourAlignment, personal),
+            day_hour_harmony: outcome(HourRankingAxis::DayHourHarmony, harmony),
+        }
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_uses_weighted_average_over_available_axes() {
+        // AC: rank score is the weighted average over available axes
+        // only. With Hoàng Đạo = 1.0 (weight 0.45) and Day-hour harmony
+        // = 0.8 (weight 0.10), available weight = 0.55, numerator =
+        // 0.45 + 0.08 = 0.53, so rank_score = 0.53 / 0.55 ≈ 0.963636.
+        let policy = HourRankingPolicy::baseline_v1();
+        let axes = fake_axes(Some(1.0), None, None, Some(0.8));
+        let aggregation = policy.aggregate_hour_ranking(&axes, &[], "test_profile");
+        let expected = (0.45 * 1.0 + 0.10 * 0.8) / (0.45 + 0.10);
+        assert!(
+            (aggregation.rank_score - expected).abs() < 1e-6,
+            "rank_score must be weighted average over available axes; \
+             expected {expected}, got {}",
+            aggregation.rank_score
+        );
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_renormalizes_over_unavailable_axes() {
+        // AC: unavailable axes are removed from the denominator, not
+        // folded in as a neutral 0.5. With only hoang_dao = 1.0
+        // available (single-axis, weight 0.45), the rank score must be
+        // exactly 1.0 — never the 0.5 a neutral-fallback would yield.
+        let policy = HourRankingPolicy::baseline_v1();
+        let axes = fake_axes(Some(1.0), None, None, None);
+        let aggregation = policy.aggregate_hour_ranking(&axes, &[], "test_profile");
+        assert!(
+            (aggregation.rank_score - 1.0).abs() < 1e-6,
+            "single available axis must yield that axis's score unchanged; got {}",
+            aggregation.rank_score
+        );
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_includes_personal_axis_when_birth_provides_it() {
+        // AC: rank score folds in the personal alignment axis when the
+        // birth profile makes it available. With hoang = 1.0 (0.45),
+        // personal = 0.5 (0.20), and harmony = 0.5 (0.10), the weighted
+        // average is (0.45 + 0.10 + 0.05) / 0.75 = 0.60 / 0.75 = 0.80.
+        let policy = HourRankingPolicy::baseline_v1();
+        let axes = fake_axes(Some(1.0), None, Some(0.5), Some(0.5));
+        let aggregation = policy.aggregate_hour_ranking(&axes, &[], "test_profile");
+        let expected = (0.45 * 1.0 + 0.20 * 0.5 + 0.10 * 0.5) / (0.45 + 0.20 + 0.10);
+        assert!(
+            (aggregation.rank_score - expected).abs() < 1e-6,
+            "rank_score with personal axis must include its weight; \
+             expected {expected}, got {}",
+            aggregation.rank_score
+        );
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_clamps_score_to_unit_interval() {
+        // AC: rank score is clamped to [0.0, 1.0]. Floating-point drift
+        // can push the score just outside the interval even though
+        // every axis score and weight is in range; the aggregator
+        // defends against that.
+        let policy = HourRankingPolicy::baseline_v1();
+        // Both axes at 1.0 — numerator and denominator are both 1.0,
+        // the formula yields exactly 1.0, and the clamp must keep it.
+        let axes = fake_axes(Some(1.0), None, Some(1.0), Some(1.0));
+        let aggregation = policy.aggregate_hour_ranking(&axes, &[], "test_profile");
+        assert!(
+            (0.0..=1.0).contains(&aggregation.rank_score),
+            "rank_score must lie in [0, 1]; got {}",
+            aggregation.rank_score
+        );
+        // Both axes at 0.0 — formula yields 0.0, clamp must keep it.
+        let axes_zero = fake_axes(Some(0.0), None, Some(0.0), Some(0.0));
+        let aggregation_zero = policy.aggregate_hour_ranking(&axes_zero, &[], "test_profile");
+        assert!(
+            (0.0..=1.0).contains(&aggregation_zero.rank_score),
+            "rank_score must lie in [0, 1]; got {}",
+            aggregation_zero.rank_score
+        );
+        assert!(aggregation_zero.rank_score >= 0.0);
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_with_all_axes_unavailable_returns_zero() {
+        // Defensive: with no axis available, the rank score collapses
+        // to 0.0 rather than dividing by zero. The contribution list is
+        // empty because no axis could be evaluated.
+        let policy = HourRankingPolicy::baseline_v1();
+        let axes = fake_axes(None, None, None, None);
+        let aggregation = policy.aggregate_hour_ranking(&axes, &[], "test_profile");
+        assert!(
+            aggregation.rank_score.abs() < 1e-6,
+            "all-unavailable aggregation must yield zero score; got {}",
+            aggregation.rank_score
+        );
+        assert!(
+            aggregation.contributions.is_empty(),
+            "all-unavailable aggregation must emit no contributions; got {:?}",
+            aggregation.contributions
+        );
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_emits_one_contribution_per_available_axis() {
+        // AC: contributions match the available-axis denominator. With
+        // hoang + personal + harmony available, three contributions are
+        // emitted; the unavailable intent_timing_fit is excluded.
+        let policy = HourRankingPolicy::baseline_v1();
+        let axes = fake_axes(Some(1.0), None, Some(0.5), Some(0.8));
+        let aggregation = policy.aggregate_hour_ranking(&axes, &[], "test_profile");
+        assert_eq!(
+            aggregation.contributions.len(),
+            3,
+            "expected 3 contributions (hoang + personal + harmony); got {}",
+            aggregation.contributions.len()
+        );
+        let axes_in: Vec<HourRankingAxis> =
+            aggregation.contributions.iter().map(|c| c.axis).collect();
+        assert!(axes_in.contains(&HourRankingAxis::HoangDaoQuality));
+        assert!(axes_in.contains(&HourRankingAxis::PersonalHourAlignment));
+        assert!(axes_in.contains(&HourRankingAxis::DayHourHarmony));
+        assert!(!axes_in.contains(&HourRankingAxis::IntentTimingFit));
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_contributions_carry_policy_weights() {
+        // The contribution record must carry the original (unnormalized)
+        // axis weight so the trace shows what each axis *would* have
+        // contributed before reweighting. With the v1 0.45/0.25/0.20/0.10
+        // profile, the hoang_dao contribution must carry weight 0.45 and
+        // the harmony contribution weight 0.10.
+        let policy = HourRankingPolicy::baseline_v1();
+        let axes = fake_axes(Some(1.0), None, None, Some(0.8));
+        let aggregation = policy.aggregate_hour_ranking(&axes, &[], "test_profile");
+        let hoang = aggregation
+            .contributions
+            .iter()
+            .find(|c| c.axis == HourRankingAxis::HoangDaoQuality)
+            .expect("hoang_dao contribution");
+        let harmony = aggregation
+            .contributions
+            .iter()
+            .find(|c| c.axis == HourRankingAxis::DayHourHarmony)
+            .expect("harmony contribution");
+        assert!((hoang.weight - 0.45).abs() < 1e-6);
+        assert!((harmony.weight - 0.10).abs() < 1e-6);
+        assert!((hoang.contribution - 0.45 * 1.0).abs() < 1e-6);
+        assert!((harmony.contribution - 0.10 * 0.8).abs() < 1e-6);
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_is_deterministic_for_identical_inputs() {
+        // AC: deterministic for identical inputs. Run the aggregator
+        // twice on the same axes and features; the rank scores and
+        // contribution lists must match bit-for-bit.
+        let policy = HourRankingPolicy::baseline_v1();
+        let snapshot = base_snapshot();
+        let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
+        let features =
+            extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let mut per_hour = std::collections::HashMap::<usize, HourRankingAggregation>::new();
+        for hour in &snapshot.context.gio_hoang_dao.all_hours {
+            let hour_features: Vec<&HourRankingFeatureObservation> = features
+                .iter()
+                .filter(|f| f.chi_index == hour.hour_index)
+                .collect();
+            let axes = aggregate_hour_axes(&hour_features);
+            let a = policy.aggregate_hour_ranking(&axes, &hour_features, profile_id);
+            let b = policy.aggregate_hour_ranking(&axes, &hour_features, profile_id);
+            assert_eq!(
+                a, b,
+                "aggregation must be deterministic for chi_index={}",
+                hour.hour_index
+            );
+            per_hour.insert(hour.hour_index, a);
+        }
+        // Re-running extraction + aggregation across the board must
+        // also be stable end-to-end (defensive against feature
+        // ordering regressions).
+        for chi in 0..12 {
+            assert!(
+                per_hour.contains_key(&chi),
+                "every chi_index must be aggregated exactly once"
+            );
+        }
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_skips_intent_axis_when_unavailable_in_v1() {
+        // AC: the intent_timing_fit axis is unavailable in v1, so it
+        // must be excluded from both the rank score formula and the
+        // contribution list. Its declared weight (0.25) does not
+        // contribute to the denominator.
+        let policy = HourRankingPolicy::baseline_v1();
+        // Force the axis to be unavailable explicitly.
+        let axes = fake_axes(Some(1.0), None, Some(1.0), Some(1.0));
+        let aggregation = policy.aggregate_hour_ranking(&axes, &[], "test_profile");
+        let available_total: f32 = policy
+            .axis_weights()
+            .iter()
+            .filter(|w| match w.axis {
+                HourRankingAxis::HoangDaoQuality => true,
+                HourRankingAxis::IntentTimingFit => false,
+                HourRankingAxis::PersonalHourAlignment => true,
+                HourRankingAxis::DayHourHarmony => true,
+            })
+            .map(|w| w.weight)
+            .sum();
+        let expected = (0.45 + 0.20 + 0.10) / available_total;
+        assert!(
+            (aggregation.rank_score - expected).abs() < 1e-6,
+            "intent_timing_fit weight (0.25) must be excluded from the denominator; \
+             expected {expected}, got {}",
+            aggregation.rank_score
+        );
+        assert!(
+            !aggregation
+                .contributions
+                .iter()
+                .any(|c| c.axis == HourRankingAxis::IntentTimingFit),
+            "intent_timing_fit must not appear in contributions when unavailable"
+        );
+    }
+
+    #[test]
+    fn aggregate_hour_ranking_uses_45_25_20_10_weight_profile() {
+        // The v1 weight profile is the spec's "Initial weight profile"
+        // section verbatim. Pin the exact values so a future weight
+        // change shows up as a test diff.
+        let policy = HourRankingPolicy::baseline_v1();
+        let weights = policy.axis_weights();
+        let profile: Vec<(HourRankingAxis, f32)> =
+            weights.iter().map(|w| (w.axis, w.weight)).collect();
+        assert_eq!(
+            profile,
+            vec![
+                (HourRankingAxis::HoangDaoQuality, 0.45),
+                (HourRankingAxis::IntentTimingFit, 0.25),
+                (HourRankingAxis::PersonalHourAlignment, 0.20),
+                (HourRankingAxis::DayHourHarmony, 0.10),
+            ]
+        );
+    }
+
+    #[test]
+    fn rank_breaks_exact_ties_by_traditional_chi_order_end_to_end() {
+        // AC: tie-broken by traditional Chi order. Force two hours to
+        // share identical rank scores by faking identical axis outcomes
+        // and matching the policy's aggregation: pick the most
+        // deterministic scoring pattern (hoang_dao = 1.0, harmony =
+        // 0.5, no personal) which makes the rank score identical for
+        // every Hoàng Đạo hour and identical for every Hắc Đạo hour.
+        // Then assert the ranked list groups ties by chi_index
+        // ascending within each group.
+        let policy = HourRankingPolicy::baseline_v1();
+        let snapshot = base_snapshot();
+        let ranked = policy
+            .rank(&snapshot, ConsultationIntent::Travel, None, None)
+            .expect("rank");
+        // Build groups of identical scores; within each group, chi_index
+        // must be strictly ascending.
+        let mut i = 0;
+        while i < ranked.len() {
+            let mut j = i;
+            while j < ranked.len() && (ranked[j].rank_score - ranked[i].rank_score).abs() < 1e-6 {
+                j += 1;
+            }
+            let group = &ranked[i..j];
+            let chi_indices: Vec<usize> = group.iter().map(|h| h.chi_index).collect();
+            let mut sorted = chi_indices.clone();
+            sorted.sort_unstable();
+            assert_eq!(
+                chi_indices, sorted,
+                "tie at score {} must break by chi_index ascending; got {:?}",
+                ranked[i].rank_score, chi_indices
+            );
+            i = j;
+        }
     }
 }

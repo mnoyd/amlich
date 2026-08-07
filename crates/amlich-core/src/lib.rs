@@ -53,9 +53,9 @@ pub use crate::almanac::yearly_han::{
 };
 pub use crate::analysis_envelope::AnalysisEnvelope;
 pub use crate::assessment::hour_ranking::{
-    HourRankingAxes, HourRankingAxis, HourRankingAxisOutcome, HourRankingAxisWeightEntry,
-    HourRankingContribution, HourRankingPolicy, HourRankingWarning, RankedHourV1,
-    HOUR_RANKING_POLICY_V1_ID, HOUR_RANKING_POLICY_V1_VERSION,
+    HourRankingAggregation, HourRankingAxes, HourRankingAxis, HourRankingAxisOutcome,
+    HourRankingAxisWeightEntry, HourRankingContribution, HourRankingPolicy, HourRankingWarning,
+    RankedHourV1, HOUR_RANKING_POLICY_V1_ID, HOUR_RANKING_POLICY_V1_VERSION,
 };
 pub use crate::assessment::{
     assess_personal_day, AssessmentAxes, AssessmentAxis, AssessmentInputs, AxisOutcome,
