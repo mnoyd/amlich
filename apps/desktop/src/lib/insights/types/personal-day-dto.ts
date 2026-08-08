@@ -174,6 +174,97 @@ export type PersonalDayEvidenceDto = {
   recommendation_count: number;
 };
 
+// amlich-8tdm: Evidence Graph projection of the personal-day
+// scoring trace. The DTO is the additive contract that lets the
+// desktop (and TUI) display the actual feature / weight / source /
+// policy / veto state the policy computed, without recomputing
+// scores. Stable per amlich-8tdm: nodes carry concept, origin,
+// cluster, severity, tags, stable_key, policy_version, and a typed
+// payload; edges carry concept + weight + veto_overrides_decision.
+export type AssessmentTraceGraphNodeDto = {
+  node_id: string;
+  concept: string;
+  origin: 'fact' | 'interpreted' | 'decision' | string;
+  cluster: string;
+  label: string;
+  severity?: string | null;
+  tags?: string[];
+  stable_key: string;
+  policy_version: string;
+  payload?: unknown;
+};
+
+export type AssessmentTraceGraphEdgeDto = {
+  edge_id: string;
+  from_node_id: string;
+  to_node_id: string;
+  concept: string;
+  weight: number;
+  veto_overrides_decision: boolean;
+};
+
+export type AssessmentTraceContributorDto = {
+  feature_id: string;
+  contribution_id: string;
+  signed_value: number;
+  applied_weight: number;
+  contribution: number;
+};
+
+export type AssessmentTraceAxisSummaryDto = {
+  axis: string;
+  verdict: string;
+  subtotal?: number | null;
+  unavailable_reason?: string | null;
+  contributors: AssessmentTraceContributorDto[];
+};
+
+export type AssessmentTraceAxisWeightDto = {
+  axis: string;
+  weight: number;
+};
+
+export type AssessmentTraceDecisionSummaryDto = {
+  bucket: string;
+  decision_score?: number | null;
+  axis_weights: AssessmentTraceAxisWeightDto[];
+  available_axes: string[];
+  unavailable_axes: string[];
+};
+
+export type AssessmentTraceVetoSummaryDto = {
+  veto_id: string;
+  axis: string;
+  reason: string;
+  source_family: string;
+  source_id: string;
+  method: string;
+  profile: string;
+};
+
+export type AssessmentTraceInteractionSummaryDto = {
+  interaction_id: string;
+  axis: string;
+  value: number;
+  weight: number;
+  feature_ids: string[];
+};
+
+export type AssessmentTraceGraphDto = {
+  policy_id: string;
+  policy_version: string;
+  ruleset_id: string;
+  ruleset_version: string;
+  node_count: number;
+  edge_count: number;
+  nodes: AssessmentTraceGraphNodeDto[];
+  edges: AssessmentTraceGraphEdgeDto[];
+  axes: AssessmentTraceAxisSummaryDto[];
+  decision: AssessmentTraceDecisionSummaryDto;
+  vetoes?: AssessmentTraceVetoSummaryDto[];
+  interactions?: AssessmentTraceInteractionSummaryDto[];
+};
+
 export type PersonalDayAssessmentDto = {
   ruleset_id: string;
   ruleset_version: string;
@@ -188,6 +279,7 @@ export type PersonalDayAssessmentDto = {
   contributions: PersonalDayContributionDto[];
   unavailable_sections: UnavailableSectionDto[];
   evidence: PersonalDayEvidenceDto;
+  explanation_graph?: AssessmentTraceGraphDto | null;
 };
 
 export type PersonalDayReportDto = {

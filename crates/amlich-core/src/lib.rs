@@ -95,11 +95,11 @@ pub use crate::reasoning::{
     ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
 };
 pub use semantic_graph::{
-    build_reasoning_input_graph, debug_inspect_semantic_graph, ConceptLabel, DebugInspectionDate,
-    DebugInspectionSummary, DebugSemanticGraphInspection, EdgeConcept, GraphOntology,
-    GraphValidationError, NodeConcept, NodeOrigin, ProvenanceEntry, ProvenanceSource,
-    ProvenanceTracker, SemanticEdge, SemanticEdgeLabel, SemanticGraph, SemanticId, SemanticNode,
-    SemanticNodeId,
+    build_assessment_trace_graph, build_reasoning_input_graph, cluster_for_node_id,
+    debug_inspect_semantic_graph, ConceptLabel, DebugInspectionDate, DebugInspectionSummary,
+    DebugSemanticGraphInspection, EdgeConcept, GraphOntology, GraphValidationError, NodeConcept,
+    NodeOrigin, ProvenanceEntry, ProvenanceSource, ProvenanceTracker, SemanticEdge,
+    SemanticEdgeLabel, SemanticGraph, SemanticId, SemanticNode, SemanticNodeId,
 };
 pub use types::*;
 

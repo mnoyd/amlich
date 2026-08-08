@@ -11,6 +11,7 @@ pub use debug::{
     debug_inspect_semantic_graph, DebugInspectionDate, DebugInspectionSummary,
     DebugSemanticGraphInspection,
 };
+pub use helpers::cluster_for_node_id;
 pub use llm::{
     ClusterSummary, ConvergenceFactRef, ConvergenceHitRef, LlmConvergenceSlice, LlmGraphSlice,
 };

@@ -1644,6 +1644,12 @@ impl From<&amlich_core::bazi::types::ThanSatResult> for ThanSatResultDto {
 // amlich-mwbp.6: Canonical PersonalDayAssessment DTO projection.
 // ---------------------------------------------------------------------------
 
+// amlich-8tdm: bring the trace-projection builder and the cluster
+// helper into scope so the additive `explanation_graph` field on
+// `PersonalDayAssessmentDto` can be projected without a separate
+// import block inside every helper.
+use amlich_core::{build_assessment_trace_graph, cluster_for_node_id, semantic_graph::NodeOrigin};
+
 fn capability_tier_to_dto(tier: amlich_core::BirthDataTier) -> BirthDataTierDto {
     match tier {
         amlich_core::BirthDataTier::Anonymous => BirthDataTierDto::Anonymous,
@@ -1746,6 +1752,12 @@ impl From<&amlich_core::assessment::PersonalDayAssessment>
             recommendation_count: value.evidence.recommendation_count,
         };
 
+        // amlich-8tdm: project the v2 AssessmentTrace into the Evidence
+        // Graph when present. Legacy v1 callers (no trace) get a `None`
+        // graph so the wire contract stays byte-equal for them.
+        let explanation_graph = build_assessment_trace_graph(value)
+            .map(|graph| assessment_trace_graph_to_dto(value, &graph));
+
         Self {
             ruleset_id: value.ruleset_id.clone(),
             ruleset_version: value.ruleset_version.clone(),
@@ -1760,6 +1772,180 @@ impl From<&amlich_core::assessment::PersonalDayAssessment>
             contributions,
             unavailable_sections: sections,
             evidence,
+            explanation_graph,
         }
     }
+}
+
+// amlich-8tdm: project a projected SemanticGraph + the source
+// PersonalDayAssessment into the additive API DTO shape. The DTO is a
+// focused visualization payload: every node carries its concept, origin,
+// severity, tags, stable_key (the trace's intrinsic identifier), and the
+// policy_version that emitted it. Every edge carries the source/target
+// node IDs, the edge concept, the integer weight, and a
+// veto_overrides_decision flag so explanation views can show the
+// calculation flow without walking contributor payloads.
+fn assessment_trace_graph_to_dto(
+    assessment: &amlich_core::assessment::PersonalDayAssessment,
+    graph: &amlich_core::semantic_graph::SemanticGraph,
+) -> crate::dto::AssessmentTraceGraphDto {
+    use amlich_core::semantic_graph::EdgeConcept;
+
+    let nodes: Vec<crate::dto::AssessmentTraceGraphNodeDto> = graph
+        .nodes()
+        .values()
+        .map(|node| {
+            let (stable_key, origin_label) =
+                stable_key_and_origin(node.node_id.as_str(), node.origin);
+            let tags = node.tags.clone();
+            let severity = node.severity.clone();
+            let payload = node.payload.clone();
+            let policy_version = assessment.policy_version.clone();
+            crate::dto::AssessmentTraceGraphNodeDto {
+                node_id: node.node_id.clone(),
+                concept: node.concept.label().as_str().to_string(),
+                origin: origin_label,
+                cluster: cluster_for_node_id(&node.node_id, node.concept),
+                label: node.summary_vi.clone(),
+                severity,
+                tags,
+                stable_key,
+                policy_version,
+                payload,
+            }
+        })
+        .collect();
+
+    let edges: Vec<crate::dto::AssessmentTraceGraphEdgeDto> = graph
+        .edges()
+        .values()
+        .map(|edge| {
+            let veto_overrides_decision = edge.label.concept == EdgeConcept::Overrides
+                && edge.to_node_id.starts_with("assessment_decision:");
+            crate::dto::AssessmentTraceGraphEdgeDto {
+                edge_id: edge.edge_id.clone(),
+                from_node_id: edge.from_node_id.clone(),
+                to_node_id: edge.to_node_id.clone(),
+                concept: edge.label.concept.label().as_str().to_string(),
+                weight: edge.label.weight,
+                veto_overrides_decision,
+            }
+        })
+        .collect();
+
+    let trace = assessment
+        .trace
+        .as_ref()
+        .expect("graph builder only emits a graph when trace is Some");
+
+    let axes: Vec<crate::dto::AssessmentTraceAxisSummaryDto> = trace
+        .axes
+        .iter()
+        .map(|axis_agg| crate::dto::AssessmentTraceAxisSummaryDto {
+            axis: axis_agg.axis.as_str().to_string(),
+            verdict: axis_agg.verdict.clone(),
+            subtotal: axis_agg.subtotal,
+            unavailable_reason: axis_agg.unavailable_reason.clone(),
+            contributors: axis_agg
+                .contributors
+                .iter()
+                .map(|c| crate::dto::AssessmentTraceContributorDto {
+                    feature_id: c.feature_id.as_str().to_string(),
+                    contribution_id: c.contribution_id.clone(),
+                    signed_value: c.signed_value,
+                    applied_weight: c.applied_weight,
+                    contribution: c.contribution,
+                })
+                .collect(),
+        })
+        .collect();
+
+    let decision = crate::dto::AssessmentTraceDecisionSummaryDto {
+        bucket: trace.decision.bucket.as_str().to_string(),
+        decision_score: trace.decision.decision_score,
+        axis_weights: trace
+            .decision
+            .axis_weights
+            .iter()
+            .map(|w| crate::dto::AssessmentTraceAxisWeightDto {
+                axis: w.axis.as_str().to_string(),
+                weight: w.weight,
+            })
+            .collect(),
+        available_axes: trace
+            .decision
+            .available_axes
+            .iter()
+            .map(|a| a.as_str().to_string())
+            .collect(),
+        unavailable_axes: trace
+            .decision
+            .unavailable_axes
+            .iter()
+            .map(|a| a.as_str().to_string())
+            .collect(),
+    };
+
+    let vetoes: Vec<crate::dto::AssessmentTraceVetoSummaryDto> = trace
+        .vetoes
+        .iter()
+        .map(|v| crate::dto::AssessmentTraceVetoSummaryDto {
+            veto_id: v.veto_id.clone(),
+            axis: v.axis.as_str().to_string(),
+            reason: v.reason.clone(),
+            source_family: v.source_evidence.source_family.clone(),
+            source_id: v.source_evidence.source_id.clone(),
+            method: v.source_evidence.method.clone(),
+            profile: v.source_evidence.profile.clone(),
+        })
+        .collect();
+
+    let interactions: Vec<crate::dto::AssessmentTraceInteractionSummaryDto> = trace
+        .interactions
+        .iter()
+        .map(|i| crate::dto::AssessmentTraceInteractionSummaryDto {
+            interaction_id: i.interaction_id.clone(),
+            axis: i.axis.as_str().to_string(),
+            value: i.value,
+            weight: i.weight,
+            feature_ids: i
+                .feature_ids
+                .iter()
+                .map(|f| f.as_str().to_string())
+                .collect(),
+        })
+        .collect();
+
+    crate::dto::AssessmentTraceGraphDto {
+        policy_id: trace.policy_id.clone(),
+        policy_version: trace.policy_version.clone(),
+        ruleset_id: assessment.ruleset_id.clone(),
+        ruleset_version: assessment.ruleset_version.clone(),
+        node_count: graph.node_count(),
+        edge_count: graph.edge_count(),
+        nodes,
+        edges,
+        axes,
+        decision,
+        vetoes,
+        interactions,
+    }
+}
+
+/// Split a projected node_id into its stable key + origin label. The
+/// builder uses `concept_label:stable_key` as the node_id; we keep both
+/// so DTO consumers can read the conceptual origin (axis / veto /
+/// feature / interaction / decision) without parsing node IDs.
+fn stable_key_and_origin(node_id: &str, origin: NodeOrigin) -> (String, String) {
+    let stable_key = node_id
+        .split_once(':')
+        .map(|(_, tail)| tail.to_string())
+        .unwrap_or_else(|| node_id.to_string());
+    let origin_label = match origin {
+        NodeOrigin::Fact => "fact",
+        NodeOrigin::Interpreted => "interpreted",
+        NodeOrigin::Decision => "decision",
+    }
+    .to_string();
+    (stable_key, origin_label)
 }

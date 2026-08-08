@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use crate::semantic_graph::{NodeConcept, SemanticNode};
 
-pub(crate) fn cluster_for_node_id(_node_id: &str, concept: NodeConcept) -> String {
+/// Cluster label for a node concept. Exposed for downstream consumers
+/// (API DTO projection, TUI rendering) so they can group nodes the
+/// same way the existing debug views do.
+pub fn cluster_for_node_id(_node_id: &str, concept: NodeConcept) -> String {
     match concept {
         NodeConcept::DayCanchi
         | NodeConcept::MonthCanchi
@@ -46,6 +49,18 @@ pub(crate) fn cluster_for_node_id(_node_id: &str, concept: NodeConcept) -> Strin
         | NodeConcept::FlyingStar
         | NodeConcept::Offering
         | NodeConcept::Hexagram => "day-core".to_string(),
+
+        // amlich-8tdm: per-feature observation nodes live alongside the
+        // axis nodes in the interaction-core cluster so the
+        // explanation/export views group them with the personal-day
+        // scoring calculation rather than the underlying facts.
+        NodeConcept::AssessmentFeature => "interaction-core".to_string(),
+
+        // amlich-8tdm: the aggregate decision node sits at the
+        // recommendation-summary cluster (same as
+        // NodeConcept::Recommendation) because it is the single
+        // verdict consumers explain against.
+        NodeConcept::AssessmentDecision => "recommendation-summary".to_string(),
     }
 }
 

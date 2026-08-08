@@ -140,6 +140,12 @@ type _AssessmentKeys = AssertTrue<
         | 'contributions'
         | 'unavailable_sections'
         | 'evidence'
+        // amlich-8tdm: additive Evidence Graph projection of the
+        // personal-day scoring trace. Optional on the wire
+        // (skip_serializing_if = "Option::is_none"); Rust callers
+        // that bypass the v2 policy emit no graph and the key is
+        // absent from the payload.
+        | 'explanation_graph'
     >
 >;
 

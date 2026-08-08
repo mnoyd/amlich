@@ -41,6 +41,16 @@ pub enum NodeConcept {
     FlyingStar,
     Offering,
     Hexagram,
+    // amlich-8tdm: per-feature observation node in the personal-day
+    // assessment trace graph. Carries polarity, strength, contribution_id,
+    // and source evidence so explanations describe the actual feature
+    // projection (and not a parallel recomputation).
+    AssessmentFeature,
+    // amlich-8tdm: aggregate decision node in the personal-day
+    // assessment trace graph. Carries bucket, decision_score, policy_id,
+    // policy_version, axis weights, and provenance so explanations can
+    // name the verdict the policy actually produced.
+    AssessmentDecision,
 }
 
 impl NodeConcept {
@@ -84,6 +94,8 @@ impl NodeConcept {
             Self::FlyingStar => ConceptLabel::FlyingStar,
             Self::Offering => ConceptLabel::Offering,
             Self::Hexagram => ConceptLabel::Hexagram,
+            Self::AssessmentFeature => ConceptLabel::AssessmentFeature,
+            Self::AssessmentDecision => ConceptLabel::AssessmentDecision,
         }
     }
 }
@@ -234,6 +246,8 @@ pub enum ConceptLabel {
     Hexagram,
     LocatedAt,
     Transforms,
+    AssessmentFeature,
+    AssessmentDecision,
 }
 
 impl ConceptLabel {
@@ -308,6 +322,8 @@ impl ConceptLabel {
             Self::Hexagram => "hexagram",
             Self::LocatedAt => "located_at",
             Self::Transforms => "transforms",
+            Self::AssessmentFeature => "assessment_feature",
+            Self::AssessmentDecision => "assessment_decision",
         }
     }
 }
@@ -355,6 +371,8 @@ impl GraphOntology {
             NodeConcept::FlyingStar,
             NodeConcept::Offering,
             NodeConcept::Hexagram,
+            NodeConcept::AssessmentFeature,
+            NodeConcept::AssessmentDecision,
         ]
     }
 
@@ -473,5 +491,30 @@ mod tests {
         assert_eq!(NodeConcept::Hexagram.label().as_str(), "hexagram");
         assert_eq!(EdgeConcept::LocatedAt.label().as_str(), "located_at");
         assert_eq!(EdgeConcept::Transforms.label().as_str(), "transforms");
+    }
+
+    // amlich-8tdm: v1.8 AssessmentFeature + AssessmentDecision node
+    // concepts present in ontology slices. These power the Evidence
+    // Graph projection of the personal-day scoring trace.
+    #[test]
+    fn v18_assessment_trace_concepts_present_in_ontology_slices() {
+        let nodes = GraphOntology::node_concepts();
+        assert!(
+            nodes.contains(&NodeConcept::AssessmentFeature),
+            "AssessmentFeature missing from node_concepts()"
+        );
+        assert!(
+            nodes.contains(&NodeConcept::AssessmentDecision),
+            "AssessmentDecision missing from node_concepts()"
+        );
+        // Label round-trip sanity:
+        assert_eq!(
+            NodeConcept::AssessmentFeature.label().as_str(),
+            "assessment_feature"
+        );
+        assert_eq!(
+            NodeConcept::AssessmentDecision.label().as_str(),
+            "assessment_decision"
+        );
     }
 }

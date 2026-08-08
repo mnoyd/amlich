@@ -9,8 +9,8 @@ mod selectors;
 mod views;
 
 pub use builders::{
-    build_day_snapshot_graph, build_reasoning_input_graph, build_reasoning_input_graph_with_facts,
-    ReasoningInputGraph,
+    build_assessment_trace_graph, build_day_snapshot_graph, build_reasoning_input_graph,
+    build_reasoning_input_graph_with_facts, ReasoningInputGraph,
 };
 pub use edge::{SemanticEdge, SemanticEdgeId, SemanticEdgeLabel};
 pub use graph::{GraphMergeError, GraphValidationError, SemanticGraph};
@@ -20,9 +20,9 @@ pub use ontology::{ConceptLabel, EdgeConcept, GraphOntology, NodeConcept};
 pub use provenance::{ProvenanceEntry, ProvenanceSource, ProvenanceTracker};
 pub use selectors::{EvidenceSelectors, SelectHitDirection, SourceFamilyCounts};
 pub use views::{
-    debug_inspect_semantic_graph, ClusterSummary, ConvergenceFactRef, ConvergenceHitRef,
-    ConvergenceView, DebugInspectionDate, DebugInspectionSummary, DebugSemanticGraphInspection,
-    HitView, LlmActivitySummary, LlmConvergenceSlice, LlmGraphSlice, LlmRecommendationSlice,
-    RecommendationEvidenceGraphView, RecommendationEvidenceView, SourceBreakdown, SubgraphView,
-    VisualizationEdge, VisualizationGraph, VisualizationNode,
+    cluster_for_node_id, debug_inspect_semantic_graph, ClusterSummary, ConvergenceFactRef,
+    ConvergenceHitRef, ConvergenceView, DebugInspectionDate, DebugInspectionSummary,
+    DebugSemanticGraphInspection, HitView, LlmActivitySummary, LlmConvergenceSlice, LlmGraphSlice,
+    LlmRecommendationSlice, RecommendationEvidenceGraphView, RecommendationEvidenceView,
+    SourceBreakdown, SubgraphView, VisualizationEdge, VisualizationGraph, VisualizationNode,
 };

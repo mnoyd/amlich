@@ -1,9 +1,11 @@
+mod assessment_trace;
 mod bazi;
 mod day_snapshot;
 mod interaction;
 mod merge;
 mod recommendation;
 
+pub use assessment_trace::build_assessment_trace_graph;
 pub use bazi::build_bazi_profile_graph;
 pub use day_snapshot::build_day_snapshot_graph;
 pub use interaction::{

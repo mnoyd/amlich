@@ -1180,6 +1180,13 @@ pub struct PersonalDayAssessmentDto {
     pub contributions: Vec<PersonalDayContributionDto>,
     pub unavailable_sections: Vec<UnavailableSectionDto>,
     pub evidence: PersonalDayEvidenceDto,
+    /// Evidence Graph projection of the assessment trace
+    /// (`amlich-8tdm`). Populated only when the assessment was built by
+    /// the v2 `AssessmentPolicy` (which attaches an `AssessmentTrace`).
+    /// `None` for the legacy v1 builder — the projection is additive
+    /// and does not change existing field semantics.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub explanation_graph: Option<AssessmentTraceGraphDto>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1247,6 +1254,143 @@ pub struct PersonalDayEvidenceDto {
     pub has_yearly_han: bool,
     pub has_kua: bool,
     pub recommendation_count: usize,
+}
+
+// ---------------------------------------------------------------------------
+// amlich-8tdm: Assessment trace → Evidence Graph projection DTOs.
+//
+// These DTOs are the API-surface contract for the personal-day scoring
+// trace. The graph preserves the actual feature / weight / source /
+// policy / veto state the policy computed; explanation views (API,
+// desktop, TUI) must read from these DTOs rather than recompute scores.
+//
+// Serialization contract: every field is part of the v1.8 API surface.
+// Additive additions are allowed; renaming or repurposing a field
+// requires a version bump and parity fixtures.
+// ---------------------------------------------------------------------------
+
+/// Visualization payload for a single projected node from the
+/// `AssessmentTrace → SemanticGraph` projection. Extends the existing
+/// debug visualization shape with the per-feature / per-axis /
+/// per-veto / per-interaction metadata the explanation views need.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentTraceGraphNodeDto {
+    pub node_id: String,
+    pub concept: String,
+    pub origin: String,
+    pub cluster: String,
+    pub label: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub severity: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
+    /// Stable identifier from the trace (feature.contribution_id,
+    /// veto.veto_id, interaction.interaction_id, axis.as_str, or
+    /// "decision" for the aggregate decision node).
+    pub stable_key: String,
+    /// Applied policy version the trace records.
+    pub policy_version: String,
+    /// Per-concept payload (feature / axis / veto / interaction /
+    /// decision). `None` when the projection has no extra data.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payload: Option<serde_json::Value>,
+}
+
+/// Visualization payload for a single projected edge from the
+/// `AssessmentTrace → SemanticGraph` projection. The `weight` is the
+/// contributor's `applied_weight` (scaled to int) so explanations can
+/// describe the actual contribution magnitude.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentTraceGraphEdgeDto {
+    pub edge_id: String,
+    pub from_node_id: String,
+    pub to_node_id: String,
+    pub concept: String,
+    pub weight: i32,
+    /// `true` when the edge represents a veto forcing the decision
+    /// (`Overrides` from a veto node to the decision node).
+    pub veto_overrides_decision: bool,
+}
+
+/// Per-axis aggregation projection extracted from the trace. Kept
+/// structurally distinct from the `AxisAggregation` so the API can
+/// describe the calculation without exposing internal `f32` weights on
+/// the wire.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentTraceAxisSummaryDto {
+    pub axis: String,
+    pub verdict: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subtotal: Option<f32>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unavailable_reason: Option<String>,
+    pub contributors: Vec<AssessmentTraceContributorDto>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentTraceContributorDto {
+    pub feature_id: String,
+    pub contribution_id: String,
+    pub signed_value: f32,
+    pub applied_weight: f32,
+    pub contribution: f32,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentTraceDecisionSummaryDto {
+    pub bucket: String,
+    pub decision_score: Option<f32>,
+    pub axis_weights: Vec<AssessmentTraceAxisWeightDto>,
+    pub available_axes: Vec<String>,
+    pub unavailable_axes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentTraceAxisWeightDto {
+    pub axis: String,
+    pub weight: f32,
+}
+
+/// Full Evidence Graph projection of a single `AssessmentTrace`. The
+/// `nodes` / `edges` arrays mirror the SemanticGraph's visualization
+/// shape; the `axes` / `decision` summaries let explanation views show
+/// the trace's calculation without walking the graph.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentTraceGraphDto {
+    pub policy_id: String,
+    pub policy_version: String,
+    pub ruleset_id: String,
+    pub ruleset_version: String,
+    pub node_count: usize,
+    pub edge_count: usize,
+    pub nodes: Vec<AssessmentTraceGraphNodeDto>,
+    pub edges: Vec<AssessmentTraceGraphEdgeDto>,
+    pub axes: Vec<AssessmentTraceAxisSummaryDto>,
+    pub decision: AssessmentTraceDecisionSummaryDto,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub vetoes: Vec<AssessmentTraceVetoSummaryDto>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub interactions: Vec<AssessmentTraceInteractionSummaryDto>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentTraceVetoSummaryDto {
+    pub veto_id: String,
+    pub axis: String,
+    pub reason: String,
+    pub source_family: String,
+    pub source_id: String,
+    pub method: String,
+    pub profile: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentTraceInteractionSummaryDto {
+    pub interaction_id: String,
+    pub axis: String,
+    pub value: f32,
+    pub weight: f32,
+    pub feature_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

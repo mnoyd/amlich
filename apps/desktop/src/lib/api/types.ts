@@ -1092,6 +1092,95 @@ export interface PersonalDayEvidenceDto {
     recommendation_count: number;
 }
 
+// amlich-8tdm: Evidence Graph projection of the personal-day
+// scoring trace. Optional on the wire (Rust serializes with
+// skip_serializing_if = "Option::is_none"). When present, the
+// graph carries the actual feature / weight / source / policy /
+// veto state the policy computed.
+export interface AssessmentTraceGraphNodeDto {
+    node_id: string;
+    concept: string;
+    origin: 'fact' | 'interpreted' | 'decision' | string;
+    cluster: string;
+    label: string;
+    severity?: string | null;
+    tags?: string[];
+    stable_key: string;
+    policy_version: string;
+    payload?: unknown;
+}
+
+export interface AssessmentTraceGraphEdgeDto {
+    edge_id: string;
+    from_node_id: string;
+    to_node_id: string;
+    concept: string;
+    weight: number;
+    veto_overrides_decision: boolean;
+}
+
+export interface AssessmentTraceContributorDto {
+    feature_id: string;
+    contribution_id: string;
+    signed_value: number;
+    applied_weight: number;
+    contribution: number;
+}
+
+export interface AssessmentTraceAxisSummaryDto {
+    axis: string;
+    verdict: string;
+    subtotal?: number | null;
+    unavailable_reason?: string | null;
+    contributors: AssessmentTraceContributorDto[];
+}
+
+export interface AssessmentTraceAxisWeightDto {
+    axis: string;
+    weight: number;
+}
+
+export interface AssessmentTraceDecisionSummaryDto {
+    bucket: string;
+    decision_score?: number | null;
+    axis_weights: AssessmentTraceAxisWeightDto[];
+    available_axes: string[];
+    unavailable_axes: string[];
+}
+
+export interface AssessmentTraceVetoSummaryDto {
+    veto_id: string;
+    axis: string;
+    reason: string;
+    source_family: string;
+    source_id: string;
+    method: string;
+    profile: string;
+}
+
+export interface AssessmentTraceInteractionSummaryDto {
+    interaction_id: string;
+    axis: string;
+    value: number;
+    weight: number;
+    feature_ids: string[];
+}
+
+export interface AssessmentTraceGraphDto {
+    policy_id: string;
+    policy_version: string;
+    ruleset_id: string;
+    ruleset_version: string;
+    node_count: number;
+    edge_count: number;
+    nodes: AssessmentTraceGraphNodeDto[];
+    edges: AssessmentTraceGraphEdgeDto[];
+    axes: AssessmentTraceAxisSummaryDto[];
+    decision: AssessmentTraceDecisionSummaryDto;
+    vetoes?: AssessmentTraceVetoSummaryDto[];
+    interactions?: AssessmentTraceInteractionSummaryDto[];
+}
+
 export interface PersonalDayAssessmentDto {
     ruleset_id: string;
     ruleset_version: string;
@@ -1106,6 +1195,7 @@ export interface PersonalDayAssessmentDto {
     contributions: PersonalDayContributionDto[];
     unavailable_sections: UnavailableSectionDto[];
     evidence: PersonalDayEvidenceDto;
+    explanation_graph?: AssessmentTraceGraphDto | null;
 }
 
 export interface PersonalDayAdvisoryDto {

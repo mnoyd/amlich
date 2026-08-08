@@ -118,6 +118,15 @@ fn shape_hint_for_node(concept: NodeConcept) -> Option<String> {
         | NodeConcept::FlyingStar
         | NodeConcept::Offering
         | NodeConcept::Hexagram => Some("box".to_string()),
+
+        // amlich-8tdm: feature observations ride the same diamond shape
+        // as RecommendationHit so explanations can show them with the
+        // same visual treatment.
+        NodeConcept::AssessmentFeature => Some("diamond".to_string()),
+
+        // amlich-8tdm: the aggregate decision is the verdict box the
+        // explanation surfaces converge on.
+        NodeConcept::AssessmentDecision => Some("box".to_string()),
     }
 }
 
