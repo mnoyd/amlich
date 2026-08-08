@@ -198,6 +198,29 @@ impl AssessmentPolicy {
         &self.policy_version
     }
 
+    /// Return a sensitivity-perturbed copy of this policy. Each
+    /// declared weight in the intent-axis and interaction tables is
+    /// multiplied by the corresponding factor (rounded to the nearest
+    /// 0.05 step), letting the stability gate (`amlich-31oa`)
+    /// sensitivity-test every weight at ±10% and ±20% without
+    /// hand-editing the production tables. Test-only API.
+    #[doc(hidden)]
+    pub fn sensitivity_perturbed(&self, intent_factor: f32, interaction_factor: f32) -> Self {
+        let intent = self
+            .intent_axis_weights
+            .map(|t| t.perturbed_to_static(intent_factor));
+        let interaction = self
+            .interaction_weights
+            .map(|t| t.perturbed_to_static(interaction_factor));
+        Self {
+            policy_id: self.policy_id.clone(),
+            policy_version: self.policy_version.clone(),
+            axis_delta_multiplier: self.axis_delta_multiplier,
+            intent_axis_weights: intent,
+            interaction_weights: interaction,
+        }
+    }
+
     /// Run the v2 scoring pipeline against the supplied inputs and return
     /// a fully built [`PersonalDayAssessment`] with the calculation
     /// [`AssessmentTrace`] populated.

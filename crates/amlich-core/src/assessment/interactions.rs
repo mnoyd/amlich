@@ -151,6 +151,37 @@ impl InteractionWeightTable {
         }
         0.0
     }
+
+    /// Return a sensitivity-perturbed copy of this table as a `'static`
+    /// reference. Test-only API used by the stability gate (`amlich-31oa`)
+    /// to ±10% and ±20% perturb every entry. Each declared
+    /// [`InteractionWeight::weight`] is multiplied by `factor`, rounded
+    /// to the nearest 0.05 step for reviewability, and floored at 0.0
+    /// so a negative perturbation cannot flip the sign of a weight.
+    pub(crate) fn perturbed_to_static(self, factor: f32) -> &'static Self {
+        let step = 0.05_f32;
+        let perturbed_entries: Vec<InteractionWeight> = self
+            .entries
+            .iter()
+            .map(|e| {
+                let scaled = e.weight * factor;
+                let units = (scaled / step).round();
+                let weight = (units * step).max(0.0);
+                InteractionWeight {
+                    kind: e.kind,
+                    weight,
+                    rationale: e.rationale,
+                }
+            })
+            .collect();
+        let perturbed_slice: &'static [InteractionWeight] =
+            Box::leak(perturbed_entries.into_boxed_slice());
+        let table = InteractionWeightTable {
+            policy_version: self.policy_version,
+            entries: perturbed_slice,
+        };
+        Box::leak(Box::new(table))
+    }
 }
 
 /// The v2.2 interaction weight table.

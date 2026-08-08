@@ -74,6 +74,35 @@ impl IntentAxisWeights {
     pub fn total(self) -> f32 {
         self.generic_day_quality + self.intent_fit + self.personal_alignment + self.annual_pressure
     }
+
+    /// Return a sensitivity-perturbed copy of this entry: each of the
+    /// four scored-axis weights is multiplied by `factor` and rounded
+    /// to the nearest 0.05 step, then renormalized so the entry still
+    /// sums to 1.0 (the policy invariant). Test-only API used by the
+    /// stability gate (`amlich-31oa`).
+    pub(crate) fn perturbed(self, factor: f32) -> Self {
+        let step = 0.05_f32;
+        let round_step = |w: f32| {
+            let scaled = w * factor;
+            let units = (scaled / step).round();
+            (units * step).max(0.0)
+        };
+        let mut entry = IntentAxisWeights {
+            intent: self.intent,
+            generic_day_quality: round_step(self.generic_day_quality),
+            intent_fit: round_step(self.intent_fit),
+            personal_alignment: round_step(self.personal_alignment),
+            annual_pressure: round_step(self.annual_pressure),
+        };
+        let total = entry.total();
+        if total > 0.0 {
+            entry.generic_day_quality /= total;
+            entry.intent_fit /= total;
+            entry.personal_alignment /= total;
+            entry.annual_pressure /= total;
+        }
+        entry
+    }
 }
 
 /// Sparse, policy-versioned table of per-intent axis weights. Construct
@@ -102,6 +131,27 @@ impl IntentAxisWeightTable {
             "intent_axis_weight table v{} is missing weights for intent {:?}",
             self.policy_version, intent
         )
+    }
+
+    /// Return a sensitivity-perturbed copy of this table as a
+    /// `'static` reference. Test-only API used by the stability gate
+    /// (`amlich-31oa`) to ±10% and ±20% perturb every entry.
+    ///
+    /// Each entry's four scored-axis weights are multiplied by `factor`
+    /// (rounded to the nearest 0.05 step for reviewability), then
+    /// renormalized so the per-entry sum is 1.0. The leaked allocation
+    /// is bounded by the number of perturbation combinations the gate
+    /// runs (a few dozen, total ≈ a few KB).
+    pub(crate) fn perturbed_to_static(self, factor: f32) -> &'static Self {
+        let perturbed_entries: Vec<IntentAxisWeights> =
+            self.entries.iter().map(|e| e.perturbed(factor)).collect();
+        let perturbed_slice: &'static [IntentAxisWeights] =
+            Box::leak(perturbed_entries.into_boxed_slice());
+        let table = IntentAxisWeightTable {
+            policy_version: self.policy_version,
+            entries: perturbed_slice,
+        };
+        Box::leak(Box::new(table))
     }
 }
 

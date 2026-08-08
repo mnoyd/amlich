@@ -63,6 +63,8 @@ pub mod feature;
 pub mod hour_ranking;
 pub mod interactions;
 pub mod policy;
+pub mod promotion;
+pub mod stability;
 pub mod trace;
 pub mod weights;
 
@@ -74,6 +76,8 @@ pub use policy::{
     AssessmentPolicy, ASSESSMENT_POLICY_V2_1_VERSION, ASSESSMENT_POLICY_V2_2_VERSION,
     ASSESSMENT_POLICY_V2_ID, ASSESSMENT_POLICY_V2_VERSION,
 };
+pub use promotion::{current_default_policy_version, PromotionStatus, PromotionStatusReport};
+pub use stability::{GateDetail, GateResult, GateStatus, StabilityGate, StabilityReport};
 pub use trace::{
     AssessmentTrace, AxisAggregation, AxisContributor, AxisWeight, DecisionAggregation,
     InteractionTerm, VetoEvent,
