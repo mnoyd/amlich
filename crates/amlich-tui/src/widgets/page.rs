@@ -11,8 +11,8 @@ use crate::state::{AppState, PageSection};
 
 use super::{
     screens::{
-        event_detail::EventDetailScreenWidget, graph_inspector::GraphInspectorScreenWidget,
-        today::TodayScreenWidget,
+        elements::ElementsScreenWidget, event_detail::EventDetailScreenWidget,
+        graph_inspector::GraphInspectorScreenWidget, today::TodayScreenWidget,
     },
     week_strip::WeekStripWidget,
 };
@@ -30,6 +30,8 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
 
         (crate::state::ActiveView::EventDetail, LayoutMode::Small, _) => 48,
         (crate::state::ActiveView::EventDetail, _, _) => 34,
+        (crate::state::ActiveView::Elements, LayoutMode::Small, _) => 46,
+        (crate::state::ActiveView::Elements, _, _) => 34,
 
         (crate::state::ActiveView::Personal, _, _) => personal_natural_height(app, mode),
         (crate::state::ActiveView::GraphInspector, _, _) => 28,
@@ -59,6 +61,9 @@ pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: 
         crate::state::ActiveView::Today => TodayScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::EventDetail => {
             EventDetailScreenWidget::new(app, mode).render(area, buf)
+        }
+        crate::state::ActiveView::Elements => {
+            ElementsScreenWidget::new(app, mode).render(area, buf)
         }
         crate::state::ActiveView::Personal => {
             crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode)
@@ -142,6 +147,9 @@ impl Widget for PageWidget<'_> {
             crate::state::ActiveView::EventDetail => {
                 EventDetailScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
+            crate::state::ActiveView::Elements => {
+                ElementsScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
             crate::state::ActiveView::Personal => {
                 crate::widgets::screens::personal::PersonalScreenWidget::new(self.app, self.mode)
                     .render(content_area, buf)
@@ -179,9 +187,11 @@ mod tests {
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
-        DayDeityInsightDto, DayInsightDto, FestivalInsightDto, LocalizedListDto, LocalizedTextDto,
-        LunarDto, RecommendationPackCatalogEntryDto, RegionsInsightDto, RulesetCatalogEntryDto,
-        RulesetDefaultsDto, SolarDto, TabooInsightDto, TuMenhInsightDto,
+        CanChiDto, CanChiInfoDto, CanChiInsightDto, CanInsightDto, ChiInsightDto,
+        DayDeityInsightDto, DayGuidanceDto, DayInsightDto, ElementInsightDto, FestivalInsightDto,
+        LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto,
+        RecommendationPackCatalogEntryDto, RegionsInsightDto, RulesetCatalogEntryDto,
+        RulesetDefaultsDto, SolarDto, TabooInsightDto, TrucInsightDto, TuMenhInsightDto,
     };
     use chrono::NaiveDate;
     use ratatui::{buffer::Buffer, layout::Rect};
@@ -302,6 +312,21 @@ mod tests {
         LocalizedTextDto {
             vi: vi.to_string(),
             en: en.to_string(),
+        }
+    }
+
+    fn canchi_pillar(can: &str, chi: &str, can_element: &str, chi_element: &str) -> CanChiDto {
+        CanChiDto {
+            can_index: 0,
+            chi_index: 0,
+            can: can.to_string(),
+            chi: chi.to_string(),
+            full: format!("{can} {chi}"),
+            con_giap: chi.to_string(),
+            ngu_hanh: NguHanhDto {
+                can: can_element.to_string(),
+                chi: chi_element.to_string(),
+            },
         }
     }
 
@@ -468,5 +493,98 @@ mod tests {
         assert!(text.contains("Trăng tròn"));
         assert!(text.contains("Đi chùa cầu an"));
         assert!(text.contains("Cúng gia tiên"));
+    }
+
+    #[test]
+    fn elements_screen_keeps_full_truc_meaning_and_canchi_guidance() {
+        let mut app = sample_app_state();
+        let mut bundle = sample_bundle();
+        bundle.canchi = Some(CanChiInfoDto {
+            day: canchi_pillar("Bính", "Ngọ", "Hỏa", "Hỏa"),
+            month: canchi_pillar("Giáp", "Dần", "Mộc", "Mộc"),
+            year: canchi_pillar("Bính", "Ngọ", "Hỏa", "Hỏa"),
+            full: "Bính Ngọ · Giáp Dần · Bính Ngọ".to_string(),
+        });
+        bundle.insight = Some(DayInsightDto {
+            solar: bundle.solar.clone(),
+            lunar: bundle.lunar.clone(),
+            festival: None,
+            holiday: None,
+            canchi: Some(CanChiInsightDto {
+                can: CanInsightDto {
+                    name: "Bính".to_string(),
+                    element: "Hỏa".to_string(),
+                    meaning: localized("Ánh sáng lan tỏa.", "Radiant light."),
+                    nature: localized("Dương Hỏa chủ động.", "Active yang fire."),
+                },
+                chi: ChiInsightDto {
+                    name: "Ngọ".to_string(),
+                    animal: localized("Ngựa", "Horse"),
+                    element: "Hỏa".to_string(),
+                    meaning: localized("Khí cực thịnh giữa trưa.", "Peak midday energy."),
+                    hours: "11:00-13:00".to_string(),
+                },
+                element: Some(ElementInsightDto {
+                    key: "fire".to_string(),
+                    name: localized("Hỏa", "Fire"),
+                    nature: localized("Ấm nóng, hướng thượng và lan tỏa.", "Warm and rising."),
+                }),
+            }),
+            day_guidance: Some(DayGuidanceDto {
+                good_for: LocalizedListDto {
+                    vi: vec!["khai trương".to_string(), "công bố kế hoạch".to_string()],
+                    en: vec![],
+                },
+                avoid_for: LocalizedListDto {
+                    vi: vec!["quyết định nóng vội".to_string()],
+                    en: vec![],
+                },
+            }),
+            tiet_khi: None,
+            na_am: None,
+            truc: Some(TrucInsightDto {
+                name: "Khai".to_string(),
+                quality: "cát".to_string(),
+                meaning: localized(
+                    "Trực Khai mở lối. Ý nghĩa thứ hai phải còn nguyên.",
+                    "Opening duty initiates movement.",
+                ),
+                good_for: LocalizedListDto {
+                    vi: vec!["bắt đầu việc mới".to_string()],
+                    en: vec![],
+                },
+                avoid_for: LocalizedListDto {
+                    vi: vec!["đóng cửa cơ hội".to_string()],
+                    en: vec![],
+                },
+            }),
+            day_deity: None,
+            stars: None,
+            taboos: None,
+            travel: None,
+            xung_hop: None,
+            tang_can: None,
+            ten_gods: None,
+            hours: None,
+            tu_menh: None,
+            dai_van: None,
+            yearly_han: None,
+        });
+        app.bundle = Some(bundle);
+        app.active_view = ActiveView::Elements;
+
+        let text = render_text(&app);
+
+        assert!(text.contains("Ngũ Hành Ngày"));
+        assert!(text.contains("Mộc sinh Hỏa"));
+        assert!(text.contains("Hỏa khắc Kim"));
+        assert!(text.contains("Thiên Can Bính"));
+        assert!(text.contains("Địa Chi Ngọ"));
+        assert!(text.contains("Ngày: Bính Ngọ"));
+        assert!(text.contains("Tháng: Giáp Dần"));
+        assert!(text.contains("Ý nghĩa thứ hai phải còn nguyên."));
+        assert!(text.contains("Kết Hợp Trực + Hành"));
+        assert!(text.contains("khai trương"));
+        assert!(text.contains("quyết định nóng vội"));
     }
 }

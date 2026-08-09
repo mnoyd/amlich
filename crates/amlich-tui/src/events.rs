@@ -62,10 +62,14 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             return false;
         }
         KeyCode::Char('3') => {
-            app.go_to_view(crate::state::ActiveView::Personal);
+            app.go_to_view(crate::state::ActiveView::Elements);
             return false;
         }
         KeyCode::Char('4') => {
+            app.go_to_view(crate::state::ActiveView::Personal);
+            return false;
+        }
+        KeyCode::Char('5') => {
             app.go_to_view(crate::state::ActiveView::GraphInspector);
             return false;
         }

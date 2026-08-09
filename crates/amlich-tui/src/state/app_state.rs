@@ -154,6 +154,7 @@ impl FocusLens {
 pub enum ActiveView {
     Today,
     EventDetail,
+    Elements,
     Personal,
     GraphInspector,
 }
@@ -163,6 +164,7 @@ impl ActiveView {
         match self {
             Self::Today => "Tổng Quan",
             Self::EventDetail => "Sự Kiện",
+            Self::Elements => "Ngũ Hành",
             Self::Personal => "Cá Nhân",
             Self::GraphInspector => "Đồ Thị Ngữ Nghĩa",
         }
@@ -172,6 +174,7 @@ impl ActiveView {
         match self {
             Self::Today => "Tổng",
             Self::EventDetail => "Lễ",
+            Self::Elements => "Hành",
             Self::Personal => "Cá Nhân",
             Self::GraphInspector => "Debug",
         }
@@ -999,6 +1002,7 @@ impl AppState {
         let mut views = vec![
             ActiveView::Today,
             ActiveView::EventDetail,
+            ActiveView::Elements,
             ActiveView::Personal,
         ];
         if self.dev_inspector_mode {
