@@ -274,12 +274,14 @@ fn personal_day_advisory_incorporates_reasoning_signals() {
     .expect("advisory");
 
     assert!(advisory.reasoning_bucket.is_some());
+    let canonical = advisory
+        .canonical_assessment
+        .as_ref()
+        .expect("canonical assessment");
     assert!(advisory
         .top_signals
         .iter()
-        .any(|signal| signal.contains("khởi sự")
-            || signal.contains("thận trọng")
-            || signal.contains("Không nên")));
+        .any(|signal| signal == &canonical.decision.primary_conclusion));
 }
 
 #[test]

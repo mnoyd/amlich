@@ -906,6 +906,7 @@ pub fn build_direction_cross_link(
     Ok(PersonalFactNode {
         id: "fact.personal.direction_cross_link".to_string(),
         summary_vi: cross.summary_vi.clone(),
+        effect: None,
         evidence: cross.evidence.clone(),
     })
 }

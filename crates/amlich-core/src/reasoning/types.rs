@@ -169,59 +169,6 @@ impl ReasoningNodeSeverity {
     }
 }
 
-pub fn interpret_severity(
-    concept_key: &str,
-    severity: Option<&str>,
-    summary_vi: &str,
-) -> Option<ReasoningNodeSeverity> {
-    match concept_key {
-        "truc" => match severity {
-            Some("cat") => Some(ReasoningNodeSeverity::Auspicious),
-            Some("hung") => Some(ReasoningNodeSeverity::Inauspicious),
-            _ => None,
-        },
-        "day_deity" => match severity {
-            Some("hoang_dao") => Some(ReasoningNodeSeverity::HoangDao),
-            Some("hac_dao") => Some(ReasoningNodeSeverity::HacDao),
-            _ => None,
-        },
-        "taboo" => match severity {
-            Some("hard") => Some(ReasoningNodeSeverity::HardTaboo),
-            Some("soft") => Some(ReasoningNodeSeverity::SoftTaboo),
-            _ => None,
-        },
-        "star" => {
-            if summary_vi.contains("cát tinh") {
-                Some(ReasoningNodeSeverity::Auspicious)
-            } else if summary_vi.contains("sát tinh") {
-                Some(ReasoningNodeSeverity::Inauspicious)
-            } else {
-                None
-            }
-        }
-        "hoang_dao_hours" => {
-            // Favorability is signaled by a non-numeric presence marker on
-            // the semantic node (see `with_severity_if`); the good-hour
-            // count itself lives in the summary text and snapshot, never in
-            // the severity slot (amlich-0q2f: no overloaded numeric
-            // severities).
-            if severity.is_some() {
-                Some(ReasoningNodeSeverity::Auspicious)
-            } else {
-                None
-            }
-        }
-        "xung_hop" => {
-            if summary_vi.starts_with("Xung") && !summary_vi.contains(", hợp ") {
-                Some(ReasoningNodeSeverity::Inauspicious)
-            } else {
-                None
-            }
-        }
-        _ => None,
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ReasoningNodeExport {
     pub id: String,

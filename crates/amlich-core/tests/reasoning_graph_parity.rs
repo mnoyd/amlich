@@ -2,7 +2,7 @@ use amlich_core::{
     build_initiation_opening_reasoning, calculate_day_snapshot,
     calculate_day_snapshot_with_timezone,
     reasoning::{PersonalReasoningInput, RecommendationBucket},
-    BirthInput, ConsultationIntent, Gender,
+    BirthInput, BirthProfile, BirthTime, ConsultationIntent, Gender, PersonalDayAssessment,
 };
 
 #[derive(Clone, Copy)]
@@ -100,7 +100,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: None,
             personal_input: None,
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Avoid,
             expect_conflict_visibility: true,
             expect_override_visibility: true,
         },
@@ -124,7 +124,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: None,
             personal_input: None,
-            expected_bucket: RecommendationBucket::Favorable,
+            expected_bucket: RecommendationBucket::Mixed,
             expect_conflict_visibility: false,
             expect_override_visibility: false,
         },
@@ -148,7 +148,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: None,
             personal_input: None,
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Avoid,
             expect_conflict_visibility: true,
             expect_override_visibility: true,
         },
@@ -172,7 +172,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: None,
             personal_input: None,
-            expected_bucket: RecommendationBucket::Favorable,
+            expected_bucket: RecommendationBucket::Mixed,
             expect_conflict_visibility: false,
             expect_override_visibility: false,
         },
@@ -196,7 +196,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: None,
             personal_input: None,
-            expected_bucket: RecommendationBucket::Favorable,
+            expected_bucket: RecommendationBucket::Mixed,
             expect_conflict_visibility: false,
             expect_override_visibility: false,
         },
@@ -208,7 +208,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: None,
             personal_input: None,
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Avoid,
             expect_conflict_visibility: true,
             expect_override_visibility: true,
         },
@@ -220,7 +220,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: None,
             personal_input: None,
-            expected_bucket: RecommendationBucket::Favorable,
+            expected_bucket: RecommendationBucket::Mixed,
             expect_conflict_visibility: false,
             expect_override_visibility: false,
         },
@@ -252,7 +252,7 @@ fn parity_corpus() -> Vec<ParityCase> {
                 7.0,
                 Some(Gender::Female),
             )),
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Avoid,
             expect_conflict_visibility: false,
             expect_override_visibility: false,
         },
@@ -276,7 +276,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: Some(7.0),
             personal_input: Some(profile_input(30, 1, 1989, 23, 30, 7.0, Some(Gender::Male))),
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Avoid,
             expect_conflict_visibility: true,
             expect_override_visibility: true,
         },
@@ -288,7 +288,7 @@ fn parity_corpus() -> Vec<ParityCase> {
             year: 2024,
             snapshot_timezone: Some(8.0),
             personal_input: Some(profile_input(30, 1, 1989, 23, 30, 8.0, Some(Gender::Male))),
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Avoid,
             expect_conflict_visibility: true,
             expect_override_visibility: true,
         },
@@ -364,6 +364,53 @@ fn personal_parity_cases_keep_profile_effects_explicit() {
                 || !with_profile.override_factors.is_empty()
                 || !with_profile.conflict_notes.is_empty(),
             "{} should expose profile-dependent output",
+            case.id
+        );
+    }
+}
+
+#[test]
+fn standalone_personal_reasoning_uses_the_actual_birth_profile() {
+    for case in parity_corpus()
+        .into_iter()
+        .filter(|case| case.personal_input.is_some())
+    {
+        let snapshot = decision_snapshot(&case);
+        let personal = case.personal_input.as_ref().expect("personal input");
+        let bundle =
+            amlich_core::build_initiation_opening_reasoning_bundle(&snapshot, Some(personal))
+                .expect("reasoning bundle");
+        let profile = BirthProfile {
+            day: personal.birth.day,
+            month: personal.birth.month,
+            year: personal.birth.year,
+            time: personal
+                .birth
+                .hour
+                .zip(personal.birth.minute)
+                .map(|(hour, minute)| BirthTime { hour, minute }),
+            timezone: personal.birth.timezone,
+            longitude: None,
+            use_solar_time: false,
+            gender: personal.birth.gender,
+            location_name: personal.birth.location_name.clone(),
+        };
+        let canonical =
+            PersonalDayAssessment::assess(snapshot, profile, ConsultationIntent::OpeningBusiness);
+
+        assert_eq!(
+            bundle.decision.recommendation_bucket, canonical.decision.bucket,
+            "{} bucket must use the actual birth profile",
+            case.id
+        );
+        assert_eq!(
+            bundle.decision.confidence, canonical.decision.confidence,
+            "{} confidence must use the actual birth profile",
+            case.id
+        );
+        assert_eq!(
+            bundle.decision.primary_conclusion, canonical.decision.primary_conclusion,
+            "{} conclusion must use the actual birth profile",
             case.id
         );
     }
@@ -714,6 +761,7 @@ fn graph_backed_evaluator_produces_valid_action_evaluation() {
             decision.recommendation_bucket,
             amlich_core::reasoning::RecommendationBucket::Favorable
                 | amlich_core::reasoning::RecommendationBucket::Cautious
+                | amlich_core::reasoning::RecommendationBucket::Mixed
                 | amlich_core::reasoning::RecommendationBucket::Avoid
         ),
         "should have valid bucket"

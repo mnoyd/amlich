@@ -99,7 +99,8 @@ pub use semantic_graph::{
     debug_inspect_semantic_graph, ConceptLabel, DebugInspectionDate, DebugInspectionSummary,
     DebugSemanticGraphInspection, EdgeConcept, GraphOntology, GraphValidationError, NodeConcept,
     NodeOrigin, ProvenanceEntry, ProvenanceSource, ProvenanceTracker, SemanticEdge,
-    SemanticEdgeLabel, SemanticGraph, SemanticId, SemanticNode, SemanticNodeId,
+    SemanticEdgeLabel, SemanticFact, SemanticGraph, SemanticId, SemanticNode, SemanticNodeId,
+    SemanticPolarity,
 };
 pub use types::*;
 

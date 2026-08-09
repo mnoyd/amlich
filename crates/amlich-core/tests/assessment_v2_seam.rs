@@ -148,9 +148,7 @@ fn v2_emits_a_trace_with_stable_feature_ids() {
     );
     for feature in &trace.features {
         assert!(
-            AssessmentFeatureId::ALL
-                .iter()
-                .any(|f| *f == feature.feature_id),
+            AssessmentFeatureId::ALL.contains(&feature.feature_id),
             "feature {:?} is not in the stable ALL list",
             feature.feature_id
         );

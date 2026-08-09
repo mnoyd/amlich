@@ -4,8 +4,8 @@ use crate::interaction::types::{
     PersonalHourMatrix,
 };
 use crate::semantic_graph::{
-    EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, SemanticEdge, SemanticGraph, SemanticId,
-    SemanticNode,
+    EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, SemanticEdge, SemanticFact,
+    SemanticGraph, SemanticId, SemanticNode,
 };
 
 pub struct InteractionGraphBuilder {
@@ -74,6 +74,12 @@ impl InteractionGraphBuilder {
             let mut updated = existing;
             updated.tags.extend(tags);
             self.graph.add_node(updated);
+        }
+    }
+
+    pub fn set_node_fact(&mut self, node_id: &str, fact: SemanticFact) {
+        if let Some(existing) = self.graph.get_node(node_id).cloned() {
+            self.graph.add_node(existing.with_fact(fact));
         }
     }
 
@@ -587,6 +593,12 @@ pub fn build_direction_merge_matrix_graph(
                 format!("unfavorable_count:{}", entry.unfavorable_count),
                 format!("net_score:{}", entry.net_score),
             ],
+        );
+        builder.set_node_fact(
+            &row_node_id,
+            SemanticFact::Direction {
+                net_score: entry.net_score,
+            },
         );
         builder.add_has_row_edge(&matrix_node_id, &row_node_id);
 

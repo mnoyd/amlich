@@ -128,7 +128,7 @@ fn reasoning_bundle_serializes_to_stable_machine_readable_shape() {
     assert!(object.contains_key("graph"));
     assert_eq!(
         value.pointer("/decision/recommendation_bucket"),
-        Some(&Value::String("cautious".to_string()))
+        Some(&Value::String("avoid".to_string()))
     );
     assert_eq!(
         value.pointer("/graph/action_id"),
@@ -136,7 +136,7 @@ fn reasoning_bundle_serializes_to_stable_machine_readable_shape() {
     );
     assert_eq!(
         value.pointer("/decision_export/semantic"),
-        Some(&Value::String("override_cautious".to_string()))
+        Some(&Value::String("override_avoid".to_string()))
     );
     assert!(value
         .pointer("/graph/nodes")

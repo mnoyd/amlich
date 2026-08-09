@@ -1,4 +1,4 @@
-use super::types::{interpret_severity, InterpretedAxis, ReasoningNodeSeverity};
+use super::types::{InterpretedAxis, ReasoningNodeSeverity};
 
 pub(super) fn axis_for_node(node_id: &str) -> Option<InterpretedAxis> {
     match node_id {
@@ -15,18 +15,26 @@ pub(super) fn axis_for_node(node_id: &str) -> Option<InterpretedAxis> {
 pub(super) fn severity_for_node(
     node_id: &str,
     severity: Option<&str>,
-    summary_vi: &str,
 ) -> Option<ReasoningNodeSeverity> {
-    let concept_key = match node_id {
-        "fact.day.truc" => "truc",
-        "fact.day.day_deity" => "day_deity",
-        "fact.day.taboos" => "taboo",
-        "fact.day.nhi_thap_bat_tu" => "star",
-        "fact.day.hoang_dao_hours" => "hoang_dao_hours",
-        "fact.day.xung_hop" => "xung_hop",
-        _ => return None,
-    };
-    interpret_severity(concept_key, severity, summary_vi)
+    match node_id {
+        "fact.day.truc" => match severity {
+            Some("cat") => Some(ReasoningNodeSeverity::Auspicious),
+            Some("hung") => Some(ReasoningNodeSeverity::Inauspicious),
+            _ => None,
+        },
+        "fact.day.day_deity" => match severity {
+            Some("hoang_dao") => Some(ReasoningNodeSeverity::HoangDao),
+            Some("hac_dao") => Some(ReasoningNodeSeverity::HacDao),
+            _ => None,
+        },
+        "fact.day.taboos" => match severity {
+            Some("hard") => Some(ReasoningNodeSeverity::HardTaboo),
+            Some("soft") => Some(ReasoningNodeSeverity::SoftTaboo),
+            _ => None,
+        },
+        "fact.day.hoang_dao_hours" if severity.is_some() => Some(ReasoningNodeSeverity::Auspicious),
+        _ => None,
+    }
 }
 
 pub(super) fn tags_for_node(node_id: &str) -> Vec<String> {

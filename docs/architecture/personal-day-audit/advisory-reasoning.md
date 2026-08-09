@@ -2,6 +2,27 @@
 
 Scope: `crates/amlich-core/src/advisory.rs` and `crates/amlich-core/src/reasoning/{personal.rs,synthesis.rs,initiation_opening_evaluator.rs,types.rs,action_evaluator.rs,graph_projection.rs}` plus the reasoning graph tests. This is a read-only audit; no source changes were made.
 
+## Resolution addendum (2026-08-09)
+
+This audit is retained as historical evidence. The `amlich-mwbp` repair closed
+its findings as follows:
+
+| Finding | Resolution |
+| --- | --- |
+| A-R01–A-R03 | Canonical assessment and explicit birth capabilities replaced the independent advisory/midnight-fallback paths. |
+| A-R04 | Initiation/opening evaluates an explicit concept allowlist. |
+| A-R05–A-R06 | Verdicts and normalized axes come from typed canonical contributions and capability/evidence coverage; graph note counts no longer synthesize decisions. |
+| A-R07 | `SemanticFact` replaces localized-summary and serialized-tag parsing for Trực, stars, Xung/Hợp, and directions. |
+| A-R08 | The dead referenced-edge contract was removed; node/edge evidence remains on exported graph records. |
+| A-R09 | Typed star polarity prevents negative 28-star facts from becoming support; duplicate graph facts cannot alter canonical scores. |
+| A-R10 | Numeric severity overloads were removed; personal effects and direction scores are typed fields. |
+| A-R11 | `PersonalAssessmentFacts` and request contexts reuse chart, matrix, snapshot, and assessment builds. |
+| A-R12 | Policy/ruleset/source/contribution metadata is exposed through `PersonalDayAssessment` and its DTO projection. |
+
+The localization, duplicate-evidence, action-isolation, provenance, severity,
+standalone-profile, core/API parity, and serialization tests are the deletion
+gates for these resolutions.
+
 ## Rubric used
 
 - **Architecture/depth/seams:** one canonical domain pipeline, explicit boundaries, action-specific inputs, no duplicated decision logic.
@@ -169,4 +190,3 @@ There is substantial graph parity/canonical coverage (`crates/amlich-core/tests/
 3. **P1 correctness:** typed semantic facts (relations, star polarity, direction rows, Trực hits); action-specific subgraph selection; hard-taboo override policy with provenance-aware confidence.
 4. **P1 explainability:** populate referenced edge IDs or remove the dead field; preserve contribution IDs and source versions end-to-end.
 5. **P2 quality:** cache per-request personal facts; replace overloaded severities; document policy/score/confidence semantics and add the missing regression/metamorphic tests.
-

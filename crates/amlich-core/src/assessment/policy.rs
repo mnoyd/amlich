@@ -946,25 +946,31 @@ mod tests {
 
     #[test]
     fn evidence_coverage_score_matches_v1_capability_ratio() {
-        let mut none = BirthCapability::default();
-        none.has_date = false;
-        none.has_time = false;
-        none.has_gender = false;
-        none.has_location = false;
+        let none = BirthCapability {
+            has_date: false,
+            has_time: false,
+            has_gender: false,
+            has_location: false,
+            ..BirthCapability::default()
+        };
         assert!((evidence_coverage_score(&none) - 0.0).abs() < 1e-6);
 
-        let mut all = BirthCapability::default();
-        all.has_date = true;
-        all.has_time = true;
-        all.has_gender = true;
-        all.has_location = true;
+        let all = BirthCapability {
+            has_date: true,
+            has_time: true,
+            has_gender: true,
+            has_location: true,
+            ..BirthCapability::default()
+        };
         assert!((evidence_coverage_score(&all) - 1.0).abs() < 1e-6);
 
-        let mut half = BirthCapability::default();
-        half.has_date = true;
-        half.has_time = false;
-        half.has_gender = true;
-        half.has_location = false;
+        let half = BirthCapability {
+            has_date: true,
+            has_time: false,
+            has_gender: true,
+            has_location: false,
+            ..BirthCapability::default()
+        };
         assert!((evidence_coverage_score(&half) - 0.5).abs() < 1e-6);
     }
 }

@@ -44,6 +44,7 @@ use crate::{
     almanac::{
         recommendation::{DailyRecommendations, RecommendationBucket},
         tu_menh::KuaResult,
+        types::DayTaboo,
         yearly_han::{HanSeverity, YearlyHanAssessment},
     },
     bazi::{analysis::BaziAnalysisReport, types::BaziChart},
@@ -226,6 +227,45 @@ pub struct SourceEvidence {
     pub profile: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+}
+
+pub(super) fn taboo_evidence_quality(taboo: &DayTaboo) -> &'static str {
+    match taboo.evidence.as_ref() {
+        Some(evidence)
+            if !evidence.source_id.is_empty()
+                && !evidence.method.is_empty()
+                && !evidence.profile.is_empty() =>
+        {
+            "qualified"
+        }
+        _ => "unqualified",
+    }
+}
+
+pub(super) fn taboo_contribution_strength(taboo: &DayTaboo) -> f32 {
+    let severity_strength = match taboo.severity.as_str() {
+        // Keep ordinary taboo observations below the canonical hard-veto
+        // threshold. A named policy veto must be declared separately; the
+        // severity still orders weighted resistance predictably.
+        "hard" => 0.7,
+        "soft" => 0.5,
+        _ => 0.3,
+    };
+    let evidence_factor = if taboo_evidence_quality(taboo) == "qualified" {
+        1.0
+    } else {
+        0.5
+    };
+    severity_strength * evidence_factor
+}
+
+pub(super) fn strongest_taboo(taboos: &[DayTaboo]) -> Option<&DayTaboo> {
+    taboos.iter().max_by(|left, right| {
+        taboo_contribution_strength(left)
+            .partial_cmp(&taboo_contribution_strength(right))
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| right.rule_id.cmp(&left.rule_id))
+    })
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -490,9 +530,32 @@ impl PersonalDayAssessmentBuilder {
             }
         }
 
-        if !snapshot.day_fortune.taboos.is_empty() {
+        if let Some(taboo) = strongest_taboo(&snapshot.day_fortune.taboos) {
             let taboo_count = snapshot.day_fortune.taboos.len();
-            let strength = (taboo_count.min(3) as f32) / 3.0 * 0.6 + 0.2;
+            let strength = taboo_contribution_strength(taboo);
+            let quality = taboo_evidence_quality(taboo);
+            let source_evidence = match taboo.evidence.as_ref() {
+                Some(evidence) => SourceEvidence {
+                    source_family: "almanac_rule".to_string(),
+                    source_id: evidence.source_id.clone(),
+                    method: evidence.method.clone(),
+                    profile: evidence.profile.clone(),
+                    note: Some(format!(
+                        "rule_id={} severity={} evidence_quality={quality} count={taboo_count}",
+                        taboo.rule_id, taboo.severity
+                    )),
+                },
+                None => SourceEvidence {
+                    source_family: "unqualified_rule".to_string(),
+                    source_id: ruleset_id.clone(),
+                    method: "missing_rule_evidence".to_string(),
+                    profile: profile_id.clone(),
+                    note: Some(format!(
+                        "rule_id={} severity={} evidence_quality={quality} count={taboo_count}",
+                        taboo.rule_id, taboo.severity
+                    )),
+                },
+            };
             contributions.push(DecisionContribution {
                 contribution_id: format!("day_fortune.taboo.{}", snapshot.context.solar.day),
                 axis: AssessmentAxis::GenericDayQuality,
@@ -502,13 +565,7 @@ impl PersonalDayAssessmentBuilder {
                 policy_version: ASSESSMENT_POLICY_VERSION.to_string(),
                 ruleset_id: ruleset_id.clone(),
                 ruleset_version: ruleset_version.clone(),
-                source_evidence: SourceEvidence {
-                    source_family: "almanac_rule".to_string(),
-                    source_id: SOURCE_KHCBPPT.to_string(),
-                    method: "day_fortune.taboos".to_string(),
-                    profile: profile_id.clone(),
-                    note: Some(format!("count={taboo_count}")),
-                },
+                source_evidence,
                 availability: AvailabilityState::Complete,
                 note: None,
             });

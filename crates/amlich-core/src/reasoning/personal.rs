@@ -13,11 +13,12 @@ use crate::{
     BirthInput, ConsultationIntent, DaySnapshot,
 };
 
-use super::{ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily};
+use super::{EdgeEffect, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily};
 
 pub struct PersonalFactNode {
     pub id: String,
     pub summary_vi: String,
+    pub effect: Option<EdgeEffect>,
     pub evidence: Vec<ReasoningEvidenceEnvelope>,
 }
 
@@ -123,6 +124,7 @@ impl PersonalReasoningInput {
         let mut nodes = vec![PersonalFactNode {
             id: "fact.personal.day_person_matrix".to_string(),
             summary_vi: summarize_day_person_matrix(&facts.day_person_matrix),
+            effect: Some(day_person_effect(&facts.day_person_matrix)),
             evidence: vec![interaction_evidence(
                 "interaction.day_person.compute_day_person_matrix",
                 "day_person_matrix",
@@ -133,6 +135,11 @@ impl PersonalReasoningInput {
             nodes.push(PersonalFactNode {
                 id: "fact.personal.personal_hour_matrix".to_string(),
                 summary_vi: summarize_personal_hour_matrix(personal_hour),
+                effect: Some(if personal_hour.hours.is_empty() {
+                    EdgeEffect::Weakens
+                } else {
+                    EdgeEffect::Supports
+                }),
                 evidence: vec![interaction_evidence(
                     "interaction.personal_hour.compute_personal_hour_matrix",
                     "personal_hour_matrix",
@@ -148,6 +155,7 @@ impl PersonalReasoningInput {
             nodes.push(PersonalFactNode {
                 id: "fact.personal.direction_merge".to_string(),
                 summary_vi: summarize_direction_merge(direction_merge),
+                effect: None,
                 evidence: vec![interaction_evidence(
                     "interaction.direction_merge.compute_direction_merge",
                     "direction_merge",
@@ -171,6 +179,7 @@ impl PersonalReasoningInput {
                     .collect::<Vec<_>>()
                     .join(", ")
             ),
+            effect: None,
             evidence: vec![bazi_evidence(
                 "bazi.compute_bazi_metrics",
                 "profile_analysis",
@@ -263,6 +272,25 @@ impl PersonalReasoningInput {
             gender: self.birth.gender,
         }
     }
+
+    pub(crate) fn to_birth_profile(&self) -> crate::birth::BirthProfile {
+        let time = self
+            .birth
+            .hour
+            .zip(self.birth.minute)
+            .map(|(hour, minute)| crate::birth::BirthTime { hour, minute });
+        crate::birth::BirthProfile {
+            day: self.birth.day,
+            month: self.birth.month,
+            year: self.birth.year,
+            time,
+            timezone: self.birth.timezone,
+            longitude: None,
+            use_solar_time: false,
+            gender: self.birth.gender,
+            location_name: self.birth.location_name.clone(),
+        }
+    }
 }
 
 fn interaction_evidence(source_id: &str, note: &str) -> ReasoningEvidenceEnvelope {
@@ -299,6 +327,24 @@ fn summarize_day_person_matrix(matrix: &crate::interaction::types::DayPersonMatr
         "Ngày {} so với nhật chủ {}: {} trụ hợp, {} trụ xung/khắc",
         matrix.day_canchi, matrix.day_master, harmonious_pillars, conflicting_pillars
     )
+}
+
+fn day_person_effect(matrix: &crate::interaction::types::DayPersonMatrix) -> EdgeEffect {
+    let harmonious = matrix
+        .pillars
+        .iter()
+        .filter(|pillar| pillar.branch_relation.has_harmony())
+        .count();
+    let conflicting = matrix
+        .pillars
+        .iter()
+        .filter(|pillar| pillar.branch_relation.has_conflict())
+        .count();
+    if harmonious > conflicting {
+        EdgeEffect::Supports
+    } else {
+        EdgeEffect::Weakens
+    }
 }
 
 fn summarize_personal_hour_matrix(

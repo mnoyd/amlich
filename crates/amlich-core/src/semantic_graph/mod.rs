@@ -15,7 +15,7 @@ pub use builders::{
 pub use edge::{SemanticEdge, SemanticEdgeId, SemanticEdgeLabel};
 pub use graph::{GraphMergeError, GraphValidationError, SemanticGraph};
 pub use ids::SemanticId;
-pub use node::{NodeOrigin, SemanticNode, SemanticNodeId};
+pub use node::{NodeOrigin, SemanticFact, SemanticNode, SemanticNodeId, SemanticPolarity};
 pub use ontology::{ConceptLabel, EdgeConcept, GraphOntology, NodeConcept};
 pub use provenance::{ProvenanceEntry, ProvenanceSource, ProvenanceTracker};
 pub use selectors::{EvidenceSelectors, SelectHitDirection, SourceFamilyCounts};

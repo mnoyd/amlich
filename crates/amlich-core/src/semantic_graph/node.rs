@@ -11,6 +11,39 @@ pub enum NodeOrigin {
     Decision,
 }
 
+/// Typed decision facts carried by semantic nodes.
+///
+/// `summary_vi` is presentation-only. Consumers that make decisions must
+/// read this field (or another typed domain field), never parse localized
+/// prose or ad-hoc tag strings.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case", tag = "kind")]
+pub enum SemanticFact {
+    Truc {
+        opening_avoid_count: u8,
+        opening_favorable: bool,
+    },
+    Star {
+        polarity: SemanticPolarity,
+    },
+    XungHop {
+        has_clash: bool,
+        has_harmony: bool,
+    },
+    Direction {
+        net_score: i8,
+    },
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SemanticPolarity {
+    Favorable,
+    Unfavorable,
+    Mixed,
+    Neutral,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SemanticNode {
     pub id: SemanticId,
@@ -24,6 +57,8 @@ pub struct SemanticNode {
     pub tags: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub provenance: Vec<ProvenanceEntry>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fact: Option<SemanticFact>,
     /// Optional generic JSON payload (Phase 19, INT-08 SC#2 literal interpretation).
     /// For `NodeConcept::Ritual` aggregate nodes, this carries
     /// `{"offering_refs": [...], "offerings": [...]}` derived from the matching
@@ -55,6 +90,7 @@ impl SemanticNode {
             severity: None,
             tags: Vec::new(),
             provenance: Vec::new(),
+            fact: None,
             payload: None,
         }
     }
@@ -82,6 +118,11 @@ impl SemanticNode {
 
     pub fn with_provenance(mut self, entry: ProvenanceEntry) -> Self {
         self.provenance.push(entry);
+        self
+    }
+
+    pub fn with_fact(mut self, fact: SemanticFact) -> Self {
+        self.fact = Some(fact);
         self
     }
 }

@@ -7,7 +7,6 @@ use amlich_api::{
     get_day_info, get_na_am_by_index, get_na_am_by_pair, DateQuery, NaAmErrorDto, NaAmResponseDto,
 };
 use amlich_core::almanac::sexagenary_cycle::{canchi_to_cycle_index, cycle_index_to_canchi};
-use serde_json;
 
 // ============================================================================
 // Schema Stability Tests for Index Lookup

@@ -46,17 +46,7 @@ pub fn build_initiation_opening_reasoning_bundle_with_facts(
         Some(a) => Some(a),
         None => match personal_input {
             Some(p) => {
-                let profile = BirthProfile {
-                    day: snapshot.context.solar.day,
-                    month: snapshot.context.solar.month,
-                    year: snapshot.context.solar.year,
-                    time: None,
-                    timezone: p.birth.timezone,
-                    longitude: None,
-                    use_solar_time: false,
-                    gender: p.birth.gender,
-                    location_name: None,
-                };
+                let profile = p.to_birth_profile();
                 anonymous_owned = Some(PersonalDayAssessment::assess(
                     snapshot.clone(),
                     profile,

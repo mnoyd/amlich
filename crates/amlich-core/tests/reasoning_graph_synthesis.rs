@@ -32,19 +32,17 @@ fn avoid_bucket_mentions_override_reason_explicitly() {
 }
 
 #[test]
-fn cautious_or_mixed_bucket_mentions_remaining_context() {
+fn canonical_avoid_bucket_preserves_remaining_context() {
     let snapshot = calculate_day_snapshot(14, 2, 2024);
     let decision = build_initiation_opening_decision(&snapshot, None).expect("decision");
 
-    assert!(matches!(
-        decision.recommendation_bucket,
-        RecommendationBucket::Cautious | RecommendationBucket::Mixed
-    ));
+    assert_eq!(decision.recommendation_bucket, RecommendationBucket::Avoid);
     assert!(!decision.context_is_clear || !decision.conflict_notes.is_empty());
     assert!(
         decision.primary_conclusion.contains("thận trọng")
             || decision.primary_conclusion.contains("trái chiều")
             || decision.primary_conclusion.contains("bối cảnh")
+            || decision.primary_conclusion.contains("Không nên")
     );
 }
 

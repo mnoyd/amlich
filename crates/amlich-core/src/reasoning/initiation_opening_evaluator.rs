@@ -1,15 +1,12 @@
-use crate::semantic_graph::{NodeConcept, SemanticGraph, SemanticNode};
+use crate::semantic_graph::{
+    NodeConcept, SemanticFact, SemanticGraph, SemanticNode, SemanticPolarity,
+};
 
 use crate::advisory::ConsultationIntent;
-use crate::almanac::recommendation::evidence::{collect_truc_hits, BaseDirection};
 use crate::assessment::PersonalDayAssessment;
 use crate::birth::BirthProfile;
-use crate::insight_data::find_truc_insight;
 use crate::reasoning::action_evaluator::{ActionEvaluation, ActionEvaluator};
-use crate::reasoning::types::{
-    interpret_severity, ActionId, DecisionConfidence, InterpretedAxis, ReasoningAxisScore,
-    ReasoningConclusionSemantic, ReasoningNodeSeverity, ReasoningNote, RecommendationBucket,
-};
+use crate::reasoning::types::{ActionId, ReasoningConclusionSemantic, ReasoningNote};
 use crate::reasoning::{PersonalAssessmentFacts, PersonalReasoningInput};
 use crate::types::VIETNAM_TIMEZONE;
 use crate::DaySnapshot;
@@ -158,9 +155,13 @@ impl InitiationOpeningEvaluator {
         }
 
         if let Some(xung_hop_node) = self.find_node_by_concept(graph, NodeConcept::XungHop) {
-            if xung_hop_node.summary_vi.contains("Xung")
-                && !xung_hop_node.summary_vi.contains(", hợp ")
-            {
+            if matches!(
+                xung_hop_node.fact,
+                Some(SemanticFact::XungHop {
+                    has_clash: true,
+                    has_harmony: false,
+                })
+            ) {
                 notes.push(ReasoningNote {
                     node_id: Some(xung_hop_node.node_id.clone()),
                     summary_vi: xung_hop_node.summary_vi.clone(),
@@ -231,25 +232,22 @@ impl InitiationOpeningEvaluator {
     }
 
     fn has_favorable_fact(&self, graph: &SemanticGraph) -> bool {
-        graph.nodes().values().any(|n| {
-            let concept_key = match n.concept {
-                NodeConcept::Truc => "truc",
-                NodeConcept::DayDeity => "day_deity",
-                NodeConcept::HoangDaoHour => "hoang_dao_hours",
-                NodeConcept::Star => return self.is_star_supportive(n),
-                _ => return false,
-            };
-            interpret_severity(concept_key, n.severity.as_deref(), &n.summary_vi)
-                .is_some_and(ReasoningNodeSeverity::is_favorable)
+        graph.nodes().values().any(|n| match n.concept {
+            NodeConcept::Truc => n.severity.as_deref() == Some("cat"),
+            NodeConcept::DayDeity => n.severity.as_deref() == Some("hoang_dao"),
+            NodeConcept::HoangDaoHour => n.severity.is_some(),
+            NodeConcept::Star => self.is_star_supportive(n),
+            _ => false,
         })
     }
 
     fn has_unfavorable_fact(&self, graph: &SemanticGraph) -> bool {
         graph.nodes().values().any(|n| match n.concept {
             NodeConcept::Taboo => n.severity.is_some(),
-            NodeConcept::InteractionRow => {
-                n.summary_vi.contains(" direction: net=") && self.node_has_tag(n, "unfavorable")
-            }
+            NodeConcept::InteractionRow => matches!(
+                n.fact,
+                Some(SemanticFact::Direction { net_score }) if net_score < 0
+            ),
             _ => false,
         })
     }
@@ -301,10 +299,10 @@ impl InitiationOpeningEvaluator {
         let mut has_unfavorable = false;
 
         for node in self.direction_rows(graph) {
-            if self.node_has_tag(node, "favorable") {
+            if matches!(node.fact, Some(SemanticFact::Direction { net_score }) if net_score > 0) {
                 has_favorable = true;
             }
-            if self.node_has_tag(node, "unfavorable") {
+            if matches!(node.fact, Some(SemanticFact::Direction { net_score }) if net_score < 0) {
                 has_unfavorable = true;
             }
         }
@@ -317,10 +315,18 @@ impl InitiationOpeningEvaluator {
         graph: &'a SemanticGraph,
     ) -> Option<&'a SemanticNode> {
         self.direction_rows(graph)
-            .filter(|node| self.node_has_tag(node, "unfavorable"))
+            .filter(|node| {
+                matches!(node.fact, Some(SemanticFact::Direction { net_score }) if net_score < 0)
+            })
             .min_by(|left, right| {
-                let left_score = self.node_tag_i8(left, "net_score").unwrap_or(0);
-                let right_score = self.node_tag_i8(right, "net_score").unwrap_or(0);
+                let left_score = match left.fact {
+                    Some(SemanticFact::Direction { net_score }) => net_score,
+                    _ => 0,
+                };
+                let right_score = match right.fact {
+                    Some(SemanticFact::Direction { net_score }) => net_score,
+                    _ => 0,
+                };
                 left_score
                     .cmp(&right_score)
                     .then_with(|| left.node_id.cmp(&right.node_id))
@@ -333,202 +339,19 @@ impl InitiationOpeningEvaluator {
     ) -> impl Iterator<Item = &'a SemanticNode> {
         graph.nodes().values().filter(|node| {
             node.concept == NodeConcept::InteractionRow
-                && node.summary_vi.contains(" direction: net=")
+                && matches!(node.fact, Some(SemanticFact::Direction { .. }))
         })
     }
 
-    fn node_tag_i8(&self, node: &SemanticNode, prefix: &str) -> Option<i8> {
-        let prefix = format!("{prefix}:");
-        node.tags
-            .iter()
-            .find_map(|tag| tag.strip_prefix(&prefix)?.parse::<i8>().ok())
-    }
-
-    fn node_has_tag(&self, node: &SemanticNode, tag: &str) -> bool {
-        node.tags.iter().any(|node_tag| node_tag == tag)
-    }
-
-    fn score_axis(
-        &self,
-        graph: &SemanticGraph,
-        snapshot: &DaySnapshot,
-        personal_input: Option<&PersonalReasoningInput>,
-        axis: InterpretedAxis,
-    ) -> ReasoningAxisScore {
-        match axis {
-            InterpretedAxis::Support => {
-                let score = self.extract_support_evidence(graph, snapshot).len() as f32;
-                let strongest = self
-                    .extract_support_evidence(graph, snapshot)
-                    .into_iter()
-                    .next();
-                ReasoningAxisScore {
-                    axis,
-                    score,
-                    strongest_node_id: strongest.as_ref().and_then(|n| n.node_id.clone()),
-                    strongest_summary_vi: strongest.map(|n| n.summary_vi),
-                }
-            }
-            InterpretedAxis::Resistance => {
-                let score = self.extract_resistance_evidence(graph).len() as f32;
-                let strongest = self.extract_resistance_evidence(graph).into_iter().next();
-                ReasoningAxisScore {
-                    axis,
-                    score,
-                    strongest_node_id: strongest.as_ref().and_then(|n| n.node_id.clone()),
-                    strongest_summary_vi: strongest.map(|n| n.summary_vi),
-                }
-            }
-            InterpretedAxis::Stability => {
-                let taboo_count = graph
-                    .nodes()
-                    .values()
-                    .filter(|n| n.concept == NodeConcept::Taboo)
-                    .count() as f32;
-                ReasoningAxisScore {
-                    axis,
-                    score: (3.0 - taboo_count).max(0.0),
-                    strongest_node_id: None,
-                    strongest_summary_vi: None,
-                }
-            }
-            InterpretedAxis::PersonalAlignment => {
-                let score = if personal_input.is_some() { 1.0 } else { 0.0 };
-                ReasoningAxisScore {
-                    axis,
-                    score,
-                    strongest_node_id: None,
-                    strongest_summary_vi: None,
-                }
-            }
-            InterpretedAxis::TimingFit => {
-                let hoang_dao_count = self
-                    .find_node_by_concept(graph, NodeConcept::HoangDaoHour)
-                    .and_then(|n| n.severity.as_ref())
-                    .and_then(|s| s.parse::<usize>().ok())
-                    .unwrap_or(0);
-                ReasoningAxisScore {
-                    axis,
-                    score: (hoang_dao_count as f32).min(3.0),
-                    strongest_node_id: None,
-                    strongest_summary_vi: None,
-                }
-            }
-            InterpretedAxis::ContextClarity => {
-                let conflict_count = self.extract_conflict_evidence(graph).len() as f32;
-                ReasoningAxisScore {
-                    axis,
-                    score: (2.0 - conflict_count).max(0.0),
-                    strongest_node_id: None,
-                    strongest_summary_vi: None,
-                }
-            }
-        }
-    }
-
-    fn synthesize_semantic(
-        &self,
-        support_score: f32,
-        resistance_score: f32,
-        override_notes: &[ReasoningNote],
-        conflict_count: usize,
-        context_clarity_score: f32,
-    ) -> (
-        ReasoningConclusionSemantic,
-        RecommendationBucket,
-        DecisionConfidence,
-        bool,
-    ) {
-        let override_count = override_notes.len();
-        let context_is_clear =
-            conflict_count == 0 && context_clarity_score > 0.0 && override_count == 0;
-
-        let semantic = if override_count > 0 {
-            let is_single_taboo_pressure = override_count == 1
-                && override_notes
-                    .first()
-                    .is_some_and(|factor| factor.tags.iter().any(|tag| tag == "hard_taboo"))
-                && support_score <= 1.0
-                && conflict_count > 0;
-
-            if is_single_taboo_pressure {
-                ReasoningConclusionSemantic::OverrideCautious
-            } else {
-                ReasoningConclusionSemantic::OverrideAvoid
-            }
-        } else if support_score > 0.0 && resistance_score > 0.0 && conflict_count > 0 {
-            ReasoningConclusionSemantic::ConflictedCautious
-        } else if resistance_score > support_score {
-            ReasoningConclusionSemantic::ResistanceLedCautious
-        } else if context_is_clear {
-            ReasoningConclusionSemantic::FavorableClear
-        } else {
-            ReasoningConclusionSemantic::FavorableContextual
-        };
-
-        let bucket = match semantic {
-            ReasoningConclusionSemantic::OverrideAvoid => RecommendationBucket::Avoid,
-            ReasoningConclusionSemantic::OverrideCautious
-            | ReasoningConclusionSemantic::ConflictedCautious
-            | ReasoningConclusionSemantic::ResistanceLedCautious => RecommendationBucket::Cautious,
-            ReasoningConclusionSemantic::FavorableClear
-            | ReasoningConclusionSemantic::FavorableContextual => RecommendationBucket::Favorable,
-        };
-
-        let confidence = match semantic {
-            ReasoningConclusionSemantic::OverrideAvoid
-            | ReasoningConclusionSemantic::OverrideCautious => DecisionConfidence::High,
-            ReasoningConclusionSemantic::ConflictedCautious
-            | ReasoningConclusionSemantic::ResistanceLedCautious
-            | ReasoningConclusionSemantic::FavorableContextual => DecisionConfidence::Low,
-            ReasoningConclusionSemantic::FavorableClear => {
-                if support_score >= 2.0 && resistance_score == 0.0 {
-                    DecisionConfidence::High
-                } else {
-                    DecisionConfidence::Medium
-                }
-            }
-        };
-
-        (semantic, bucket, confidence, context_is_clear)
-    }
-
-    #[allow(clippy::too_many_arguments)]
-    fn synthesize_primary_conclusion(
-        &self,
-        semantic: ReasoningConclusionSemantic,
-        _bucket: RecommendationBucket,
-        support_score: f32,
-        resistance_score: f32,
-        override_notes: &[ReasoningNote],
-        support_notes: &[ReasoningNote],
-        resistance_notes: &[ReasoningNote],
-    ) -> String {
-        match semantic {
-            ReasoningConclusionSemantic::OverrideAvoid => format!(
-                "Không nên khởi sự/mở việc vì có yếu tố cấm kỵ nổi bật: {}",
-                override_notes.iter().map(|n| n.summary_vi.as_str()).collect::<Vec<_>>().join(", ")
-            ),
-            ReasoningConclusionSemantic::OverrideCautious => format!(
-                "Bối cảnh khởi sự còn vướng yếu tố kiêng/kỵ nên chỉ có thể cân nhắc rất thận trọng: {}",
-                override_notes.iter().map(|n| n.summary_vi.as_str()).collect::<Vec<_>>().join(", ")
-            ),
-            ReasoningConclusionSemantic::ConflictedCautious => format!(
-                "Bối cảnh khởi sự còn trái chiều nên cần giữ thế thận trọng: thuận {} nhưng vẫn có lực cản {}",
-                support_notes.first().map(|n| n.summary_vi.as_str()).unwrap_or(&format!("{:.0} tín hiệu thuận", support_score)),
-                resistance_notes.first().map(|n| n.summary_vi.as_str()).unwrap_or(&format!("{:.0} tín hiệu cản", resistance_score))
-            ),
-            ReasoningConclusionSemantic::ResistanceLedCautious => format!(
-                "Có thể cân nhắc rất thận trọng vì lực cản đang nhỉnh hơn lực thuận ({:.0} vs {:.0})",
-                resistance_score, support_score
-            ),
-            ReasoningConclusionSemantic::FavorableClear => format!(
-                "Có thể khởi sự/mở việc, nổi bật là {}",
-                support_notes.first().map(|n| n.summary_vi.as_str()).unwrap_or("nền ngày đang khá thuận")
-            ),
-            ReasoningConclusionSemantic::FavorableContextual => {
-                "Có tín hiệu thuận cho khởi sự/mở việc nhưng vẫn cần đọc bối cảnh tổng thể".to_string()
-            }
+    fn canonical_semantic(value: &str) -> Result<ReasoningConclusionSemantic, String> {
+        match value {
+            "override_avoid" => Ok(ReasoningConclusionSemantic::OverrideAvoid),
+            "override_cautious" => Ok(ReasoningConclusionSemantic::OverrideCautious),
+            "conflicted_cautious" => Ok(ReasoningConclusionSemantic::ConflictedCautious),
+            "resistance_led_cautious" => Ok(ReasoningConclusionSemantic::ResistanceLedCautious),
+            "favorable_clear" => Ok(ReasoningConclusionSemantic::FavorableClear),
+            "favorable_contextual" => Ok(ReasoningConclusionSemantic::FavorableContextual),
+            other => Err(format!("unsupported canonical reasoning semantic: {other}")),
         }
     }
 
@@ -626,9 +449,12 @@ impl InitiationOpeningEvaluator {
     }
 
     fn is_star_supportive(&self, node: &SemanticNode) -> bool {
-        node.summary_vi.contains("cát tinh")
-            || node.summary_vi.contains("Nhị thập bát tú")
-            || node.summary_vi.starts_with("Ngôi sao chính:")
+        matches!(
+            node.fact,
+            Some(SemanticFact::Star {
+                polarity: SemanticPolarity::Favorable
+            })
+        )
     }
 
     fn truc_opening_signal<'a>(
@@ -636,20 +462,18 @@ impl InitiationOpeningEvaluator {
         graph: &'a SemanticGraph,
     ) -> Option<(&'a SemanticNode, TrucOpeningSignal)> {
         let truc_node = self.find_node_by_concept(graph, NodeConcept::Truc)?;
-        let truc_name = truc_node.summary_vi.strip_prefix("Trực ")?;
-        let truc = find_truc_insight(truc_name)?;
-        let opening_avoid_count = collect_truc_hits(truc)
-            .into_iter()
-            .filter(|hit| {
-                hit.activity_id == crate::almanac::recommendation::ActivityId::OpeningStart
-                    && matches!(hit.direction, BaseDirection::Avoid)
-            })
-            .count();
+        let SemanticFact::Truc {
+            opening_avoid_count,
+            ..
+        } = truc_node.fact.as_ref()?
+        else {
+            return None;
+        };
 
         Some((
             truc_node,
             TrucOpeningSignal {
-                opening_avoid_count,
+                opening_avoid_count: usize::from(*opening_avoid_count),
             },
         ))
     }
@@ -673,59 +497,30 @@ impl InitiationOpeningEvaluator {
         // re-evaluating an already-filtered graph is safe.
         let subgraph = self.select_subgraph(graph, snapshot, personal_input)?;
         let graph = &subgraph;
+        let assessment = canonical_assessment.ok_or_else(|| {
+            "canonical PersonalDayAssessment is required for initiation/opening reasoning"
+                .to_string()
+        })?;
 
         let support_notes = self.extract_support_evidence(graph, snapshot);
         let resistance_notes = self.extract_resistance_evidence(graph);
         let override_notes = self.extract_override_evidence(graph);
         let conflict_notes = self.extract_conflict_evidence(graph);
-
-        let support_score = support_notes.len() as f32;
-        let resistance_score = resistance_notes.len() as f32;
-        let conflict_count = conflict_notes.len();
-
-        let context_clarity_score = self.score_axis(
-            graph,
-            snapshot,
-            personal_input,
-            InterpretedAxis::ContextClarity,
-        );
-
-        let (semantic, bucket, confidence, context_is_clear) = self.synthesize_semantic(
-            support_score,
-            resistance_score,
-            &override_notes,
-            conflict_count,
-            context_clarity_score.score,
-        );
-
-        let primary_conclusion = self.synthesize_primary_conclusion(
-            semantic,
-            bucket,
-            support_score,
-            resistance_score,
-            &override_notes,
-            &support_notes,
-            &resistance_notes,
-        );
+        let semantic = Self::canonical_semantic(&assessment.decision.semantic)?;
+        let bucket = assessment.decision.bucket;
+        let confidence = assessment.decision.confidence;
+        let context_is_clear = assessment.decision.context_is_clear;
+        let primary_conclusion = assessment.decision.primary_conclusion.clone();
 
         let suggested_hours = self.suggested_hours_with_facts(snapshot, personal_input, facts);
         let suggested_directions =
             self.suggested_directions_with_facts(snapshot, personal_input, facts);
 
-        // amlich-zakn: axis scores come from the canonical assessment's typed
-        // contributions (snapshot-derived, deduplicated by stable
-        // contribution_id), not from raw graph-node counts. This makes the
-        // scores invariant to duplicate evidence (re-emitting a fact node can
-        // no longer inflate an axis) and gives every scored axis a
-        // contribution-backed `strongest_node_id`. Axes with no typed
-        // contribution backing are reported at score 0.0 so a non-zero score
-        // always implies provenance. The decision bucket/confidence/semantic
-        // above remain graph-derived; full parity-gated retirement of that
-        // path is `amlich-0q2f`.
-        let evaluation_axis_scores = canonical_assessment
-            .map(|a| a.axis_scores())
-            .unwrap_or_default();
-        let mut axis_scores = evaluation_axis_scores;
+        // All verdict fields and numerical axes come from the same canonical
+        // assessment. The graph only supplies typed evidence projections and
+        // presentation notes; changing or translating those summaries cannot
+        // alter the decision.
+        let mut axis_scores = assessment.axis_scores();
         for axis in axis_scores.iter_mut() {
             if axis.strongest_node_id.is_none() {
                 axis.score = 0.0;
@@ -811,19 +606,19 @@ impl ActionEvaluator for InitiationOpeningEvaluator {
         // that go through the trait do not duplicate the consumer API. The
         // consolidated per-request path uses `evaluate_with_facts` directly
         // and supplies the cached canonical assessment.
-        let profile = BirthProfile {
-            day: snapshot.context.solar.day,
-            month: snapshot.context.solar.month,
-            year: snapshot.context.solar.year,
-            time: None,
-            timezone: personal_input
-                .map(|p| p.birth.timezone)
-                .unwrap_or(VIETNAM_TIMEZONE),
-            longitude: None,
-            use_solar_time: false,
-            gender: personal_input.and_then(|p| p.birth.gender),
-            location_name: None,
-        };
+        let profile = personal_input
+            .map(PersonalReasoningInput::to_birth_profile)
+            .unwrap_or(BirthProfile {
+                day: snapshot.context.solar.day,
+                month: snapshot.context.solar.month,
+                year: snapshot.context.solar.year,
+                time: None,
+                timezone: VIETNAM_TIMEZONE,
+                longitude: None,
+                use_solar_time: false,
+                gender: None,
+                location_name: None,
+            });
         let canonical_assessment = PersonalDayAssessment::assess(
             snapshot.clone(),
             profile,

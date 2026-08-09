@@ -182,10 +182,10 @@ fn v2_2_interaction_kinds_target_scored_axes_only() {
 
 /// Assert that an interaction term with the given kind exists in the
 /// trace, and return it for further assertions.
-fn expect_interaction<'a>(
-    trace: &'a AssessmentTrace,
+fn expect_interaction(
+    trace: &AssessmentTrace,
     kind: InteractionKind,
-) -> &'a amlich_core::assessment::InteractionTerm {
+) -> &amlich_core::assessment::InteractionTerm {
     trace
         .interactions
         .iter()

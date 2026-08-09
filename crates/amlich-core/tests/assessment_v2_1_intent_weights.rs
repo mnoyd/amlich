@@ -444,10 +444,8 @@ fn v2_1_intent_weights_change_decision_score_for_at_least_one_fixture() {
                 // behavior under test.
                 let v2_override = matches!(v2.decision.semantic.as_str(), "override_avoid");
 
-                if !v2_override {
-                    if v2.decision.decision_score != v2_1.decision.decision_score {
-                        divergent += 1;
-                    }
+                if !v2_override && v2.decision.decision_score != v2_1.decision.decision_score {
+                    divergent += 1;
                 }
             }
         }

@@ -1,6 +1,32 @@
-# Personal-day core repair plan (draft)
+# Personal-day core repair plan (implemented)
 
 This plan synthesizes the advisory/reasoning, birth/API, and interaction/almanac audits. It is intentionally a migration plan, not a source patch.
+
+## Implementation status
+
+The `amlich-mwbp` migration is implemented. The final reasoning migration
+(`amlich-mwbp.8`) made these architectural decisions concrete:
+
+- `PersonalDayAssessment` owns the recommendation bucket, confidence,
+  semantic classification, primary conclusion, and normalized axis scores.
+  The initiation/opening graph is now an evidence/presentation projection,
+  not a second verdict engine.
+- `SemanticFact` carries typed Trực opening hits, star polarity, Xung/Hợp
+  state, and direction scores. Vietnamese summaries may be translated or
+  reworded without changing a decision.
+- Hard, soft, and unqualified taboo facts produce ordered canonical
+  contribution strengths. Missing rule evidence cannot cross the implicit
+  hard-veto threshold.
+- Standalone reasoning constructs the assessment from the actual birth
+  profile, matching aggregate/API paths that supply a precomputed assessment.
+- The legacy graph corpus contained intentional canonicalization diffs:
+  several old `Favorable`/`Cautious` graph verdicts are `Mixed`/`Avoid` in the
+  already-public canonical assessment. Golden fixtures now lock the canonical
+  result rather than preserving cross-surface disagreement.
+
+Deletion and parity coverage lives in
+`crates/amlich-core/tests/reasoning_graph_metamorphic.rs`,
+`reasoning_graph_parity.rs`, and the personal-day API contract suites.
 
 ## Non-negotiable acceptance rubric
 

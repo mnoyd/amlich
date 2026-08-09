@@ -34,6 +34,7 @@ use crate::{
     },
     assessment::{
         feature::{AssessmentFeatureId, FeatureObservation},
+        strongest_taboo, taboo_contribution_strength, taboo_evidence_quality,
         trace::VetoEvent,
         AssessmentAxis, AssessmentInputs, ContributionPolarity, SourceEvidence,
     },
@@ -258,15 +259,38 @@ pub(super) fn extract_features(
     }
 
     // --- Generic day quality: day-fortune taboos -----------------------
-    if !snapshot.day_fortune.taboos.is_empty() {
+    if let Some(taboo) = strongest_taboo(&snapshot.day_fortune.taboos) {
         let taboo_count = snapshot.day_fortune.taboos.len();
-        let strength = (taboo_count.min(3) as f32) / 3.0 * 0.6 + 0.2;
+        let strength = taboo_contribution_strength(taboo);
+        let quality = taboo_evidence_quality(taboo);
+        let evidence = match taboo.evidence.as_ref() {
+            Some(evidence) => SourceEvidence {
+                source_family: "almanac_rule".to_string(),
+                source_id: evidence.source_id.clone(),
+                method: evidence.method.clone(),
+                profile: evidence.profile.clone(),
+                note: Some(format!(
+                    "rule_id={} severity={} evidence_quality={quality} count={taboo_count}",
+                    taboo.rule_id, taboo.severity
+                )),
+            },
+            None => SourceEvidence {
+                source_family: "unqualified_rule".to_string(),
+                source_id: ruleset_id.clone(),
+                method: "missing_rule_evidence".to_string(),
+                profile: profile_id.clone(),
+                note: Some(format!(
+                    "rule_id={} severity={} evidence_quality={quality} count={taboo_count}",
+                    taboo.rule_id, taboo.severity
+                )),
+            },
+        };
         features.push(FeatureObservation::observed(
             AssessmentFeatureId::GenericDayQuality,
             ContributionPolarity::Avoid,
             strength,
             format!("day_fortune.taboo.{}", snapshot.context.solar.day),
-            almanac_evidence("day_fortune.taboos", Some(format!("count={taboo_count}"))),
+            evidence,
             ruleset_id.clone(),
             ruleset_version.clone(),
         ));
@@ -620,20 +644,40 @@ pub(super) fn extract_vetoes(
         }
     }
 
-    // --- Stacked day-fortune taboos (3 or more) ------------------------
-    // Three or more day-fortune taboos stacked on the same day indicate a
-    // structurally conflicted day that vetoes regardless of personal
-    // alignment.
-    let taboo_count = snapshot.day_fortune.taboos.len();
-    if taboo_count >= 3 {
+    // --- Qualified hard day-fortune taboo -------------------------------
+    // A hard rule only becomes a veto when its source evidence is complete.
+    // Soft rules and unqualified hard strings remain weighted resistance.
+    if let Some(taboo) = strongest_taboo(&snapshot.day_fortune.taboos)
+        .filter(|taboo| taboo.severity == "hard" && taboo_contribution_strength(taboo) >= 0.8)
+    {
         vetoes.push(VetoEvent {
             veto_id: "veto.day_fortune.taboos".to_string(),
             axis: AssessmentAxis::GenericDayQuality,
-            reason: format!("{taboo_count} day-fortune taboos stacked"),
-            source_evidence: almanac_evidence(
-                "day_fortune.taboos",
-                Some(format!("count={taboo_count}")),
-            ),
+            reason: format!("Qualified hard day-fortune taboo: {}", taboo.rule_id),
+            source_evidence: SourceEvidence {
+                source_family: "almanac_rule".to_string(),
+                source_id: taboo
+                    .evidence
+                    .as_ref()
+                    .map(|evidence| evidence.source_id.clone())
+                    .unwrap_or_else(|| ruleset_id.clone()),
+                method: taboo
+                    .evidence
+                    .as_ref()
+                    .map(|evidence| evidence.method.clone())
+                    .unwrap_or_else(|| "missing_rule_evidence".to_string()),
+                profile: taboo
+                    .evidence
+                    .as_ref()
+                    .map(|evidence| evidence.profile.clone())
+                    .unwrap_or_else(|| profile_id.clone()),
+                note: Some(format!(
+                    "rule_id={} severity={} evidence_quality={}",
+                    taboo.rule_id,
+                    taboo.severity,
+                    taboo_evidence_quality(taboo)
+                )),
+            },
         });
     }
 

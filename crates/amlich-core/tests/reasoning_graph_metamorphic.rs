@@ -19,8 +19,8 @@
 
 use amlich_core::reasoning::{ActionEvaluator, InitiationOpeningEvaluator};
 use amlich_core::{
-    build_reasoning_input_graph, calculate_day_snapshot, NodeConcept, NodeOrigin, SemanticGraph,
-    SemanticId, SemanticNode,
+    build_reasoning_input_graph, calculate_day_snapshot, BirthProfile, ConsultationIntent,
+    NodeConcept, NodeOrigin, PersonalDayAssessment, SemanticGraph, SemanticId, SemanticNode,
 };
 
 /// Build a day snapshot + merged reasoning input graph for the given date.
@@ -46,6 +46,7 @@ fn duplicate_node(node: &SemanticNode, suffix: &str) -> SemanticNode {
         severity: node.severity.clone(),
         tags: node.tags.clone(),
         provenance: node.provenance.clone(),
+        fact: node.fact.clone(),
         payload: node.payload.clone(),
     }
 }
@@ -92,6 +93,128 @@ fn duplicate_evidence_does_not_inflate_decision() {
             a.axis
         );
     }
+}
+
+#[test]
+fn decision_is_invariant_to_localized_summary_rewording() {
+    let evaluator = InitiationOpeningEvaluator::new();
+
+    // Cover favorable, conflicted, and hard-taboo days. The semantic fields,
+    // severities, tags, and provenance remain byte-identical; only the
+    // presentation text changes.
+    for (day, month, year) in [(13, 5, 2024), (14, 2, 2024), (3, 1, 2024)] {
+        let (snapshot, graph) = graph_for(day, month, year);
+        let before = evaluator
+            .evaluate(&graph, &snapshot, None)
+            .expect("baseline evaluation");
+
+        let mut localized = graph.clone();
+        for node in localized.nodes_mut().values_mut() {
+            node.summary_vi = format!("localized presentation for {}", node.node_id);
+        }
+
+        let after = evaluator
+            .evaluate(&localized, &snapshot, None)
+            .expect("evaluation after presentation rewording");
+
+        assert_eq!(
+            before.bucket, after.bucket,
+            "bucket changed for {day}/{month}/{year}"
+        );
+        assert_eq!(
+            before.semantic, after.semantic,
+            "semantic changed for {day}/{month}/{year}"
+        );
+        assert_eq!(
+            before.confidence, after.confidence,
+            "confidence changed for {day}/{month}/{year}"
+        );
+        assert_eq!(
+            before.context_is_clear, after.context_is_clear,
+            "context clarity changed for {day}/{month}/{year}"
+        );
+        assert_eq!(
+            before.axis_scores, after.axis_scores,
+            "typed axis scores changed for {day}/{month}/{year}"
+        );
+    }
+}
+
+#[test]
+fn taboo_severity_and_evidence_quality_order_contribution_strength() {
+    let snapshot = calculate_day_snapshot(3, 1, 2024);
+    assert!(
+        !snapshot.day_fortune.taboos.is_empty(),
+        "fixture must contain taboo facts"
+    );
+
+    let profile = BirthProfile {
+        day: 1,
+        month: 1,
+        year: 1990,
+        time: None,
+        timezone: 7.0,
+        longitude: None,
+        use_solar_time: false,
+        gender: None,
+        location_name: None,
+    };
+
+    let strongest_taboo = |assessment: &PersonalDayAssessment| {
+        assessment
+            .contributions
+            .iter()
+            .filter(|c| c.contribution_id.starts_with("day_fortune.taboo."))
+            .map(|c| c.strength)
+            .fold(0.0_f32, f32::max)
+    };
+
+    let mut hard_snapshot = snapshot.clone();
+    for taboo in &mut hard_snapshot.day_fortune.taboos {
+        taboo.severity = "hard".to_string();
+    }
+    let hard = PersonalDayAssessment::assess(
+        hard_snapshot.clone(),
+        profile.clone(),
+        ConsultationIntent::OpeningBusiness,
+    );
+
+    let mut soft_snapshot = snapshot.clone();
+    for taboo in &mut soft_snapshot.day_fortune.taboos {
+        taboo.severity = "soft".to_string();
+    }
+    let soft = PersonalDayAssessment::assess(
+        soft_snapshot,
+        profile.clone(),
+        ConsultationIntent::OpeningBusiness,
+    );
+
+    let mut unqualified_snapshot = hard_snapshot;
+    for taboo in &mut unqualified_snapshot.day_fortune.taboos {
+        taboo.evidence = None;
+    }
+    let unqualified = PersonalDayAssessment::assess(
+        unqualified_snapshot,
+        profile,
+        ConsultationIntent::OpeningBusiness,
+    );
+
+    let hard_strength = strongest_taboo(&hard);
+    let soft_strength = strongest_taboo(&soft);
+    let unqualified_strength = strongest_taboo(&unqualified);
+
+    assert!(
+        hard_strength > soft_strength,
+        "hard taboo must outweigh soft taboo ({hard_strength} <= {soft_strength})"
+    );
+    assert!(
+        hard_strength > unqualified_strength,
+        "qualified evidence must outweigh missing evidence ({hard_strength} <= {unqualified_strength})"
+    );
+    assert!(
+        unqualified_strength < 0.8,
+        "an unqualified taboo must not cross the canonical hard-veto threshold"
+    );
 }
 
 #[test]

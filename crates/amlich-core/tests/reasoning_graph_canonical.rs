@@ -67,7 +67,11 @@ fn canonical_corpus() -> Vec<CanonicalCase> {
             year: 2024,
             timezone: None,
             personal: None,
-            expected_bucket: RecommendationBucket::Cautious,
+            // The canonical PersonalDayAssessment already classifies this
+            // fixture as Avoid. The retired graph-count path reported
+            // Cautious, which was the cross-surface drift tracked by
+            // amlich-mwbp.8.
+            expected_bucket: RecommendationBucket::Avoid,
         },
         CanonicalCase {
             id: "personal_favorable_with_hour",
@@ -93,7 +97,7 @@ fn canonical_corpus() -> Vec<CanonicalCase> {
                 7.0,
                 Some(Gender::Female),
             )),
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Avoid,
         },
         CanonicalCase {
             id: "personal_avoid_with_profile",
@@ -111,7 +115,7 @@ fn canonical_corpus() -> Vec<CanonicalCase> {
             year: 2024,
             timezone: Some(7.0),
             personal: Some(profile_input(30, 1, 1989, 23, 30, 7.0, Some(Gender::Male))),
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Avoid,
         },
         CanonicalCase {
             id: "boundary_shifted_timezone",
@@ -120,7 +124,7 @@ fn canonical_corpus() -> Vec<CanonicalCase> {
             year: 2024,
             timezone: Some(8.0),
             personal: Some(profile_input(30, 1, 1989, 23, 30, 8.0, Some(Gender::Male))),
-            expected_bucket: RecommendationBucket::Cautious,
+            expected_bucket: RecommendationBucket::Avoid,
         },
     ]
 }

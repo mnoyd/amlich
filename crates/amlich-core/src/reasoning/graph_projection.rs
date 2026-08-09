@@ -1,13 +1,13 @@
 use crate::almanac::recommendation::evidence::{collect_truc_hits, BaseDirection};
 use crate::almanac::recommendation::ActivityId;
 use crate::insight_data::find_truc_insight;
-use crate::semantic_graph::{NodeConcept, SemanticGraph};
+use crate::semantic_graph::{NodeConcept, SemanticFact, SemanticGraph, SemanticPolarity};
 use crate::DaySnapshot;
 
 use super::export::{axis_for_node, severity_for_node, tags_for_node};
 use super::personal::{PersonalAssessmentFacts, PersonalReasoningInput};
 use super::types::{
-    interpret_severity, ActionId, EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdgeExport,
+    ActionId, EdgeEffect, InterpretedAxis, NodeKind, ReasoningEdgeExport,
     ReasoningEdgeJustification, ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily,
     ReasoningGraphExport, ReasoningNodeExport, ReasoningNodeSeverity,
 };
@@ -133,6 +133,7 @@ fn add_personal_node_edges(
 ) {
     for raw_node in personal_nodes {
         let id = raw_node.id.clone();
+        let effect = raw_node.effect;
         let node_export = ReasoningNodeExport {
             id: id.clone(),
             kind: NodeKind::Fact,
@@ -148,7 +149,7 @@ fn add_personal_node_edges(
 
         match id.as_str() {
             "fact.personal.day_person_matrix" => {
-                let effect = personal_alignment_effect(&node_export.summary_vi);
+                let effect = effect.unwrap_or(EdgeEffect::Weakens);
                 edges.push(make_edge(
                     &id,
                     InterpretedAxis::PersonalAlignment.signal_node_id(),
@@ -163,7 +164,7 @@ fn add_personal_node_edges(
                 ));
             }
             "fact.personal.personal_hour_matrix" => {
-                let effect = personal_hour_effect(&node_export.summary_vi);
+                let effect = effect.unwrap_or(EdgeEffect::Weakens);
                 edges.push(make_edge(
                     &id,
                     InterpretedAxis::PersonalAlignment.signal_node_id(),
@@ -202,7 +203,7 @@ fn build_truc_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         id: "fact.day.truc".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.truc"),
-        severity: severity_for_node("fact.day.truc", Some(quality.as_str()), &summary_vi),
+        severity: severity_for_node("fact.day.truc", Some(quality.as_str())),
         tags: tags_for_node("fact.day.truc"),
         summary_vi,
         evidence: vec![snapshot_evidence(
@@ -218,7 +219,7 @@ fn build_star_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         id: "fact.day.nhi_thap_bat_tu".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.nhi_thap_bat_tu"),
-        severity: severity_for_node("fact.day.nhi_thap_bat_tu", None, &summary_vi),
+        severity: star_severity(&snapshot.day_fortune.stars),
         tags: tags_for_node("fact.day.nhi_thap_bat_tu"),
         summary_vi,
         evidence: vec![snapshot_evidence(
@@ -246,7 +247,7 @@ fn build_day_deity_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         id: "fact.day.day_deity".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.day_deity"),
-        severity: severity_for_node("fact.day.day_deity", severity_str, &summary_vi),
+        severity: severity_for_node("fact.day.day_deity", severity_str),
         tags: tags_for_node("fact.day.day_deity"),
         summary_vi,
         evidence: vec![snapshot_evidence(
@@ -280,7 +281,7 @@ fn build_taboo_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         id: "fact.day.taboos".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.taboos"),
-        severity: severity_for_node("fact.day.taboos", severity_str.as_deref(), &summary_vi),
+        severity: severity_for_node("fact.day.taboos", severity_str.as_deref()),
         tags: tags_for_node("fact.day.taboos"),
         summary_vi,
         evidence,
@@ -303,7 +304,11 @@ fn build_xung_hop_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         id: "fact.day.xung_hop".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.xung_hop"),
-        severity: severity_for_node("fact.day.xung_hop", None, &summary_vi),
+        severity: if snapshot.day_fortune.xung_hop.liu_he.is_none() {
+            Some(ReasoningNodeSeverity::Inauspicious)
+        } else {
+            None
+        },
         tags: tags_for_node("fact.day.xung_hop"),
         summary_vi,
         evidence: vec![
@@ -324,7 +329,7 @@ fn build_travel_direction_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         id: "fact.day.travel_directions".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.travel_directions"),
-        severity: severity_for_node("fact.day.travel_directions", None, &summary_vi),
+        severity: None,
         tags: tags_for_node("fact.day.travel_directions"),
         summary_vi,
         evidence: vec![snapshot_evidence(
@@ -345,7 +350,7 @@ fn build_hoang_dao_hours_node(snapshot: &DaySnapshot) -> ReasoningNodeExport {
         id: "fact.day.hoang_dao_hours".to_string(),
         kind: NodeKind::Fact,
         axis: axis_for_node("fact.day.hoang_dao_hours"),
-        severity: severity_for_node("fact.day.hoang_dao_hours", severity_str, &summary_vi),
+        severity: severity_for_node("fact.day.hoang_dao_hours", severity_str),
         tags: tags_for_node("fact.day.hoang_dao_hours"),
         summary_vi,
         evidence: vec![snapshot_evidence(
@@ -376,7 +381,7 @@ fn build_signal_node(axis: InterpretedAxis) -> ReasoningNodeExport {
 fn add_truc_edges(
     truc_node: &ReasoningNodeExport,
     edges: &mut Vec<ReasoningEdgeExport>,
-    _snapshot: &DaySnapshot,
+    snapshot: &DaySnapshot,
 ) {
     let evidence = &truc_node.evidence;
     if truc_node.severity.is_some() {
@@ -392,58 +397,56 @@ fn add_truc_edges(
         }
     }
 
-    if let Some(truc_name) = truc_node.summary_vi.strip_prefix("Trực ") {
-        if let Some(truc) = find_truc_insight(truc_name) {
-            let opening_hits: Vec<_> = collect_truc_hits(truc)
-                .into_iter()
-                .filter(|hit| hit.activity_id == ActivityId::OpeningStart)
-                .collect();
-            let opening_avoid_count = opening_hits
-                .iter()
-                .filter(|hit| matches!(hit.direction, BaseDirection::Avoid))
-                .count();
-            let has_opening_favor = opening_hits
-                .iter()
-                .any(|hit| matches!(hit.direction, BaseDirection::Favor));
+    if let Some(truc) = find_truc_insight(&snapshot.day_fortune.truc.name) {
+        let opening_hits: Vec<_> = collect_truc_hits(truc)
+            .into_iter()
+            .filter(|hit| hit.activity_id == ActivityId::OpeningStart)
+            .collect();
+        let opening_avoid_count = opening_hits
+            .iter()
+            .filter(|hit| matches!(hit.direction, BaseDirection::Avoid))
+            .count();
+        let has_opening_favor = opening_hits
+            .iter()
+            .any(|hit| matches!(hit.direction, BaseDirection::Favor));
 
-            if opening_avoid_count > 0 {
-                let effect = if opening_avoid_count > 1 {
-                    EdgeEffect::Overrides
+        if opening_avoid_count > 0 {
+            let effect = if opening_avoid_count > 1 {
+                EdgeEffect::Overrides
+            } else {
+                EdgeEffect::Supports
+            };
+            edges.push(make_edge(
+                "fact.day.truc",
+                InterpretedAxis::Resistance.signal_node_id(),
+                effect,
+                if effect == EdgeEffect::Overrides {
+                    2
                 } else {
-                    EdgeEffect::Supports
-                };
-                edges.push(make_edge(
-                    "fact.day.truc",
-                    InterpretedAxis::Resistance.signal_node_id(),
-                    effect,
-                    if effect == EdgeEffect::Overrides {
-                        2
-                    } else {
-                        1
-                    },
-                    ReasoningEdgeJustification::TrucActivityConflict,
-                    truc_evidence(truc.id.as_str(), "opening_start"),
-                ));
-                edges.push(make_edge(
-                    "fact.day.truc",
-                    InterpretedAxis::ContextClarity.signal_node_id(),
-                    EdgeEffect::ConflictsWith,
-                    1,
-                    ReasoningEdgeJustification::TrucActivityConflict,
-                    truc_evidence(truc.id.as_str(), "opening_start"),
-                ));
-            }
+                    1
+                },
+                ReasoningEdgeJustification::TrucActivityConflict,
+                truc_evidence(truc.id.as_str(), "opening_start"),
+            ));
+            edges.push(make_edge(
+                "fact.day.truc",
+                InterpretedAxis::ContextClarity.signal_node_id(),
+                EdgeEffect::ConflictsWith,
+                1,
+                ReasoningEdgeJustification::TrucActivityConflict,
+                truc_evidence(truc.id.as_str(), "opening_start"),
+            ));
+        }
 
-            if has_opening_favor {
-                edges.push(make_edge(
-                    "fact.day.truc",
-                    InterpretedAxis::Support.signal_node_id(),
-                    EdgeEffect::Supports,
-                    1,
-                    ReasoningEdgeJustification::TrucActivitySupport,
-                    truc_evidence(truc.id.as_str(), "opening_start"),
-                ));
-            }
+        if has_opening_favor {
+            edges.push(make_edge(
+                "fact.day.truc",
+                InterpretedAxis::Support.signal_node_id(),
+                EdgeEffect::Supports,
+                1,
+                ReasoningEdgeJustification::TrucActivitySupport,
+                truc_evidence(truc.id.as_str(), "opening_start"),
+            ));
         }
     }
 }
@@ -462,7 +465,7 @@ fn add_deity_edges(deity_node: &ReasoningNodeExport, edges: &mut Vec<ReasoningEd
 }
 
 fn add_star_edges(star_node: &ReasoningNodeExport, edges: &mut Vec<ReasoningEdgeExport>) {
-    if is_star_supportive(&star_node.summary_vi) {
+    if star_node.severity == Some(ReasoningNodeSeverity::Auspicious) {
         edges.push(make_edge(
             "fact.day.nhi_thap_bat_tu",
             InterpretedAxis::Support.signal_node_id(),
@@ -515,7 +518,7 @@ fn add_taboo_edges(taboo_node: &ReasoningNodeExport, edges: &mut Vec<ReasoningEd
 }
 
 fn add_xung_hop_edges(xung_hop_node: &ReasoningNodeExport, edges: &mut Vec<ReasoningEdgeExport>) {
-    if xung_hop_node.summary_vi.contains("Xung") && !xung_hop_node.summary_vi.contains(", hợp ") {
+    if xung_hop_node.severity == Some(ReasoningNodeSeverity::Inauspicious) {
         edges.push(make_edge(
             "fact.day.xung_hop",
             InterpretedAxis::Resistance.signal_node_id(),
@@ -622,16 +625,17 @@ fn signal_summary(axis: InterpretedAxis) -> &'static str {
 }
 
 fn has_favorable_fact(graph: &SemanticGraph) -> bool {
-    graph.nodes().values().any(|n| {
-        let concept_key = match n.concept {
-            NodeConcept::Truc => "truc",
-            NodeConcept::DayDeity => "day_deity",
-            NodeConcept::HoangDaoHour => "hoang_dao_hours",
-            NodeConcept::Star => return is_star_supportive(&n.summary_vi),
-            _ => return false,
-        };
-        interpret_severity(concept_key, n.severity.as_deref(), &n.summary_vi)
-            .is_some_and(ReasoningNodeSeverity::is_favorable)
+    graph.nodes().values().any(|n| match n.concept {
+        NodeConcept::Truc => n.severity.as_deref() == Some("cat"),
+        NodeConcept::DayDeity => n.severity.as_deref() == Some("hoang_dao"),
+        NodeConcept::HoangDaoHour => n.severity.is_some(),
+        NodeConcept::Star => matches!(
+            n.fact,
+            Some(SemanticFact::Star {
+                polarity: SemanticPolarity::Favorable
+            })
+        ),
+        _ => false,
     })
 }
 
@@ -640,10 +644,6 @@ fn has_unfavorable_fact(graph: &SemanticGraph) -> bool {
         NodeConcept::Taboo => n.severity.is_some(),
         _ => false,
     })
-}
-
-fn is_star_supportive(summary: &str) -> bool {
-    summary.contains("cát tinh") || summary.contains("Nhị thập bát tú")
 }
 
 fn summarize_stars(stars: &crate::almanac::types::DayStars) -> String {
@@ -664,6 +664,23 @@ fn summarize_stars(stars: &crate::almanac::types::DayStars) -> String {
     }
 }
 
+fn star_severity(stars: &crate::almanac::types::DayStars) -> Option<ReasoningNodeSeverity> {
+    use crate::almanac::types::StarQuality;
+
+    match stars.day_star.as_ref().map(|star| &star.quality) {
+        Some(StarQuality::Cat) => Some(ReasoningNodeSeverity::Auspicious),
+        Some(StarQuality::Hung) => Some(ReasoningNodeSeverity::Inauspicious),
+        Some(StarQuality::Binh) => None,
+        None if !stars.cat_tinh.is_empty() && stars.sat_tinh.is_empty() => {
+            Some(ReasoningNodeSeverity::Auspicious)
+        }
+        None if stars.cat_tinh.is_empty() && !stars.sat_tinh.is_empty() => {
+            Some(ReasoningNodeSeverity::Inauspicious)
+        }
+        None => None,
+    }
+}
+
 fn taboo_severity_val(taboos: &[crate::almanac::types::DayTaboo]) -> Option<String> {
     if taboos.iter().any(|t| t.severity == "hard") {
         return Some("hard".to_string());
@@ -672,30 +689,4 @@ fn taboo_severity_val(taboos: &[crate::almanac::types::DayTaboo]) -> Option<Stri
         return Some("soft".to_string());
     }
     None
-}
-
-fn personal_alignment_effect(summary: &str) -> EdgeEffect {
-    if extract_first_count(summary, "trụ hợp") > extract_first_count(summary, "trụ xung/khắc")
-    {
-        EdgeEffect::Supports
-    } else {
-        EdgeEffect::Weakens
-    }
-}
-
-fn personal_hour_effect(summary: &str) -> EdgeEffect {
-    if summary.contains("điểm -") || summary.contains("Chưa có") {
-        EdgeEffect::Weakens
-    } else {
-        EdgeEffect::Supports
-    }
-}
-
-fn extract_first_count(summary: &str, marker: &str) -> usize {
-    summary
-        .split(marker)
-        .next()
-        .and_then(|prefix| prefix.split_whitespace().last())
-        .and_then(|value| value.parse::<usize>().ok())
-        .unwrap_or(0)
 }

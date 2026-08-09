@@ -1,7 +1,7 @@
 use crate::almanac::fengshui::star_metadata;
 use crate::semantic_graph::{
     EdgeConcept, NodeConcept, NodeOrigin, ProvenanceEntry, ProvenanceSource, SemanticEdge,
-    SemanticGraph, SemanticId, SemanticNode,
+    SemanticFact, SemanticGraph, SemanticId, SemanticNode, SemanticPolarity,
 };
 use crate::sources::{
     SOURCE_HUYEN_KHONG, SOURCE_KHCBPPT, SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO,
@@ -192,6 +192,29 @@ impl DaySnapshotGraphBuilder {
 
     fn add_truc_fact(&mut self, snapshot: &DaySnapshot) {
         let truc = &snapshot.day_fortune.truc;
+        let opening_hits = crate::insight_data::find_truc_insight(&truc.name)
+            .map(crate::almanac::recommendation::evidence::collect_truc_hits)
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|hit| {
+                hit.activity_id == crate::almanac::recommendation::ActivityId::OpeningStart
+            })
+            .collect::<Vec<_>>();
+        let opening_avoid_count = opening_hits
+            .iter()
+            .filter(|hit| {
+                matches!(
+                    hit.direction,
+                    crate::almanac::recommendation::evidence::BaseDirection::Avoid
+                )
+            })
+            .count() as u8;
+        let opening_favorable = opening_hits.iter().any(|hit| {
+            matches!(
+                hit.direction,
+                crate::almanac::recommendation::evidence::BaseDirection::Favor
+            )
+        });
         let date_str = format!(
             "{:04}-{:02}-{:02}",
             snapshot.context.solar.year, snapshot.context.solar.month, snapshot.context.solar.day
@@ -214,6 +237,10 @@ impl DaySnapshotGraphBuilder {
             format!("index={}", truc.index),
         ])
         .with_severity(truc.quality.clone())
+        .with_fact(SemanticFact::Truc {
+            opening_avoid_count,
+            opening_favorable,
+        })
         .with_provenance(provenance);
 
         self.graph.add_node(node);
@@ -300,6 +327,22 @@ impl DaySnapshotGraphBuilder {
                 tags.push(format!("{:?}", ds.quality).to_lowercase());
             }
 
+            let polarity = match stars.day_star.as_ref().map(|star| &star.quality) {
+                Some(crate::almanac::types::StarQuality::Cat) => SemanticPolarity::Favorable,
+                Some(crate::almanac::types::StarQuality::Hung) => SemanticPolarity::Unfavorable,
+                Some(crate::almanac::types::StarQuality::Binh) => SemanticPolarity::Neutral,
+                None if !stars.cat_tinh.is_empty() && stars.sat_tinh.is_empty() => {
+                    SemanticPolarity::Favorable
+                }
+                None if stars.cat_tinh.is_empty() && !stars.sat_tinh.is_empty() => {
+                    SemanticPolarity::Unfavorable
+                }
+                None if !stars.cat_tinh.is_empty() && !stars.sat_tinh.is_empty() => {
+                    SemanticPolarity::Mixed
+                }
+                None => SemanticPolarity::Neutral,
+            };
+
             let node = SemanticNode::new(
                 SemanticId::new("star", format!("day:{}:stars", self.tz_suffix)),
                 NodeConcept::Star,
@@ -307,6 +350,7 @@ impl DaySnapshotGraphBuilder {
                 summary,
             )
             .with_tags(tags)
+            .with_fact(SemanticFact::Star { polarity })
             .with_provenance(provenance);
 
             self.graph.add_node(node);
@@ -390,6 +434,10 @@ impl DaySnapshotGraphBuilder {
             summary,
         )
         .with_tags(tags)
+        .with_fact(SemanticFact::XungHop {
+            has_clash: !xung_hop.luc_xung.is_empty(),
+            has_harmony: xung_hop.liu_he.is_some(),
+        })
         .with_provenance(provenance);
 
         self.graph.add_node(node);
