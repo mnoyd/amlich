@@ -58,10 +58,14 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             return false;
         }
         KeyCode::Char('2') => {
-            app.go_to_view(crate::state::ActiveView::Personal);
+            app.go_to_view(crate::state::ActiveView::EventDetail);
             return false;
         }
         KeyCode::Char('3') => {
+            app.go_to_view(crate::state::ActiveView::Personal);
+            return false;
+        }
+        KeyCode::Char('4') => {
             app.go_to_view(crate::state::ActiveView::GraphInspector);
             return false;
         }
@@ -509,7 +513,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_view, ActiveView::Personal);
+        assert_eq!(app.active_view, ActiveView::EventDetail);
     }
 
     #[test]
@@ -530,11 +534,20 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_view, ActiveView::Personal);
+        assert_eq!(app.active_view, ActiveView::EventDetail);
         assert_eq!(
             app.explanation_lens,
             crate::state::UserExplanationLens::ViSao
         );
+    }
+
+    #[test]
+    fn numbered_shortcut_matches_event_detail_tab_position() {
+        let mut app = sample_app_state();
+
+        dispatch_key(&mut app, KeyCode::Char('2'), KeyModifiers::NONE);
+
+        assert_eq!(app.active_view, ActiveView::EventDetail);
     }
 
     #[test]

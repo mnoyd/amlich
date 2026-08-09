@@ -10,7 +10,10 @@ use crate::layout::LayoutMode;
 use crate::state::{AppState, PageSection};
 
 use super::{
-    screens::{graph_inspector::GraphInspectorScreenWidget, today::TodayScreenWidget},
+    screens::{
+        event_detail::EventDetailScreenWidget, graph_inspector::GraphInspectorScreenWidget,
+        today::TodayScreenWidget,
+    },
     week_strip::WeekStripWidget,
 };
 
@@ -24,6 +27,9 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
         (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Verbose) => 90,
         (crate::state::ActiveView::Today, _, VerbosityMode::Compact) => 60,
         (crate::state::ActiveView::Today, _, VerbosityMode::Verbose) => 80,
+
+        (crate::state::ActiveView::EventDetail, LayoutMode::Small, _) => 48,
+        (crate::state::ActiveView::EventDetail, _, _) => 34,
 
         (crate::state::ActiveView::Personal, _, _) => personal_natural_height(app, mode),
         (crate::state::ActiveView::GraphInspector, _, _) => 28,
@@ -51,6 +57,9 @@ fn personal_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
 pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: &mut Buffer) {
     match app.active_view {
         crate::state::ActiveView::Today => TodayScreenWidget::new(app, mode).render(area, buf),
+        crate::state::ActiveView::EventDetail => {
+            EventDetailScreenWidget::new(app, mode).render(area, buf)
+        }
         crate::state::ActiveView::Personal => {
             crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode)
                 .render(area, buf)
@@ -130,6 +139,9 @@ impl Widget for PageWidget<'_> {
             crate::state::ActiveView::Today => {
                 TodayScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
+            crate::state::ActiveView::EventDetail => {
+                EventDetailScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
             crate::state::ActiveView::Personal => {
                 crate::widgets::screens::personal::PersonalScreenWidget::new(self.app, self.mode)
                     .render(content_area, buf)
@@ -167,8 +179,9 @@ mod tests {
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
-        DayInsightDto, LocalizedTextDto, LunarDto, RecommendationPackCatalogEntryDto,
-        RulesetCatalogEntryDto, RulesetDefaultsDto, SolarDto, TuMenhInsightDto,
+        DayDeityInsightDto, DayInsightDto, FestivalInsightDto, LocalizedListDto, LocalizedTextDto,
+        LunarDto, RecommendationPackCatalogEntryDto, RegionsInsightDto, RulesetCatalogEntryDto,
+        RulesetDefaultsDto, SolarDto, TabooInsightDto, TuMenhInsightDto,
     };
     use chrono::NaiveDate;
     use ratatui::{buffer::Buffer, layout::Rect};
@@ -379,5 +392,81 @@ mod tests {
         app.bundle = Some(bundle);
 
         assert_eq!(screen_natural_height(&app, LayoutMode::Small, 48), 43);
+    }
+
+    #[test]
+    fn event_detail_screen_surfaces_verbose_cultural_context() {
+        let mut app = sample_app_state();
+        let mut bundle = sample_bundle();
+        bundle.lunar.day = 15;
+        bundle.lunar.date_string = "Rằm tháng Giêng".to_string();
+        bundle.insight = Some(DayInsightDto {
+            solar: bundle.solar.clone(),
+            lunar: bundle.lunar.clone(),
+            festival: Some(FestivalInsightDto {
+                names: LocalizedListDto {
+                    vi: vec!["Tết Nguyên Tiêu".to_string()],
+                    en: vec!["First Full Moon Festival".to_string()],
+                },
+                origin: Some(localized(
+                    "Lễ hội gắn với đêm trăng tròn đầu tiên của năm.",
+                    "The first full moon of the year.",
+                )),
+                activities: Some(LocalizedListDto {
+                    vi: vec!["Đi chùa cầu an".to_string(), "Cúng gia tiên".to_string()],
+                    en: vec![],
+                }),
+                food: vec![],
+                taboos: vec![TabooInsightDto {
+                    action: localized("Tránh sát sinh", "Avoid taking life"),
+                    reason: localized("Giữ tâm thanh tịnh trong ngày lễ.", "Keep a calm mind."),
+                }],
+                proverbs: vec![],
+                regions: Some(RegionsInsightDto {
+                    north: localized("Lễ chùa và cúng gia tiên.", "Temple worship."),
+                    central: localized("Lễ Phật và cầu an.", "Buddhist prayer."),
+                    south: localized("Cúng rằm tại gia.", "Home worship."),
+                }),
+                category: "traditional".to_string(),
+                is_major: true,
+            }),
+            holiday: None,
+            canchi: None,
+            day_guidance: None,
+            tiet_khi: None,
+            na_am: None,
+            truc: None,
+            day_deity: Some(DayDeityInsightDto {
+                name: "Phật và gia tiên".to_string(),
+                classification: "cultural-context".to_string(),
+                classification_meaning: localized(
+                    "Nhân vật tín ngưỡng liên hệ trong ngày.",
+                    "Figures associated with the day.",
+                ),
+                deity_meaning: None,
+            }),
+            stars: None,
+            taboos: None,
+            travel: None,
+            xung_hop: None,
+            tang_can: None,
+            ten_gods: None,
+            hours: None,
+            tu_menh: None,
+            dai_van: None,
+            yearly_han: None,
+        });
+        app.bundle = Some(bundle);
+        app.active_view = ActiveView::EventDetail;
+
+        let text = render_text(&app);
+
+        assert!(text.contains("Nguồn Gốc / Bối Cảnh"));
+        assert!(text.contains("Miền Bắc"));
+        assert!(text.contains("Phật và gia tiên"));
+        assert!(text.contains("Tránh sát sinh"));
+        assert!(text.contains("Trăng tròn"));
+        assert!(text.contains("Đi chùa cầu an"));
+        assert!(text.contains("Cúng gia tiên"));
     }
 }
