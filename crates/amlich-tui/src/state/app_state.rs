@@ -155,6 +155,7 @@ pub enum ActiveView {
     Today,
     EventDetail,
     Elements,
+    FengShui,
     Personal,
     GraphInspector,
 }
@@ -165,6 +166,7 @@ impl ActiveView {
             Self::Today => "Tổng Quan",
             Self::EventDetail => "Sự Kiện",
             Self::Elements => "Ngũ Hành",
+            Self::FengShui => "Phong Thủy",
             Self::Personal => "Cá Nhân",
             Self::GraphInspector => "Đồ Thị Ngữ Nghĩa",
         }
@@ -175,6 +177,7 @@ impl ActiveView {
             Self::Today => "Tổng",
             Self::EventDetail => "Lễ",
             Self::Elements => "Hành",
+            Self::FengShui => "Vận",
             Self::Personal => "Cá Nhân",
             Self::GraphInspector => "Debug",
         }
@@ -1003,6 +1006,7 @@ impl AppState {
             ActiveView::Today,
             ActiveView::EventDetail,
             ActiveView::Elements,
+            ActiveView::FengShui,
             ActiveView::Personal,
         ];
         if self.dev_inspector_mode {

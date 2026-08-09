@@ -12,7 +12,8 @@ use crate::state::{AppState, PageSection};
 use super::{
     screens::{
         elements::ElementsScreenWidget, event_detail::EventDetailScreenWidget,
-        graph_inspector::GraphInspectorScreenWidget, today::TodayScreenWidget,
+        feng_shui::FengShuiScreenWidget, graph_inspector::GraphInspectorScreenWidget,
+        today::TodayScreenWidget,
     },
     week_strip::WeekStripWidget,
 };
@@ -32,6 +33,8 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
         (crate::state::ActiveView::EventDetail, _, _) => 34,
         (crate::state::ActiveView::Elements, LayoutMode::Small, _) => 46,
         (crate::state::ActiveView::Elements, _, _) => 34,
+        (crate::state::ActiveView::FengShui, LayoutMode::Small, _) => 44,
+        (crate::state::ActiveView::FengShui, _, _) => 34,
 
         (crate::state::ActiveView::Personal, _, _) => personal_natural_height(app, mode),
         (crate::state::ActiveView::GraphInspector, _, _) => 28,
@@ -47,10 +50,9 @@ fn personal_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
         .unwrap_or(false);
 
     match (has_personal_overlay, app.active_verbosity(), mode) {
-        (true, VerbosityMode::Verbose, LayoutMode::Small) => 43, // 6+9+8+10+10
-        (true, VerbosityMode::Verbose, _) => 31,                 // 6+9+16
-        (true, _, _) => 25,                                      // 6+9+10
-        (false, _, _) => 21,                                     // 6+9+6
+        (true, VerbosityMode::Verbose, _) => 34, // 6+9+9+10
+        (true, _, _) => 25,                      // 6+9+10
+        (false, _, _) => 21,                     // 6+9+6
     }
 }
 
@@ -64,6 +66,9 @@ pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: 
         }
         crate::state::ActiveView::Elements => {
             ElementsScreenWidget::new(app, mode).render(area, buf)
+        }
+        crate::state::ActiveView::FengShui => {
+            FengShuiScreenWidget::new(app, mode).render(area, buf)
         }
         crate::state::ActiveView::Personal => {
             crate::widgets::screens::personal::PersonalScreenWidget::new(app, mode)
@@ -150,6 +155,9 @@ impl Widget for PageWidget<'_> {
             crate::state::ActiveView::Elements => {
                 ElementsScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
+            crate::state::ActiveView::FengShui => {
+                FengShuiScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
             crate::state::ActiveView::Personal => {
                 crate::widgets::screens::personal::PersonalScreenWidget::new(self.app, self.mode)
                     .render(content_area, buf)
@@ -187,10 +195,10 @@ mod tests {
     };
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
-        CanChiDto, CanChiInfoDto, CanChiInsightDto, CanInsightDto, ChiInsightDto,
-        DayDeityInsightDto, DayGuidanceDto, DayInsightDto, ElementInsightDto, FestivalInsightDto,
-        LocalizedListDto, LocalizedTextDto, LunarDto, NguHanhDto,
-        RecommendationPackCatalogEntryDto, RegionsInsightDto, RulesetCatalogEntryDto,
+        CanChiDto, CanChiInfoDto, CanChiInsightDto, CanInsightDto, ChiInsightDto, DaiVanInsightDto,
+        DaiVanPillarInsightDto, DayDeityInsightDto, DayGuidanceDto, DayInsightDto,
+        ElementInsightDto, FestivalInsightDto, LocalizedListDto, LocalizedTextDto, LunarDto,
+        NguHanhDto, RecommendationPackCatalogEntryDto, RegionsInsightDto, RulesetCatalogEntryDto,
         RulesetDefaultsDto, SolarDto, TabooInsightDto, TrucInsightDto, TuMenhInsightDto,
     };
     use chrono::NaiveDate;
@@ -416,7 +424,7 @@ mod tests {
         });
         app.bundle = Some(bundle);
 
-        assert_eq!(screen_natural_height(&app, LayoutMode::Small, 48), 43);
+        assert_eq!(screen_natural_height(&app, LayoutMode::Small, 48), 34);
     }
 
     #[test]
@@ -586,5 +594,99 @@ mod tests {
         assert!(text.contains("Kết Hợp Trực + Hành"));
         assert!(text.contains("khai trương"));
         assert!(text.contains("quyết định nóng vội"));
+    }
+
+    #[test]
+    fn feng_shui_screen_promotes_full_dai_van_context() {
+        let mut app = sample_app_state();
+        let mut bundle = sample_bundle();
+        bundle.insight = Some(DayInsightDto {
+            solar: bundle.solar.clone(),
+            lunar: bundle.lunar.clone(),
+            festival: None,
+            holiday: None,
+            canchi: None,
+            day_guidance: None,
+            tiet_khi: None,
+            na_am: None,
+            truc: None,
+            day_deity: None,
+            stars: None,
+            taboos: None,
+            travel: None,
+            xung_hop: None,
+            tang_can: None,
+            ten_gods: None,
+            hours: None,
+            tu_menh: None,
+            dai_van: Some(DaiVanInsightDto {
+                direction: "Thuận hành".to_string(),
+                direction_meaning: localized(
+                    "Các trụ đi theo chiều thuận của vòng can chi.",
+                    "Pillars move forward.",
+                ),
+                start_age: "Khởi vận lúc 7 tuổi 3 tháng".to_string(),
+                current_pillar: Some(DaiVanPillarInsightDto {
+                    index: 1,
+                    can_chi: "Bính Ngọ".to_string(),
+                    start_age: 17.0,
+                    end_age: 27.0,
+                    element: "Hỏa".to_string(),
+                    element_meaning: localized(
+                        "Hỏa thúc đẩy biểu đạt và hành động.",
+                        "Fire drives expression.",
+                    ),
+                }),
+                all_pillars: vec![
+                    DaiVanPillarInsightDto {
+                        index: 1,
+                        can_chi: "Bính Ngọ".to_string(),
+                        start_age: 17.0,
+                        end_age: 27.0,
+                        element: "Hỏa".to_string(),
+                        element_meaning: localized("Giai đoạn lan tỏa.", "Expansion phase."),
+                    },
+                    DaiVanPillarInsightDto {
+                        index: 2,
+                        can_chi: "Đinh Mùi".to_string(),
+                        start_age: 27.0,
+                        end_age: 37.0,
+                        element: "Thổ".to_string(),
+                        element_meaning: localized("Giai đoạn tích lũy.", "Consolidation phase."),
+                    },
+                ],
+                phases_meaning: localized(
+                    "Mỗi đại vận là một pha mười năm, không phải verdict cho từng ngày.",
+                    "Each pillar is a ten-year phase.",
+                ),
+            }),
+            yearly_han: None,
+        });
+        app.bundle = Some(bundle);
+        app.active_view = ActiveView::FengShui;
+
+        let text = render_text(&app);
+
+        assert!(text.contains("Phong Thủy / Đại Vận"));
+        assert!(text.contains("Thuận hành"));
+        assert!(text.contains("Các trụ đi theo chiều thuận"));
+        assert!(text.contains("Khởi vận lúc 7 tuổi 3 tháng"));
+        assert!(text.contains("Mỗi đại vận là một pha mười năm"));
+        assert!(text.contains("Hiện tại: Bính Ngọ"));
+        assert!(text.contains("Hỏa thúc đẩy biểu đạt"));
+        assert!(text.contains("Đinh Mùi"));
+        assert!(text.contains("Hỏa sinh Thổ"));
+    }
+
+    #[test]
+    fn feng_shui_screen_explains_how_to_unlock_missing_dai_van() {
+        let mut app = sample_app_state();
+        app.bundle = Some(sample_bundle());
+        app.active_view = ActiveView::FengShui;
+
+        let text = render_text(&app);
+
+        assert!(text.contains("Chưa có dữ liệu Đại Vận"));
+        assert!(text.contains("Nhấn [p] ở màn Cá Nhân"));
     }
 }

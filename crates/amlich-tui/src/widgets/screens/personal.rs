@@ -79,7 +79,7 @@ impl Widget for PersonalScreenWidget<'_> {
                     Constraint::Length(6),
                     Constraint::Length(9),
                     Constraint::Length(9),
-                    Constraint::Min(16),
+                    Constraint::Min(10),
                 ])
                 .split(area);
                 render_profile_verdict(self.app, rows[0], buf);
@@ -91,30 +91,7 @@ impl Widget for PersonalScreenWidget<'_> {
                 render_kua(insight, middle[1], buf);
                 render_matrix_summary(self.app, rows[2], buf);
 
-                match self.mode {
-                    LayoutMode::Large | LayoutMode::Medium => {
-                        let bottom = Layout::horizontal([
-                            Constraint::Percentage(34),
-                            Constraint::Percentage(33),
-                            Constraint::Percentage(33),
-                        ])
-                        .split(rows[3]);
-                        render_directions(insight, bottom[0], buf);
-                        render_dai_van(insight, bottom[1], buf);
-                        render_dai_van_timeline(insight, bottom[2], buf);
-                    }
-                    LayoutMode::Small => {
-                        let bottom = Layout::vertical([
-                            Constraint::Length(8),
-                            Constraint::Length(10),
-                            Constraint::Min(10),
-                        ])
-                        .split(rows[3]);
-                        render_directions(insight, bottom[0], buf);
-                        render_dai_van(insight, bottom[1], buf);
-                        render_dai_van_timeline(insight, bottom[2], buf);
-                    }
-                }
+                render_directions(insight, rows[3], buf);
             }
             (false, _, _) => {
                 let rows = Layout::vertical([
@@ -417,92 +394,6 @@ fn matrix_summary_lines(matrix: &amlich_api::PersonalDayMatrixReportDto) -> Vec<
     }
 
     lines
-}
-
-fn render_dai_van(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
-    let block = Block::default()
-        .title(" Chu Kỳ / Đại Vận ")
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::DarkGray));
-    let inner = block.inner(area);
-    block.render(area, buf);
-
-    let Some(dv) = &insight.dai_van else {
-        Paragraph::new("  Chưa có dữ liệu Đại Vận.").render(inner, buf);
-        return;
-    };
-
-    let mut lines: Vec<Line<'_>> = vec![];
-    lines.push(Line::from(vec![
-        Span::raw("  Hướng vận: "),
-        Span::styled(&dv.direction, Style::default().fg(Color::Yellow)),
-    ]));
-    lines.push(Line::from(format!("  {}", dv.direction_meaning.vi)));
-    lines.push(Line::from(vec![
-        Span::raw("  Khởi vận: "),
-        Span::styled(&dv.start_age, Style::default().fg(Color::Cyan)),
-    ]));
-    lines.push(Line::from(format!("  {}", dv.phases_meaning.vi)));
-
-    if let Some(current) = &dv.current_pillar {
-        lines.push(Line::from(""));
-        lines.push(Line::from(vec![
-            Span::raw("  Hiện tại: "),
-            Span::styled(
-                format!(
-                    "{} · {}-{} tuổi",
-                    current.can_chi, current.start_age, current.end_age
-                ),
-                Style::default()
-                    .fg(Color::Cyan)
-                    .add_modifier(Modifier::BOLD),
-            ),
-        ]));
-        lines.push(Line::from(format!("  {}", current.element_meaning.vi)));
-    }
-
-    Paragraph::new(lines)
-        .wrap(Wrap { trim: true })
-        .render(inner, buf);
-}
-
-fn render_dai_van_timeline(insight: &amlich_api::DayInsightDto, area: Rect, buf: &mut Buffer) {
-    let block = Block::default()
-        .title(" Các Vận Kế Tiếp ")
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::DarkGray));
-    let inner = block.inner(area);
-    block.render(area, buf);
-
-    let Some(dv) = &insight.dai_van else {
-        Paragraph::new("  Chưa có timeline đại vận.").render(inner, buf);
-        return;
-    };
-
-    let mut lines: Vec<Line<'_>> = vec![];
-    for pillar in dv.all_pillars.iter().take(4) {
-        lines.push(Line::from(vec![
-            Span::styled("  • ", Style::default().fg(Color::Yellow)),
-            Span::styled(
-                pillar.can_chi.to_string(),
-                Style::default()
-                    .fg(Color::White)
-                    .add_modifier(Modifier::BOLD),
-            ),
-            Span::raw(format!(" · {}-{} tuổi", pillar.start_age, pillar.end_age)),
-        ]));
-        lines.push(Line::from(vec![
-            Span::raw("    "),
-            Span::styled(
-                format!("{} · {}", pillar.element, pillar.element_meaning.vi),
-                Style::default().fg(Color::DarkGray),
-            ),
-        ]));
-    }
-
-    Paragraph::new(lines)
-        .wrap(Wrap { trim: true })
-        .render(inner, buf);
 }
 
 #[cfg(test)]
