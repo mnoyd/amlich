@@ -153,6 +153,7 @@ impl FocusLens {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ActiveView {
     Today,
+    Insight,
     EventDetail,
     Elements,
     FengShui,
@@ -164,6 +165,7 @@ impl ActiveView {
     pub fn label(self) -> &'static str {
         match self {
             Self::Today => "Tổng Quan",
+            Self::Insight => "Insight",
             Self::EventDetail => "Sự Kiện",
             Self::Elements => "Ngũ Hành",
             Self::FengShui => "Phong Thủy",
@@ -175,6 +177,7 @@ impl ActiveView {
     pub fn short_label(self) -> &'static str {
         match self {
             Self::Today => "Tổng",
+            Self::Insight => "Insight",
             Self::EventDetail => "Lễ",
             Self::Elements => "Hành",
             Self::FengShui => "Vận",
@@ -1004,6 +1007,7 @@ impl AppState {
     pub fn available_views(&self) -> Vec<ActiveView> {
         let mut views = vec![
             ActiveView::Today,
+            ActiveView::Insight,
             ActiveView::EventDetail,
             ActiveView::Elements,
             ActiveView::FengShui,

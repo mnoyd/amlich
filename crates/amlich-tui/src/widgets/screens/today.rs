@@ -8,11 +8,10 @@ use ratatui::{
 };
 
 use crate::widgets::{
-    action_board::ActionBoardWidget, almanac::AlmanacGridWidget,
-    direction_panel::DirectionPanelWidget, event_summary::EventSummaryWidget,
-    guidance::GuidanceWidget, guidance_panel::GuidancePanelWidget, hero::HeroWidget,
-    mini_calendar::MiniCalendarWidget, risk::RiskWidget, tietkhi::TietKhiWidget,
-    timeline::TimelineWidget, travel::TravelWidget,
+    almanac::AlmanacGridWidget, direction_panel::DirectionPanelWidget,
+    event_summary::EventSummaryWidget, guidance::GuidanceWidget,
+    guidance_panel::GuidancePanelWidget, hero::HeroWidget, mini_calendar::MiniCalendarWidget,
+    risk::RiskWidget, tietkhi::TietKhiWidget, timeline::TimelineWidget, travel::TravelWidget,
 };
 use crate::{
     layout::LayoutMode,
@@ -60,7 +59,7 @@ fn render_small_compact(app: &AppState, area: Rect, buf: &mut Buffer) {
     HeroWidget::new(app, LayoutMode::Small).render(rows[0], buf);
     render_overview_verdict(app, rows[1], buf);
     EventSummaryWidget::new(app, LayoutMode::Small).render(rows[2], buf);
-    ActionBoardWidget::new(app, LayoutMode::Small).render(rows[3], buf);
+    render_insight_handoff(rows[3], buf);
     GuidanceWidget::new(app, LayoutMode::Small).render(rows[4], buf);
     RiskWidget::new(app, LayoutMode::Small).render(rows[5], buf);
     render_direction_and_travel_compact(app, rows[6], buf);
@@ -86,7 +85,7 @@ fn render_small_verbose(app: &AppState, area: Rect, buf: &mut Buffer) {
     render_overview_verdict(app, rows[1], buf);
     EventSummaryWidget::new(app, LayoutMode::Small).render(rows[2], buf);
     MiniCalendarWidget::new(app, LayoutMode::Small).render(rows[3], buf);
-    ActionBoardWidget::new(app, LayoutMode::Small).render(rows[4], buf);
+    render_insight_handoff(rows[4], buf);
     TimelineWidget::new(app, LayoutMode::Small).render(rows[5], buf);
     GuidanceWidget::new(app, LayoutMode::Small).render(rows[6], buf);
     RiskWidget::new(app, LayoutMode::Small).render(rows[7], buf);
@@ -112,7 +111,7 @@ fn render_standard_compact(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
 
     let middle =
         Layout::horizontal([Constraint::Percentage(55), Constraint::Percentage(45)]).split(rows[2]);
-    ActionBoardWidget::new(app, mode).render(middle[0], buf);
+    render_insight_handoff(middle[0], buf);
     EventSummaryWidget::new(app, mode).render(middle[1], buf);
 
     TimelineWidget::new(app, mode).render(rows[3], buf);
@@ -154,7 +153,7 @@ fn render_standard_verbose(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
 
     MiniCalendarWidget::new(app, mode).render(right_chunks[0], buf);
     EventSummaryWidget::new(app, mode).render(right_chunks[1], buf);
-    ActionBoardWidget::new(app, mode).render(right_chunks[2], buf);
+    render_insight_handoff(right_chunks[2], buf);
 
     TimelineWidget::new(app, mode).render(chunks[2], buf);
 
@@ -174,6 +173,29 @@ fn render_direction_and_travel_compact(app: &AppState, area: Rect, buf: &mut Buf
         Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(area);
     DirectionPanelWidget::new(app, LayoutMode::Small).render(application[0], buf);
     TravelWidget::new(app, LayoutMode::Small).render(application[1], buf);
+}
+
+fn render_insight_handoff(area: Rect, buf: &mut Buffer) {
+    let block = Block::default()
+        .title(" Kế Hoạch ")
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Color::DarkGray));
+    let inner = block.inner(area);
+    block.render(area, buf);
+
+    Paragraph::new(vec![
+        Line::from(vec![
+            Span::styled("  Insight [2]", Style::default().fg(Color::Cyan)),
+            Span::raw(" là nơi đọc chi tiết hành động và rủi ro."),
+        ]),
+        Line::from(""),
+        Line::from(Span::styled(
+            "  Chi tiết Nên/Tránh đã chuyển sang màn Insight [2].",
+            Style::default().fg(Color::DarkGray),
+        )),
+    ])
+    .wrap(Wrap { trim: true })
+    .render(inner, buf);
 }
 
 fn render_detail_footer(app: &AppState, area: Rect, buf: &mut Buffer) {

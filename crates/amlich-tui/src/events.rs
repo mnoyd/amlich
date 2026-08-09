@@ -58,22 +58,26 @@ pub(crate) fn dispatch_key(app: &mut AppState, code: KeyCode, modifiers: KeyModi
             return false;
         }
         KeyCode::Char('2') => {
-            app.go_to_view(crate::state::ActiveView::EventDetail);
+            app.go_to_view(crate::state::ActiveView::Insight);
             return false;
         }
         KeyCode::Char('3') => {
-            app.go_to_view(crate::state::ActiveView::Elements);
+            app.go_to_view(crate::state::ActiveView::EventDetail);
             return false;
         }
         KeyCode::Char('4') => {
-            app.go_to_view(crate::state::ActiveView::FengShui);
+            app.go_to_view(crate::state::ActiveView::Elements);
             return false;
         }
         KeyCode::Char('5') => {
-            app.go_to_view(crate::state::ActiveView::Personal);
+            app.go_to_view(crate::state::ActiveView::FengShui);
             return false;
         }
         KeyCode::Char('6') => {
+            app.go_to_view(crate::state::ActiveView::Personal);
+            return false;
+        }
+        KeyCode::Char('7') => {
             app.go_to_view(crate::state::ActiveView::GraphInspector);
             return false;
         }
@@ -521,7 +525,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_view, ActiveView::EventDetail);
+        assert_eq!(app.active_view, ActiveView::Insight);
     }
 
     #[test]
@@ -542,7 +546,7 @@ mod tests {
 
         dispatch_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
 
-        assert_eq!(app.active_view, ActiveView::EventDetail);
+        assert_eq!(app.active_view, ActiveView::Insight);
         assert_eq!(
             app.explanation_lens,
             crate::state::UserExplanationLens::ViSao
@@ -550,10 +554,14 @@ mod tests {
     }
 
     #[test]
-    fn numbered_shortcut_matches_event_detail_tab_position() {
+    fn numbered_shortcuts_match_insight_and_event_tab_positions() {
         let mut app = sample_app_state();
 
         dispatch_key(&mut app, KeyCode::Char('2'), KeyModifiers::NONE);
+
+        assert_eq!(app.active_view, ActiveView::Insight);
+
+        dispatch_key(&mut app, KeyCode::Char('3'), KeyModifiers::NONE);
 
         assert_eq!(app.active_view, ActiveView::EventDetail);
     }

@@ -13,7 +13,7 @@ use super::{
     screens::{
         elements::ElementsScreenWidget, event_detail::EventDetailScreenWidget,
         feng_shui::FengShuiScreenWidget, graph_inspector::GraphInspectorScreenWidget,
-        today::TodayScreenWidget,
+        insight::InsightScreenWidget, today::TodayScreenWidget,
     },
     week_strip::WeekStripWidget,
 };
@@ -28,6 +28,9 @@ pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16)
         (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Verbose) => 90,
         (crate::state::ActiveView::Today, _, VerbosityMode::Compact) => 60,
         (crate::state::ActiveView::Today, _, VerbosityMode::Verbose) => 80,
+
+        (crate::state::ActiveView::Insight, LayoutMode::Small, _) => 46,
+        (crate::state::ActiveView::Insight, _, _) => 34,
 
         (crate::state::ActiveView::EventDetail, LayoutMode::Small, _) => 48,
         (crate::state::ActiveView::EventDetail, _, _) => 34,
@@ -61,6 +64,7 @@ fn personal_natural_height(app: &AppState, mode: LayoutMode) -> u16 {
 pub fn render_screen_content(app: &AppState, mode: LayoutMode, area: Rect, buf: &mut Buffer) {
     match app.active_view {
         crate::state::ActiveView::Today => TodayScreenWidget::new(app, mode).render(area, buf),
+        crate::state::ActiveView::Insight => InsightScreenWidget::new(app, mode).render(area, buf),
         crate::state::ActiveView::EventDetail => {
             EventDetailScreenWidget::new(app, mode).render(area, buf)
         }
@@ -149,6 +153,9 @@ impl Widget for PageWidget<'_> {
             crate::state::ActiveView::Today => {
                 TodayScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
+            crate::state::ActiveView::Insight => {
+                InsightScreenWidget::new(self.app, self.mode).render(content_area, buf)
+            }
             crate::state::ActiveView::EventDetail => {
                 EventDetailScreenWidget::new(self.app, self.mode).render(content_area, buf)
             }
@@ -196,10 +203,11 @@ mod tests {
     use amlich_api::v2::DayBundleDto;
     use amlich_api::{
         CanChiDto, CanChiInfoDto, CanChiInsightDto, CanInsightDto, ChiInsightDto, DaiVanInsightDto,
-        DaiVanPillarInsightDto, DayDeityInsightDto, DayGuidanceDto, DayInsightDto,
-        ElementInsightDto, FestivalInsightDto, LocalizedListDto, LocalizedTextDto, LunarDto,
-        NguHanhDto, RecommendationPackCatalogEntryDto, RegionsInsightDto, RulesetCatalogEntryDto,
-        RulesetDefaultsDto, SolarDto, TabooInsightDto, TrucInsightDto, TuMenhInsightDto,
+        DaiVanPillarInsightDto, DailyRecommendationsDto, DayDeityInsightDto, DayGuidanceDto,
+        DayInsightDto, ElementInsightDto, FestivalInsightDto, LocalizedListDto, LocalizedTextDto,
+        LunarDto, NguHanhDto, RecommendationPackCatalogEntryDto, RecommendationScopeDto,
+        RegionsInsightDto, RulesetCatalogEntryDto, RulesetDefaultsDto, SolarDto, TabooInsightDto,
+        TrucInsightDto, TuMenhInsightDto,
     };
     use chrono::NaiveDate;
     use ratatui::{buffer::Buffer, layout::Rect};
@@ -688,5 +696,37 @@ mod tests {
 
         assert!(text.contains("Chưa có dữ liệu Đại Vận"));
         assert!(text.contains("Nhấn [p] ở màn Cá Nhân"));
+    }
+
+    #[test]
+    fn insight_owns_action_board_while_today_defers_planning_detail() {
+        let mut app = sample_app_state();
+        let mut bundle = sample_bundle();
+        bundle.daily_recommendations = Some(DailyRecommendationsDto {
+            ruleset_id: "test".to_string(),
+            ruleset_version: "v1".to_string(),
+            profile: "baseline".to_string(),
+            scope: RecommendationScopeDto::GeneralDay,
+            version: "v1".to_string(),
+            summary_vi: "Lập kế hoạch có chủ đích.".to_string(),
+            summary_en: "Plan deliberately.".to_string(),
+            active_packs: vec![],
+            activities: vec![],
+        });
+        app.bundle = Some(bundle);
+        app.active_view = ActiveView::Today;
+
+        let today = render_text(&app);
+
+        assert!(!today.contains("Hành Động (Nên / Tránh)"));
+        assert!(today.contains("Chi tiết Nên/Tránh đã chuyển sang màn Insight [2]"));
+
+        app.active_view = ActiveView::Insight;
+        let insight = render_text(&app);
+
+        assert!(insight.contains("Insight / Lập Kế Hoạch"));
+        assert!(insight.contains("Hành Động (Nên / Tránh)"));
+        assert!(insight.contains("NÊN LÀM"));
+        assert!(insight.contains("CẦN TRÁNH"));
     }
 }
