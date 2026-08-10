@@ -77,7 +77,8 @@ pub use interactions::{
 };
 pub use policy::{
     AssessmentPolicy, ASSESSMENT_POLICY_V2_1_VERSION, ASSESSMENT_POLICY_V2_2_VERSION,
-    ASSESSMENT_POLICY_V2_3_VERSION, ASSESSMENT_POLICY_V2_ID, ASSESSMENT_POLICY_V2_VERSION,
+    ASSESSMENT_POLICY_V2_3_VERSION, ASSESSMENT_POLICY_V2_4_VERSION, ASSESSMENT_POLICY_V2_ID,
+    ASSESSMENT_POLICY_V2_VERSION,
 };
 pub use promotion::{current_default_policy_version, PromotionStatus, PromotionStatusReport};
 pub use stability::{GateDetail, GateResult, GateStatus, StabilityGate, StabilityReport};

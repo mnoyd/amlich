@@ -108,6 +108,23 @@ pub const ASSESSMENT_POLICY_V2_2_VERSION: &str = "v2.2";
 /// aggregation formula.
 pub const ASSESSMENT_POLICY_V2_3_VERSION: &str = "v2.3";
 
+/// Version of the v2.4 non-Bazi annual pressure policy
+/// (`amlich-bz0f.3`). Replaces the single catch-all
+/// `AnnualThaiTue` aggregation observation (used by v2 / v2.1 / v2.2 /
+/// v2.3) with one typed, source-attributed observation per active
+/// non-Bazi annual system: Tam Tai, Kim Lau, Hoang Oc, Thai Tue, and
+/// Cửu Diệu (sao hạn). Each system keeps its own semantics and source
+/// provenance; informational systems surface as weighted `Avoid`
+/// contributions rather than universal vetoes.
+///
+/// Axis subtotals and decision buckets match v2.3 byte-for-byte
+/// because the v2 aggregation formula averages same-polarity
+/// observations: N `Avoid` features at any positive strength produce
+/// the same axis balance as a single `Avoid` feature. The
+/// `AnnualPressure` veto (High / Critical `HanSeverity`) continues to
+/// fire from `extract_vetoes` exactly as before.
+pub const ASSESSMENT_POLICY_V2_4_VERSION: &str = "v2.4";
+
 /// Legacy axis-aggregation multiplier carried over from v1 so baseline_v2
 /// reproduces v1 axis scores exactly. The v2.1 intent-aware variant
 /// (`amlich-lxu3`) keeps this multiplier for axis subtotals and only
@@ -229,6 +246,35 @@ impl AssessmentPolicy {
         }
     }
 
+    /// Non-Bazi annual pressure v2.4 policy (`amlich-bz0f.3`).
+    /// Replaces the single catch-all `AnnualThaiTue` aggregation
+    /// observation with one typed, source-attributed observation per
+    /// active annual system: Tam Tai, Kim Lau, Hoang Oc, Thai Tue,
+    /// and Cửu Diệu (sao hạn). Each system keeps its own source
+    /// provenance and traditional severity mapping.
+    ///
+    /// Informational systems (Hoang Oc, sao hạn) surface as weighted
+    /// `Avoid` contributions rather than universal vetoes. The hard
+    /// `AnnualPressure` veto continues to fire from `extract_vetoes`
+    /// when `HanSeverity` reaches High / Critical.
+    ///
+    /// The v2 axis aggregation formula averages same-polarity
+    /// observations: N `Avoid` features at any positive strength
+    /// produce the same axis balance as a single `Avoid` feature, so
+    /// `AnnualPressure` axis subtotals and decision buckets match
+    /// v2.3 byte-for-byte. Missing gender (which gates the yearly
+    /// Hạn computation) emits explicit `Unavailable` observations
+    /// per system rather than an adverse score.
+    pub fn non_bazi_pressure_v2_4() -> Self {
+        Self {
+            policy_id: ASSESSMENT_POLICY_V2_ID.to_string(),
+            policy_version: ASSESSMENT_POLICY_V2_4_VERSION.to_string(),
+            axis_delta_multiplier: V1_AXIS_DELTA_MULTIPLIER,
+            intent_axis_weights: Some(&INTENT_AXIS_WEIGHTS_V2_1),
+            interaction_weights: Some(&INTERACTION_WEIGHTS_V2_2),
+        }
+    }
+
     pub fn policy_id(&self) -> &str {
         &self.policy_id
     }
@@ -289,11 +335,31 @@ impl AssessmentPolicy {
         // base v2.2 feature set so the new observations are additive
         // and the baseline parity contract still holds for the
         // non-Bazi portions of the feature vector.
-        if self.policy_version == ASSESSMENT_POLICY_V2_3_VERSION {
+        if self.policy_version == ASSESSMENT_POLICY_V2_3_VERSION
+            || self.policy_version == ASSESSMENT_POLICY_V2_4_VERSION
+        {
             let bazi_features = super::extraction::extract_bazi_target_day_observations(
                 snapshot, profile, capability, &resolved,
             );
             features.extend(bazi_features);
+        }
+
+        // Non-Bazi annual pressure projection (amlich-bz0f.3). Replaces
+        // the single catch-all AnnualThaiTue aggregation observation
+        // with one typed observation per active system (Tam Tai, Kim
+        // Lau, Hoang Oc, Thai Tue, sao hạn). The replacement is gated
+        // on policy_version so v2 / v2.1 / v2.2 / v2.3 retain their
+        // existing single-observation behavior byte-for-byte.
+        if self.policy_version == ASSESSMENT_POLICY_V2_4_VERSION {
+            super::extraction::replace_aggregate_with_per_system_annual_observations(
+                &mut features,
+                snapshot,
+                &resolved,
+            );
+            let non_bazi_features = super::extraction::extract_non_bazi_annual_observations(
+                snapshot, capability, &resolved,
+            );
+            features.extend(non_bazi_features);
         }
 
         let vetoes = extract_vetoes(snapshot, profile, intent, capability, &resolved);

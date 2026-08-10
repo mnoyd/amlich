@@ -35,6 +35,7 @@
 
 use crate::{
     advisory::ConsultationIntent,
+    almanac::yearly_han::HanSeverity,
     assessment::{
         extraction::ResolvedAssessmentInputs,
         feature::{AssessmentFeatureId, FeatureObservation},
@@ -419,27 +420,39 @@ pub(super) fn extract_interactions(
     // 5. annual_pressure × requested_activity
     //    Fires when yearly Hạn is active AND the intent is a major life
     //    event where Hạn is traditionally most consequential.
+    //
+    //    The interaction keys on the resolved yearly Hạn severity rather
+    //    than on a specific feature id so the v2.4 non-Bazi policy
+    //    (`amlich-bz0f.3`) — which replaces the single `AnnualThaiTue`
+    //    catch-all with per-system observations — produces a byte-identical
+    //    delta. The strength is derived from `HanSeverity` exactly as the
+    //    v2 / v2.1 / v2.2 / v2.3 catch-all does.
     if is_major_life_event(intent) {
-        if let Some(han) = features
-            .iter()
-            .find(|f| f.feature_id == AssessmentFeatureId::AnnualThaiTue && !f.is_unavailable())
-        {
-            let kind = InteractionKind::AnnualPressureActivity;
-            terms.push(InteractionTerm {
-                interaction_id: kind.as_str().to_string(),
-                feature_ids: vec![AssessmentFeatureId::AnnualThaiTue],
-                axis: kind.target_axis(),
-                value: -han.strength,
-                weight: weight_table.weight_for(kind),
-                source_evidence: interaction_evidence(
-                    "annual_pressure_activity",
-                    Some(format!(
-                        "han_strength={:.2} intent={:?} major_life_event=true",
-                        han.strength, intent
-                    )),
-                ),
-                note: None,
-            });
+        if let Some(han) = resolved.yearly_han.as_ref() {
+            if han.han_count > 0 {
+                let severity_strength = match han.severity {
+                    HanSeverity::Low => 0.3,
+                    HanSeverity::Medium => 0.55,
+                    HanSeverity::High => 0.85,
+                    HanSeverity::Critical => 1.0,
+                };
+                let kind = InteractionKind::AnnualPressureActivity;
+                terms.push(InteractionTerm {
+                    interaction_id: kind.as_str().to_string(),
+                    feature_ids: vec![AssessmentFeatureId::AnnualThaiTue],
+                    axis: kind.target_axis(),
+                    value: -severity_strength,
+                    weight: weight_table.weight_for(kind),
+                    source_evidence: interaction_evidence(
+                        "annual_pressure_activity",
+                        Some(format!(
+                            "han_count={} severity={:?} intent={:?} major_life_event=true",
+                            han.han_count, han.severity, intent
+                        )),
+                    ),
+                    note: None,
+                });
+            }
         }
     }
 

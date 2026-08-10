@@ -45,6 +45,12 @@ pub enum AssessmentFeatureId {
     AnnualKimLau,
     AnnualHoangOc,
     AnnualThaiTue,
+    /// Cửu Diệu (Nine Star) personal fortune star flagged as a sao hạn
+    /// (`amlich-bz0f.3`). One of the three Hung-quality stars (La Hầu,
+    /// Kế Đô, Thái Bạch) maps to an `Avoid` scored feature on the
+    /// `AnnualPressure` axis. Trung / Cát stars stay omitted (not
+    /// missing evidence, just non-occurring affliction).
+    AnnualSaoHan,
     BaziElementResonance,
     /// Target-day stem's Thập Thần relation to the birth day master
     /// (`amlich-bz0f.2`). Fires on every assessment that has a Bazi chart
@@ -67,7 +73,7 @@ impl AssessmentFeatureId {
     /// All declared feature identifiers, in canonical order. The order is
     /// stable across policy versions and is used by trace serialization and
     /// parity fixtures.
-    pub const ALL: [Self; 17] = [
+    pub const ALL: [Self; 18] = [
         Self::GenericDayQuality,
         Self::IntentFit,
         Self::PersonalSameChi,
@@ -80,6 +86,7 @@ impl AssessmentFeatureId {
         Self::AnnualKimLau,
         Self::AnnualHoangOc,
         Self::AnnualThaiTue,
+        Self::AnnualSaoHan,
         Self::BaziElementResonance,
         Self::BaziTargetDayTenGod,
         Self::BaziTargetDayPillarRelation,
@@ -101,6 +108,7 @@ impl AssessmentFeatureId {
             Self::AnnualKimLau => "annual_kim_lau",
             Self::AnnualHoangOc => "annual_hoang_oc",
             Self::AnnualThaiTue => "annual_thai_tue",
+            Self::AnnualSaoHan => "annual_sao_han",
             Self::BaziElementResonance => "bazi_element_resonance",
             Self::BaziTargetDayTenGod => "bazi_target_day_ten_god",
             Self::BaziTargetDayPillarRelation => "bazi_target_day_pillar_relation",
@@ -126,9 +134,11 @@ impl AssessmentFeatureId {
             | Self::BaziTargetDayTenGod
             | Self::BaziTargetDayPillarRelation
             | Self::BaziTargetDayElementResonance => AssessmentAxis::PersonalAlignment,
-            Self::AnnualTamTai | Self::AnnualKimLau | Self::AnnualHoangOc | Self::AnnualThaiTue => {
-                AssessmentAxis::AnnualPressure
-            }
+            Self::AnnualTamTai
+            | Self::AnnualKimLau
+            | Self::AnnualHoangOc
+            | Self::AnnualThaiTue
+            | Self::AnnualSaoHan => AssessmentAxis::AnnualPressure,
             Self::EvidenceCoverage => AssessmentAxis::EvidenceCoverage,
         }
     }
@@ -338,6 +348,6 @@ mod tests {
             // Every declared feature must map to a real axis under baseline.
             let _ = feature.default_axis();
         }
-        assert_eq!(AssessmentFeatureId::ALL.len(), 17);
+        assert_eq!(AssessmentFeatureId::ALL.len(), 18);
     }
 }

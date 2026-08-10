@@ -433,6 +433,14 @@ pub(super) fn extract_features(
             // contribution per Hạn assessment. baseline_v2 preserves that
             // shape via the Thai Tue feature identifier (the Hạn envelope
             // aggregates Tam Tai / Kim Lau / Hoang Oc / Thai Tue / Sao Hạn).
+            //
+            // Under v2.4 (`amlich-bz0f.3`) this catch-all observation is
+            // replaced by per-system observations after extraction
+            // completes — see [`replace_aggregate_with_per_system_annual_observations`].
+            // The catch-all is detected deterministically by its
+            // (AnnualThaiTue feature id, yearly_han method) pair, so the
+            // v2 / v2.1 / v2.2 / v2.3 contribution_id stays byte-identical
+            // to v1 for parity fixtures.
             features.push(FeatureObservation::observed(
                 AssessmentFeatureId::AnnualThaiTue,
                 ContributionPolarity::Avoid,
@@ -1285,4 +1293,335 @@ fn controls(a: &str, b: &str) -> bool {
         (a, b),
         ("Mộc", "Thổ") | ("Hỏa", "Kim") | ("Thổ", "Thủy") | ("Kim", "Mộc") | ("Thủy", "Hỏa")
     )
+}
+
+// ---------------------------------------------------------------------------
+// Non-Bazi annual pressure observations (amlich-bz0f.3)
+//
+// Each classical Vietnamese annual-affliction system is projected as a
+// typed, source-attributed `Avoid` feature observation on the
+// `AnnualPressure` axis. The systems retain their independent semantics
+// (Tam Tai year position, Kim Lâu remainder category, Hoàng Ốc vị trí,
+// Thái Tuế conflict kind, Cửu Diệu star quality) and their own source
+// provenance (KHCBPPT, Ngọc Hạp Ký, vn-folk, cuu-dieu).
+//
+// Informational systems (Hoàng Ốc, sao hạn) surface as weighted `Avoid`
+// contributions rather than universal vetoes. The hard AnnualPressure
+// veto still fires from `extract_vetoes` when `HanSeverity` reaches
+// High or Critical — independent of feature strengths.
+//
+// Parity contract: the v2 aggregation formula averages same-polarity
+// observations, so N `Avoid` features at any positive strength produce
+// the same axis balance as a single `Avoid` feature. Replacing the
+// catch-all aggregation observation with per-system observations
+// preserves the `AnnualPressure` axis subtotal and decision bucket
+// byte-for-byte under v2.4.
+//
+// Deduplication: each system fires at most once per assessment. The
+// underlying `YearlyHanAssessment` already computes one result per
+// system, so the projection simply maps the active results to feature
+// observations without further dedup.
+// ---------------------------------------------------------------------------
+
+/// Remove the catch-all annual aggregation observation emitted by
+/// [`extract_features`]. Called by the v2.4 policy before appending
+/// per-system observations so the two projections cannot inflate the
+/// `AnnualPressure` axis.
+///
+/// Detection keys on the `(AnnualThaiTue feature id, yearly_han
+/// method)` pair, which uniquely identifies the catch-all observation
+/// regardless of the solar day embedded in its `contribution_id`. The
+/// per-system `AnnualThaiTue` observation (Thai Tuế) uses a different
+/// method (`thai_tue_lookup`), so it is never removed here.
+///
+/// No-op when the feature list does not contain the aggregation
+/// observation (e.g., when the profile has no gender so no yearly Hạn
+/// was computed). Per-system observations are still emitted in that
+/// case as explicit `Unavailable` features.
+pub(super) fn replace_aggregate_with_per_system_annual_observations(
+    features: &mut Vec<FeatureObservation>,
+    _snapshot: &DaySnapshot,
+    _resolved: &ResolvedAssessmentInputs,
+) {
+    features.retain(|feature| {
+        !(feature.feature_id == AssessmentFeatureId::AnnualThaiTue
+            && feature.source_evidence.method == "yearly_han")
+    });
+}
+
+/// Project typed, source-attributed non-Bazi annual pressure
+/// observations from the resolved yearly Hạn assessment
+/// (`amlich-bz0f.3`).
+///
+/// Returns one [`FeatureObservation`] per *active* annual system:
+/// - [`AssessmentFeatureId::AnnualTamTai`] when `tam_tai.in_tam_tai`,
+/// - [`AssessmentFeatureId::AnnualKimLau`] when `kim_lau.in_kim_lau`,
+/// - [`AssessmentFeatureId::AnnualHoangOc`] when `!hoang_oc.is_good`,
+/// - [`AssessmentFeatureId::AnnualThaiTue`] when `thai_tue.has_conflict`,
+/// - [`AssessmentFeatureId::AnnualSaoHan`] when `sao_han.is_han`.
+///
+/// Each observation carries its own source attribution:
+/// - Tam Tai → KHCBPPT,
+/// - Kim Lâu → Ngọc Hạp Ký,
+/// - Hoàng Ốc → Vietnamese folk,
+/// - Thái Tuế → KHCBPPT,
+/// - Cửu Diệu (sao hạn) → cuu-dieu.
+///
+/// When the resolved inputs are missing the yearly Hạn assessment
+/// (e.g., the profile has no gender), the function emits one explicit
+/// `Unavailable` observation per declared feature so the trace
+/// self-describes what evidence was missing (the amlich-7bm4 contract).
+pub(super) fn extract_non_bazi_annual_observations(
+    snapshot: &DaySnapshot,
+    capability: BirthCapability,
+    resolved: &ResolvedAssessmentInputs,
+) -> Vec<FeatureObservation> {
+    let ruleset_id = snapshot.ruleset_id.clone();
+    let ruleset_version = snapshot.ruleset_version.clone();
+    let profile_id = snapshot.profile.clone();
+
+    let han_evidence =
+        |source_id: &'static str, method: &'static str, note: Option<String>| SourceEvidence {
+            source_family: "almanac_rule".to_string(),
+            source_id: source_id.to_string(),
+            method: method.to_string(),
+            profile: profile_id.clone(),
+            note,
+        };
+
+    let mut features: Vec<FeatureObservation> = Vec::new();
+
+    let Some(han) = resolved.yearly_han.as_ref() else {
+        // Without a yearly Hạn assessment every non-Bazi annual system
+        // is unavailable. Emit one explicit Unavailable observation per
+        // declared feature so the trace records what evidence was
+        // missing (the amlich-7bm4 "unavailable != zero" contract).
+        for feature_id in [
+            AssessmentFeatureId::AnnualTamTai,
+            AssessmentFeatureId::AnnualKimLau,
+            AssessmentFeatureId::AnnualHoangOc,
+            AssessmentFeatureId::AnnualThaiTue,
+            AssessmentFeatureId::AnnualSaoHan,
+        ] {
+            let method = non_bazi_method(feature_id);
+            let reason = match feature_id {
+                AssessmentFeatureId::AnnualSaoHan => {
+                    "requires gender for Cửu Diệu (sao hạn) assessment"
+                }
+                _ => "requires gender for yearly Hạn assessment",
+            };
+            features.push(FeatureObservation::unavailable(
+                feature_id,
+                format!("{}.unavailable", method),
+                reason,
+                han_evidence(SOURCE_KHCBPPT, method, None),
+                ruleset_id.clone(),
+                ruleset_version.clone(),
+            ));
+        }
+        return features;
+    };
+
+    // --- Tam Tai (Three Calamities) -----------------------------------
+    // The Tam Tai severity escalates from Nhập (entering) through Cư
+    // (residing, heaviest) to Xuất (exiting). All three years are
+    // `Avoid`; the strength reflects the traditional severity ordering.
+    if han.tam_tai.in_tam_tai {
+        let (severity_label, strength) = match han.tam_tai.severity {
+            Some(crate::almanac::tam_tai::TamTaiSeverity::Nhap) => ("Nhap", 0.4),
+            Some(crate::almanac::tam_tai::TamTaiSeverity::Cu) => ("Cu", 0.6),
+            Some(crate::almanac::tam_tai::TamTaiSeverity::Xuat) => ("Xuat", 0.4),
+            None => ("unknown", 0.4),
+        };
+        let year_position = han
+            .tam_tai
+            .year_position
+            .map(|p| p.to_string())
+            .unwrap_or_else(|| "?".to_string());
+        features.push(
+            FeatureObservation::observed(
+                AssessmentFeatureId::AnnualTamTai,
+                ContributionPolarity::Avoid,
+                strength,
+                "annual.tam_tai",
+                han_evidence(
+                    SOURCE_KHCBPPT,
+                    "tam_tai_lookup",
+                    Some(format!(
+                        "year_position={} severity={} tai_years=[{}]",
+                        year_position,
+                        severity_label,
+                        han.tam_tai.tai_years.join(",")
+                    )),
+                ),
+                ruleset_id.clone(),
+                ruleset_version.clone(),
+            )
+            .with_note(format!(
+                "Tam Tai ({} năm thứ {})",
+                severity_label, year_position
+            )),
+        );
+    }
+
+    // --- Kim Lâu (Golden Tower) ---------------------------------------
+    // The Kim Lâu category determines whom the taboo harms: self
+    // (Thân, heaviest), spouse (Thê), children (Tử), livestock (Súc,
+    // lightest). All four are `Avoid`; the strength tracks the
+    // traditional severity ordering.
+    if han.kim_lau.in_kim_lau {
+        let (category_label, strength) = match han.kim_lau.category {
+            Some(crate::almanac::kim_lau::KimLauCategory::Than) => ("Than", 0.7),
+            Some(crate::almanac::kim_lau::KimLauCategory::The) => ("The", 0.6),
+            Some(crate::almanac::kim_lau::KimLauCategory::Tu) => ("Tu", 0.5),
+            Some(crate::almanac::kim_lau::KimLauCategory::Suc) => ("Suc", 0.4),
+            None => ("unknown", 0.4),
+        };
+        features.push(
+            FeatureObservation::observed(
+                AssessmentFeatureId::AnnualKimLau,
+                ContributionPolarity::Avoid,
+                strength,
+                "annual.kim_lau",
+                han_evidence(
+                    crate::sources::SOURCE_NGOC_HAP_KY,
+                    "kim_lau_lookup",
+                    Some(format!(
+                        "tuoi_mu={} remainder={} category={}",
+                        han.kim_lau.tuoi_mu, han.kim_lau.remainder, category_label
+                    )),
+                ),
+                ruleset_id.clone(),
+                ruleset_version.clone(),
+            )
+            .with_note(format!(
+                "Kim Lâu {} (tuổi mụ {})",
+                kim_lau_category_vi(han.kim_lau.category),
+                han.kim_lau.tuoi_mu
+            )),
+        );
+    }
+
+    // --- Hoàng Ốc (Desolate House) ------------------------------------
+    // A house-construction taboo that the tradition treats as an
+    // informational annual pressure, not a universal veto. The
+    // `Avoid` contribution surfaces it in the AnnualPressure axis
+    // while leaving the explicit veto path (`extract_vetoes`) alone.
+    if !han.hoang_oc.is_good {
+        features.push(
+            FeatureObservation::observed(
+                AssessmentFeatureId::AnnualHoangOc,
+                ContributionPolarity::Avoid,
+                0.4,
+                "annual.hoang_oc",
+                han_evidence(
+                    SOURCE_VN_FOLK,
+                    "hoang_oc_lookup",
+                    Some(format!(
+                        "tuoi_mu={} position={} name={}",
+                        han.hoang_oc.tuoi_mu, han.hoang_oc.position, han.hoang_oc.position_name
+                    )),
+                ),
+                ruleset_id.clone(),
+                ruleset_version.clone(),
+            )
+            .with_note(format!(
+                "Hoàng Ốc {} (tuổi mụ {})",
+                han.hoang_oc.position_name, han.hoang_oc.tuoi_mu
+            )),
+        );
+    }
+
+    // --- Thái Tuế (Grand Duke) ----------------------------------------
+    // Thái Tuế fires on one of five classical conflict kinds between
+    // the birth-year chi and the current-year chi. The conflict list
+    // carries full provenance; the observation deduplicates to a
+    // single Avoid per assessment.
+    if han.thai_tue.has_conflict {
+        let kinds = han
+            .thai_tue
+            .conflicts
+            .iter()
+            .map(|c| thai_tue_kind_vi(c.kind))
+            .collect::<Vec<_>>()
+            .join(",");
+        features.push(
+            FeatureObservation::observed(
+                AssessmentFeatureId::AnnualThaiTue,
+                ContributionPolarity::Avoid,
+                0.5,
+                "annual.thai_tue",
+                han_evidence(
+                    SOURCE_KHCBPPT,
+                    "thai_tue_lookup",
+                    Some(format!("conflicts=[{}]", kinds)),
+                ),
+                ruleset_id.clone(),
+                ruleset_version.clone(),
+            )
+            .with_note(format!("Thái Tuế ({})", kinds)),
+        );
+    }
+
+    // --- Cửu Diệu / sao hạn (Nine Star) -------------------------------
+    // The three Hung stars (La Hầu, Kế Đô, Thái Bạch) are the
+    // classical "sao hạn". Trung / Cát stars are non-occurring
+    // signals, not missing evidence — they stay omitted.
+    if han.sao_han.is_han {
+        features.push(
+            FeatureObservation::observed(
+                AssessmentFeatureId::AnnualSaoHan,
+                ContributionPolarity::Avoid,
+                0.4,
+                "annual.sao_han",
+                han_evidence(
+                    crate::sources::SOURCE_CUU_DIEU,
+                    "cuu_dieu_lookup",
+                    Some(format!(
+                        "star={} element={} tuoi_mu={}",
+                        han.sao_han.star_name, han.sao_han.element, han.sao_han.tuoi_mu
+                    )),
+                ),
+                ruleset_id.clone(),
+                ruleset_version.clone(),
+            )
+            .with_note(format!("Sao hạn {}", han.sao_han.star_name)),
+        );
+    }
+
+    let _ = capability; // gated upstream via resolved.yearly_han
+    features
+}
+
+fn non_bazi_method(feature_id: AssessmentFeatureId) -> &'static str {
+    match feature_id {
+        AssessmentFeatureId::AnnualTamTai => "tam_tai_lookup",
+        AssessmentFeatureId::AnnualKimLau => "kim_lau_lookup",
+        AssessmentFeatureId::AnnualHoangOc => "hoang_oc_lookup",
+        AssessmentFeatureId::AnnualThaiTue => "thai_tue_lookup",
+        AssessmentFeatureId::AnnualSaoHan => "cuu_dieu_lookup",
+        _ => "non_bazi_annual",
+    }
+}
+
+fn kim_lau_category_vi(category: Option<crate::almanac::kim_lau::KimLauCategory>) -> &'static str {
+    use crate::almanac::kim_lau::KimLauCategory::*;
+    match category {
+        Some(Than) => "Thân",
+        Some(The) => "Thê",
+        Some(Tu) => "Tử",
+        Some(Suc) => "Súc",
+        None => "không rõ",
+    }
+}
+
+fn thai_tue_kind_vi(kind: crate::almanac::thai_tue::ThaiTueConflictKind) -> &'static str {
+    use crate::almanac::thai_tue::ThaiTueConflictKind::*;
+    match kind {
+        Truc => "Trực",
+        Xung => "Xung",
+        Hinh => "Hình",
+        Hai => "Hại",
+        Pha => "Phá",
+    }
 }

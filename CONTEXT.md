@@ -83,3 +83,27 @@ _Avoid_: pillar duel, xung hợp double-count
 **Hour Stem Element Support**:
 Whether the hour-pillar stem's element equals the birth chart's weakest element, projected by the v2.4 hour-ranking policy. Favorable when the hour stem supports the weak element; Neutral otherwise. Fires only when a full birth profile produces a Bazi chart with the hour pillar available.
 _Avoid_: element score, weak day-master only
+
+**Non-Bazi Annual Pressure**:
+A typed, source-attributed projection of a user's active annual affliction systems into the `AnnualPressure` axis. Each system (Tam Tai, Kim Lâu, Hoàng Ốc, Thái Tuế, Cửu Diệu / sao hạn) fires its own `Avoid` scored feature observation with source provenance from its classical source (KHCBPPT, Ngọc Hạp Ký, vn-folk, cuu-dieu). Informational systems surface as weighted `Avoid` contributions rather than universal vetoes; the hard `AnnualPressure` veto still fires only when the combined `HanSeverity` reaches High or Critical. Replaces the v2.3 single-observation aggregation; parity holds because the v2 aggregation formula averages same-polarity observations.
+_Avoid_: Hạn aggregate score, opaque lucky pressure
+
+**Tam Tai Observation**:
+The Tam Tai (Three Calamities) three-year affliction period, projected by the v2.4 non-Bazi policy. Year position 2 (Cư — residing) carries the heaviest strength; years 1 (Nhập — entering) and 3 (Xuất — exiting) carry lighter strengths. Each active year emits one `Avoid` contribution sourced from KHCBPPT.
+_Avoid_: Tam Tai veto, lucky year flag
+
+**Kim Lâu Observation**:
+The Kim Lâu (Golden Tower) age taboo, projected by the v2.4 non-Bazi policy. The category determines whom the taboo harms: Thân (self, heaviest), Thê (spouse), Tử (children), Súc (livestock, lightest). Each active category emits one `Avoid` contribution sourced from Ngọc Hạp Ký.
+_Avoid_: Kim Lâu veto, opaque remainder score
+
+**Hoàng Ốc Observation**:
+The Hoàng Ốc (Desolate House) six-position construction taboo, projected by the v2.4 non-Bazi policy. Surfaces as an informational `Avoid` contribution (lighter strength) sourced from Vietnamese folk tradition; it is never a universal veto on its own.
+_Avoid_: Hoàng Ốc veto, hard house taboo
+
+**Thái Tuế Observation**:
+The Thái Tuế (Grand Duke) annual conflict between the birth-year chi and the current-year chi, projected by the v2.4 non-Bazi policy. Five conflict kinds (Trực, Xung, Hại, Hình, Phá) are observed as a single `Avoid` contribution regardless of how many kinds fire, sourced from KHCBPPT.
+_Avoid_: pillar duel, Thái Tuế double-count
+
+**Cửu Diệu Observation**:
+The Cửu Diệu (Nine Star) personal fortune star, projected by the v2.4 non-Bazi policy. Only the three Hung stars (La Hầu, Kế Đô, Thái Bạch — collectively "sao hạn") emit an `Avoid` contribution sourced from the cuu-dieu tradition. Trung / Cát stars stay omitted (non-occurring, not missing evidence).
+_Avoid_: star veto, opaque star score
