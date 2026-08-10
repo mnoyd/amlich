@@ -12,6 +12,18 @@ _Avoid_: day ranking, lucky score
 An ordering of the twelve traditional hour slots within an already-assessed day. It does not change the day assessment or decide whether the day itself is usable.
 _Avoid_: hour verdict, hour assessment
 
+**Direction Assessment**:
+An intent-aware ordering of the eight compass directions for a selected activity. It is independent of Day Assessment and Hour Ranking, and exposes travel-deity, Kua compatibility, directional-constraint, and available flying-star-overlay axes with explicit unavailable and warning states.
+_Avoid_: direction lucky score, day verdict modifier
+
+**Directional Constraint**:
+A source-attributed Thái Tuế, Tam Sát, or Sát Phương fact applied to one compass direction. Overlapping facts remain separate contributions within the same direction; each stable fact fires at most once.
+_Avoid_: generic bad direction, duplicated taboo penalty
+
+**Location-sensitive Flying-star Overlay**:
+A Phi Tinh directional overlay considered only for intents that use directional optimization and only when location context is available. Missing location is unavailable, not neutral or adverse.
+_Avoid_: global flying-star direction score
+
 **Hour Ranking Vector**:
 The semantic dimensions used to order hour slots: Hoàng Đạo quality, intent timing fit, personal hour alignment, and day-hour harmony.
 _Avoid_: hour embedding, opaque vector

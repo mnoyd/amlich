@@ -1472,6 +1472,11 @@ pub struct PersonalDayMatrixReportDto {
     /// Matrix 4a: unified direction scores from Kua + day deities.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub direction_merge: Option<amlich_core::interaction::types::DirectionMergeMatrix>,
+    /// Canonical intent-aware direction ordering. This is separate from the
+    /// day verdict and the hour ranking; `direction_merge` remains as the
+    /// legacy compatibility projection.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub direction_assessment: Option<amlich_core::assessment::DirectionAssessment>,
     /// Matrix 4b: domain scores boosted by day-level signals.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub domain_day_boost: Option<amlich_core::interaction::types::DomainDayBoostMatrix>,

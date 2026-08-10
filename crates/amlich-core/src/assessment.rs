@@ -59,6 +59,7 @@ use crate::{
     DaySnapshot,
 };
 
+pub mod direction;
 pub mod extraction;
 pub mod factor;
 pub mod feature;
@@ -70,6 +71,11 @@ pub mod stability;
 pub mod trace;
 pub mod weights;
 
+pub use direction::{
+    DirectionAssessment, DirectionAssessmentAxes, DirectionAssessmentAxis,
+    DirectionAssessmentAxisOutcome, DirectionAssessmentContribution, DirectionAssessmentEntry,
+    DirectionAssessmentPolicy, DirectionAssessmentWarning,
+};
 pub use factor::{AssessmentFactor, AssessmentFactorRole};
 pub use feature::{AssessmentFeatureId, FeatureObservation};
 pub use interactions::{

@@ -1497,6 +1497,19 @@ fn run_lookup_personal_day_matrix(args: PersonalDayMatrixArgs) -> Result<(), Str
                     "unavailable"
                 }
             );
+            if let Some(direction) = &report.direction_assessment {
+                println!(
+                    "direction-assessment: intent={} confidence={:?}",
+                    direction.intent.event_kind(),
+                    direction.confidence
+                );
+                for entry in direction.entries.iter().take(3) {
+                    println!("  {}: {:.2}", entry.direction.as_vn_str(), entry.rank_score);
+                }
+                for warning in &direction.unavailable_sections {
+                    println!("  unavailable: {}", warning.message_vi);
+                }
+            }
         }
     }
 

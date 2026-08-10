@@ -1346,6 +1346,38 @@ export interface DirectionMergeMatrixDto {
     evidence: RuleEvidenceDto;
 }
 
+export interface DirectionAssessmentAxisOutcomeDto {
+    axis: string;
+    score?: number | null;
+    unavailable_reason?: string | null;
+}
+
+export interface DirectionAssessmentWarningDto {
+    code: string;
+    message_vi: string;
+}
+
+export interface DirectionAssessmentEntryDto {
+    direction: string;
+    rank_score: number;
+    axes: {
+        travel_deities: DirectionAssessmentAxisOutcomeDto;
+        kua_compatibility: DirectionAssessmentAxisOutcomeDto;
+        directional_constraints: DirectionAssessmentAxisOutcomeDto;
+        flying_star_overlay: DirectionAssessmentAxisOutcomeDto;
+    };
+    warnings?: DirectionAssessmentWarningDto[];
+}
+
+export interface DirectionAssessmentDto {
+    policy_id: string;
+    policy_version: string;
+    intent: string;
+    confidence: string;
+    entries: DirectionAssessmentEntryDto[];
+    unavailable_sections?: DirectionAssessmentWarningDto[];
+}
+
 export interface DomainDayBoostEntryDto {
     domain: string;
     base_score: number;
@@ -1372,6 +1404,7 @@ export interface PersonalDayMatrixReportDto {
     element_resonance: ElementResonanceMatrixDto;
     personal_hours?: PersonalHourMatrixDto | null;
     direction_merge?: DirectionMergeMatrixDto | null;
+    direction_assessment?: DirectionAssessmentDto | null;
     domain_day_boost?: DomainDayBoostMatrixDto | null;
     unavailable_sections: UnavailableSectionDto[];
     canonical_assessment?: PersonalDayAssessmentDto | null;

@@ -2194,6 +2194,11 @@ pub fn get_personal_day_matrix_report(
         Some(amlich_core::ConsultationIntent::OpeningBusiness.event_kind()),
         &enabled_pack_refs,
     )?;
+    let direction_assessment = amlich_core::assessment::DirectionAssessmentPolicy::assess(
+        &snapshot,
+        &profile,
+        amlich_core::ConsultationIntent::OpeningBusiness,
+    );
     let canonical_assessment = amlich_core::assessment::PersonalDayAssessment::assess(
         snapshot,
         profile,
@@ -2270,6 +2275,7 @@ pub fn get_personal_day_matrix_report(
         element_resonance,
         personal_hours,
         direction_merge,
+        direction_assessment: Some(direction_assessment),
         domain_day_boost,
         unavailable_sections,
         canonical_assessment: Some(PersonalDayAssessmentDto::from(&canonical_assessment)),

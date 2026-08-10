@@ -47,8 +47,26 @@ fn personal_day_matrix_report_exposes_datetime_surface() {
     assert_eq!(report.day_person.day_canchi, "Giáp Thìn");
     assert!(report.personal_hours.is_some());
     assert!(report.direction_merge.is_some());
+    assert!(report.direction_assessment.is_some());
     assert!(report.domain_day_boost.is_some());
     assert!(report.unavailable_sections.is_empty());
+}
+
+#[test]
+fn direction_assessment_has_its_own_axes_and_explicit_missing_location() {
+    let report = get_personal_day_matrix_report(&sample_birth_datetime(), &sample_date())
+        .expect("matrix report");
+    let direction = report.direction_assessment.expect("direction assessment");
+
+    assert_eq!(direction.entries.len(), 8);
+    assert!(direction.entries.iter().all(|entry| {
+        entry.axes.directional_constraints.score.is_some()
+            && entry.axes.flying_star_overlay.score.is_none()
+    }));
+    assert!(direction
+        .unavailable_sections
+        .iter()
+        .any(|warning| warning.code == "location_unavailable"));
 }
 
 #[test]
@@ -101,6 +119,7 @@ fn personal_day_matrix_canonical_shape_locks_required_fields() {
         "day_person",
         "element_resonance",
         "direction_merge",
+        "direction_assessment",
         "domain_day_boost",
     ];
     for key in &required {

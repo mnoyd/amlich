@@ -382,6 +382,28 @@
             </section>
           {/if}
 
+          {#if matrix.direction_assessment}
+            <section>
+              <h4>Direction assessment</h4>
+              <p class="card-note">
+                intent {matrix.direction_assessment.intent} · confidence {matrix.direction_assessment.confidence}
+              </p>
+              <ul>
+                {#each [...matrix.direction_assessment.entries].sort((left, right) => right.rank_score - left.rank_score).slice(0, 4) as direction}
+                  <li>
+                    {direction.direction.replaceAll("_", " ")} · {direction.rank_score.toFixed(2)}
+                    {#if direction.warnings?.length}
+                      · {direction.warnings.map((warning) => warning.message_vi).join(" ")}
+                    {/if}
+                  </li>
+                {/each}
+              </ul>
+              {#if matrix.direction_assessment.unavailable_sections?.length}
+                <p class="card-note">{matrix.direction_assessment.unavailable_sections.map((warning) => warning.message_vi).join(" ")}</p>
+              {/if}
+            </section>
+          {/if}
+
           {#if matrix.domain_day_boost}
             <section>
               <h4>Domain day boost</h4>
