@@ -11,6 +11,7 @@ use amlich_api::{
     get_day_info_for_date, get_day_insight_for_date,
     get_debug_semantic_graph_inspection as api_get_debug_semantic_graph_inspection, get_holidays,
     get_hour_selection_report as api_get_hour_selection_report,
+    get_hour_selection_report_full_profile_v2_4 as api_get_hour_selection_report_full_profile_v2_4,
     get_personal_day_matrix_report as api_get_personal_day_matrix_report,
     get_personal_day_report as api_get_personal_day_report,
     get_recommendation_pack_catalog as api_get_recommendation_pack_catalog,
@@ -350,6 +351,51 @@ fn get_hour_selection_report(
     api_get_hour_selection_report(&query, None, None, None, None)
 }
 
+/// v2.4 (`amlich-bz0f.4`) full-profile hour-selection report. Threads
+/// the birth hour and minute through so the underlying
+/// [`amlich_core::HourRankingPolicy::full_profile_v2_4`] policy can
+/// fold in the hour-pillar Thập Thần, hour chi × birth hour chi
+/// branch relation, and hour stem element support signals. When the
+/// birth hour or minute is missing, the v2.4 trio collapses to
+/// explicit `Unavailable` observations and the report stays
+/// byte-identical to the v1 path.
+#[tauri::command]
+#[allow(clippy::too_many_arguments)]
+fn get_hour_selection_report_full_profile_v2_4(
+    day: i32,
+    month: i32,
+    year: i32,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    birth_hour: Option<u8>,
+    birth_minute: Option<u8>,
+    gender: Option<String>,
+) -> Result<HourSelectionReportDto, String> {
+    validate_date_parts(day, month)?;
+    if let (Some(by), Some(bm)) = (birth_year, birth_month) {
+        validate_date_parts(by, bm)?;
+    }
+    let query = DateQuery {
+        day,
+        month,
+        year,
+        timezone: None,
+        ruleset_id: None,
+        event_kind: None,
+        enabled_pack_ids: vec![],
+    };
+    api_get_hour_selection_report_full_profile_v2_4(
+        &query,
+        birth_year,
+        birth_month,
+        birth_day,
+        birth_hour,
+        birth_minute,
+        gender.as_deref(),
+    )
+}
+
 #[tauri::command]
 fn get_tiet_khi_for_year(year: i32) -> Result<TietKhiYearDto, String> {
     api_get_tiet_khi_for_year(year, None)
@@ -507,6 +553,7 @@ pub fn run() {
             get_bazi_report,
             get_bazi_derived_report,
             get_hour_selection_report,
+            get_hour_selection_report_full_profile_v2_4,
             get_tiet_khi_for_year,
             get_ruleset_catalog,
             get_recommendation_pack_catalog,

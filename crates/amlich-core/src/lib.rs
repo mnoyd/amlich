@@ -33,10 +33,11 @@ pub mod types;
 
 // Re-export main types
 pub use crate::advisory::{
-    build_hour_selection_reasoning, build_recommendation_context, compute_day_context_from_birth,
-    rank_hours_for_intent, synthesize_advisory_recommendations, BirthInput, ConsultationIntent,
-    HourSelectionEvidence, HourSelectionReasoning, HourSelectionReasoningExport,
-    RankedHourCandidate,
+    build_hour_selection_reasoning, build_hour_selection_reasoning_full_profile_v2_4,
+    build_recommendation_context, compute_day_context_from_birth, rank_hours_for_intent,
+    rank_hours_for_intent_full_profile_v2_4, synthesize_advisory_recommendations, BirthInput,
+    ConsultationIntent, HourSelectionEvidence, HourSelectionReasoning,
+    HourSelectionReasoningExport, RankedHourCandidate,
 };
 pub use crate::almanac::cuu_dieu::{compute_cuu_dieu, CuuDieuQuality, CuuDieuResult};
 pub use crate::almanac::hoang_oc::{compute_hoang_oc, HoangOcResult};
@@ -54,8 +55,9 @@ pub use crate::almanac::yearly_han::{
 pub use crate::analysis_envelope::AnalysisEnvelope;
 pub use crate::assessment::hour_ranking::{
     HourRankingAggregation, HourRankingAxes, HourRankingAxis, HourRankingAxisOutcome,
-    HourRankingAxisWeightEntry, HourRankingContribution, HourRankingPolicy, HourRankingWarning,
-    RankedHourV1, HOUR_RANKING_POLICY_V1_ID, HOUR_RANKING_POLICY_V1_VERSION,
+    HourRankingAxisWeightEntry, HourRankingContribution, HourRankingFeatureId, HourRankingPolicy,
+    HourRankingWarning, RankedHourV1, HOUR_RANKING_POLICY_V1_ID, HOUR_RANKING_POLICY_V1_VERSION,
+    HOUR_RANKING_POLICY_V2_4_VERSION,
 };
 pub use crate::assessment::{
     assess_personal_day, AssessmentAxes, AssessmentAxis, AssessmentFactor, AssessmentFactorRole,

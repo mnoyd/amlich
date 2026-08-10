@@ -169,6 +169,7 @@
         interaction: 'Tương tác',
         bazi: 'Bazi',
         bazi_observation: 'Bazi (ngày đích)',
+        personal_hour_matrix: 'Ma trận giờ cá nhân',
         axis: 'Trục',
         almanac_rule: 'Quy tắc lịch',
         insight: 'Insight',

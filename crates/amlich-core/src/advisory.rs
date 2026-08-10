@@ -9,9 +9,11 @@ use crate::{
     canchi::get_year_canchi,
     julian::jd_from_date,
     lunar::{convert_solar_to_lunar, LunarDate},
+    sources::SOURCE_KHCBPPT,
     tietkhi::get_tiet_khi,
     types::{CanChi, VIETNAM_TIMEZONE},
     CanChiSet, DayContext, HourRankingPolicy, HourRankingWarning, RankedHourV1, SolarDate,
+    HOUR_RANKING_POLICY_V2_4_VERSION,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -127,6 +129,15 @@ pub struct HourSelectionReasoningExport {
     pub warning_context: Option<HourRankingWarning>,
     #[serde(default)]
     pub evidence: Vec<HourSelectionEvidence>,
+    /// Versioned policy that produced this reasoning. v1 keeps the
+    /// legacy birth-year-chi semantics; v2.4 (`amlich-bz0f.4`) layers
+    /// three typed, source-attributed full-profile observations on top
+    /// so a full birth profile (date + time) produces a richer
+    /// `PersonalHourAlignment` axis. `None` for reasoning produced by
+    /// the pre-v1.9 wrappers. Additive `Option<T>` — keeps existing
+    /// round-trips byte-equal.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_version: Option<String>,
 }
 
 impl HourSelectionReasoningExport {
@@ -164,6 +175,21 @@ impl HourSelectionReasoningExport {
                 note: Some("day verdict Avoid — hour ranking carries warning context".to_string()),
             });
         }
+        if reasoning.policy_version.as_deref() == Some(HOUR_RANKING_POLICY_V2_4_VERSION) {
+            // amlich-bz0f.4: surface the PersonalHourMatrix source
+            // family on the export's evidence list so desktop / TUI
+            // consumers can label the v2.4 trio's contributions without
+            // parsing every ranked hour's note.
+            evidence.push(HourSelectionEvidence {
+                source_family: "personal_hour_matrix".to_string(),
+                source_id: SOURCE_KHCBPPT.to_string(),
+                method: "hour_ranking_policy_v2_4".to_string(),
+                note: Some(
+                    "v2.4 full-profile hour-pillar Thập Thần, hour chi × birth hour chi branch relation, and hour stem element support"
+                        .to_string(),
+                ),
+            });
+        }
 
         HourSelectionReasoningExport {
             intent: reasoning.intent.event_kind().to_string(),
@@ -176,6 +202,7 @@ impl HourSelectionReasoningExport {
             total_hours,
             warning_context: reasoning.warning_context.clone(),
             evidence,
+            policy_version: reasoning.policy_version.clone(),
         }
     }
 }
@@ -197,6 +224,15 @@ pub struct HourSelectionReasoning {
     /// field (amlich-rv13.5).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub warning_context: Option<HourRankingWarning>,
+    /// Versioned policy that produced this reasoning. v1 keeps the
+    /// legacy birth-year-chi semantics; v2.4 (`amlich-bz0f.4`) layers
+    /// three typed, source-attributed full-profile observations on top
+    /// so a full birth profile (date + time) produces a richer
+    /// `PersonalHourAlignment` axis. `None` for reasoning produced by
+    /// the pre-v1.9 wrappers. Additive `Option<T>` — keeps existing
+    /// round-trips byte-equal.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_version: Option<String>,
 }
 
 impl HourSelectionReasoning {
@@ -334,6 +370,53 @@ fn rank_hours_v1(
     policy.rank(&snapshot, intent, birth, day_assessment)
 }
 
+/// Full-profile v2.4 projection (`amlich-bz0f.4`). Same external
+/// contract as [`rank_hours_for_intent`], but uses the
+/// [`HourRankingPolicy::full_profile_v2_4`] policy so the personal
+/// alignment axis folds in the hour-pillar Thập Thần, hour chi × birth
+/// hour chi branch relation, and hour stem element support signals.
+///
+/// The v2.4 policy emits explicit `Unavailable` observations for the
+/// three new features when a full birth profile (date + time) is not
+/// available, so date-only and anonymous callers still see the same
+/// twelve-hour ordering as [`rank_hours_for_intent`] — only the
+/// underlying trace gains the new `Unavailable` rows.
+pub fn rank_hours_for_intent_full_profile_v2_4(
+    day: i32,
+    month: i32,
+    year: i32,
+    intent: ConsultationIntent,
+    birth: Option<&BirthInput>,
+    day_assessment: Option<&PersonalDayAssessment>,
+) -> Result<Vec<RankedHourCandidate>, String> {
+    let snapshot = crate::calculate_day_snapshot(day, month, year);
+    let policy = HourRankingPolicy::full_profile_v2_4();
+    let ranked_v2_4 = policy.rank(&snapshot, intent, birth, day_assessment)?;
+
+    Ok(ranked_v2_4
+        .iter()
+        .map(project_ranked_hour_v1_to_legacy_candidate)
+        .collect())
+}
+
+/// Shared seam that runs the v2.4 full-profile hour-ranking policy once
+/// and returns the canonical [`RankedHourV1`] list. Both
+/// [`rank_hours_for_intent_full_profile_v2_4`] and any future v2.4-aware
+/// consumer consume this so the ranking is computed once per call path.
+#[allow(dead_code)]
+fn rank_hours_v2_4(
+    day: i32,
+    month: i32,
+    year: i32,
+    intent: ConsultationIntent,
+    birth: Option<&BirthInput>,
+    day_assessment: Option<&PersonalDayAssessment>,
+) -> Result<Vec<RankedHourV1>, String> {
+    let snapshot = crate::calculate_day_snapshot(day, month, year);
+    let policy = HourRankingPolicy::full_profile_v2_4();
+    policy.rank(&snapshot, intent, birth, day_assessment)
+}
+
 /// Project a canonical v1 [`crate::RankedHourV1`] output back
 /// to the legacy [`RankedHourCandidate`] shape used by
 /// [`rank_hours_for_intent`].
@@ -407,11 +490,61 @@ pub fn build_hour_selection_reasoning(
     birth: Option<&BirthInput>,
     day_assessment: Option<&PersonalDayAssessment>,
 ) -> Result<HourSelectionReasoning, String> {
-    let ranked_v1 = rank_hours_v1(day, month, year, intent, birth, day_assessment)?;
-    let warning_context = ranked_v1
-        .iter()
-        .find_map(|hour| hour.warning_context.clone());
-    let ranked_hours: Vec<RankedHourCandidate> = ranked_v1
+    build_hour_selection_reasoning_with_policy(
+        day,
+        month,
+        year,
+        intent,
+        birth,
+        day_assessment,
+        HourRankingPolicy::baseline_v1(),
+    )
+}
+
+/// v2.4 (`amlich-bz0f.4`) full-profile projection of the hour selection
+/// reasoning. Uses the [`HourRankingPolicy::full_profile_v2_4`] policy
+/// so the personal alignment axis folds in the hour-pillar Thập Thần,
+/// hour chi × birth hour chi branch relation, and hour stem element
+/// support signals when a full birth profile (date + time) is available.
+/// Date-only and anonymous callers collapse to the v1 baseline so the
+/// reasoning stays byte-identical for callers without a full profile.
+pub fn build_hour_selection_reasoning_full_profile_v2_4(
+    day: i32,
+    month: i32,
+    year: i32,
+    intent: ConsultationIntent,
+    birth: Option<&BirthInput>,
+    day_assessment: Option<&PersonalDayAssessment>,
+) -> Result<HourSelectionReasoning, String> {
+    build_hour_selection_reasoning_with_policy(
+        day,
+        month,
+        year,
+        intent,
+        birth,
+        day_assessment,
+        HourRankingPolicy::full_profile_v2_4(),
+    )
+}
+
+/// Shared seam that builds the hour selection reasoning from a
+/// caller-supplied [`HourRankingPolicy`]. The reasoning pipeline
+/// (ranked hours → top recommendation → Vietnamese / English summary)
+/// is policy-agnostic; only the underlying ranking inputs change.
+fn build_hour_selection_reasoning_with_policy(
+    day: i32,
+    month: i32,
+    year: i32,
+    intent: ConsultationIntent,
+    birth: Option<&BirthInput>,
+    day_assessment: Option<&PersonalDayAssessment>,
+    policy: HourRankingPolicy,
+) -> Result<HourSelectionReasoning, String> {
+    let snapshot = crate::calculate_day_snapshot(day, month, year);
+    let ranked = policy.rank(&snapshot, intent, birth, day_assessment)?;
+    let warning_context = ranked.iter().find_map(|hour| hour.warning_context.clone());
+    let policy_version = Some(policy.policy_version().to_string());
+    let ranked_hours: Vec<RankedHourCandidate> = ranked
         .iter()
         .map(project_ranked_hour_v1_to_legacy_candidate)
         .collect();
@@ -468,6 +601,7 @@ pub fn build_hour_selection_reasoning(
         top_recommendation,
         ranked_hours,
         warning_context,
+        policy_version,
     })
 }
 

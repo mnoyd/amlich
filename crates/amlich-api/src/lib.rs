@@ -976,13 +976,32 @@ fn personal_birth_input(
     birth_day: Option<i32>,
     gender: Option<&str>,
 ) -> Option<amlich_core::BirthInput> {
+    personal_birth_input_full(birth_year, birth_month, birth_day, None, None, gender)
+}
+
+/// Variant of [`personal_birth_input`] that threads an optional birth
+/// hour and minute through so the v2.4 full-profile hour-ranking policy
+/// (`amlich-bz0f.4`) can fold in the hour-pillar Thập Thần, hour chi ×
+/// birth hour chi branch relation, and hour stem element support
+/// signals. Returns `None` when the date itself is missing — the time
+/// is genuinely optional and stays `None` when missing so the v2.4
+/// policy collapses to explicit `Unavailable` observations instead of
+/// silently degrading to a neutral baseline.
+fn personal_birth_input_full(
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    birth_hour: Option<u8>,
+    birth_minute: Option<u8>,
+    gender: Option<&str>,
+) -> Option<amlich_core::BirthInput> {
     let gender = gender.and_then(parse_gender);
     Some(amlich_core::BirthInput {
         day: birth_day?,
         month: birth_month?,
         year: birth_year?,
-        hour: None,
-        minute: None,
+        hour: birth_hour,
+        minute: birth_minute,
         timezone: amlich_core::VIETNAM_TIMEZONE,
         gender,
         location_name: None,
@@ -1762,6 +1781,62 @@ pub fn get_hour_selection_report(
     birth_day: Option<i32>,
     gender: Option<&str>,
 ) -> Result<HourSelectionReportDto, String> {
+    get_hour_selection_report_with_policy(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        None,
+        None,
+        gender,
+        amlich_core::HourRankingPolicy::baseline_v1(),
+    )
+}
+
+/// v2.4 (`amlich-bz0f.4`) full-profile variant of
+/// [`get_hour_selection_report`]. Threads the birth hour and minute
+/// through so the hour ranking can use the
+/// [`amlich_core::HourRankingPolicy::full_profile_v2_4`] policy. When
+/// either the birth hour or minute is missing, the v2.4 trio emits
+/// explicit `Unavailable` observations and the ranking collapses to the
+/// v1 baseline so the contract stays byte-identical for callers without
+/// a full birth profile.
+pub fn get_hour_selection_report_full_profile_v2_4(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    birth_hour: Option<u8>,
+    birth_minute: Option<u8>,
+    gender: Option<&str>,
+) -> Result<HourSelectionReportDto, String> {
+    get_hour_selection_report_with_policy(
+        query,
+        birth_year,
+        birth_month,
+        birth_day,
+        birth_hour,
+        birth_minute,
+        gender,
+        amlich_core::HourRankingPolicy::full_profile_v2_4(),
+    )
+}
+
+/// Shared seam that builds the hour-selection report through a
+/// caller-supplied [`amlich_core::HourRankingPolicy`]. The snapshot,
+/// canonical assessment, and reasoning pipeline are policy-agnostic;
+/// only the ranking policy pointer changes.
+#[allow(clippy::too_many_arguments)]
+fn get_hour_selection_report_with_policy(
+    query: &DateQuery,
+    birth_year: Option<i32>,
+    birth_month: Option<i32>,
+    birth_day: Option<i32>,
+    birth_hour: Option<u8>,
+    birth_minute: Option<u8>,
+    gender: Option<&str>,
+    ranking_policy: amlich_core::HourRankingPolicy,
+) -> Result<HourSelectionReportDto, String> {
     // amlich-mwbp.8 P2 consolidation: build the snapshot, canonical
     // assessment, and reasoning ONCE per request, then derive the chart,
     // analysis, metrics, and advisory DTOs from the cache. The previous
@@ -1773,6 +1848,13 @@ pub fn get_hour_selection_report(
     // and the structured `warning_context` field. Build the assessment
     // FIRST so the reasoning path consumes the same instance (no
     // double-build on the request path).
+    //
+    // amlich-bz0f.4: the v2.4 path threads the birth hour and minute
+    // through so the [`amlich_core::HourRankingPolicy::full_profile_v2_4`]
+    // policy can fold in the hour-pillar Thập Thần, hour chi × birth
+    // hour chi branch relation, and hour stem element support signals.
+    let _ = ranking_policy; // Policy pointer currently flows through the
+                            // reasoning helper; see comment below.
     let snapshot = build_personal_day_snapshot(query, amlich_core::ConsultationIntent::Travel)?;
     let info = DayInfoDto::from(&snapshot);
     let canonical_assessment = build_personal_canonical_assessment(
@@ -1786,12 +1868,15 @@ pub fn get_hour_selection_report(
         snapshot.clone(),
         amlich_core::ConsultationIntent::Travel,
     );
-    let selection_reasoning = get_hour_selection_reasoning_from_snapshot(
+    let selection_reasoning = get_hour_selection_reasoning_with_policy(
         query,
         birth_year,
         birth_month,
         birth_day,
+        birth_hour,
+        birth_minute,
         gender,
+        ranking_policy,
         Some(&canonical_assessment),
     )?;
 
@@ -1822,23 +1907,57 @@ fn parse_gender_opt(gender: Option<&str>) -> Option<amlich_core::almanac::tu_men
     gender.and_then(parse_gender)
 }
 
-fn get_hour_selection_reasoning_from_snapshot(
+/// v2.4-aware variant of [`get_hour_selection_reasoning_from_snapshot`]
+/// that threads the birth hour and minute through so the underlying
+/// [`amlich_core::build_hour_selection_reasoning_full_profile_v2_4`]
+/// can fold in the v2.4 trio when a full birth profile is available.
+#[allow(clippy::too_many_arguments)]
+fn get_hour_selection_reasoning_with_policy(
     query: &DateQuery,
     birth_year: Option<i32>,
     birth_month: Option<i32>,
     birth_day: Option<i32>,
+    birth_hour: Option<u8>,
+    birth_minute: Option<u8>,
     gender: Option<&str>,
+    ranking_policy: amlich_core::HourRankingPolicy,
     canonical_assessment: Option<&amlich_core::assessment::PersonalDayAssessment>,
 ) -> Result<amlich_core::HourSelectionReasoning, String> {
-    let birth = personal_birth_input(birth_year, birth_month, birth_day, gender);
-    amlich_core::build_hour_selection_reasoning(
-        query.day,
-        query.month,
-        query.year,
-        amlich_core::ConsultationIntent::Travel,
-        birth.as_ref(),
-        canonical_assessment,
-    )
+    let birth = personal_birth_input_full(
+        birth_year,
+        birth_month,
+        birth_day,
+        birth_hour,
+        birth_minute,
+        gender,
+    );
+    let _ = ranking_policy.policy_version(); // Policy pointer currently
+                                             // delegates to the v2.4
+                                             // builder for full-profile
+                                             // callers; the v1 path stays
+                                             // on the v1 builder below.
+    let is_full_profile = birth
+        .as_ref()
+        .is_some_and(|b| b.hour.is_some() && b.minute.is_some());
+    if is_full_profile {
+        amlich_core::build_hour_selection_reasoning_full_profile_v2_4(
+            query.day,
+            query.month,
+            query.year,
+            amlich_core::ConsultationIntent::Travel,
+            birth.as_ref(),
+            canonical_assessment,
+        )
+    } else {
+        amlich_core::build_hour_selection_reasoning(
+            query.day,
+            query.month,
+            query.year,
+            amlich_core::ConsultationIntent::Travel,
+            birth.as_ref(),
+            canonical_assessment,
+        )
+    }
 }
 
 fn build_hour_selection_chart_dto(query: &DateQuery, info: &DayInfoDto) -> HourSelectionChartDto {

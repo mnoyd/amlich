@@ -894,6 +894,7 @@ export type ReasoningEvidenceSourceFamilyDto =
     | 'interaction'
     | 'bazi'
     | 'bazi_observation'
+    | 'personal_hour_matrix'
     | 'axis'
     | 'almanac_rule'
     | 'insight'
@@ -1412,6 +1413,15 @@ export interface HourSelectionReasoningExportDto {
     auspicious_count: number;
     total_hours: number;
     evidence: HourSelectionEvidenceDto[];
+    /**
+     * Versioned hour-ranking policy that produced this reasoning
+     * (`amlich-bz0f.4`). `v1` keeps the legacy birth-year-chi
+     * semantics; `v2.4` layers three typed, source-attributed
+     * full-profile observations on top so a full birth profile
+     * (date + time) produces a richer `PersonalHourAlignment` axis.
+     * Absent for reasoning produced by pre-v1.9 wrappers.
+     */
+    policy_version?: string | null;
 }
 
 export interface HourSelectionAnalysisDto {

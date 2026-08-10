@@ -67,3 +67,19 @@ _Avoid_: pillar duel, xung hợp double-count
 **Bazi Target-Day Element Resonance**:
 The target-day element's Ngũ Hành sinh / khắc relation to the birth day-master element. Generation (sinh) is Favorable; control (khắc) is Avoid; same element is Neutral. Distinct from the v2.2 `BaziElementResonance` interaction, which only fires for weak day-master synergy; this is the explicit feature observation that enters the axis aggregation directly.
 _Avoid_: element score, weak day-master only
+
+**Hour Ranking Policy**:
+The versioned policy that owns the canonical ordering of the twelve traditional hour slots within an already-assessed day. v1 (`amlich-rv13`) keeps the birth-year-chi semantics; v2.4 (`amlich-bz0f.4`) layers three typed, source-attributed full-profile observations on top so a full birth profile produces a richer Personal Hour Alignment axis. The legacy PersonalHourMatrix integer-score surface is preserved as a compatibility projection, not retired.
+_Avoid_: hour verdict, hour assessment, lucky hour score
+
+**Hour Pillar Ten God**:
+The Thập Thần relation from the hour-pillar stem to the birth day master, projected by the v2.4 hour-ranking policy. Resource / support labels (Tỷ Kiến, Kiếp Tài, Chính Ấn, Thiên Ấn) are Favorable; draining / opposition labels are Avoid. Fires only when a full birth profile (date + time) lets the Bazi chart expose the hour pillar.
+_Avoid_: stem match, hidden stem only
+
+**Hour Chi Birth Hour Branch Relation**:
+The classical xung / hợp / hình relation between the hour chi and the birth hour chi, projected by the v2.4 hour-ranking policy. Each relation kind (lục xung, tương hại, tương hình, lục hợp, tam hợp pair) fires at most once per hour slot, so a clash cannot double-count against the Personal Hour Alignment axis.
+_Avoid_: pillar duel, xung hợp double-count
+
+**Hour Stem Element Support**:
+Whether the hour-pillar stem's element equals the birth chart's weakest element, projected by the v2.4 hour-ranking policy. Favorable when the hour stem supports the weak element; Neutral otherwise. Fires only when a full birth profile produces a Bazi chart with the hour pillar available.
+_Avoid_: element score, weak day-master only

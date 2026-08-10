@@ -58,18 +58,25 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     advisory::{BirthInput, ConsultationIntent},
-    almanac::xung_hop,
+    almanac::{
+        hour_pillar::compute_hour_pillar,
+        thap_than::get_thap_than,
+        types::{FiveElement, HeavenlyStem, ThapThanLabel},
+        xung_hop,
+    },
     assessment::{AvailabilityState, ContributionPolarity, PersonalDayAssessment, SourceEvidence},
+    bazi::{analysis::compute_element_distribution, chart::build_bazi_chart, types::BaziInput},
     gio_hoang_dao::HourInfo,
+    interaction::day_person::compute_branch_relation,
     reasoning::RecommendationBucket,
     sources::SOURCE_KHCBPPT,
     types::CHI,
     DaySnapshot,
 };
 
-/// Stable policy identifier for the v1 hour-ranking policy. Co-versioned
-/// with [`HOUR_RANKING_POLICY_V1_VERSION`]: any change to axes, weights,
-/// or aggregation MUST bump the version.
+/// Stable policy identifier for the hour-ranking policy family. Co-
+/// versioned with the per-policy `*_VERSION` constants: any change to
+/// axes, weights, feature set, or aggregation MUST bump the version.
 pub const HOUR_RANKING_POLICY_V1_ID: &str = "hour-ranking";
 
 /// Current version of the hour-ranking baseline policy. v1 introduces the
@@ -77,6 +84,18 @@ pub const HOUR_RANKING_POLICY_V1_ID: &str = "hour-ranking";
 /// `personal_hour_alignment`, `day_hour_harmony`) with separate hour
 /// feature IDs from `PersonalDayAssessment`.
 pub const HOUR_RANKING_POLICY_V1_VERSION: &str = "v1";
+
+/// Version of the v2.4 full-profile hour-ranking policy
+/// (`amlich-bz0f.4`). Layers three typed, source-attributed full-profile
+/// hour-pillar observations on top of the v1 feature set: hour stem →
+/// day master Thập Thần, hour chi → birth hour chi branch relation, and
+/// hour stem element supporting the natal weakest element. The v2.4
+/// policy reuses the v1 axis weights and aggregation formula so the
+/// rank-score scale stays comparable across policy versions, and emits
+/// explicit `Unavailable` observations for the three new features when a
+/// full birth profile (date + time) is not available — never a zero or
+/// neutral fallback.
+pub const HOUR_RANKING_POLICY_V2_4_VERSION: &str = "v2.4";
 
 /// Four semantic axes that order the twelve traditional hour slots in v1.
 /// Axes are intentionally separate from `AssessmentAxis` so day and hour
@@ -203,9 +222,8 @@ impl HourRankingAxes {
 /// pipeline. Per ADR-0001 these are intentionally distinct from
 /// [`crate::assessment::AssessmentFeatureId`] so day and hour ranking
 /// keep separate domain vocabulary even when they share aggregation
-/// mechanics. Identifiers are versioned by
-/// [`HOUR_RANKING_POLICY_V1_VERSION`]: any new feature or rename MUST
-/// bump the policy version.
+/// mechanics. Identifiers are versioned by the per-policy version
+/// constants: any new feature or rename MUST bump the policy version.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum HourRankingFeatureId {
@@ -241,13 +259,34 @@ pub enum HourRankingFeatureId {
     /// Day Chi and hour Chi form a lục-xung clash pair. Emitted at
     /// strength 1.0 with `Avoid` polarity on a clash.
     HourBranchLucXung,
+    /// Hour pillar stem → birth day master Thập Thần relation
+    /// (`amlich-bz0f.4`, v2.4). Resource / support labels
+    /// (Tỷ Kiến, Kiếp Tài, Chính Ấn, Thiên Ấn) project `Favorable`;
+    /// draining / opposition labels project `Avoid`. Strength 0.7 when
+    /// favorable, 0.5 when avoid, so the trio does not dominate the
+    /// PersonalHourAlignment axis. Fires only when a full birth profile
+    /// (date + time) produces a Bazi chart with the hour pillar
+    /// available.
+    HourPillarTenGodToDayMaster,
+    /// Hour chi → birth hour chi branch relation (`amlich-bz0f.4`,
+    /// v2.4). Each relation kind (tam hợp pair / lục hợp / lục xung /
+    /// tương hại / completed tương hình) fires at most once per hour,
+    /// so a clash with the birth-hour chi doesn't double-count against
+    /// the personal alignment axis. Fires only when a full birth
+    /// profile produces a Bazi chart with the hour pillar available.
+    HourChiBranchRelationToBirthHour,
+    /// Hour stem element supports the birth chart's weakest element
+    /// (`amlich-bz0f.4`, v2.4). Strength 1.0 on support, 0.5 on
+    /// neutral. Fires only when a full birth profile produces a Bazi
+    /// chart and the underlying [`ElementDistribution`] is available.
+    HourStemElementSupport,
 }
 
 impl HourRankingFeatureId {
     /// All declared feature identifiers in canonical declaration order.
     /// Stable across policy versions; serialized traces and parity
     /// fixtures rely on this order.
-    pub const ALL: [Self; 8] = [
+    pub const ALL: [Self; 11] = [
         Self::HourHoangDaoMembership,
         Self::HourIntentTimingFit,
         Self::PersonalHourYearChiMatch,
@@ -256,6 +295,9 @@ impl HourRankingFeatureId {
         Self::HourBranchTriad,
         Self::HourBranchLiuHe,
         Self::HourBranchLucXung,
+        Self::HourPillarTenGodToDayMaster,
+        Self::HourChiBranchRelationToBirthHour,
+        Self::HourStemElementSupport,
     ];
 
     pub fn as_str(self) -> &'static str {
@@ -268,23 +310,43 @@ impl HourRankingFeatureId {
             Self::HourBranchTriad => "hour_branch_triad",
             Self::HourBranchLiuHe => "hour_branch_liu_he",
             Self::HourBranchLucXung => "hour_branch_luc_xung",
+            Self::HourPillarTenGodToDayMaster => "hour_pillar_ten_god_to_day_master",
+            Self::HourChiBranchRelationToBirthHour => "hour_chi_branch_relation_to_birth_hour",
+            Self::HourStemElementSupport => "hour_stem_element_support",
         }
     }
 
-    /// Axis this feature primarily contributes to under `baseline_v1`.
-    /// Hour ranking keeps a one-feature-per-axis mapping at the v1
-    /// baseline; future policy versions may layer richer aggregations.
+    /// Axis this feature primarily contributes to. The v1 baseline
+    /// keeps a one-feature-per-axis mapping for the four declared axes;
+    /// the v2.4 policy (`amlich-bz0f.4`) folds the three new features
+    /// into [`HourRankingAxis::PersonalHourAlignment`] alongside the v1
+    /// birth-year chi signals.
     pub fn default_axis(self) -> HourRankingAxis {
         match self {
             Self::HourHoangDaoMembership => HourRankingAxis::HoangDaoQuality,
             Self::HourIntentTimingFit => HourRankingAxis::IntentTimingFit,
             Self::PersonalHourYearChiMatch
             | Self::PersonalHourYearChiLucXung
-            | Self::PersonalHourYearChiNeutral => HourRankingAxis::PersonalHourAlignment,
+            | Self::PersonalHourYearChiNeutral
+            | Self::HourPillarTenGodToDayMaster
+            | Self::HourChiBranchRelationToBirthHour
+            | Self::HourStemElementSupport => HourRankingAxis::PersonalHourAlignment,
             Self::HourBranchTriad | Self::HourBranchLiuHe | Self::HourBranchLucXung => {
                 HourRankingAxis::DayHourHarmony
             }
         }
+    }
+
+    /// True if this identifier is one of the three v2.4 full-profile
+    /// features. Useful for policy-version gating without re-reading
+    /// the per-policy version string at every call site.
+    pub fn is_full_profile_v2_4_feature(self) -> bool {
+        matches!(
+            self,
+            Self::HourPillarTenGodToDayMaster
+                | Self::HourChiBranchRelationToBirthHour
+                | Self::HourStemElementSupport
+        )
     }
 }
 
@@ -409,6 +471,15 @@ pub struct RankedHourV1 {
     pub contributions: Vec<HourRankingContribution>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub warning_context: Option<HourRankingWarning>,
+    /// Versioned policy that produced this ranking. v1 keeps the legacy
+    /// birth-year-chi semantics; v2.4 (`amlich-bz0f.4`) layers three
+    /// typed, source-attributed full-profile observations on top so a
+    /// full birth profile (date + time) produces a richer
+    /// `PersonalHourAlignment` axis. Carried on each ranked hour so
+    /// consumers can pin the contract without re-reading the policy
+    /// pointer that produced the bundle.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub policy_version: Option<String>,
 }
 
 /// Aggregation result for one hour slot: the rank score plus the
@@ -480,6 +551,52 @@ impl HourRankingPolicy {
             ],
         }
     }
+
+    /// Full-profile v2.4 policy (`amlich-bz0f.4`). Reuses the v1 axis
+    /// weights and four-axis aggregation formula so the `rank_score`
+    /// scale stays comparable across policy versions, and layers three
+    /// typed, source-attributed full-profile observations on top of the
+    /// v1 feature set:
+    ///
+    /// - [`HourRankingFeatureId::HourPillarTenGodToDayMaster`]
+    /// - [`HourRankingFeatureId::HourChiBranchRelationToBirthHour`]
+    /// - [`HourRankingFeatureId::HourStemElementSupport`]
+    ///
+    /// All three feed [`HourRankingAxis::PersonalHourAlignment`]. They
+    /// fire only when a full birth profile (date + time) is available so
+    /// the Bazi chart exposes the hour pillar; when the profile is
+    /// date-only or missing, the three features emit explicit
+    /// `Unavailable` observations and the v1 birth-year-chi fallback
+    /// still anchors the axis. The policy is the canonical owner of the
+    /// hour ranking — the legacy [`PersonalHourMatrix`] integer scoring
+    /// surface is preserved as a compatibility projection on the matrix
+    /// API route, not retired.
+    pub fn full_profile_v2_4() -> Self {
+        Self {
+            policy_id: HOUR_RANKING_POLICY_V1_ID.to_string(),
+            policy_version: HOUR_RANKING_POLICY_V2_4_VERSION.to_string(),
+            axis_weights: [
+                HourRankingAxisWeightEntry {
+                    axis: HourRankingAxis::HoangDaoQuality,
+                    weight: 0.45,
+                },
+                HourRankingAxisWeightEntry {
+                    axis: HourRankingAxis::IntentTimingFit,
+                    weight: 0.25,
+                },
+                HourRankingAxisWeightEntry {
+                    axis: HourRankingAxis::PersonalHourAlignment,
+                    weight: 0.20,
+                },
+                HourRankingAxisWeightEntry {
+                    axis: HourRankingAxis::DayHourHarmony,
+                    weight: 0.10,
+                },
+            ],
+        }
+    }
+
+    // (legacy v1 constructor body follows)
 
     pub fn policy_id(&self) -> &str {
         &self.policy_id
@@ -640,8 +757,21 @@ impl HourRankingPolicy {
         // `aggregate_axes`) so the hour ranking can layer richer
         // features in future policy versions without rewriting the
         // rank-score math.
-        let features =
-            extract_hour_features(snapshot, birth, &ruleset_id, &ruleset_version, &profile_id);
+        //
+        // v2.4 (`amlich-bz0f.4`) extends the extraction with three typed
+        // full-profile observations when a Bazi chart with the hour
+        // pillar is available. The extraction helper threads
+        // `policy_version` so the v1 baseline never emits the new
+        // feature IDs and the v2.4 policy does — keeping the v1
+        // contract byte-identical for date-only and anonymous callers.
+        let features = extract_hour_features(
+            snapshot,
+            birth,
+            &ruleset_id,
+            &ruleset_version,
+            &profile_id,
+            self.policy_version(),
+        );
 
         let mut ranked: Vec<RankedHourV1> = Vec::with_capacity(12);
         for hour in &hoang_dao.all_hours {
@@ -679,6 +809,7 @@ impl HourRankingPolicy {
                 axes,
                 contributions: aggregation.contributions,
                 warning_context,
+                policy_version: Some(self.policy_version.clone()),
             });
         }
 
@@ -709,16 +840,37 @@ impl HourRankingPolicy {
 /// observations for axes that cannot be evaluated (intent timing fit
 /// in v1; personal alignment when the birth profile is missing).
 ///
-/// Bead: `amlich-rv13.2`.
+/// `policy_version` gates the v2.4 full-profile observations
+/// (`amlich-bz0f.4`): the v1 baseline never emits the three new feature
+/// identifiers so its contract stays byte-identical for date-only and
+/// anonymous callers; v2.4 emits them whenever a full birth profile
+/// (date + time) lets the Bazi chart expose the hour pillar, and emits
+/// explicit `Unavailable` observations otherwise (the "unavailable is
+/// distinct from zero" contract).
+///
+/// Bead: `amlich-rv13.2`. Extended by `amlich-bz0f.4`.
 pub(super) fn extract_hour_features(
     snapshot: &DaySnapshot,
     birth: Option<&BirthInput>,
     ruleset_id: &str,
     ruleset_version: &str,
     profile_id: &str,
+    policy_version: &str,
 ) -> Vec<HourRankingFeatureObservation> {
     let hoang_dao = &snapshot.context.gio_hoang_dao;
     let day_chi_index = hoang_dao.day_chi_index;
+
+    let is_v2_4 = policy_version == HOUR_RANKING_POLICY_V2_4_VERSION;
+
+    // Pre-compute the v2.4 full-profile context once per call so the
+    // inner per-hour loop does not rebuild the Bazi chart 12×. When
+    // the birth profile is missing or date-only, every v2.4 feature
+    // emits an Unavailable observation and the context stays `None`.
+    let full_profile_ctx = if is_v2_4 {
+        build_full_profile_context(snapshot, birth)
+    } else {
+        None
+    };
 
     let mut features: Vec<HourRankingFeatureObservation> =
         Vec::with_capacity(hoang_dao.all_hours.len() * HourRankingFeatureId::ALL.len());
@@ -768,6 +920,21 @@ pub(super) fn extract_hour_features(
             ruleset_version,
             profile_id,
         ));
+
+        // Axis 3 (extended) — v2.4 full-profile hour-pillar signals.
+        // Only emitted when the policy version is v2.4. The trio
+        // collapses to explicit Unavailable observations when no
+        // Bazi chart with the hour pillar is available, so the trace
+        // self-describes what evidence was missing.
+        if is_v2_4 {
+            features.extend(extract_full_profile_observations(
+                full_profile_ctx.as_ref(),
+                hour,
+                ruleset_id,
+                ruleset_version,
+                profile_id,
+            ));
+        }
     }
 
     features
@@ -818,12 +985,27 @@ fn aggregate_hour_axes(hour_features: &[&HourRankingFeatureObservation]) -> Hour
         "no source-backed hour-specific intent rules declared in v1",
     );
 
-    // Axis 3 — Personal hour alignment. v1 rules:
+    // Axis 3 — Personal hour alignment.
+    //
+    // v1 (`amlich-rv13`) uses only the birth-year chi signal:
     //   match → 1.0
     //   luc_xung → 0.0
     //   neutral baseline → 0.5
     //   no birth facts → unavailable (never zero)
+    //
+    // v2.4 (`amlich-bz0f.4`) layers three typed, source-attributed
+    // full-profile observations on top: hour-pillar Thập Thần, hour chi
+    // × birth hour chi branch relation, and hour stem element support
+    // for the natal weakest element. The axis score is the average of
+    // every available feature observation (v1 birth-year + v2.4 trio)
+    // so the contribution list matches the axis formula. When all
+    // available observations point to "no personal signal", the axis
+    // stays at the v1 0.5 neutral baseline; when the trio is unavailable
+    // (date-only or anonymous profile) the axis falls back to the v1
+    // birth-year chi semantics so the contract stays byte-identical
+    // for non-full-profile callers.
     let personal_outcome = {
+        // v1 birth-year-chi signals.
         let has_match = hour_features.iter().any(|f| {
             f.feature_id == HourRankingFeatureId::PersonalHourYearChiMatch && !f.is_unavailable()
         });
@@ -833,7 +1015,34 @@ fn aggregate_hour_axes(hour_features: &[&HourRankingFeatureObservation]) -> Hour
         let has_neutral = hour_features.iter().any(|f| {
             f.feature_id == HourRankingFeatureId::PersonalHourYearChiNeutral && !f.is_unavailable()
         });
-        if has_match {
+
+        // v2.4 full-profile trio.
+        let v24_observations: Vec<f32> = [
+            HourRankingFeatureId::HourPillarTenGodToDayMaster,
+            HourRankingFeatureId::HourChiBranchRelationToBirthHour,
+            HourRankingFeatureId::HourStemElementSupport,
+        ]
+        .iter()
+        .filter_map(|id| {
+            hour_features
+                .iter()
+                .find(|f| f.feature_id == *id && !f.is_unavailable())
+                .and_then(|f| f.score)
+        })
+        .collect();
+
+        if !v24_observations.is_empty() {
+            // The v2.4 trio is available. Aggregate via the mean of the
+            // trio scores, each clamped to [0, 1]. The axis stays
+            // continuous with the v1 1.0/0.0/0.5 ladder because the
+            // feature extractors below emit scores on the same scale.
+            let sum: f32 = v24_observations.iter().sum();
+            let n = v24_observations.len() as f32;
+            HourRankingAxisOutcome::from_score(
+                HourRankingAxis::PersonalHourAlignment,
+                (sum / n).clamp(0.0, 1.0),
+            )
+        } else if has_match {
             HourRankingAxisOutcome::from_score(HourRankingAxis::PersonalHourAlignment, 1.0)
         } else if has_clash {
             HourRankingAxisOutcome::from_score(HourRankingAxis::PersonalHourAlignment, 0.0)
@@ -1134,6 +1343,458 @@ fn extract_day_hour_harmony_observation(
         contribution_id,
     )
     .with_note(note_vi)
+}
+
+// ─── v2.4 full-profile extraction (`amlich-bz0f.4`) ───────────────────
+
+/// Resolved context for the v2.4 full-profile trio of hour observations.
+/// Built once per `extract_hour_features` call (12 hour slots share the
+/// same context) and consumed by [`extract_full_profile_observations`]
+/// for each slot.
+///
+/// `None` means "no full-profile context available" — every v2.4 feature
+/// collapses to an explicit `Unavailable` observation so the trace
+/// self-describes what evidence was missing.
+struct FullProfileContext {
+    /// Day master stem (so we can derive hour stem → day master Thập
+    /// Thần for every slot).
+    day_master_stem: HeavenlyStem,
+    /// Birth hour chi index (so we can derive hour chi × birth hour
+    /// chi branch relation for every slot). The chi is the canonical
+    /// 0..11 index of the birth hour pillar.
+    birth_hour_chi_index: usize,
+    /// Day stem of the chart's day pillar (used to seed the hour-pillar
+    /// stem progression when computing the hour stem for each of the
+    /// twelve slots). For the day-to-day-master Thập Thần we use the
+    /// birth day master's stem; for the hour-stem element support we
+    /// use the hour stem derived from the day stem via Ngũ Thử Độn
+    /// Thời.
+    birth_day_stem: HeavenlyStem,
+    /// Weakest element in the chart's [`ElementDistribution`] so the
+    /// hour-stem element support feature can compare the hour stem's
+    /// element against it.
+    weak_element: FiveElement,
+}
+
+/// Build the v2.4 full-profile context from a `BirthInput`. Returns
+/// `None` whenever the inputs do not allow the trio to fire (no birth
+/// profile, missing birth time, or Bazi chart that fails to build) so
+/// the caller can collapse to `Unavailable` observations.
+fn build_full_profile_context(
+    snapshot: &DaySnapshot,
+    birth: Option<&BirthInput>,
+) -> Option<FullProfileContext> {
+    let birth = birth?;
+    let (hour, minute) = (birth.hour?, birth.minute?);
+    let time_known = true;
+
+    let bazi_input = BaziInput {
+        day: birth.day,
+        month: birth.month,
+        year: birth.year,
+        hour,
+        minute,
+        time_known,
+        timezone: birth.timezone,
+        longitude: None,
+        use_solar_time: false,
+        gender: birth.gender,
+    };
+    let chart = build_bazi_chart(bazi_input).ok()?;
+    let hour_pillar = chart.hour_pillar.as_ref()?;
+    let birth_hour_chi_index = hour_pillar.can_chi.chi_index;
+    let birth_day_stem = HeavenlyStem::try_from(chart.day_pillar.can_chi.can.as_str()).ok()?;
+    let day_master_stem = HeavenlyStem::try_from(chart.day_master.can.as_str()).ok()?;
+    let element_dist = compute_element_distribution(&chart);
+    let weak_element = weakest_element(&element_dist);
+
+    // Snapshot info is intentionally unused in the v2.4 trio; the trio
+    // projects the chart onto the twelve hour slots rather than mixing
+    // in the target day's Can Chi. Kept in the signature so future
+    // policy versions that need snapshot-derived data (e.g. day stem
+    // → day branch context) don't have to refactor every caller.
+    let _ = snapshot;
+
+    Some(FullProfileContext {
+        day_master_stem,
+        birth_hour_chi_index,
+        birth_day_stem,
+        weak_element,
+    })
+}
+
+/// Return the element with the lowest score in the distribution. Ties
+/// break toward the first element in canonical order (`Moc`, `Hoa`,
+/// `Tho`, `Kim`, `Thuy`) so the result is deterministic across runs.
+fn weakest_element(dist: &crate::bazi::analysis::ElementDistribution) -> FiveElement {
+    [
+        (FiveElement::Moc, dist.moc),
+        (FiveElement::Hoa, dist.hoa),
+        (FiveElement::Tho, dist.tho),
+        (FiveElement::Kim, dist.kim),
+        (FiveElement::Thuy, dist.thuy),
+    ]
+    .into_iter()
+    .min_by_key(|(_, s)| *s)
+    .map(|(e, _)| e)
+    .unwrap_or(FiveElement::Moc)
+}
+
+/// Extract the three v2.4 full-profile observations for one hour slot.
+/// When [`FullProfileContext`] is `None`, emits one explicit
+/// `Unavailable` observation per feature so the trace self-describes
+/// what evidence was missing (the amlich-7bm4 contract).
+fn extract_full_profile_observations(
+    ctx: Option<&FullProfileContext>,
+    hour: &HourInfo,
+    ruleset_id: &str,
+    ruleset_version: &str,
+    profile_id: &str,
+) -> Vec<HourRankingFeatureObservation> {
+    let chi_index = hour.hour_index;
+    let Some(ctx) = ctx else {
+        return vec![
+            unavailable_full_profile_observation(
+                HourRankingFeatureId::HourPillarTenGodToDayMaster,
+                chi_index,
+                "missing birth profile with known time",
+                ruleset_id,
+                ruleset_version,
+                profile_id,
+            ),
+            unavailable_full_profile_observation(
+                HourRankingFeatureId::HourChiBranchRelationToBirthHour,
+                chi_index,
+                "missing birth profile with known time",
+                ruleset_id,
+                ruleset_version,
+                profile_id,
+            ),
+            unavailable_full_profile_observation(
+                HourRankingFeatureId::HourStemElementSupport,
+                chi_index,
+                "missing birth profile with known time",
+                ruleset_id,
+                ruleset_version,
+                profile_id,
+            ),
+        ];
+    };
+
+    // Compute the hour pillar (stem + chi) for this slot using Ngũ
+    // Thử Độn Thời. Slot 0 is Tý (23:00–01:00); slot s>0 starts at
+    // 2s-1 wall-clock hour. The hour pillar's chi equals the slot
+    // index, so we only need the stem.
+    let wall_hour = if chi_index == 0 {
+        23
+    } else {
+        (2 * chi_index - 1) as u8
+    };
+    let hour_pillar = match compute_hour_pillar(ctx.birth_day_stem, wall_hour, 0) {
+        Some(p) => p,
+        None => {
+            // Defensive: every chi_index 0..11 has a valid wall hour
+            // (slot 0 → 23, slot 1 → 1, …, slot 11 → 21). If the table
+            // fails to resolve we collapse to Unavailable rather than
+            // fabricating a stem.
+            return vec![
+                unavailable_full_profile_observation(
+                    HourRankingFeatureId::HourPillarTenGodToDayMaster,
+                    chi_index,
+                    "could not resolve hour pillar for slot",
+                    ruleset_id,
+                    ruleset_version,
+                    profile_id,
+                ),
+                unavailable_full_profile_observation(
+                    HourRankingFeatureId::HourChiBranchRelationToBirthHour,
+                    chi_index,
+                    "could not resolve hour pillar for slot",
+                    ruleset_id,
+                    ruleset_version,
+                    profile_id,
+                ),
+                unavailable_full_profile_observation(
+                    HourRankingFeatureId::HourStemElementSupport,
+                    chi_index,
+                    "could not resolve hour pillar for slot",
+                    ruleset_id,
+                    ruleset_version,
+                    profile_id,
+                ),
+            ];
+        }
+    };
+    let hour_stem = match HeavenlyStem::try_from(hour_pillar.can_chi.can.as_str()) {
+        Ok(s) => s,
+        Err(_) => return Vec::new(),
+    };
+    let hour_chi_index = hour_pillar.can_chi.chi_index;
+
+    let hour_chi_name = CHI[hour_chi_index % 12].to_string();
+    let birth_hour_chi_name = CHI[ctx.birth_hour_chi_index % 12].to_string();
+    let shared_note = format!(
+        "hour_chi={} birth_hour_chi={} hour_stem={} day_master={}",
+        hour_chi_name,
+        birth_hour_chi_name,
+        hour_pillar.can_chi.can,
+        day_master_stem_label(ctx.day_master_stem),
+    );
+
+    let mut observations = Vec::with_capacity(3);
+
+    // --- 1. Hour stem → birth day master Thập Thần -------------------
+    let thap_than = get_thap_than(ctx.day_master_stem, hour_stem);
+    let (ten_god_polarity, ten_god_strength) = ten_god_polarity_strength(thap_than.label);
+    let ten_god_evidence = SourceEvidence {
+        source_family: "personal_hour_matrix".to_string(),
+        source_id: SOURCE_KHCBPPT.to_string(),
+        method: "hour_stem_to_day_master_thap_than".to_string(),
+        profile: profile_id.to_string(),
+        note: Some(format!("{}; label={:?}", shared_note, thap_than.label)),
+    };
+    let contribution_id = format!("hour.pillar.ten_god.{}", chi_index);
+    observations.push(
+        HourRankingFeatureObservation::observed(
+            HourRankingFeatureId::HourPillarTenGodToDayMaster,
+            chi_index,
+            ten_god_polarity,
+            ten_god_strength,
+            ten_god_evidence,
+            ruleset_id,
+            ruleset_version,
+            contribution_id,
+        )
+        .with_note(format!(
+            "{} → {}",
+            label_vi(thap_than.label),
+            day_master_stem_label(ctx.day_master_stem)
+        )),
+    );
+
+    // --- 2. Hour chi × birth hour chi branch relation -----------------
+    // The PersonalHourMatrix already does this; we reuse the typed
+    // [`BranchRelation`] so the v2.4 trio stays aligned with the matrix
+    // surface and the matrix stays the "compatibility projection" for
+    // this signal. Each relation kind fires at most once per hour so a
+    // clash doesn't double-count against the personal alignment axis.
+    let branch_rel = compute_branch_relation(hour_chi_index, ctx.birth_hour_chi_index);
+    let (branch_polarity, branch_strength) = branch_relation_polarity_strength(&branch_rel);
+    let branch_evidence = SourceEvidence {
+        source_family: "personal_hour_matrix".to_string(),
+        source_id: SOURCE_KHCBPPT.to_string(),
+        method: "hour_chi_birth_hour_chi_branch_relation".to_string(),
+        profile: profile_id.to_string(),
+        note: Some(format!(
+            "{}; same_branch={} luc_xung={} luc_hop={} tam_hop_pair={} tuong_hai={} tuong_hinh={:?}",
+            shared_note,
+            branch_rel.same_branch,
+            branch_rel.luc_xung,
+            branch_rel.luc_hop,
+            branch_rel.is_tam_hop_pair(),
+            branch_rel.tuong_hai,
+            branch_rel.tuong_hinh,
+        )),
+    };
+    let contribution_id = format!("hour.chi.branch_relation.{}", chi_index);
+    observations.push(
+        HourRankingFeatureObservation::observed(
+            HourRankingFeatureId::HourChiBranchRelationToBirthHour,
+            chi_index,
+            branch_polarity,
+            branch_strength,
+            branch_evidence,
+            ruleset_id,
+            ruleset_version,
+            contribution_id,
+        )
+        .with_note(branch_relation_note_vi(
+            &branch_rel,
+            hour_chi_name.as_str(),
+            birth_hour_chi_name.as_str(),
+        )),
+    );
+
+    // --- 3. Hour stem element supports the natal weakest element ------
+    let hour_element = hour_stem.element();
+    let (element_polarity, element_strength) = if hour_element == ctx.weak_element {
+        (ContributionPolarity::Favorable, 1.0)
+    } else {
+        (ContributionPolarity::Neutral, 0.5)
+    };
+    let element_evidence = SourceEvidence {
+        source_family: "personal_hour_matrix".to_string(),
+        source_id: SOURCE_KHCBPPT.to_string(),
+        method: "hour_stem_element_supports_weakest".to_string(),
+        profile: profile_id.to_string(),
+        note: Some(format!(
+            "{}; hour_element={:?} weak_element={:?}",
+            shared_note, hour_element, ctx.weak_element
+        )),
+    };
+    let contribution_id = format!("hour.stem.element_support.{}", chi_index);
+    observations.push(
+        HourRankingFeatureObservation::observed(
+            HourRankingFeatureId::HourStemElementSupport,
+            chi_index,
+            element_polarity,
+            element_strength,
+            element_evidence,
+            ruleset_id,
+            ruleset_version,
+            contribution_id,
+        )
+        .with_note(if hour_element == ctx.weak_element {
+            "Hỗ trợ hành yếu"
+        } else {
+            "Trung tính với hành yếu"
+        }),
+    );
+
+    observations
+}
+
+fn unavailable_full_profile_observation(
+    feature_id: HourRankingFeatureId,
+    chi_index: usize,
+    reason: &str,
+    ruleset_id: &str,
+    ruleset_version: &str,
+    profile_id: &str,
+) -> HourRankingFeatureObservation {
+    let evidence = SourceEvidence {
+        source_family: "personal_hour_matrix".to_string(),
+        source_id: SOURCE_KHCBPPT.to_string(),
+        method: "full_profile_unavailable".to_string(),
+        profile: profile_id.to_string(),
+        note: None,
+    };
+    let contribution_id = format!("{}.unavailable.{}", feature_id.as_str(), chi_index);
+    HourRankingFeatureObservation::unavailable(
+        feature_id,
+        chi_index,
+        reason,
+        evidence,
+        ruleset_id,
+        ruleset_version,
+        contribution_id,
+    )
+}
+
+/// Map a Thập Thần label to the v2.4 polarity + normalized strength
+/// pair for the [`HourRankingFeatureId::HourPillarTenGodToDayMaster`]
+/// feature. Resource / support labels are Favorable; draining /
+/// opposition labels are Avoid. Strength stays conservative so the
+/// trio does not dominate the PersonalHourAlignment axis.
+fn ten_god_polarity_strength(label: ThapThanLabel) -> (ContributionPolarity, f32) {
+    match label {
+        ThapThanLabel::TyKien
+        | ThapThanLabel::KiepTai
+        | ThapThanLabel::ChinhAn
+        | ThapThanLabel::ThienAn => (ContributionPolarity::Favorable, 0.7),
+        ThapThanLabel::ThucThan
+        | ThapThanLabel::ThuongQuan
+        | ThapThanLabel::ChinhTai
+        | ThapThanLabel::ThienTai
+        | ThapThanLabel::ChinhQuan
+        | ThapThanLabel::ThatSat => (ContributionPolarity::Avoid, 0.5),
+    }
+}
+
+/// Map a [`BranchRelation`] to the v2.4 polarity + normalized strength
+/// pair for the [`HourRankingFeatureId::HourChiBranchRelationToBirthHour`]
+/// feature. Same scale as the v1 day-hour harmony axis so the
+/// PersonalHourAlignment score stays continuous when the trio fires.
+fn branch_relation_polarity_strength(
+    rel: &crate::interaction::types::BranchRelation,
+) -> (ContributionPolarity, f32) {
+    use crate::almanac::types::PunishmentKind;
+    if rel.luc_xung {
+        (ContributionPolarity::Avoid, 0.1)
+    } else if rel.tuong_hai
+        || matches!(
+            rel.tuong_hinh,
+            PunishmentKind::DirectedPair { .. }
+                | PunishmentKind::CompletedTriad { .. }
+                | PunishmentKind::SelfPunishment { .. }
+        )
+    {
+        // Tương hại and structured Tương hình both penalize the
+        // axis at the same magnitude; we keep the kinds separate in
+        // the source evidence so the trace stays self-describing.
+        (ContributionPolarity::Avoid, 0.2)
+    } else if rel.is_tam_hop_pair() {
+        (ContributionPolarity::Favorable, 0.8)
+    } else if rel.luc_hop {
+        (ContributionPolarity::Favorable, 0.7)
+    } else {
+        // Same-branch and unrelated branches both project a neutral
+        // 0.5 — the v2.4 contract treats "no special relation" and
+        // "same-branch" identically for axis scoring. The note_vi
+        // helper still distinguishes them for human-readable traces.
+        (ContributionPolarity::Neutral, 0.5)
+    }
+}
+
+fn branch_relation_note_vi(
+    rel: &crate::interaction::types::BranchRelation,
+    hour_chi: &str,
+    birth_hour_chi: &str,
+) -> String {
+    use crate::almanac::types::PunishmentKind;
+    if rel.luc_xung {
+        format!("Lục xung với giờ sinh ({})", birth_hour_chi)
+    } else if rel.tuong_hai {
+        format!("Tương hại với giờ sinh ({})", birth_hour_chi)
+    } else if matches!(
+        rel.tuong_hinh,
+        PunishmentKind::DirectedPair { .. }
+            | PunishmentKind::CompletedTriad { .. }
+            | PunishmentKind::SelfPunishment { .. }
+    ) {
+        format!("Tương hình với giờ sinh ({})", birth_hour_chi)
+    } else if rel.is_tam_hop_pair() {
+        format!("Tam hợp với giờ sinh ({})", birth_hour_chi)
+    } else if rel.luc_hop {
+        format!("Lục hợp với giờ sinh ({})", birth_hour_chi)
+    } else if rel.same_branch {
+        format!("Trùng Chi với giờ sinh ({})", birth_hour_chi)
+    } else {
+        format!(
+            "{} và giờ sinh ({}) không có quan hệ đặc biệt",
+            hour_chi, birth_hour_chi
+        )
+    }
+}
+
+fn day_master_stem_label(stem: HeavenlyStem) -> &'static str {
+    match stem {
+        HeavenlyStem::Giap => "Giáp",
+        HeavenlyStem::At => "Ất",
+        HeavenlyStem::Binh => "Bính",
+        HeavenlyStem::Dinh => "Đinh",
+        HeavenlyStem::Mau => "Mậu",
+        HeavenlyStem::Ky => "Kỷ",
+        HeavenlyStem::Canh => "Canh",
+        HeavenlyStem::Tan => "Tân",
+        HeavenlyStem::Nham => "Nhâm",
+        HeavenlyStem::Quy => "Quý",
+    }
+}
+
+fn label_vi(label: ThapThanLabel) -> &'static str {
+    match label {
+        ThapThanLabel::TyKien => "Tỷ Kiến",
+        ThapThanLabel::KiepTai => "Kiếp Tài",
+        ThapThanLabel::ThucThan => "Thực Thần",
+        ThapThanLabel::ThuongQuan => "Thương Quan",
+        ThapThanLabel::ChinhTai => "Chính Tài",
+        ThapThanLabel::ThienTai => "Thiên Tài",
+        ThapThanLabel::ChinhQuan => "Chính Quan",
+        ThapThanLabel::ThatSat => "Thất Sát",
+        ThapThanLabel::ChinhAn => "Chính Ấn",
+        ThapThanLabel::ThienAn => "Thiên Ấn",
+    }
 }
 
 #[cfg(test)]
@@ -1566,9 +2227,12 @@ mod tests {
                 "hour_branch_triad",
                 "hour_branch_liu_he",
                 "hour_branch_luc_xung",
+                "hour_pillar_ten_god_to_day_master",
+                "hour_chi_branch_relation_to_birth_hour",
+                "hour_stem_element_support",
             ]
         );
-        assert_eq!(HourRankingFeatureId::ALL.len(), 8);
+        assert_eq!(HourRankingFeatureId::ALL.len(), 11);
     }
 
     #[test]
@@ -1617,8 +2281,14 @@ mod tests {
         // + 1 harmony = 4, × 12 hours = 48.
         let snapshot = base_snapshot();
         let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
-        let features =
-            extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let features = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
         assert_eq!(features.len(), 48);
 
         // Each chi_index in [0, 12) appears at least once per feature
@@ -1642,8 +2312,22 @@ mod tests {
     fn extract_features_is_deterministic_for_identical_inputs() {
         let snapshot = base_snapshot();
         let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
-        let a = extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
-        let b = extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let a = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
+        let b = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
         assert_eq!(a, b);
     }
 
@@ -1652,8 +2336,14 @@ mod tests {
         // AC: Hoàng Đạo quality is binary.
         let snapshot = base_snapshot();
         let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
-        let features =
-            extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let features = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
         let hoang_dao = snapshot.context.gio_hoang_dao.all_hours.clone();
         for obs in features
             .iter()
@@ -1688,8 +2378,14 @@ mod tests {
         // and is unavailable otherwise.
         let snapshot = base_snapshot();
         let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
-        let features =
-            extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let features = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
         let intent_obs: Vec<&HourRankingFeatureObservation> = features
             .iter()
             .filter(|f| f.feature_id == HourRankingFeatureId::HourIntentTimingFit)
@@ -1714,8 +2410,14 @@ mod tests {
         // and is unavailable otherwise.
         let snapshot = base_snapshot();
         let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
-        let features =
-            extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let features = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
         // Exactly one personal-anchor observation per hour (an explicit
         // unavailable marker under the neutral feature ID — see the
         // extraction helper's contract).
@@ -1766,6 +2468,7 @@ mod tests {
             ruleset_id,
             ruleset_version,
             profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
         );
         let birth_year_chi_index = birth.birth_year_canchi().chi_index;
         let luc_xung_target = xung_hop::luc_xung(birth_year_chi_index);
@@ -1812,8 +2515,14 @@ mod tests {
         // AC: day-hour harmony uses day Chi to hour Chi only.
         let snapshot = base_snapshot();
         let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
-        let features =
-            extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let features = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
         let day_chi_index = snapshot.context.gio_hoang_dao.day_chi_index;
         let day_chi = CHI[day_chi_index % 12];
         let triad: std::collections::HashSet<&str> =
@@ -1871,8 +2580,14 @@ mod tests {
         // relation.
         let snapshot = base_snapshot();
         let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
-        let features =
-            extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let features = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
         let hoang_dao_hours = snapshot.context.gio_hoang_dao.all_hours.clone();
 
         for hour in &hoang_dao_hours {
@@ -1935,6 +2650,7 @@ mod tests {
             ruleset_id,
             ruleset_version,
             profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
         );
         let birth_year_chi_index = birth.birth_year_canchi().chi_index;
         let luc_xung_target = xung_hop::luc_xung(birth_year_chi_index);
@@ -1972,8 +2688,14 @@ mod tests {
         // reason must be carried through extraction.
         let snapshot = base_snapshot();
         let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
-        let features =
-            extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let features = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
         let mut unavailable_count = 0_usize;
         for obs in features.iter().filter(|f| f.is_unavailable()) {
             assert_eq!(obs.score, None, "unavailable observation must score None");
@@ -2171,8 +2893,14 @@ mod tests {
         let policy = HourRankingPolicy::baseline_v1();
         let snapshot = base_snapshot();
         let (ruleset_id, ruleset_version, profile_id) = ruleset_meta(&snapshot);
-        let features =
-            extract_hour_features(&snapshot, None, ruleset_id, ruleset_version, profile_id);
+        let features = extract_hour_features(
+            &snapshot,
+            None,
+            ruleset_id,
+            ruleset_version,
+            profile_id,
+            HOUR_RANKING_POLICY_V1_VERSION,
+        );
         let mut per_hour = std::collections::HashMap::<usize, HourRankingAggregation>::new();
         for hour in &snapshot.context.gio_hoang_dao.all_hours {
             let hour_features: Vec<&HourRankingFeatureObservation> = features

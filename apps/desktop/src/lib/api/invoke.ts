@@ -50,6 +50,39 @@ export async function fetchHourSelectionReport(day: number, month: number, year:
     return invoke('get_hour_selection_report', { day, month, year });
 }
 
+/**
+ * v2.4 (`amlich-bz0f.4`) full-profile hour-selection report. Threads
+ * the birth hour and minute through so the underlying v2.4 hour-ranking
+ * policy can fold in the hour-pillar Thập Thần, hour chi × birth hour
+ * chi branch relation, and hour stem element support signals. When
+ * either birth-hour field is missing, the v2.4 trio collapses to
+ * explicit `Unavailable` observations and the report stays
+ * byte-identical to the v1 path.
+ */
+export async function fetchHourSelectionReportFullProfileV24(
+    day: number,
+    month: number,
+    year: number,
+    birthYear?: number,
+    birthMonth?: number,
+    birthDay?: number,
+    birthHour?: number,
+    birthMinute?: number,
+    gender?: string,
+): Promise<HourSelectionReportDto> {
+    return invoke('get_hour_selection_report_full_profile_v2_4', {
+        day,
+        month,
+        year,
+        birthYear,
+        birthMonth,
+        birthDay,
+        birthHour,
+        birthMinute,
+        gender,
+    });
+}
+
 export async function fetchTietKhiForYear(year: number): Promise<TietKhiYearDto> {
     return invoke('get_tiet_khi_for_year', { year });
 }
