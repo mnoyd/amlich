@@ -241,6 +241,25 @@
       "test_targets": [
         "crates/amlich-core/tests/ruleset_determinism.rs"
       ]
+    },
+    {
+      "id": "signal.truc_x_element.no_default_interaction",
+      "title": "Trực × Ngũ Hành day-element interaction at the API contract",
+      "conflict_type": "scope",
+      "disposition": "default_core",
+      "decision": {
+        "contract_boundary": "independent",
+        "composition_layer": "presentation_only",
+        "rationale": "no_source_backing_for_typed_interaction"
+      },
+      "why": "No curated corpus entry combines Trực with a day-element rule; truc is a primary activity-routing signal and DayGuidance is keyed by day.chi independently. Inventing a typed interaction would violate source.xieji_hierarchy.default_policy.",
+      "code_targets": [
+        "crates/amlich-api/src/dto.rs",
+        "crates/amlich-tui/src/widgets/screens/elements.rs"
+      ],
+      "test_targets": [
+        "crates/amlich-api/tests/truc_day_guidance_independence.rs"
+      ]
     }
   ]
 }

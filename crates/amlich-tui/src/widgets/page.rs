@@ -599,7 +599,7 @@ mod tests {
         assert!(text.contains("Ngày: Bính Ngọ"));
         assert!(text.contains("Tháng: Giáp Dần"));
         assert!(text.contains("Ý nghĩa thứ hai phải còn nguyên."));
-        assert!(text.contains("Kết Hợp Trực + Hành"));
+        assert!(text.contains("Trực + Hành (tổng hợp trình bày"));
         assert!(text.contains("khai trương"));
         assert!(text.contains("quyết định nóng vội"));
     }

@@ -219,16 +219,27 @@ fn render_truc(app: &AppState, area: Rect, buf: &mut Buffer) {
 }
 
 fn render_combined_guidance(app: &AppState, area: Rect, buf: &mut Buffer) {
-    let block = section_block(" Kết Hợp Trực + Hành ", Color::Blue);
+    let block = section_block(
+        " Trực + Hành (tổng hợp trình bày — không phải tương tác ngữ nghĩa) ",
+        Color::Blue,
+    );
     let inner = block.inner(area);
     block.render(area, buf);
     let element = day_element(app).unwrap_or("chưa rõ hành");
     let truc = insight(app).and_then(|insight| insight.truc.as_ref());
     let guidance = insight(app).and_then(|insight| insight.day_guidance.as_ref());
-    let mut lines = vec![Line::from(format!(
-        "  Đọc phối hợp: Trực {} trong khí {element}.",
-        truc.map(|truc| truc.name.as_str()).unwrap_or("chưa rõ")
-    ))];
+    let mut lines = vec![
+        Line::from(Span::styled(
+            "  (Trình bày gộp hai nguồn độc lập; không phải công thức tương tác)",
+            Style::default()
+                .fg(Color::DarkGray)
+                .add_modifier(Modifier::ITALIC),
+        )),
+        Line::from(format!(
+            "  Đọc phối hợp: Trực {} trong khí {element}.",
+            truc.map(|truc| truc.name.as_str()).unwrap_or("chưa rõ")
+        )),
+    ];
     if let Some(guidance) = guidance {
         for item in &guidance.good_for.vi {
             lines.push(Line::from(format!("  ✓ Nên: {item}")));
