@@ -1186,6 +1186,7 @@ pub struct PersonalDayAssessmentDto {
     pub normalized_birth: PersonalDayNormalizedBirthDto,
     pub axes: PersonalDayAxesDto,
     pub decision: PersonalDayDecisionDto,
+    pub factors: Vec<PersonalDayFactorDto>,
     pub contributions: Vec<PersonalDayContributionDto>,
     pub unavailable_sections: Vec<UnavailableSectionDto>,
     pub evidence: PersonalDayEvidenceDto,
@@ -1196,6 +1197,25 @@ pub struct PersonalDayAssessmentDto {
     /// and does not change existing field semantics.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub explanation_graph: Option<AssessmentTraceGraphDto>,
+}
+
+/// Additive projection of one canonical assessment factor. `role` is one of
+/// `fact`, `scored_feature`, `veto`, or `explanation_only`. Availability is
+/// explicit so missing evidence cannot be mistaken for a neutral factor.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct PersonalDayFactorDto {
+    pub factor_id: String,
+    pub role: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub axis: Option<String>,
+    pub availability: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub unavailable_reason: Option<String>,
+    pub source_family: String,
+    pub source_id: String,
+    pub method: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

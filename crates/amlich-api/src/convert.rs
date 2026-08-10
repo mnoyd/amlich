@@ -1747,6 +1747,32 @@ impl From<&amlich_core::assessment::PersonalDayAssessment>
             })
             .collect();
 
+        let factors: Vec<crate::dto::PersonalDayFactorDto> = value
+            .factors
+            .iter()
+            .map(|factor| {
+                let (availability, unavailable_reason) = match &factor.availability {
+                    amlich_core::assessment::AvailabilityState::Complete => {
+                        ("complete".to_string(), None)
+                    }
+                    amlich_core::assessment::AvailabilityState::Unavailable { reason } => {
+                        ("unavailable".to_string(), Some(reason.clone()))
+                    }
+                };
+                crate::dto::PersonalDayFactorDto {
+                    factor_id: factor.factor_id.clone(),
+                    role: factor.role.as_str().to_string(),
+                    axis: factor.axis.map(|axis| axis.as_str().to_string()),
+                    availability,
+                    unavailable_reason,
+                    source_family: factor.source_evidence.source_family.clone(),
+                    source_id: factor.source_evidence.source_id.clone(),
+                    method: factor.source_evidence.method.clone(),
+                    note: factor.note.clone(),
+                }
+            })
+            .collect();
+
         let normalized = crate::dto::PersonalDayNormalizedBirthDto {
             day: value.normalized_birth.day,
             month: value.normalized_birth.month,
@@ -1782,6 +1808,7 @@ impl From<&amlich_core::assessment::PersonalDayAssessment>
             normalized_birth: normalized,
             axes,
             decision,
+            factors,
             contributions,
             unavailable_sections: sections,
             evidence,

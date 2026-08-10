@@ -56,6 +56,7 @@ export type {
   PersonalDayAxesDto,
   PersonalDayDecisionDto,
   PersonalDayContributionDto,
+  PersonalDayFactorDto,
   PersonalDayEvidenceDto,
   PersonalDayAssessmentDto,
   PersonalDayReportDto,

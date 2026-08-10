@@ -69,6 +69,7 @@
     $: incomingEdges = edgesTouching(graph?.edges ?? [], selectedNodeId, 'in');
     $: outgoingEdges = edgesTouching(graph?.edges ?? [], selectedNodeId, 'out');
     $: canonicalRows = report ? canonicalAxisRows(report) : [];
+    $: canonicalFactors = report?.canonical_assessment?.factors ?? [];
     $: reasoningAxes = report?.decision_export?.axis_scores ?? [];
     $: familyRows = report ? sourceFamilyBreakdown(report) : [];
     $: familyTotal = totalFamilyCount(familyRows);
@@ -154,6 +155,13 @@
         low: 'tin cậy thấp',
         medium: 'tin cậy vừa',
         high: 'tin cậy cao',
+    };
+
+    const factorRoleLabel: Record<string, string> = {
+        fact: 'Dữ kiện',
+        scored_feature: 'Có chấm điểm',
+        veto: 'Ràng buộc',
+        explanation_only: 'Chỉ giải thích',
     };
 
     const sourceFamilyLabel: Record<ReasoningEvidenceSourceFamilyDto, string> = {
@@ -625,6 +633,34 @@
                     </div>
                 {/if}
             {:else if activeLens === 'yeu_to'}
+                {#if canonicalFactors.length}
+                    <section class="mb-6">
+                        <h3 class="text-2xl font-mono font-bold mb-1">Vai trò yếu tố</h3>
+                        <p class="text-sm text-ink-light font-mono mb-4">
+                            Phân loại từ assessment policy; yếu tố thiếu dữ liệu không được xem là trung tính.
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            {#each canonicalFactors as factor (factor.factor_id + ':' + factor.role)}
+                                <div class="card-dense">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <span class="text-sm font-medium">{factor.note ?? factor.factor_id}</span>
+                                        <span class={factor.role === 'veto' ? 'badge-ky' : factor.role === 'scored_feature' ? 'badge-cothe' : 'badge-evidence'}>
+                                            {factorRoleLabel[factor.role] ?? factor.role}
+                                        </span>
+                                    </div>
+                                    <div class="mt-2 flex flex-wrap gap-2 text-xs font-mono text-ink-light">
+                                        <span>{factor.factor_id}</span>
+                                        {#if factor.axis}<span>· {factor.axis}</span>{/if}
+                                        <span>· {factor.source_family}:{factor.method}</span>
+                                    </div>
+                                    {#if factor.availability === 'unavailable'}
+                                        <p class="text-xs text-tranh font-mono mt-2">⚠ {factor.unavailable_reason ?? 'unavailable'}</p>
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
+                    </section>
+                {/if}
                 {#if graph}
                     <div class="flex items-center justify-end gap-1 mb-4">
                         <span class="text-xs font-mono uppercase text-ink-light mr-2">Chế độ xem</span>

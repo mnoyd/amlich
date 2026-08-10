@@ -60,6 +60,7 @@ use crate::{
 };
 
 pub mod extraction;
+pub mod factor;
 pub mod feature;
 pub mod hour_ranking;
 pub mod interactions;
@@ -69,6 +70,7 @@ pub mod stability;
 pub mod trace;
 pub mod weights;
 
+pub use factor::{AssessmentFactor, AssessmentFactorRole};
 pub use feature::{AssessmentFeatureId, FeatureObservation};
 pub use interactions::{
     InteractionKind, InteractionWeight, InteractionWeightTable, INTERACTION_WEIGHTS_V2_2,
@@ -332,6 +334,12 @@ pub struct PersonalDayAssessment {
     pub decision: PersonalDayDecision,
     pub unavailable_sections: Vec<UnavailableSection>,
     pub evidence: EvidenceCoverage,
+    /// Canonical classification of the inputs considered by this assessment.
+    /// Roles describe direct participation in the current policy and let
+    /// consumers explain raw facts, scored features, vetoes, and contextual
+    /// evidence without reverse-engineering rule names.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub factors: Vec<AssessmentFactor>,
     /// Calculation trace emitted by the v2 [`AssessmentPolicy`]. Populated
     /// when the assessment was built via `AssessmentPolicy::evaluate`;
     /// `None` for the legacy v1 builder. The trace is the substrate for
@@ -870,6 +878,9 @@ impl PersonalDayAssessmentBuilder {
             context_is_clear: evidence.has_chart || evidence.has_yearly_han,
         };
 
+        let factors =
+            factor::classify_day_factors(&snapshot, &contributions, &unavailable_sections, None);
+
         PersonalDayAssessment {
             ruleset_id,
             ruleset_version,
@@ -885,6 +896,7 @@ impl PersonalDayAssessmentBuilder {
             decision,
             unavailable_sections,
             evidence,
+            factors,
             trace: None,
         }
     }

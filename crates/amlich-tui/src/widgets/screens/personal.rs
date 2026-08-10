@@ -389,6 +389,26 @@ fn matrix_summary_lines(matrix: &amlich_api::PersonalDayMatrixReportDto) -> Vec<
         lines.push(Line::from(vec![Span::raw("  • "), Span::raw(line)]));
     }
 
+    if let Some(assessment) = matrix.canonical_assessment.as_ref() {
+        let count = |role: &str| {
+            assessment
+                .factors
+                .iter()
+                .filter(|factor| factor.role == role)
+                .count()
+        };
+        lines.push(Line::from(vec![
+            Span::raw("  • "),
+            Span::raw(format!(
+                "Vai trò yếu tố: {} dữ kiện · {} chấm điểm · {} veto · {} giải thích",
+                count("fact"),
+                count("scored_feature"),
+                count("veto"),
+                count("explanation_only")
+            )),
+        ]));
+    }
+
     if lines.is_empty() {
         lines.push(Line::from("  Chưa có điểm nhấn ma trận để hiển thị."));
     }
@@ -441,6 +461,7 @@ mod tests {
 
         assert!(rendered.contains("Ngày-person:"));
         assert!(rendered.contains("Cộng hưởng ngũ hành:"));
+        assert!(rendered.contains("Vai trò yếu tố:"));
     }
 
     #[test]

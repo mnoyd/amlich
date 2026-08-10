@@ -309,6 +309,12 @@ impl AssessmentPolicy {
             vetoes,
             interactions,
         };
+        let factors = super::factor::classify_day_factors(
+            snapshot,
+            &contributions,
+            &unavailable_sections,
+            Some(&trace),
+        );
 
         PersonalDayAssessment {
             ruleset_id,
@@ -325,6 +331,7 @@ impl AssessmentPolicy {
             decision,
             unavailable_sections,
             evidence,
+            factors,
             trace: Some(trace),
         }
     }

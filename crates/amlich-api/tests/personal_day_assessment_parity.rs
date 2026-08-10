@@ -99,6 +99,10 @@ fn standalone_advisory_assessment_matches_aggregate_report_assessment() {
         "every contribution must be byte-identical (stable contribution_id contract)"
     );
     assert_eq!(
+        advisory_assessment.factors, report_assessment.factors,
+        "factor roles must be byte-identical across assessment projections"
+    );
+    assert_eq!(
         advisory_assessment.unavailable_sections, report_assessment.unavailable_sections,
         "unavailable_sections must match"
     );
@@ -293,6 +297,13 @@ fn veto_forced_decision_projects_to_avoid_through_dto() {
     assert!(
         score <= 0.2,
         "veto-forced decision score must be the override floor, got {score}"
+    );
+    assert!(
+        assessment
+            .factors
+            .iter()
+            .any(|factor| factor.role == "veto"),
+        "the active hard override must be classified as a veto for consumers"
     );
 }
 

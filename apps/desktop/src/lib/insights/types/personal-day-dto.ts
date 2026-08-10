@@ -166,6 +166,18 @@ export type PersonalDayContributionDto = {
   note?: string | null;
 };
 
+export type PersonalDayFactorDto = {
+  factor_id: string;
+  role: "fact" | "scored_feature" | "veto" | "explanation_only" | string;
+  axis?: string | null;
+  availability: "complete" | "unavailable" | string;
+  unavailable_reason?: string | null;
+  source_family: string;
+  source_id: string;
+  method: string;
+  note?: string | null;
+};
+
 export type PersonalDayEvidenceDto = {
   has_chart: boolean;
   has_analysis: boolean;
@@ -276,6 +288,7 @@ export type PersonalDayAssessmentDto = {
   normalized_birth: PersonalDayNormalizedBirthDto;
   axes: PersonalDayAxesDto;
   decision: PersonalDayDecisionDto;
+  factors: PersonalDayFactorDto[];
   contributions: PersonalDayContributionDto[];
   unavailable_sections: UnavailableSectionDto[];
   evidence: PersonalDayEvidenceDto;

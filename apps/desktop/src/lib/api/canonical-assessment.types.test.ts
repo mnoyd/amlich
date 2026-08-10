@@ -20,6 +20,7 @@ import type {
     PersonalDayAxesDto,
     PersonalDayAxisOutcomeDto,
     PersonalDayContributionDto,
+    PersonalDayFactorDto,
     PersonalDayDecisionDto,
     PersonalDayEvidenceDto,
     PersonalDayMatrixReportDto,
@@ -41,6 +42,7 @@ import type {
     PersonalDayAxesDto as InsightsPersonalDayAxesDto,
     PersonalDayAxisOutcomeDto as InsightsPersonalDayAxisOutcomeDto,
     PersonalDayContributionDto as InsightsPersonalDayContributionDto,
+    PersonalDayFactorDto as InsightsPersonalDayFactorDto,
     PersonalDayDecisionDto as InsightsPersonalDayDecisionDto,
     PersonalDayEvidenceDto as InsightsPersonalDayEvidenceDto,
     PersonalDayNormalizedBirthDto as InsightsPersonalDayNormalizedBirthDto,
@@ -117,6 +119,21 @@ type _ContributionKeys = AssertTrue<
     >
 >;
 
+type _FactorKeys = AssertTrue<
+    Equals<
+        keyof PersonalDayFactorDto,
+        | 'factor_id'
+        | 'role'
+        | 'axis'
+        | 'availability'
+        | 'unavailable_reason'
+        | 'source_family'
+        | 'source_id'
+        | 'method'
+        | 'note'
+    >
+>;
+
 type _EvidenceKeys = AssertTrue<
     Equals<
         keyof PersonalDayEvidenceDto,
@@ -137,6 +154,7 @@ type _AssessmentKeys = AssertTrue<
         | 'normalized_birth'
         | 'axes'
         | 'decision'
+        | 'factors'
         | 'contributions'
         | 'unavailable_sections'
         | 'evidence'
@@ -261,6 +279,9 @@ type _MirrorsAgreeDecision = AssertTrue<
 type _MirrorsAgreeContribution = AssertTrue<
     Equals<keyof PersonalDayContributionDto, keyof InsightsPersonalDayContributionDto>
 >;
+type _MirrorsAgreeFactor = AssertTrue<
+    Equals<keyof PersonalDayFactorDto, keyof InsightsPersonalDayFactorDto>
+>;
 type _MirrorsAgreeEvidence = AssertTrue<
     Equals<keyof PersonalDayEvidenceDto, keyof InsightsPersonalDayEvidenceDto>
 >;
@@ -311,6 +332,26 @@ const COMPLETE_ASSESSMENT = {
         decision_score: 0.71,
         context_is_clear: true,
     },
+    factors: [
+        {
+            factor_id: 'fact.day.canchi',
+            role: 'fact',
+            availability: 'complete',
+            source_family: 'snapshot',
+            source_id: 'vietnam-traditional',
+            method: 'can_chi_context',
+            note: 'day=Giáp Tý',
+        },
+        {
+            factor_id: 'truc-build',
+            role: 'scored_feature',
+            axis: 'intent_fit',
+            availability: 'complete',
+            source_family: 'almanac_rule',
+            source_id: 'truc.khai.tru',
+            method: 'truc_mapping',
+        },
+    ],
     contributions: [
         {
             contribution_id: 'truc-build',
@@ -388,6 +429,18 @@ const MINIMAL_ASSESSMENT = {
         primary_conclusion: 'Thiếu dữ liệu sinh tháng ngày giờ.',
         context_is_clear: false,
     },
+    factors: [
+        {
+            factor_id: 'unavailable.personal_alignment',
+            role: 'scored_feature',
+            axis: 'personal_alignment',
+            availability: 'unavailable',
+            unavailable_reason: 'anonymous_tier',
+            source_family: 'snapshot',
+            source_id: 'vietnam-traditional',
+            method: 'capability_check',
+        },
+    ],
     contributions: [],
     unavailable_sections: [
         { section: 'personal_alignment', reason: 'anonymous_tier', required_fields: ['birth_time'] },

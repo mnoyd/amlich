@@ -139,6 +139,7 @@ fn v1_default_dto_field_set_is_stable() {
         "normalized_birth",
         "axes",
         "decision",
+        "factors",
         "contributions",
         "unavailable_sections",
         "evidence",
@@ -157,6 +158,12 @@ fn v1_default_dto_field_set_is_stable() {
     assert!(
         !obj.contains_key("explanation_graph"),
         "explanation_graph must not appear in the v1 wire JSON"
+    );
+    assert!(
+        obj.get("factors")
+            .and_then(|value| value.as_array())
+            .is_some_and(|factors| !factors.is_empty()),
+        "v1 now exposes the additive canonical factor classification"
     );
 }
 
