@@ -164,6 +164,11 @@ type _AssessmentKeys = AssertTrue<
         // that bypass the v2 policy emit no graph and the key is
         // absent from the payload.
         | 'explanation_graph'
+        // amlich-bz0f.6: consumer-facing explanation projection.
+        // Additive on the wire; populated by the From impl on
+        // every assessment (v1 + v2) so the cross-surface
+        // contract is byte-stable for every caller.
+        | 'explanation'
     >
 >;
 

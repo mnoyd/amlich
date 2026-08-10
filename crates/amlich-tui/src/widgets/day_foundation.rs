@@ -346,3 +346,76 @@ mod tests {
         assert!(!text.contains("Metadata:"));
     }
 }
+
+/// Render a one-screen summary of the assessment explanation
+/// (`amlich-bz0f.6`). Pure function so the cross-surface contract
+/// test can compare the terminal string against the API DTO fields.
+pub fn render_explanation_summary(explanation: &amlich_core::AssessmentExplanation) -> String {
+    use std::fmt::Write;
+    let mut out = String::new();
+    let _ = writeln!(
+        out,
+        "Giải thích ({} v{})",
+        explanation.projection_id, explanation.projection_version
+    );
+    let _ = writeln!(
+        out,
+        "  Quy tắc ưu tiên: {} (ràng buộc cứng thắng tổng hợp trọng số)",
+        explanation.precedence_rule.as_str()
+    );
+    let _ = writeln!(
+        out,
+        "  Mức độ tin cậy: {:?} ({}/{} chiều dữ liệu có sẵn)",
+        explanation.confidence.level,
+        explanation.confidence.present_count,
+        explanation.confidence.total_count
+    );
+    if !explanation.favorable_factors.is_empty() {
+        let _ = writeln!(out, "  Yếu tố thuận:");
+        for factor in explanation.favorable_factors.iter().take(3) {
+            let _ = writeln!(
+                out,
+                "    + {} ({}, {:.2})",
+                factor.contribution_id,
+                factor.polarity.as_str(),
+                factor.strength
+            );
+        }
+    }
+    if !explanation.adverse_factors.is_empty() {
+        let _ = writeln!(out, "  Yếu tố bất lợi:");
+        for factor in explanation.adverse_factors.iter().take(3) {
+            let _ = writeln!(
+                out,
+                "    - {} ({}, {:.2})",
+                factor.contribution_id,
+                factor.polarity.as_str(),
+                factor.strength
+            );
+        }
+    }
+    if !explanation.vetoes_applied.is_empty() {
+        let _ = writeln!(out, "  Ràng buộc cứng đã thắng:");
+        for veto in &explanation.vetoes_applied {
+            let _ = writeln!(out, "    ! {} ({})", veto.veto_id, veto.reason);
+        }
+    }
+    if !explanation.deduplicated_facts.is_empty() {
+        let _ = writeln!(out, "  Quy tắc chống trùng lặp:");
+        for fact in &explanation.deduplicated_facts {
+            let _ = writeln!(
+                out,
+                "    · {} ({} lần)",
+                fact.family.as_str(),
+                fact.observed_count
+            );
+        }
+    }
+    if !explanation.unavailable_evidence.is_empty() {
+        let _ = writeln!(out, "  Dữ liệu chưa đủ:");
+        for ev in &explanation.unavailable_evidence {
+            let _ = writeln!(out, "    ? {} — {}", ev.section, ev.reason);
+        }
+    }
+    out
+}

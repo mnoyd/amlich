@@ -1212,6 +1212,136 @@ export interface PersonalDayAssessmentDto {
     unavailable_sections: UnavailableSectionDto[];
     evidence: PersonalDayEvidenceDto;
     explanation_graph?: AssessmentTraceGraphDto | null;
+    explanation?: AssessmentExplanationDto | null;
+}
+
+// ---------------------------------------------------------------------------
+// Explanation projection DTO (amlich-bz0f.6).
+// The single source of truth for "which factors influenced the result,
+// which facts were deduplicated, which vetoes won, which evidence was
+// unavailable, and why confidence is at its level".
+// ---------------------------------------------------------------------------
+
+export type PrecedenceRuleDto =
+    | "veto_overrides_aggregation"
+    | (string & {});
+
+export type DeduplicationFamilyDto =
+    | "bazi_target_day_pillar_relation"
+    | "non_bazi_annual_pressure"
+    | "direction_constraint_fact"
+    | "hour_pillar_relation"
+    | (string & {});
+
+export type ConfidenceDimensionDto =
+    | "date"
+    | "time"
+    | "gender"
+    | "location"
+    | "direction_overlay"
+    | (string & {});
+
+export interface ExplainedFactorDto {
+    contribution_id: string;
+    axis: string;
+    polarity: string;
+    strength: number;
+    source_family: string;
+    source_id: string;
+    method: string;
+    note?: string | null;
+}
+
+export interface ExplainedVetoDto {
+    veto_id: string;
+    axis: string;
+    reason: string;
+    source_family: string;
+    source_id: string;
+    method: string;
+}
+
+export interface DeduplicatedFactDto {
+    family: DeduplicationFamilyDto;
+    rule: string;
+    observed_count: number;
+    note?: string | null;
+}
+
+export interface UnavailableEvidenceDto {
+    section: string;
+    axis?: string | null;
+    reason: string;
+    required_fields: string[];
+}
+
+export interface ConfidenceReasonDto {
+    dimension: ConfidenceDimensionDto;
+    present: boolean;
+    impact: string;
+}
+
+export interface ExplainedConfidenceDto {
+    level: string;
+    reasons: ConfidenceReasonDto[];
+    present_count: number;
+    total_count: number;
+}
+
+export interface AssessmentExplanationDto {
+    projection_id: string;
+    projection_version: string;
+    policy_id: string;
+    policy_version: string;
+    intent_kind: string;
+    precedence_rule: PrecedenceRuleDto;
+    favorable_factors: ExplainedFactorDto[];
+    adverse_factors: ExplainedFactorDto[];
+    vetoes_applied: ExplainedVetoDto[];
+    deduplicated_facts: DeduplicatedFactDto[];
+    unavailable_evidence: UnavailableEvidenceDto[];
+    confidence: ExplainedConfidenceDto;
+}
+
+export interface DirectionConstraintFactSummaryDto {
+    direction: string;
+    facts: ExplainedFactorDto[];
+    rule: string;
+}
+
+export interface DirectionExplanationDto {
+    projection_id: string;
+    projection_version: string;
+    policy_id: string;
+    policy_version: string;
+    intent_kind: string;
+    precedence_rule: PrecedenceRuleDto;
+    unavailable_evidence: UnavailableEvidenceDto[];
+    confidence: ExplainedConfidenceDto;
+    constraint_facts: DirectionConstraintFactSummaryDto[];
+    deduplicated_facts?: DeduplicatedFactDto[];
+}
+
+export interface HourEntryExplanationDto {
+    chi_index: number;
+    chi_name: string;
+    time_range: string;
+    is_auspicious: boolean;
+    rank_score: number;
+    factors: ExplainedFactorDto[];
+    unavailable_evidence: UnavailableEvidenceDto[];
+    policy_version: string;
+}
+
+export interface HourExplanationDto {
+    projection_id: string;
+    projection_version: string;
+    policy_id: string;
+    policy_version: string;
+    precedence_rule: PrecedenceRuleDto;
+    hours: HourEntryExplanationDto[];
+    deduplicated_facts: DeduplicatedFactDto[];
+    confidence: ExplainedConfidenceDto;
 }
 
 export interface PersonalDayAdvisoryDto {

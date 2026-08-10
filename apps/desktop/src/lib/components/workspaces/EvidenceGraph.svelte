@@ -70,6 +70,7 @@
     $: outgoingEdges = edgesTouching(graph?.edges ?? [], selectedNodeId, 'out');
     $: canonicalRows = report ? canonicalAxisRows(report) : [];
     $: canonicalFactors = report?.canonical_assessment?.factors ?? [];
+    $: explanation = report?.canonical_assessment?.explanation ?? null;
     $: reasoningAxes = report?.decision_export?.axis_scores ?? [];
     $: familyRows = report ? sourceFamilyBreakdown(report) : [];
     $: familyTotal = totalFamilyCount(familyRows);
@@ -660,6 +661,63 @@
                                     {/if}
                                 </div>
                             {/each}
+                        </div>
+                    </section>
+                {/if}
+                {#if explanation}
+                    <section class="mb-8">
+                        <h3 class="text-2xl font-mono font-bold mb-1">Giải thích</h3>
+                        <p class="text-sm text-ink-light font-mono mb-4">
+                            Quy tắc ưu tiên: <code>{explanation.precedence_rule}</code>.
+                            Yếu tố thuận / bất lợi, ràng buộc cứng thắng, quy tắc chống trùng lặp, và dữ liệu chưa đủ cho lần đánh giá này.
+                        </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div class="card-dense">
+                                <div class="text-xs font-mono uppercase text-ink-light">Mức độ tin cậy</div>
+                                <div class="text-lg font-mono">
+                                    {explanation.confidence.level} ({explanation.confidence.present_count}/{explanation.confidence.total_count} chiều)
+                                </div>
+                                <ul class="mt-2 text-xs font-mono space-y-1">
+                                    {#each explanation.confidence.reasons as reason}
+                                        <li>
+                                            <span class={reason.present ? 'text-nen' : 'text-tranh'}>
+                                                {reason.present ? '✓' : '⚠'}
+                                            </span>
+                                            {reason.dimension}: {reason.impact}
+                                        </li>
+                                    {/each}
+                                </ul>
+                            </div>
+                            {#if explanation.vetoes_applied.length}
+                                <div class="card-dense">
+                                    <div class="text-xs font-mono uppercase text-ink-light">Ràng buộc cứng đã thắng</div>
+                                    <ul class="mt-2 text-xs font-mono space-y-1">
+                                        {#each explanation.vetoes_applied as veto}
+                                            <li>! {veto.veto_id} — {veto.reason}</li>
+                                        {/each}
+                                    </ul>
+                                </div>
+                            {/if}
+                            {#if explanation.deduplicated_facts.length}
+                                <div class="card-dense md:col-span-2">
+                                    <div class="text-xs font-mono uppercase text-ink-light">Quy tắc chống trùng lặp</div>
+                                    <ul class="mt-2 text-xs font-mono space-y-1">
+                                        {#each explanation.deduplicated_facts as fact}
+                                            <li>· {fact.family} ({fact.observed_count} lần) — {fact.rule}</li>
+                                        {/each}
+                                    </ul>
+                                </div>
+                            {/if}
+                            {#if explanation.unavailable_evidence.length}
+                                <div class="card-dense md:col-span-2">
+                                    <div class="text-xs font-mono uppercase text-ink-light">Dữ liệu chưa đủ</div>
+                                    <ul class="mt-2 text-xs font-mono space-y-1">
+                                        {#each explanation.unavailable_evidence as ev}
+                                            <li>? {ev.section} — {ev.reason}</li>
+                                        {/each}
+                                    </ul>
+                                </div>
+                            {/if}
                         </div>
                     </section>
                 {/if}

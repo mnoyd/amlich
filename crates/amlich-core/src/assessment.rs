@@ -60,6 +60,7 @@ use crate::{
 };
 
 pub mod direction;
+pub mod explanation;
 pub mod extraction;
 pub mod factor;
 pub mod feature;
@@ -75,6 +76,14 @@ pub use direction::{
     DirectionAssessment, DirectionAssessmentAxes, DirectionAssessmentAxis,
     DirectionAssessmentAxisOutcome, DirectionAssessmentContribution, DirectionAssessmentEntry,
     DirectionAssessmentPolicy, DirectionAssessmentWarning,
+};
+pub use explanation::{
+    explain_day_assessment, explain_direction_assessment, explain_hour_ranking,
+    AssessmentExplanation, ConfidenceDimension, ConfidenceReason, DeduplicatedFact,
+    DeduplicationFamily, DirectionConflict, DirectionConstraintFactSummary, DirectionExplanation,
+    ExplainedConfidence, ExplainedConflict, ExplainedFactor, ExplainedVeto, HourDayWarning,
+    HourEntryExplanation, HourExplanation, PrecedenceRule, UnavailableEvidence,
+    EXPLANATION_PROJECTION_ID, EXPLANATION_PROJECTION_VERSION,
 };
 pub use factor::{AssessmentFactor, AssessmentFactorRole};
 pub use feature::{AssessmentFeatureId, FeatureObservation};
@@ -137,6 +146,17 @@ pub enum ContributionPolarity {
     Avoid,
     Neutral,
     Info,
+}
+
+impl ContributionPolarity {
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Favorable => "favorable",
+            Self::Avoid => "avoid",
+            Self::Neutral => "neutral",
+            Self::Info => "info",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

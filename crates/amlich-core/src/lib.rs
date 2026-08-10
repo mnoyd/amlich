@@ -60,10 +60,16 @@ pub use crate::assessment::hour_ranking::{
     HOUR_RANKING_POLICY_V2_4_VERSION,
 };
 pub use crate::assessment::{
-    assess_personal_day, AssessmentAxes, AssessmentAxis, AssessmentFactor, AssessmentFactorRole,
-    AssessmentInputs, AxisOutcome, ContributionPolarity, DecisionContribution, EvidenceCoverage,
-    NormalizedBirth, PersonalDayAssessment, PersonalDayAssessmentBuilder, PersonalDayDecision,
-    SourceEvidence, UnavailableSection, ASSESSMENT_POLICY_ID, ASSESSMENT_POLICY_VERSION,
+    assess_personal_day, explain_day_assessment, explain_direction_assessment,
+    explain_hour_ranking, AssessmentAxes, AssessmentAxis, AssessmentExplanation, AssessmentFactor,
+    AssessmentFactorRole, AssessmentInputs, AxisOutcome, ConfidenceDimension, ConfidenceReason,
+    ContributionPolarity, DecisionContribution, DeduplicatedFact, DeduplicationFamily,
+    DirectionConflict, DirectionConstraintFactSummary, DirectionExplanation, EvidenceCoverage,
+    ExplainedConfidence, ExplainedConflict, ExplainedFactor, ExplainedVeto, HourDayWarning,
+    HourEntryExplanation, HourExplanation, NormalizedBirth, PersonalDayAssessment,
+    PersonalDayAssessmentBuilder, PersonalDayDecision, PrecedenceRule, SourceEvidence,
+    UnavailableEvidence, UnavailableSection, ASSESSMENT_POLICY_ID, ASSESSMENT_POLICY_VERSION,
+    EXPLANATION_PROJECTION_ID, EXPLANATION_PROJECTION_VERSION,
 };
 pub use crate::bazi::{
     analyze_bazi_chart, build_annual_pillar, build_bazi_advisory, build_bazi_chart,

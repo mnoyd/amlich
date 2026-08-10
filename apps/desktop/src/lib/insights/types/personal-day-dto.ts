@@ -293,6 +293,131 @@ export type PersonalDayAssessmentDto = {
   unavailable_sections: UnavailableSectionDto[];
   evidence: PersonalDayEvidenceDto;
   explanation_graph?: AssessmentTraceGraphDto | null;
+  // Consumer-facing explanation projection (amlich-bz0f.6). Carries
+  // the favorable/adverse factors that influenced the result, the
+  // deduplicated facts, the winning veto, the missing evidence, and
+  // the per-dimension confidence breakdown.
+  explanation?: AssessmentExplanationDto | null;
+};
+
+// ---------------------------------------------------------------------------
+// Explanation projection DTO mirror (amlich-bz0f.6)
+// ---------------------------------------------------------------------------
+
+export type PrecedenceRuleDto =
+  | "veto_overrides_aggregation"
+  | (string & {});
+
+export type DeduplicationFamilyDto =
+  | "bazi_target_day_pillar_relation"
+  | "non_bazi_annual_pressure"
+  | "direction_constraint_fact"
+  | "hour_pillar_relation"
+  | (string & {});
+
+export type ConfidenceDimensionDto =
+  | "date"
+  | "time"
+  | "gender"
+  | "location"
+  | "direction_overlay"
+  | (string & {});
+
+export type ExplainedFactorDto = {
+  contribution_id: string;
+  axis: string;
+  polarity: string;
+  strength: number;
+  source_family: string;
+  source_id: string;
+  method: string;
+  note?: string | null;
+};
+
+export type ExplainedVetoDto = {
+  veto_id: string;
+  axis: string;
+  reason: string;
+  source_family: string;
+  source_id: string;
+  method: string;
+};
+
+export type DeduplicatedFactDto = {
+  family: DeduplicationFamilyDto;
+  rule: string;
+  observed_count: number;
+  note?: string | null;
+};
+
+export type UnavailableEvidenceDto = {
+  section: string;
+  axis?: string | null;
+  reason: string;
+  required_fields: string[];
+};
+
+export type ConfidenceReasonDto = {
+  dimension: ConfidenceDimensionDto;
+  present: boolean;
+  impact: string;
+};
+
+export type ExplainedConfidenceDto = {
+  level: string;
+  reasons: ConfidenceReasonDto[];
+  present_count: number;
+  total_count: number;
+};
+
+export type AssessmentExplanationDto = {
+  projection_id: string;
+  projection_version: string;
+  policy_id: string;
+  policy_version: string;
+  intent_kind: string;
+  precedence_rule: PrecedenceRuleDto;
+  favorable_factors: ExplainedFactorDto[];
+  adverse_factors: ExplainedFactorDto[];
+  vetoes_applied: ExplainedVetoDto[];
+  deduplicated_facts: DeduplicatedFactDto[];
+  unavailable_evidence: UnavailableEvidenceDto[];
+  confidence: ExplainedConfidenceDto;
+};
+
+export type DirectionExplanationDto = {
+  projection_id: string;
+  projection_version: string;
+  policy_id: string;
+  policy_version: string;
+  intent_kind: string;
+  precedence_rule: PrecedenceRuleDto;
+  unavailable_evidence: UnavailableEvidenceDto[];
+  confidence: ExplainedConfidenceDto;
+  constraint_facts?: { direction: string; facts: ExplainedFactorDto[]; rule: string }[];
+  deduplicated_facts?: DeduplicatedFactDto[];
+};
+
+export type HourEntryExplanationDto = {
+  chi_index: number;
+  chi_name: string;
+  time_range: string;
+  is_auspicious: boolean;
+  rank_score: number;
+  factors: ExplainedFactorDto[];
+  unavailable_evidence: UnavailableEvidenceDto[];
+  policy_version: string;
+};
+
+export type HourExplanationDto = {
+  projection_id: string;
+  projection_version: string;
+  policy_id: string;
+  policy_version: string;
+  precedence_rule: PrecedenceRuleDto;
+  hours: HourEntryExplanationDto[];
+  deduplicated_facts: DeduplicatedFactDto[];
+  confidence: ExplainedConfidenceDto;
 };
 
 export type PersonalDayReportDto = {

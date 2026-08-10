@@ -119,3 +119,19 @@ _Avoid_: pillar duel, Thái Tuế double-count
 **Cửu Diệu Observation**:
 The Cửu Diệu (Nine Star) personal fortune star, projected by the v2.4 non-Bazi policy. Only the three Hung stars (La Hầu, Kế Đô, Thái Bạch — collectively "sao hạn") emit an `Avoid` contribution sourced from the cuu-dieu tradition. Trung / Cát stars stay omitted (non-occurring, not missing evidence).
 _Avoid_: star veto, opaque star score
+
+**Explanation Projection**:
+A pure, deterministic projection over the personal-day, hour-ranking, and direction assessment traces that consolidates the favorable and adverse factors that influenced the result, the deduplicated facts that were collapsed to prevent double-counting, the named vetoes that won precedence, the missing evidence, and a per-dimension confidence breakdown. Built by `explain_day_assessment`, `explain_hour_ranking`, and `explain_direction_assessment`; serialized identically through the API, terminal, and desktop surfaces under the `explanation-projection` v1 contract (`amlich-bz0f.6`).
+_Avoid_: raw score, opaque score, lucky score
+
+**Deduplicated Fact**:
+A typed rule describing which inputs were collapsed into a single observation so the same underlying signal cannot inflate an axis twice. Examples: Bazi target-day pillar relations collapse to one observation per relation kind (clash / lục hợp / tam hợp); non-Bazi annual pressure observations collapse to one per declared system (Tam Tai / Kim Lâu / Hoàng Ốc / Thái Tuế / sao hạn); direction constraint facts collapse to one per (direction, fact-family) pair.
+_Avoid_: double-count, pillar duel, sao hạn inflation
+
+**Precedence Rule**:
+The deterministic rule a consumer is reading when interpreting why a result looks the way it does. The current explanation projection always reports `veto_overrides_aggregation`: a named veto forces the decision to `Avoid` (or the veto's declared bucket) regardless of the weighted aggregation. The rule is reported on the `precedence_rule` field of every `*Explanation` so terminal, API, and desktop surfaces render the same precedence narrative.
+_Avoid_: weighted only, veto equals weight
+
+**Confidence Reason**:
+A typed row in the explanation's confidence breakdown that says which evidence dimension is present (`date` / `time` / `gender` / `location` / `direction_overlay`) and what the user-visible consequence of the dimension's presence is. The decision confidence level is derived from the capability flags the policy already inspects; the reason list surfaces the underlying dimensions so a `Medium` confidence is not silently misread as a strong signal.
+_Avoid_: confidence score, magic level

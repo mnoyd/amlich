@@ -143,6 +143,13 @@ fn v1_default_dto_field_set_is_stable() {
         "contributions",
         "unavailable_sections",
         "evidence",
+        // amlich-bz0f.6: the explanation projection is additive
+        // for every DTO caller, not just v2. The v1 builder
+        // populates the same projection as the v2 path, so the
+        // wire JSON for the v1 default now carries an
+        // `explanation` field. The contract is that the field is
+        // always present and byte-stable across policy versions.
+        "explanation",
     ];
     let mut sorted_expected = expected.clone();
     sorted_expected.sort_unstable();

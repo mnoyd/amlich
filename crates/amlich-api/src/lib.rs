@@ -1,6 +1,6 @@
 mod convert;
 mod debug;
-mod dto;
+pub mod dto;
 pub mod v2;
 
 pub use debug::get_debug_semantic_graph_inspection;
@@ -1688,6 +1688,21 @@ pub fn get_hour_selection_analysis(
         .as_ref()
         .map(PersonalDayAssessmentDto::from);
     let warning_context = reasoning.warning_context.clone();
+    let explanation = canonical_assessment_value.as_ref().map(|assessment| {
+        let snapshot =
+            amlich_core::calculate_day_snapshot(info.solar.day, info.solar.month, info.solar.year);
+        let ranked_v1 = amlich_core::HourRankingPolicy::full_profile_v2_4()
+            .rank(
+                &snapshot,
+                reasoning.intent,
+                birth.as_ref(),
+                Some(assessment),
+            )
+            .unwrap_or_default();
+        crate::convert::hour_explanation_to_dto(&amlich_core::assessment::explain_hour_ranking(
+            &ranked_v1, assessment,
+        ))
+    });
     Ok(HourSelectionAnalysisDto {
         intent: reasoning.intent.event_kind().to_string(),
         summary_vi: reasoning.summary_vi.clone(),
@@ -1706,6 +1721,7 @@ pub fn get_hour_selection_analysis(
             }),
         canonical: Some(reasoning.export(birth.as_ref())),
         canonical_assessment,
+        explanation,
         warning_context,
     })
 }
@@ -2003,6 +2019,25 @@ fn build_hour_selection_analysis_dto(
         .cloned()
         .collect();
     let warning_context = reasoning.warning_context.clone();
+    let canonical_export = reasoning.export(birth.as_ref());
+    // amlich-bz0f.6: re-rank with the v2.4 policy so the explanation
+    // can read the per-axis contributions off [`RankedHourV1`]. The
+    // ranking is deterministic and cheap (12 slots) so a second pass
+    // keeps the explanation contract honest without touching the
+    // canonical `HourSelectionReasoning` shape.
+    let snapshot =
+        amlich_core::calculate_day_snapshot(info.solar.day, info.solar.month, info.solar.year);
+    let ranked_v1 = amlich_core::HourRankingPolicy::full_profile_v2_4()
+        .rank(
+            &snapshot,
+            reasoning.intent,
+            birth.as_ref(),
+            Some(canonical_assessment),
+        )
+        .unwrap_or_default();
+    let hour_explanation = Some(crate::convert::hour_explanation_to_dto(
+        &amlich_core::assessment::explain_hour_ranking(&ranked_v1, canonical_assessment),
+    ));
     HourSelectionAnalysisDto {
         intent: reasoning.intent.event_kind().to_string(),
         summary_vi: reasoning.summary_vi.clone(),
@@ -2019,8 +2054,9 @@ fn build_hour_selection_analysis_dto(
                 star: candidate.note_vi.clone(),
                 is_good: candidate.is_auspicious,
             }),
-        canonical: Some(reasoning.export(birth.as_ref())),
+        canonical: Some(canonical_export),
         canonical_assessment: Some(PersonalDayAssessmentDto::from(canonical_assessment)),
+        explanation: hour_explanation,
         warning_context,
     }
 }
@@ -2275,7 +2311,10 @@ pub fn get_personal_day_matrix_report(
         element_resonance,
         personal_hours,
         direction_merge,
-        direction_assessment: Some(direction_assessment),
+        direction_assessment: Some(direction_assessment.clone()),
+        direction_explanation: Some(crate::convert::direction_explanation_to_dto(
+            &amlich_core::assessment::explain_direction_assessment(&direction_assessment),
+        )),
         domain_day_boost,
         unavailable_sections,
         canonical_assessment: Some(PersonalDayAssessmentDto::from(&canonical_assessment)),

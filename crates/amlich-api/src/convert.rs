@@ -1797,6 +1797,14 @@ impl From<&amlich_core::assessment::PersonalDayAssessment>
         let explanation_graph = build_assessment_trace_graph(value)
             .map(|graph| assessment_trace_graph_to_dto(value, &graph));
 
+        // amlich-bz0f.6: project the assessment into the
+        // consumer-facing explanation. Pure function over the
+        // existing fields, so the projection is byte-stable and
+        // additive — no existing field semantics change.
+        let explanation = Some(assessment_explanation_to_dto(
+            &amlich_core::assessment::explain_day_assessment(value),
+        ));
+
         Self {
             ruleset_id: value.ruleset_id.clone(),
             ruleset_version: value.ruleset_version.clone(),
@@ -1813,6 +1821,7 @@ impl From<&amlich_core::assessment::PersonalDayAssessment>
             unavailable_sections: sections,
             evidence,
             explanation_graph,
+            explanation,
         }
     }
 }
@@ -1988,4 +1997,235 @@ fn stable_key_and_origin(node_id: &str, origin: NodeOrigin) -> (String, String) 
     }
     .to_string();
     (stable_key, origin_label)
+}
+
+// ===========================================================================
+// Explanation projection converters (`amlich-bz0f.6`).
+//
+// These are pure lossless projections from the core `*Explanation` types
+// into the wire-level DTOs. Every field is preserved so the cross-surface
+// contract test can compare the projection facts across core, API, and TUI.
+// ===========================================================================
+
+pub(crate) fn assessment_explanation_to_dto(
+    value: &amlich_core::assessment::AssessmentExplanation,
+) -> crate::dto::AssessmentExplanationDto {
+    crate::dto::AssessmentExplanationDto {
+        projection_id: value.projection_id.to_string(),
+        projection_version: value.projection_version.to_string(),
+        policy_id: value.policy_id.clone(),
+        policy_version: value.policy_version.clone(),
+        intent_kind: value.intent_kind.clone(),
+        precedence_rule: precedence_rule_to_dto(value.precedence_rule),
+        favorable_factors: value
+            .favorable_factors
+            .iter()
+            .map(explained_factor_to_dto)
+            .collect(),
+        adverse_factors: value
+            .adverse_factors
+            .iter()
+            .map(explained_factor_to_dto)
+            .collect(),
+        vetoes_applied: value
+            .vetoes_applied
+            .iter()
+            .map(explained_veto_to_dto)
+            .collect(),
+        deduplicated_facts: value
+            .deduplicated_facts
+            .iter()
+            .map(deduplicated_fact_to_dto)
+            .collect(),
+        unavailable_evidence: value
+            .unavailable_evidence
+            .iter()
+            .map(unavailable_evidence_to_dto)
+            .collect(),
+        confidence: explained_confidence_to_dto(&value.confidence),
+    }
+}
+
+pub(crate) fn direction_explanation_to_dto(
+    value: &amlich_core::assessment::DirectionExplanation,
+) -> crate::dto::DirectionExplanationDto {
+    crate::dto::DirectionExplanationDto {
+        projection_id: value.projection_id.to_string(),
+        projection_version: value.projection_version.to_string(),
+        policy_id: value.policy_id.clone(),
+        policy_version: value.policy_version.clone(),
+        intent_kind: value.intent_kind.clone(),
+        precedence_rule: precedence_rule_to_dto(value.precedence_rule),
+        unavailable_evidence: value
+            .unavailable_evidence
+            .iter()
+            .map(unavailable_evidence_to_dto)
+            .collect(),
+        confidence: explained_confidence_to_dto(&value.confidence),
+        constraint_facts: value
+            .constraint_facts
+            .iter()
+            .map(|c| crate::dto::DirectionConstraintFactSummaryDto {
+                direction: c.direction.clone(),
+                facts: c.facts.iter().map(explained_factor_to_dto).collect(),
+                rule: c.rule.clone(),
+            })
+            .collect(),
+    }
+}
+
+pub(crate) fn hour_explanation_to_dto(
+    value: &amlich_core::assessment::HourExplanation,
+) -> crate::dto::HourExplanationDto {
+    crate::dto::HourExplanationDto {
+        projection_id: value.projection_id.to_string(),
+        projection_version: value.projection_version.to_string(),
+        policy_id: value.policy_id.clone(),
+        policy_version: value.policy_version.clone(),
+        precedence_rule: precedence_rule_to_dto(value.precedence_rule),
+        hours: value
+            .hours
+            .iter()
+            .map(|h| crate::dto::HourEntryExplanationDto {
+                chi_index: h.chi_index,
+                chi_name: h.chi_name.clone(),
+                time_range: h.time_range.clone(),
+                is_auspicious: h.is_auspicious,
+                rank_score: h.rank_score,
+                factors: h.factors.iter().map(explained_factor_to_dto).collect(),
+                unavailable_evidence: h
+                    .unavailable_evidence
+                    .iter()
+                    .map(unavailable_evidence_to_dto)
+                    .collect(),
+                policy_version: h.policy_version.clone(),
+            })
+            .collect(),
+        deduplicated_facts: value
+            .deduplicated_facts
+            .iter()
+            .map(deduplicated_fact_to_dto)
+            .collect(),
+        confidence: explained_confidence_to_dto(&value.confidence),
+    }
+}
+
+fn precedence_rule_to_dto(
+    rule: amlich_core::assessment::PrecedenceRule,
+) -> crate::dto::PrecedenceRuleDto {
+    match rule {
+        amlich_core::assessment::PrecedenceRule::VetoOverridesAggregation => {
+            crate::dto::PrecedenceRuleDto::VetoOverridesAggregation
+        }
+    }
+}
+
+fn explained_factor_to_dto(
+    factor: &amlich_core::assessment::ExplainedFactor,
+) -> crate::dto::ExplainedFactorDto {
+    crate::dto::ExplainedFactorDto {
+        contribution_id: factor.contribution_id.clone(),
+        axis: factor.axis.as_str().to_string(),
+        polarity: factor.polarity.as_str().to_string(),
+        strength: factor.strength,
+        source_family: factor.source_evidence.source_family.clone(),
+        source_id: factor.source_evidence.source_id.clone(),
+        method: factor.source_evidence.method.clone(),
+        note: factor.note.clone(),
+    }
+}
+
+fn explained_veto_to_dto(
+    veto: &amlich_core::assessment::ExplainedVeto,
+) -> crate::dto::ExplainedVetoDto {
+    crate::dto::ExplainedVetoDto {
+        veto_id: veto.veto_id.clone(),
+        axis: veto.axis.as_str().to_string(),
+        reason: veto.reason.clone(),
+        source_family: veto.source_evidence.source_family.clone(),
+        source_id: veto.source_evidence.source_id.clone(),
+        method: veto.source_evidence.method.clone(),
+    }
+}
+
+fn deduplicated_fact_to_dto(
+    fact: &amlich_core::assessment::DeduplicatedFact,
+) -> crate::dto::DeduplicatedFactDto {
+    crate::dto::DeduplicatedFactDto {
+        family: deduplication_family_to_dto(fact.family),
+        rule: fact.rule.clone(),
+        observed_count: fact.observed_count,
+        note: fact.note.clone(),
+    }
+}
+
+fn deduplication_family_to_dto(
+    family: amlich_core::assessment::DeduplicationFamily,
+) -> crate::dto::DeduplicationFamilyDto {
+    match family {
+        amlich_core::assessment::DeduplicationFamily::BaziTargetDayPillarRelation => {
+            crate::dto::DeduplicationFamilyDto::BaziTargetDayPillarRelation
+        }
+        amlich_core::assessment::DeduplicationFamily::NonBaziAnnualPressure => {
+            crate::dto::DeduplicationFamilyDto::NonBaziAnnualPressure
+        }
+        amlich_core::assessment::DeduplicationFamily::DirectionConstraintFact => {
+            crate::dto::DeduplicationFamilyDto::DirectionConstraintFact
+        }
+        amlich_core::assessment::DeduplicationFamily::HourPillarRelation => {
+            crate::dto::DeduplicationFamilyDto::HourPillarRelation
+        }
+    }
+}
+
+fn unavailable_evidence_to_dto(
+    ev: &amlich_core::assessment::UnavailableEvidence,
+) -> crate::dto::UnavailableEvidenceDto {
+    crate::dto::UnavailableEvidenceDto {
+        section: ev.section.clone(),
+        axis: ev.axis.map(|a| a.as_str().to_string()),
+        reason: ev.reason.clone(),
+        required_fields: ev.required_fields.clone(),
+    }
+}
+
+fn explained_confidence_to_dto(
+    confidence: &amlich_core::assessment::ExplainedConfidence,
+) -> crate::dto::ExplainedConfidenceDto {
+    crate::dto::ExplainedConfidenceDto {
+        level: format!("{:?}", confidence.level).to_lowercase(),
+        reasons: confidence
+            .reasons
+            .iter()
+            .map(|r| crate::dto::ConfidenceReasonDto {
+                dimension: confidence_dimension_to_dto(r.dimension),
+                present: r.present,
+                impact: r.impact.clone(),
+            })
+            .collect(),
+        present_count: confidence.present_count,
+        total_count: confidence.total_count,
+    }
+}
+
+fn confidence_dimension_to_dto(
+    dimension: amlich_core::assessment::ConfidenceDimension,
+) -> crate::dto::ConfidenceDimensionDto {
+    match dimension {
+        amlich_core::assessment::ConfidenceDimension::Date => {
+            crate::dto::ConfidenceDimensionDto::Date
+        }
+        amlich_core::assessment::ConfidenceDimension::Time => {
+            crate::dto::ConfidenceDimensionDto::Time
+        }
+        amlich_core::assessment::ConfidenceDimension::Gender => {
+            crate::dto::ConfidenceDimensionDto::Gender
+        }
+        amlich_core::assessment::ConfidenceDimension::Location => {
+            crate::dto::ConfidenceDimensionDto::Location
+        }
+        amlich_core::assessment::ConfidenceDimension::DirectionOverlay => {
+            crate::dto::ConfidenceDimensionDto::DirectionOverlay
+        }
+    }
 }

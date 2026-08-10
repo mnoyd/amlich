@@ -1197,6 +1197,15 @@ pub struct PersonalDayAssessmentDto {
     /// and does not change existing field semantics.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub explanation_graph: Option<AssessmentTraceGraphDto>,
+    /// Consumer-facing explanation projection (`amlich-bz0f.6`). The
+    /// canonical single source of truth for "which factors influenced
+    /// the result, which facts were deduplicated, which vetoes won,
+    /// which evidence was unavailable, and why confidence is at its
+    /// level". API, terminal, and desktop consumers must read this
+    /// field rather than recomputing from `factors` / `contributions`
+    /// so the cross-surface contract holds.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub explanation: Option<AssessmentExplanationDto>,
 }
 
 /// Additive projection of one canonical assessment factor. `role` is one of
@@ -1477,6 +1486,13 @@ pub struct PersonalDayMatrixReportDto {
     /// legacy compatibility projection.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub direction_assessment: Option<amlich_core::assessment::DirectionAssessment>,
+    /// Consumer-facing explanation projection for the direction
+    /// assessment (`amlich-bz0f.6`). Populated alongside
+    /// `direction_assessment` so terminal and desktop consumers can
+    /// render the dedup'd constraint facts, missing-evidence reasons,
+    /// and the confidence breakdown without recomputing.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub direction_explanation: Option<DirectionExplanationDto>,
     /// Matrix 4b: domain scores boosted by day-level signals.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub domain_day_boost: Option<amlich_core::interaction::types::DomainDayBoostMatrix>,
@@ -1523,6 +1539,13 @@ pub struct HourSelectionAnalysisDto {
     /// independent verdict off the hour ranking. Additive `Option<T>`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub canonical_assessment: Option<PersonalDayAssessmentDto>,
+    /// Consumer-facing explanation projection for the hour ranking
+    /// (`amlich-bz0f.6`). Carries the per-hour favorable/adverse
+    /// factors, deduplication rules, confidence breakdown, and any
+    /// day-level warning context. Additive `Option<T>` so callers
+    /// that never request the explanation stay byte-equal.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub explanation: Option<HourExplanationDto>,
     /// Structured day-verdict warning surfaced when the threaded
     /// canonical assessment classifies the day as `Avoid` (amlich-rv13.5).
     /// `None` when no assessment was threaded through or the day verdict
@@ -1730,6 +1753,182 @@ pub struct DebugVisualizationEdgeDto {
     pub label: String,
     pub semantic_kind: String,
     pub weight: i32,
+}
+
+// ===========================================================================
+// Explanation projection DTOs (`amlich-bz0f.6`).
+//
+// The day / hour / direction assessments each carry a `*Explanation` field
+// in the core type. The API DTO mirrors that field so the cross-surface
+// contract is testable from the JSON wire form.
+// ===========================================================================
+
+/// Wire-level mirror of [`amlich_core::assessment::PrecedenceRule`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum PrecedenceRuleDto {
+    VetoOverridesAggregation,
+}
+
+/// Wire-level mirror of
+/// [`amlich_core::assessment::DeduplicationFamily`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DeduplicationFamilyDto {
+    BaziTargetDayPillarRelation,
+    NonBaziAnnualPressure,
+    DirectionConstraintFact,
+    HourPillarRelation,
+}
+
+/// Wire-level mirror of
+/// [`amlich_core::assessment::ConfidenceDimension`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ConfidenceDimensionDto {
+    Date,
+    Time,
+    Gender,
+    Location,
+    DirectionOverlay,
+}
+
+/// One contributing factor surfaced in the explanation. Mirrors
+/// [`amlich_core::assessment::ExplainedFactor`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ExplainedFactorDto {
+    pub contribution_id: String,
+    pub axis: String,
+    pub polarity: String,
+    pub strength: f32,
+    pub source_family: String,
+    pub source_id: String,
+    pub method: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+/// One veto that fired. Mirrors
+/// [`amlich_core::assessment::ExplainedVeto`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ExplainedVetoDto {
+    pub veto_id: String,
+    pub axis: String,
+    pub reason: String,
+    pub source_family: String,
+    pub source_id: String,
+    pub method: String,
+}
+
+/// One deduplication rule. Mirrors
+/// [`amlich_core::assessment::DeduplicatedFact`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DeduplicatedFactDto {
+    pub family: DeduplicationFamilyDto,
+    pub rule: String,
+    pub observed_count: usize,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+/// One unavailable evidence entry. Mirrors
+/// [`amlich_core::assessment::UnavailableEvidence`].
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UnavailableEvidenceDto {
+    pub section: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub axis: Option<String>,
+    pub reason: String,
+    pub required_fields: Vec<String>,
+}
+
+/// One confidence reason. Mirrors
+/// [`amlich_core::assessment::ConfidenceReason`].
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ConfidenceReasonDto {
+    pub dimension: ConfidenceDimensionDto,
+    pub present: bool,
+    pub impact: String,
+}
+
+/// Confidence level + reasons. Mirrors
+/// [`amlich_core::assessment::ExplainedConfidence`].
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct ExplainedConfidenceDto {
+    pub level: String,
+    pub reasons: Vec<ConfidenceReasonDto>,
+    pub present_count: usize,
+    pub total_count: usize,
+}
+
+/// Day-assessment explanation DTO. Mirrors
+/// [`amlich_core::assessment::AssessmentExplanation`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct AssessmentExplanationDto {
+    pub projection_id: String,
+    pub projection_version: String,
+    pub policy_id: String,
+    pub policy_version: String,
+    pub intent_kind: String,
+    pub precedence_rule: PrecedenceRuleDto,
+    pub favorable_factors: Vec<ExplainedFactorDto>,
+    pub adverse_factors: Vec<ExplainedFactorDto>,
+    pub vetoes_applied: Vec<ExplainedVetoDto>,
+    pub deduplicated_facts: Vec<DeduplicatedFactDto>,
+    pub unavailable_evidence: Vec<UnavailableEvidenceDto>,
+    pub confidence: ExplainedConfidenceDto,
+}
+
+/// Per-direction summary of constraint facts. Mirrors
+/// [`amlich_core::assessment::DirectionConstraintFactSummary`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DirectionConstraintFactSummaryDto {
+    pub direction: String,
+    pub facts: Vec<ExplainedFactorDto>,
+    pub rule: String,
+}
+
+/// Direction-assessment explanation DTO. Mirrors
+/// [`amlich_core::assessment::DirectionExplanation`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct DirectionExplanationDto {
+    pub projection_id: String,
+    pub projection_version: String,
+    pub policy_id: String,
+    pub policy_version: String,
+    pub intent_kind: String,
+    pub precedence_rule: PrecedenceRuleDto,
+    pub unavailable_evidence: Vec<UnavailableEvidenceDto>,
+    pub confidence: ExplainedConfidenceDto,
+    pub constraint_facts: Vec<DirectionConstraintFactSummaryDto>,
+}
+
+/// One hour-slot explanation. Mirrors
+/// [`amlich_core::assessment::HourEntryExplanation`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HourEntryExplanationDto {
+    pub chi_index: usize,
+    pub chi_name: String,
+    pub time_range: String,
+    pub is_auspicious: bool,
+    pub rank_score: f32,
+    pub factors: Vec<ExplainedFactorDto>,
+    pub unavailable_evidence: Vec<UnavailableEvidenceDto>,
+    pub policy_version: String,
+}
+
+/// Hour-ranking explanation DTO. Mirrors
+/// [`amlich_core::assessment::HourExplanation`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct HourExplanationDto {
+    pub projection_id: String,
+    pub projection_version: String,
+    pub policy_id: String,
+    pub policy_version: String,
+    pub precedence_rule: PrecedenceRuleDto,
+    pub hours: Vec<HourEntryExplanationDto>,
+    pub deduplicated_facts: Vec<DeduplicatedFactDto>,
+    pub confidence: ExplainedConfidenceDto,
 }
 
 #[cfg(test)]
