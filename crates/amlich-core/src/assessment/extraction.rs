@@ -29,7 +29,10 @@ use crate::{
     advisory::ConsultationIntent,
     almanac::{
         recommendation::{DailyRecommendations, RecommendationBucket},
+        thap_than::get_thap_than,
         tu_menh::{compute_kua, KuaResult},
+        types::HeavenlyStem,
+        xung_hop,
         yearly_han::{compute_yearly_han, HanSeverity, YearlyHanAssessment, YearlyHanInput},
     },
     assessment::{
@@ -41,7 +44,7 @@ use crate::{
     bazi::{
         analysis::{analyze_bazi_chart, BaziAnalysisReport},
         chart::build_bazi_chart,
-        types::BaziChart,
+        types::{BaziChart, PillarKind},
     },
     birth::{BirthCapability, BirthProfile},
     canchi::get_year_canchi,
@@ -709,4 +712,577 @@ fn recommendation_polarity_strength(
         (RecommendationBucket::KyManh, true) => 1.0,
     };
     (polarity, strength)
+}
+
+// ---------------------------------------------------------------------------
+// Bazi-to-day observations (amlich-bz0f.2)
+//
+// These feature observations project the *target day* (the day being
+// assessed) into the user's birth chart. They are distinct from the
+// existing intra-chart Bazi observations (ten god distribution, element
+// distribution, day-master strength) which describe the chart itself.
+// The projection stays inside the assessment pipeline; Bazi chart
+// scoring is computed elsewhere and never reused as a Day Assessment
+// verdict input.
+//
+// The observations layer on top of the v2.2 policy (`amlich-47wn`) and
+// are surfaced through the v2.3 `bazi_projection_v2_3` policy. They
+// feed the `PersonalAlignment` axis so a user's Bazi context can
+// explain personal-day suitability without affecting other axes.
+//
+// Each Bazi-to-day observation is fully deduplicated: a clash with the
+// year pillar and a clash with the month pillar emit *one* Avoid
+// contribution, not two. The dedup is keyed by relation kind, so a
+// single chart can produce at most one Avoid and one Favorable branch
+// observation per assessment.
+// ---------------------------------------------------------------------------
+
+/// Bazi-to-day pillar relation kinds recognised by the projection. Each
+/// variant maps to a stable string identifier and a contribution
+/// polarity. Adding a new relation kind requires a policy version
+/// bump (`amlich-bz0f.2`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(super) enum BaziDayPillarRelation {
+    /// Target day branch clashes (lục xung) with one or more natal
+    /// pillars. Avoid polarity: the user-facing day is in direct
+    /// conflict with an important natal pillar.
+    Clash,
+    /// Target day branch is in lục hợp with one or more natal
+    /// pillars. Favorable polarity.
+    LiuHe,
+    /// Target day branch shares a tam hợp triad with one or more natal
+    /// pillars. Favorable polarity.
+    TamHop,
+}
+
+impl BaziDayPillarRelation {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Clash => "clash",
+            Self::LiuHe => "liu_he",
+            Self::TamHop => "tam_hop",
+        }
+    }
+
+    fn polarity(self) -> ContributionPolarity {
+        match self {
+            Self::Clash => ContributionPolarity::Avoid,
+            Self::LiuHe | Self::TamHop => ContributionPolarity::Favorable,
+        }
+    }
+
+    fn strength(self) -> f32 {
+        match self {
+            Self::Clash => 0.6,
+            Self::LiuHe => 0.4,
+            Self::TamHop => 0.3,
+        }
+    }
+}
+
+/// Project typed, source-attributed Bazi-to-day feature observations
+/// from a resolved birth chart (`amlich-bz0f.2`).
+///
+/// Returns a `Vec<FeatureObservation>` containing:
+/// - one [`AssessmentFeatureId::BaziTargetDayTenGod`] observation when
+///   the target-day stem can be related to the natal day master;
+/// - one [`AssessmentFeatureId::BaziTargetDayPillarRelation`]
+///   observation per *unique* branch relation kind that fires against
+///   any natal pillar (clash, lục hợp, tam hợp), so a chart that
+///   clashes with both year and month pillars emits a single Avoid
+///   contribution rather than two;
+/// - one [`AssessmentFeatureId::BaziTargetDayElementResonance`]
+///   observation when the target-day element can be compared to the
+///   natal day-master element.
+///
+/// When the resolved inputs are missing the chart, the day master, or
+/// the target-day Can Chi (e.g., the snapshot was built without a
+/// target day), the function emits one explicit `Unavailable`
+/// observation per Bazi-to-day feature so the trace self-describes
+/// what evidence was missing (the `unavailable != zero` contract from
+/// `amlich-7bm4`).
+///
+/// For date-only profiles (no birth time), `resolve_assessment_inputs`
+/// drops the chart because the hour pillar cannot be derived. The
+/// Bazi-to-day extraction rebuilds a date-only chart locally so the
+/// year/month/day pillars stay available for the observations; the
+/// hour pillar is still excluded from the branch-relation check via
+/// the `capability.has_time` gate.
+///
+/// `capability.has_time` controls which natal pillars are eligible for
+/// the branch-relation check: a time-known chart includes the hour
+/// pillar; a date-only chart compares against year/month/day only.
+/// The branch dedup is unaffected — it is per relation kind, not per
+/// pillar.
+pub(super) fn extract_bazi_target_day_observations(
+    snapshot: &DaySnapshot,
+    profile: &BirthProfile,
+    capability: BirthCapability,
+    resolved: &ResolvedAssessmentInputs,
+) -> Vec<FeatureObservation> {
+    let ruleset_id = snapshot.ruleset_id.clone();
+    let ruleset_version = snapshot.ruleset_version.clone();
+    let profile_id = snapshot.profile.clone();
+
+    let bazi_evidence = |method: &'static str, note: Option<String>| SourceEvidence {
+        source_family: "bazi_observation".to_string(),
+        source_id: SOURCE_KHCBPPT.to_string(),
+        method: method.to_string(),
+        profile: profile_id.clone(),
+        note,
+    };
+
+    let mut features: Vec<FeatureObservation> = Vec::new();
+
+    // The Bazi-to-day observations project the target day into the
+    // user's birth chart. For users with a known date (but no time),
+    // `resolve_assessment_inputs` drops the chart because the hour
+    // pillar cannot be derived. We rebuild a date-only chart locally
+    // so the year/month/day pillars stay available for the Bazi-to-day
+    // extraction (the hour pillar is still excluded from the
+    // branch-relation check via the `capability.has_time` gate).
+    let chart_ref: Option<BaziChart> = match resolved.chart.as_ref() {
+        Some(chart) => Some(chart.clone()),
+        None if capability.has_date => build_bazi_chart(bazi_input_from_profile(profile)).ok(),
+        None => None,
+    };
+
+    let Some(chart) = chart_ref.as_ref() else {
+        // Birth chart is unavailable: every Bazi-to-day observation is
+        // unavailable. Emit one explicit unavailable observation per
+        // declared feature identifier so the trace can list what was
+        // missing (the amlich-7bm4 contract).
+        features.push(FeatureObservation::unavailable(
+            AssessmentFeatureId::BaziTargetDayTenGod,
+            "bazi.target_day.ten_god.unavailable",
+            "requires Bazi chart for target-day Ten God relation",
+            bazi_evidence("target_day_ten_god", None),
+            ruleset_id.clone(),
+            ruleset_version.clone(),
+        ));
+        features.push(FeatureObservation::unavailable(
+            AssessmentFeatureId::BaziTargetDayPillarRelation,
+            "bazi.target_day.pillar_relation.unavailable",
+            "requires Bazi chart for target-day branch relation",
+            bazi_evidence("target_day_pillar_relation", None),
+            ruleset_id.clone(),
+            ruleset_version.clone(),
+        ));
+        features.push(FeatureObservation::unavailable(
+            AssessmentFeatureId::BaziTargetDayElementResonance,
+            "bazi.target_day.element_resonance.unavailable",
+            "requires Bazi chart for target-day element resonance",
+            bazi_evidence("target_day_element_resonance", None),
+            ruleset_id.clone(),
+            ruleset_version.clone(),
+        ));
+        return features;
+    };
+
+    let target_day = &snapshot.context.canchi.day;
+    let target_day_stem_name = target_day.can.as_str();
+    let natal_day_master_name = chart.day_master.can.as_str();
+
+    // --- 1. Target-day Ten God relation to the natal day master ------
+    let ten_god_feature = match (
+        HeavenlyStem::try_from(target_day_stem_name),
+        HeavenlyStem::try_from(natal_day_master_name),
+    ) {
+        (Ok(target_stem), Ok(master_stem)) => {
+            let result = get_thap_than(master_stem, target_stem);
+            let (polarity, strength) = ten_god_polarity_strength(result.label);
+            Some(
+                FeatureObservation::observed(
+                    AssessmentFeatureId::BaziTargetDayTenGod,
+                    polarity,
+                    strength,
+                    "bazi.target_day.ten_god",
+                    bazi_evidence(
+                        "target_day_ten_god",
+                        Some(format!(
+                            "target_stem={} day_master={} label={:?} relation={:?}",
+                            target_day_stem_name,
+                            natal_day_master_name,
+                            result.label,
+                            result.relation
+                        )),
+                    ),
+                    ruleset_id.clone(),
+                    ruleset_version.clone(),
+                )
+                .with_note(format!(
+                    "{} → {}",
+                    label_vi(result.label),
+                    natal_day_master_name
+                )),
+            )
+        }
+        _ => Some(FeatureObservation::unavailable(
+            AssessmentFeatureId::BaziTargetDayTenGod,
+            "bazi.target_day.ten_god.unavailable",
+            "could not parse target-day or natal day-master stem",
+            bazi_evidence("target_day_ten_god", None),
+            ruleset_id.clone(),
+            ruleset_version.clone(),
+        )),
+    };
+    if let Some(obs) = ten_god_feature {
+        features.push(obs);
+    }
+
+    // --- 2. Target-day branch relation to natal pillars -------------
+    //
+    // The target-day branch (`snapshot.context.canchi.day.chi`) is
+    // compared against the eligible natal pillar branches (year,
+    // month, day, and hour when the birth time is known). Each
+    // relation kind fires at most once per assessment.
+    let target_chi = target_day.chi.as_str();
+    let mut observed_relations: Vec<(BaziDayPillarRelation, Vec<PillarKind>)> = Vec::new();
+    let eligible_pillars = eligible_natal_pillars(chart, capability.has_time);
+
+    for (relation, pillars) in
+        detect_pillar_relations(target_chi, &eligible_pillars, &chart.day_pillar)
+    {
+        observed_relations.push((relation, pillars));
+    }
+
+    if observed_relations.is_empty() {
+        // No branch relation fires. Emit an Info observation so the
+        // trace records that the relation was evaluated against the
+        // full eligible pillar set but found no classical xung / hợp
+        // / tam hợp pattern. Info polarity projects a 0.0 signed
+        // value, so the axis aggregation is unaffected.
+        let evaluated = eligible_pillars
+            .iter()
+            .map(|p| p.kind.as_str())
+            .collect::<Vec<_>>()
+            .join(",");
+        features.push(
+            FeatureObservation::observed(
+                AssessmentFeatureId::BaziTargetDayPillarRelation,
+                ContributionPolarity::Info,
+                0.0,
+                "bazi.target_day.pillar_relation",
+                bazi_evidence(
+                    "target_day_pillar_relation",
+                    Some(format!(
+                        "target_chi={} evaluated_pillars=[{}] matched=none",
+                        target_chi, evaluated
+                    )),
+                ),
+                ruleset_id.clone(),
+                ruleset_version.clone(),
+            )
+            .with_note("Không có quan hệ xung/hợp giữa ngày và các trụ")
+            .clone(),
+        );
+    } else {
+        for (relation, pillars) in observed_relations {
+            let pillar_names = pillars
+                .iter()
+                .map(|kind| kind.as_str())
+                .collect::<Vec<_>>()
+                .join(",");
+            let polarity = relation.polarity();
+            let strength = relation.strength();
+            features.push(
+                FeatureObservation::observed(
+                    AssessmentFeatureId::BaziTargetDayPillarRelation,
+                    polarity,
+                    strength,
+                    format!("bazi.target_day.pillar_relation.{}", relation.as_str()),
+                    bazi_evidence(
+                        "target_day_pillar_relation",
+                        Some(format!(
+                            "relation={} target_chi={} matched_pillars=[{}]",
+                            relation.as_str(),
+                            target_chi,
+                            pillar_names
+                        )),
+                    ),
+                    ruleset_id.clone(),
+                    ruleset_version.clone(),
+                )
+                .with_note(format!(
+                    "{} với trụ {}",
+                    relation_vi(relation),
+                    pillar_names
+                )),
+            );
+        }
+    }
+
+    // --- 3. Target-day element resonance with the natal day master --
+    let day_element = target_day.ngu_hanh.can.as_str();
+    let day_master_element = chart.day_master.ngu_hanh.can.as_str();
+    if let Some((polarity, strength)) = element_resonance(day_element, day_master_element) {
+        features.push(
+            FeatureObservation::observed(
+                AssessmentFeatureId::BaziTargetDayElementResonance,
+                polarity,
+                strength,
+                "bazi.target_day.element_resonance",
+                bazi_evidence(
+                    "target_day_element_resonance",
+                    Some(format!(
+                        "day_element={} day_master_element={} relation={:?}",
+                        day_element,
+                        day_master_element,
+                        element_relation(day_element, day_master_element)
+                    )),
+                ),
+                ruleset_id.clone(),
+                ruleset_version.clone(),
+            )
+            .with_note(format!(
+                "{} sinh/khắc với {}",
+                day_element, day_master_element
+            )),
+        );
+    } else {
+        features.push(FeatureObservation::unavailable(
+            AssessmentFeatureId::BaziTargetDayElementResonance,
+            "bazi.target_day.element_resonance.unavailable",
+            "could not parse day or day-master Ngũ Hành element",
+            bazi_evidence("target_day_element_resonance", None),
+            ruleset_id.clone(),
+            ruleset_version.clone(),
+        ));
+    }
+
+    let _ = (ruleset_id, ruleset_version, profile_id);
+    features
+}
+
+/// Map a Thập Thần label to a `(polarity, strength)` pair for the
+/// target-day Ten God observation. Resource / support labels
+/// (Tỷ Kiến, Kiếp Tài, Chính Ấn, Thiên Ấn) are favorable; draining
+/// / opposition labels (Thực Thần, Thương Quan, Chính Tài, Thiên
+/// Tài, Chính Quan, Thất Sát) are avoided. Strengths are conservative
+/// so the new feature does not dominate the PersonalAlignment axis.
+fn ten_god_polarity_strength(
+    label: crate::almanac::types::ThapThanLabel,
+) -> (ContributionPolarity, f32) {
+    use crate::almanac::types::ThapThanLabel::*;
+    match label {
+        TyKien | KiepTai | ChinhAn | ThienAn => (ContributionPolarity::Favorable, 0.4),
+        ThucThan | ThuongQuan | ChinhTai | ThienTai | ChinhQuan | ThatSat => {
+            (ContributionPolarity::Avoid, 0.4)
+        }
+    }
+}
+
+fn label_vi(label: crate::almanac::types::ThapThanLabel) -> &'static str {
+    use crate::almanac::types::ThapThanLabel::*;
+    match label {
+        TyKien => "Tỷ Kiến",
+        KiepTai => "Kiếp Tài",
+        ThucThan => "Thực Thần",
+        ThuongQuan => "Thương Quan",
+        ChinhTai => "Chính Tài",
+        ThienTai => "Thiên Tài",
+        ChinhQuan => "Chính Quan",
+        ThatSat => "Thất Sát",
+        ChinhAn => "Chính Ấn",
+        ThienAn => "Thiên Ấn",
+    }
+}
+
+fn relation_vi(relation: BaziDayPillarRelation) -> &'static str {
+    match relation {
+        BaziDayPillarRelation::Clash => "Lục xung",
+        BaziDayPillarRelation::LiuHe => "Lục hợp",
+        BaziDayPillarRelation::TamHop => "Tam hợp",
+    }
+}
+
+/// Return the natal pillars eligible for the Bazi-to-day branch
+/// relation check, gated on whether the birth time is known. The
+/// natal day pillar is always present; the hour pillar is only
+/// present when `has_time` is true.
+fn eligible_natal_pillars(
+    chart: &BaziChart,
+    has_time: bool,
+) -> Vec<&crate::bazi::types::BaziPillar> {
+    let mut pillars = vec![&chart.year_pillar, &chart.month_pillar, &chart.day_pillar];
+    if has_time {
+        if let Some(hour) = chart.hour_pillar.as_ref() {
+            pillars.push(hour);
+        }
+    }
+    pillars
+}
+
+/// Detect which [`BaziDayPillarRelation`] kinds fire between the
+/// target-day branch and the eligible natal pillars. Returns one
+/// `(relation, matched_pillar_kinds)` pair per *relation kind* — if
+/// both the year pillar and the month pillar clash with the target
+/// day, the `Clash` kind appears once with `matched_pillar_kinds`
+/// listing both. This is the dedup that prevents the same underlying
+/// signal from inflating the PersonalAlignment axis.
+///
+/// The natal day pillar's branch is treated specially: matching the
+/// target-day branch against the day pillar is a "self-meeting"
+/// signal. The function records it as an `Info` branch relation (no
+/// Avoid / Favorable) so the chart can still surface the meeting in
+/// the trace without doubling the day-pillar's own contribution.
+fn detect_pillar_relations(
+    target_chi: &str,
+    pillars: &[&crate::bazi::types::BaziPillar],
+    day_pillar: &crate::bazi::types::BaziPillar,
+) -> Vec<(BaziDayPillarRelation, Vec<PillarKind>)> {
+    let mut clash_pillars: Vec<PillarKind> = Vec::new();
+    let mut liu_he_pillars: Vec<PillarKind> = Vec::new();
+    let mut tam_hop_pillars: Vec<PillarKind> = Vec::new();
+
+    for pillar in pillars {
+        // Self-meeting on the day pillar is recorded as `Info` and
+        // contributes no Avoid / Favorable weight (the existing
+        // day-pillar clash on the personal_alignment axis covers
+        // it; the `birth_pillar_clash` path is for the *other*
+        // natal pillars).
+        if std::ptr::eq(*pillar, day_pillar) {
+            continue;
+        }
+        let pillar_chi = pillar.can_chi.chi.as_str();
+        if pillar_chi == target_chi {
+            continue;
+        }
+        let target_chi_idx = chi_index(target_chi);
+        let pillar_chi_idx = chi_index(pillar_chi);
+
+        if let (Some(t_idx), Some(p_idx)) = (target_chi_idx, pillar_chi_idx) {
+            if xung_hop::luc_xung(t_idx) == pillar_chi {
+                clash_pillars.push(pillar.kind);
+            } else if xung_hop::get_liu_he(t_idx) == pillar_chi {
+                liu_he_pillars.push(pillar.kind);
+            } else if xung_hop::tam_hop(t_idx).contains(&pillar_chi) {
+                tam_hop_pillars.push(pillar.kind);
+            }
+            let _ = p_idx;
+        }
+    }
+
+    let mut out: Vec<(BaziDayPillarRelation, Vec<PillarKind>)> = Vec::new();
+    if !clash_pillars.is_empty() {
+        sort_and_dedup_pillars(&mut clash_pillars);
+        out.push((BaziDayPillarRelation::Clash, clash_pillars));
+    }
+    if !liu_he_pillars.is_empty() {
+        sort_and_dedup_pillars(&mut liu_he_pillars);
+        out.push((BaziDayPillarRelation::LiuHe, liu_he_pillars));
+    }
+    if !tam_hop_pillars.is_empty() {
+        sort_and_dedup_pillars(&mut tam_hop_pillars);
+        out.push((BaziDayPillarRelation::TamHop, tam_hop_pillars));
+    }
+    // Sorted for deterministic trace output.
+    out.sort_by_key(|(relation, _)| relation_order(*relation));
+    out
+}
+
+fn sort_and_dedup_pillars(pillars: &mut Vec<PillarKind>) {
+    pillars.sort_by_key(|k| pillar_kind_order(*k));
+    pillars.dedup();
+}
+
+fn pillar_kind_order(kind: PillarKind) -> u8 {
+    match kind {
+        PillarKind::Year => 0,
+        PillarKind::Month => 1,
+        PillarKind::Day => 2,
+        PillarKind::Hour => 3,
+    }
+}
+
+fn relation_order(relation: BaziDayPillarRelation) -> u8 {
+    match relation {
+        BaziDayPillarRelation::Clash => 0,
+        BaziDayPillarRelation::LiuHe => 1,
+        BaziDayPillarRelation::TamHop => 2,
+    }
+}
+
+fn chi_index(name: &str) -> Option<usize> {
+    crate::types::CHI.iter().position(|c| *c == name)
+}
+
+/// Look up the Ngũ Hành relation between two element names and map it
+/// to a `(polarity, strength)` pair for the
+/// `BaziTargetDayElementResonance` observation.
+///
+/// The mapping is intentionally simple: any sinh (generation) relation
+/// is favorable (the day nourishes or is nourished by the natal day
+/// master); any khắc (control) relation is avoided. Same element is
+/// treated as neutral — the day-master and the day share the same
+/// element, which is neither inherently favorable nor inherently
+/// adverse. Unknown element names degrade to `None` so the caller can
+/// emit an explicit `Unavailable` observation.
+fn element_resonance(day: &str, master: &str) -> Option<(ContributionPolarity, f32)> {
+    match element_relation(day, master) {
+        Some(crate::almanac::types::FiveElementRelation::Same) => {
+            Some((ContributionPolarity::Neutral, 0.2))
+        }
+        Some(
+            crate::almanac::types::FiveElementRelation::DayGeneratesTarget
+            | crate::almanac::types::FiveElementRelation::TargetGeneratesDay,
+        ) => Some((ContributionPolarity::Favorable, 0.4)),
+        Some(
+            crate::almanac::types::FiveElementRelation::DayControlsTarget
+            | crate::almanac::types::FiveElementRelation::TargetControlsDay,
+        ) => Some((ContributionPolarity::Avoid, 0.4)),
+        None => None,
+    }
+}
+
+/// Compute the [`FiveElementRelation`] between two element names using
+/// the Ngũ Hành sinh / khắc cycles. Returns `None` for unknown element
+/// names so the caller can degrade to an `Unavailable` observation.
+fn element_relation(day: &str, master: &str) -> Option<crate::almanac::types::FiveElementRelation> {
+    use crate::almanac::types::FiveElementRelation;
+    if day == master {
+        return Some(FiveElementRelation::Same);
+    }
+    if !is_known_element(day) || !is_known_element(master) {
+        return None;
+    }
+    if generates(day) == Some(master) {
+        return Some(FiveElementRelation::DayGeneratesTarget);
+    }
+    if generates(master) == Some(day) {
+        return Some(FiveElementRelation::TargetGeneratesDay);
+    }
+    if controls(day, master) {
+        return Some(FiveElementRelation::DayControlsTarget);
+    }
+    if controls(master, day) {
+        return Some(FiveElementRelation::TargetControlsDay);
+    }
+    None
+}
+
+fn is_known_element(name: &str) -> bool {
+    matches!(name, "Mộc" | "Hỏa" | "Thổ" | "Kim" | "Thủy")
+}
+
+/// Ngũ Hành sinh (generation) cycle. `generates("Mộc")` returns
+/// `Some("Hỏa")` because Mộc generates Hỏa.
+fn generates(element: &str) -> Option<&'static str> {
+    match element {
+        "Mộc" => Some("Hỏa"),
+        "Hỏa" => Some("Thổ"),
+        "Thổ" => Some("Kim"),
+        "Kim" => Some("Thủy"),
+        "Thủy" => Some("Mộc"),
+        _ => None,
+    }
+}
+
+/// Ngũ Hành khắc (control) cycle. `controls("Mộc", "Thổ")` is `true`
+/// because Mộc controls Thổ.
+fn controls(a: &str, b: &str) -> bool {
+    matches!(
+        (a, b),
+        ("Mộc", "Thổ") | ("Hỏa", "Kim") | ("Thổ", "Thủy") | ("Kim", "Mộc") | ("Thủy", "Hỏa")
+    )
 }

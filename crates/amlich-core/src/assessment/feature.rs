@@ -46,6 +46,20 @@ pub enum AssessmentFeatureId {
     AnnualHoangOc,
     AnnualThaiTue,
     BaziElementResonance,
+    /// Target-day stem's Thập Thần relation to the birth day master
+    /// (`amlich-bz0f.2`). Fires on every assessment that has a Bazi chart
+    /// available; degrades to `Unavailable` when the birth time is unknown.
+    BaziTargetDayTenGod,
+    /// Target-day branch's xung/hợp/lục-hợp relation to one or more
+    /// natal pillars (`amlich-bz0f.2`). Dedupes across pillars: each
+    /// relation type fires at most once.
+    BaziTargetDayPillarRelation,
+    /// Target-day element's resonance (sinh/khắc) with the natal day
+    /// master's element (`amlich-bz0f.2`). Distinct from the v2.2
+    /// interaction-only [`Self::BaziElementResonance`] in that it
+    /// contributes a typed feature observation rather than only feeding
+    /// the weak-element interaction.
+    BaziTargetDayElementResonance,
     EvidenceCoverage,
 }
 
@@ -53,7 +67,7 @@ impl AssessmentFeatureId {
     /// All declared feature identifiers, in canonical order. The order is
     /// stable across policy versions and is used by trace serialization and
     /// parity fixtures.
-    pub const ALL: [Self; 14] = [
+    pub const ALL: [Self; 17] = [
         Self::GenericDayQuality,
         Self::IntentFit,
         Self::PersonalSameChi,
@@ -67,6 +81,9 @@ impl AssessmentFeatureId {
         Self::AnnualHoangOc,
         Self::AnnualThaiTue,
         Self::BaziElementResonance,
+        Self::BaziTargetDayTenGod,
+        Self::BaziTargetDayPillarRelation,
+        Self::BaziTargetDayElementResonance,
         Self::EvidenceCoverage,
     ];
 
@@ -85,6 +102,9 @@ impl AssessmentFeatureId {
             Self::AnnualHoangOc => "annual_hoang_oc",
             Self::AnnualThaiTue => "annual_thai_tue",
             Self::BaziElementResonance => "bazi_element_resonance",
+            Self::BaziTargetDayTenGod => "bazi_target_day_ten_god",
+            Self::BaziTargetDayPillarRelation => "bazi_target_day_pillar_relation",
+            Self::BaziTargetDayElementResonance => "bazi_target_day_element_resonance",
             Self::EvidenceCoverage => "evidence_coverage",
         }
     }
@@ -102,7 +122,10 @@ impl AssessmentFeatureId {
             | Self::PersonalTamHop
             | Self::PersonalLiuHe
             | Self::KuaDirectionMatch
-            | Self::BaziElementResonance => AssessmentAxis::PersonalAlignment,
+            | Self::BaziElementResonance
+            | Self::BaziTargetDayTenGod
+            | Self::BaziTargetDayPillarRelation
+            | Self::BaziTargetDayElementResonance => AssessmentAxis::PersonalAlignment,
             Self::AnnualTamTai | Self::AnnualKimLau | Self::AnnualHoangOc | Self::AnnualThaiTue => {
                 AssessmentAxis::AnnualPressure
             }
@@ -315,6 +338,6 @@ mod tests {
             // Every declared feature must map to a real axis under baseline.
             let _ = feature.default_axis();
         }
-        assert_eq!(AssessmentFeatureId::ALL.len(), 14);
+        assert_eq!(AssessmentFeatureId::ALL.len(), 17);
     }
 }

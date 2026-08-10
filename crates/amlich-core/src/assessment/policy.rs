@@ -97,6 +97,17 @@ pub const ASSESSMENT_POLICY_V2_1_VERSION: &str = "v2.1";
 /// [`INTERACTION_WEIGHTS_V2_2`].
 pub const ASSESSMENT_POLICY_V2_2_VERSION: &str = "v2.2";
 
+/// Version of the v2.3 Bazi-to-day projection policy (`amlich-bz0f.2`).
+/// Layers typed, source-attributed Bazi-to-day feature observations on
+/// top of the v2.2 policy: the target-day Ten God relation to the natal
+/// day master, the target-day branch's relation to natal pillars, and
+/// the target-day element's resonance with the natal day master. Axis
+/// subtotals and decision buckets match v2.2 byte-for-byte when the
+/// Bazi observations are unavailable; when a chart is available, the
+/// new features enter the PersonalAlignment axis through the same
+/// aggregation formula.
+pub const ASSESSMENT_POLICY_V2_3_VERSION: &str = "v2.3";
+
 /// Legacy axis-aggregation multiplier carried over from v1 so baseline_v2
 /// reproduces v1 axis scores exactly. The v2.1 intent-aware variant
 /// (`amlich-lxu3`) keeps this multiplier for axis subtotals and only
@@ -190,6 +201,34 @@ impl AssessmentPolicy {
         }
     }
 
+    /// Bazi-to-day projection v2.3 policy (`amlich-bz0f.2`). Layers
+    /// typed, source-attributed Bazi-to-day feature observations on top
+    /// of the v2.2 policy: the target-day Ten God relation to the
+    /// natal day master, the target-day branch's relation to natal
+    /// pillars, and the target-day element's resonance with the natal
+    /// day master. All three observations feed the
+    /// `PersonalAlignment` axis through the same aggregation formula
+    /// the v2.2 policy uses, so axis subtotals and decision buckets
+    /// match v2.2 byte-for-byte when the Bazi observations are
+    /// unavailable.
+    ///
+    /// Deduplication: each Bazi-to-day branch relation kind fires at
+    /// most once per assessment, so a target day that clashes with
+    /// both the year and month pillars emits a single Avoid
+    /// contribution rather than two. The `BaziElementResonance` v2.2
+    /// interaction continues to feed the chart-level weak-day-master
+    /// synergy; the new observations are explicit, typed features
+    /// rather than interaction-only signals.
+    pub fn bazi_projection_v2_3() -> Self {
+        Self {
+            policy_id: ASSESSMENT_POLICY_V2_ID.to_string(),
+            policy_version: ASSESSMENT_POLICY_V2_3_VERSION.to_string(),
+            axis_delta_multiplier: V1_AXIS_DELTA_MULTIPLIER,
+            intent_axis_weights: Some(&INTENT_AXIS_WEIGHTS_V2_1),
+            interaction_weights: Some(&INTERACTION_WEIGHTS_V2_2),
+        }
+    }
+
     pub fn policy_id(&self) -> &str {
         &self.policy_id
     }
@@ -244,7 +283,19 @@ impl AssessmentPolicy {
         let profile_id = snapshot.profile.clone();
 
         let resolved = resolve_assessment_inputs(snapshot, profile, capability, inputs);
-        let features = extract_features(snapshot, profile, intent, capability, &resolved);
+        let mut features = extract_features(snapshot, profile, intent, capability, &resolved);
+
+        // Bazi-to-day projection (amlich-bz0f.2). Layered on top of the
+        // base v2.2 feature set so the new observations are additive
+        // and the baseline parity contract still holds for the
+        // non-Bazi portions of the feature vector.
+        if self.policy_version == ASSESSMENT_POLICY_V2_3_VERSION {
+            let bazi_features = super::extraction::extract_bazi_target_day_observations(
+                snapshot, profile, capability, &resolved,
+            );
+            features.extend(bazi_features);
+        }
+
         let vetoes = extract_vetoes(snapshot, profile, intent, capability, &resolved);
 
         // Declared interaction terms (amlich-47wn). Only the v2.2 policy

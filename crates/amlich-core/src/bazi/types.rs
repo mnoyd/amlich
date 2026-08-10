@@ -149,13 +149,27 @@ impl KhongVongPair {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PillarKind {
     Year,
     Month,
     Day,
     Hour,
+}
+
+impl PillarKind {
+    /// Stable, lowercase English identifier for the pillar kind. Used
+    /// by source-evidence `method` strings and the assessment
+    /// extraction layer.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Year => "year",
+            Self::Month => "month",
+            Self::Day => "day",
+            Self::Hour => "hour",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

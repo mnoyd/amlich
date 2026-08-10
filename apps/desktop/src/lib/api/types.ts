@@ -893,6 +893,7 @@ export type ReasoningEvidenceSourceFamilyDto =
     | 'snapshot'
     | 'interaction'
     | 'bazi'
+    | 'bazi_observation'
     | 'axis'
     | 'almanac_rule'
     | 'insight'

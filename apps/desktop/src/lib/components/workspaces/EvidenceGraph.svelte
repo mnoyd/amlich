@@ -168,6 +168,7 @@
         snapshot: 'Snapshot',
         interaction: 'Tương tác',
         bazi: 'Bazi',
+        bazi_observation: 'Bazi (ngày đích)',
         axis: 'Trục',
         almanac_rule: 'Quy tắc lịch',
         insight: 'Insight',
