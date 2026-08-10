@@ -742,6 +742,13 @@ pub struct ProverbInsightDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FigureInsightDto {
+    pub name: LocalizedTextDto,
+    pub role: LocalizedTextDto,
+    pub description: LocalizedTextDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RegionsInsightDto {
     pub north: LocalizedTextDto,
     pub central: LocalizedTextDto,
@@ -757,6 +764,7 @@ pub struct FestivalInsightDto {
     pub taboos: Vec<TabooInsightDto>,
     pub proverbs: Vec<ProverbInsightDto>,
     pub regions: Option<RegionsInsightDto>,
+    pub figures: Vec<FigureInsightDto>,
     pub category: String,
     pub is_major: bool,
 }
@@ -772,6 +780,7 @@ pub struct HolidayInsightDto {
     pub taboos: Vec<TabooInsightDto>,
     pub proverbs: Vec<ProverbInsightDto>,
     pub regions: Option<RegionsInsightDto>,
+    pub figures: Vec<FigureInsightDto>,
     pub category: String,
     pub is_major: bool,
 }

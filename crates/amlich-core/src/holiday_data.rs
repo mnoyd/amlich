@@ -34,6 +34,8 @@ pub struct SolarHolidayData {
     pub proverbs: Vec<ProverbItem>,
     #[serde(default)]
     pub regions: Option<Regions>,
+    #[serde(default)]
+    pub figures: Vec<FigureItem>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -67,6 +69,8 @@ pub struct LunarFestivalData {
     pub proverbs: Vec<ProverbItem>,
     #[serde(default)]
     pub regions: Option<Regions>,
+    #[serde(default)]
+    pub figures: Vec<FigureItem>,
     #[serde(default)]
     pub is_solar: bool,
 }
@@ -105,6 +109,13 @@ pub struct TabooItem {
 pub struct ProverbItem {
     pub text: String,
     pub meaning: BilingualText,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FigureItem {
+    pub name: BilingualText,
+    pub role: BilingualText,
+    pub description: BilingualText,
 }
 
 #[derive(Debug, Deserialize)]
@@ -154,6 +165,7 @@ mod tests {
         assert!(!tet.taboos.is_empty(), "taboos should be parsed");
         assert!(!tet.proverbs.is_empty(), "proverbs should be parsed");
         assert!(tet.regions.is_some(), "regions should be parsed");
+        assert!(!tet.figures.is_empty(), "figures should be parsed");
     }
 
     #[test]

@@ -41,7 +41,7 @@ impl Widget for EventDetailScreenWidget<'_> {
                 render_origin(event.as_ref(), rows[1], buf);
                 render_regions(event.as_ref(), rows[2], buf);
                 render_activities(event.as_ref(), rows[3], buf);
-                render_taboos_and_figures(self.app, event.as_ref(), rows[4], buf);
+                render_taboos_and_figures(event.as_ref(), rows[4], buf);
             }
             LayoutMode::Medium | LayoutMode::Large => {
                 let rows = Layout::vertical([
@@ -56,7 +56,7 @@ impl Widget for EventDetailScreenWidget<'_> {
                     Layout::horizontal([Constraint::Percentage(65), Constraint::Percentage(35)])
                         .split(rows[1]);
                 render_origin(event.as_ref(), context[0], buf);
-                render_figures(self.app, context[1], buf);
+                render_figures(event.as_ref(), context[1], buf);
 
                 let details = Layout::horizontal([
                     Constraint::Percentage(34),
@@ -79,6 +79,7 @@ struct EventContent<'a> {
     traditions: &'a [String],
     taboos: Vec<(&'a str, &'a str)>,
     regions: Option<(&'a str, &'a str, &'a str)>,
+    figures: &'a [amlich_api::FigureInsightDto],
 }
 
 impl<'a> EventContent<'a> {
@@ -106,6 +107,7 @@ impl<'a> EventContent<'a> {
                         regions.south.vi.as_str(),
                     )
                 }),
+                figures: &festival.figures,
             });
         }
 
@@ -143,6 +145,7 @@ impl<'a> EventContent<'a> {
                     regions.south.vi.as_str(),
                 )
             }),
+            figures: &holiday.figures,
         })
     }
 }
@@ -261,28 +264,34 @@ fn render_taboos(event: Option<&EventContent<'_>>, area: Rect, buf: &mut Buffer)
         .render(inner, buf);
 }
 
-fn render_figures(app: &AppState, area: Rect, buf: &mut Buffer) {
+fn render_figures(event: Option<&EventContent<'_>>, area: Rect, buf: &mut Buffer) {
     let block = section_block(" Nhân Vật / Thần Linh Liên Hệ ", Color::Magenta);
     let inner = block.inner(area);
     block.render(area, buf);
-    let deity = app
-        .bundle
-        .as_ref()
-        .and_then(|bundle| bundle.insight.as_ref())
-        .and_then(|insight| insight.day_deity.as_ref());
-    let lines = deity
-        .map(|deity| {
-            let mut lines = vec![Line::from(format!("  {}", deity.name))];
-            if let Some(meaning) = &deity.deity_meaning {
-                lines.push(Line::from(format!("  {}", meaning.vi)));
-            } else {
-                lines.push(Line::from(format!("  {}", deity.classification_meaning.vi)));
+    let lines = event
+        .filter(|event| !event.figures.is_empty())
+        .map(|event| {
+            let mut lines = Vec::new();
+            for figure in event.figures {
+                lines.push(Line::from(vec![
+                    Span::styled(
+                        format!("  {} ", figure.name.vi),
+                        Style::default()
+                            .fg(Color::White)
+                            .add_modifier(Modifier::BOLD),
+                    ),
+                    Span::styled(
+                        format!("({})", figure.role.vi),
+                        Style::default().fg(Color::DarkGray),
+                    ),
+                ]));
+                lines.push(Line::from(format!("    {}", figure.description.vi)));
             }
             lines
         })
         .unwrap_or_else(|| {
             vec![Line::from(
-                "  DTO hiện chưa gắn nhân vật hoặc thần linh riêng cho sự kiện này.",
+                "  Chưa gắn nhân vật hoặc thần linh riêng cho sự kiện này.",
             )]
         });
     Paragraph::new(lines)
@@ -290,16 +299,11 @@ fn render_figures(app: &AppState, area: Rect, buf: &mut Buffer) {
         .render(inner, buf);
 }
 
-fn render_taboos_and_figures(
-    app: &AppState,
-    event: Option<&EventContent<'_>>,
-    area: Rect,
-    buf: &mut Buffer,
-) {
+fn render_taboos_and_figures(event: Option<&EventContent<'_>>, area: Rect, buf: &mut Buffer) {
     let columns =
         Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)]).split(area);
     render_taboos(event, columns[0], buf);
-    render_figures(app, columns[1], buf);
+    render_figures(event, columns[1], buf);
 }
 
 fn render_text_section(title: &str, text: &str, area: Rect, buf: &mut Buffer) {

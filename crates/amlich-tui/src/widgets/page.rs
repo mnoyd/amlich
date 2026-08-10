@@ -204,10 +204,10 @@ mod tests {
     use amlich_api::{
         CanChiDto, CanChiInfoDto, CanChiInsightDto, CanInsightDto, ChiInsightDto, DaiVanInsightDto,
         DaiVanPillarInsightDto, DailyRecommendationsDto, DayDeityInsightDto, DayGuidanceDto,
-        DayInsightDto, ElementInsightDto, FestivalInsightDto, LocalizedListDto, LocalizedTextDto,
-        LunarDto, NguHanhDto, RecommendationPackCatalogEntryDto, RecommendationScopeDto,
-        RegionsInsightDto, RulesetCatalogEntryDto, RulesetDefaultsDto, SolarDto, TabooInsightDto,
-        TrucInsightDto, TuMenhInsightDto,
+        DayInsightDto, ElementInsightDto, FestivalInsightDto, FigureInsightDto, LocalizedListDto,
+        LocalizedTextDto, LunarDto, NguHanhDto, RecommendationPackCatalogEntryDto,
+        RecommendationScopeDto, RegionsInsightDto, RulesetCatalogEntryDto, RulesetDefaultsDto,
+        SolarDto, TabooInsightDto, TrucInsightDto, TuMenhInsightDto,
     };
     use chrono::NaiveDate;
     use ratatui::{buffer::Buffer, layout::Rect};
@@ -468,6 +468,14 @@ mod tests {
                     central: localized("Lễ Phật và cầu an.", "Buddhist prayer."),
                     south: localized("Cúng rằm tại gia.", "Home worship."),
                 }),
+                figures: vec![FigureInsightDto {
+                    name: localized("Phật và gia tiên", "Buddha and ancestors"),
+                    role: localized("Đối tượng thờ cúng", "Veneration subjects"),
+                    description: localized(
+                        "Nhân vật tín ngưỡng liên hệ trong ngày.",
+                        "Religious figures associated with the day.",
+                    ),
+                }],
                 category: "traditional".to_string(),
                 is_major: true,
             }),

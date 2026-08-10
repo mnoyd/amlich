@@ -149,7 +149,14 @@
           "Give flowers and gifts to doctors",
           "Awards for outstanding medical workers"
         ]
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Chủ tịch Hồ Chí Minh", "en": "President Hồ Chí Minh" },
+          "role": { "vi": "Người sáng lập Ngày Thầy Thuốc Việt Nam", "en": "Founder of Vietnamese Doctors' Day" },
+          "description": { "vi": "Năm 1955, Bác viết thư gửi Hội nghị cán bộ y tế toàn quốc, căn dặn \"Lương y như từ mẫu\", từ đó ngày 27/2 được chọn là Ngày Thầy Thuốc Việt Nam.", "en": "In 1955, Uncle Hồ wrote a letter to the National Health Workers' Conference instructing 'A good doctor is like a kind mother', and February 27 was chosen as Vietnamese Doctors' Day." }
+        }
+      ]
     },
     {
       "id": "quoc-te-phu-nu",
@@ -468,7 +475,14 @@
           "Contests about his life and career",
           "Movement to 'Study and follow Hồ Chí Minh's ideology, ethics and style'"
         ]
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Chủ tịch Hồ Chí Minh", "en": "President Hồ Chí Minh" },
+          "role": { "vi": "Lãnh tụ dân tộc Việt Nam", "en": "Vietnamese national leader" },
+          "description": { "vi": "Người sáng lập Đảng Cộng Sản Việt Nam và khai sinh nước Việt Nam Dân Chủ Cộng Hòa, được UNESCO công nhận là Anh hùng giải phóng dân tộc và Nhà văn hóa kiệt xuất.", "en": "Founder of the Communist Party of Vietnam and the Democratic Republic of Vietnam, recognized by UNESCO as a Hero of National Liberation and an Outstanding Cultural Figure." }
+        }
+      ]
     },
     {
       "id": "quoc-te-thieu-nhi",
@@ -1408,7 +1422,14 @@
           "Decorating trees and nativity scenes",
           "Giving gifts and gathering with family and friends"
         ]
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Chúa Jesus", "en": "Jesus Christ" },
+          "role": { "vi": "Đấng cứu thế Kitô giáo", "en": "Christian savior figure" },
+          "description": { "vi": "Người sáng lập Kitô giáo, sinh ra tại Bethlehem. Giáng Sinh kỷ niệm ngày đản sinh của Ngài, được các tín đồ Kitô giáo tôn kính.", "en": "Founder figure of Christianity, born in Bethlehem. Christmas commemorates his birth and is venerated by Christians worldwide." }
+        }
+      ]
     },
     {
       "id": "quoc-te-hanh-phuc",

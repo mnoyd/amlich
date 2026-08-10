@@ -45,6 +45,7 @@ use crate::dto::{
     ElementDistributionDto,
     ElementInsightDto,
     FestivalInsightDto,
+    FigureInsightDto,
     FoodInsightDto,
     GioHoangDaoDto,
     HiddenStemEntryDto,
@@ -1387,6 +1388,16 @@ impl From<&amlich_core::holiday_data::Regions> for RegionsInsightDto {
     }
 }
 
+impl From<&amlich_core::holiday_data::FigureItem> for FigureInsightDto {
+    fn from(value: &amlich_core::holiday_data::FigureItem) -> Self {
+        Self {
+            name: LocalizedTextDto::from(&value.name),
+            role: LocalizedTextDto::from(&value.role),
+            description: LocalizedTextDto::from(&value.description),
+        }
+    }
+}
+
 impl From<&amlich_core::holiday_data::LunarFestivalData> for FestivalInsightDto {
     fn from(value: &amlich_core::holiday_data::LunarFestivalData) -> Self {
         Self {
@@ -1400,6 +1411,7 @@ impl From<&amlich_core::holiday_data::LunarFestivalData> for FestivalInsightDto 
             taboos: value.taboos.iter().map(TabooInsightDto::from).collect(),
             proverbs: value.proverbs.iter().map(ProverbInsightDto::from).collect(),
             regions: value.regions.as_ref().map(RegionsInsightDto::from),
+            figures: value.figures.iter().map(FigureInsightDto::from).collect(),
             category: value.category.clone(),
             is_major: value.is_major,
         }
@@ -1421,6 +1433,7 @@ impl From<&amlich_core::holiday_data::SolarHolidayData> for HolidayInsightDto {
             taboos: value.taboos.iter().map(TabooInsightDto::from).collect(),
             proverbs: value.proverbs.iter().map(ProverbInsightDto::from).collect(),
             regions: value.regions.as_ref().map(RegionsInsightDto::from),
+            figures: value.figures.iter().map(FigureInsightDto::from).collect(),
             category: value.category.clone(),
             is_major: value.is_major,
         }

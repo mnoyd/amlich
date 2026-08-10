@@ -104,7 +104,19 @@
           "vi": "Miền Nam ưa bánh tét dài, cây mai vàng, thịt kho tàu và canh khổ qua (mong khổ qua đi). Không khí Tết phóng khoáng, vui vẻ hơn.",
           "en": "Southern Vietnam prefers long bánh tét, yellow apricot blossoms, braised pork, and bitter melon soup (hoping hardship passes). Tết atmosphere is more relaxed and cheerful."
         }
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Ông bà tổ tiên", "en": "Ancestors" },
+          "role": { "vi": "Đối tượng thờ cúng", "en": "Veneration subjects" },
+          "description": { "vi": "Con cháu dâng hương, cúng lễ ông bà tổ tiên trên bàn thờ gia tiên, cầu mong phù hộ độ trì cho năm mới bình an.", "en": "Descendants offer incense and rites to ancestors on the family altar, praying for protection and peace in the new year." }
+        },
+        {
+          "name": { "vi": "Thần Tài - Thổ Địa", "en": "God of Wealth - Earth Deity" },
+          "role": { "vi": "Thần gia đình", "en": "Household deities" },
+          "description": { "vi": "Hai vị thần coi giữ của cải và đất đai trong nhà, được cúng vía vào ngày Tết để cầu tài lộc và bình an.", "en": "Two deities guarding household wealth and land, worshipped at Tết for prosperity and peace." }
+        }
+      ]
     },
     {
       "id": "mung-2-tet",
@@ -300,7 +312,19 @@
           "vi": "Miền Nam ít chú trọng Tết Hàn Thực, thường kết hợp với Tết Thanh Minh để đi tảo mộ.",
           "en": "Southern Vietnam places less emphasis on Cold Food Festival, usually combining with Thanh Minh for grave visits."
         }
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Giới Tử Thôi", "en": "Jie Zitui" },
+          "role": { "vi": "Trung thần thời Xuân Thu", "en": "Spring and Autumn era loyal minister" },
+          "description": { "vi": "Người trung thần đã cứu Tấn Văn Công khi bị lạc trong rừng. Sau khi Vua trở về quên công ơn, ông cùng mẹ vào rừng ở ẩn. Vua sai đốt rừng để ép ông ra, nhưng ông và mẹ đã thiệt mạng trong lửa.", "en": "A loyal minister who saved Duke Wen of Jin when lost in the forest. After the Duke returned and forgot his service, he retreated into the mountains with his mother. The Duke set fire to the forest to force him out, but he and his mother perished in the flames." }
+        },
+        {
+          "name": { "vi": "Tấn Văn Công", "en": "Duke Wen of Jin" },
+          "role": { "vi": "Vua nước Tấn", "en": "Ruler of the Jin state" },
+          "description": { "vi": "Vị vua đã ra lệnh cấm đốt lửa ba ngày để tưởng nhớ Giới Tử Thôi, từ đó hình thành Tết Hàn Thực.", "en": "The ruler who ordered no fire for three days to commemorate Jie Zitui, giving rise to the Cold Food Festival." }
+        }
+      ]
     },
     {
       "id": "tet-thanh-minh",
@@ -461,7 +485,14 @@
           "vi": "Nhiều chùa lớn ở TP.HCM, Bình Dương tổ chức lễ tắm Phật và phát quà từ thiện.",
           "en": "Many large temples in HCMC, Bình Dương organize Buddha bathing and charity distribution."
         }
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Đức Phật Thích Ca Mâu Ni", "en": "Siddhartha Gautama (Buddha Shakyamuni)" },
+          "role": { "vi": "Đức Phật sáng lập Phật giáo", "en": "Founder of Buddhism" },
+          "description": { "vi": "Tôn giả sinh ra tại vườn Lâm Tỳ Ni (Nepal) năm 624 TCN, là người sáng lập Phật giáo và đạt giác ngộ dưới cội Bồ Đề. Ngày rằm tháng Tư kỷ niệm ngày đản sinh của Ngài.", "en": "Born in Lumbini Garden (Nepal) in 624 BCE, founder of Buddhism who attained enlightenment under the Bodhi tree. The full moon of the 4th lunar month commemorates his birth." }
+        }
+      ]
     },
     {
       "id": "tet-doan-ngo",
@@ -543,7 +574,14 @@
           "vi": "Ăn chè trôi nước, bánh ú. Đặc sản vịt nấu chao. Không chú trọng tục \"giết sâu bọ\" như miền Bắc.",
           "en": "Eat rice ball soup, ash cakes. Duck with fermented tofu specialty. Less emphasis on \"killing parasites\" than North."
         }
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Khuất Nguyên", "en": "Qu Yuan" },
+          "role": { "vi": "Trung thần thời Chiến Quốc", "en": "Warring States era loyal minister" },
+          "description": { "vi": "Nhà thơ, trung thần nước Sở thời Chiến Quốc, bị gian thần hãm hại nên nhảy xuống sông Mịch La tự vẫn. Người dân quăng bánh ú, đua thuyền để tìm và cứu ông.", "en": "A poet and loyal minister of Chu state during the Warring States era, who drowned himself in the Miluo River after being slandered by corrupt officials. People throw zongzi and race dragon boats to search for and rescue him." }
+        }
+      ]
     },
     {
       "id": "vu-lan",
@@ -633,7 +671,14 @@
           "vi": "Phong trào cài bông hồng và làm từ thiện rất mạnh. Nhiều chương trình tri ân cha mẹ.",
           "en": "Strong rose-pinning and charity movements. Many parent appreciation programs."
         }
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Mục Kiền Liên", "en": "Moggallana (Mục Kiền Liên)" },
+          "role": { "vi": "Đệ tử lớn của Đức Phật", "en": "Chief disciple of the Buddha" },
+          "description": { "vi": "Một trong hai đệ tử lớn nhất của Đức Phật. Theo kinh Vu Lan Bồn, ông đã dùng thần thông cứu mẹ khỏi địa ngục, dâng cơm cúng dường chư Tăng để giải thoát cho bà.", "en": "One of the Buddha's two chief disciples. According to the Ullambana Sutra, he used supernatural powers to save his mother from hell, offering food to the Sangha to liberate her." }
+        }
+      ]
     },
     {
       "id": "tet-trung-thu",
@@ -711,7 +756,24 @@
           "vi": "Múa lân sôi động, quy mô lớn hơn. Đường phố trang trí hoành tráng. Bánh trung thu nhân thập cẩm phổ biến.",
           "en": "More vibrant, larger-scale lion dances. Streets decorated grandly. Mixed-filling mooncakes popular."
         }
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Chú Cuội", "en": "Cuội" },
+          "role": { "vi": "Nhân vật truyền thuyết dân gian", "en": "Folk legendary figure" },
+          "description": { "vi": "Người chăn trâu ngồi dưới gốc đa, bị gốc đa bay theo cung trăng vì nước thần. Hình ảnh vết đen trên mặt trăng là Cuội ngồi cạnh gốc đa.", "en": "A buffalo herder who sat under a banyan tree and was carried to the moon with the magical tree by holy water. The dark shape on the moon is Cuội sitting beside his banyan tree." }
+        },
+        {
+          "name": { "vi": "Hằng Nga", "en": "Chang'e (Hằng Nga)" },
+          "role": { "vi": "Nữ thần cung trăng", "en": "Moon goddess" },
+          "description": { "vi": "Tương truyền là người đẹp uống phải thuốc trường sinh của chồng là Hậu Nghệ và bay lên cung trăng, sống một mình cùng Thỏ Ngọc.", "en": "Legend says she was a beauty who drank her husband Hou Yi's elixir of immortality and flew to the moon palace, living alone with the Jade Rabbit." }
+        },
+        {
+          "name": { "vi": "Thỏ Ngọc", "en": "Jade Rabbit" },
+          "role": { "vi": "Thần thú cung trăng", "en": "Celestial companion on the moon" },
+          "description": { "vi": "Con thỏ trắng sống trên cung trăng, giã thuốc trường sinh cho Hằng Nga. Hình tượng gắn liền với bánh trung thu.", "en": "A white rabbit living on the moon who pounds the elixir of immortality for Chang'e. Its image is closely associated with mooncakes." }
+        }
+      ]
     },
     {
       "id": "tet-trung-cuu",
@@ -925,7 +987,19 @@
           "vi": "Cúng cá chép giấy hoặc cá thật, nhưng việc thả cá ít phổ biến hơn. Cúng đơn giản hơn miền Bắc.",
           "en": "Offer paper or real carp, but releasing is less common. Simpler offerings than North."
         }
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Táo Quân (Ông Công, Ông Táo)", "en": "Kitchen Gods (Táo Quân)" },
+          "role": { "vi": "Thần bếp gia đình", "en": "Household kitchen deities" },
+          "description": { "vi": "Ba vị thần gồm hai ông và một bà, cai quản bếp núc và theo dõi việc thiện ác trong gia đình để về trời báo cáo với Ngọc Hoàng.", "en": "Three deities - two men and one woman - overseeing the kitchen and monitoring the household's deeds to report to the Jade Emperor in heaven." }
+        },
+        {
+          "name": { "vi": "Ngọc Hoàng Thượng Đế", "en": "Jade Emperor" },
+          "role": { "vi": "Chúa tể trời đất", "en": "Sovereign of heaven and earth" },
+          "description": { "vi": "Vị chúa tể tối cao trên trời trong tín ngưỡng Đạo giáo và dân gian, người phán xét việc thiện ác dựa trên báo cáo của Táo Quân.", "en": "The supreme sovereign of heaven in Taoist and folk belief, who judges good and evil deeds based on the Kitchen Gods' reports." }
+        }
+      ]
     },
     {
       "id": "giao-thua",
@@ -1007,7 +1081,19 @@
           "vi": "Pháo hoa hoành tráng ở trung tâm TP.HCM. Không khí thoải mái, vui vẻ hơn. Đường phố đông đúc người đi chơi.",
           "en": "Grand fireworks in HCMC center. More relaxed, cheerful atmosphere. Streets crowded with revelers."
         }
-      }
+      },
+      "figures": [
+        {
+          "name": { "vi": "Ngọc Hoàng Thượng Đế", "en": "Jade Emperor" },
+          "role": { "vi": "Chúa tể trời đất", "en": "Sovereign of heaven and earth" },
+          "description": { "vi": "Vị chúa tể tối cao trên trời, đêm giao thừa các vị thần bàn giao công việc năm cũ và tiếp nhận năm mới.", "en": "The supreme sovereign of heaven; on New Year's Eve the deities hand over duties from the old year and accept those of the new." }
+        },
+        {
+          "name": { "vi": "Thần Mới - Thần Cũ", "en": "New Gods - Old Gods" },
+          "role": { "vi": "Thần canh năm", "en": "Year-guarding deities" },
+          "description": { "vi": "Theo quan niệm dân gian, đêm giao thừa thần cũ bàn giao công việc cho thần mới nên người ta cúng để cầu xin phù hộ năm mới.", "en": "In folk belief, on New Year's Eve the old gods hand over duties to the new gods, so families make offerings to pray for blessings in the coming year." }
+        }
+      ]
     }
   ]
 }
