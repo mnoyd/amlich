@@ -1,24 +1,7 @@
-#[cfg(test)]
-mod app;
-#[cfg(test)]
-mod bookmark_store;
-#[cfg(test)]
-mod date_jump;
-#[cfg(test)]
-mod event;
 mod headless;
-#[cfg(test)]
-mod history;
+mod plain;
 mod profile;
-#[cfg(test)]
-mod search;
-#[cfg(test)]
-mod theme;
-#[cfg(test)]
-mod ui;
 mod waybar;
-#[cfg(test)]
-mod widgets;
 
 use std::ffi::OsString;
 use std::io::{stdin, stdout, IsTerminal};
@@ -671,7 +654,7 @@ fn run(cli: Cli) -> Result<(), String> {
     match cli.command {
         Some(Command::Tui(args)) => {
             let date = args.date.as_deref().map(parse_date).transpose()?;
-            amlich_tui::run_tui(date).map_err(|e| format!("failed to run TUI: {e}"))?;
+            plain::run(date)?;
         }
         Some(Command::Day(args)) => run_day(args)?,
         Some(Command::Range(args)) => run_range(args)?,
@@ -1714,7 +1697,7 @@ fn run_config(args: ConfigArgs) -> Result<(), String> {
 
 fn run_auto_mode() -> Result<(), String> {
     if stdin().is_terminal() && stdout().is_terminal() {
-        amlich_tui::run_tui(None).map_err(|e| format!("failed to run TUI: {e}"))?;
+        plain::run(None)?;
         return Ok(());
     }
 
