@@ -1,5 +1,68 @@
 # Milestones: Amlich Almanac Correctness Audit
 
+## v1.9 Multi-dimensional Day, Hour, and Direction Assessment (Shipped: 2026-08-11)
+
+**Delivered:** Delivered one explainable multi-dimensional assessment system
+in which Day Assessment decides date suitability, Hour Ranking orders the
+twelve hour slots downstream, and Direction Assessment orders relevant
+directions. Almanac, personal non-Bazi, Bazi, timing, and feng-shui signals
+enter through typed, source-attributed observations without duplicate
+influence or opaque lucky scores. All 7 requirements and 7 release gates
+passed; 1,827 workspace tests + 23 am-lich tests green.
+
+**Tracks completed:** 4/4 — Factor Role Classification, Personal Day
+Assessment (Bazi + non-Bazi), Personal Hour Ranking v2, Direction Assessment,
+and Explainability Projection.
+
+**Key accomplishments:**
+
+- Canonical factor roles (`Veto`, `Contribution`, `Informational`) ship
+  across core, API DTOs, desktop EvidenceGraph, and TUI summary; missing
+  evidence surfaces as explicit `Unavailable`, never as zero.
+- Three typed Bazi-to-day feature IDs (`BaziTargetDayTenGod`,
+  `BaziTargetDayPillarRelation`, `BaziTargetDayElementResonance`) project the
+  target day into the user's birth chart under `ASSESSMENT_POLICY_V2_3` with
+  branch-relation dedup by kind.
+- Five per-system non-Bazi annual pressures (Tam Tai, Kim Lâu, Hoàng Ốc,
+  Thái Tuế, Cửu Diệu / sao hạn) replace the single `AnnualThaiTue`
+  catch-all under `ASSESSMENT_POLICY_V2_4`; v2.3 axis subtotal and decision
+  bucket stay byte-identical via same-polarity averaging; informational
+  systems emit weighted `Avoid`, never a universal veto.
+- `HOUR_RANKING_POLICY_V2_4` folds three typed, source-attributed
+  full-profile observations (`HourPillarTenGodToDayMaster`,
+  `HourChiBranchRelationToBirthHour`, `HourStemElementSupport`) into the
+  Personal Hour Alignment axis; date-only and anonymous callers continue to
+  use the v1 birth-year-chi path; the legacy `PersonalHourMatrix`
+  integer-score surface stays as a compatibility projection.
+- `DIRECTION_ASSESSMENT_POLICY_V1` owns direction axes, contributions,
+  availability, confidence, and warnings separately from Day Assessment and
+  Hour Ranking; intent governs which direction rules apply; missing location
+  returns explicit unavailable evidence.
+- `EXPLANATION_PROJECTION_V1` ships `AssessmentExplanation`,
+  `DirectionExplanation`, and `HourExplanation` with
+  `Precedence::VetoOverridesAggregation`, `vetoes_applied` separate from
+  weighted factors, deduplicated facts per active policy family, and
+  per-input confidence breakdown; identical surface across API DTOs, TUI
+  `render_explanation_summary`, and desktop EvidenceGraph.
+- GitHub Actions now pins `actions/checkout@v6`, `actions/setup-node@v6`,
+  and `pnpm/action-setup@v6` with `node-version: 24`; master CI run
+  31374536996 ran Test and Desktop smoke with no Node 20 deprecation steps.
+
+**Policy version matrix:** `assessment` [v2, v2.1, v2.2, v2.3, v2.4];
+`hour_ranking` [v1, v2.4]; `direction_assessment` [v1];
+`explanation_projection` [v1]. All older versions remain constructible;
+`CONTEXT.md` carries the glossary entries for every new policy.
+
+**Audit:** `.planning/milestones/v1.9-MILESTONE-AUDIT.md` — status `passed`,
+7/7 requirements, 4/4 tracks, 4/4 integration checks, 7/7 release gates,
+zero implementation gaps.
+
+**External dependencies:** Domain-review deferrals remain due 2026-12-31 and
+are governed by `docs/architecture/external-review-lifecycle.md`; they are not
+v1.9 code debt.
+
+---
+
 ## v1.8 Surface & Debt Closure (Shipped: 2026-08-10)
 
 **Delivered:** Completed the desktop Observatory and TUI explanation surfaces,
