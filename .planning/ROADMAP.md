@@ -8,13 +8,30 @@
 - ✅ **v1.5 Eastern Knowledge Expansion** — shipped 2026-05-28 (Phases 10-15, 24/24 plans), archived in [`milestones/v1.5-ROADMAP.md`](milestones/v1.5-ROADMAP.md)
 - ✅ **v1.6 Eastern Knowledge Completion** — shipped 2026-07-16 (Phases 16-19, 11/11 plans), archived in [`milestones/v1.6-ROADMAP.md`](milestones/v1.6-ROADMAP.md)
 - ✅ **v1.7 Kinh Dịch (I-Ching Divination)** — shipped 2026-07-19 (Phases 20-25, 14/14 plans), archived in [`milestones/v1.7-ROADMAP.md`](milestones/v1.7-ROADMAP.md)
+- ✅ **v1.8 Surface & Debt Closure** — shipped 2026-08-10 (3/3 tracks, 9/9 requirements), archived in [`milestones/v1.8-ROADMAP.md`](milestones/v1.8-ROADMAP.md)
 
 ## Current Focus
 
-- v1.7 shipped the P2 Kinh Dịch pillar (Mai Hoa Dịch Số casting + 64-hexagram Ngô Tất Tố corpus + `IChingEvaluator`) and the Thái Tuế / Tam Sát ⇄ Phi Tinh read-only directional cross-link. All 15 requirements satisfied; 1120 crate tests green; zero new crate dependencies.
-- Next milestone is undefined — start with `/gsd-new-milestone` (questioning → research → requirements → roadmap). Carry-forward candidates from v1.7 retrospective + `EXPANSION_FRAMEWORK` include: P3 Y học Tý Ngọ Lưu Chú, P5 spatial Phi Tinh (requires user spatial input + Tier-3 `spatial_compose` landing), P6 Tử Vi Đẩu Số, Hỗ Quả (nuclear hexagram, v1.9+), Tier-2 Bazi enrichment of hexagram reading.
+- v1.8 closed the desktop/TUI explanation surfaces, exposed v1.7 I Ching and directional composites to desktop users, removed the carried clippy/formatting debt, tightened `SourceId`, and established a canonical external-review lifecycle. All 9 requirements and release gates passed.
+- Next milestone is undefined. Begin with fresh product questioning and requirements. Candidate directions remain P3 Y học Tý Ngọ Lưu Chú, P5 spatial Phi Tinh, P6 Tử Vi Đẩu Số, Hỗ Quả, and Tier-2 Bazi enrichment; none is implicitly selected by this closeout.
 
 ---
+
+<details>
+<summary>✅ v1.8 Surface & Debt Closure — SHIPPED 2026-08-10</summary>
+
+- [x] Desktop Observatory closure — Evidence Graph, quality gates, and v1.7
+  classical payload surface.
+- [x] TUI Explanation Views closure — four user lenses plus debug-only raw
+  inspection and rendered navigation coverage.
+- [x] Engineering debt closure — warning-free clippy, clean formatting,
+  `SourceId` newtype, and external-review lifecycle.
+- [x] Milestone audit — 9/9 requirements and 6/6 quality gates passed.
+
+Full details: [`milestones/v1.8-ROADMAP.md`](milestones/v1.8-ROADMAP.md) and
+[`milestones/v1.8-MILESTONE-AUDIT.md`](milestones/v1.8-MILESTONE-AUDIT.md).
+
+</details>
 
 <details>
 <summary>✅ v1.7 Kinh Dịch (I-Ching Divination) (Phases 20-25) — SHIPPED 2026-07-19</summary>
@@ -66,6 +83,7 @@ Full details in [`milestones/v1.5-ROADMAP.md`](milestones/v1.5-ROADMAP.md).
 | 23. Thái Tuế / Tam Sát ⇄ Phi Tinh Cross-Link | v1.7 | 3/3 | Complete | 2026-07-16 |
 | 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | v1.7 | 3/3 | Complete | 2026-07-19 |
 | 25. E2E Validation + Golden Cross-Source Verification | v1.7 | 1/1 | Complete | 2026-07-19 |
+| 26. Surface & Debt Closure (bead-driven closeout) | v1.8 | 3/3 tracks | Complete | 2026-08-10 |
 
 ## Cross-Cutting Constraints (carry-forward)
 
@@ -79,4 +97,4 @@ Full details in [`milestones/v1.5-ROADMAP.md`](milestones/v1.5-ROADMAP.md).
 
 ---
 
-*Last updated: 2026-07-19 — v1.7 Kinh Dịch (I-Ching Divination) milestone SHIPPED. 6/6 phases, 14/14 plans, 15/15 requirements complete; 1120 crate tests green; zero new deps. Next milestone undefined — start with `/gsd-new-milestone`.*
+*Last updated: 2026-08-10 — v1.8 Surface & Debt Closure shipped. 3/3 tracks, 9/9 requirements, and 6/6 release gates complete. Next milestone undefined.*

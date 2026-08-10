@@ -1,7 +1,9 @@
 <script lang="ts">
     import { selectedDate } from '$lib/stores';
-    import { fetchDayBundle } from '$lib/api/invoke';
+    import { fetchClassicalSurface, fetchDayBundle } from '$lib/api/invoke';
     import type {
+        ClassicalSurfaceDto,
+        CompassDirectionDto,
         DayBundleDto,
         DayTabooDto,
         RuleEvidenceDto,
@@ -15,10 +17,32 @@
     let loading = true;
     let error: string | null = null;
     let loadToken = 0;
+    let classicalSurface: ClassicalSurfaceDto | null = null;
+    let classicalLoading = true;
+    let classicalError: string | null = null;
+    let classicalLoadToken = 0;
+    let castingIChing = false;
+    let selectedChiHour = 0;
+
+    const chiHours = [
+        'Tý (23:00–01:00)',
+        'Sửu (01:00–03:00)',
+        'Dần (03:00–05:00)',
+        'Mão (05:00–07:00)',
+        'Thìn (07:00–09:00)',
+        'Tỵ (09:00–11:00)',
+        'Ngọ (11:00–13:00)',
+        'Mùi (13:00–15:00)',
+        'Thân (15:00–17:00)',
+        'Dậu (17:00–19:00)',
+        'Tuất (19:00–21:00)',
+        'Hợi (21:00–23:00)',
+    ];
 
     $: {
         if ($selectedDate) {
             loadDayBundle($selectedDate);
+            loadClassicalSurface($selectedDate);
         }
     }
 
@@ -50,6 +74,73 @@
         } finally {
             if (token === loadToken) loading = false;
         }
+    }
+
+    async function loadClassicalSurface(date: Date) {
+        const token = ++classicalLoadToken;
+        classicalLoading = true;
+        castingIChing = false;
+        classicalError = null;
+        classicalSurface = null;
+
+        try {
+            const nextSurface = await fetchClassicalSurface(
+                date.getDate(),
+                date.getMonth() + 1,
+                date.getFullYear(),
+            );
+            if (token === classicalLoadToken) classicalSurface = nextSurface;
+        } catch (e: unknown) {
+            if (token !== classicalLoadToken) return;
+            console.error('Failed to load classical surfaces', e);
+            classicalError = e instanceof Error ? e.message : 'Failed to load classical data';
+        } finally {
+            if (token === classicalLoadToken) classicalLoading = false;
+        }
+    }
+
+    async function castIChing() {
+        const date = $selectedDate;
+        if (!date) return;
+        const token = ++classicalLoadToken;
+        castingIChing = true;
+        classicalError = null;
+
+        try {
+            const nextSurface = await fetchClassicalSurface(
+                date.getDate(),
+                date.getMonth() + 1,
+                date.getFullYear(),
+                selectedChiHour,
+            );
+            if (token === classicalLoadToken) classicalSurface = nextSurface;
+        } catch (e: unknown) {
+            if (token !== classicalLoadToken) return;
+            console.error('Failed to cast I Ching', e);
+            classicalError = e instanceof Error ? e.message : 'Failed to cast I Ching';
+        } finally {
+            if (token === classicalLoadToken) castingIChing = false;
+        }
+    }
+
+    function directionLabel(direction: CompassDirectionDto): string {
+        return {
+            north: 'Bắc',
+            northeast: 'Đông Bắc',
+            east: 'Đông',
+            southeast: 'Đông Nam',
+            south: 'Nam',
+            southwest: 'Tây Nam',
+            west: 'Tây',
+            northwest: 'Tây Bắc',
+        }[direction];
+    }
+
+    function reviewedInterpretation(value: string): string {
+        if (value.includes('PendingExternalReview')) {
+            return 'Diễn giải đang chờ thẩm định từ bản Ngô Tất Tố.';
+        }
+        return value;
     }
 
     function evidenceLabel(evidence?: RuleEvidenceDto | null): string {
@@ -133,6 +224,116 @@
                 </p>
             {/if}
         </div>
+
+        <section class="card-dense mb-6" data-testid="classical-v17-surface">
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+                <div>
+                    <h3 class="text-xl font-mono font-bold">Kinh Dịch &amp; Phương Hướng</h3>
+                    <p class="mt-1 text-xs font-mono text-ink-light">
+                        Mai Hoa Dịch Số · Thái Tuế / Tam Sát · Phi Tinh
+                    </p>
+                </div>
+                {#if classicalSurface}
+                    <span class={severityClass(classicalSurface.direction_cross_link.composite_severity)}>
+                        {classicalSurface.direction_cross_link.composite_severity}
+                    </span>
+                {/if}
+            </div>
+
+            {#if classicalLoading}
+                <div class="text-sm font-mono text-ink-light animate-pulse">Đang nối dữ liệu cổ điển...</div>
+            {:else if classicalError && !classicalSurface}
+                <div class="bg-ky/10 text-ky p-3 font-mono text-sm border border-ky/20">
+                    {classicalError}
+                </div>
+            {:else if classicalSurface}
+                <div class="grid grid-cols-1 2xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-6">
+                    <div>
+                        <div class="flex flex-wrap items-end gap-3 mb-4">
+                            <label class="text-xs font-mono uppercase text-ink-light">
+                                Giờ lập quẻ
+                                <select
+                                    class="mt-1 block bg-parchment border border-ink-border px-3 py-2 text-sm text-ink"
+                                    bind:value={selectedChiHour}
+                                >
+                                    {#each chiHours as label, index}
+                                        <option value={index}>{label}</option>
+                                    {/each}
+                                </select>
+                            </label>
+                            <button
+                                class="border border-ink bg-ink px-4 py-2 text-sm font-mono text-parchment disabled:opacity-50"
+                                disabled={castingIChing}
+                                on:click={castIChing}
+                            >
+                                {castingIChing ? 'Đang lập quẻ...' : 'Lập quẻ theo giờ'}
+                            </button>
+                        </div>
+
+                        {#if classicalSurface.iching_cast}
+                            <div class="border border-ink-border bg-parchment-dark/30 p-4" data-testid="iching-cast-result">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div>
+                                        <div class="text-xs font-mono uppercase text-ink-light">Chủ quẻ → Biến quẻ</div>
+                                        <div class="mt-1 text-lg font-bold">
+                                            {classicalSurface.iching_cast.chu_hexagram_vi_name}
+                                            → {classicalSurface.iching_cast.bien_hexagram_vi_name}
+                                        </div>
+                                    </div>
+                                    <span class={qualityClass(classicalSurface.iching_cast.cat_hung_summary)}>
+                                        {classicalSurface.iching_cast.cat_hung_summary} · Hào {classicalSurface.iching_cast.moving_line}
+                                    </span>
+                                </div>
+                                <p class="mt-3 text-sm leading-relaxed text-ink-light">
+                                    {reviewedInterpretation(classicalSurface.iching_cast.chu_hexagram_thoai_tu)}
+                                </p>
+                                <div class="mt-3 text-xs font-mono text-ink-light">
+                                    Thể {classicalSurface.iching_cast.the_dung.the_element}
+                                    · Dụng {classicalSurface.iching_cast.the_dung.dung_element}
+                                    · {classicalSurface.iching_cast.the_dung.relation}
+                                </div>
+                            </div>
+                        {:else}
+                            <div class="border border-dashed border-ink-border p-4 text-sm text-ink-light">
+                                Chọn một giờ rồi lập quẻ. Hệ thống không tự suy diễn giờ hỏi.
+                            </div>
+                        {/if}
+                    </div>
+
+                    <div>
+                        <p class="mb-3 text-sm leading-relaxed text-ink-light">
+                            {classicalSurface.direction_cross_link.summary_vi}
+                        </p>
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2" data-testid="direction-cross-link-grid">
+                            {#each classicalSurface.direction_cross_link.cells as cell}
+                                <div class="border border-ink-border p-3 text-xs">
+                                    <div class="flex items-center justify-between gap-2 font-mono">
+                                        <span class="font-bold">{directionLabel(cell.direction)}</span>
+                                        <span class={severityClass(cell.severity)}>{cell.agreement ?? 'một nguồn'}</span>
+                                    </div>
+                                    {#if cell.khcbppt}
+                                        <div class="mt-2 text-ink-light">KHCBPPT · {cell.khcbppt.summary_vi}</div>
+                                    {/if}
+                                    {#if cell.huyen_khong}
+                                        <div class="mt-2 text-ink-light">
+                                            Phi Tinh · Niên {cell.huyen_khong.annual_star}, Nguyệt {cell.huyen_khong.monthly_star}
+                                        </div>
+                                        {#if cell.huyen_khong.safety_hint_vi}
+                                            <div class="mt-1 text-tranh">{cell.huyen_khong.safety_hint_vi}</div>
+                                        {/if}
+                                    {/if}
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
+                </div>
+                {#if classicalError}
+                    <div class="mt-3 text-sm text-ky">{classicalError}</div>
+                {/if}
+            {:else}
+                <div class="text-sm text-ink-light italic">Không có dữ liệu cổ điển cho ngày này.</div>
+            {/if}
+        </section>
 
         <div class="grid grid-cols-1 2xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)] gap-6">
             <div class="space-y-6">

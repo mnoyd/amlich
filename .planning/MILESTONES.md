@@ -1,5 +1,40 @@
 # Milestones: Amlich Almanac Correctness Audit
 
+## v1.8 Surface & Debt Closure (Shipped: 2026-08-10)
+
+**Delivered:** Completed the desktop Observatory and TUI explanation surfaces,
+made the v1.7 I Ching and Thái Tuế/Tam Sát ⇄ Phi Tinh payloads visible in the
+desktop Almanac Inspector, removed carried clippy/formatting debt, converted
+`SourceId` into a serde-transparent newtype, and established the canonical
+external-review deferral lifecycle. All 9 requirements and 6 release gates
+passed.
+
+**Tracks completed:** 3/3 — Desktop Observatory, TUI Explanation Views,
+Engineering Debt Closure.
+
+**Key accomplishments:**
+
+- Evidence Graph and four TUI user lenses are complete, with raw semantic
+  inspection retained behind developer/debug affordances.
+- Desktop uses canonical core enrichment helpers through a typed Tauri command;
+  direction evidence loads automatically and I Ching requires an explicit
+  hour selection.
+- `SourceId` now provides a real Rust type boundary without changing serialized
+  JSON strings.
+- External-review cases have an owner, due date, provisional behavior, and
+  explicit review/resolution/escalation workflow.
+- Full workspace Rust tests, strict clippy, formatting, JavaScript tests,
+  Svelte type-check, and production desktop build are green.
+
+**Audit:** `.planning/milestones/v1.8-MILESTONE-AUDIT.md` — status `passed`,
+9/9 requirements, 3/3 tracks, 6/6 release gates, zero implementation gaps.
+
+**External dependencies:** Domain-review deferrals remain due 2026-12-31 and
+are governed by `docs/architecture/external-review-lifecycle.md`; they are not
+v1.8 code debt.
+
+---
+
 ## v1.7 Kinh Dịch (I-Ching Divination) (Shipped: 2026-07-19)
 
 **Delivered:** Added the P2 Kinh Dịch pillar — Mai Hoa Dịch Số casting (`cast_mai_hoa`) + Biến Quẻ derivation + Thể/Dụng classification + Ngô Tất Tố 64-hexagram corpus + `IChingEvaluator` (Tier-0, no birth data required) — as a new Tier-0 reasoning capability, plus the Thái Tuế / Tam Sát ⇄ Phi Tinh read-only directional cross-link (`build_direction_cross_link`) carrying dual-source provenance (KHCBPPT + Huyền-Không). All 15 requirements satisfied; full crate 1120 tests pass; zero new crate dependencies.

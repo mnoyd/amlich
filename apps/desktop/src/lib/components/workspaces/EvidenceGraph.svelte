@@ -164,6 +164,7 @@
         almanac_rule: 'Quy tắc lịch',
         insight: 'Insight',
         derived: 'Phái sinh',
+        iching: 'Kinh Dịch',
     };
 
     function parseOptionalInt(value: string): number | null {

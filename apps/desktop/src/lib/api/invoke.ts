@@ -4,7 +4,7 @@ import type {
     BaziReportDto, BaziDerivedReportDto, HourSelectionReportDto,
     RulesetCatalogEntryDto, RecommendationPackCatalogEntryDto,
     HolidayDto, PersonalDayReportDto, PersonalDayMatrixReportDto,
-    TietKhiYearDto, DebugSemanticGraphResponseDto
+    TietKhiYearDto, DebugSemanticGraphResponseDto, ClassicalSurfaceDto
 } from './types';
 
 export type DayRangeRequest = {
@@ -15,6 +15,15 @@ export type DayRangeRequest = {
 
 export async function fetchDayBundle(day: number, month: number, year: number): Promise<DayBundleDto> {
     return invoke('get_day_bundle', { day, month, year });
+}
+
+export async function fetchClassicalSurface(
+    day: number,
+    month: number,
+    year: number,
+    chiHourIndex?: number,
+): Promise<ClassicalSurfaceDto> {
+    return invoke('get_classical_surface', { day, month, year, chiHourIndex });
 }
 
 export async function fetchDayRange(request: DayRangeRequest): Promise<DayRangeDto> {

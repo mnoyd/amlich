@@ -168,11 +168,10 @@ pub struct RitualMetadata {
 /// is derived from the corpus position (e.g. `ritual.van-khan-tet-don-gian.offering.0`),
 /// NOT hashed from `name_vi` — see Pitfall P-3 / Don't-Hand-Roll in 19-RESEARCH.md.
 ///
-/// `source_id` is typed as `crate::sources::SourceId` (a `String` alias) per
-/// INT-07's literal SC text "source_id: SourceId" (REQUIREMENTS.md:31). The
-/// underlying value MUST equal one of `crate::sources::SOURCE_*` — enforced
-/// by the constructor (`debug_assert!(!source_id.is_empty())`) + the
-/// `tests/source_id_guard.rs` grep guard on bare-string literals.
+/// `source_id` is typed as `crate::sources::SourceId` per INT-07's literal SC
+/// text "source_id: SourceId" (REQUIREMENTS.md:31). The underlying value MUST
+/// equal one of `crate::sources::SOURCE_*`; construction rejects empty values
+/// and `tests/source_id_guard.rs` rejects bare production literals.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct OfferingRef {
@@ -187,9 +186,8 @@ pub struct OfferingRef {
 }
 
 impl OfferingRef {
-    /// Ergonomic constructor accepting `String` (so call-sites can pass
-    /// `SOURCE_*.to_string()` directly without conversion). Internally
-    /// stored as `crate::sources::SourceId` (a `String` alias).
+    /// Ergonomic constructor accepting a string and wrapping it as a typed
+    /// source identifier without changing the serialized contract.
     pub fn new(
         offering_id: String,
         name_vi: String,
@@ -438,7 +436,7 @@ mod tests {
         );
 
         // INT-07 typed-source_id discipline: source_id is `crate::sources::SourceId`
-        // (a String alias). Confirm compile-time type identity.
+        // Confirm compile-time type identity.
         let _: &crate::sources::SourceId = &r.source_id;
         assert_eq!(r.source_id.as_str(), "vn-folk-ritual");
     }
@@ -452,7 +450,7 @@ mod tests {
         let metadata = RitualMetadata {
             cross_source_curing: Some(vec![CrossSourceCure {
                 element_cure_for: "Kim".to_string(),
-                source_id: SOURCE_HUYEN_KHONG.to_string(),
+                source_id: crate::sources::SourceId::new(SOURCE_HUYEN_KHONG),
                 rationale_vi: "Huyền Không Ngũ Hành tương sinh: Kim sinh Thủy".to_string(),
             }]),
         };

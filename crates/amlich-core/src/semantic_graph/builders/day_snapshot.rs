@@ -698,7 +698,7 @@ impl DaySnapshotGraphBuilder {
                 .map(|cures| {
                     cures
                         .iter()
-                        .map(|c| (c.source_id.clone(), c.element_cure_for.clone()))
+                        .map(|c| (c.source_id.as_str().to_string(), c.element_cure_for.clone()))
                         .collect()
                 })
                 .unwrap_or_default();

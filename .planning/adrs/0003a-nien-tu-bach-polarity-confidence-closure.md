@@ -5,6 +5,9 @@ Date: 2026-07-15
 Deciders: Phase 16 Foundation
 Supersedes: ADR-0003 §6 (Confidence Acknowledgment)
 
+External-review markers in this ADR follow
+[`docs/architecture/external-review-lifecycle.md`](../../docs/architecture/external-review-lifecycle.md).
+
 ---
 
 ## Context

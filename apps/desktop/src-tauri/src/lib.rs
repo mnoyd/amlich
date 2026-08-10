@@ -69,6 +69,16 @@ struct MonthData {
     days: Vec<DayCell>,
 }
 
+/// User-facing projection of the two additive v1.7 snapshot surfaces.
+///
+/// The fields deliberately retain the canonical core DTOs so the desktop does
+/// not reinterpret or recompute I Ching and directional evidence.
+#[derive(Debug, Serialize, Clone)]
+struct ClassicalSurfaceDto {
+    iching_cast: Option<amlich_core::iching::IChingCastSummary>,
+    direction_cross_link: amlich_core::reasoning::DirectionCrossLinkSummary,
+}
+
 #[derive(Debug, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct InstallContext {
@@ -225,6 +235,43 @@ fn get_day_info(day: i32, month: i32, year: i32) -> Result<DayInfoDto, String> {
 fn get_day_bundle(day: i32, month: i32, year: i32) -> Result<DayBundleDto, String> {
     validate_date_parts(day, month)?;
     get_day_bundle_for_date(day, month, year, &[], None)
+}
+
+#[tauri::command]
+fn get_classical_surface(
+    day: i32,
+    month: i32,
+    year: i32,
+    chi_hour_index: Option<u8>,
+) -> Result<ClassicalSurfaceDto, String> {
+    validate_date_parts(day, month)?;
+    if let Some(index) = chi_hour_index {
+        if index > 11 {
+            return Err(format!("chi_hour_index must be in 0..=11; got {index}"));
+        }
+    }
+
+    let snapshot = amlich_core::calculate_day_snapshot(day, month, year);
+    let direction_enriched = amlich_core::enrich_day_snapshot_with_direction_cross_link(
+        &snapshot,
+        amlich_core::reasoning::DATE_ONLY_BIRTH_CHI_INDEX,
+    )?;
+    let direction_cross_link = direction_enriched
+        .direction_cross_link
+        .ok_or_else(|| "direction cross-link enrichment returned no summary".to_string())?;
+
+    let iching_cast = match chi_hour_index {
+        Some(index) => {
+            let query = amlich_core::iching::IChingQuery::from_snapshot(&snapshot, None, index)?;
+            amlich_core::enrich_day_snapshot_with_iching(&snapshot, query)?.iching_cast
+        }
+        None => None,
+    };
+
+    Ok(ClassicalSurfaceDto {
+        iching_cast,
+        direction_cross_link,
+    })
 }
 
 #[tauri::command]
@@ -455,6 +502,7 @@ pub fn run() {
             get_day_insight,
             get_day_info,
             get_day_bundle,
+            get_classical_surface,
             get_day_range,
             get_bazi_report,
             get_bazi_derived_report,
@@ -639,6 +687,42 @@ mod tests {
         assert_eq!(info.solar.date_string, "2024-02-10");
         assert_eq!(insight.solar.date_string, "2024-02-10");
         assert_eq!(info.lunar.date_string, insight.lunar.date_string);
+    }
+
+    #[test]
+    fn classical_surface_exposes_direction_data_without_implicit_iching_cast() {
+        let surface = get_classical_surface(10, 2, 2024, None).expect("classical surface");
+
+        assert!(surface.iching_cast.is_none());
+        assert_eq!(surface.direction_cross_link.cells.len(), 8);
+        assert!(!surface.direction_cross_link.summary_vi.is_empty());
+        assert!(surface
+            .direction_cross_link
+            .cells
+            .iter()
+            .any(|cell| cell.khcbppt.is_some()));
+        assert!(surface
+            .direction_cross_link
+            .cells
+            .iter()
+            .any(|cell| cell.huyen_khong.is_some()));
+    }
+
+    #[test]
+    fn classical_surface_casts_iching_only_for_an_explicit_hour() {
+        let surface = get_classical_surface(10, 2, 2024, Some(0)).expect("classical surface");
+        let cast = surface.iching_cast.expect("explicit cast");
+
+        assert!(!cast.chu_hexagram_vi_name.is_empty());
+        assert!(!cast.bien_hexagram_vi_name.is_empty());
+        assert!((1..=6).contains(&cast.moving_line));
+        assert_eq!(cast.cast.chi_hour_index, 0);
+        assert!(cast.question_vi.is_none());
+    }
+
+    #[test]
+    fn classical_surface_rejects_invalid_hour_index() {
+        assert!(get_classical_surface(10, 2, 2024, Some(12)).is_err());
     }
 
     #[test]

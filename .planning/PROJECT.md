@@ -2,7 +2,7 @@
 
 ## Current State
 
-The project has shipped eight milestones:
+The project has shipped nine milestones:
 
 - `v1.0` KHCBPPT alignment complete (full validator + zero-divergence audit cycle).
 - `v1.1` Foundation extensions complete and accepted (Xung Hop extensions, Tang Can, Tiet Khi regression fix).
@@ -12,6 +12,7 @@ The project has shipped eight milestones:
 - `v1.5` Eastern Knowledge Expansion complete (Văn khấn `vn-folk-ritual` corpus + lookup APIs; Phi Tinh `huyen-khong` Vận/Niên/Nguyệt overlays + 81-cell aspects + safety hints; additive `DaySnapshot` integration; 886 tests pass).
 - `v1.6` Eastern Knowledge Completion complete (daily Phi Tinh 日紫白 layer; `RecommendsOffering` first-class semantic-graph node; v1.5 review/confidence tech debt closed — RIT-11 reviewer field across 60 entries + ADR-0003 pre-1984 confidence boost; 922 tests pass).
 - `v1.7` Kinh Dịch (I-Ching Divination) complete (P2 Kinh Dịch pillar: Mai Hoa Dịch Số casting + Biến Quẻ + Thể/Dụng + 64-hexagram Ngô Tất Tố corpus + `IChingEvaluator` Tier-0 reasoning; Thái Tuế / Tam Sát ⇄ Phi Tinh read-only directional cross-link; 1120 tests pass; zero new crate dependencies).
+- `v1.8` Surface & Debt Closure complete (desktop/TUI explanation surfaces; user-facing I Ching and direction cross-link; warning-free workspace; true `SourceId` newtype; external-review lifecycle; 9/9 requirements).
 
 Canonical status and acceptance evidence are archived in milestone artifacts:
 
@@ -21,12 +22,13 @@ Canonical status and acceptance evidence are archived in milestone artifacts:
 - `.planning/milestones/v1.5-ROADMAP.md` / `v1.5-REQUIREMENTS.md` / `v1.5-MILESTONE-AUDIT.md`
 - `.planning/milestones/v1.6-ROADMAP.md` / `v1.6-REQUIREMENTS.md` / `v1.6-MILESTONE-AUDIT.md`
 - `.planning/milestones/v1.7-ROADMAP.md` / `v1.7-REQUIREMENTS.md` / `v1.7-MILESTONE-AUDIT.md` (audit produced 2026-07-20 as retrospective backfill — status `tech_debt`; 15/15 satisfied, 0 gaps)
+- `.planning/milestones/v1.8-ROADMAP.md` / `v1.8-REQUIREMENTS.md` / `v1.8-MILESTONE-AUDIT.md` (9/9 requirements, 6/6 release gates)
 
 ## Core Value
 
 Every almanac subsystem in amlich must produce output that matches its canonical classical source (KHCBPPT for the original engine; `vn-folk-ritual` for ritual text; *Thẩm Thị Huyền Không Học* for Phi Tinh; *Kinh Dịch Trọn Bộ* (Ngô Tất Tố) for hexagram text; *Mai Hoa Dịch Số* (Thiệu Khang Tiết) for Mai Hoa casting) for the 2020-2030 date range, with test-backed and traceable evidence. v1.5 expanded "canonical source" from a single text to a registered taxonomy of source_ids, each enforced by module-level `pub const` and CI grep guards; v1.7 added the Kinh Dịch / Mai Hoa Dịch Số pair as the first non-almanac-classical-text sources.
 
-## Validated Capabilities (after v1.7)
+## Validated Capabilities (after v1.8)
 
 - ✓ KHCBPPT-aligned core calendar (v1.0–v1.1)
 - ✓ Ten Gods + Kua + Dai Van calculators (v1.2–v1.3)
@@ -44,6 +46,7 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 - ✓ Semantic-graph Hexagram nodes (chu + biến) wired via `LocatedAt` / `Transforms` edges + composite Direction fact node (v1.7, INT-11)
 - ✓ Additive `DaySnapshot.iching_cast` + `DaySnapshot.direction_cross_link` with combined-strip v1.6→v1.7 backward-compat round-trip (v1.7, INT-12)
 - ✓ Runtime-invariant baseline guards: cargo dep-tree shape locked (`cargo_dependency_tree_unchanged_from_v16`) + INT-13 cross-source discipline locked (`int13_golden_dataset_cross_source_discipline_holds`) (v1.7 Phase 25)
+- ✓ Desktop/TUI explanation surfaces, desktop I Ching + directional cross-link projection, typed `SourceId`, and external-review lifecycle (v1.8)
 
 ## Out of Scope (carry-forward)
 
@@ -54,11 +57,15 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 - **User-selectable casting variants (số vật / âm thanh)** — out of scope; v1.7 ships Mai Hoa time-numerology only.
 - **Coin / yarrow / RNG casting** — different tradition; breaks determinism; would need a third `source_id`.
 
-## Current Milestone: v1.8 Surface & Debt Closure
+## Completed Milestone: v1.8 Surface & Debt Closure
 
 **Goal:** Land v1.7's backend power (IChing pillar + Thái Tuế/Tam Sát cross-link) into the desktop + TUI surfaces, close the two in-flight P1/P2 UX epics (`amlich-00j` desktop observatory, `amlich-5no` TUI explanation views), and retire the engineering debt carried since v1.5.
 
 **Theme:** Surface what v1.7 built. Close epics that are 80%+ done. Pay down pre-existing engineering debt before adding new backend pillars.
+
+**Result:** Shipped 2026-08-10. All three tracks, all nine requirements, and
+all six release gates passed. See
+`.planning/milestones/v1.8-MILESTONE-AUDIT.md`.
 
 **Target tracks:**
 
@@ -103,7 +110,7 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 | ADR-0004: daily Phi Tinh starting-star convention | 6 Trung Khí pivots with Dương thuận / Âm nghịch (intentionally opposite annual polarity); Giáp-Tý-as-seed with prior-pivot fall-back | ✓ Confirmed in v1.6 (FS-16/17) |
 | Typed `DeferralMarker` / `ExternalReviewPending` schema fields | By-design domain-expert deferrals tracked in-code, not silently corrected; due 2026-12-31 | ✓ Confirmed in v1.6 (FND-08, RIT-14); reused v1.7 (AF-05 hexagram corpus + Tam Sát page citation) |
 | `Offering` first-class node + `RecommendsOffering` edge | Promotes offerings from flat string list to graph-native with dual-source provenance reusing v1.5 dedup logic | ✓ Confirmed in v1.6 (INT-07/08/09) |
-| `SourceId = String` transparent alias (not true newtype) | Preserves DEC-0023 const discipline while satisfying INT-07 literal text; future phases may tighten | — Pending (documented decision, future-tightenable; carry-forward from v1.6) |
+| `SourceId` true newtype with transparent serde | Preserve the wire string while preventing unrelated Rust strings from crossing source boundaries | ✓ Confirmed in v1.8 (`amlich-t757.1`) |
 | ADR-0005: `HexagramEntry` JSON schema v1 with `deny_unknown_fields` | CRIT-1 schema-lock-first gate for 64-hexagram corpus authoring (× 7 amplification — 448 text fields) | ✓ Confirmed in v1.7 (FND-11; Phase 20 → 21) |
 | ADR-0006: Mai Hoa casting convention (Tiên Thiên arrangement + lunar input + `((n-1)%k)+1`) | Pins Thiệu Khang Tiết arrangement + CRIT-2 remainder-zero boundary-safe reduction; classical + modern (nhantu.net) two-source pin | ✓ Confirmed in v1.7 (FND-10; ICH-02 boundary test) |
 | ADR-0007: cross-link CRIT-3 carve-out (`reasoning/direction_composite.rs` + composite `rule.composite.direction_cross_link` envelope) | Read-only placement preserves CRIT-3 isolation; composite envelope is the only pattern compatible with the grep guard | ✓ Confirmed in v1.7 (FND-10; XLK-03 closure) |
@@ -131,13 +138,15 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 
 </details>
 
-## Known Gaps (after v1.7)
+## Known Gaps (after v1.8)
 
-- **64-hexagram Ngô Tất Tố interpretive text** (AF-05) — structural fields populated; `thoai_tu` / `hao_tu` / `cat_hung` carrying `[PendingExternalReview]` placeholders pending domain-expert verification. Tracked in `data/iching/provenance_audit.md` (64 rows, all ExternalReviewPending).
-- **Tam Sát KHCBPPT page-level citation** — `data/almanac/tam_sat_provenance.md` carries the locked rule + mapping + explicit `PendingExternalReview` marker per ADR-0006 §5.
-- **`SourceId = String` transparent alias** (carry-forward from v1.6) — documented future-tightenable.
-- **~96 cargo clippy/fmt warnings on master** (carry-forward from v1.6 baseline — same count; v1.7 did not introduce new debt).
+External-review gaps follow the canonical lifecycle in
+[`docs/architecture/external-review-lifecycle.md`](../docs/architecture/external-review-lifecycle.md).
+
+- **64-hexagram Ngô Tất Tố interpretive text** (AF-05) — structural fields populated; `thoai_tu` / `hao_tu` / `cat_hung` remain pending domain-expert verification in `crates/amlich-core/data/iching/provenance_audit.md`.
+- **Tam Sát KHCBPPT page-level citation** — the locked rule and mapping remain operational while the exact edition/page pin awaits external review.
+- **1960 Trung Nguyên and ADR-0004 page-pin reviews** — provisional behavior remains explicitly bounded and registered in the lifecycle document.
 
 ---
 
-*Last updated: 2026-07-20 — milestone v1.8 Surface & Debt Closure started*
+*Last updated: 2026-08-10 — milestone v1.8 Surface & Debt Closure shipped and audited*

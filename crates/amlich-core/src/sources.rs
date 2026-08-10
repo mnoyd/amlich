@@ -4,6 +4,9 @@
 //! crate MUST use one of these constants. Bare string literals are forbidden
 //! in `src/` outside this module (enforced by `tests/source_id_guard.rs`).
 
+use serde::{Deserialize, Serialize};
+use std::fmt;
+
 /// Khâm Định Hiệp Kỷ Biện Phương Thư — primary Vietnamese almanac reference.
 pub const SOURCE_KHCBPPT: &str = "khcbppt";
 
@@ -31,20 +34,69 @@ pub const SOURCE_KINH_DICH: &str = "kinh-dich";
 /// Mai Hoa Dịch Số — Thiệu Khang Tiết casting algorithm (new in v1.7).
 pub const SOURCE_MAI_HOA_DICH_SO: &str = "mai-hoa-dich-so";
 
-/// Typed alias for `source_id` fields on semantic-graph / corpus types.
+/// Typed identifier for a classical or derived provenance source.
 ///
-/// Zero-cost newtype over `String` introduced in Phase 19-01 to satisfy
-/// INT-07's literal "source_id: SourceId" discipline. The underlying
-/// representation is still `String` (consistent with `tests/source_id_guard.rs`,
-/// which greps for bare-string literals across `src/` — the alias is a
-/// transparent type marker, not a semantic constraint). Future phases MAY
-/// tighten this into a true newtype that enforces `SOURCE_*` membership at
-/// construction, but for now it is documentation-only.
-///
-/// All call-sites continue to use `pub const SOURCE_*: &str` from this module
-/// and `.to_string()` them into `SourceId` values — the discipline is
-/// unchanged.
-pub type SourceId = String;
+/// The transparent serde representation preserves the existing JSON string
+/// contract while preventing source identifiers from being confused with
+/// unrelated strings inside Rust code.
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct SourceId(String);
+
+impl SourceId {
+    /// Construct a non-empty source identifier.
+    pub fn new(value: impl Into<String>) -> Self {
+        let value = value.into();
+        assert!(!value.is_empty(), "SourceId must not be empty");
+        Self(value)
+    }
+
+    /// Borrow the source identifier as text.
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+
+    /// Consume the wrapper and return its string representation.
+    pub fn into_inner(self) -> String {
+        self.0
+    }
+}
+
+impl AsRef<str> for SourceId {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl fmt::Display for SourceId {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(self.as_str())
+    }
+}
+
+impl From<String> for SourceId {
+    fn from(value: String) -> Self {
+        Self::new(value)
+    }
+}
+
+impl From<&str> for SourceId {
+    fn from(value: &str) -> Self {
+        Self::new(value)
+    }
+}
+
+impl PartialEq<str> for SourceId {
+    fn eq(&self, other: &str) -> bool {
+        self.as_str() == other
+    }
+}
+
+impl PartialEq<&str> for SourceId {
+    fn eq(&self, other: &&str) -> bool {
+        self.as_str() == *other
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -65,10 +117,25 @@ mod tests {
     }
 
     #[test]
-    fn source_id_alias_is_string() {
-        // Phase 19 INT-07: SourceId is a zero-cost newtype over String.
-        let s: crate::sources::SourceId = crate::sources::SOURCE_VN_FOLK_RITUAL.to_string();
-        let s_str: &str = s.as_str();
-        assert_eq!(s_str, "vn-folk-ritual");
+    fn source_id_is_a_transparent_string_newtype() {
+        let source_id = SourceId::new(SOURCE_VN_FOLK_RITUAL);
+
+        assert_eq!(source_id.as_str(), "vn-folk-ritual");
+        assert_eq!(source_id.as_ref(), "vn-folk-ritual");
+        assert_eq!(source_id.to_string(), "vn-folk-ritual");
+        assert_eq!(
+            serde_json::to_string(&source_id).unwrap(),
+            "\"vn-folk-ritual\""
+        );
+        assert_eq!(
+            serde_json::from_str::<SourceId>("\"vn-folk-ritual\"").unwrap(),
+            source_id
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "SourceId must not be empty")]
+    fn source_id_rejects_empty_construction() {
+        SourceId::new("");
     }
 }

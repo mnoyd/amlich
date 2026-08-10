@@ -66,6 +66,10 @@ This verse appears in *Thẩm Thị Huyền Không Học* (沈氏玄空學) by T
 
 **Note that exact page-level citation is deferred per Phase 16 deferral discipline** (mirrors the 1960 Trung Nguyên `PendingExternalReview` marker in ADR-0003a §4). A numbered edition of *Thẩm Thị Huyền Không Học* is not located in the open Vietnamese-language references reviewed for Phase 18 research; the three Vietnamese-language modern references (phongthuycaivan.org, phongthuyhocvungtau.com, phongthuyphamsuu.com) all cite the classical text by chapter + verse name only, without page numbers. The chapter + verse citation IS achievable from the open references; the exact page awaits a numbered-edition lookup. This deferral does not weaken the algorithm itself — the convention is consistent across all three independent secondary modern sources and across the classical-text-by-chapter citation — but the audit trail acknowledges that classical page authority remains "by chapter" pending physical or digital access to the numbered edition.
 
+Review owner: `external-huyen-khong-reviewer`. Expected review date:
+2026-12-31. Review, resolution, and escalation follow
+[`docs/architecture/external-review-lifecycle.md`](../../docs/architecture/external-review-lifecycle.md).
+
 ### 6. Alternative conventions considered — explicitly REJECTED
 
 The FS-17 success criterion mandates listing at least three alternative daily starting-star conventions that were explicitly considered and rejected. Each carries the literal `REJECTED` token so a future reader can audit the reasoning trail.

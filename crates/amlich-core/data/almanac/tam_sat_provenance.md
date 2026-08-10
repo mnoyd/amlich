@@ -4,6 +4,10 @@
 **Module:** `crates/amlich-core/src/almanac/tam_sat.rs`
 **Requirement:** XLK-02 (Phase 23 Plan 23-01 Task 2)
 **Last reviewed:** 2026-07-16
+**Review owner:** `external-khcbppt-reviewer`
+**Expected review date:** 2026-12-31
+
+Lifecycle policy: [`docs/architecture/external-review-lifecycle.md`](../../../../docs/architecture/external-review-lifecycle.md).
 
 ## Rule statement
 
@@ -76,6 +80,8 @@ Once verified, the upgrade lands as:
 2. Update this ledger's **Status** line to `Confirmed — KHCBPPT Quyển N, trang M`.
 3. Supersede with an ADR amendment if the citation reveals a sub-school
    variance (mirrors `ADR-0006 §5` page-citation deferral pattern).
+4. Follow the canonical lifecycle policy for review evidence, due-date
+   escalation, and synchronized closure of all mirrors.
 
 ## Related artifacts
 

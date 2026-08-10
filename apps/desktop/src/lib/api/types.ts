@@ -896,7 +896,8 @@ export type ReasoningEvidenceSourceFamilyDto =
     | 'axis'
     | 'almanac_rule'
     | 'insight'
-    | 'derived';
+    | 'derived'
+    | 'iching';
 export type ReasoningNodeSeverityDto =
     | 'auspicious'
     | 'inauspicious'
@@ -1503,6 +1504,132 @@ export interface DayBundleDto extends ApiMetaDto {
     contextual_recommendations?: DailyRecommendationsDto | null;
     insight?: DayInsightDto | null;
     upcoming_events: UpcomingEventDto[];
+}
+
+// Canonical v1.7 snapshot surfaces exposed by the desktop command. These
+// mirror amlich-core's IChingCastSummary and DirectionCrossLinkSummary without
+// recomputing or renaming evidence.
+export type TienThienTrigramDto =
+    | 'kien'
+    | 'doai'
+    | 'ly'
+    | 'chan'
+    | 'ton'
+    | 'kham'
+    | 'can'
+    | 'khon';
+export type FiveElementDto = 'moc' | 'hoa' | 'tho' | 'kim' | 'thuy';
+export type TheDungRelationDto =
+    | 'dung_sinh_the'
+    | 'the_khac_dung'
+    | 'dong'
+    | 'the_sinh_dung'
+    | 'dung_khac_the';
+export type CatHungDto = 'cat' | 'binh' | 'hung';
+
+export interface MaiHoaCastDto {
+    lunar_year_branch: number;
+    lunar_month: number;
+    lunar_day: number;
+    chi_hour_index: number;
+    upper_trigram: TienThienTrigramDto;
+    lower_trigram: TienThienTrigramDto;
+    dong_hao: number;
+    chu_que: number;
+}
+
+export interface BienQueDto {
+    upper_trigram: TienThienTrigramDto;
+    lower_trigram: TienThienTrigramDto;
+    king_wen: number;
+    flipped_dong_hao: number;
+}
+
+export interface TheDungClassificationDto {
+    the_trigram: TienThienTrigramDto;
+    dung_trigram: TienThienTrigramDto;
+    dong_hao: number;
+    the_element: FiveElementDto;
+    dung_element: FiveElementDto;
+    relation: TheDungRelationDto;
+    verdict: CatHungDto;
+}
+
+export interface IChingCastSummaryDto {
+    cast: MaiHoaCastDto;
+    bien_que: BienQueDto;
+    the_dung: TheDungClassificationDto;
+    chu_hexagram_vi_name: string;
+    chu_hexagram_thoai_tu: string;
+    bien_hexagram_vi_name: string;
+    bien_hexagram_thoai_tu: string;
+    cat_hung_summary: CatHungDto;
+    moving_line: number;
+    question_vi?: string | null;
+    evidence: ReasoningEvidenceEnvelopeDto[];
+}
+
+export type CompassDirectionDto =
+    | 'north'
+    | 'northeast'
+    | 'east'
+    | 'southeast'
+    | 'south'
+    | 'southwest'
+    | 'west'
+    | 'northwest';
+export type DirectionAgreementDto =
+    | 'agreement'
+    | 'both_silent'
+    | 'khcbppt_only'
+    | 'huyen_khong_only'
+    | 'conflict';
+
+export interface DirectionalThaiTueDto {
+    direction: CompassDirectionDto;
+    conflict_kinds: string[];
+}
+
+export interface DirectionalTabooDto {
+    thai_tue?: DirectionalThaiTueDto | null;
+    tam_sat_branches: string[];
+    sat_phuong_direction?: string | null;
+    severity: ReasoningNodeSeverityDto;
+    summary_vi: string;
+}
+
+export interface HuyenKhongCellDto {
+    direction: CompassDirectionDto;
+    palace_number: number;
+    annual_star: number;
+    monthly_star: number;
+    safety_hint_vi?: string | null;
+    summary_vi: string;
+}
+
+export interface DirectionCellDto {
+    direction: CompassDirectionDto;
+    khcbppt?: DirectionalTabooDto | null;
+    huyen_khong?: HuyenKhongCellDto | null;
+    agreement?: DirectionAgreementDto | null;
+    severity: ReasoningNodeSeverityDto;
+}
+
+export interface DirectionCrossLinkSummaryDto {
+    cross_link_kind: string;
+    cross_link_source: string;
+    date: string;
+    day_chi_index: number;
+    birth_chi_index: number;
+    cells: DirectionCellDto[];
+    summary_vi: string;
+    composite_severity: ReasoningNodeSeverityDto;
+    evidence: ReasoningEvidenceEnvelopeDto[];
+}
+
+export interface ClassicalSurfaceDto {
+    iching_cast?: IChingCastSummaryDto | null;
+    direction_cross_link: DirectionCrossLinkSummaryDto;
 }
 
 export interface DayRangeDto extends ApiMetaDto {

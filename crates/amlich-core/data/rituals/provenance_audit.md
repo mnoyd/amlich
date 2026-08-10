@@ -3,6 +3,8 @@
 **Last updated:** 2026-07-15
 **Entries:** 60 unique ritual IDs across 13 event categories
 
+Lifecycle policy: [`docs/architecture/external-review-lifecycle.md`](../../../../docs/architecture/external-review-lifecycle.md).
+
 This ledger satisfies RIT-11, RIT-14, and RIT-15: one row per corpus entry recording the classical reference, citation page, confidence tier, reviewer disposition, method_of_review, date_reviewed, and outcome. Every `ritual_id` present in the corpus JSON files appears exactly once. Phase 17 closure policy (2026-07-15): no independent classical-Vietnamese reviewer is available in this Claude execution; per source-provenance discipline (DEC-0015/0016, ADR-0001), the project does NOT fabricate reviewer identities. All 60 entries are dispositioned as `ExternalReviewPending` with truthful reason, expected review date `2026-12-31`, and assignee `external-vn-folk-ritual-reviewer`. The disposition is recorded in both the `reviewer` cell (via the `ExternalReviewPending(...)` marker) and the `outcome` column. Method_of_review is `desk-check` (audit-of-record against the existing cited reference); date_reviewed `2026-07-15` is the date the deferral assessment was recorded. Outcome counts: 0 confirmed, 0 corrected, 0 disputed, 60 ExternalReviewPending.
 
 ---
