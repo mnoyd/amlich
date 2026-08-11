@@ -82,7 +82,7 @@ pub enum GoldenConfidence {
 /// Backward compatibility: the field on `KnownDivergence` is `Option<DeferralMarker>`
 /// with `#[serde(default, skip_serializing_if = "Option::is_none")]` so legacy
 /// payloads that omit `deferral` deserialize unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct DeferralMarker {
     /// Reason the divergence is deferred (e.g., independent sources disagree
     /// on the center-star encoding and classical cross-check does not settle it).

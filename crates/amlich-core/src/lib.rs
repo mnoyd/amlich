@@ -29,6 +29,7 @@ pub mod semantic_graph;
 pub mod sources;
 pub mod sun;
 pub mod tietkhi;
+pub mod traditional_wellness;
 pub mod types;
 
 // Re-export main types

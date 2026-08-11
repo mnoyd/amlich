@@ -1418,7 +1418,7 @@ mod tests {
             has_location: false,
             ..BirthCapability::default()
         };
-        assessment.capability = capability.clone();
+        assessment.capability = capability;
         assessment.decision.confidence = DecisionConfidence::Low;
         let explanation = explain_day_assessment(&assessment);
         assert_eq!(explanation.confidence.present_count, 1);

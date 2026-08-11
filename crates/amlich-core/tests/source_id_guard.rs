@@ -18,8 +18,10 @@ const FORBIDDEN_LITERALS: &[&str] = &[
     "\"tam-menh-thong-hoi\"",
     "\"vn-folk-ritual\"",
     "\"huyen-khong\"",
-    "\"kinh-dich\"",       // NEW v1.7 (Phase 20-01, FND-09)
-    "\"mai-hoa-dich-so\"", // NEW v1.7 (Phase 20-01, FND-09)
+    "\"kinh-dich\"",             // NEW v1.7 (Phase 20-01, FND-09)
+    "\"mai-hoa-dich-so\"",       // NEW v1.7 (Phase 20-01, FND-09)
+    "\"shi-er-jing-na-di-zhi\"", // NEW v1.10 (Phase 01-01, ASSOC-01 / SOURCE-01)
+    "\"ty-ngo-luu-chu\"", // NEW v1.10 (Phase 01-01, ADR-0003 — reserved, must never be emitted)
 ];
 
 fn collect_rs_files(dir: &Path, out: &mut Vec<PathBuf>) {
@@ -95,6 +97,49 @@ fn no_bare_source_id_literals_in_production_src() {
     assert!(
         violations.is_empty(),
         "Bare source_id literals found in src/ — replace with crate::sources::SOURCE_* constants:\n{}",
+        violations.join("\n")
+    );
+}
+
+/// v1.10 (Phase 01-01, ADR-0003): the reserved `ty-ngo-luu-chu` source ID must
+/// not appear ANYWHERE under `crates/amlich-core/src/` — not in production
+/// code, not in `#[cfg(test)]` modules, not in doc-comments, not in inline
+/// `//` comments. The first guard above already catches bare `"ty-ngo-luu-chu"`
+/// string literals in production code; this second guard catches the
+/// substring anywhere in the production source tree (including comments)
+/// so that future contributors do not accidentally reference the reserved
+/// identifier even when discussing it.
+///
+/// Scope is `crates/amlich-core/src/` only. The ADR document itself
+/// (`docs/adr/0003-...`) and the planning research
+/// (`.planning/research/LUNAR_HEALTH_RESEARCH.md`) intentionally mention
+/// the term for context and are not in scope.
+#[test]
+fn ty_ngo_luu_chu_substring_never_appears_in_production_source() {
+    let needle = "ty-ngo-luu-chu";
+    let src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut files = Vec::new();
+    collect_rs_files(&src_dir, &mut files);
+
+    let mut violations: Vec<String> = Vec::new();
+    for path in &files {
+        let contents = fs::read_to_string(path).expect("read file");
+        for (lineno, line) in contents.lines().enumerate() {
+            if line.contains(needle) {
+                violations.push(format!(
+                    "{}:{}  substring {} found — ADR-0003 reserves this id and forbids any reference in production source:\n    {}",
+                    path.display(),
+                    lineno + 1,
+                    needle,
+                    line.trim()
+                ));
+            }
+        }
+    }
+
+    assert!(
+        violations.is_empty(),
+        "Forbidden `ty-ngo-luu-chu` substring found under crates/amlich-core/src/. Per ADR-0003 the full Tý Ngọ Lưu Chú source id is reserved for a future, separately reviewed milestone and must never be referenced in production source:\n{}",
         violations.join("\n")
     );
 }

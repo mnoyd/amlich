@@ -34,6 +34,15 @@ pub const SOURCE_KINH_DICH: &str = "kinh-dich";
 /// Mai Hoa Dịch Số — Thiệu Khang Tiết casting algorithm (new in v1.7).
 pub const SOURCE_MAI_HOA_DICH_SO: &str = "mai-hoa-dich-so";
 
+/// Thập nhị kinh nạp địa chi (十二經納地支) — fixed twelve Earthly Branch to
+/// Traditional Channel historical association table. New in v1.10 (Phase
+/// 01-01, ASSOC-01 / SOURCE-01). Source: Xu Feng, *Zhenjiu Daquan*,
+/// volume 5, `論子午流注之法` lines 3–9, section `十二經納地支歌`.
+/// **Not** full Tý Ngọ Lưu Chú (`子午流注`) — the latter is reserved for a
+/// future, separately reviewed milestone and must never be emitted (see
+/// ADR-0003).
+pub const SOURCE_SHI_ER_JING_NA_DI_ZHI: &str = "shi-er-jing-na-di-zhi";
+
 /// Typed identifier for a classical or derived provenance source.
 ///
 /// The transparent serde representation preserves the existing JSON string
@@ -114,6 +123,9 @@ mod tests {
         // v1.7 (Phase 20-01): IChing + Mai Hoa Dịch Số source IDs (FND-09).
         assert_eq!(SOURCE_KINH_DICH, "kinh-dich");
         assert_eq!(SOURCE_MAI_HOA_DICH_SO, "mai-hoa-dich-so");
+        // v1.10 (Phase 01-01): Thập nhị kinh nạp địa chi historical
+        // association (ASSOC-01 / SOURCE-01).
+        assert_eq!(SOURCE_SHI_ER_JING_NA_DI_ZHI, "shi-er-jing-na-di-zhi");
     }
 
     #[test]

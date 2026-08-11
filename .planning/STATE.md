@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: Traditional Wellness Context (Tier 0)
-current_plan: Delivery beads published
-status: milestone_ready
-last_updated: "2026-08-11T12:00:00+07:00"
+current_plan: Phase 01 in progress (selected-hour branch-channel association)
+status: phase_in_progress
+last_updated: "2026-08-11T15:30:00+07:00"
 last_activity: 2026-08-11
 progress:
   total_tracks: 4
@@ -87,7 +87,11 @@ affected records remain `ExternalReviewPending` or unavailable.
 
 ## Next step
 
-The parent epic `amlich-l2zc` is published. Start with either independent HITL
-slice `amlich-l2zc.1` or `amlich-l2zc.2`; `.3` is blocked by both and `.4` is
-blocked by `.3`. The separate future portfolio `amlich-xlag` is deferred until
-2026-09-15 and does not block v1.10.
+The parent epic `amlich-l2zc` is published and bead `.1` is in progress
+(claimed 2026-08-11). Phase 01-01 plan + reviewer pack have been written
+to `.planning/milestones/v1.10-phases/01-hour-branch-channel-association/`;
+the T1–T8 implementation tasks are being executed and the validation
+gates (fmt, clippy, tests) will follow. Beads `.2`, `.3`, `.4` and the
+separate future portfolio `amlich-xlag` remain on their published
+status; `.2` is the parallel Suwen seasonal track, `.3` is blocked by
+both, `.4` is blocked by `.3`.
