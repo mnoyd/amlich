@@ -65,6 +65,10 @@ and Bazi personalization remain explicitly deferred. See the active
 [`research note`](research/LUNAR_HEALTH_RESEARCH.md), and
 [`scope ADR`](../docs/adr/0003-separate-branch-channel-association-from-ty-ngo-luu-chu.md).
 
+Delivery parent: `amlich-l2zc`; independent HITL slices are `amlich-l2zc.1`
+and `.2`, followed by `.3` unified explanation and `.4` audit/release. Future
+pillar portfolio: `amlich-xlag`, deferred until 2026-09-15.
+
 ## Out of Scope (carry-forward)
 
 - **Full Tý Ngọ Lưu Chú / `納甲法`** — requires a separate source, point-opening policy, safety review, and clinical/procedural boundary.

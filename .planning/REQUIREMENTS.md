@@ -1,7 +1,7 @@
 # Requirements: Amlich v1.10 — Traditional Wellness Context (Tier 0)
 
 **Defined:** 2026-08-11
-**Status:** Requirements defined; delivery-bead breakdown awaiting approval
+**Status:** Delivery beads published
 
 The canonical active requirements are maintained in
 [`milestones/v1.10-REQUIREMENTS.md`](milestones/v1.10-REQUIREMENTS.md).
@@ -23,6 +23,9 @@ The canonical active requirements are maintained in
   graph.
 - **VERIFY-01** — Finite goldens, transition/boundary coverage, safety guards,
   compatibility, parity, and full release gates.
+
+Active parent epic: `amlich-l2zc`. Child beads: `.1` and `.2` are independent
+HITL slices; `.3` depends on both; `.4` depends on `.3`.
 
 Research and source boundaries are recorded in
 [`research/LUNAR_HEALTH_RESEARCH.md`](research/LUNAR_HEALTH_RESEARCH.md). The

@@ -14,7 +14,7 @@
 ## Current Focus
 
 - v1.9 closed the multi-dimensional assessment arc: Day Assessment, Hour Ranking, Direction Assessment, and their explanation projections now have separate versioned contracts.
-- **v1.10 Traditional Wellness Context (Tier 0)** is defined and awaiting tracer-bullet issue approval. It narrows the former P3 shorthand to a historical Twelve-Branch Channel Association plus four *Suwen* seasonal profiles; full Tý Ngọ Lưu Chú and all clinical/procedural outputs remain deferred.
+- **v1.10 Traditional Wellness Context (Tier 0)** has published delivery beads under `amlich-l2zc`. It narrows the former P3 shorthand to a historical Twelve-Branch Channel Association plus four *Suwen* seasonal profiles; full Tý Ngọ Lưu Chú and all clinical/procedural outputs remain deferred.
 - Requirements: [`milestones/v1.10-REQUIREMENTS.md`](milestones/v1.10-REQUIREMENTS.md). Research: [`research/LUNAR_HEALTH_RESEARCH.md`](research/LUNAR_HEALTH_RESEARCH.md). Scope ADR: [`../docs/adr/0003-separate-branch-channel-association-from-ty-ngo-luu-chu.md`](../docs/adr/0003-separate-branch-channel-association-from-ty-ngo-luu-chu.md).
 
 ---
@@ -100,4 +100,4 @@ Full details in [`milestones/v1.5-ROADMAP.md`](milestones/v1.5-ROADMAP.md).
 
 ---
 
-*Last updated: 2026-08-11 — v1.10 Traditional Wellness Context requirements defined; bead breakdown awaiting approval.*
+*Last updated: 2026-08-11 — v1.10 Traditional Wellness Context beads published; future pillar portfolio deferred.*

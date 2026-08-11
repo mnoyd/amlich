@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: Traditional Wellness Context (Tier 0)
-current_plan: Requirements and issue design
-status: requirements_defined
+current_plan: Delivery beads published
+status: milestone_ready
 last_updated: "2026-08-11T12:00:00+07:00"
 last_activity: 2026-08-11
 progress:
@@ -87,7 +87,7 @@ affected records remain `ExternalReviewPending` or unavailable.
 
 ## Next step
 
-Approve the four proposed tracer-bullet slices in
-`.planning/milestones/v1.10-ROADMAP.md`, then publish the parent epic and child
-beads. Do not start implementation before the source, safety, and contract
-boundaries in the requirements are accepted.
+The parent epic `amlich-l2zc` is published. Start with either independent HITL
+slice `amlich-l2zc.1` or `amlich-l2zc.2`; `.3` is blocked by both and `.4` is
+blocked by `.3`. The separate future portfolio `amlich-xlag` is deferred until
+2026-09-15 and does not block v1.10.
