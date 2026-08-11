@@ -67,15 +67,16 @@ Mỗi trụ cột khai báo: nguồn (`source_id`), tier yêu cầu, ranh giới
     - Feature: Gợi ý văn khấn dựa trên `DaySnapshot.event_type` hiện có.
 
 ### 2.5. Y Học & Dưỡng Sinh (Lunar Health)
-**Mục tiêu:** Ứng dụng nhịp sinh học âm dương vào chăm sóc sức khỏe.
-- **`source_id`**: `ty-ngo-luu-chu` (Châm cứu kinh điển – *Châm Cứu Đại Thành*); `tiet-khi-duong-sinh` (Hoàng Đế Nội Kinh).
-- **Tier yêu cầu**: **Tier 0** cho Tiết khí; **Tier 2** nếu cá nhân hóa theo Bazi.
+**Mục tiêu:** Cung cấp bối cảnh văn hóa–lịch sử, phi lâm sàng về liên hệ giờ–kinh và dưỡng sinh bốn mùa.
+- **`source_id`**: `shi-er-jing-na-di-zhi` cho bảng *Thập nhị kinh nạp địa chi*; `huangdi-neijing-suwen` cho bốn hồ sơ mùa trong thiên *Tứ khí điều thần đại luận*. Giữ `ty-ngo-luu-chu` cho một milestone tương lai triển khai đúng phép khai huyệt theo ngày/giờ; Tier 0 hiện tại KHÔNG phát source ID này.
+- **Tier yêu cầu**: **Tier 0**; không dùng Bazi, triệu chứng, giới tính hay lịch sử sức khỏe.
 - **Nội dung nghiên cứu:**
-    - **Tý Ngọ Lưu Chú:** Khí huyết trong 12 kinh lạc theo giờ Can Chi.
-    - **Dưỡng sinh Tiết khí:** Chế độ thực trị theo 24 Tiết khí.
+    - **Thập nhị kinh nạp địa chi:** Bảng liên hệ lịch sử giữa 12 khung giờ địa chi và 12 kinh chính; chỉ nói “được gắn với”, không nói cơ quan hoạt động mạnh hay khí huyết đạt đỉnh.
+    - **Tứ khí điều thần:** Bốn chủ đề sinh hoạt theo xuân/hạ/thu/đông; phép nối 24 Tiết khí vào bốn mùa là composition minh bạch của Amlich, không phải 24 toa dưỡng sinh riêng.
+    - **Ngoài phạm vi:** Tý Ngọ Lưu Chú đầy đủ, huyệt/châm/cứu/bấm huyệt, chẩn đoán, phòng ngừa, điều trị, thực phẩm/dược liệu, và cá nhân hóa Bazi.
 - **Hướng triển khai (Rust):**
-    - Module: `crates/amlich-core/src/reasoning/health.rs` — rule-driven, không phải lookup thuần.
-    - Đầu vào: `BirthInput` (optional) + `DaySnapshot` + `HourPillar`.
+    - Module sibling phi lâm sàng dưới `reasoning/`, trả về `TraditionalWellnessContext` với disclaimer ổn định, provenance tách biệt và `KnownDivergence`.
+    - Đầu vào: `DaySnapshot` + giờ dân sự địa phương; không nhận dữ liệu sinh hay dữ liệu y tế.
 
 ---
 
@@ -85,8 +86,8 @@ Mỗi trụ cột khai báo: nguồn (`source_id`), tier yêu cầu, ranh giới
 Mọi rule/fact phải đi qua `ReasoningEvidenceEnvelope` với `source_id` đúng theo bảng §2.x. Tham chiếu `semantic_graph/provenance.rs` cho các constructor (`Provenance::almanac_rule`, `Provenance::interaction`, …). KHÔNG tạo `source_id` ad-hoc trong code mở rộng.
 
 ### 3.2. Semantic Graph Extension
-1. **Nodes mới:** `ZiweiStar`, `Hexagram`, `FlyingStar`, `Meridian`, `Ritual`.
-2. **Edges mới:** `ConflictsWith`, `Supports`, `OccupiesSector`, `FlowsAt` (Tý Ngọ Lưu Chú).
+1. **Nodes mới:** `ZiweiStar`, `Hexagram`, `FlyingStar`, `TraditionalChannel`, `Ritual`.
+2. **Edges mới:** `ConflictsWith`, `Supports`, `OccupiesSector`, `AssociatedWithHourBranch` (Thập nhị kinh nạp địa chi).
 3. **Reasoning Rules** — dùng API thực:
 
 ```rust
@@ -132,8 +133,8 @@ Tier 3 = Tier 2 + `SpatialInput`. Pillar nào yêu cầu Tier 3 phải trả `Un
 | Phi Tinh | *Thẩm Thị Huyền Không Học* | `huyen-khong` |
 | Bát Trạch | *Bát Trạch Minh Cảnh* | `bat-trach` |
 | Văn khấn | Tổng tập văn khấn cổ truyền VN | `vn-folk-ritual` |
-| Tý Ngọ Lưu Chú | *Châm Cứu Đại Thành* | `ty-ngo-luu-chu` |
-| Tiết khí dưỡng sinh | *Hoàng Đế Nội Kinh* | `tiet-khi-duong-sinh` |
+| Thập nhị kinh nạp địa chi | *Châm Cứu Đại Toàn* / bảng `十二經納地支歌` | `shi-er-jing-na-di-zhi` |
+| Dưỡng sinh bốn mùa | *Hoàng Đế Nội Kinh · Tố Vấn · Tứ khí điều thần đại luận* | `huangdi-neijing-suwen` |
 
 Các `source_id` đã chốt từ trước (`khcbppt`, `ngoc-hap-ky`, `vn-folk`, `cuu-dieu`, `tam-menh-thong-hoi`) KHÔNG được tái sử dụng cho nội dung mới.
 
@@ -147,7 +148,7 @@ Thứ tự đề xuất theo (giá trị UX) × (effort) × (tier rào cản):
 |---|---|---|---|---|
 | P1 | 2.4 Văn khấn | Low risk, high UX, không cần thuật toán mới | S | T0 |
 | P2 | 2.2 Kinh Dịch (Mai Hoa) | 64 quẻ là bảng tra hữu hạn; tích hợp `ConsultationIntent` rõ ràng | M | T0 |
-| P3 | 2.5 Y học Tý Ngọ Lưu Chú | Bảng tra giờ → kinh lạc; integration nhẹ | M | T0/T2 |
+| P3 | 2.5 Traditional Wellness Context | Hai corpus hữu hạn (12 liên hệ giờ–kinh + 4 hồ sơ mùa); integration nhẹ, phi lâm sàng | M | T0 |
 | P4 | 2.3 Phi Tinh (thời gian) | Bảng phi tinh hữu hạn; chưa cần Tier 3 | M | T0 |
 | P5 | 2.3 Phi Tinh + Spatial (Tier 3) | Cần thiết kế lại model birth/spatial | L | T3 |
 | P6 | 2.1 Tử Vi Đẩu Số | Thuật toán An Sao rất phức tạp; 100+ sao | XL | T2 |
@@ -174,7 +175,7 @@ Không bắt đầu P5/P6 trước khi P1–P4 ổn định và `Tier 3 model` �
 | Kinh Dịch | nhantu.net (Mai Hoa), divination.com (hexagram texts) |
 | Phi Tinh | fengshui.net (vận hành phi tinh), phongthuyhomemy.com |
 | Bát Trạch | Đối chiếu với `interaction/direction_merge.rs` test fixtures hiện có |
-| Tý Ngọ Lưu Chú | Bảng kinh lạc trong *Châm Cứu Đại Thành* |
+| Traditional Wellness | Bảng `十二經納地支歌` trong *Châm Cứu Đại Toàn*; `四氣調神大論` trong *Hoàng Đế Nội Kinh · Tố Vấn* |
 | Văn khấn | Đối chiếu với *Văn khấn cổ truyền Việt Nam* (NXB Văn Hóa Dân Tộc) |
 
 Golden test required cho mỗi pillar: tối thiểu 10 ca, đối chiếu ≥ 2 nguồn độc lập; sai lệch phải log dưới dạng `KnownDivergence` chứ không "fix" về phía nguồn nào.

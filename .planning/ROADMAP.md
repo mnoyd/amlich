@@ -9,11 +9,13 @@
 - ✅ **v1.6 Eastern Knowledge Completion** — shipped 2026-07-16 (Phases 16-19, 11/11 plans), archived in [`milestones/v1.6-ROADMAP.md`](milestones/v1.6-ROADMAP.md)
 - ✅ **v1.7 Kinh Dịch (I-Ching Divination)** — shipped 2026-07-19 (Phases 20-25, 14/14 plans), archived in [`milestones/v1.7-ROADMAP.md`](milestones/v1.7-ROADMAP.md)
 - ✅ **v1.8 Surface & Debt Closure** — shipped 2026-08-10 (3/3 tracks, 9/9 requirements), archived in [`milestones/v1.8-ROADMAP.md`](milestones/v1.8-ROADMAP.md)
+- ✅ **v1.9 Multi-dimensional Day, Hour, and Direction Assessment** — shipped 2026-08-11 (4/4 tracks, 7/7 requirements), audited in [`milestones/v1.9-MILESTONE-AUDIT.md`](milestones/v1.9-MILESTONE-AUDIT.md)
 
 ## Current Focus
 
-- v1.8 closed the desktop/TUI explanation surfaces, exposed v1.7 I Ching and directional composites to desktop users, removed the carried clippy/formatting debt, tightened `SourceId`, and established a canonical external-review lifecycle. All 9 requirements and release gates passed.
-- Next milestone is undefined. Begin with fresh product questioning and requirements. Candidate directions remain P3 Y học Tý Ngọ Lưu Chú, P5 spatial Phi Tinh, P6 Tử Vi Đẩu Số, Hỗ Quả, and Tier-2 Bazi enrichment; none is implicitly selected by this closeout.
+- v1.9 closed the multi-dimensional assessment arc: Day Assessment, Hour Ranking, Direction Assessment, and their explanation projections now have separate versioned contracts.
+- **v1.10 Traditional Wellness Context (Tier 0)** is defined and awaiting tracer-bullet issue approval. It narrows the former P3 shorthand to a historical Twelve-Branch Channel Association plus four *Suwen* seasonal profiles; full Tý Ngọ Lưu Chú and all clinical/procedural outputs remain deferred.
+- Requirements: [`milestones/v1.10-REQUIREMENTS.md`](milestones/v1.10-REQUIREMENTS.md). Research: [`research/LUNAR_HEALTH_RESEARCH.md`](research/LUNAR_HEALTH_RESEARCH.md). Scope ADR: [`../docs/adr/0003-separate-branch-channel-association-from-ty-ngo-luu-chu.md`](../docs/adr/0003-separate-branch-channel-association-from-ty-ngo-luu-chu.md).
 
 ---
 
@@ -84,6 +86,7 @@ Full details in [`milestones/v1.5-ROADMAP.md`](milestones/v1.5-ROADMAP.md).
 | 24. IChing Evaluator + Semantic-Graph Wiring + DTO Integration | v1.7 | 3/3 | Complete | 2026-07-19 |
 | 25. E2E Validation + Golden Cross-Source Verification | v1.7 | 1/1 | Complete | 2026-07-19 |
 | 26. Surface & Debt Closure (bead-driven closeout) | v1.8 | 3/3 tracks | Complete | 2026-08-10 |
+| 27. Traditional Wellness Context (Tier 0) | v1.10 | 0/4 tracks | Requirements defined | — |
 
 ## Cross-Cutting Constraints (carry-forward)
 
@@ -97,4 +100,4 @@ Full details in [`milestones/v1.5-ROADMAP.md`](milestones/v1.5-ROADMAP.md).
 
 ---
 
-*Last updated: 2026-08-10 — v1.8 Surface & Debt Closure shipped. 3/3 tracks, 9/9 requirements, and 6/6 release gates complete. Next milestone undefined.*
+*Last updated: 2026-08-11 — v1.10 Traditional Wellness Context requirements defined; bead breakdown awaiting approval.*

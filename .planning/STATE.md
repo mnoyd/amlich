@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.9
-milestone_name: Multi-dimensional Day, Hour, and Direction Assessment
-current_plan: Complete
-status: milestone_complete
-last_updated: "2026-08-11T01:05:00+07:00"
+milestone: v1.10
+milestone_name: Traditional Wellness Context (Tier 0)
+current_plan: Requirements and issue design
+status: requirements_defined
+last_updated: "2026-08-11T12:00:00+07:00"
 last_activity: 2026-08-11
 progress:
   total_tracks: 4
-  completed_tracks: 4
-  total_requirements: 7
-  completed_requirements: 7
+  completed_tracks: 0
+  total_requirements: 8
+  completed_requirements: 0
 ---
 
 # Project State
@@ -19,13 +19,15 @@ progress:
 
 **v1.9 Multi-dimensional Day, Hour, and Direction Assessment is complete and
 audited.** All seven requirements and all seven release gates passed on
-2026-08-11. Day Assessment, Hour Ranking, and Direction Assessment now own
-their own axes, contributions, availability, confidence, and warning
-semantics, and every personal-day / hour / direction projection carries a
-`policy_version` field so consumers can pin the contract they consume.
+2026-08-11. The next milestone, v1.10 Traditional Wellness Context (Tier 0),
+is now defined from primary-source research but has not entered delivery until
+its tracer-bullet bead breakdown is approved.
 
 - Audit: `.planning/milestones/v1.9-MILESTONE-AUDIT.md`
 - Milestone summary: `.planning/MILESTONES.md` (v1.9 entry)
+- v1.10 requirements: `.planning/milestones/v1.10-REQUIREMENTS.md`
+- v1.10 research: `.planning/research/LUNAR_HEALTH_RESEARCH.md`
+- Scope ADR: `docs/adr/0003-separate-branch-channel-association-from-ty-ngo-luu-chu.md`
 
 ## Delivered
 
@@ -78,11 +80,14 @@ Domain-review deferrals remain registered in
 `docs/architecture/external-review-lifecycle.md`. They are due 2026-12-31 and
 are not unresolved v1.9 implementation work.
 
+The v1.10 release gates include four explicit reviews: the 12-record
+branch-channel corpus, four *Suwen* paraphrases, bilingual disclaimer/legal
+wording, and health-safety/schema review. Until those reviews are signed,
+affected records remain `ExternalReviewPending` or unavailable.
+
 ## Next step
 
-Select and define a fresh milestone. v1.9 closed the multi-dimensional
-assessment arc, so the next direction should target an adjacent capability
-(feng-shui period overlays, semantic-graph editorial surfaces, performance
-budgets, or a new domain pillar). Start with product questioning and create
-new requirements before opening delivery beads. Candidate domains are
-recorded in `.planning/PROJECT.md` and `.planning/ROADMAP.md`.
+Approve the four proposed tracer-bullet slices in
+`.planning/milestones/v1.10-ROADMAP.md`, then publish the parent epic and child
+beads. Do not start implementation before the source, safety, and contract
+boundaries in the requirements are accepted.

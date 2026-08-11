@@ -48,11 +48,29 @@ Every almanac subsystem in amlich must produce output that matches its canonical
 - ✓ Runtime-invariant baseline guards: cargo dep-tree shape locked (`cargo_dependency_tree_unchanged_from_v16`) + INT-13 cross-source discipline locked (`int13_golden_dataset_cross_source_discipline_holds`) (v1.7 Phase 25)
 - ✓ Desktop/TUI explanation surfaces, desktop I Ching + directional cross-link projection, typed `SourceId`, and external-review lifecycle (v1.8)
 
+## Active Milestone: v1.10 Traditional Wellness Context (Tier 0)
+
+The next milestone is now defined from primary-source research. It delivers a
+source-attributed, non-clinical context for a selected local date and time:
+
+- the historical **Twelve-Branch Channel Association** (`十二經納地支`), using
+  neutral association language and a disclosed local-civil-hour basis; and
+- four *Huangdi Neijing Suwen* seasonal cultivation profiles joined
+  transparently to the 24 solar terms through the existing calendar engine.
+
+The fixed association is not full **Tý Ngọ Lưu Chú**. The day/hour
+acupuncture-point opening method, all points and procedures, clinical claims,
+and Bazi personalization remain explicitly deferred. See the active
+[`v1.10 requirements`](milestones/v1.10-REQUIREMENTS.md),
+[`research note`](research/LUNAR_HEALTH_RESEARCH.md), and
+[`scope ADR`](../docs/adr/0003-separate-branch-channel-association-from-ty-ngo-luu-chu.md).
+
 ## Out of Scope (carry-forward)
 
-- **P3 Y học, P6 Tử Vi** — deferred per Expansion Framework tiering; candidate for future milestones.
+- **Full Tý Ngọ Lưu Chú / `納甲法`** — requires a separate source, point-opening policy, safety review, and clinical/procedural boundary.
+- **P6 Tử Vi** — deferred per Expansion Framework tiering; candidate for a future milestone.
 - **P5 Spatial Phi Tinh / `spatial_compose`** — requires user spatial input (sit/face direction); explicit CRIT-3 isolation forbids wiring `FlyingStar` into `interaction/direction_merge.rs`. Deferred until Tier-3 landing.
-- **Hỗ Quả (nuclear hexagram)** — depth feature; defer to v1.9+.
+- **Hỗ Quả (nuclear hexagram)** — depth feature; defer to v1.10+.
 - **Tier-2 Bazi enrichment of hexagram reading** — v1.7 ships Tier-0 baseline only; mirrors v1.5 Phi Tinh T0/T2 split.
 - **User-selectable casting variants (số vật / âm thanh)** — out of scope; v1.7 ships Mai Hoa time-numerology only.
 - **Coin / yarrow / RNG casting** — different tradition; breaks determinism; would need a third `source_id`.
@@ -138,7 +156,7 @@ all six release gates passed. See
 
 </details>
 
-## Known Gaps (after v1.8)
+## Known Gaps (after v1.9; v1.10 external gates are separate)
 
 External-review gaps follow the canonical lifecycle in
 [`docs/architecture/external-review-lifecycle.md`](../docs/architecture/external-review-lifecycle.md).
@@ -149,4 +167,4 @@ External-review gaps follow the canonical lifecycle in
 
 ---
 
-*Last updated: 2026-08-10 — milestone v1.8 Surface & Debt Closure shipped and audited*
+*Last updated: 2026-08-11 — v1.10 Traditional Wellness Context defined; v1.9 milestone audit complete*

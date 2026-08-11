@@ -4,6 +4,26 @@ This context captures the project language for Vietnamese lunar-calendar assessm
 
 ## Language
 
+**Traditional Wellness Context**:
+A source-attributed cultural account of seasonal or time-of-day wellness traditions. It is informational and never diagnoses, treats, predicts illness, or changes a Day Assessment or Hour Ranking.
+_Avoid_: health assessment, medical recommendation, treatment advice
+
+**Twelve-Branch Channel Association**:
+The historical fixed association between the twelve two-hour Earthly Branch windows and the twelve regular channels. It is a cultural table, not a claim about channel flow, acupuncture-point opening, or organ performance.
+_Avoid_: organ clock, Tý Ngọ Lưu Chú, channel rhythm, peak organ function
+
+**Traditional Channel**:
+A named kinh mạch identity preserved from the source tradition without conversion into a modern anatomical organ or physiological claim.
+_Avoid_: active organ, biomedical meridian, organ function
+
+**Tý Ngọ Lưu Chú**:
+The classical day-and-hour method that combines stems, branches, channel assignments, and five-shu/original points to determine point-opening sequences. It is distinct from the fixed Twelve-Branch Channel Association and remains outside the initial Traditional Wellness Context.
+_Avoid_: twelve-hour meridian table, simple organ clock
+
+**Seasonal Cultivation Context**:
+A source-attributed description of traditional dưỡng sinh themes associated with the active solar term or season. It reports the tradition without converting it into clinical prevention, supplement, diet, or treatment instructions.
+_Avoid_: seasonal prescription, disease prevention advice, health verdict
+
 **Day Assessment**:
 A suitability verdict for a solar date in the context of an intent and, when available, a personal birth profile. It decides whether the day should be used, approached cautiously, or avoided.
 _Avoid_: day ranking, lucky score
