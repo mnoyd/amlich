@@ -37,7 +37,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -60,7 +60,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -83,7 +83,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -106,7 +106,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -129,7 +129,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -152,7 +152,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -175,7 +175,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -198,7 +198,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -221,7 +221,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -244,7 +244,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -267,7 +267,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     },
@@ -290,7 +290,7 @@
         "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
         "translation_kind": "project_paraphrase"
       }],
-      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")",
+      "reviewer": "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")",
       "safety_class": "historical_cultural_non_clinical",
       "known_divergence_ids": ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"]
     }

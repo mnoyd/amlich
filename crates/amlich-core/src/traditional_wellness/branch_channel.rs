@@ -109,12 +109,20 @@ impl BranchChannelAssociation {
     /// reasoning-evidence emission path. Every entry uses
     /// `ProvenanceSource::AlmanacRule` per the precedent set by
     /// `crate::almanac::hour_pillar::compute_hour_pillar`.
+    ///
+    /// The `source_id` is the canonical [`SOURCE_SHI_ER_JING_NA_DI_ZHI`]
+    /// constant rather than the loaded citation's `source_id` field —
+    /// the loader has already asserted equality (`assert_eq!` at
+    /// `load_corpus`), and the static source-id discipline
+    /// (`tests/source_id_guard.rs`) forbids bare string literals at
+    /// call-sites. The citation's work / volume / passage metadata
+    /// travels on the entry's `note` field.
     pub fn provenance_entries(&self) -> Vec<ProvenanceEntry> {
         self.sources
             .iter()
             .map(|c| {
                 ProvenanceEntry::almanac_rule(
-                    c.source_id.clone(),
+                    SOURCE_SHI_ER_JING_NA_DI_ZHI,
                     format!("branch_channel_lookup:{}", self.branch_vi),
                 )
                 .with_note(format!(
@@ -126,13 +134,16 @@ impl BranchChannelAssociation {
     }
 
     /// Convert each [`SourceCitation`] into a
-    /// [`ReasoningEvidenceEnvelope`] for the high-level reasoning surface.
+    /// [`ReasoningEvidenceEnvelope`] for the high-level reasoning
+    /// surface. Same source-id discipline as
+    /// [`provenance_entries`][Self::provenance_entries] — uses the
+    /// canonical constant.
     pub fn reasoning_evidence(&self) -> Vec<ReasoningEvidenceEnvelope> {
         self.sources
             .iter()
             .map(|c| ReasoningEvidenceEnvelope {
                 source_family: ReasoningEvidenceSourceFamily::AlmanacRule,
-                source_id: c.source_id.clone(),
+                source_id: SOURCE_SHI_ER_JING_NA_DI_ZHI.to_string(),
                 method: format!("branch_channel_lookup:{}", self.branch_vi),
                 note: Some(format!(
                     "{} — {} ({})",
@@ -156,13 +167,17 @@ pub struct TraditionalWellnessContext {
     /// The selected-hour branch-channel association, if the lookup
     /// resolved. `None` only when the input civil time is out of range
     /// (the `resolve_hour_branch_slot` guard at
-    /// `crate::almanac::hour_pillar.rs:35`).
+    /// `crate::almanac::hour_pillar.rs:35`). Additive serde: absent in
+    /// JSON when `None` so the v1.9→v1.10 wire contract stays clean.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hour_branch: Option<BranchChannelAssociation>,
     /// Stable bilingual cultural-information disclaimer that travels
     /// with every Traditional Wellness Context surface.
     pub disclaimer: LocalizedDisclaimer,
-    /// Aggregate review state (the per-row `reviewer` field is also
-    /// surfaced via `hour_branch.reviewer` when present).
+    /// Per-row review state. The aggregate review-state picture
+    /// (classical + product/legal + health-safety) is captured by
+    /// composing this field with the disclaimer + provenance audit;
+    /// consumers that want the union read all three.
     pub review_state: ExternalReviewState,
     /// Time-basis disclosure.
     pub time_basis: TimeBasis,
@@ -359,7 +374,7 @@ pub fn resolve_traditional_wellness_context(
         .map(|row| row.reviewer.clone())
         .unwrap_or(ExternalReviewState::ExternalReviewPending {
             reason: "branch_channel_lookup_out_of_range".to_string(),
-            expected_review_date: "YYYY-MM-DD".to_string(),
+            expected_review_date: "2026-12-31".to_string(),
             assigned_to: "classical_chinese_reviewer".to_string(),
         });
     TraditionalWellnessContext {
@@ -460,7 +475,7 @@ mod tests {
         assert_eq!(row.branch_vi, "Tý");
     }
 
-#[test]
+    #[test]
     fn provenance_entries_use_almanac_rule_family() {
         let row = resolve_hour_branch_association(3, 30).expect("Dần lookup");
         let entries = row.provenance_entries();

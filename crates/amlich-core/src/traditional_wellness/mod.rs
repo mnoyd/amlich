@@ -27,7 +27,7 @@ pub use disclaimer::{
     DISCLAIMER_ID_CULTURAL_INFORMATION_STR,
 };
 pub use divergence::{
-    all_divergences_for_branch_channel, channel_not_organ, civil_time_disclosure,
-    divergence_by_id, fixed_cycle_contestation, ExternalReviewState, TimeBasis,
-    TraditionalWellnessKnownDivergence, TraditionalWellnessSourceValue,
+    all_divergences_for_branch_channel, channel_not_organ, civil_time_disclosure, divergence_by_id,
+    fixed_cycle_contestation, ExternalReviewState, TimeBasis, TraditionalWellnessKnownDivergence,
+    TraditionalWellnessSourceValue,
 };

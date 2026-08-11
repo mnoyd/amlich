@@ -98,7 +98,7 @@ pub fn cultural_information_disclaimer() -> LocalizedDisclaimer {
 mod tests {
     use super::*;
 
-#[test]
+    #[test]
     fn disclaimer_id_serializes_as_inner_string() {
         let id = disclaimer_id_cultural_information();
         assert_eq!(id.as_str(), "cultural_information_v1");
@@ -106,8 +106,7 @@ mod tests {
             serde_json::to_string(&id).unwrap(),
             "\"cultural_information_v1\""
         );
-        let roundtrip: DisclaimerId =
-            serde_json::from_str("\"cultural_information_v1\"").unwrap();
+        let roundtrip: DisclaimerId = serde_json::from_str("\"cultural_information_v1\"").unwrap();
         assert_eq!(roundtrip, id);
     }
 

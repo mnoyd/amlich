@@ -408,6 +408,45 @@ pub fn enrich_day_snapshot_with_iching(
     Ok(enriched)
 }
 
+/// v1.10 Phase 01-01 (ASSOC-01) immutable enrichment entry point. Today
+/// the function takes the existing `DaySnapshot`, runs the local-civil-hour
+/// lookup against the canonical branch-channel corpus, and returns the
+/// snapshot alongside the [`TraditionalWellnessContext`] wrapper.
+///
+/// The function is total from valid inputs (`local_hour <= 23`,
+/// `local_minute <= 59`); the wrapped `Option<BranchChannelAssociation>`
+/// distinguishes "out of range" from a successful resolution. The
+/// `Err` arm is reserved for future corpus-loading failures; today it is
+/// unreachable from valid inputs.
+///
+/// **Plan 01-02 simplification.** Once the additive
+/// `DaySnapshot.traditional_wellness: Option<TraditionalWellnessContext>`
+/// field is introduced (Phase 01-02, after the seasonal track `.2`
+/// lands), the signature collapses to
+/// `Result<DaySnapshot, String>` — the helper clones the snapshot,
+/// attaches the context to the new field, and returns the clone. The
+/// tuple-returning form below is the Phase 01-01 contract and is what
+/// every test asserts today.
+///
+/// Tier 0: the input is `(snapshot, local_hour, local_minute)`; no
+/// `BirthInput`, sex/gender, symptom, location, or health history is
+/// consulted (BOUND-01).
+pub fn enrich_day_snapshot_with_branch_channel_association(
+    snapshot: &DaySnapshot,
+    local_hour: u8,
+    local_minute: u8,
+) -> Result<
+    (
+        DaySnapshot,
+        crate::traditional_wellness::TraditionalWellnessContext,
+    ),
+    String,
+> {
+    let context =
+        crate::traditional_wellness::resolve_traditional_wellness_context(local_hour, local_minute);
+    Ok((snapshot.clone(), context))
+}
+
 fn calculate_day_snapshot_internal(
     day: i32,
     month: i32,

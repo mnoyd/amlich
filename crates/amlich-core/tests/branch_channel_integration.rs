@@ -15,54 +15,253 @@ use amlich_core::traditional_wellness::{
 // 12 table goldens — one assertion per branch
 // ---------------------------------------------------------------------------
 
-/// One representative (hour, minute) per branch slot, picked so it falls
-/// strictly inside the canonical two-hour window for that slot. Each entry
-/// also lists the expected channel identity (vi, en, zh) verbatim from
-/// the corpus JSON.
-const TWELVE_ROW_GOLDENS: &[(u8, u8, &str, &str, &str, &str)] = &[
-    // (hour, minute, branch_vi, channel_vi, channel_en, channel_zh)
-    (23, 30, "Tý", "Đởm", "Gallbladder", "足少陽膽"),
-    (1, 30, "Sửu", "Can", "Liver", "足厥陰肝"),
-    (3, 30, "Dần", "Phế", "Lung", "手太陰肺"),
-    (5, 30, "Mão", "Đại trường", "Large Intestine", "手陽明大腸"),
-    (7, 30, "Thìn", "Vị", "Stomach", "足陽明胃"),
-    (9, 30, "Tỵ", "Tỳ", "Spleen", "足太陰脾"),
-    (11, 30, "Ngọ", "Tâm", "Heart", "手少陰心"),
-    (
-        13,
-        30,
-        "Mùi",
-        "Tiểu trường",
-        "Small Intestine",
-        "手太陽小腸",
-    ),
-    (15, 30, "Thân", "Bàng quang", "Bladder", "足太陽膀胱"),
-    (17, 30, "Dậu", "Thận", "Kidney", "足少陰腎"),
-    (19, 30, "Tuất", "Tâm bào", "Pericardium", "手厥陰心包"),
-    (21, 30, "Hợi", "Tam tiêu", "Triple Burner", "手少陽三焦"),
+/// One representative (hour, minute) per branch slot, picked so it
+/// falls strictly inside the canonical two-hour window for that slot.
+/// Each entry also lists the expected branch/channel identity verbatim
+/// from the corpus JSON.
+struct RowGolden {
+    hour: u8,
+    minute: u8,
+    branch_vi: &'static str,
+    branch_zh: &'static str,
+    channel_vi: &'static str,
+    channel_en: &'static str,
+    channel_zh: &'static str,
+    time_range: &'static str,
+}
+
+const TWELVE_ROW_GOLDENS: &[RowGolden] = &[
+    RowGolden {
+        hour: 23,
+        minute: 30,
+        branch_vi: "Tý",
+        branch_zh: "子",
+        channel_vi: "Đởm",
+        channel_en: "Gallbladder",
+        channel_zh: "足少陽膽",
+        time_range: "23:00-01:00",
+    },
+    RowGolden {
+        hour: 1,
+        minute: 30,
+        branch_vi: "Sửu",
+        branch_zh: "丑",
+        channel_vi: "Can",
+        channel_en: "Liver",
+        channel_zh: "足厥陰肝",
+        time_range: "01:00-03:00",
+    },
+    RowGolden {
+        hour: 3,
+        minute: 30,
+        branch_vi: "Dần",
+        branch_zh: "寅",
+        channel_vi: "Phế",
+        channel_en: "Lung",
+        channel_zh: "手太陰肺",
+        time_range: "03:00-05:00",
+    },
+    RowGolden {
+        hour: 5,
+        minute: 30,
+        branch_vi: "Mão",
+        branch_zh: "卯",
+        channel_vi: "Đại trường",
+        channel_en: "Large Intestine",
+        channel_zh: "手陽明大腸",
+        time_range: "05:00-07:00",
+    },
+    RowGolden {
+        hour: 7,
+        minute: 30,
+        branch_vi: "Thìn",
+        branch_zh: "辰",
+        channel_vi: "Vị",
+        channel_en: "Stomach",
+        channel_zh: "足陽明胃",
+        time_range: "07:00-09:00",
+    },
+    RowGolden {
+        hour: 9,
+        minute: 30,
+        branch_vi: "Tỵ",
+        branch_zh: "巳",
+        channel_vi: "Tỳ",
+        channel_en: "Spleen",
+        channel_zh: "足太陰脾",
+        time_range: "09:00-11:00",
+    },
+    RowGolden {
+        hour: 11,
+        minute: 30,
+        branch_vi: "Ngọ",
+        branch_zh: "午",
+        channel_vi: "Tâm",
+        channel_en: "Heart",
+        channel_zh: "手少陰心",
+        time_range: "11:00-13:00",
+    },
+    RowGolden {
+        hour: 13,
+        minute: 30,
+        branch_vi: "Mùi",
+        branch_zh: "未",
+        channel_vi: "Tiểu trường",
+        channel_en: "Small Intestine",
+        channel_zh: "手太陽小腸",
+        time_range: "13:00-15:00",
+    },
+    RowGolden {
+        hour: 15,
+        minute: 30,
+        branch_vi: "Thân",
+        branch_zh: "申",
+        channel_vi: "Bàng quang",
+        channel_en: "Bladder",
+        channel_zh: "足太陽膀胱",
+        time_range: "15:00-17:00",
+    },
+    RowGolden {
+        hour: 17,
+        minute: 30,
+        branch_vi: "Dậu",
+        branch_zh: "酉",
+        channel_vi: "Thận",
+        channel_en: "Kidney",
+        channel_zh: "足少陰腎",
+        time_range: "17:00-19:00",
+    },
+    RowGolden {
+        hour: 19,
+        minute: 30,
+        branch_vi: "Tuất",
+        branch_zh: "戌",
+        channel_vi: "Tâm bào",
+        channel_en: "Pericardium",
+        channel_zh: "手厥陰心包",
+        time_range: "19:00-21:00",
+    },
+    RowGolden {
+        hour: 21,
+        minute: 30,
+        branch_vi: "Hợi",
+        branch_zh: "亥",
+        channel_vi: "Tam tiêu",
+        channel_en: "Triple Burner",
+        channel_zh: "手少陽三焦",
+        time_range: "21:00-23:00",
+    },
 ];
 
 #[test]
 fn twelve_row_goldens_each_branch_resolves_to_expected_channel() {
-    for (hour, minute, branch_vi, channel_vi, channel_en, channel_zh) in TWELVE_ROW_GOLDENS {
-        let row = resolve_hour_branch_association(*hour, *minute)
-            .unwrap_or_else(|| panic!("lookup at {hour}:{minute:02} must resolve"));
+    use amlich_core::traditional_wellness::ExternalReviewState;
+
+    for golden in TWELVE_ROW_GOLDENS {
+        let row =
+            resolve_hour_branch_association(golden.hour, golden.minute).unwrap_or_else(|| {
+                panic!(
+                    "lookup at {}:{:02} must resolve",
+                    golden.hour, golden.minute
+                )
+            });
+
+        // Identity (ASSOC-01 contract)
         assert_eq!(
-            &row.branch_vi, branch_vi,
-            "branch label at {hour}:{minute:02}"
+            &row.branch_vi, golden.branch_vi,
+            "branch label at {}:{:02}",
+            golden.hour, golden.minute
         );
         assert_eq!(
-            &row.channel_vi, channel_vi,
-            "channel vi at {hour}:{minute:02}"
+            &row.branch_zh, golden.branch_zh,
+            "branch zh at {}:{:02}",
+            golden.hour, golden.minute
         );
         assert_eq!(
-            &row.channel_en, channel_en,
-            "channel en at {hour}:{minute:02}"
+            &row.time_range, golden.time_range,
+            "time_range at {}:{:02}",
+            golden.hour, golden.minute
         );
         assert_eq!(
-            &row.channel_zh, *channel_zh,
-            "channel zh at {hour}:{minute:02}"
+            &row.channel_vi, golden.channel_vi,
+            "channel vi at {}:{:02}",
+            golden.hour, golden.minute
         );
+        assert_eq!(
+            &row.channel_en, golden.channel_en,
+            "channel en at {}:{:02}",
+            golden.hour, golden.minute
+        );
+        assert_eq!(
+            &row.channel_zh, golden.channel_zh,
+            "channel zh at {}:{:02}",
+            golden.hour, golden.minute
+        );
+
+        // Wording uses the neutral historical-association language
+        // (LUNAR_HEALTH_RESEARCH.md:134-141).
+        assert!(
+            row.wording_vi.contains("gắn với"),
+            "wording_vi must use 'gắn với' wording at branch_index {}; got {:?}",
+            row.branch_index,
+            row.wording_vi
+        );
+        assert!(
+            row.wording_en.contains("historically associated"),
+            "wording_en must use 'historically associated' wording at branch_index {}; got {:?}",
+            row.branch_index,
+            row.wording_en
+        );
+
+        // Safety classification (BOUND-02 + LUNAR_HEALTH_RESEARCH.md:182).
+        assert_eq!(row.safety_class, "historical_cultural_non_clinical");
+
+        // Time-basis disclosure (LUNAR_HEALTH_RESEARCH.md:66).
+        assert_eq!(row.time_basis.as_str(), "local_civil_hour_branch");
+
+        // Review state (SOURCE-02): every shipped row is ExternalReviewPending.
+        match &row.reviewer {
+            ExternalReviewState::ExternalReviewPending {
+                reason,
+                expected_review_date,
+                assigned_to,
+            } => {
+                assert_eq!(reason, "classical_12_row_table_review_pending");
+                assert_eq!(assigned_to, "classical_chinese_reviewer");
+                assert_eq!(
+                    expected_review_date, "2026-12-31",
+                    "expected_review_date must mirror the Active Register date"
+                );
+            }
+            other => panic!(
+                "row {} must be ExternalReviewPending at Phase 01-01; got {other:?}",
+                row.branch_index
+            ),
+        }
+
+        // Known divergence IDs (LH-DIV-02/03/06 per LUNAR_HEALTH_RESEARCH.md §6).
+        assert!(
+            row.known_divergence_ids.iter().any(|id| id == "LH-DIV-02"),
+            "row {} must reference LH-DIV-02",
+            row.branch_index
+        );
+        assert!(
+            row.known_divergence_ids.iter().any(|id| id == "LH-DIV-03"),
+            "row {} must reference LH-DIV-03",
+            row.branch_index
+        );
+        assert!(
+            row.known_divergence_ids.iter().any(|id| id == "LH-DIV-06"),
+            "row {} must reference LH-DIV-06",
+            row.branch_index
+        );
+
+        // Source citation uses the canonical source_id (SOURCE-01).
+        assert_eq!(row.sources.len(), 1);
+        assert_eq!(row.sources[0].source_id, SOURCE_SHI_ER_JING_NA_DI_ZHI);
+        assert_eq!(row.sources[0].work_title, "Zhenjiu Daquan");
+        assert_eq!(row.sources[0].passage_key, "十二經納地支歌");
+        assert_eq!(row.sources[0].translation_kind, "project_paraphrase");
     }
 }
 

@@ -90,32 +90,32 @@ impl ExternalReviewState {
     }
 
     /// Parse the canonical free-text form. Returns `None` if the string is
-    /// not in either recognised shape — the loader falls back to treating
-    /// the raw string as opaque text.
+    /// not in either recognised shape, **or** if the payload is missing
+    /// a required key, has malformed `key=value` syntax, or has an
+    /// unquoted value. The strict-mode parser mirrors the strict producer
+    /// ([`to_marker`]) so round-trip is symmetric.
     pub fn from_marker(marker: &str) -> Option<Self> {
         let trimmed = marker.trim();
         if let Some(rest) = trimmed
             .strip_prefix("ExternalReviewPending(")
             .and_then(|s| s.strip_suffix(")"))
         {
-            let fields = parse_kv_fields(rest);
+            let fields =
+                parse_kv_fields(rest, &["reason", "expected_review_date", "assigned_to"]).ok()?;
             return Some(ExternalReviewState::ExternalReviewPending {
-                reason: fields.get("reason").cloned().unwrap_or_default(),
-                expected_review_date: fields
-                    .get("expected_review_date")
-                    .cloned()
-                    .unwrap_or_default(),
-                assigned_to: fields.get("assigned_to").cloned().unwrap_or_default(),
+                reason: fields.get("reason").cloned()?,
+                expected_review_date: fields.get("expected_review_date").cloned()?,
+                assigned_to: fields.get("assigned_to").cloned()?,
             });
         }
         if let Some(rest) = trimmed
             .strip_prefix("Signed(")
             .and_then(|s| s.strip_suffix(")"))
         {
-            let fields = parse_kv_fields(rest);
+            let fields = parse_kv_fields(rest, &["reviewer", "signed_on"]).ok()?;
             return Some(ExternalReviewState::Signed {
-                reviewer: fields.get("reviewer").cloned().unwrap_or_default(),
-                signed_on: fields.get("signed_on").cloned().unwrap_or_default(),
+                reviewer: fields.get("reviewer").cloned()?,
+                signed_on: fields.get("signed_on").cloned()?,
             });
         }
         None
@@ -150,26 +150,40 @@ impl<'de> Deserialize<'de> for ExternalReviewState {
 /// Parse `key="value"; key="value"` pairs into a map. Used by
 /// [`ExternalReviewState::from_marker`]. Simple split on `;` then on `=`,
 /// stripping surrounding double quotes — sufficient for the canonical
-/// free-text format.
-fn parse_kv_fields(input: &str) -> std::collections::HashMap<String, String> {
+/// free-text format. Returns `Err` if any required key is missing or if
+/// the syntax is malformed, so the reviewer marker is strict on both
+/// the producing side (`to_marker`) and the consuming side
+/// (`from_marker`).
+fn parse_kv_fields(
+    input: &str,
+    required_keys: &[&str],
+) -> Result<std::collections::HashMap<String, String>, String> {
     let mut out = std::collections::HashMap::new();
     for part in input.split(';') {
         let part = part.trim();
         if part.is_empty() {
             continue;
         }
-        if let Some((k, v)) = part.split_once('=') {
-            let k = k.trim().to_string();
-            let v = v.trim();
-            let v = v
-                .strip_prefix('"')
-                .and_then(|s| s.strip_suffix('"'))
-                .unwrap_or(v)
-                .to_string();
-            out.insert(k, v);
+        let (k, v) = part
+            .split_once('=')
+            .ok_or_else(|| format!("malformed kv pair (expected key=\"value\"): {part:?}"))?;
+        let k = k.trim().to_string();
+        let v_trim = v.trim();
+        let v = v_trim
+            .strip_prefix('"')
+            .and_then(|s| s.strip_suffix('"'))
+            .ok_or_else(|| format!("value for key {k:?} must be double-quoted: {v_trim:?}"))?
+            .to_string();
+        out.insert(k, v);
+    }
+    for required in required_keys {
+        if !out.contains_key(*required) {
+            return Err(format!(
+                "missing required key {required:?} in marker payload {input:?}"
+            ));
         }
     }
-    out
+    Ok(out)
 }
 
 // ---------------------------------------------------------------------------
@@ -245,8 +259,7 @@ pub fn fixed_cycle_contestation() -> TraditionalWellnessKnownDivergence {
             },
             TraditionalWellnessSourceValue {
                 source: "Maijue Huibian".to_string(),
-                value: "fixed_one_channel_per_double_hour_preserved_pending_correction"
-                    .to_string(),
+                value: "fixed_one_channel_per_double_hour_preserved_pending_correction".to_string(),
             },
         ],
         tiebreaker: "historical_association_only_no_physiological_claim".to_string(),
@@ -256,7 +269,7 @@ pub fn fixed_cycle_contestation() -> TraditionalWellnessKnownDivergence {
             .to_string(),
         deferral: Some(DeferralMarker {
             reason: "classical_12_row_table_review_pending".to_string(),
-            expected_review_date: "YYYY-MM-DD".to_string(),
+            expected_review_date: "2026-12-31".to_string(),
             assigned_to: Some("classical_chinese_reviewer".to_string()),
         }),
     }
@@ -291,7 +304,7 @@ pub fn civil_time_disclosure() -> TraditionalWellnessKnownDivergence {
             .to_string(),
         deferral: Some(DeferralMarker {
             reason: "classical_12_row_table_review_pending".to_string(),
-            expected_review_date: "YYYY-MM-DD".to_string(),
+            expected_review_date: "2026-12-31".to_string(),
             assigned_to: Some("classical_chinese_reviewer".to_string()),
         }),
     }
@@ -326,7 +339,7 @@ pub fn channel_not_organ() -> TraditionalWellnessKnownDivergence {
             .to_string(),
         deferral: Some(DeferralMarker {
             reason: "classical_12_row_table_review_pending".to_string(),
-            expected_review_date: "YYYY-MM-DD".to_string(),
+            expected_review_date: "2026-12-31".to_string(),
             assigned_to: Some("classical_chinese_reviewer".to_string()),
         }),
     }
@@ -393,13 +406,13 @@ mod tests {
     fn external_review_state_marker_format_matches_iching_precedent() {
         let pending = ExternalReviewState::ExternalReviewPending {
             reason: "classical_12_row_table_review_pending".to_string(),
-            expected_review_date: "YYYY-MM-DD".to_string(),
+            expected_review_date: "2026-12-31".to_string(),
             assigned_to: "classical_chinese_reviewer".to_string(),
         };
         assert_eq!(
             pending.to_marker(),
             "ExternalReviewPending(reason=\"classical_12_row_table_review_pending\"; \
-             expected_review_date=\"YYYY-MM-DD\"; assigned_to=\"classical_chinese_reviewer\")"
+             expected_review_date=\"2026-12-31\"; assigned_to=\"classical_chinese_reviewer\")"
         );
         let parsed = ExternalReviewState::from_marker(&pending.to_marker()).unwrap();
         assert_eq!(parsed, pending);
@@ -464,10 +477,7 @@ mod tests {
         // the in-code registry. The corpus uses LH-DIV-02/03/06 on every
         // row; the registry must know all three.
         for id in ["LH-DIV-02", "LH-DIV-03", "LH-DIV-06"] {
-            assert!(
-                divergence_by_id(id).is_some(),
-                "registry must resolve {id}"
-            );
+            assert!(divergence_by_id(id).is_some(), "registry must resolve {id}");
         }
     }
 
@@ -475,13 +485,19 @@ mod tests {
     fn civil_time_disclosure_carries_deferral_to_classical_reviewer() {
         let d = civil_time_disclosure();
         assert_eq!(d.id, "LH-DIV-03");
-        assert!(d.deferral.is_some(), "LH-DIV-03 must carry a deferral marker");
+        assert!(
+            d.deferral.is_some(),
+            "LH-DIV-03 must carry a deferral marker"
+        );
     }
 
     #[test]
     fn channel_not_organ_carries_deferral_to_classical_reviewer() {
         let d = channel_not_organ();
         assert_eq!(d.id, "LH-DIV-06");
-        assert!(d.deferral.is_some(), "LH-DIV-06 must carry a deferral marker");
+        assert!(
+            d.deferral.is_some(),
+            "LH-DIV-06 must carry a deferral marker"
+        );
     }
 }
