@@ -72,13 +72,26 @@ The corpus JSON carries the following structured citation field on each row, in 
   "work_title": "Zhenjiu Daquan",
   "volume_or_chapter": "卷之五 論子午流注之法",
   "passage_key": "十二經納地支歌",
-  "edition_or_facsimile_uri": "<filled by classical reviewer on sign-off>",
+  "edition_or_facsimile_uri": "<see candidate list below; reviewer confirms or supplies alternative>",
   "transcription_uri": "https://ctext.org/wiki.pl?chapter=688012&if=en",
   "translation_kind": "project_paraphrase"
 }]
 ```
 
 The reviewer filling in the `edition_or_facsimile_uri` is the single most important field on this page — it is the artifact the corpus record will reference for every future citation dispute.
+
+#### §A.6.a Candidate editions (reviewer confirms one, or supplies an equivalent)
+
+The reviewer is asked to **consult one of the following candidate editions** of *Zhenjiu Daquan* (《針灸大全》) volume 5, `論子午流注之法` lines 3–9 (`十二經納地支歌`), and to record **which one** they actually consulted in the `edition_or_facsimile_uri` field. Any equivalent facsimile edition of comparable textual authority is acceptable; the reviewer should justify the choice in a one-line note on §B.
+
+| # | Edition / facsimile | URI / locator | Notes |
+|---:|---|---|---|
+| 1 | Chinese Text Project transcription (text + linked page-image plates) | https://ctext.org/wiki.pl?chapter=688012&if=en | Default candidate; clean UTF-8 transcription with linked page images. Suitable for paraphrase-level review. |
+| 2 | Sibu Congkan 四部叢刊 reprint (Shanghai Commercial Press 商務印書館, 1936) — *Zhenjiu Daquan* juan 5 | ctext.org library record: https://ctext.org/library.pl?if=en&res=2772 (record); facsimile scan via 中国哲学书电子化计划/国立图书馆 合作项目 | Photographic facsimile of the Ming woodblock; classical verse legible without modern normalization. |
+| 3 | Ming dynasty Xu Feng original woodblock (reprinted in 1958 人民卫生出版社 校释本, pp. 75–76) | Bibliographic: 徐鳳《針灸大全》, 人民卫生出版社, 1958 (reprinted 1987) | Standard modern Chinese reprint with punctuation; widely cited in TCM pedagogy. |
+| 4 | *Zhenjiu Dacheng* (《針灸大成》) volume 7 cross-reference — Lung-at-Dần circulation statement | https://zh.wikisource.org/zh-hant/%E9%87%9D%E7%81%B8%E5%A4%A7%E6%88%90/%E5%8D%B7%E4%B8%83 | Cross-reference edition to confirm the fixed Lung-at-Dần pairing independently of *Zhenjiu Daquan*. |
+
+If the reviewer consults more than one edition and finds a substantive variant in any of the 12 pairings, they MUST mark that row `corrected` in §B and propose the canonical reading; this triggers the regression-fixture procedure in the external-review lifecycle policy.
 
 ### §A.7 Time-basis disclosure
 
@@ -165,3 +178,53 @@ These are *not* items the reviewer signs — they are guarantees the implementat
 - **Resulting Active Register rows:** `docs/architecture/external-review-lifecycle.md:72-79` (entries added by plan T8).
 
 The implementation owner will not flip any corpus record from `ExternalReviewPending` to `Signed` until §§B, C, and D are each signed by a named reviewer. The sign-off dates and reviewer identities will be recorded on the bead as comments at the moment of close.
+
+---
+
+## §G — Reviewer outreach (for the bead owner / coordinator)
+
+This section is **not** reviewed; it is a how-to-send-this-pack checklist for the human coordinator (the bead owner) so the review engagement can move forward without re-deriving the protocol.
+
+### §G.1 What the coordinator sends the reviewer
+
+A single email / message containing:
+
+1. The full text of this `REVIEWER-PACK.md` (the markdown is the canonical send).
+2. A one-line pointer: *"Please review §A.4 against the chosen facsimile listed in §A.6.a, sign §B, and return the pack with your name, date, and `edition_or_facsimile_uri` recorded."*
+3. The expected return format (see §G.3 below).
+4. The deadline and the reviewer honorarium / compensation arrangement (project-specific; not codified here).
+
+For Gates 3 (product/legal) and 4 (health-safety), the same packet is sent but the reviewer is pointed at §C or §D specifically; §B is informational context, not a gate they sign.
+
+### §G.2 Subject line (suggested)
+
+> `Amlich v1.10 Traditional Wellness Context — external review request (Gate {1|2|3|4}, role: {classical_chinese_reviewer|suwen_paraphrase_reviewer|product_legal_reviewer|health_safety_reviewer})`
+
+### §G.3 Expected return format
+
+The reviewer edits this `REVIEWER-PACK.md` in place: ticks the relevant boxes on §B / §C / §D, fills in `Name / signature`, `Date (YYYY-MM-DD)`, `Edition consulted`, and (for §B) `Jurisdictions reviewed` (legal only). The edited pack is returned **either**:
+
+- as a GitHub PR against `master` adding the signed pack under `docs/reviews/v1.10/` (preferred — keeps the signing artifact in the repo and links the bead via PR reference); **or**
+- as an email attachment (PDF or signed markdown), which the coordinator then commits to `docs/reviews/v1.10/` and links from the bead.
+
+A signed pack in `docs/reviews/v1.10/<role>-<gate>-<YYYY-MM-DD>.md` is the authoritative artifact; the implementation owner updates the bead's notes with the PR / file reference, replaces `PENDING_CLASSICAL_REVIEW` / `PENDING_SUWEN_PARAPHRASE_REVIEW` placeholders in the corpus JSON with the recorded `edition_or_facsimile_uri`, and adds a comment on the bead recording the sign-off identity, date, and source.
+
+### §G.4 Coordinator pre-flight checklist (before sending)
+
+- [ ] The pack version (see §F) is current and matches the corpus `schema_version` in `crates/amlich-core/data/traditional-wellness/branch-channel.json`.
+- [ ] The bilingual disclaimer in §A.1/§A.2 still byte-matches `crates/amlich-core/src/traditional_wellness/disclaimer.rs` (the prohibited-language guard `bilingual_disclaimer_is_byte_identical_to_reviewer_pack` will catch drift; rerun `cargo test -p amlich-core --test prohibited_language_guard` to verify).
+- [ ] The candidate edition list in §A.6.a has at least one URI the reviewer can actually consult (no orphan / broken links).
+- [ ] The reviewer role matches one of: `classical_chinese_reviewer`, `suwen_paraphrase_reviewer`, `product_legal_reviewer`, `health_safety_reviewer` (these are the four role identifiers in `docs/architecture/external-review-lifecycle.md` and the corpus JSON `assigned_to` fields).
+- [ ] A bead exists for this engagement (one of `amlich-l2zc.5`, `.6`, `.7`, `.8`) so the sign-off can be filed against a trackable item.
+
+### §G.5 What happens after sign-off
+
+The implementation owner:
+
+1. Updates the corpus JSON: replaces `PENDING_CLASSICAL_REVIEW` (and analogously `PENDING_SUWEN_PARAPHRASE_REVIEW`) with the recorded URI on every row, and replaces the `ExternalReviewPending(...)` reviewer literal with `Signed(reviewer=<identity>, date=<YYYY-MM-DD>, source_uri=<URI>)`.
+2. Adds a comment on the bead: `Signed by <identity> on <YYYY-MM-DD> against <URI>; see PR <#>`.
+3. Updates the Active Register row in `docs/architecture/external-review-lifecycle.md` to set the new `Review date` and remove the row's "open" status.
+4. Re-runs `cargo test -p amlich-core --test prohibited_language_guard` and `cargo test -p amlich-core --test branch_channel_integration` to confirm the corpus change did not regress byte-equal contracts.
+5. Closes the engagement bead.
+
+The originating bead (`amlich-l2zc.1` or `.2`) closes only when **all** of its required gates have been signed (`.1` requires §B + §C + §D; `.2` requires §B + §C + §D). Once both are closed, `amlich-l2zc.3` (unified explanation) can be closed and `amlich-l2zc.4` (audit/release) is unblocked.
