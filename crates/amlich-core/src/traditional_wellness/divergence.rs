@@ -357,13 +357,134 @@ pub fn all_divergences_for_branch_channel() -> Vec<TraditionalWellnessKnownDiver
     ]
 }
 
+/// The LH-DIV-04 four-profiles-vs-24-terms divergence (seasonal track).
+/// Per `LUNAR_HEALTH_RESEARCH.md:222`, *Suwen* `四氣調神大論` supplies one
+/// routine profile per three-month season — four profiles — while the
+/// product key is one of 24 solar terms. The Amlich disposition is a
+/// transparent deterministic composition (terms joined to seasons at the
+/// four Lập boundaries), emitted as the composite
+/// `rule.composite.seasonal_wellness` and never presented as a
+/// term-specific classical prescription.
+pub fn four_profiles_not_term_regimens() -> TraditionalWellnessKnownDivergence {
+    TraditionalWellnessKnownDivergence {
+        id: "LH-DIV-04".to_string(),
+        case: "four_profiles_not_24_term_regimens".to_string(),
+        our_value: "amlich_term_to_season_composition_v1".to_string(),
+        source_values: vec![
+            TraditionalWellnessSourceValue {
+                source: "Huangdi Neijing Suwen".to_string(),
+                value: "four_seasonal_profiles".to_string(),
+            },
+            TraditionalWellnessSourceValue {
+                source: "product_ui_key".to_string(),
+                value: "one_of_24_solar_terms".to_string(),
+            },
+        ],
+        tiebreaker: "transparent_amlich_composition_never_source_claim".to_string(),
+        note: "Suwen supplies four seasonal routine profiles, not a regimen per \
+                solar term. The term-to-season join is an Amlich presentation \
+                composition disclosed in every result; no term-specific \
+                prescription is emitted."
+            .to_string(),
+        deferral: Some(DeferralMarker {
+            reason: "suwen_four_season_paraphrase_review_pending".to_string(),
+            expected_review_date: "2026-12-31".to_string(),
+            assigned_to: Some("suwen_paraphrase_reviewer".to_string()),
+        }),
+    }
+}
+
+/// The LH-DIV-05 Yellow-River phenology divergence (seasonal track). Per
+/// `LUNAR_HEALTH_RESEARCH.md:223`, solar-term phenology formed around the
+/// Yellow River; actual weather seasons differ greatly by geography. The
+/// Amlich disposition is to emit no local-weather or exposure advice —
+/// the profiles describe the historical text only.
+pub fn phenology_is_not_local_weather() -> TraditionalWellnessKnownDivergence {
+    TraditionalWellnessKnownDivergence {
+        id: "LH-DIV-05".to_string(),
+        case: "yellow_river_phenology_not_local_weather".to_string(),
+        our_value: "historical_text_description_only".to_string(),
+        source_values: vec![
+            TraditionalWellnessSourceValue {
+                source: "China Meteorological Administration".to_string(),
+                value: "terms_originated_in_yellow_river_phenology".to_string(),
+            },
+            TraditionalWellnessSourceValue {
+                source: "regional_weather_reality".to_string(),
+                value: "seasonal_weather_varies_by_geography".to_string(),
+            },
+        ],
+        tiebreaker: "no_local_weather_or_exposure_advice".to_string(),
+        note: "Solar-term phenology was formed around the Yellow River and \
+                weather seasons differ by geography. The seasonal profiles \
+                describe the classical text only; no local-weather or \
+                exposure advice is emitted."
+            .to_string(),
+        deferral: Some(DeferralMarker {
+            reason: "suwen_four_season_paraphrase_review_pending".to_string(),
+            expected_review_date: "2026-12-31".to_string(),
+            assigned_to: Some("suwen_paraphrase_reviewer".to_string()),
+        }),
+    }
+}
+
+/// The LH-DIV-07 omitted-consequences divergence (seasonal track). Per
+/// `LUNAR_HEALTH_RESEARCH.md:225`, the classical seasonal chapter
+/// attaches organ-injury and later-illness consequences to acting
+/// contrary to each season. Those are claims inside the historical
+/// text and are not evidence of modern clinical validity; the Amlich
+/// disposition is to omit them from Tier-0 output entirely and retain
+/// them only in the research audit notes.
+pub fn organ_injury_clauses_omitted() -> TraditionalWellnessKnownDivergence {
+    TraditionalWellnessKnownDivergence {
+        id: "LH-DIV-07".to_string(),
+        case: "organ_injury_and_disease_consequences_omitted".to_string(),
+        our_value: "routine_themes_only".to_string(),
+        source_values: vec![
+            TraditionalWellnessSourceValue {
+                source: "Huangdi Neijing Suwen".to_string(),
+                value: "chapter_includes_organ_injury_and_illness_consequences".to_string(),
+            },
+            TraditionalWellnessSourceValue {
+                source: "amlich_tier0_scope".to_string(),
+                value: "consequences_omitted_from_output".to_string(),
+            },
+        ],
+        tiebreaker: "omit_disease_clauses_keep_routine_themes".to_string(),
+        note: "The classical chapter attaches organ-injury and later-illness \
+                consequences to acting contrary to each season. Those claims \
+                are omitted from Tier-0 output; only the routine themes are \
+                paraphrased, framed as historical description."
+            .to_string(),
+        deferral: Some(DeferralMarker {
+            reason: "suwen_four_season_paraphrase_review_pending".to_string(),
+            expected_review_date: "2026-12-31".to_string(),
+            assigned_to: Some("suwen_paraphrase_reviewer".to_string()),
+        }),
+    }
+}
+
+/// All Traditional Wellness divergences relevant to the seasonal
+/// cultivation track. Three entries today; future additions belong to
+/// the same registry and must reuse the
+/// [`TraditionalWellnessKnownDivergence`] shape verbatim.
+pub fn all_divergences_for_seasonal_cultivation() -> Vec<TraditionalWellnessKnownDivergence> {
+    vec![
+        four_profiles_not_term_regimens(),
+        phenology_is_not_local_weather(),
+        organ_injury_clauses_omitted(),
+    ]
+}
+
 /// Look up a divergence by its `id` (e.g. `"LH-DIV-02"`). Returns `None`
-/// for unknown ids — the corpus loader uses this to assert every row's
+/// for unknown ids — the corpus loaders use this to assert every row's
 /// `known_divergence_ids` resolves to an entry in this registry (the
-/// closed-world contract asserted by `tests/branch_channel_integration.rs`).
+/// closed-world contract asserted by `tests/branch_channel_integration.rs`
+/// and `tests/seasonal_cultivation_integration.rs`).
 pub fn divergence_by_id(id: &str) -> Option<TraditionalWellnessKnownDivergence> {
     all_divergences_for_branch_channel()
         .into_iter()
+        .chain(all_divergences_for_seasonal_cultivation())
         .find(|d| d.id == id)
 }
 
@@ -499,5 +620,54 @@ mod tests {
             d.deferral.is_some(),
             "LH-DIV-06 must carry a deferral marker"
         );
+    }
+
+    #[test]
+    fn seasonal_divergences_carry_ids_and_deferrals() {
+        let d4 = four_profiles_not_term_regimens();
+        assert_eq!(d4.id, "LH-DIV-04");
+        assert_eq!(d4.our_value, "amlich_term_to_season_composition_v1");
+        assert!(
+            d4.deferral.is_some(),
+            "LH-DIV-04 must carry a deferral marker"
+        );
+
+        let d5 = phenology_is_not_local_weather();
+        assert_eq!(d5.id, "LH-DIV-05");
+        assert_eq!(d5.tiebreaker, "no_local_weather_or_exposure_advice");
+        assert!(
+            d5.deferral.is_some(),
+            "LH-DIV-05 must carry a deferral marker"
+        );
+
+        let d7 = organ_injury_clauses_omitted();
+        assert_eq!(d7.id, "LH-DIV-07");
+        assert_eq!(d7.tiebreaker, "omit_disease_clauses_keep_routine_themes");
+        assert!(
+            d7.deferral.is_some(),
+            "LH-DIV-07 must carry a deferral marker"
+        );
+    }
+
+    #[test]
+    fn divergence_registry_covers_every_seasonal_id_used_by_corpus() {
+        // Lockstep between the seasonal corpus JSON's
+        // `known_divergence_ids` and the in-code registry.
+        for id in ["LH-DIV-04", "LH-DIV-05", "LH-DIV-07"] {
+            assert!(divergence_by_id(id).is_some(), "registry must resolve {id}");
+        }
+        assert_eq!(
+            all_divergences_for_seasonal_cultivation().len(),
+            3,
+            "seasonal registry must contain exactly three divergences"
+        );
+    }
+
+    #[test]
+    fn divergence_by_id_resolves_across_both_tracks() {
+        assert!(divergence_by_id("LH-DIV-02").is_some());
+        assert!(divergence_by_id("LH-DIV-04").is_some());
+        assert!(divergence_by_id("LH-DIV-07").is_some());
+        assert!(divergence_by_id("LH-DIV-99").is_none());
     }
 }

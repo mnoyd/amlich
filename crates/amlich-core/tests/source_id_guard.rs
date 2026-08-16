@@ -21,6 +21,7 @@ const FORBIDDEN_LITERALS: &[&str] = &[
     "\"kinh-dich\"",             // NEW v1.7 (Phase 20-01, FND-09)
     "\"mai-hoa-dich-so\"",       // NEW v1.7 (Phase 20-01, FND-09)
     "\"shi-er-jing-na-di-zhi\"", // NEW v1.10 (Phase 01-01, ASSOC-01 / SOURCE-01)
+    "\"huangdi-neijing-suwen\"", // NEW v1.10 (Phase 02-01, SEASON-01 / SOURCE-01)
     "\"ty-ngo-luu-chu\"", // NEW v1.10 (Phase 01-01, ADR-0003 — reserved, must never be emitted)
 ];
 

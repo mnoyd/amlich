@@ -1,4 +1,5 @@
 {
+  "$note": "v1.10 Phase 02-01: the unsourced per-term health lists were emptied and replaced by the reviewed four-profile Suwen seasonal cultivation corpus (data/traditional-wellness/seasonal-cultivation.json). Do not refill these lists with unsourced copy.",
   "tietKhi": [
     {
       "id": "xuan-phan",
@@ -24,18 +25,7 @@
           "Prevent pests as weather warms"
         ]
       },
-      "health": {
-        "vi": [
-          "Cân bằng âm dương trong ăn uống",
-          "Tập thể dục ngoài trời tận dụng tiết trời đẹp",
-          "Bổ gan, thanh nhiệt với các loại rau xanh"
-        ],
-        "en": [
-          "Balance yin-yang in diet",
-          "Exercise outdoors in beautiful weather",
-          "Nourish liver, clear heat with green vegetables"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Thời tiết ấm dần, độ ẩm cao. Miền Bắc có mưa phùn, miền Nam bắt đầu nóng. Đây là giai đoạn chuyển tiếp, thời tiết hay thay đổi.",
         "en": "Weather gradually warms, high humidity. North has drizzle, South starts getting hot. This is a transition period with changeable weather."
@@ -65,18 +55,7 @@
           "Plant summer fruit trees"
         ]
       },
-      "health": {
-        "vi": [
-          "Tăng cường vận động ngoài trời",
-          "Ăn nhiều rau xanh, trái cây tươi",
-          "Phòng các bệnh dị ứng mùa xuân"
-        ],
-        "en": [
-          "Increase outdoor activities",
-          "Eat more green vegetables and fresh fruits",
-          "Prevent spring allergies"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Trời trong xanh, ít mưa hơn Xuân Phân. Nhiệt độ ôn hòa, thích hợp du ngoạn. Gió nhẹ, độ ẩm vừa phải.",
         "en": "Clear skies, less rain than Spring Equinox. Moderate temperature, suitable for outings. Light breeze, moderate humidity."
@@ -106,18 +85,7 @@
           "Plant summer vegetables"
         ]
       },
-      "health": {
-        "vi": [
-          "Chú ý phòng ẩm mốc, nấm",
-          "Bổ sung vitamin C tăng đề kháng",
-          "Tránh để thức ăn ôi thiu"
-        ],
-        "en": [
-          "Prevent mold and fungus",
-          "Supplement vitamin C for immunity",
-          "Avoid letting food spoil"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Mưa nhiều hơn, độ ẩm cao. Nhiệt độ tăng dần, bắt đầu nóng. Thời tiết thay đổi thất thường.",
         "en": "More rain, high humidity. Temperature rising, starting to get hot. Weather changes erratically."
@@ -147,18 +115,7 @@
           "Harvest early summer vegetables and fruits"
         ]
       },
-      "health": {
-        "vi": [
-          "Uống nhiều nước, tránh mất nước",
-          "Ăn thức ăn mát như đậu xanh, bí đao",
-          "Tránh hoạt động ngoài trời lúc nắng gắt"
-        ],
-        "en": [
-          "Drink more water, avoid dehydration",
-          "Eat cooling foods like mung beans, winter melon",
-          "Avoid outdoor activities during intense sun"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Nắng nóng bắt đầu, nhiệt độ tăng nhanh. Miền Nam vào mùa mưa. Miền Bắc nắng nóng kèm giông.",
         "en": "Heat begins, temperature rises rapidly. South enters rainy season. North has hot sun with thunderstorms."
@@ -188,18 +145,7 @@
           "Prepare to harvest early-ripening rice"
         ]
       },
-      "health": {
-        "vi": [
-          "Ăn nhiều trái cây mùa hè giàu nước",
-          "Nghỉ ngơi hợp lý, tránh làm việc quá sức",
-          "Bổ sung điện giải khi ra mồ hôi nhiều"
-        ],
-        "en": [
-          "Eat water-rich summer fruits",
-          "Rest properly, avoid overworking",
-          "Replenish electrolytes when sweating heavily"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Nắng nóng cao điểm, nhiều nơi trên 35°C. Mưa giông buổi chiều phổ biến. Độ ẩm cao, oi bức.",
         "en": "Peak heat, many areas over 35°C. Afternoon thunderstorms common. High humidity, muggy."
@@ -229,18 +175,7 @@
           "Care for summer fruit trees"
         ]
       },
-      "health": {
-        "vi": [
-          "Tăng cường giải nhiệt với nước mát",
-          "Ăn ít đồ cay nóng, nhiều rau quả",
-          "Ngủ đủ giấc dù ngày dài"
-        ],
-        "en": [
-          "Increase cooling with refreshing drinks",
-          "Eat less spicy food, more vegetables and fruits",
-          "Sleep enough despite long days"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Nắng nóng kéo dài, oi bức. Mưa giông nhiều hơn, có thể có mưa đá. Độ ẩm rất cao.",
         "en": "Prolonged heat, muggy. More thunderstorms, possible hail. Very high humidity."
@@ -270,18 +205,7 @@
           "Shade young plants from intense sun"
         ]
       },
-      "health": {
-        "vi": [
-          "Tránh phơi nắng trực tiếp buổi trưa",
-          "Uống nước đều đặn suốt ngày",
-          "Ăn dưa hấu, bí đao giải nhiệt"
-        ],
-        "en": [
-          "Avoid direct midday sun exposure",
-          "Drink water regularly throughout day",
-          "Eat watermelon, winter melon to cool down"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Nắng gay gắt nhất năm, nhiệt độ có thể vượt 40°C. Mưa giông đột ngột. Đây là đỉnh điểm của mùa hè.",
         "en": "Most intense sunshine of year, temperature can exceed 40°C. Sudden thunderstorms. Peak of summer."
@@ -311,18 +235,7 @@
           "Harvest summer fruits"
         ]
       },
-      "health": {
-        "vi": [
-          "Ăn đồ mát, tránh đồ chiên xào",
-          "Nghỉ trưa để phục hồi sức khỏe",
-          "Tránh thức khuya trong thời tiết nóng"
-        ],
-        "en": [
-          "Eat cooling foods, avoid fried foods",
-          "Take afternoon naps for recovery",
-          "Avoid staying up late in hot weather"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Nắng nóng kéo dài, oi bức. Mưa giông chiều và đêm phổ biến. Nhiệt độ cao đều đặn.",
         "en": "Prolonged heat, muggy. Afternoon and evening thunderstorms common. Consistently high temperature."
@@ -352,18 +265,7 @@
           "Prevent hot season pests and diseases"
         ]
       },
-      "health": {
-        "vi": [
-          "Ở trong nhà mát vào trưa nắng gắt",
-          "Uống nước dừa, nước mía giải nhiệt",
-          "Cẩn thận say nắng, sốc nhiệt"
-        ],
-        "en": [
-          "Stay indoors during midday heat",
-          "Drink coconut water, sugarcane juice to cool",
-          "Beware of heatstroke and heat shock"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Nóng nhất năm, nhiều nơi trên 40°C. Mưa giông mạnh có thể gây ngập. Khí hậu khắc nghiệt.",
         "en": "Hottest of year, many areas over 40°C. Strong storms may cause flooding. Harsh climate."
@@ -393,18 +295,7 @@
           "Sow autumn vegetables"
         ]
       },
-      "health": {
-        "vi": [
-          "Điều chỉnh chế độ ăn theo mùa",
-          "Bổ phổi với lê, mật ong",
-          "Tập thể dục buổi sáng tận dụng khí mát"
-        ],
-        "en": [
-          "Adjust diet according to season",
-          "Nourish lungs with pears, honey",
-          "Exercise in morning to enjoy cool air"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Còn nóng nhưng bớt oi bức. Sáng sớm và chiều tối bắt đầu mát. Mưa giảm dần.",
         "en": "Still hot but less muggy. Early morning and evening start cooling. Rain decreasing."
@@ -434,18 +325,7 @@
           "Plant autumn-winter vegetables"
         ]
       },
-      "health": {
-        "vi": [
-          "Bổ sung độ ẩm cho da khô hanh",
-          "Ăn thực phẩm nhuận phổi",
-          "Ngủ sớm dậy sớm theo nhịp sinh học"
-        ],
-        "en": [
-          "Add moisture for dry skin",
-          "Eat lung-moistening foods",
-          "Sleep early, wake early following circadian rhythm"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Bớt nóng, tiết trời dễ chịu. Sáng sớm se lạnh. Không khí khô hơn.",
         "en": "Less hot, pleasant weather. Early morning slightly cold. Drier air."
@@ -475,18 +355,7 @@
           "Prepare winter-spring season"
         ]
       },
-      "health": {
-        "vi": [
-          "Giữ ấm buổi sáng sớm",
-          "Bổ phổi, dưỡng da với thức ăn nhuận",
-          "Chú ý phòng cảm lạnh khi thay đổi thời tiết"
-        ],
-        "en": [
-          "Keep warm in early morning",
-          "Nourish lungs, moisturize skin with hydrating foods",
-          "Prevent colds during weather changes"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Sáng sớm có sương, ngày mát mẻ. Chênh lệch nhiệt độ ngày đêm lớn. Tiết trời khô ráo.",
         "en": "Morning dew, cool days. Large day-night temperature difference. Dry weather."
@@ -516,18 +385,7 @@
           "Prepare fertilizer for winter-spring season"
         ]
       },
-      "health": {
-        "vi": [
-          "Ăn thức ăn ấm, hạn chế đồ lạnh",
-          "Tập thể dục vừa phải",
-          "Bổ sung vitamin chuẩn bị cho mùa đông"
-        ],
-        "en": [
-          "Eat warm foods, limit cold foods",
-          "Exercise moderately",
-          "Supplement vitamins preparing for winter"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Tiết trời mát mẻ, dễ chịu nhất trong năm. Trời trong xanh, ít mưa. Chênh lệch nhiệt độ ngày đêm vừa phải.",
         "en": "Most pleasant weather of year. Clear skies, little rain. Moderate day-night temperature difference."
@@ -557,18 +415,7 @@
           "Protect cold-sensitive plants"
         ]
       },
-      "health": {
-        "vi": [
-          "Mặc ấm, đặc biệt buổi sáng sớm",
-          "Ăn thức ăn ấm nóng",
-          "Phòng cảm lạnh, viêm họng"
-        ],
-        "en": [
-          "Dress warmly, especially early morning",
-          "Eat warm foods",
-          "Prevent colds, sore throat"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Lạnh hơn, nhất là sáng sớm và đêm. Trời hanh khô. Gió mùa đông bắc bắt đầu về (miền Bắc).",
         "en": "Colder, especially early morning and night. Dry weather. Northeast monsoon beginning (North)."
@@ -598,18 +445,7 @@
           "Store agricultural products for winter"
         ]
       },
-      "health": {
-        "vi": [
-          "Tăng cường giữ ấm cơ thể",
-          "Ăn thức ăn bổ dưỡng, tăng đề kháng",
-          "Tránh gió lạnh vào người"
-        ],
-        "en": [
-          "Strengthen body warmth",
-          "Eat nutritious foods, boost immunity",
-          "Avoid cold wind exposure"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Lạnh rõ rệt, có thể có sương muối ở vùng núi cao. Trời khô hanh. Gió mùa đông bắc mạnh.",
         "en": "Noticeably cold, possible frost in high mountains. Dry weather. Strong northeast monsoon."
@@ -639,18 +475,7 @@
           "Prepare seeds for spring season"
         ]
       },
-      "health": {
-        "vi": [
-          "Bổ sung thực phẩm ấm, giàu năng lượng",
-          "Giữ ấm đặc biệt vùng ngực, bụng, chân",
-          "Tập thể dục trong nhà khi trời quá lạnh"
-        ],
-        "en": [
-          "Supplement warm, energy-rich foods",
-          "Keep warm especially chest, belly, feet",
-          "Exercise indoors when too cold outside"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Lạnh, gió mùa đông bắc mạnh (miền Bắc). Miền Nam vẫn còn ấm. Trời khô hanh, ít mưa.",
         "en": "Cold, strong northeast monsoon (North). South still warm. Dry weather, little rain."
@@ -680,18 +505,7 @@
           "Mulch tree bases for warmth"
         ]
       },
-      "health": {
-        "vi": [
-          "Ăn thức ăn nóng, nấu canh xương",
-          "Tắm nước ấm, không tắm quá lâu",
-          "Giữ ấm đầu, cổ, tay, chân"
-        ],
-        "en": [
-          "Eat hot foods, make bone broth",
-          "Bathe with warm water, not too long",
-          "Keep head, neck, hands, feet warm"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Rét đậm (miền Bắc), có thể có băng giá ở vùng núi cao. Trời u ám, độ ẩm cao. Miền Nam se lạnh.",
         "en": "Deep cold (North), possible frost in high mountains. Overcast, high humidity. South slightly cold."
@@ -721,18 +535,7 @@
           "Prepare materials for spring season"
         ]
       },
-      "health": {
-        "vi": [
-          "Bổ thận, dưỡng âm theo Đông y",
-          "Ăn thức ăn bổ dưỡng như thịt dê, gà",
-          "Hạn chế ra ngoài khi rét đậm"
-        ],
-        "en": [
-          "Nourish kidneys, yin according to Eastern medicine",
-          "Eat nutritious foods like goat, chicken",
-          "Limit going outside during deep cold"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Rét đậm rét hại, có thể có tuyết ở Sa Pa, mưa phùn rét buốt. Gió mùa đông bắc cường độ mạnh.",
         "en": "Severe cold, possible snow in Sa Pa, chilling drizzle. Intense northeast monsoon."
@@ -762,18 +565,7 @@
           "Protect crops through cold"
         ]
       },
-      "health": {
-        "vi": [
-          "Dưỡng sinh, nghỉ ngơi nhiều hơn",
-          "Ăn thức ăn bổ dưỡng, tăng cường miễn dịch",
-          "Tránh làm việc quá sức"
-        ],
-        "en": [
-          "Rest more for health cultivation",
-          "Eat nutritious foods, boost immunity",
-          "Avoid overexertion"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Rét đậm, có thể có rét hại. Trời u ám, mưa phùn (miền Bắc). Thời điểm lạnh nhất hoặc gần lạnh nhất.",
         "en": "Deep cold, possibly severe. Overcast, drizzle (North). Coldest or near-coldest time."
@@ -803,18 +595,7 @@
           "Till soil, fertilize for sowing"
         ]
       },
-      "health": {
-        "vi": [
-          "Tránh ra ngoài khi quá lạnh",
-          "Ăn cháo nóng, uống nước gừng",
-          "Giữ ấm, đặc biệt khi đi ngủ"
-        ],
-        "en": [
-          "Avoid going outside when too cold",
-          "Eat hot porridge, drink ginger water",
-          "Keep warm, especially when sleeping"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Rét, có đợt rét đậm. Gió mùa đông bắc về theo đợt. Trời u ám, mưa phùn (miền Bắc).",
         "en": "Cold, with severe cold spells. Northeast monsoon comes in waves. Overcast, drizzle (North)."
@@ -844,18 +625,7 @@
           "Protect cattle through cold"
         ]
       },
-      "health": {
-        "vi": [
-          "Dưỡng sinh, tích trữ năng lượng cho mùa xuân",
-          "Ăn thức ăn ấm, bổ dưỡng",
-          "Tập thể dục nhẹ trong nhà"
-        ],
-        "en": [
-          "Cultivate health, store energy for spring",
-          "Eat warm, nutritious foods",
-          "Light indoor exercise"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Lạnh nhất năm, rét đậm rét hại. Có thể có sương muối, băng giá. Cuối tiết này chuyển dần sang xuân.",
         "en": "Coldest of year, severe cold. Possible frost, ice. Late in this term transitions toward spring."
@@ -885,18 +655,7 @@
           "Plant early spring green vegetables"
         ]
       },
-      "health": {
-        "vi": [
-          "Tăng cường vận động, đón khí xuân",
-          "Ăn rau xanh, bổ gan",
-          "Điều chỉnh giấc ngủ theo nhịp mới"
-        ],
-        "en": [
-          "Increase activity, welcome spring energy",
-          "Eat green vegetables, nourish liver",
-          "Adjust sleep to new rhythm"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Còn lạnh nhưng bớt rét. Thỉnh thoảng có nắng ấm. Giao thời đông xuân, thời tiết thay đổi.",
         "en": "Still cold but less severe. Occasional warm sunshine. Winter-spring transition, changeable weather."
@@ -926,18 +685,7 @@
           "Plant fruit trees"
         ]
       },
-      "health": {
-        "vi": [
-          "Phòng bệnh đường hô hấp",
-          "Tăng đề kháng với vitamin C",
-          "Chú ý giữ ấm khi mưa phùn"
-        ],
-        "en": [
-          "Prevent respiratory diseases",
-          "Boost immunity with vitamin C",
-          "Keep warm during drizzle"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Mưa phùn ẩm ướt (miền Bắc), ấm dần. Độ ẩm cao, thời tiết ẩm thấp. Miền Nam nắng nóng hơn.",
         "en": "Damp drizzle (North), gradually warming. High humidity, damp weather. South sunnier and hotter."
@@ -967,18 +715,7 @@
           "Care for growing plants"
         ]
       },
-      "health": {
-        "vi": [
-          "Tăng vận động đón năng lượng xuân",
-          "Ăn nhẹ nhàng, dễ tiêu",
-          "Ngủ sớm dậy sớm theo mặt trời"
-        ],
-        "en": [
-          "Increase activity to welcome spring energy",
-          "Eat light, easily digestible foods",
-          "Sleep early, wake early with the sun"
-        ]
-      },
+      "health": { "vi": [], "en": [] },
       "weather": {
         "vi": "Ấm hơn, có sấm xuân đầu tiên. Mưa giông bắt đầu. Thời tiết chuyển biến tích cực.",
         "en": "Warmer, first spring thunder. Thunderstorms begin. Weather changing positively."

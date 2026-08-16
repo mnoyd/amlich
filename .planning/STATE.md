@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: Traditional Wellness Context (Tier 0)
-current_plan: Phase 01 in progress (selected-hour branch-channel association)
+current_plan: Phase 01 in progress (branch-channel, core done); Phase 02 in progress (seasonal cultivation, core done)
 status: phase_in_progress
-last_updated: "2026-08-11T15:30:00+07:00"
-last_activity: 2026-08-11
+last_updated: "2026-08-16T16:20:00+07:00"
+last_activity: 2026-08-16
 progress:
   total_tracks: 4
   completed_tracks: 0
@@ -87,11 +87,16 @@ affected records remain `ExternalReviewPending` or unavailable.
 
 ## Next step
 
-The parent epic `amlich-l2zc` is published and bead `.1` is in progress
-(claimed 2026-08-11). Phase 01-01 plan + reviewer pack have been written
-to `.planning/milestones/v1.10-phases/01-hour-branch-channel-association/`;
-the T1–T8 implementation tasks are being executed and the validation
-gates (fmt, clippy, tests) will follow. Beads `.2`, `.3`, `.4` and the
-separate future portfolio `amlich-xlag` remain on their published
-status; `.2` is the parallel Suwen seasonal track, `.3` is blocked by
-both, `.4` is blocked by `.3`.
+The parent epic `amlich-l2zc` is published. Bead `.1` (branch-channel) has its
+Phase 01-01 core complete — awaiting the three human review gates. Bead `.2`
+(seasonal cultivation) has its Phase 02-01 core complete as of 2026-08-16:
+`SOURCE_HUANGDI_NEIJING_SUWEN` registered, the 4-profile Suwen corpus shipped
+`ExternalReviewPending`, the frozen 24-term → 4-season composition (Lập
+boundaries, `rule.composite.seasonal_wellness` composite envelope) locked by
+`tests/seasonal_cultivation_integration.rs`, the unsourced `health` lists in
+`tiet-khi.json` emptied (both copies), and the seasonal REVIEWER-PACK published
+for Gates 2–4. Bead `.3` (unified explanation + API/TUI/desktop/graph
+projection, including the `DaySnapshot.traditional_wellness` additive field)
+is unblocked once its parents' cores are accepted; bead `.4` remains blocked
+by `.3`. The four human review gates are the critical path for closing `.1`
+and `.2`.

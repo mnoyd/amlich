@@ -43,6 +43,16 @@ pub const SOURCE_MAI_HOA_DICH_SO: &str = "mai-hoa-dich-so";
 /// ADR-0003).
 pub const SOURCE_SHI_ER_JING_NA_DI_ZHI: &str = "shi-er-jing-na-di-zhi";
 
+/// Hoàng Đế Nội Kinh – Tố Vấn (黃帝內經 · 素問) — four-season cultivation
+/// profiles paraphrased from chapter `四氣調神大論篇第二` only. New in
+/// v1.10 (Phase 02-01, SEASON-01 / SOURCE-01). Scope is strictly the
+/// four seasonal routine paraphrases; the astronomical solar-term
+/// computation keeps its existing source and is never retagged as
+/// Suwen. The term-to-season join is an Amlich composition emitted as
+/// the composite `rule.composite.seasonal_wellness`, never as a
+/// primitive source.
+pub const SOURCE_HUANGDI_NEIJING_SUWEN: &str = "huangdi-neijing-suwen";
+
 /// Typed identifier for a classical or derived provenance source.
 ///
 /// The transparent serde representation preserves the existing JSON string
@@ -126,6 +136,9 @@ mod tests {
         // v1.10 (Phase 01-01): Thập nhị kinh nạp địa chi historical
         // association (ASSOC-01 / SOURCE-01).
         assert_eq!(SOURCE_SHI_ER_JING_NA_DI_ZHI, "shi-er-jing-na-di-zhi");
+        // v1.10 (Phase 02-01): Hoàng Đế Nội Kinh – Tố Vấn four-season
+        // cultivation paraphrases (SEASON-01 / SOURCE-01).
+        assert_eq!(SOURCE_HUANGDI_NEIJING_SUWEN, "huangdi-neijing-suwen");
     }
 
     #[test]

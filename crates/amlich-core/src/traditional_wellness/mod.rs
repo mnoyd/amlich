@@ -8,14 +8,19 @@
 //! - [`divergence`] — the [`TimeBasis`](divergence::TimeBasis),
 //!   [`ExternalReviewState`](divergence::ExternalReviewState), and the
 //!   [`TraditionalWellnessKnownDivergence`](divergence::TraditionalWellnessKnownDivergence)
-//!   registry.
+//!   registries for both v1.10 tracks.
 //! - [`branch_channel`] — the twelve-row historical branch-to-channel
 //!   association corpus, the [`BranchChannelAssociation`] struct, the
 //!   [`TraditionalWellnessContext`] wrapper, and the lookup helpers.
+//! - [`seasonal`] — the four-profile Suwen seasonal cultivation corpus,
+//!   the frozen 24-term → 4-season composition, the
+//!   [`seasonal::SeasonalCultivationContext`] wrapper, and the lookup
+//!   helpers (Phase 02-01, SEASON-01).
 
 pub mod branch_channel;
 pub mod disclaimer;
 pub mod divergence;
+pub mod seasonal;
 
 pub use branch_channel::{
     load_corpus, resolve_hour_branch_association, resolve_traditional_wellness_context,
@@ -27,7 +32,15 @@ pub use disclaimer::{
     DISCLAIMER_ID_CULTURAL_INFORMATION_STR,
 };
 pub use divergence::{
-    all_divergences_for_branch_channel, channel_not_organ, civil_time_disclosure, divergence_by_id,
-    fixed_cycle_contestation, ExternalReviewState, TimeBasis, TraditionalWellnessKnownDivergence,
+    all_divergences_for_branch_channel, all_divergences_for_seasonal_cultivation,
+    channel_not_organ, civil_time_disclosure, divergence_by_id, fixed_cycle_contestation,
+    four_profiles_not_term_regimens, organ_injury_clauses_omitted, phenology_is_not_local_weather,
+    ExternalReviewState, TimeBasis, TraditionalWellnessKnownDivergence,
     TraditionalWellnessSourceValue,
+};
+pub use seasonal::{
+    load_seasonal_corpus, resolve_seasonal_cultivation, season_for_term_index, SeasonKey,
+    SeasonalCultivationContext, SeasonalCultivationProfile, COMPOSITE_SEASONAL_WELLNESS,
+    COMPOSITION_NOTE_EN, COMPOSITION_NOTE_VN, SEASONAL_BOUNDARY_TERM_NAMES,
+    SOLAR_TERM_ENGINE_SOURCE_ID, TERMS_PER_SEASON,
 };

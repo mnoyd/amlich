@@ -1,0 +1,112 @@
+{
+  "$schema_note": "v1.10 Phase 02-01 four-season cultivation corpus. All 4 profiles are ExternalReviewPending until §B of REVIEWER-PACK.md is signed by a Suwen paraphrase reviewer. Citation metadata per LUNAR_HEALTH_RESEARCH.md §2 and §4. The 24-term to four-season grouping is an Amlich composition (LH-DIV-04) and lives in code, not in this corpus.",
+  "metadata": {
+    "milestone": "v1.10",
+    "phase": "02-seasonal-cultivation-context",
+    "schema_version": "seasonal_cultivation_v1",
+    "scope": "Tứ khí điều thần (四氣調神大論) — four seasonal routine profiles paraphrased from Huangdi Neijing Suwen chapter 素問 四氣調神大論篇第二 only. NOT 24 solar-term regimens, NOT local weather advice, NOT clinical guidance.",
+    "primary_source": {
+      "source_id": "huangdi-neijing-suwen",
+      "work_title": "Huangdi Neijing Suwen",
+      "volume_or_chapter": "素問 四氣調神大論篇第二",
+      "passage_keys": ["spring", "summer", "autumn", "winter"],
+      "transcription_uri": "https://ctext.org/huangdi-neijing/si-qi-diao-shen-da-lun/zh",
+      "translation_kind": "project_paraphrase",
+      "note": "edition_or_facsimile_uri filled by the Suwen paraphrase reviewer on sign-off per REVIEWER-PACK §A.7"
+    },
+    "divergence_ids_in_use": ["LH-DIV-04", "LH-DIV-05", "LH-DIV-07"],
+    "composition": {
+      "kind": "amlich_term_to_season_join",
+      "boundaries": ["Lập Xuân", "Lập Hạ", "Lập Thu", "Lập Đông"],
+      "terms_per_season": 6,
+      "composite_rule_id": "rule.composite.seasonal_wellness",
+      "note": "Deterministic presentation join, not a classical claim; the solar-term engine keeps its own provenance."
+    }
+  },
+  "profiles": [
+    {
+      "season": "spring",
+      "season_vi": "Xuân",
+      "season_en": "Spring",
+      "season_zh": "春",
+      "passage_key": "spring",
+      "wording_vi": "Trong chương \"Tứ khí điều thần\" của Hoàng Đế Nội Kinh – Tố Vấn, văn bản cổ mô tả việc dưỡng sinh mùa xuân: ngủ dậy sớm, đi dạo thong thả ngoài trời, buông lỏng thân thể, để ý định và hoạt động triển khai tự nhiên thay vì gò bó.",
+      "wording_en": "In the \"Great Discourse on Regulating the Spirit According to the Four Seasons\" of the Huangdi Neijing Suwen, the classical text describes the spring routine as rising early, taking unhurried outdoor walks, loosening the body, and letting intention and activity unfold rather than constraining them.",
+      "sources": [{
+        "source_id": "huangdi-neijing-suwen",
+        "work_title": "Huangdi Neijing Suwen",
+        "volume_or_chapter": "素問 四氣調神大論篇第二",
+        "passage_key": "spring",
+        "edition_or_facsimile_uri": "PENDING_CLASSICAL_REVIEW",
+        "transcription_uri": "https://ctext.org/huangdi-neijing/si-qi-diao-shen-da-lun/zh",
+        "translation_kind": "project_paraphrase"
+      }],
+      "reviewer": "ExternalReviewPending(reason=\"suwen_four_season_paraphrase_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"suwen_paraphrase_reviewer\")",
+      "safety_class": "historical_cultural_non_clinical",
+      "known_divergence_ids": ["LH-DIV-04", "LH-DIV-05", "LH-DIV-07"]
+    },
+    {
+      "season": "summer",
+      "season_vi": "Hạ",
+      "season_en": "Summer",
+      "season_zh": "夏",
+      "passage_key": "summer",
+      "wording_vi": "Trong chương \"Tứ khí điều thần\" của Hoàng Đế Nội Kinh – Tố Vấn, văn bản cổ mô tả việc dưỡng sinh mùa hè: ngủ dậy sớm, tiếp xúc với ánh sáng ban ngày, tránh nóng giận, để hoạt động và sự chú ý hướng ra bên ngoài.",
+      "wording_en": "In the \"Great Discourse on Regulating the Spirit According to the Four Seasons\" of the Huangdi Neijing Suwen, the classical text describes the summer routine as rising early, engaging with daylight, avoiding anger, and allowing activity and attention to move outward.",
+      "sources": [{
+        "source_id": "huangdi-neijing-suwen",
+        "work_title": "Huangdi Neijing Suwen",
+        "volume_or_chapter": "素問 四氣調神大論篇第二",
+        "passage_key": "summer",
+        "edition_or_facsimile_uri": "PENDING_CLASSICAL_REVIEW",
+        "transcription_uri": "https://ctext.org/huangdi-neijing/si-qi-diao-shen-da-lun/zh",
+        "translation_kind": "project_paraphrase"
+      }],
+      "reviewer": "ExternalReviewPending(reason=\"suwen_four_season_paraphrase_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"suwen_paraphrase_reviewer\")",
+      "safety_class": "historical_cultural_non_clinical",
+      "known_divergence_ids": ["LH-DIV-04", "LH-DIV-05", "LH-DIV-07"]
+    },
+    {
+      "season": "autumn",
+      "season_vi": "Thu",
+      "season_en": "Autumn",
+      "season_zh": "秋",
+      "passage_key": "autumn",
+      "wording_vi": "Trong chương \"Tứ khí điều thần\" của Hoàng Đế Nội Kinh – Tố Vấn, văn bản cổ mô tả việc dưỡng sinh mùa thu: ngủ sớm và dậy sớm, lắng lại và thu giữ sự chú ý hướng vào trong, giữ tâm thế tĩnh tại.",
+      "wording_en": "In the \"Great Discourse on Regulating the Spirit According to the Four Seasons\" of the Huangdi Neijing Suwen, the classical text describes the autumn routine as sleeping and rising early, settling and gathering attention inward, and keeping a tranquil disposition.",
+      "sources": [{
+        "source_id": "huangdi-neijing-suwen",
+        "work_title": "Huangdi Neijing Suwen",
+        "volume_or_chapter": "素問 四氣調神大論篇第二",
+        "passage_key": "autumn",
+        "edition_or_facsimile_uri": "PENDING_CLASSICAL_REVIEW",
+        "transcription_uri": "https://ctext.org/huangdi-neijing/si-qi-diao-shen-da-lun/zh",
+        "translation_kind": "project_paraphrase"
+      }],
+      "reviewer": "ExternalReviewPending(reason=\"suwen_four_season_paraphrase_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"suwen_paraphrase_reviewer\")",
+      "safety_class": "historical_cultural_non_clinical",
+      "known_divergence_ids": ["LH-DIV-04", "LH-DIV-05", "LH-DIV-07"]
+    },
+    {
+      "season": "winter",
+      "season_vi": "Đông",
+      "season_en": "Winter",
+      "season_zh": "冬",
+      "passage_key": "winter",
+      "wording_vi": "Trong chương \"Tứ khí điều thần\" của Hoàng Đế Nội Kinh – Tố Vấn, văn bản cổ mô tả việc dưỡng sinh mùa đông: ngủ sớm, dậy muộn hơn đợi ánh ngày, giữ ý hướng vào trong, tìm chỗ ấm và tránh tiếp xúc không cần thiết với lạnh.",
+      "wording_en": "In the \"Great Discourse on Regulating the Spirit According to the Four Seasons\" of the Huangdi Neijing Suwen, the classical text describes the winter routine as sleeping early and rising later, waiting for daylight, keeping intention inward, and seeking warmth while avoiding unnecessary exposure to cold.",
+      "sources": [{
+        "source_id": "huangdi-neijing-suwen",
+        "work_title": "Huangdi Neijing Suwen",
+        "volume_or_chapter": "素問 四氣調神大論篇第二",
+        "passage_key": "winter",
+        "edition_or_facsimile_uri": "PENDING_CLASSICAL_REVIEW",
+        "transcription_uri": "https://ctext.org/huangdi-neijing/si-qi-diao-shen-da-lun/zh",
+        "translation_kind": "project_paraphrase"
+      }],
+      "reviewer": "ExternalReviewPending(reason=\"suwen_four_season_paraphrase_review_pending\"; expected_review_date=\"2026-12-31\"; assigned_to=\"suwen_paraphrase_reviewer\")",
+      "safety_class": "historical_cultural_non_clinical",
+      "known_divergence_ids": ["LH-DIV-04", "LH-DIV-05", "LH-DIV-07"]
+    }
+  ]
+}

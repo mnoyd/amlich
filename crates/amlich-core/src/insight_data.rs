@@ -381,7 +381,11 @@ mod tests {
     fn lookup_tiet_khi_by_vi_name() {
         let term = find_tiet_khi_insight("Xuân Phân").expect("Xuân Phân should exist");
         assert_eq!(term.longitude, 0);
-        assert!(!term.health.vi.is_empty());
+        // v1.10 Phase 02-01: the unsourced per-term health lists were
+        // emptied and replaced by the reviewed Suwen seasonal corpus
+        // (`traditional_wellness::seasonal`). They must stay empty.
+        assert!(term.health.vi.is_empty());
+        assert!(term.health.en.is_empty());
     }
 
     #[test]

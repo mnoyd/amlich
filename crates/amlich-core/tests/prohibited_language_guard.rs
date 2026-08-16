@@ -1,10 +1,13 @@
-//! v1.10 Phase 01-01 (VERIFY-01 lexical facet) — prohibited-language
-//! guard for the Traditional Wellness Context surfaces.
+//! v1.10 Phase 01-01 + 02-01 (VERIFY-01 lexical facet) —
+//! prohibited-language guard for the Traditional Wellness Context
+//! surfaces.
 //!
-//! Scans three scopes:
-//!   1. `crates/amlich-core/data/traditional-wellness/branch-channel.json`
-//!      — forbids the §3.2 lexemes from LUNAR_HEALTH_RESEARCH.md and
-//!      asserts every row carries the canonical `safety_class`.
+//! Scans:
+//!   1. `crates/amlich-core/data/traditional-wellness/*.json` (the
+//!      12-row branch-channel corpus and the 4-profile seasonal
+//!      cultivation corpus) — forbids the §3.2 lexemes from
+//!      LUNAR_HEALTH_RESEARCH.md and asserts every row carries the
+//!      canonical `safety_class`.
 //!   2. `crates/amlich-core/src/traditional_wellness/**/*.rs` — forbids
 //!      the same lexemes plus the clinical field names. Clinical fields
 //!      are checked against Rust struct field declarations only (so
@@ -12,8 +15,12 @@
 //!      trip the guard).
 //!   3. `crates/amlich-core/src/traditional_wellness/disclaimer.rs` —
 //!      asserts the bilingual strings are byte-identical to the strings
-//!      in REVIEWER-PACK.md §A.1 and §A.2. The reviewer pack is the
-//!      contract surface; the implementation must mirror it.
+//!      in REVIEWER-PACK.md §A.1 and §A.2 (both the Phase 01 and Phase
+//!      02 packs). The reviewer packs are the contract surface; the
+//!      implementation must mirror them.
+//!   4. The seasonal corpus wording + composition notes must appear
+//!      verbatim in the Phase 02 REVIEWER-PACK (pack-integrity lock,
+//!      mirroring the Phase 01 `corpus_row_wording_appears_in_reviewer_pack`).
 //!
 //! Precedent: `crates/amlich-core/tests/ritual_han_guard.rs` (Hán-character
 //! guard for the v1.5 ritual corpus, per `.planning/milestones/v1.5-phases/
@@ -94,32 +101,46 @@ fn report(violations: &mut Vec<String>, path: &Path, lineno: usize, line: &str, 
     ));
 }
 
+/// The Traditional Wellness corpus files in scope: the Phase 01-01
+/// 12-row branch-channel corpus and the Phase 02-01 4-profile seasonal
+/// cultivation corpus.
+const CORPUS_FILES: &[&str] = &[
+    "data/traditional-wellness/branch-channel.json",
+    "data/traditional-wellness/seasonal-cultivation.json",
+];
+
+fn corpus_path(relative: &str) -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR")).join(relative)
+}
+
 #[test]
 fn corpus_json_contains_no_prohibited_lexemes() {
-    let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("data/traditional-wellness/branch-channel.json");
-    let contents = fs::read_to_string(&path).expect("read corpus JSON");
     let mut violations: Vec<String> = Vec::new();
+    for relative in CORPUS_FILES {
+        let path = corpus_path(relative);
+        let contents = fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read corpus JSON {}: {e}", path.display()));
 
-    for (lineno, line) in contents.lines().enumerate() {
-        if let Some(n) = contains_any(line, FORBIDDEN_VI) {
-            report(&mut violations, &path, lineno + 1, line, n);
-        }
-        if let Some(n) = contains_any(line, FORBIDDEN_EN) {
-            // Skip whole-word-only entries handled below
-            if n == "peak" {
-                if contains_whole_word(line, "peak") {
+        for (lineno, line) in contents.lines().enumerate() {
+            if let Some(n) = contains_any(line, FORBIDDEN_VI) {
+                report(&mut violations, &path, lineno + 1, line, n);
+            }
+            if let Some(n) = contains_any(line, FORBIDDEN_EN) {
+                // Skip whole-word-only entries handled below
+                if n == "peak" {
+                    if contains_whole_word(line, "peak") {
+                        report(&mut violations, &path, lineno + 1, line, n);
+                    }
+                } else {
                     report(&mut violations, &path, lineno + 1, line, n);
                 }
-            } else {
-                report(&mut violations, &path, lineno + 1, line, n);
             }
         }
     }
 
     assert!(
         violations.is_empty(),
-        "Prohibited lexemes found in branch-channel.json:\n{}",
+        "Prohibited lexemes found in Traditional Wellness corpora:\n{}",
         violations.join("\n")
     );
 }
@@ -131,11 +152,8 @@ fn corpus_json_has_no_clinical_field_keys() {
     // food/herb, dose, or disease fields. The phrase lexeme scan above
     // catches leaked substrings; this test catches any *field name*
     // that would invite a clinical reading even when its value is
-    // empty. The walk is exhaustive over nested objects and arrays.
-    let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("data/traditional-wellness/branch-channel.json");
-    let contents = fs::read_to_string(&path).expect("read corpus JSON");
-    let value: serde_json::Value = serde_json::from_str(&contents).expect("parse corpus JSON");
+    // empty. The walk is exhaustive over nested objects and arrays and
+    // covers both v1.10 corpora.
     let mut violations: Vec<String> = Vec::new();
 
     fn walk(
@@ -175,41 +193,70 @@ fn corpus_json_has_no_clinical_field_keys() {
             _ => {}
         }
     }
-    let mut path = String::new();
-    walk(
-        &value,
-        &mut path,
-        FORBIDDEN_CLINICAL_FIELDS,
-        &mut violations,
-    );
+
+    for relative in CORPUS_FILES {
+        let path = corpus_path(relative);
+        let contents = fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read corpus JSON {}: {e}", path.display()));
+        let value: serde_json::Value = serde_json::from_str(&contents)
+            .unwrap_or_else(|e| panic!("parse corpus JSON {}: {e}", path.display()));
+        let mut json_path = String::new();
+        walk(
+            &value,
+            &mut json_path,
+            FORBIDDEN_CLINICAL_FIELDS,
+            &mut violations,
+        );
+    }
 
     assert!(
         violations.is_empty(),
-        "Prohibited clinical JSON keys found in branch-channel.json:\n{}",
+        "Prohibited clinical JSON keys found in Traditional Wellness corpora:\n{}",
         violations.join("\n")
     );
 }
 
 #[test]
 fn corpus_json_rows_carry_canonical_safety_class() {
-    let path =
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("data/traditional-wellness/branch-channel.json");
-    let contents = fs::read_to_string(&path).expect("read corpus JSON");
-    let value: serde_json::Value = serde_json::from_str(&contents).expect("parse corpus JSON");
-    let rows = value
-        .get("rows")
-        .and_then(|r| r.as_array())
-        .expect("rows array");
-    assert_eq!(rows.len(), 12, "corpus must contain exactly 12 rows");
-    for (i, row) in rows.iter().enumerate() {
-        let safety = row
-            .get("safety_class")
-            .and_then(|s| s.as_str())
-            .unwrap_or_default();
+    // Branch-channel corpus: 12 rows under `rows`. Seasonal corpus: 4
+    // profiles under `profiles` — the count lock is itself part of the
+    // "four profiles, not 24 term regimens" contract (LH-DIV-04).
+    let expected_shapes: &[(&str, &str, usize)] = &[
+        ("data/traditional-wellness/branch-channel.json", "rows", 12),
+        (
+            "data/traditional-wellness/seasonal-cultivation.json",
+            "profiles",
+            4,
+        ),
+    ];
+    for (relative, array_key, expected_len) in expected_shapes {
+        let path = corpus_path(relative);
+        let contents = fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read corpus JSON {}: {e}", path.display()));
+        let value: serde_json::Value = serde_json::from_str(&contents)
+            .unwrap_or_else(|e| panic!("parse corpus JSON {}: {e}", path.display()));
+        let rows = value
+            .get(array_key)
+            .and_then(|r| r.as_array())
+            .unwrap_or_else(|| panic!("{array_key} array in {}", path.display()));
         assert_eq!(
-            safety, "historical_cultural_non_clinical",
-            "row {i} must carry the canonical safety_class"
+            rows.len(),
+            *expected_len,
+            "{} must contain exactly {expected_len} entries",
+            path.display()
         );
+        for (i, row) in rows.iter().enumerate() {
+            let safety = row
+                .get("safety_class")
+                .and_then(|s| s.as_str())
+                .unwrap_or_default();
+            assert_eq!(
+                safety,
+                "historical_cultural_non_clinical",
+                "{} entry {i} must carry the canonical safety_class",
+                path.display()
+            );
+        }
     }
 }
 
@@ -283,26 +330,28 @@ fn bilingual_disclaimer_is_byte_identical_to_reviewer_pack() {
     // promise the reviewer that "All localized outputs carry the
     // disclaimer or a stable disclaimer ID that clients are
     // contractually required to render." To keep that promise
-    // auditable, this test reads the pack file at test time and
+    // auditable, this test reads each pack file at test time and
     // asserts the implementation constants appear verbatim inside §A.1
     // and §A.2 blockquotes. Drift in either direction (implementation
     // drifts from pack, or pack drifts from implementation) fails CI.
-    let pack_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+    // Both the Phase 01 and Phase 02 packs carry the same shared
+    // disclaimer text and are both locked.
+    let pack_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("..")
         .join(".planning")
         .join("milestones")
-        .join("v1.10-phases")
-        .join("01-hour-branch-channel-association")
-        .join("REVIEWER-PACK.md");
-    let pack = fs::read_to_string(&pack_path).unwrap_or_else(|e| {
-        panic!(
-            "could not read REVIEWER-PACK at {}: {e}",
-            pack_path.display()
-        )
-    });
+        .join("v1.10-phases");
+    let pack_paths = [
+        pack_dir
+            .join("01-hour-branch-channel-association")
+            .join("REVIEWER-PACK.md"),
+        pack_dir
+            .join("02-seasonal-cultivation-context")
+            .join("REVIEWER-PACK.md"),
+    ];
 
-    // Extract the §A.1 and §A.2 blockquote bodies. The pack uses the
+    // Extract the §A.1 and §A.2 blockquote bodies. The packs use the
     // standard markdown `> ` prefix on a single line per section.
     let extract_blockquote = |pack: &str, marker: &str| -> Option<String> {
         let after = pack.split_once(marker)?.1;
@@ -314,19 +363,40 @@ fn bilingual_disclaimer_is_byte_identical_to_reviewer_pack() {
         Some(body.to_string())
     };
 
-    let pack_vn = extract_blockquote(&pack, "**§A.1 Vietnamese:**")
-        .expect("REVIEWER-PACK must contain §A.1 Vietnamese blockquote");
-    let pack_en = extract_blockquote(&pack, "**§A.2 English:**")
-        .expect("REVIEWER-PACK must contain §A.2 English blockquote");
+    for pack_path in &pack_paths {
+        let pack = fs::read_to_string(pack_path).unwrap_or_else(|e| {
+            panic!(
+                "could not read REVIEWER-PACK at {}: {e}",
+                pack_path.display()
+            )
+        });
 
-    assert_eq!(
-        DISCLAIMER_CULTURAL_INFORMATION_VN, pack_vn,
-        "Vietnamese disclaimer must be byte-identical to REVIEWER-PACK.md §A.1"
-    );
-    assert_eq!(
-        DISCLAIMER_CULTURAL_INFORMATION_EN, pack_en,
-        "English disclaimer must be byte-identical to REVIEWER-PACK.md §A.2"
-    );
+        let pack_vn = extract_blockquote(&pack, "**§A.1 Vietnamese:**").unwrap_or_else(|| {
+            panic!(
+                "REVIEWER-PACK {} must contain §A.1 Vietnamese blockquote",
+                pack_path.display()
+            )
+        });
+        let pack_en = extract_blockquote(&pack, "**§A.2 English:**").unwrap_or_else(|| {
+            panic!(
+                "REVIEWER-PACK {} must contain §A.2 English blockquote",
+                pack_path.display()
+            )
+        });
+
+        assert_eq!(
+            DISCLAIMER_CULTURAL_INFORMATION_VN,
+            pack_vn,
+            "Vietnamese disclaimer must be byte-identical to {} §A.1",
+            pack_path.display()
+        );
+        assert_eq!(
+            DISCLAIMER_CULTURAL_INFORMATION_EN,
+            pack_en,
+            "English disclaimer must be byte-identical to {} §A.2",
+            pack_path.display()
+        );
+    }
 }
 
 #[test]
@@ -373,6 +443,68 @@ fn corpus_row_wording_appears_in_reviewer_pack() {
     assert!(
         missing.is_empty(),
         "Drift between corpus wording and REVIEWER-PACK §A.4:\n{}",
+        missing.join("\n")
+    );
+}
+
+/// Phase 02-01 pack integrity — every seasonal profile's
+/// `wording_vi`/`wording_en` appears verbatim in the seasonal
+/// REVIEWER-PACK §A.4, and the bilingual composition disclosure
+/// (`COMPOSITION_NOTE_VN`/`COMPOSITION_NOTE_EN`) appears verbatim in
+/// §A.5, so the seasonal reviewer contract surface and the
+/// implementation surface cannot drift apart silently.
+#[test]
+fn seasonal_corpus_wording_and_composition_notes_appear_in_reviewer_pack() {
+    use amlich_core::traditional_wellness::{COMPOSITION_NOTE_EN, COMPOSITION_NOTE_VN};
+
+    let pack_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
+        .join(".planning")
+        .join("milestones")
+        .join("v1.10-phases")
+        .join("02-seasonal-cultivation-context")
+        .join("REVIEWER-PACK.md");
+    let pack = fs::read_to_string(&pack_path).expect("read seasonal REVIEWER-PACK");
+    let corpus = corpus_path("data/traditional-wellness/seasonal-cultivation.json");
+    let corpus_raw = fs::read_to_string(&corpus).expect("read corpus JSON");
+    let value: serde_json::Value = serde_json::from_str(&corpus_raw).expect("parse corpus JSON");
+    let profiles = value
+        .get("profiles")
+        .and_then(|r| r.as_array())
+        .expect("profiles array");
+
+    let mut missing: Vec<String> = Vec::new();
+    for profile in profiles {
+        let season = profile.get("season").and_then(|v| v.as_str()).unwrap_or("");
+        let wording_vi = profile
+            .get("wording_vi")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        let wording_en = profile
+            .get("wording_en")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        if !pack.contains(wording_vi) {
+            missing.push(format!(
+                "profile {season} wording_vi not found in REVIEWER-PACK §A.4: {wording_vi:?}"
+            ));
+        }
+        if !pack.contains(wording_en) {
+            missing.push(format!(
+                "profile {season} wording_en not found in REVIEWER-PACK §A.4: {wording_en:?}"
+            ));
+        }
+    }
+    if !pack.contains(COMPOSITION_NOTE_VN) {
+        missing.push("composition note (vi) not found in REVIEWER-PACK §A.5".to_string());
+    }
+    if !pack.contains(COMPOSITION_NOTE_EN) {
+        missing.push("composition note (en) not found in REVIEWER-PACK §A.5".to_string());
+    }
+    assert!(
+        missing.is_empty(),
+        "Drift between seasonal corpus and REVIEWER-PACK:\n{}",
         missing.join("\n")
     );
 }

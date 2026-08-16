@@ -17,7 +17,11 @@ fn tiet_khi_records_have_required_fields() {
         assert!(!term.meaning.vi.trim().is_empty());
         assert!(!term.astronomy.vi.trim().is_empty());
         assert!(!term.agriculture.vi.is_empty());
-        assert!(!term.health.vi.is_empty());
+        // v1.10 Phase 02-01: unsourced seasonal health copy was replaced
+        // by the reviewed Suwen seasonal cultivation corpus; the health
+        // lists must stay empty on every term.
+        assert!(term.health.vi.is_empty());
+        assert!(term.health.en.is_empty());
         assert!(!term.weather.vi.trim().is_empty());
     }
 }

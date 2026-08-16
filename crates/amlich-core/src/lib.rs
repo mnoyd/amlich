@@ -447,6 +447,45 @@ pub fn enrich_day_snapshot_with_branch_channel_association(
     Ok((snapshot.clone(), context))
 }
 
+/// v1.10 Phase 02-01 (SEASON-01) immutable enrichment entry point.
+/// Takes the existing `DaySnapshot`, resolves the active solar term
+/// through the existing astronomical engine (`tietkhi::get_tiet_khi` —
+/// never reimplemented here), joins it to exactly one of the four
+/// source-grounded Suwen seasonal cultivation profiles via the frozen
+/// Amlich composition, and returns the snapshot alongside the
+/// [`SeasonalCultivationContext`] wrapper.
+///
+/// The function is total from valid inputs; the `Err` arm is reserved
+/// for future corpus-loading failures. Like the Phase 01-01 helper
+/// above, the tuple-returning form is the Phase 02-01 contract; bead
+/// `amlich-l2zc.3` collapses it onto the additive
+/// `DaySnapshot.traditional_wellness` field together with the
+/// branch-channel context.
+///
+/// Provenance (SOURCE-01): the returned context carries the solar-term
+/// primitive evidence (existing engine attribution), the
+/// `huangdi-neijing-suwen` primitive evidence, and exactly one Derived
+/// composite envelope `rule.composite.seasonal_wellness` for the join.
+///
+/// Tier 0: the input is `(snapshot, jd, time_zone)`; no `BirthInput`,
+/// sex/gender, symptom, location, or health history is consulted
+/// (BOUND-01). Day Assessment / Hour Ranking / Direction Assessment are
+/// untouched (ADR-0003).
+pub fn enrich_day_snapshot_with_seasonal_cultivation(
+    snapshot: &DaySnapshot,
+    jd: i32,
+    time_zone: f64,
+) -> Result<
+    (
+        DaySnapshot,
+        crate::traditional_wellness::SeasonalCultivationContext,
+    ),
+    String,
+> {
+    let context = crate::traditional_wellness::resolve_seasonal_cultivation(jd, time_zone);
+    Ok((snapshot.clone(), context))
+}
+
 fn calculate_day_snapshot_internal(
     day: i32,
     month: i32,
