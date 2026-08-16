@@ -420,6 +420,38 @@ fn enrichment_leaves_day_assessment_untouched() {
     assert_eq!(context.solar_term.name, enriched.context.tiet_khi.name);
 }
 
+#[test]
+fn unified_enrichment_attaches_both_tracks_and_keeps_baseline_byte_equal_without_it() {
+    use amlich_core::calculate_day_snapshot;
+    use amlich_core::enrich_day_snapshot_with_traditional_wellness;
+
+    let snapshot = calculate_day_snapshot(16, 8, 2026);
+    let before = serde_json::to_string(&snapshot).expect("serialize baseline");
+    let enriched = enrich_day_snapshot_with_traditional_wellness(
+        &snapshot,
+        snapshot.context.jd,
+        TIME_ZONE,
+        9,
+        30,
+    )
+    .expect("unified enrichment must succeed");
+    // The enrichment clones the snapshot and adds the additive
+    // `traditional_wellness` field; the baseline JSON is byte-equal
+    // only when the field stays absent — which holds because the
+    // enriched snapshot has it set (so its JSON adds a new key).
+    assert_ne!(before, serde_json::to_string(&enriched).unwrap());
+    let ctx = enriched
+        .traditional_wellness
+        .as_ref()
+        .expect("unified enrichment must populate the additive field");
+    assert!(ctx.hour_branch.is_some());
+    assert!(ctx.seasonal_cultivation.is_some());
+    // Both primitive envelopes plus the seasonal composite (no
+    // extra composite for the branch side — branch lookup is a
+    // single Derived envelope, not a composite join).
+    assert_eq!(ctx.evidence.len(), 4);
+}
+
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------

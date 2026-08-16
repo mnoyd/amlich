@@ -166,6 +166,17 @@
         return 'badge-cothe';
     }
 
+    /// Human-friendly badge label for the `ExternalReviewState` marker
+    /// carried on the Traditional Wellness context. Pending markers
+    /// surface as the reviewer role + the expected review date;
+    /// Signed markers surface as the reviewer name.
+    function reviewStateLabel(value?: string | null): string {
+        if (!value) return 'no review state';
+        if (value.startsWith('Signed(')) return 'Signed';
+        if (value.startsWith('ExternalReviewPending(')) return 'Pending review';
+        return value;
+    }
+
     function formatList(items?: string[] | null): string {
         if (!items || items.length === 0) return 'none';
         return items.join(', ');
@@ -332,6 +343,124 @@
                 {/if}
             {:else}
                 <div class="text-sm text-ink-light italic">Không có dữ liệu cổ điển cho ngày này.</div>
+            {/if}
+        </section>
+
+        <section class="card-dense mb-6" data-testid="classical-v110-wellness-surface">
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+                <div>
+                    <h3 class="text-xl font-mono font-bold">Bối Cảnh Dưỡng Sinh Truyền Thống</h3>
+                    <p class="mt-1 text-xs font-mono text-ink-light">
+                        Thập nhị kinh nạp địa chi · Hoàng đế Nội Kinh Tố Vấn · Tứ khí điều thần
+                    </p>
+                </div>
+                {#if classicalSurface?.traditional_wellness}
+                    <span class="badge-cothe" title={classicalSurface.traditional_wellness.time_basis}>
+                        {reviewStateLabel(classicalSurface.traditional_wellness.review_state)}
+                    </span>
+                {/if}
+            </div>
+
+            {#if !classicalSurface?.traditional_wellness}
+                <div class="text-sm text-ink-light italic">
+                    Không có dữ liệu dưỡng sinh cho ngày này.
+                </div>
+            {:else}
+                {@const wellness = classicalSurface.traditional_wellness}
+                <div class="grid grid-cols-1 2xl:grid-cols-2 gap-6">
+                    {#if wellness.hour_branch}
+                        <div
+                            class="border border-ink-border bg-parchment-dark/30 p-4"
+                            data-testid="wellness-branch-channel"
+                        >
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <div class="text-xs font-mono uppercase text-ink-light">
+                                        {wellness.hour_branch.time_range}
+                                    </div>
+                                    <div class="mt-1 text-lg font-bold">
+                                        {wellness.hour_branch.branch_vi} ({wellness.hour_branch.branch_zh})
+                                        · Kinh {wellness.hour_branch.channel_vi}
+                                    </div>
+                                    <div class="text-xs font-mono text-ink-light">
+                                        {wellness.hour_branch.channel_zh} · {wellness.hour_branch.channel_en}
+                                    </div>
+                                </div>
+                                <span class="badge-cothe">{wellness.hour_branch.safety_class}</span>
+                            </div>
+                            <p class="mt-3 text-sm leading-relaxed text-ink-light">
+                                {wellness.hour_branch.wording_vi}
+                            </p>
+                            <p class="mt-2 text-xs italic leading-relaxed text-ink-light">
+                                {wellness.hour_branch.wording_en}
+                            </p>
+                            {#if wellness.hour_branch.known_divergence_ids.length > 0}
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    {#each wellness.hour_branch.known_divergence_ids as id}
+                                        <span class="badge-evidence" title="Known divergence">⚠ {id}</span>
+                                    {/each}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+
+                    {#if wellness.seasonal_cultivation}
+                        {@const seasonal = wellness.seasonal_cultivation}
+                        <div
+                            class="border border-ink-border bg-parchment-dark/30 p-4"
+                            data-testid="wellness-seasonal-cultivation"
+                        >
+                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                <div>
+                                    <div class="text-xs font-mono uppercase text-ink-light">
+                                        Tiết khí hiện hành · {seasonal.solar_term.name}
+                                    </div>
+                                    <div class="mt-1 text-lg font-bold">
+                                        Mùa {seasonal.profile.season_vi}
+                                        ({seasonal.profile.season_zh}) · {seasonal.profile.season_en}
+                                    </div>
+                                    <div class="text-xs font-mono text-ink-light">
+                                        passage: {seasonal.profile.passage_key}
+                                    </div>
+                                </div>
+                                <span class="badge-cothe">{seasonal.profile.safety_class}</span>
+                            </div>
+                            <p class="mt-3 text-sm leading-relaxed text-ink-light">
+                                {seasonal.profile.wording_vi}
+                            </p>
+                            <p class="mt-2 text-xs italic leading-relaxed text-ink-light">
+                                {seasonal.profile.wording_en}
+                            </p>
+                            <p class="mt-3 text-xs text-ink-light italic">
+                                {seasonal.composition_note_vi}
+                            </p>
+                            {#if seasonal.profile.known_divergence_ids.length > 0}
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    {#each seasonal.profile.known_divergence_ids as id}
+                                        <span class="badge-evidence" title="Known divergence">⚠ {id}</span>
+                                    {/each}
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
+                </div>
+
+                <div class="mt-5 border-t border-ink-border pt-4">
+                    <div class="text-xs font-mono uppercase text-ink-light mb-1">
+                        Disclaimer ({wellness.disclaimer.id})
+                    </div>
+                    <p class="text-xs leading-relaxed text-ink-light">{wellness.disclaimer.vi}</p>
+                    <p class="mt-1 text-xs italic leading-relaxed text-ink-light">{wellness.disclaimer.en}</p>
+                </div>
+
+                {#if wellness.evidence.length > 0}
+                    <div class="mt-4 text-xs font-mono text-ink-light">
+                        <span class="uppercase">Evidence ({wellness.evidence.length}):</span>
+                        {wellness.evidence
+                            .map((e) => `${e.source_family}/${e.source_id}`)
+                            .join(' · ')}
+                    </div>
+                {/if}
             {/if}
         </section>
 

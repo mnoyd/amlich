@@ -51,6 +51,19 @@ pub enum NodeConcept {
     // policy_version, axis weights, and provenance so explanations can
     // name the verdict the policy actually produced.
     AssessmentDecision,
+    // v1.10 (amlich-l2zc.3, EXPLAIN-01) — Traditional Channel node from
+    // `十二經納地支` (shi-er-jing-na-di-zhi). Carries the verbatim
+    // Chinese channel identity and the bilingual vi/en labels; never
+    // carries a physiological-flow or organ-performance claim (per
+    // LH-DIV-06). Distinct from `Direction` / `Element` so the schema
+    // rejects accidental biomedicalization.
+    TraditionalChannel,
+    // v1.10 (amlich-l2zc.3, EXPLAIN-01) — Seasonal Profile node from
+    // `四氣調神大論` (huangdi-neijing-suwen). Carries one of four
+    // seasonal cultivation profiles (spring/summer/autumn/winter);
+    // the term-to-season join is the `JoinedByTermToSeason` composite
+    // edge, never asserted as a 24-term regimen (LH-DIV-04).
+    SeasonalProfile,
 }
 
 impl NodeConcept {
@@ -96,6 +109,8 @@ impl NodeConcept {
             Self::Hexagram => ConceptLabel::Hexagram,
             Self::AssessmentFeature => ConceptLabel::AssessmentFeature,
             Self::AssessmentDecision => ConceptLabel::AssessmentDecision,
+            Self::TraditionalChannel => ConceptLabel::TraditionalChannel,
+            Self::SeasonalProfile => ConceptLabel::SeasonalProfile,
         }
     }
 }
@@ -134,6 +149,19 @@ pub enum EdgeConcept {
     RecommendsOffering,
     LocatedAt,
     Transforms,
+    // v1.10 (amlich-l2zc.3, EXPLAIN-01) — association edge between a
+    // `TraditionalChannel` and the `HourCanchi` it is historically
+    // associated with (per the `shi-er-jing-na-di-zhi` corpus). The
+    // edge label is `associated_with_hour_branch` (neutral historical
+    // association wording) — never `flow_through`, `peak_at`, or any
+    // physiological-claim concept (LH-DIV-02/06).
+    AssociatedWithHourBranch,
+    // v1.10 (amlich-l2zc.3, EXPLAIN-01) — composite edge from a
+    // `SeasonalProfile` back to the day root, representing the Amlich
+    // term-to-season join (`rule.composite.seasonal_wellness`,
+    // LH-DIV-04). Carries the SourceFamily::Derived family on the
+    // composite envelope.
+    JoinedByTermToSeason,
 }
 
 impl EdgeConcept {
@@ -170,6 +198,8 @@ impl EdgeConcept {
             Self::RecommendsOffering => ConceptLabel::RecommendsOffering,
             Self::LocatedAt => ConceptLabel::LocatedAt,
             Self::Transforms => ConceptLabel::Transforms,
+            Self::AssociatedWithHourBranch => ConceptLabel::AssociatedWithHourBranch,
+            Self::JoinedByTermToSeason => ConceptLabel::JoinedByTermToSeason,
         }
     }
 }
@@ -248,6 +278,10 @@ pub enum ConceptLabel {
     Transforms,
     AssessmentFeature,
     AssessmentDecision,
+    TraditionalChannel,
+    SeasonalProfile,
+    AssociatedWithHourBranch,
+    JoinedByTermToSeason,
 }
 
 impl ConceptLabel {
@@ -324,6 +358,10 @@ impl ConceptLabel {
             Self::Transforms => "transforms",
             Self::AssessmentFeature => "assessment_feature",
             Self::AssessmentDecision => "assessment_decision",
+            Self::TraditionalChannel => "traditional_channel",
+            Self::SeasonalProfile => "seasonal_profile",
+            Self::AssociatedWithHourBranch => "associated_with_hour_branch",
+            Self::JoinedByTermToSeason => "joined_by_term_to_season",
         }
     }
 }
@@ -373,6 +411,8 @@ impl GraphOntology {
             NodeConcept::Hexagram,
             NodeConcept::AssessmentFeature,
             NodeConcept::AssessmentDecision,
+            NodeConcept::TraditionalChannel,
+            NodeConcept::SeasonalProfile,
         ]
     }
 
@@ -409,6 +449,8 @@ impl GraphOntology {
             EdgeConcept::RecommendsOffering,
             EdgeConcept::LocatedAt,
             EdgeConcept::Transforms,
+            EdgeConcept::AssociatedWithHourBranch,
+            EdgeConcept::JoinedByTermToSeason,
         ]
     }
 }
@@ -515,6 +557,52 @@ mod tests {
         assert_eq!(
             NodeConcept::AssessmentDecision.label().as_str(),
             "assessment_decision"
+        );
+    }
+
+    // amlich-l2zc.3 (v1.10 EXPLAIN-01): TraditionalChannel +
+    // SeasonalProfile node concepts and AssociatedWithHourBranch +
+    // JoinedByTermToSeason edge concepts present in the ontology slices.
+    // These power the semantic-graph projection of the Traditional
+    // Wellness Context per ADR-0003 and the bead's "no physiological
+    // flow or organ-performance claim" guarantee.
+    #[test]
+    fn v110_traditional_wellness_concepts_present_in_ontology_slices() {
+        let nodes = GraphOntology::node_concepts();
+        assert!(
+            nodes.contains(&NodeConcept::TraditionalChannel),
+            "TraditionalChannel missing from node_concepts()"
+        );
+        assert!(
+            nodes.contains(&NodeConcept::SeasonalProfile),
+            "SeasonalProfile missing from node_concepts()"
+        );
+        let edges = GraphOntology::edge_concepts();
+        assert!(
+            edges.contains(&EdgeConcept::AssociatedWithHourBranch),
+            "AssociatedWithHourBranch missing from edge_concepts()"
+        );
+        assert!(
+            edges.contains(&EdgeConcept::JoinedByTermToSeason),
+            "JoinedByTermToSeason missing from edge_concepts()"
+        );
+        // Label round-trip sanity — schema contract for the public graph
+        // surface; consumers depend on these exact snake_case strings.
+        assert_eq!(
+            NodeConcept::TraditionalChannel.label().as_str(),
+            "traditional_channel"
+        );
+        assert_eq!(
+            NodeConcept::SeasonalProfile.label().as_str(),
+            "seasonal_profile"
+        );
+        assert_eq!(
+            EdgeConcept::AssociatedWithHourBranch.label().as_str(),
+            "associated_with_hour_branch"
+        );
+        assert_eq!(
+            EdgeConcept::JoinedByTermToSeason.label().as_str(),
+            "joined_by_term_to_season"
         );
     }
 }

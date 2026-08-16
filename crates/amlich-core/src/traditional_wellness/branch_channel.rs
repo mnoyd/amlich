@@ -18,6 +18,7 @@ use crate::ProvenanceEntry;
 
 use super::disclaimer::{cultural_information_disclaimer, LocalizedDisclaimer};
 use super::divergence::{divergence_by_id, ExternalReviewState, TimeBasis};
+use super::seasonal::{resolve_seasonal_cultivation, SeasonalCultivationContext};
 
 // ---------------------------------------------------------------------------
 // SourceCitation
@@ -158,11 +159,17 @@ impl BranchChannelAssociation {
 // TraditionalWellnessContext
 // ---------------------------------------------------------------------------
 
-/// The full Traditional Wellness Context wrapper. Plan 01-01 emits this
-/// as a standalone struct; plan 01-02 promotes it to an additive
-/// `DaySnapshot.traditional_wellness: Option<TraditionalWellnessContext>`
-/// field once the API/TUI/desktop surfaces mirror it.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+/// The full Traditional Wellness Context wrapper (v1.10
+/// `amlich-l2zc.3`, EXPLAIN-01). Preserves the selected-hour branch
+/// association and the seasonal cultivation profile as two distinct
+/// primitive envelopes — never collapses them into a single value
+/// (SOURCE-01) — and emits one additional composite envelope
+/// (`rule.composite.seasonal_wellness`) for the term-to-season join.
+///
+/// Round-trip serde discipline: every `Option<...>` field uses
+/// `serde(default, skip_serializing_if = "Option::is_none")` so
+/// pre-v1.10 callers stay byte-equal across the upgrade.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TraditionalWellnessContext {
     /// The selected-hour branch-channel association, if the lookup
     /// resolved. `None` only when the input civil time is out of range
@@ -171,18 +178,49 @@ pub struct TraditionalWellnessContext {
     /// JSON when `None` so the v1.9→v1.10 wire contract stays clean.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub hour_branch: Option<BranchChannelAssociation>,
+    /// The selected-date seasonal cultivation profile, when computed.
+    /// `None` only when the seasonal track was not invoked (the
+    /// Phase 01-01 standalone hour lookup path). The unified
+    /// `enrich_day_snapshot_with_traditional_wellness` helper always
+    /// populates it for valid `(jd, time_zone)` inputs.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub seasonal_cultivation: Option<SeasonalCultivationContext>,
     /// Stable bilingual cultural-information disclaimer that travels
     /// with every Traditional Wellness Context surface.
     pub disclaimer: LocalizedDisclaimer,
     /// Per-row review state. The aggregate review-state picture
     /// (classical + product/legal + health-safety) is captured by
     /// composing this field with the disclaimer + provenance audit;
-    /// consumers that want the union read all three.
+    /// consumers that want the union read all three. The
+    /// `resolve_traditional_wellness_context` helper computes the
+    /// **union** review state from the hour side and (when present)
+    /// the seasonal side — `Signed` wins, the first `Pending`
+    /// otherwise.
     pub review_state: ExternalReviewState,
-    /// Time-basis disclosure.
+    /// Time-basis disclosure. Single-variant today
+    /// ([`TimeBasis::LocalCivilHourBranch`]) — the seasonal side
+    /// rides on the same disclosure because the two-hour windows are
+    /// already Amlich civil-time and the term-to-season composition
+    /// does not introduce a second time basis.
     pub time_basis: TimeBasis,
-    /// High-level reasoning evidence. Empty in plan 01-01; populated in
-    /// plan 03-01 when the semantic-graph wiring lands.
+    /// High-level reasoning evidence — populated by
+    /// `resolve_traditional_wellness_context` and the unified
+    /// enrichment helper. Carries:
+    ///
+    /// - one envelope with source_id `shi-er-jing-na-di-zhi` (the
+    ///   branch-channel primitive; `Derived` family because it is
+    ///   the lookup outcome, not a corpus row),
+    /// - one envelope with source_id `amlich-solar-term-engine`
+    ///   (`Snapshot` family — the existing astronomical engine
+    ///   keeps its own provenance),
+    /// - one envelope with source_id `huangdi-neijing-suwen`
+    ///   (`AlmanacRule` family — the seasonal paraphrase primitive),
+    /// - one envelope with source_id `rule.composite.seasonal_wellness`
+    ///   (`Derived` family — the term-to-season join, exactly one,
+    ///   never collapsed).
+    ///
+    /// Additive serde: empty when the wrapper is the Phase 01-01
+    /// standalone hour-only shape.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub evidence: Vec<ReasoningEvidenceEnvelope>,
 }
@@ -356,19 +394,28 @@ pub fn resolve_hour_branch_association(
 }
 
 /// Build a [`TraditionalWellnessContext`] for the given local civil time.
+///
 /// The function is total from valid inputs (`local_hour <= 23` and
 /// `local_minute <= 59`); the wrapped `Option<hour_branch>` distinguishes
 /// "out of range" from a successful resolution with a recorded association.
 ///
-/// This is the standalone lookup path used by plan 01-01 tests. Plan
-/// 01-02 wraps it in `enrich_day_snapshot_with_branch_channel_association`
-/// (signature will simplify once the `DaySnapshot.traditional_wellness`
-/// field exists).
+/// **Phase 01-01 contract (hour-only).** This is the standalone lookup path
+/// used by the Phase 01-01 tests. It populates only the `hour_branch`
+/// side and leaves `seasonal_cultivation = None`, preserving the v1.9
+/// JSON contract for callers that do not thread a date through. New
+/// callers that want the unified Traditional Wellness Context should
+/// use [`resolve_traditional_wellness_context_unified`] (or the
+/// `enrich_day_snapshot_with_traditional_wellness` helper at
+/// `crate::lib`).
 pub fn resolve_traditional_wellness_context(
     local_hour: u8,
     local_minute: u8,
 ) -> TraditionalWellnessContext {
     let hour_branch = resolve_hour_branch_association(local_hour, local_minute);
+    let mut evidence = Vec::new();
+    if let Some(row) = hour_branch.as_ref() {
+        evidence.extend(row.reasoning_evidence());
+    }
     let review_state = hour_branch
         .as_ref()
         .map(|row| row.reviewer.clone())
@@ -379,11 +426,79 @@ pub fn resolve_traditional_wellness_context(
         });
     TraditionalWellnessContext {
         hour_branch,
+        seasonal_cultivation: None,
         disclaimer: cultural_information_disclaimer(),
         review_state,
         time_basis: TimeBasis::LocalCivilHourBranch,
-        evidence: Vec::new(),
+        evidence,
     }
+}
+
+/// Build the unified [`TraditionalWellnessContext`] for a selected date
+/// AND local civil time (v1.10 `amlich-l2zc.3`, EXPLAIN-01). The
+/// seasonal side always resolves from `(jd, time_zone)`; the hour side
+/// is `None` only when the civil time is out of range.
+///
+/// Provenance discipline (SOURCE-01):
+/// - `evidence[0]` — the branch-channel primitive
+///   (`shi-er-jing-na-di-zhi`, `AlmanacRule` family), only when the
+///   hour lookup resolved.
+/// - `evidence[1..=3]` — the seasonal triple: solar-term primitive
+///   (`amlich-solar-term-engine`, `Snapshot` family), Suwen primitive
+///   (`huangdi-neijing-suwen`, `AlmanacRule` family), and exactly one
+///   composite (`rule.composite.seasonal_wellness`, `Derived`
+///   family).
+///
+/// Review state is the union of the two tracks: `Signed` wins; the
+/// first `Pending` otherwise.
+pub fn resolve_traditional_wellness_context_unified(
+    jd: i32,
+    time_zone: f64,
+    local_hour: u8,
+    local_minute: u8,
+) -> TraditionalWellnessContext {
+    let seasonal = resolve_seasonal_cultivation(jd, time_zone);
+    let hour_branch = resolve_hour_branch_association(local_hour, local_minute);
+
+    let mut evidence = Vec::with_capacity(4);
+    if let Some(row) = hour_branch.as_ref() {
+        evidence.extend(row.reasoning_evidence());
+    }
+    evidence.extend(seasonal.evidence.clone());
+
+    let review_state = union_review_state(
+        hour_branch.as_ref().map(|r| r.reviewer.clone()),
+        Some(seasonal.review_state.clone()),
+    );
+
+    TraditionalWellnessContext {
+        hour_branch,
+        seasonal_cultivation: Some(seasonal),
+        disclaimer: cultural_information_disclaimer(),
+        review_state,
+        time_basis: TimeBasis::LocalCivilHourBranch,
+        evidence,
+    }
+}
+
+/// Combine two review states: `Signed` wins; otherwise the first
+/// available `Pending` is preserved so the user-facing surface still
+/// has a single `review_state` row to display.
+fn union_review_state(
+    a: Option<ExternalReviewState>,
+    b: Option<ExternalReviewState>,
+) -> ExternalReviewState {
+    for s in [a.as_ref(), b.as_ref()].into_iter().flatten() {
+        if s.is_signed() {
+            return s.clone();
+        }
+    }
+    a.or(b)
+        .unwrap_or(ExternalReviewState::ExternalReviewPending {
+            reason: "traditional_wellness_lookup_out_of_range".to_string(),
+            expected_review_date: "2026-12-31".to_string(),
+            assigned_to: "classical_chinese_reviewer".to_string(),
+        })
 }
 
 #[cfg(test)]
@@ -523,6 +638,78 @@ mod tests {
             ctx.review_state,
             ExternalReviewState::ExternalReviewPending { .. }
         ));
-        assert!(ctx.evidence.is_empty());
+        // Phase 01-01 standalone path populates the branch-channel
+        // primitive envelope; the seasonal side is None and contributes
+        // nothing.
+        assert_eq!(ctx.evidence.len(), 1);
+        assert_eq!(
+            ctx.evidence[0].source_id,
+            crate::sources::SOURCE_SHI_ER_JING_NA_DI_ZHI
+        );
+        assert!(ctx.seasonal_cultivation.is_none());
+    }
+
+    #[test]
+    fn resolve_unified_context_carries_four_envelopes_in_stable_order() {
+        use crate::julian::jd_from_date;
+        let ctx =
+            resolve_traditional_wellness_context_unified(jd_from_date(16, 8, 2026), 7.0, 9, 30);
+        let hb = ctx.hour_branch.expect("Tỵ must resolve");
+        assert_eq!(hb.branch_index, 5);
+        let seasonal = ctx
+            .seasonal_cultivation
+            .as_ref()
+            .expect("seasonal side must resolve for valid (jd, time_zone)");
+        // Order is stable: branch primitive first, then solar-term
+        // primitive, Suwen primitive, composite.
+        assert_eq!(ctx.evidence.len(), 4);
+        assert_eq!(
+            ctx.evidence[0].source_id,
+            crate::sources::SOURCE_SHI_ER_JING_NA_DI_ZHI
+        );
+        assert_eq!(ctx.evidence[1].source_id, "amlich-solar-term-engine");
+        assert_eq!(
+            ctx.evidence[2].source_id,
+            crate::sources::SOURCE_HUANGDI_NEIJING_SUWEN
+        );
+        assert_eq!(
+            ctx.evidence[3].source_id,
+            crate::traditional_wellness::COMPOSITE_SEASONAL_WELLNESS
+        );
+        let composite_count = ctx
+            .evidence
+            .iter()
+            .filter(|e| e.source_id == crate::traditional_wellness::COMPOSITE_SEASONAL_WELLNESS)
+            .count();
+        assert_eq!(
+            composite_count, 1,
+            "exactly one composite envelope must be emitted"
+        );
+        assert_eq!(seasonal.season, seasonal.profile.season);
+        assert!(matches!(
+            ctx.review_state,
+            ExternalReviewState::ExternalReviewPending { .. }
+        ));
+        assert!(!ctx.disclaimer.vi.is_empty());
+        assert!(!ctx.disclaimer.en.is_empty());
+    }
+
+    #[test]
+    fn unified_context_out_of_range_hour_still_resolves_seasonal() {
+        use crate::julian::jd_from_date;
+        // Out-of-range hour: hour_branch stays None, but the seasonal
+        // side still resolves from (jd, time_zone) — the user gets the
+        // seasonal explanation even without a selected hour, which is
+        // the EXPLAIN-01 contract.
+        let ctx =
+            resolve_traditional_wellness_context_unified(jd_from_date(16, 8, 2026), 7.0, 24, 0);
+        assert!(ctx.hour_branch.is_none());
+        assert!(ctx.seasonal_cultivation.is_some());
+        // Only the seasonal triple is present (3 envelopes, no branch).
+        assert_eq!(ctx.evidence.len(), 3);
+        assert_eq!(
+            ctx.evidence[2].source_id,
+            crate::traditional_wellness::COMPOSITE_SEASONAL_WELLNESS
+        );
     }
 }

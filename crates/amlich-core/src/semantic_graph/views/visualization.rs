@@ -127,6 +127,13 @@ fn shape_hint_for_node(concept: NodeConcept) -> Option<String> {
         // amlich-8tdm: the aggregate decision is the verdict box the
         // explanation surfaces converge on.
         NodeConcept::AssessmentDecision => Some("box".to_string()),
+
+        // amlich-l2zc.3 (v1.10 EXPLAIN-01): TraditionalChannel nodes
+        // (historical channel identity, never physiological) and
+        // SeasonalProfile nodes (source-grounded seasonal routine
+        // themes) ride the box shape so they stand out from the
+        // surrounding canchi / pillar / tietkhi diamond cluster.
+        NodeConcept::TraditionalChannel | NodeConcept::SeasonalProfile => Some("box".to_string()),
     }
 }
 

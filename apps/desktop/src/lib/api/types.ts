@@ -1817,6 +1817,97 @@ export interface DirectionCrossLinkSummaryDto {
 export interface ClassicalSurfaceDto {
     iching_cast?: IChingCastSummaryDto | null;
     direction_cross_link: DirectionCrossLinkSummaryDto;
+    // v1.10 `amlich-l2zc.3` (EXPLAIN-01) unified Traditional Wellness
+    // Context. Additive: absent from JSON when the snapshot has not
+    // been enriched with `enrich_day_snapshot_with_traditional_wellness`.
+    traditional_wellness?: TraditionalWellnessContextDto | null;
+}
+
+// ---------------------------------------------------------------------------
+// v1.10 Traditional Wellness Context DTO surface (amlich-l2zc.3,
+// EXPLAIN-01). Mirrors `amlich_core::traditional_wellness::
+// TraditionalWellnessContext` byte-for-byte so the desktop / TUI /
+// API render the same bilingual explanation, disclaimer, review
+// state, time basis, and KnownDivergence details.
+// ---------------------------------------------------------------------------
+
+export interface TraditionalWellnessContextDto {
+    hour_branch?: BranchChannelAssociationDto | null;
+    seasonal_cultivation?: SeasonalCultivationContextDto | null;
+    disclaimer: LocalizedDisclaimerDto;
+    review_state: string;
+    time_basis: string;
+    evidence: ReasoningEvidenceEnvelopeDto[];
+}
+
+export interface BranchChannelAssociationDto {
+    branch_index: number;
+    branch_vi: string;
+    branch_zh: string;
+    time_range: string;
+    channel_vi: string;
+    channel_en: string;
+    channel_zh: string;
+    wording_vi: string;
+    wording_en: string;
+    sources: TraditionalWellnessSourceCitationDto[];
+    reviewer: string;
+    safety_class: string;
+    known_divergence_ids: string[];
+    time_basis: string;
+}
+
+export interface TraditionalWellnessSourceCitationDto {
+    source_id: string;
+    work_title: string;
+    volume_or_chapter: string;
+    passage_key: string;
+    edition_or_facsimile_uri: string;
+    transcription_uri: string;
+    translation_kind: string;
+}
+
+export interface SeasonalCultivationContextDto {
+    solar_term: SolarTermDto;
+    season: string;
+    profile: SeasonalCultivationProfileDto;
+    disclaimer: LocalizedDisclaimerDto;
+    review_state: string;
+    composition_note_vi: string;
+    composition_note_en: string;
+    evidence: ReasoningEvidenceEnvelopeDto[];
+}
+
+export interface SeasonalCultivationProfileDto {
+    season: string;
+    season_vi: string;
+    season_en: string;
+    season_zh: string;
+    passage_key: string;
+    wording_vi: string;
+    wording_en: string;
+    sources: TraditionalWellnessSourceCitationDto[];
+    reviewer: string;
+    safety_class: string;
+    known_divergence_ids: string[];
+}
+
+export interface SolarTermDto {
+    index: number;
+    name: string;
+    description: string;
+    longitude: number;
+    current_longitude: number;
+    season: string;
+}
+
+export interface LocalizedDisclaimerDto {
+    // `DisclaimerId` is a serde-transparent newtype — it serializes as
+    // the inner string. The Rust `cultural_information_v1` constant
+    // is the only stable id today.
+    id: string;
+    vi: string;
+    en: string;
 }
 
 export interface DayRangeDto extends ApiMetaDto {

@@ -8,7 +8,7 @@ use amlich_core::almanac::hour_pillar::resolve_hour_branch_slot;
 use amlich_core::sources::SOURCE_SHI_ER_JING_NA_DI_ZHI;
 use amlich_core::traditional_wellness::{
     load_corpus, resolve_hour_branch_association, resolve_traditional_wellness_context,
-    ExternalReviewState, TraditionalWellnessContext,
+    resolve_traditional_wellness_context_unified, ExternalReviewState, TraditionalWellnessContext,
 };
 
 // ---------------------------------------------------------------------------
@@ -323,6 +323,118 @@ fn traditional_wellness_context_round_trip_byte_equal() {
         serde_json::from_str(&json).expect("deserialize context");
     let json2 = serde_json::to_string(&recovered).expect("re-serialize");
     assert_eq!(json, json2);
+}
+
+// ---------------------------------------------------------------------------
+// amlich-l2zc.3 (v1.10 EXPLAIN-01) unified-context round-trip parity
+// ---------------------------------------------------------------------------
+
+#[test]
+fn unified_traditional_wellness_context_round_trip_byte_equal() {
+    use amlich_core::julian::jd_from_date;
+    let ctx = resolve_traditional_wellness_context_unified(jd_from_date(16, 8, 2026), 7.0, 9, 30);
+    let json = serde_json::to_string(&ctx).expect("serialize unified context");
+    let recovered: TraditionalWellnessContext =
+        serde_json::from_str(&json).expect("deserialize unified context");
+    let json2 = serde_json::to_string(&recovered).expect("re-serialize");
+    assert_eq!(json, json2);
+}
+
+#[test]
+fn unified_context_exposes_two_primitive_envelopes_plus_composite() {
+    use amlich_core::julian::jd_from_date;
+    use amlich_core::traditional_wellness::COMPOSITE_SEASONAL_WELLNESS;
+    let ctx = resolve_traditional_wellness_context_unified(jd_from_date(16, 8, 2026), 7.0, 9, 30);
+    // SOURCE-01: the two primitive source ids are present plus exactly
+    // one composite.
+    let mut primitive_ids: Vec<&str> = ctx
+        .evidence
+        .iter()
+        .map(|e| e.source_id.as_str())
+        .filter(|id| {
+            *id == SOURCE_SHI_ER_JING_NA_DI_ZHI
+                || *id == "amlich-solar-term-engine"
+                || *id == "huangdi-neijing-suwen"
+        })
+        .collect();
+    primitive_ids.sort_unstable();
+    assert_eq!(
+        primitive_ids,
+        vec![
+            "amlich-solar-term-engine",
+            "huangdi-neijing-suwen",
+            SOURCE_SHI_ER_JING_NA_DI_ZHI,
+        ],
+        "unified context must expose both primitive source envelopes"
+    );
+    let composite_count = ctx
+        .evidence
+        .iter()
+        .filter(|e| e.source_id == COMPOSITE_SEASONAL_WELLNESS)
+        .count();
+    assert_eq!(
+        composite_count, 1,
+        "exactly one seasonal composite envelope must be emitted"
+    );
+}
+
+#[test]
+fn unified_context_unions_review_state_and_carries_disclaimer() {
+    use amlich_core::julian::jd_from_date;
+    let ctx = resolve_traditional_wellness_context_unified(jd_from_date(16, 8, 2026), 7.0, 9, 30);
+    assert_eq!(ctx.disclaimer.id.as_str(), "cultural_information_v1");
+    assert!(!ctx.disclaimer.vi.is_empty());
+    assert!(!ctx.disclaimer.en.is_empty());
+    assert!(matches!(
+        ctx.review_state,
+        ExternalReviewState::ExternalReviewPending { .. }
+    ));
+    let seasonal = ctx
+        .seasonal_cultivation
+        .as_ref()
+        .expect("seasonal side must populate");
+    assert!(matches!(
+        seasonal.review_state,
+        ExternalReviewState::ExternalReviewPending { .. }
+    ));
+}
+
+#[test]
+fn day_snapshot_traditional_wellness_field_is_additive_and_default_none() {
+    use amlich_core::calculate_day_snapshot;
+    let snapshot = calculate_day_snapshot(16, 8, 2026);
+    assert!(
+        snapshot.traditional_wellness.is_none(),
+        "ordinary snapshot must leave traditional_wellness=None"
+    );
+    let json = serde_json::to_string(&snapshot).expect("serialize snapshot");
+    assert!(
+        !json.contains("traditional_wellness"),
+        "additive field must be absent from JSON when None"
+    );
+}
+
+#[test]
+fn enrich_day_snapshot_with_traditional_wellness_attaches_unified_context() {
+    use amlich_core::calculate_day_snapshot;
+    use amlich_core::enrich_day_snapshot_with_traditional_wellness;
+    use amlich_core::julian::jd_from_date;
+    let snapshot = calculate_day_snapshot(16, 8, 2026);
+    let enriched = enrich_day_snapshot_with_traditional_wellness(
+        &snapshot,
+        jd_from_date(16, 8, 2026),
+        7.0,
+        9,
+        30,
+    )
+    .expect("enrichment must succeed for valid inputs");
+    let ctx = enriched
+        .traditional_wellness
+        .as_ref()
+        .expect("enrichment must populate the additive field");
+    assert!(ctx.hour_branch.is_some());
+    assert!(ctx.seasonal_cultivation.is_some());
+    assert_eq!(ctx.evidence.len(), 4);
 }
 
 // ---------------------------------------------------------------------------

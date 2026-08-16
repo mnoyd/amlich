@@ -16,7 +16,10 @@ type Equals<X, Y> =
     (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false;
 
 type _SurfaceKeys = AssertTrue<
-    Equals<keyof ClassicalSurfaceDto, 'iching_cast' | 'direction_cross_link'>
+    Equals<
+        keyof ClassicalSurfaceDto,
+        'iching_cast' | 'direction_cross_link' | 'traditional_wellness'
+    >
 >;
 type _IChingKeys = AssertTrue<
     Equals<

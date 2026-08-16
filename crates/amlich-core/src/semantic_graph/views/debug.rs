@@ -46,6 +46,25 @@ pub fn debug_inspect_semantic_graph(
     include_recommendations: bool,
 ) -> DebugSemanticGraphInspection {
     let snapshot = calculate_day_snapshot(day, month, year);
+    // v1.10 `amlich-l2zc.3` (EXPLAIN-01) — the debug inspection
+    // enriches the snapshot with the unified Traditional Wellness
+    // Context so the TraditionalChannel + SeasonalProfile nodes +
+    // AssociatedWithHourBranch + JoinedByTermToSeason edges show up
+    // in the TUI graph inspector alongside the day-facts. We pick a
+    // deterministic local civil time (Ngọ / 11:30 — the midpoint of
+    // the canonical Ngọ window) so the channel identity is stable
+    // across requests. The seasonal side is date-derived and does
+    // not depend on the hour. No birth / sex / symptom / location is
+    // consulted (BOUND-01).
+    let jd = snapshot.context.jd;
+    let snapshot = crate::enrich_day_snapshot_with_traditional_wellness(
+        &snapshot,
+        jd,
+        crate::VIETNAM_TIMEZONE,
+        11,
+        30,
+    )
+    .unwrap_or(snapshot);
     let day_graph = build_day_snapshot_graph(&snapshot);
 
     let graph = if include_recommendations {

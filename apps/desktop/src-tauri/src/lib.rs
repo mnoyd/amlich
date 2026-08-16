@@ -70,14 +70,22 @@ struct MonthData {
     days: Vec<DayCell>,
 }
 
-/// User-facing projection of the two additive v1.7 snapshot surfaces.
+/// User-facing projection of the additive v1.7/v1.10 snapshot surfaces.
 ///
 /// The fields deliberately retain the canonical core DTOs so the desktop does
-/// not reinterpret or recompute I Ching and directional evidence.
+/// not reinterpret or recompute I Ching, directional, or Traditional Wellness
+/// evidence.
 #[derive(Debug, Serialize, Clone)]
 struct ClassicalSurfaceDto {
     iching_cast: Option<amlich_core::iching::IChingCastSummary>,
     direction_cross_link: amlich_core::reasoning::DirectionCrossLinkSummary,
+    /// v1.10 `amlich-l2zc.3` (EXPLAIN-01) unified Traditional Wellness
+    /// Context. Populated by the same `get_classical_surface` Tauri
+    /// command so the desktop can render the bilingual explanation,
+    /// disclaimer, review state, time basis, and KnownDivergence details
+    /// alongside the other classical surfaces.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    traditional_wellness: Option<amlich_core::traditional_wellness::TraditionalWellnessContext>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -259,6 +267,7 @@ fn get_classical_surface(
     )?;
     let direction_cross_link = direction_enriched
         .direction_cross_link
+        .clone()
         .ok_or_else(|| "direction cross-link enrichment returned no summary".to_string())?;
 
     let iching_cast = match chi_hour_index {
@@ -269,10 +278,58 @@ fn get_classical_surface(
         None => None,
     };
 
+    // v1.10 (`amlich-l2zc.3`, EXPLAIN-01) — unified Traditional
+    // Wellness Context projection. When the user has selected a chi
+    // hour (the IChing-cast path), the helper uses that hour as the
+    // local civil time basis; otherwise we fall back to the midpoint
+    // of the canonical Tý window (23:30) so the lookup still resolves
+    // — the seasonal side dominates the rendering, and the user
+    // hasn't asked for an hour-specific association. BOUND-01 holds:
+    // no BirthInput / sex / symptom / location is consulted.
+    let (local_hour, local_minute) = match chi_hour_index {
+        Some(index) => chi_hour_index_to_local_time(index),
+        None => (23, 30),
+    };
+    let traditional_wellness = amlich_core::enrich_day_snapshot_with_traditional_wellness(
+        &direction_enriched,
+        snapshot.context.jd,
+        7.0,
+        local_hour,
+        local_minute,
+    )
+    .ok()
+    .and_then(|s| s.traditional_wellness);
+
     Ok(ClassicalSurfaceDto {
         iching_cast,
         direction_cross_link,
+        traditional_wellness,
     })
+}
+
+/// Map a chi-hour index (0..=11, where 0 = Tý = 23:00–01:00) to a
+/// representative `(local_hour, local_minute)` pair that falls inside
+/// the canonical two-hour window for that slot — the
+/// `resolve_hour_branch_association` lookup then resolves to the
+/// correct branch via `resolve_hour_branch_slot`.
+fn chi_hour_index_to_local_time(index: u8) -> (u8, u8) {
+    // Index 0 = Tý (23:00–01:00), then every two hours forward.
+    // Use the midpoint inside the window for a deterministic lookup.
+    match index {
+        0 => (23, 30),  // Tý
+        1 => (1, 30),   // Sửu
+        2 => (3, 30),   // Dần
+        3 => (5, 30),   // Mão
+        4 => (7, 30),   // Thìn
+        5 => (9, 30),   // Tỵ
+        6 => (11, 30),  // Ngọ
+        7 => (13, 30),  // Mùi
+        8 => (15, 30),  // Thân
+        9 => (17, 30),  // Dậu
+        10 => (19, 30), // Tuất
+        11 => (21, 30), // Hợi
+        _ => (23, 30),
+    }
 }
 
 #[tauri::command]

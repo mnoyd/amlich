@@ -234,6 +234,15 @@ pub struct DaySnapshot {
     /// discipline).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub iching_cast: Option<crate::iching::IChingCastSummary>,
+    /// Additive optional unified Traditional Wellness Context
+    /// (v1.10 `amlich-l2zc.3`, EXPLAIN-01). Populated only via the
+    /// explicit [`enrich_day_snapshot_with_traditional_wellness`]
+    /// helper. Ordinary `calculate_day_snapshot` calls leave this as
+    /// `None` — no auto-resolution is invented. Absent from JSON when
+    /// None so the v1.9 → v1.10 wire contract stays byte-equal for
+    /// callers that never request the Traditional Wellness Context.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub traditional_wellness: Option<crate::traditional_wellness::TraditionalWellnessContext>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -486,6 +495,45 @@ pub fn enrich_day_snapshot_with_seasonal_cultivation(
     Ok((snapshot.clone(), context))
 }
 
+/// v1.10 `amlich-l2zc.3` (EXPLAIN-01) unified enrichment entry point.
+/// Clones the existing `DaySnapshot`, runs both the hour-branch
+/// lookup and the seasonal cultivation lookup through the
+/// `resolve_traditional_wellness_context_unified` helper, attaches
+/// the resulting [`TraditionalWellnessContext`] to the new
+/// `DaySnapshot.traditional_wellness` field, and returns the cloned
+/// snapshot.
+///
+/// The function is total from valid inputs (`local_hour <= 23`,
+/// `local_minute <= 59`, `time_zone` is any finite `f64`); the
+/// `Err` arm is reserved for future corpus-loading failures.
+///
+/// Provenance (SOURCE-01): the returned context carries the
+/// branch-channel primitive (`shi-er-jing-na-di-zhi`), the solar-term
+/// primitive (`amlich-solar-term-engine`), the Suwen primitive
+/// (`huangdi-neijing-suwen`), and exactly one composite
+/// (`rule.composite.seasonal_wellness`) envelope.
+///
+/// Tier 0 (BOUND-01): no `BirthInput`, sex/gender, symptom, location,
+/// or health history is consulted. Day Assessment / Hour Ranking /
+/// Direction Assessment are untouched (ADR-0003).
+pub fn enrich_day_snapshot_with_traditional_wellness(
+    snapshot: &DaySnapshot,
+    jd: i32,
+    time_zone: f64,
+    local_hour: u8,
+    local_minute: u8,
+) -> Result<DaySnapshot, String> {
+    let context = crate::traditional_wellness::resolve_traditional_wellness_context_unified(
+        jd,
+        time_zone,
+        local_hour,
+        local_minute,
+    );
+    let mut enriched = snapshot.clone();
+    enriched.traditional_wellness = Some(context);
+    Ok(enriched)
+}
+
 fn calculate_day_snapshot_internal(
     day: i32,
     month: i32,
@@ -553,6 +601,7 @@ fn calculate_day_snapshot_internal(
         offerings: None,
         direction_cross_link: None,
         iching_cast: None,
+        traditional_wellness: None,
     };
 
     // Populate flying_stars from the combined Phi Tinh overlay.

@@ -24,7 +24,8 @@ pub mod seasonal;
 
 pub use branch_channel::{
     load_corpus, resolve_hour_branch_association, resolve_traditional_wellness_context,
-    BranchChannelAssociation, SourceCitation, TraditionalWellnessContext,
+    resolve_traditional_wellness_context_unified, BranchChannelAssociation, SourceCitation,
+    TraditionalWellnessContext,
 };
 pub use disclaimer::{
     cultural_information_disclaimer, disclaimer_id_cultural_information, DisclaimerId,

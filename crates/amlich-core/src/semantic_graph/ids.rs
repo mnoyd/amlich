@@ -254,6 +254,43 @@ impl SemanticId {
             format!("iching:{}:{}:{}:{}", role, king_wen, date, tz),
         )
     }
+
+    /// Stable key for a Traditional Channel node (v1.10
+    /// `amlich-l2zc.3`, EXPLAIN-01). Role-bearing on the Chinese
+    /// channel name so the same `足少陽膽` cannot collide with itself
+    /// across two contexts; the source-prefix preserves the corpus
+    /// identity (`shi-er-jing-na-di-zhi`) per LH-DIV-06.
+    ///   `concept_label = "traditional_channel"`,
+    ///   `stable_key = "{source}:{channel_zh}"`.
+    pub fn traditional_channel(source: &str, channel_zh: &str) -> Self {
+        Self::new("traditional_channel", format!("{}:{}", source, channel_zh))
+    }
+
+    /// Stable key for a Seasonal Profile node (v1.10 `amlich-l2zc.3`,
+    /// EXPLAIN-01). Carries the season name and the source prefix
+    /// (`huangdi-neijing-suwen`) so the four profiles never collide
+    /// and the corpus identity stays auditable.
+    ///   `concept_label = "seasonal_profile"`,
+    ///   `stable_key = "{source}:{season}"`.
+    pub fn seasonal_profile(source: &str, season: &str) -> Self {
+        Self::new("seasonal_profile", format!("{}:{}", source, season))
+    }
+
+    /// Stable key for the day-scoped Traditional Wellness root node
+    /// (v1.10 `amlich-l2zc.3`). The graph wires both the
+    /// `TraditionalChannel` and the `SeasonalProfile` back to this
+    /// per-day root, mirroring the `day_root` convention from the
+    /// other v1.7–v1.9 builders. The `(date, tz)` pair keeps the root
+    /// stable across requests without colliding with the
+    /// `day_root(YYYY-MM-DD, TZ)` node already emitted by the
+    /// day-snapshot builder — the new label
+    /// `traditional_wellness_day` keeps the two roots visually and
+    /// schema-distinct.
+    ///   `concept_label = "traditional_wellness_day"`,
+    ///   `stable_key = "{date}:{tz}"`.
+    pub fn traditional_wellness_day_root(date: &str, tz: &str) -> Self {
+        Self::new("traditional_wellness_day", format!("{}:{}", date, tz))
+    }
 }
 
 impl std::fmt::Display for SemanticId {

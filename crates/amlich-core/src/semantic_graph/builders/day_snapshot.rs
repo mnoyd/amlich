@@ -4,9 +4,10 @@ use crate::semantic_graph::{
     SemanticFact, SemanticGraph, SemanticId, SemanticNode, SemanticPolarity,
 };
 use crate::sources::{
-    SOURCE_HUYEN_KHONG, SOURCE_KHCBPPT, SOURCE_KINH_DICH, SOURCE_MAI_HOA_DICH_SO,
-    SOURCE_VN_FOLK_RITUAL,
+    SOURCE_HUANGDI_NEIJING_SUWEN, SOURCE_HUYEN_KHONG, SOURCE_KHCBPPT, SOURCE_KINH_DICH,
+    SOURCE_MAI_HOA_DICH_SO, SOURCE_SHI_ER_JING_NA_DI_ZHI, SOURCE_VN_FOLK_RITUAL,
 };
+use crate::traditional_wellness::COMPOSITE_SEASONAL_WELLNESS;
 use crate::DaySnapshot;
 
 pub struct DaySnapshotGraphBuilder {
@@ -47,6 +48,7 @@ impl DaySnapshotGraphBuilder {
         builder.add_offering_facts(snapshot);
         builder.add_iching_facts(snapshot);
         builder.add_direction_composite_facts(snapshot);
+        builder.add_traditional_wellness_facts(snapshot);
 
         builder
     }
@@ -992,6 +994,125 @@ impl DaySnapshotGraphBuilder {
             &self.day_root_id,
             EdgeConcept::LocatedAt,
         ));
+    }
+
+    /// v1.10 `amlich-l2zc.3` (EXPLAIN-01) — emit the unified Traditional
+    /// Wellness graph fragments when the snapshot's additive
+    /// `traditional_wellness` field is populated. Wires:
+    ///
+    /// - one `TraditionalChannel` node per resolved branch-channel row,
+    ///   with one `AssociatedWithHourBranch` edge to the day root;
+    /// - one `SeasonalProfile` node for the active seasonal cultivation
+    ///   profile, with one `JoinedByTermToSeason` edge to the day root;
+    /// - provenance entries on each node that mirror the
+    ///   `evidence` envelopes emitted by the unified
+    ///   [`resolve_traditional_wellness_context_unified`] helper.
+    ///
+    /// Early-returns without modifying the graph when the additive
+    /// field is `None` (ordinary snapshots stay byte-equal).
+    fn add_traditional_wellness_facts(&mut self, snapshot: &DaySnapshot) {
+        let Some(ctx) = snapshot.traditional_wellness.as_ref() else {
+            return;
+        };
+
+        // Branch-channel: one TraditionalChannel node per resolved
+        // row. The `AssociatedWithHourBranch` edge wires the channel
+        // back to the canonical day root that the v1.7–v1.9 builders
+        // emit (no per-day Traditional Wellness root — the day root
+        // already exists, and adding a parallel root would force
+        // every consumer to learn two parent IDs).
+        if let Some(hb) = ctx.hour_branch.as_ref() {
+            let channel_id_raw =
+                SemanticId::traditional_channel(SOURCE_SHI_ER_JING_NA_DI_ZHI, &hb.channel_zh);
+            let channel_id = channel_id_raw.clone().to_node_id();
+            let prov = ProvenanceEntry::almanac_rule(
+                SOURCE_SHI_ER_JING_NA_DI_ZHI,
+                format!("branch_channel_lookup:{}", hb.branch_vi),
+            )
+            .with_note(format!(
+                "{} — {} ({})",
+                hb.sources[0].work_title,
+                hb.sources[0].volume_or_chapter,
+                hb.sources[0].passage_key
+            ));
+            let channel_node = SemanticNode::new(
+                channel_id_raw,
+                NodeConcept::TraditionalChannel,
+                NodeOrigin::Fact,
+                format!("Kinh {} / {}", hb.channel_zh, hb.channel_vi),
+            )
+            .with_tags(vec![
+                format!("branch={}", hb.branch_vi),
+                format!("branch_zh={}", hb.branch_zh),
+                format!("time_range={}", hb.time_range),
+                "safety_class=historical_cultural_non_clinical".to_string(),
+            ])
+            .with_provenance(prov);
+            self.graph.add_node(channel_node);
+            self.graph.add_edge(SemanticEdge::new(
+                &channel_id,
+                &self.day_root_id,
+                EdgeConcept::AssociatedWithHourBranch,
+            ));
+        }
+
+        // Seasonal: one SeasonalProfile node + one JoinedByTermToSeason
+        // edge to the day root. Three provenance entries: the
+        // solar-term primitive, the Suwen primitive, and the composite.
+        if let Some(seasonal) = ctx.seasonal_cultivation.as_ref() {
+            let season_str = seasonal.season.as_str();
+            let profile_id_raw =
+                SemanticId::seasonal_profile(SOURCE_HUANGDI_NEIJING_SUWEN, season_str);
+            let profile_id = profile_id_raw.clone().to_node_id();
+
+            let solar_prov = ProvenanceEntry::snapshot(
+                "amlich-solar-term-engine",
+                format!(
+                    "get_tiet_khi:{}:{}",
+                    seasonal.solar_term.name, seasonal.solar_term.index
+                ),
+            );
+            let suwen_prov = ProvenanceEntry::almanac_rule(
+                SOURCE_HUANGDI_NEIJING_SUWEN,
+                format!("seasonal_profile_lookup:{}", season_str),
+            )
+            .with_note(format!(
+                "{} — passage: {}",
+                seasonal.profile.sources[0].work_title, seasonal.profile.passage_key
+            ));
+            let composite_prov = ProvenanceEntry::derived(
+                COMPOSITE_SEASONAL_WELLNESS,
+                "v110.term_to_season_join",
+            )
+            .with_note(format!(
+                "joins solar term {} into the {} seasonal profile at the Lập seasonal boundaries",
+                seasonal.solar_term.name, season_str
+            ));
+
+            let profile_node = SemanticNode::new(
+                profile_id_raw,
+                NodeConcept::SeasonalProfile,
+                NodeOrigin::Fact,
+                format!(
+                    "Mùa {} ({})",
+                    seasonal.profile.season_vi, seasonal.profile.season_en
+                ),
+            )
+            .with_tags(vec![
+                format!("season={}", season_str),
+                format!("solar_term={}", seasonal.solar_term.name),
+                "safety_class=historical_cultural_non_clinical".to_string(),
+            ])
+            .with_provenance(solar_prov)
+            .with_provenance(suwen_prov)
+            .with_provenance(composite_prov);
+            self.graph.add_node(profile_node);
+            self.graph.add_edge(SemanticEdge::new(
+                &profile_id,
+                &self.day_root_id,
+                EdgeConcept::JoinedByTermToSeason,
+            ));
+        }
     }
 
     pub fn build(self) -> SemanticGraph {

@@ -61,6 +61,14 @@ pub fn cluster_for_node_id(_node_id: &str, concept: NodeConcept) -> String {
         // NodeConcept::Recommendation) because it is the single
         // verdict consumers explain against.
         NodeConcept::AssessmentDecision => "recommendation-summary".to_string(),
+
+        // amlich-l2zc.3 (v1.10 EXPLAIN-01): TraditionalChannel and
+        // SeasonalProfile nodes are informational primitives — they
+        // belong to the day-core cluster so they group naturally
+        // with the existing day-facts consumers (Truc, Taboo,
+        // DayDeity, etc.) rather than the recommendation/summary
+        // clusters.
+        NodeConcept::TraditionalChannel | NodeConcept::SeasonalProfile => "day-core".to_string(),
     }
 }
 

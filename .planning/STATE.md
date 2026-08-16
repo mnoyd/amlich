@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: Traditional Wellness Context (Tier 0)
-current_plan: Phase 01 in progress (branch-channel, core done); Phase 02 in progress (seasonal cultivation, core done)
+current_plan: Phase 01 (branch-channel core done, awaiting human review); Phase 02 (seasonal core done, awaiting human review); Phase 03 (unified explanation + graph projection, core+API+desktop+TUI graph implementation complete)
 status: phase_in_progress
-last_updated: "2026-08-16T16:20:00+07:00"
+last_updated: "2026-08-16T17:05:00+07:00"
 last_activity: 2026-08-16
 progress:
   total_tracks: 4
@@ -88,8 +88,8 @@ affected records remain `ExternalReviewPending` or unavailable.
 ## Next step
 
 The parent epic `amlich-l2zc` is published. Bead `.1` (branch-channel) has its
-Phase 01-01 core complete — awaiting the three human review gates. Bead `.2`
-(seasonal cultivation) has its Phase 02-01 core complete as of 2026-08-16:
+Phase 01-01 core complete — awaiting the three human review gates. Bead
+`.2` (seasonal cultivation) has its Phase 02-01 core complete as of 2026-08-16:
 `SOURCE_HUANGDI_NEIJING_SUWEN` registered, the 4-profile Suwen corpus shipped
 `ExternalReviewPending`, the frozen 24-term → 4-season composition (Lập
 boundaries, `rule.composite.seasonal_wellness` composite envelope) locked by
@@ -97,6 +97,17 @@ boundaries, `rule.composite.seasonal_wellness` composite envelope) locked by
 `tiet-khi.json` emptied (both copies), and the seasonal REVIEWER-PACK published
 for Gates 2–4. Bead `.3` (unified explanation + API/TUI/desktop/graph
 projection, including the `DaySnapshot.traditional_wellness` additive field)
-is unblocked once its parents' cores are accepted; bead `.4` remains blocked
-by `.3`. The four human review gates are the critical path for closing `.1`
-and `.2`.
+has its Phase 03 implementation complete as of 2026-08-16: the unified
+`TraditionalWellnessContext` collapses `.1` + `.2` cores onto a single
+additive `DaySnapshot.traditional_wellness` field; both primitive source
+ids (`shi-er-jing-na-di-zhi`, `huangdi-neijing-suwen`, plus the
+`amlich-solar-term-engine` engine attribution) and exactly one
+`rule.composite.seasonal_wellness` composite envelope are projected
+identically through core, API, Tauri command, and the TUI graph inspector;
+the desktop Almanac Inspector renders the bilingual explanation, disclaimer,
+review state, time basis, and divergence details in a new
+`classical-v110-wellness-surface` section; semantic-graph nodes
+`TraditionalChannel` + `SeasonalProfile` and edges `AssociatedWithHourBranch`
++ `JoinedByTermToSeason` ship with locked concept-label round-trip and
+cross-surface validation. Bead `.4` remains blocked by `.3`. The four human
+review gates are the critical path for closing `.1` and `.2`.
