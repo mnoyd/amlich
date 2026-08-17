@@ -45,7 +45,7 @@ cargo test -p amlich-core --test prohibited_language_guard
 cargo test -p amlich-core --test branch_channel_integration
 cargo test -p amlich-core --test seasonal_cultivation_integration
 # Confirm Phase 03 unified surface still passes
-cargo test -p amlich-core --test traditional_wellness_cross_surface
+cargo test -p amlich-api --test traditional_wellness_cross_surface
 cargo test -p amlich-core --test semantic_graph_traditional_wellness_integration
 cargo test --workspace
 ```
