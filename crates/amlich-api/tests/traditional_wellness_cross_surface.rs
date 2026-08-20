@@ -18,9 +18,7 @@
 
 use amlich_core::calculate_day_snapshot;
 use amlich_core::enrich_day_snapshot_with_traditional_wellness;
-use amlich_core::sources::{
-    SOURCE_HUANGDI_NEIJING_SUWEN, SOURCE_SHI_ER_JING_NA_DI_ZHI,
-};
+use amlich_core::sources::{SOURCE_HUANGDI_NEIJING_SUWEN, SOURCE_SHI_ER_JING_NA_DI_ZHI};
 use amlich_core::traditional_wellness::{
     resolve_traditional_wellness_context_unified, COMPOSITE_SEASONAL_WELLNESS,
 };

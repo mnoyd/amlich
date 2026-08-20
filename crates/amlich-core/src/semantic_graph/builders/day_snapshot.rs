@@ -1080,11 +1080,9 @@ impl DaySnapshotGraphBuilder {
                 "{} — passage: {}",
                 seasonal.profile.sources[0].work_title, seasonal.profile.passage_key
             ));
-            let composite_prov = ProvenanceEntry::derived(
-                COMPOSITE_SEASONAL_WELLNESS,
-                "v110.term_to_season_join",
-            )
-            .with_note(format!(
+            let composite_prov =
+                ProvenanceEntry::derived(COMPOSITE_SEASONAL_WELLNESS, "v110.term_to_season_join")
+                    .with_note(format!(
                 "joins solar term {} into the {} seasonal profile at the Lập seasonal boundaries",
                 seasonal.solar_term.name, season_str
             ));
