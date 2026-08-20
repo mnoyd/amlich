@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.10
 milestone_name: Traditional Wellness Context (Tier 0)
-current_plan: Phase 01 (branch-channel core done, awaiting human review); Phase 02 (seasonal core done, awaiting human review); Phase 03 (unified explanation + graph projection, core+API+desktop+TUI graph implementation complete)
+current_plan: Phase 01 (branch-channel core done, awaiting human review); Phase 02 (seasonal core done, awaiting human review); Phase 03 (unified explanation + graph projection, complete); Phase 04 (pre-flight audit complete — release blocked on the four human review gates)
 status: phase_in_progress
-last_updated: "2026-08-16T17:05:00+07:00"
-last_activity: 2026-08-16
+last_updated: "2026-08-20T00:00:00+07:00"
+last_activity: 2026-08-20
 progress:
   total_tracks: 4
-  completed_tracks: 0
+  completed_tracks: 3
   total_requirements: 8
-  completed_requirements: 0
+  completed_requirements: 8
 ---
 
 # Project State
@@ -109,5 +109,11 @@ review state, time basis, and divergence details in a new
 `classical-v110-wellness-surface` section; semantic-graph nodes
 `TraditionalChannel` + `SeasonalProfile` and edges `AssociatedWithHourBranch`
 + `JoinedByTermToSeason` ship with locked concept-label round-trip and
-cross-surface validation. Bead `.4` remains blocked by `.3`. The four human
-review gates are the critical path for closing `.1` and `.2`.
+cross-surface validation. Bead `.4` (audit/release) completed its pre-flight
+on 2026-08-20: all eight requirements have evidence, full workspace gates are
+green (1,917 tests, 0 failures; clippy, fmt, Svelte check, and production
+build pass), and the milestone audit is published as `pre_flight_passed` at
+`.planning/milestones/v1.10-MILESTONE-AUDIT.md`. The four human review gates
+are the sole critical path; until they sign, corpus records remain
+`ExternalReviewPending`, the bilingual disclaimer ships on every surfaced
+context, and beads `.1`–`.4` stay open.
