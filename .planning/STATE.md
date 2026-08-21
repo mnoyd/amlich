@@ -4,8 +4,8 @@ milestone: v1.10
 milestone_name: Traditional Wellness Context (Tier 0)
 current_plan: Phase 01 (branch-channel core done, awaiting human review); Phase 02 (seasonal core done, awaiting human review); Phase 03 (unified explanation + graph projection, complete); Phase 04 (pre-flight audit complete — release blocked on the four human review gates)
 status: phase_in_progress
-last_updated: "2026-08-20T00:00:00+07:00"
-last_activity: 2026-08-20
+last_updated: "2026-08-21T00:00:00+07:00"
+last_activity: 2026-08-21
 progress:
   total_tracks: 4
   completed_tracks: 3
@@ -117,3 +117,20 @@ build pass), and the milestone audit is published as `pre_flight_passed` at
 are the sole critical path; until they sign, corpus records remain
 `ExternalReviewPending`, the bilingual disclaimer ships on every surfaced
 context, and beads `.1`–`.4` stay open.
+
+**v1.11 grooming landed 2026-08-21.** The owner triaged the post-v1.10
+portfolio early (bead `amlich-xlag.1`, closed with rationale and revisit
+conditions for the rejected candidates) and selected **full Tý Ngọ Lưu Chú
+(Tier 1)** as v1.11: the true Xu-style 納甲法 point-opening computation on the
+default consumer surface, per
+`docs/adr/0004-implement-full-ty-ngo-luu-chu-under-procedural-citation-scope.md`.
+The milestone package is published: requirements
+(`.planning/milestones/v1.11-REQUIREMENTS.md`), roadmap
+(`.planning/milestones/v1.11-ROADMAP.md`), research
+(`.planning/research/TNLC_POINT_OPENING_RESEARCH.md` — table rows are NOT
+frozen; Track 1 must verify every row against a chosen facsimile), and epic
+`amlich-xlag.2` with tracer beads `.2.1` (table freeze + REVIEWER-PACK, ready
+now), `.2.2` (core engine + goldens), `.2.3` (cross-surface projection),
+`.2.4` (audit/release), and four human review gates `.2.5`–`.2.8` (due
+2026-12-31). First emission of the reserved `ty-ngo-luu-chu` source_id
+happens only in Track 2, behind `TY_NGO_LUU_CHU_POLICY_V1`.
