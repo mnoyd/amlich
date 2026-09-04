@@ -86,12 +86,14 @@ Until gates sign: corpus rows stay `ExternalReviewPending`, surfaced rows carry 
 
 ## 7. Track-1 verification ledger (what must be frozen from facsimile)
 
-- [ ] Facsimile edition selection + stable page/chapter URIs for every cited table.
-- [ ] Per-day verse/table transcription: 甲日 through 癸日, all hour rows.
-- [ ] Closed-slot inventory and the exact wording that marks them.
-- [ ] 氣納三焦 / 血歸包絡 rows and their placement.
-- [ ] Cross-day spillover convention as printed.
-- [ ] Point-identity strings exactly as printed (穴名), before any Vietnamese glossing.
-- [ ] REVIEWER-PACK with per-row evidence links for Gates 1–4.
+Checked off at freeze time (bead `amlich-xlag.2.1`, 2026-09-04); the authoritative artifacts are `crates/amlich-core/data/ty-ngo-luu-chu/najia-open-points.json` and `.planning/milestones/v1.11-phases/01-najia-table-freeze/REVIEWER-PACK.md`. Gate 1 (classical-Chinese) still must sign every record before the freeze counts as *verified*; the checkboxes below record the agent-side transcription work, not human review.
 
-Links above were checked 2026-08-11 (in the prior note); re-verify at Track-1 start. Online transcriptions are discovery aids; a chosen facsimile plus signed human review remains the corpus acceptance gate.
+- [x] Facsimile edition selection + stable page/chapter URIs for every cited table. **Freeze edition:** Wikisource *Zhenjiu Dacheng* 卷七 (徐氏子午流注逐日按時定穴歌 + 流注圖 + supporting sections); **cross-reference:** CTEXT *Zhenjiu Daquan* 卷之五 論子午流注之法 (chapter 688012, Xu Feng's original). The research note's "vol. 5" follows the shidianguiji scan pagination (book NA08718) — unreachable at freeze time (re-checked 2026-09-04); the volume-arrangement discrepancy is documented for Gate 1. Candidate edition list lives in REVIEWER-PACK §A.1; `edition_or_facsimile_uri` stays `PENDING_CLASSICAL_REVIEW` per row until Gate 1 records the consulted artifact.
+- [x] Per-day verse/table transcription: 甲日 through 癸日, all hour rows — 10 tables × 6 rows transcribed from the freeze edition, collated against the cross-reference; all variants recorded in REVIEWER-PACK §A.2 (including the substantive 壬日 edition variant where *Zhenjiu Daquan*'s verse omits the 戊申/庚戌/壬子 rows).
+- [x] Closed-slot inventory and the exact wording that marks them — all 120 (day stem × hour branch) slots resolved: 60 open, 60 explicitly closed (閉穴), each closed cell citing 「得時為之開，失時為之闔」(論子午流注法) and 「闔者閉也…則前穴已閉」(流注時日). Includes the 癸-day gap (only 壬子 spillover and 癸亥 open).
+- [x] 氣納三焦 / 血納包絡 rows and their placement — 5 + 5 closing rows with printed generation rationale (REVIEWER-PACK §A.7; TNLC-DIV-02).
+- [x] Cross-day spillover convention as printed — every table's tail rows land on the next civil day; the 亥→子 boundary is pinned (子 block attributed to the upcoming civil date; Amlich hour slots reused; disclosed `time_basis`), per TNLC-DIV-03; twelve duplicated pillars resolve uniquely by cell day stem. CI guard `najia_open_points_corpus_guard.rs` re-derives the grid independently.
+- [x] Point-identity strings exactly as printed (穴名), before any Vietnamese glossing — 66-entry registry with as-printed forms (商邱, 邱墟, 太谿, …) and recorded graph variants; Vietnamese huyệt danh and code glosses are Gate-2 drafts only.
+- [x] REVIEWER-PACK with per-row evidence links for Gates 1–4 — `.planning/milestones/v1.11-phases/01-najia-table-freeze/REVIEWER-PACK.md` (§B Gate 1, §C Gate 2, §D Gate 3, §E Gate 4, §H outreach).
+
+Links above were checked 2026-08-11 (in the prior note); re-verified at Track-1 freeze (2026-09-04: Wikisource and CTEXT reachable, shidianguiji unreachable). Online transcriptions are discovery aids; a chosen facsimile plus signed human review remains the corpus acceptance gate.

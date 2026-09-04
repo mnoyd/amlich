@@ -4,7 +4,7 @@ Status: Canonical maintainer policy
 
 Owner: Amlich maintainers
 
-Last reviewed: 2026-08-10
+Last reviewed: 2026-09-04
 
 This document is the source of truth for domain claims that cannot be closed
 honestly without a qualified external reviewer or a specific physical source.
@@ -81,6 +81,9 @@ they do not count as resolved requirements.
 | v1.10 Bilingual cultural-information disclaimer | `crates/amlich-core/src/traditional_wellness/disclaimer.rs` and REVIEWER-PACK §A.1/§A.2 (Phase 01 + Phase 02 packs) | `DisclaimerId("cultural_information_v1")` with byte-locked Vietnamese + English strings | Do not edit the disclaimer text without product/legal re-sign-off; `tests/prohibited_language_guard.rs::bilingual_disclaimer_is_byte_identical_to_reviewer_pack` enforces the lock against both packs | `product-legal-reviewer` | 2026-12-31 |
 | v1.10 Four-season Suwen cultivation corpus (Tứ khí điều thần) | `crates/amlich-core/data/traditional-wellness/seasonal-cultivation.json` and `src/traditional_wellness/seasonal.rs` | `ExternalReviewPending(reason="suwen_four_season_paraphrase_review_pending"; expected_review_date="2026-12-31"; assigned_to="suwen_paraphrase_reviewer")` per profile | Do not flip profiles to `Signed` until the Suwen paraphrase reviewer signs against `四氣調神大論`; every result exposes the bilingual disclaimer and the term-to-season composition disclosure (LH-DIV-04) | `suwen-paraphrase-reviewer` | 2026-12-31 |
 | v1.10 Seasonal wellness copy replacement (displaced Tiết khí health lists) | `crates/amlich-core/data/tiet-khi.json` + root `data/tiet-khi.json` (emptied `health` lists) and Phase 02 REVIEWER-PACK §A.8 | Empty `health.vi`/`health.en` arrays with an in-file do-not-refill note | The unsourced lists stay empty (locked by `insight_parity.rs` and `insight_data.rs` tests); refill only from the reviewed seasonal corpus after Gates 2–4 sign | `health-safety-reviewer` | 2026-12-31 |
+| v1.11 Xu-style Najia point-opening frozen corpus (60 table rows + 120-slot grid) | `crates/amlich-core/data/ty-ngo-luu-chu/najia-open-points.json` and `.planning/milestones/v1.11-phases/01-najia-table-freeze/REVIEWER-PACK.md` | `ExternalReviewPending(reason="najia_xu_style_table_row_review_pending"; expected_review_date="2026-12-31"; assigned_to="classical_chinese_reviewer")` per row; grid guard `tests/najia_open_points_corpus_guard.rs` | Do not flip rows to `Signed` until the classical-Chinese reviewer signs the chosen facsimile and records `edition_or_facsimile_uri`; closed (閉穴) slots stay closed; later-school filling rules never merge in (TNLC-DIV-01) | `classical-chinese-reviewer` | 2026-12-31 |
+| v1.11 Vietnamese point nomenclature + code glosses (66-entry registry) | `crates/amlich-core/data/ty-ngo-luu-chu/najia-open-points.json` `point_nomenclature_registry` | `ExternalReviewPending(...assigned_to="vietnamese_nomenclature_reviewer")` per registry entry; fields named `*_draft_gate2_pending` | Huyệt danh and alphanumeric codes are drafts until Gate 2 signs one set; codes render as lookup glosses only, never WHO endorsement (TNLC-DIV-04) | `vietnamese-nomenclature-reviewer` | 2026-12-31 |
+| v1.11 Disclaimer v2 (historical procedural citation) | `.planning/milestones/v1.11-phases/01-najia-table-freeze/REVIEWER-PACK.md` §A.4 (byte-lock into `src` lands with bead `amlich-xlag.2.2`/`.2.3`) | Proposed `DisclaimerId("historical_procedural_citation_v1")` with locked Vietnamese + English strings once implemented | Do not surface point-opening content without the bilingual disclaimer; do not edit the text without product/legal re-sign-off | `product-legal-reviewer` | 2026-12-31 |
 
 ## Resolution checklist
 
