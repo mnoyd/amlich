@@ -53,6 +53,20 @@ pub const SOURCE_SHI_ER_JING_NA_DI_ZHI: &str = "shi-er-jing-na-di-zhi";
 /// primitive source.
 pub const SOURCE_HUANGDI_NEIJING_SUWEN: &str = "huangdi-neijing-suwen";
 
+/// Xu-style Najia (徐氏納甲法) point-opening tables as reproduced in
+/// Yang Jizhou, *Zhenjiu Dacheng*, juan 7 (the
+/// `徐氏子午流注逐日按時定穴歌` verse and the `流注圖` tables), collated
+/// against Xu Feng, *Zhenjiu Daquan*, juan 5 (`論子午流注之法`).
+/// **First emission in v1.11** (bead `amlich-xlag.2.2`) under the
+/// `TY_NGO_LUU_CHU_POLICY_V1` contract: citation-framed point-opening
+/// output behind bilingual disclaimer v2 and four human review gates
+/// (ADR-0004 satisfies ADR-0003's reservation). The corpus lives at
+/// `crates/amlich-core/data/ty-ngo-luu-chu/najia-open-points.json`; the
+/// Tier-0 fixed association (`shi-er-jing-na-di-zhi`) and this source
+/// never cross-cite. The substring guard in `tests/source_id_guard.rs`
+/// confines this id to `src/point_opening/` and this file.
+pub const SOURCE_TY_NGO_LUU_CHU: &str = "ty-ngo-luu-chu";
+
 /// Typed identifier for a classical or derived provenance source.
 ///
 /// The transparent serde representation preserves the existing JSON string
@@ -139,6 +153,10 @@ mod tests {
         // v1.10 (Phase 02-01): Hoàng Đế Nội Kinh – Tố Vấn four-season
         // cultivation paraphrases (SEASON-01 / SOURCE-01).
         assert_eq!(SOURCE_HUANGDI_NEIJING_SUWEN, "huangdi-neijing-suwen");
+        // v1.11 (bead amlich-xlag.2.2): Xu-style Najia point-opening
+        // tables — first emission under TY_NGO_LUU_CHU_POLICY_V1
+        // (ADR-0004 satisfies the ADR-0003 reservation).
+        assert_eq!(SOURCE_TY_NGO_LUU_CHU, "ty-ngo-luu-chu");
     }
 
     #[test]

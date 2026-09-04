@@ -22,7 +22,8 @@ const FORBIDDEN_LITERALS: &[&str] = &[
     "\"mai-hoa-dich-so\"",       // NEW v1.7 (Phase 20-01, FND-09)
     "\"shi-er-jing-na-di-zhi\"", // NEW v1.10 (Phase 01-01, ASSOC-01 / SOURCE-01)
     "\"huangdi-neijing-suwen\"", // NEW v1.10 (Phase 02-01, SEASON-01 / SOURCE-01)
-    "\"ty-ngo-luu-chu\"", // NEW v1.10 (Phase 01-01, ADR-0003 — reserved, must never be emitted)
+    "\"ty-ngo-luu-chu\"",        // v1.11 (bead amlich-xlag.2.2, ADR-0004): first emission under
+                                 // TY_NGO_LUU_CHU_POLICY_V1 — production code must use the constant
 ];
 
 fn collect_rs_files(dir: &Path, out: &mut Vec<PathBuf>) {
@@ -102,8 +103,8 @@ fn no_bare_source_id_literals_in_production_src() {
     );
 }
 
-/// v1.10 (Phase 01-01, ADR-0003): the reserved `ty-ngo-luu-chu` source ID must
-/// not appear ANYWHERE under `crates/amlich-core/src/` — not in production
+/// v1.10 (Phase 01-01, ADR-0003): the reserved `ty-ngo-luu-chu` source ID
+/// must not appear ANYWHERE under `crates/amlich-core/src/` — not in production
 /// code, not in `#[cfg(test)]` modules, not in doc-comments, not in inline
 /// `//` comments. The first guard above already catches bare `"ty-ngo-luu-chu"`
 /// string literals in production code; this second guard catches the
@@ -111,12 +112,17 @@ fn no_bare_source_id_literals_in_production_src() {
 /// so that future contributors do not accidentally reference the reserved
 /// identifier even when discussing it.
 ///
-/// Scope is `crates/amlich-core/src/` only. The ADR document itself
-/// (`docs/adr/0003-...`) and the planning research
-/// (`.planning/research/LUNAR_HEALTH_RESEARCH.md`) intentionally mention
-/// the term for context and are not in scope.
+/// v1.11 update (bead `amlich-xlag.2.2.1`, ADR-0004): ADR-0004 satisfies
+/// ADR-0003's reservation — the id now performs its first, policy-gated
+/// emission under `TY_NGO_LUU_CHU_POLICY_V1`. The guard therefore became a
+/// **confinement** guard: the substring is allowed ONLY in
+/// `src/sources.rs` (the constant definition) and under
+/// `src/point_opening/` (the policy-gated consumer). Everywhere else in
+/// `crates/amlich-core/src/` the old absolute ban still holds, comments
+/// included. The ADR documents and the planning research intentionally
+/// mention the term for context and are not in scope.
 #[test]
-fn ty_ngo_luu_chu_substring_never_appears_in_production_source() {
+fn ty_ngo_luu_chu_substring_is_confined_to_sources_and_point_opening() {
     let needle = "ty-ngo-luu-chu";
     let src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
     let mut files = Vec::new();
@@ -124,11 +130,23 @@ fn ty_ngo_luu_chu_substring_never_appears_in_production_source() {
 
     let mut violations: Vec<String> = Vec::new();
     for path in &files {
+        // The canonical constant definition lives in sources.rs; the
+        // policy-gated first emission lives under src/point_opening/.
+        let is_sources_rs = path.file_name().and_then(|s| s.to_str()) == Some("sources.rs");
+        let is_point_opening = path
+            .strip_prefix(&src_dir)
+            .ok()
+            .and_then(|rel| rel.parent())
+            .map(|dir| dir == Path::new("point_opening"))
+            .unwrap_or(false);
+        if is_sources_rs || is_point_opening {
+            continue;
+        }
         let contents = fs::read_to_string(path).expect("read file");
         for (lineno, line) in contents.lines().enumerate() {
             if line.contains(needle) {
                 violations.push(format!(
-                    "{}:{}  substring {} found — ADR-0003 reserves this id and forbids any reference in production source:\n    {}",
+                    "{}:{}  substring {} found — the id is confined to src/sources.rs and src/point_opening/ under TY_NGO_LUU_CHU_POLICY_V1 (ADR-0004):\n    {}",
                     path.display(),
                     lineno + 1,
                     needle,
@@ -140,7 +158,7 @@ fn ty_ngo_luu_chu_substring_never_appears_in_production_source() {
 
     assert!(
         violations.is_empty(),
-        "Forbidden `ty-ngo-luu-chu` substring found under crates/amlich-core/src/. Per ADR-0003 the full Tý Ngọ Lưu Chú source id is reserved for a future, separately reviewed milestone and must never be referenced in production source:\n{}",
+        "Forbidden `ty-ngo-luu-chu` substring found outside src/sources.rs and src/point_opening/. Per ADR-0004 the first emission is policy-gated and confined; everywhere else the ADR-0003 ban still holds:\n{}",
         violations.join("\n")
     );
 }

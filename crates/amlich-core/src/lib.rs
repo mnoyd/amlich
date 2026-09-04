@@ -23,6 +23,7 @@ pub mod insight_data;
 pub mod interaction;
 pub mod julian;
 pub mod lunar;
+pub mod point_opening;
 pub mod reasoning;
 pub mod rituals;
 pub mod semantic_graph;
