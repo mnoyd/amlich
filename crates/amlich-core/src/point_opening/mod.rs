@@ -22,6 +22,7 @@
 //! `ExternalReviewPending` and every surfaced context carries
 //! disclaimer v2 with its review state visible.
 
+pub mod corpus;
 pub mod disclaimer;
 pub mod divergence;
 pub mod policy;
