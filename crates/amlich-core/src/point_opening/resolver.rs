@@ -2,7 +2,7 @@
 //! Tý Ngọ Lưu Chú record.
 //!
 //! This module deliberately performs no civil-time or day-pillar calculation.
-//! Those boundary rules are integrated by the following bead.  It translates
+//! Those boundary rules are integrated in [`super::civil_time`].  It translates
 //! the existing core vocabulary to the frozen corpus keys and returns the
 //! exact open or explicit-closed record only.
 

@@ -13,15 +13,19 @@
 //! - [`state`] — the stable domain types: the point identity triple,
 //!   the exactly-one open-or-explicit-closed slot state, and the
 //!   `PointOpeningContext` carrier.
+//! - [`corpus`] — the validated loader for the frozen Najia corpus.
+//! - [`resolver`] — the pure (day stem × hour branch) slot lookup.
+//! - [`civil_time`] — the local-civil boundary integration: existing
+//!   hour-branch and day-pillar conventions plus the frozen 23:00
+//!   day-attribution and cross-day spillover rule (TNLC-DIV-03).
 //!
-//! This module defines the contract only. The corpus loader, resolver,
-//! civil-time boundary integration, DaySnapshot projection, semantic
-//! graph, and surface work belong to the later `amlich-xlag.2.2.*`
-//! beads. Until the four human review gates sign
-//! (`amlich-xlag.2.5`–`.2.8`), every corpus record stays
-//! `ExternalReviewPending` and every surfaced context carries
+//! The DaySnapshot projection, semantic graph, and surface work belong
+//! to the later `amlich-xlag.2.2.*` beads. Until the four human
+//! review gates sign (`amlich-xlag.2.5`–`.2.8`), every corpus record
+//! stays `ExternalReviewPending` and every surfaced context carries
 //! disclaimer v2 with its review state visible.
 
+pub mod civil_time;
 pub mod corpus;
 pub mod disclaimer;
 pub mod divergence;
@@ -29,6 +33,7 @@ pub mod policy;
 pub mod resolver;
 pub mod state;
 pub use crate::traditional_wellness::disclaimer::{DisclaimerId, LocalizedDisclaimer};
+pub use civil_time::{resolve_frozen_point_opening_at_local_civil_time, LocalCivilPointOpening};
 pub use disclaimer::{
     disclaimer_id_historical_procedural_citation, historical_procedural_citation_disclaimer,
     DISCLAIMER_HISTORICAL_PROCEDURAL_CITATION_EN, DISCLAIMER_HISTORICAL_PROCEDURAL_CITATION_VN,

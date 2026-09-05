@@ -239,7 +239,7 @@ fn closed_state_is_explicit_and_never_carries_points() {
 
     let open = serde_json::to_value(sample_open_context()).unwrap();
     assert_eq!(open["state"]["state"], "open");
-    assert!(open["state"]["points"].as_array().unwrap().len() >= 1);
+    assert!(!open["state"]["points"].as_array().unwrap().is_empty());
     // Exactly one typed state: the closed payload has no open keys and
     // vice versa.
     for open_only in ["points", "substitution", "slot_class_zh_as_printed"] {
