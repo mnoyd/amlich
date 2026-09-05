@@ -26,6 +26,7 @@ pub mod corpus;
 pub mod disclaimer;
 pub mod divergence;
 pub mod policy;
+pub mod resolver;
 pub mod state;
 pub use crate::traditional_wellness::disclaimer::{DisclaimerId, LocalizedDisclaimer};
 pub use disclaimer::{
@@ -38,4 +39,5 @@ pub use policy::{
     policy_contract, PolicyContract, SAFETY_CLASS_HISTORICAL_PROCEDURAL_CITATION,
     TY_NGO_LUU_CHU_POLICY_ID,
 };
+pub use resolver::{resolve_frozen_point_opening, resolve_frozen_point_opening_slot};
 pub use state::{PointOpeningContext, PointOpeningIdentity, PointOpeningSlotState};
