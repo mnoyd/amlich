@@ -1,0 +1,2728 @@
+{
+  "schema_version": "tnlc_finite_core_golden_v1",
+  "bead": "amlich-xlag.2.2.7",
+  "source_corpus": {
+    "path": "crates/amlich-core/data/ty-ngo-luu-chu/najia-open-points.json",
+    "fnv1a64": "05e19918782fa80f"
+  },
+  "counts": {
+    "slots": 120,
+    "open": 60,
+    "closed": 60,
+    "cross_day_spillovers": 30,
+    "open_by_day_stem": {
+      "甲": 6,
+      "乙": 7,
+      "丙": 6,
+      "丁": 7,
+      "戊": 6,
+      "己": 7,
+      "庚": 6,
+      "辛": 7,
+      "壬": 6,
+      "癸": 2
+    }
+  },
+  "matrix": [
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "甲子",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "gui",
+          "jia"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "乙丑",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "gui",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "hanh-gian",
+            "xue_ming_zh": "行間",
+            "huyet_danh_vi": "Hành gian",
+            "standard_code_gloss": "LR2",
+            "channel_zh": "足厥陰肝",
+            "channel_vi": "Can",
+            "channel_en": "Liver",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "丙寅",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "gui",
+          "jia"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "丁卯",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "gui",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞土",
+        "substitution": "fan_ben_huan_yuan_plus_bao_luo_yuan",
+        "points": [
+          {
+            "point_key": "than-mon",
+            "xue_ming_zh": "神門",
+            "huyet_danh_vi": "Thần môn",
+            "standard_code_gloss": "HT7",
+            "channel_zh": "手少陰心",
+            "channel_vi": "Tâm",
+            "channel_en": "Heart",
+            "role": "primary"
+          },
+          {
+            "point_key": "thai-khe",
+            "xue_ming_zh": "太谿",
+            "huyet_danh_vi": "Thái khê",
+            "standard_code_gloss": "KI3",
+            "channel_zh": "足少陰腎",
+            "channel_vi": "Thận",
+            "channel_en": "Kidney",
+            "role": "yuan_guo"
+          },
+          {
+            "point_key": "dai-lang",
+            "xue_ming_zh": "大陵",
+            "huyet_danh_vi": "Đại lăng",
+            "standard_code_gloss": "PC7",
+            "channel_zh": "手厥陰心包",
+            "channel_vi": "Tâm bào",
+            "channel_en": "Pericardium",
+            "role": "you_guo_bao_luo_yuan"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "戊辰",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "gui",
+          "jia"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "己巳",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "gui",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "thuong-khau",
+            "xue_ming_zh": "商邱",
+            "huyet_danh_vi": "Thương khâu",
+            "standard_code_gloss": "SP5",
+            "channel_zh": "足太陰脾",
+            "channel_vi": "Tỳ",
+            "channel_en": "Spleen",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "庚午",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "gui",
+          "jia"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "辛未",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "gui",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "xich-trach",
+            "xue_ming_zh": "尺澤",
+            "huyet_danh_vi": "Xích trạch",
+            "standard_code_gloss": "LU5",
+            "channel_zh": "手太陰肺",
+            "channel_vi": "Phế",
+            "channel_en": "Lung",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "壬申",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "gui",
+          "jia"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "癸酉",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "gui",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井木",
+        "substitution": "xue_na_bao_luo",
+        "points": [
+          {
+            "point_key": "trung-xung",
+            "xue_ming_zh": "中沖",
+            "huyet_danh_vi": "Trung xung",
+            "standard_code_gloss": "PC9",
+            "channel_zh": "手厥陰心包",
+            "channel_vi": "Tâm bào",
+            "channel_en": "Pericardium",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "甲戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "jia",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "qiao-yin",
+            "xue_ming_zh": "竅陰",
+            "huyet_danh_vi": "Kiếu âm",
+            "standard_code_gloss": "GB44",
+            "channel_zh": "足少陽膽",
+            "channel_vi": "Đởm",
+            "channel_en": "Gallbladder",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "甲",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "乙亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "gui",
+          "jia"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "丙子",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "jia",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "qian-gu",
+            "xue_ming_zh": "前谷",
+            "huyet_danh_vi": "Tiền cốc",
+            "standard_code_gloss": "SI2",
+            "channel_zh": "手太陽小腸",
+            "channel_vi": "Tiểu trường",
+            "channel_en": "Small Intestine",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "丁丑",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "jia",
+          "yi"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "戊寅",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "jia",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞木",
+        "substitution": "fan_ben_huan_yuan",
+        "points": [
+          {
+            "point_key": "xian-gu",
+            "xue_ming_zh": "陷谷",
+            "huyet_danh_vi": "Hãm cốc",
+            "standard_code_gloss": "ST43",
+            "channel_zh": "足陽明胃",
+            "channel_vi": "Vị",
+            "channel_en": "Stomach",
+            "role": "primary"
+          },
+          {
+            "point_key": "qiu-xu",
+            "xue_ming_zh": "邱墟",
+            "huyet_danh_vi": "Khâu hư",
+            "standard_code_gloss": "GB40",
+            "channel_zh": "足少陽膽",
+            "channel_vi": "Đởm",
+            "channel_en": "Gallbladder",
+            "role": "yuan_guo"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "己卯",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "jia",
+          "yi"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "庚辰",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "jia",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "yang-xi",
+            "xue_ming_zh": "陽谿",
+            "huyet_danh_vi": "Dương khê",
+            "standard_code_gloss": "LI5",
+            "channel_zh": "手陽明大腸",
+            "channel_vi": "Đại trường",
+            "channel_en": "Large Intestine",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "辛巳",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "jia",
+          "yi"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "壬午",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "jia",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合土",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "wei-zhong",
+            "xue_ming_zh": "委中",
+            "huyet_danh_vi": "Ủy trung",
+            "standard_code_gloss": "BL40",
+            "channel_zh": "足太陽膀胱",
+            "channel_vi": "Bàng quang",
+            "channel_en": "Bladder",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "癸未",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "jia",
+          "yi"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "甲申",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "jia",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮水",
+        "substitution": "qi_na_san_jiao",
+        "points": [
+          {
+            "point_key": "ye-men",
+            "xue_ming_zh": "液門",
+            "huyet_danh_vi": "Dịch môn",
+            "standard_code_gloss": "TE2",
+            "channel_zh": "手少陽三焦",
+            "channel_vi": "Tam tiêu",
+            "channel_en": "Triple Burner",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "乙酉",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "yi",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井木",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "da-dun",
+            "xue_ming_zh": "大敦",
+            "huyet_danh_vi": "Đại đôn",
+            "standard_code_gloss": "LR1",
+            "channel_zh": "足厥陰肝",
+            "channel_vi": "Can",
+            "channel_en": "Liver",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "丙戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "jia",
+          "yi"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "乙",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "丁亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "yi",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "shao-fu",
+            "xue_ming_zh": "少府",
+            "huyet_danh_vi": "Thiếu phủ",
+            "standard_code_gloss": "HT8",
+            "channel_zh": "手少陰心",
+            "channel_vi": "Tâm",
+            "channel_en": "Heart",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "戊子",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "yi",
+          "bing"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "己丑",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "yi",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞土",
+        "substitution": "fan_ben_huan_yuan",
+        "points": [
+          {
+            "point_key": "tai-bai",
+            "xue_ming_zh": "太白",
+            "huyet_danh_vi": "Thái bạch",
+            "standard_code_gloss": "SP3",
+            "channel_zh": "足太陰脾",
+            "channel_vi": "Tỳ",
+            "channel_en": "Spleen",
+            "role": "primary"
+          },
+          {
+            "point_key": "tai-chong",
+            "xue_ming_zh": "太衝",
+            "huyet_danh_vi": "Thái xung",
+            "standard_code_gloss": "LR3",
+            "channel_zh": "足厥陰肝",
+            "channel_vi": "Can",
+            "channel_en": "Liver",
+            "role": "yuan_guo"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "庚寅",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "yi",
+          "bing"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "辛卯",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "yi",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "jing-qu",
+            "xue_ming_zh": "經渠",
+            "huyet_danh_vi": "Kinh cừ",
+            "standard_code_gloss": "LU8",
+            "channel_zh": "手太陰肺",
+            "channel_vi": "Phế",
+            "channel_en": "Lung",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "壬辰",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "yi",
+          "bing"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "癸巳",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "yi",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "am-goc",
+            "xue_ming_zh": "陰谷",
+            "huyet_danh_vi": "Âm cốc",
+            "standard_code_gloss": "KI10",
+            "channel_zh": "足少陰腎",
+            "channel_vi": "Thận",
+            "channel_en": "Kidney",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "甲午",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "yi",
+          "bing"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "乙未",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "yi",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮火",
+        "substitution": "xue_na_bao_luo",
+        "points": [
+          {
+            "point_key": "lao-cung",
+            "xue_ming_zh": "勞宮",
+            "huyet_danh_vi": "Lao cung",
+            "standard_code_gloss": "PC8",
+            "channel_zh": "手厥陰心包",
+            "channel_vi": "Tâm bào",
+            "channel_en": "Pericardium",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "丙申",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "bing",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "shao-ze",
+            "xue_ming_zh": "少澤",
+            "huyet_danh_vi": "Thiếu trạch",
+            "standard_code_gloss": "SI1",
+            "channel_zh": "手太陽小腸",
+            "channel_vi": "Tiểu trường",
+            "channel_en": "Small Intestine",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "丁酉",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "yi",
+          "bing"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "戊戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "bing",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "noi-dinh",
+            "xue_ming_zh": "內庭",
+            "huyet_danh_vi": "Nội đình",
+            "standard_code_gloss": "ST44",
+            "channel_zh": "足陽明胃",
+            "channel_vi": "Vị",
+            "channel_en": "Stomach",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丙",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "己亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "yi",
+          "bing"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "庚子",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "bing",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞木",
+        "substitution": "fan_ben_huan_yuan",
+        "points": [
+          {
+            "point_key": "tam-gian",
+            "xue_ming_zh": "三間",
+            "huyet_danh_vi": "Tam gian",
+            "standard_code_gloss": "LI3",
+            "channel_zh": "手陽明大腸",
+            "channel_vi": "Đại trường",
+            "channel_en": "Large Intestine",
+            "role": "primary"
+          },
+          {
+            "point_key": "oan-cot",
+            "xue_ming_zh": "腕骨",
+            "huyet_danh_vi": "Uyển cốt",
+            "standard_code_gloss": "SI4",
+            "channel_zh": "手太陽小腸",
+            "channel_vi": "Tiểu trường",
+            "channel_en": "Small Intestine",
+            "role": "yuan_guo"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "辛丑",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "bing",
+          "ding"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "壬寅",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "bing",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "con-lon",
+            "xue_ming_zh": "崑崙",
+            "huyet_danh_vi": "Côn lôn",
+            "standard_code_gloss": "BL60",
+            "channel_zh": "足太陽膀胱",
+            "channel_vi": "Bàng quang",
+            "channel_en": "Bladder",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "癸卯",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "bing",
+          "ding"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "甲辰",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "bing",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合土",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "duong-lang-tuyen",
+            "xue_ming_zh": "陽陵泉",
+            "huyet_danh_vi": "Dương lăng tuyền",
+            "standard_code_gloss": "GB34",
+            "channel_zh": "足少陽膽",
+            "channel_vi": "Đởm",
+            "channel_en": "Gallbladder",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "乙巳",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "bing",
+          "ding"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "丙午",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "bing",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞木",
+        "substitution": "qi_na_san_jiao",
+        "points": [
+          {
+            "point_key": "trung-chu",
+            "xue_ming_zh": "中渚",
+            "huyet_danh_vi": "Trung chử",
+            "standard_code_gloss": "TE3",
+            "channel_zh": "手少陽三焦",
+            "channel_vi": "Tam tiêu",
+            "channel_en": "Triple Burner",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "丁未",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ding",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井木",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "shao-xung",
+            "xue_ming_zh": "少沖",
+            "huyet_danh_vi": "Thiếu xung",
+            "standard_code_gloss": "HT9",
+            "channel_zh": "手少陰心",
+            "channel_vi": "Tâm",
+            "channel_en": "Heart",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "戊申",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "bing",
+          "ding"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "己酉",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ding",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "dai-do",
+            "xue_ming_zh": "大都",
+            "huyet_danh_vi": "Đại đô",
+            "standard_code_gloss": "SP2",
+            "channel_zh": "足太陰脾",
+            "channel_vi": "Tỳ",
+            "channel_en": "Spleen",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "庚戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "bing",
+          "ding"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "丁",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "辛亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ding",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞土",
+        "substitution": "fan_ben_huan_yuan",
+        "points": [
+          {
+            "point_key": "thai-uyen",
+            "xue_ming_zh": "太淵",
+            "huyet_danh_vi": "Thái uyên",
+            "standard_code_gloss": "LU9",
+            "channel_zh": "手太陰肺",
+            "channel_vi": "Phế",
+            "channel_en": "Lung",
+            "role": "primary"
+          },
+          {
+            "point_key": "than-mon",
+            "xue_ming_zh": "神門",
+            "huyet_danh_vi": "Thần môn",
+            "standard_code_gloss": "HT7",
+            "channel_zh": "手少陰心",
+            "channel_vi": "Tâm",
+            "channel_en": "Heart",
+            "role": "yuan_guo"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "壬子",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ding",
+          "wu"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "癸丑",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ding",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "phuc-luu",
+            "xue_ming_zh": "復溜",
+            "huyet_danh_vi": "Phục lưu",
+            "standard_code_gloss": "KI7",
+            "channel_zh": "足少陰腎",
+            "channel_vi": "Thận",
+            "channel_en": "Kidney",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "甲寅",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ding",
+          "wu"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "乙卯",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ding",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "khuc-tuyen",
+            "xue_ming_zh": "曲泉",
+            "huyet_danh_vi": "Khúc tuyền",
+            "standard_code_gloss": "LR8",
+            "channel_zh": "足厥陰肝",
+            "channel_vi": "Can",
+            "channel_en": "Liver",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "丙辰",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ding",
+          "wu"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "丁巳",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ding",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞土",
+        "substitution": "xue_na_bao_luo",
+        "points": [
+          {
+            "point_key": "dai-lang",
+            "xue_ming_zh": "大陵",
+            "huyet_danh_vi": "Đại lăng",
+            "standard_code_gloss": "PC7",
+            "channel_zh": "手厥陰心包",
+            "channel_vi": "Tâm bào",
+            "channel_en": "Pericardium",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "戊午",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "wu",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "le-doai",
+            "xue_ming_zh": "厲兌",
+            "huyet_danh_vi": "Lệ đoái",
+            "standard_code_gloss": "ST45",
+            "channel_zh": "足陽明胃",
+            "channel_vi": "Vị",
+            "channel_en": "Stomach",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "己未",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ding",
+          "wu"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "庚申",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "wu",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "nhi-gian",
+            "xue_ming_zh": "二間",
+            "huyet_danh_vi": "Nhị gian",
+            "standard_code_gloss": "LI2",
+            "channel_zh": "手陽明大腸",
+            "channel_vi": "Đại trường",
+            "channel_en": "Large Intestine",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "辛酉",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ding",
+          "wu"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "壬戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "wu",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞木",
+        "substitution": "fan_ben_huan_yuan",
+        "points": [
+          {
+            "point_key": "thuc-cot",
+            "xue_ming_zh": "束骨",
+            "huyet_danh_vi": "Thúc cốt",
+            "standard_code_gloss": "BL65",
+            "channel_zh": "足太陽膀胱",
+            "channel_vi": "Bàng quang",
+            "channel_en": "Bladder",
+            "role": "primary"
+          },
+          {
+            "point_key": "xung-duong",
+            "xue_ming_zh": "衝陽",
+            "huyet_danh_vi": "Xung dương",
+            "standard_code_gloss": "ST42",
+            "channel_zh": "足陽明胃",
+            "channel_vi": "Vị",
+            "channel_en": "Stomach",
+            "role": "yuan_guo"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "戊",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "癸亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ding",
+          "wu"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "甲子",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "wu",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "duong-phu",
+            "xue_ming_zh": "陽輔",
+            "huyet_danh_vi": "Dương phụ",
+            "standard_code_gloss": "GB38",
+            "channel_zh": "足少陽膽",
+            "channel_vi": "Đởm",
+            "channel_en": "Gallbladder",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "乙丑",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "wu",
+          "ji"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "丙寅",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "wu",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合土",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "tieu-hai",
+            "xue_ming_zh": "小海",
+            "huyet_danh_vi": "Tiểu hải",
+            "standard_code_gloss": "SI8",
+            "channel_zh": "手太陽小腸",
+            "channel_vi": "Tiểu trường",
+            "channel_en": "Small Intestine",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "丁卯",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "wu",
+          "ji"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "戊辰",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "wu",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經火",
+        "substitution": "qi_na_san_jiao",
+        "points": [
+          {
+            "point_key": "chi-cau",
+            "xue_ming_zh": "支溝",
+            "huyet_danh_vi": "Chi câu",
+            "standard_code_gloss": "TE5",
+            "channel_zh": "手少陽三焦",
+            "channel_vi": "Tam tiêu",
+            "channel_en": "Triple Burner",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "己巳",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ji",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井木",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "an-bach",
+            "xue_ming_zh": "隱白",
+            "huyet_danh_vi": "Ẩn bạch",
+            "standard_code_gloss": "SP1",
+            "channel_zh": "足太陰脾",
+            "channel_vi": "Tỳ",
+            "channel_en": "Spleen",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "庚午",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "wu",
+          "ji"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "辛未",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ji",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "ngu-te",
+            "xue_ming_zh": "魚際",
+            "huyet_danh_vi": "Ngư tế",
+            "standard_code_gloss": "LU10",
+            "channel_zh": "手太陰肺",
+            "channel_vi": "Phế",
+            "channel_en": "Lung",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "壬申",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "wu",
+          "ji"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "癸酉",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ji",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞土",
+        "substitution": "fan_ben_huan_yuan",
+        "points": [
+          {
+            "point_key": "thai-khe",
+            "xue_ming_zh": "太谿",
+            "huyet_danh_vi": "Thái khê",
+            "standard_code_gloss": "KI3",
+            "channel_zh": "足少陰腎",
+            "channel_vi": "Thận",
+            "channel_en": "Kidney",
+            "role": "primary"
+          },
+          {
+            "point_key": "tai-bai",
+            "xue_ming_zh": "太白",
+            "huyet_danh_vi": "Thái bạch",
+            "standard_code_gloss": "SP3",
+            "channel_zh": "足太陰脾",
+            "channel_vi": "Tỳ",
+            "channel_en": "Spleen",
+            "role": "yuan_guo"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "甲戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "wu",
+          "ji"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "己",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "乙亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ji",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "trung-phong",
+            "xue_ming_zh": "中封",
+            "huyet_danh_vi": "Trung phong",
+            "standard_code_gloss": "LR4",
+            "channel_zh": "足厥陰肝",
+            "channel_vi": "Can",
+            "channel_en": "Liver",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "丙子",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ji",
+          "geng"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "丁丑",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ji",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "thieu-hai",
+            "xue_ming_zh": "少海",
+            "huyet_danh_vi": "Thiếu hải",
+            "standard_code_gloss": "HT3",
+            "channel_zh": "手少陰心",
+            "channel_vi": "Tâm",
+            "channel_en": "Heart",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "戊寅",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ji",
+          "geng"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "己卯",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ji",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經金",
+        "substitution": "xue_na_bao_luo",
+        "points": [
+          {
+            "point_key": "gian-su",
+            "xue_ming_zh": "間使",
+            "huyet_danh_vi": "Gian sử",
+            "standard_code_gloss": "PC5",
+            "channel_zh": "手厥陰心包",
+            "channel_vi": "Tâm bào",
+            "channel_en": "Pericardium",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "庚辰",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "geng",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "thuong-duong",
+            "xue_ming_zh": "商陽",
+            "huyet_danh_vi": "Thương dương",
+            "standard_code_gloss": "LI1",
+            "channel_zh": "手陽明大腸",
+            "channel_vi": "Đại trường",
+            "channel_en": "Large Intestine",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "辛巳",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ji",
+          "geng"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "壬午",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "geng",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "thong-coc",
+            "xue_ming_zh": "通谷",
+            "huyet_danh_vi": "Thông cốc",
+            "standard_code_gloss": "BL66",
+            "channel_zh": "足太陽膀胱",
+            "channel_vi": "Bàng quang",
+            "channel_en": "Bladder",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "癸未",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ji",
+          "geng"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "甲申",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "geng",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞木",
+        "substitution": "fan_ben_huan_yuan",
+        "points": [
+          {
+            "point_key": "lam-khap",
+            "xue_ming_zh": "臨泣",
+            "huyet_danh_vi": "Lâm khấp",
+            "standard_code_gloss": "GB41",
+            "channel_zh": "足少陽膽",
+            "channel_vi": "Đởm",
+            "channel_en": "Gallbladder",
+            "role": "primary"
+          },
+          {
+            "point_key": "hop-coc",
+            "xue_ming_zh": "合谷",
+            "huyet_danh_vi": "Hợp cốc",
+            "standard_code_gloss": "LI4",
+            "channel_zh": "手陽明大腸",
+            "channel_vi": "Đại trường",
+            "channel_en": "Large Intestine",
+            "role": "yuan_guo"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "乙酉",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ji",
+          "geng"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "丙戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "geng",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "duong-goc",
+            "xue_ming_zh": "陽谷",
+            "huyet_danh_vi": "Dương cốc",
+            "standard_code_gloss": "SI5",
+            "channel_zh": "手太陽小腸",
+            "channel_vi": "Tiểu trường",
+            "channel_en": "Small Intestine",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "庚",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "丁亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ji",
+          "geng"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "戊子",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "geng",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合土",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "tam-ly",
+            "xue_ming_zh": "三里",
+            "huyet_danh_vi": "Tam lý",
+            "standard_code_gloss": "ST36",
+            "channel_zh": "足陽明胃",
+            "channel_vi": "Vị",
+            "channel_en": "Stomach",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "己丑",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "geng",
+          "xin"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "庚寅",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "geng",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合土",
+        "substitution": "qi_na_san_jiao",
+        "points": [
+          {
+            "point_key": "thien-tinh",
+            "xue_ming_zh": "天井",
+            "huyet_danh_vi": "Thiên tỉnh",
+            "standard_code_gloss": "TE10",
+            "channel_zh": "手少陽三焦",
+            "channel_vi": "Tam tiêu",
+            "channel_en": "Triple Burner",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "辛卯",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "xin",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井木",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "thieu-thuong",
+            "xue_ming_zh": "少商",
+            "huyet_danh_vi": "Thiếu thương",
+            "standard_code_gloss": "LU11",
+            "channel_zh": "手太陰肺",
+            "channel_vi": "Phế",
+            "channel_en": "Lung",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "壬辰",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "geng",
+          "xin"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "癸巳",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "xin",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "nhiem-goc",
+            "xue_ming_zh": "然谷",
+            "huyet_danh_vi": "Nhiên cốc",
+            "standard_code_gloss": "KI2",
+            "channel_zh": "足少陰腎",
+            "channel_vi": "Thận",
+            "channel_en": "Kidney",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "甲午",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "geng",
+          "xin"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "乙未",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "xin",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞土",
+        "substitution": "fan_ben_huan_yuan",
+        "points": [
+          {
+            "point_key": "tai-chong",
+            "xue_ming_zh": "太衝",
+            "huyet_danh_vi": "Thái xung",
+            "standard_code_gloss": "LR3",
+            "channel_zh": "足厥陰肝",
+            "channel_vi": "Can",
+            "channel_en": "Liver",
+            "role": "primary"
+          },
+          {
+            "point_key": "thai-uyen",
+            "xue_ming_zh": "太淵",
+            "huyet_danh_vi": "Thái uyên",
+            "standard_code_gloss": "LU9",
+            "channel_zh": "手太陰肺",
+            "channel_vi": "Phế",
+            "channel_en": "Lung",
+            "role": "yuan_guo"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "丙申",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "geng",
+          "xin"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "丁酉",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "xin",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "linh-dao",
+            "xue_ming_zh": "靈道",
+            "huyet_danh_vi": "Linh đạo",
+            "standard_code_gloss": "HT4",
+            "channel_zh": "手少陰心",
+            "channel_vi": "Tâm",
+            "channel_en": "Heart",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "戊戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "geng",
+          "xin"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "辛",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "己亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "xin",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "am-lang-tuyen",
+            "xue_ming_zh": "陰陵泉",
+            "huyet_danh_vi": "Âm lăng tuyền",
+            "standard_code_gloss": "SP9",
+            "channel_zh": "足太陰脾",
+            "channel_vi": "Tỳ",
+            "channel_en": "Spleen",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "庚子",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "xin",
+          "ren"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "辛丑",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "xin",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合水",
+        "substitution": "xue_na_bao_luo",
+        "points": [
+          {
+            "point_key": "khuc-trach",
+            "xue_ming_zh": "曲澤",
+            "huyet_danh_vi": "Khúc trạch",
+            "standard_code_gloss": "PC3",
+            "channel_zh": "手厥陰心包",
+            "channel_vi": "Tâm bào",
+            "channel_en": "Pericardium",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "壬寅",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ren",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井金",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "chi-am",
+            "xue_ming_zh": "至陰",
+            "huyet_danh_vi": "Chí âm",
+            "standard_code_gloss": "BL67",
+            "channel_zh": "足太陽膀胱",
+            "channel_vi": "Bàng quang",
+            "channel_en": "Bladder",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "癸卯",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "xin",
+          "ren"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "甲辰",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ren",
+          "row_index": 2
+        },
+        "slot_class_zh_as_printed": "榮",
+        "phase_annotation_as_printed": "榮水",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "hiep-khe",
+            "xue_ming_zh": "俠谿",
+            "huyet_danh_vi": "Hiệp khê",
+            "standard_code_gloss": "GB43",
+            "channel_zh": "足少陽膽",
+            "channel_vi": "Đởm",
+            "channel_en": "Gallbladder",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "乙巳",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "xin",
+          "ren"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "丙午",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ren",
+          "row_index": 3
+        },
+        "slot_class_zh_as_printed": "俞",
+        "phase_annotation_as_printed": "俞木",
+        "substitution": "fan_ben_huan_yuan_plus_san_jiao_yuan",
+        "points": [
+          {
+            "point_key": "hau-khe",
+            "xue_ming_zh": "後谿",
+            "huyet_danh_vi": "Hậu khê",
+            "standard_code_gloss": "SI3",
+            "channel_zh": "手太陽小腸",
+            "channel_vi": "Tiểu trường",
+            "channel_en": "Small Intestine",
+            "role": "primary"
+          },
+          {
+            "point_key": "kinh-cot",
+            "xue_ming_zh": "京骨",
+            "huyet_danh_vi": "Kinh cốt",
+            "standard_code_gloss": "BL64",
+            "channel_zh": "足太陽膀胱",
+            "channel_vi": "Bàng quang",
+            "channel_en": "Bladder",
+            "role": "yuan_guo"
+          },
+          {
+            "point_key": "duong-tri",
+            "xue_ming_zh": "陽池",
+            "huyet_danh_vi": "Dương trì",
+            "standard_code_gloss": "TE4",
+            "channel_zh": "手少陽三焦",
+            "channel_vi": "Tam tiêu",
+            "channel_en": "Triple Burner",
+            "role": "jian_guo_san_jiao_yuan"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "丁未",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "xin",
+          "ren"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "戊申",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ren",
+          "row_index": 4
+        },
+        "slot_class_zh_as_printed": "經",
+        "phase_annotation_as_printed": "經火",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "giai-khe",
+            "xue_ming_zh": "解谿",
+            "huyet_danh_vi": "Giải khê",
+            "standard_code_gloss": "ST41",
+            "channel_zh": "足陽明胃",
+            "channel_vi": "Vị",
+            "channel_en": "Stomach",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "己酉",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "xin",
+          "ren"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "庚戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ren",
+          "row_index": 5
+        },
+        "slot_class_zh_as_printed": "合",
+        "phase_annotation_as_printed": "合土",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "khuc-tri",
+            "xue_ming_zh": "曲池",
+            "huyet_danh_vi": "Khúc trì",
+            "standard_code_gloss": "LI11",
+            "channel_zh": "手陽明大腸",
+            "channel_vi": "Đại trường",
+            "channel_en": "Large Intestine",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "壬",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "辛亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "xin",
+          "ren"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "子",
+      "hour_pillar_zh": "壬子",
+      "cross_day_spillover": true,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "ren",
+          "row_index": 6
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井金",
+        "substitution": "qi_na_san_jiao",
+        "points": [
+          {
+            "point_key": "quan-xung",
+            "xue_ming_zh": "關沖",
+            "huyet_danh_vi": "Quan xung",
+            "standard_code_gloss": "TE1",
+            "channel_zh": "手少陽三焦",
+            "channel_vi": "Tam tiêu",
+            "channel_en": "Triple Burner",
+            "role": "primary"
+          }
+        ]
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "丑",
+      "hour_pillar_zh": "癸丑",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "寅",
+      "hour_pillar_zh": "甲寅",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "卯",
+      "hour_pillar_zh": "乙卯",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "辰",
+      "hour_pillar_zh": "丙辰",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "巳",
+      "hour_pillar_zh": "丁巳",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "午",
+      "hour_pillar_zh": "戊午",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "未",
+      "hour_pillar_zh": "己未",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "申",
+      "hour_pillar_zh": "庚申",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "酉",
+      "hour_pillar_zh": "辛酉",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "戌",
+      "hour_pillar_zh": "壬戌",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "closed",
+        "running_tables": [
+          "ren",
+          "gui"
+        ],
+        "doctrine_zh": "得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）",
+        "note": "neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)"
+      }
+    },
+    {
+      "day_stem_zh": "癸",
+      "hour_branch_zh": "亥",
+      "hour_pillar_zh": "癸亥",
+      "cross_day_spillover": false,
+      "state": {
+        "kind": "open",
+        "resolves_to": {
+          "table": "gui",
+          "row_index": 1
+        },
+        "slot_class_zh_as_printed": "井",
+        "phase_annotation_as_printed": "井木",
+        "substitution": null,
+        "points": [
+          {
+            "point_key": "dung-tuyen",
+            "xue_ming_zh": "湧泉",
+            "huyet_danh_vi": "Dũng tuyền",
+            "standard_code_gloss": "KI1",
+            "channel_zh": "足少陰腎",
+            "channel_vi": "Thận",
+            "channel_en": "Kidney",
+            "role": "primary"
+          }
+        ]
+      }
+    }
+  ]
+}
