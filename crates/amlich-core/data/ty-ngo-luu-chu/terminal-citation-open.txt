@@ -1,0 +1,11 @@
+Tý Ngọ Lưu Chú — trích dẫn lịch sử (TY_NGO_LUU_CHU_POLICY_V1)
+Khung giờ Tuất (19:00-21:00) · trụ giờ 甲戌 · cơ sở thời gian local_civil_hour_branch
+Theo bảng Châm Cứu Đại Thành, giờ Tuất ngày Giáp (甲) được ghi tương ứng với huyệt 竅陰 (Kiếu âm) [GB44] — kinh Đởm, hạng 井 (井金).
+Chứng cứ: Zhenjiu Dacheng (針灸大成) — 卷七 (徐氏子午流注逐日按時定穴歌；流注圖) · bản in: PENDING_CLASSICAL_REVIEW
+Vị trí bảng: jia · hàng 1
+Duyệt hàng bảng: ExternalReviewPending(reason="najia_xu_style_table_row_review_pending"; expected_review_date="2026-12-31"; assigned_to="classical_chinese_reviewer")
+Duyệt danh pháp: ExternalReviewPending(reason="vietnamese_nomenclature_and_code_gloss_pending"; expected_review_date="2026-12-31"; assigned_to="vietnamese_nomenclature_reviewer")
+Lớp an toàn: historical_procedural_citation
+Dị biệt đã ghi nhận: TNLC-DIV-01 · TNLC-DIV-02 · TNLC-DIV-03 · TNLC-DIV-05
+Miễn trừ (historical_procedural_citation_v1) · vi: Trích dẫn thuật ngữ y học cổ truyền từ văn bản Châm Cứu Đại Thành; chỉ mang tính văn hóa – lịch sử. Đây không phải hướng dẫn châm, bấm, cứu hay tự điều trị tại bất kỳ thời điểm nào. Không dùng để trì hoãn hoặc thay thế chăm sóc từ nhân viên y tế có chuyên môn.
+Miễn trừ (historical_procedural_citation_v1) · en: Citations of classical acupuncture terminology from Zhenjiu Dacheng; provided as historical and cultural information only. This is not instruction or encouragement to needle, press, moxibust, or self-treat at any time. Do not use it to delay or replace care from a qualified health professional.

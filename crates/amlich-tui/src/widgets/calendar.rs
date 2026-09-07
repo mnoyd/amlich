@@ -540,6 +540,7 @@ mod tests {
             viewport_height: 0,
             bundle: None,
             personal_matrix: None,
+            point_opening: None,
             is_loading: false,
             error_msg: None,
             ruleset_catalog,

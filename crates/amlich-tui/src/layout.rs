@@ -289,6 +289,7 @@ mod tests {
                 upcoming_events: vec![],
             }),
             personal_matrix: None,
+            point_opening: None,
             is_loading: false,
             error_msg: None,
             ruleset_catalog,

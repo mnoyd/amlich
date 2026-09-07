@@ -5,7 +5,7 @@ use amlich_api::v2::{DayBundleDto, Include};
 use amlich_api::{
     RecommendationBucketDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto,
 };
-use chrono::{Datelike, Local, NaiveDate};
+use chrono::{Datelike, Local, NaiveDate, Timelike};
 use serde::{Deserialize, Serialize};
 
 use super::ui_prefs::{default_verbosity_for_size, VerbosityMode};
@@ -769,6 +769,11 @@ pub struct AppState {
     // Data cache for the current date
     pub bundle: Option<DayBundleDto>,
     pub personal_matrix: Option<amlich_api::PersonalDayMatrixReportDto>,
+    /// v1.11 Tý Ngọ Lưu Chú point-opening citation context for the
+    /// current local civil moment (bead `amlich-xlag.2.3.2`); separate
+    /// from every v1.10 surface and rendered as the canonical
+    /// historical citation only.
+    pub point_opening: Option<amlich_core::point_opening::DayPointOpeningContext>,
     pub is_loading: bool,
     pub error_msg: Option<String>,
     pub ruleset_catalog: Vec<RulesetCatalogEntryDto>,
@@ -829,6 +834,7 @@ impl AppState {
             viewport_height: 0,
             bundle: None,
             personal_matrix: None,
+            point_opening: None,
             is_loading: false,
             error_msg: None,
             ruleset_catalog,
@@ -902,6 +908,7 @@ impl AppState {
                 self.date = selection.date;
                 self.bundle = Some(bundle);
                 self.personal_matrix = self.load_personal_matrix();
+                self.point_opening = self.load_point_opening(&query);
                 self.applied_selection = selection.clone();
                 self.staged_selection = selection;
                 self.pack_cursor = self.clamp_pack_cursor();
@@ -910,9 +917,25 @@ impl AppState {
             Err(e) => {
                 self.error_msg = Some(e);
                 self.personal_matrix = None;
+                self.point_opening = None;
                 self.is_loading = false;
             }
         }
+    }
+
+    /// Resolve the v1.11 point-opening citation context at the current
+    /// local civil moment through the additive opt-in API path (bead
+    /// `amlich-xlag.2.3.1`). The cited hour block is named explicitly
+    /// in the citation itself, so the time basis stays visible; a
+    /// failed lookup simply leaves the section absent.
+    fn load_point_opening(
+        &self,
+        query: &amlich_api::DateQuery,
+    ) -> Option<amlich_core::point_opening::DayPointOpeningContext> {
+        let now = Local::now();
+        amlich_api::get_day_info_with_point_opening(query, now.hour() as u8, now.minute() as u8)
+            .ok()
+            .and_then(|dto| dto.point_opening)
     }
 
     pub fn next_day(&mut self) {
@@ -2447,6 +2470,7 @@ mod tests {
             viewport_height: 0,
             bundle: None,
             personal_matrix: None,
+            point_opening: None,
             is_loading: false,
             error_msg: None,
             ruleset_catalog,

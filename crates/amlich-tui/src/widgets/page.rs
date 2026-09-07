@@ -23,11 +23,23 @@ use super::{
 pub fn screen_natural_height(app: &AppState, mode: LayoutMode, _area_width: u16) -> u16 {
     use crate::state::ui_prefs::VerbosityMode;
 
+    // The Today screen carries the v1.11 point-opening citation section
+    // whenever the context resolved (bead `amlich-xlag.2.3.2`).
+    let point_opening_extra = if app.point_opening.is_some() {
+        super::point_opening::point_opening_section_height(mode == LayoutMode::Small)
+    } else {
+        0
+    };
+
     match (app.active_view, mode, app.active_verbosity()) {
-        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Compact) => 55,
-        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Verbose) => 90,
-        (crate::state::ActiveView::Today, _, VerbosityMode::Compact) => 60,
-        (crate::state::ActiveView::Today, _, VerbosityMode::Verbose) => 80,
+        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Compact) => {
+            55 + point_opening_extra
+        }
+        (crate::state::ActiveView::Today, LayoutMode::Small, VerbosityMode::Verbose) => {
+            90 + point_opening_extra
+        }
+        (crate::state::ActiveView::Today, _, VerbosityMode::Compact) => 60 + point_opening_extra,
+        (crate::state::ActiveView::Today, _, VerbosityMode::Verbose) => 80 + point_opening_extra,
 
         (crate::state::ActiveView::Insight, LayoutMode::Small, _) => 46,
         (crate::state::ActiveView::Insight, _, _) => 34,
@@ -245,6 +257,7 @@ mod tests {
             viewport_height: 0,
             bundle: None,
             personal_matrix: None,
+            point_opening: None,
             is_loading: false,
             error_msg: None,
             ruleset_catalog,
@@ -360,6 +373,78 @@ mod tests {
             })
             .collect::<Vec<_>>()
             .join("\n")
+    }
+
+    /// 2024-02-10 (JD 2460351) — the shared Giáp-day fixture; 19:30 is
+    /// the frozen open slot, 00:30 the explicit closed one.
+    fn point_opening_context(
+        hour: u8,
+        minute: u8,
+    ) -> amlich_core::point_opening::DayPointOpeningContext {
+        amlich_core::point_opening::resolve_day_point_opening_context(2_460_351, hour, minute)
+            .expect("fixture moment resolves")
+    }
+
+    fn render_today_tall(
+        point_opening: Option<amlich_core::point_opening::DayPointOpeningContext>,
+    ) -> String {
+        let mut app = sample_app_state();
+        app.bundle = Some(sample_bundle());
+        app.active_view = ActiveView::Today;
+        app.point_opening = point_opening;
+
+        // Tall area so every section (including the citation block)
+        // gets its natural height, as the scroll viewport provides.
+        let area = Rect::new(0, 0, 100, 130);
+        let mut buf = Buffer::empty(area);
+        TodayScreenWidget::new(&app, LayoutMode::Medium).render(area, &mut buf);
+        (0..area.height)
+            .map(|y| {
+                (0..area.width)
+                    .map(|x| buf[(x, y)].symbol())
+                    .collect::<String>()
+                    .trim_end()
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
+    #[test]
+    fn today_screen_renders_the_open_point_opening_citation_by_default() {
+        let text = render_today_tall(Some(point_opening_context(19, 30)));
+
+        // Wrap-safe tokens: the exact wording is byte-locked by the
+        // core golden suite.
+        assert!(text.contains("Tý Ngọ Lưu Chú"), "section missing: {text}");
+        assert!(text.contains("trích dẫn lịch sử"));
+        assert!(text.replace(' ', "").contains("竅陰"));
+        assert!(text.contains("[GB44]"));
+        assert!(text.replace(' ', "").contains("(井金)"));
+        assert!(text.contains("PENDING_CLASSICAL_REVIEW"));
+        assert!(text.contains("ExternalReviewPending("));
+        assert!(text.contains("local_civil_hour_branch"));
+        assert!(text.contains("TNLC-DIV-01"));
+        assert!(text.contains("historical_procedural_citation_v1"));
+    }
+
+    #[test]
+    fn today_screen_renders_the_closed_point_opening_citation_by_default() {
+        let text = render_today_tall(Some(point_opening_context(0, 30)));
+
+        assert!(text.contains("Tý Ngọ Lưu Chú"), "section missing: {text}");
+        assert!(text.replace(' ', "").contains("閉穴"));
+        assert!(text.replace(' ', "").contains("得時為之開"));
+        assert!(text.contains("ExternalReviewPending("));
+        assert!(text.contains("historical_procedural_citation_v1"));
+        assert!(!text.contains("[GB44]"));
+        assert!(!text.replace(' ', "").contains("竅陰"));
+    }
+
+    #[test]
+    fn today_screen_without_a_point_opening_context_has_no_section() {
+        let text = render_today_tall(None);
+        assert!(!text.contains("Tý Ngọ Lưu Chú"));
     }
 
     #[test]

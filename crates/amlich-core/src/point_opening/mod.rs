@@ -21,6 +21,9 @@
 //! - [`provenance`] — per-row work and table evidence plus the
 //!   method/calendar evidence emission with strict source separation
 //!   (bead `amlich-xlag.2.2.5`).
+//! - [`citation`] — the canonical terminal citation block rendered
+//!   verbatim by every v1.11 consumer surface (bead
+//!   `amlich-xlag.2.3.2`).
 //! - [`snapshot`] — the additive `DaySnapshot` projection: the
 //!   serializable [`DayPointOpeningContext`] frozen from one local
 //!   civil moment (bead `amlich-xlag.2.2.6`).
@@ -33,6 +36,7 @@
 //! corpus record stays `ExternalReviewPending` and every surfaced
 //! context carries disclaimer v2 with its review state visible.
 
+pub mod citation;
 pub mod civil_time;
 pub mod corpus;
 pub mod disclaimer;
@@ -43,6 +47,7 @@ pub mod resolver;
 pub mod snapshot;
 pub mod state;
 pub use crate::traditional_wellness::disclaimer::{DisclaimerId, LocalizedDisclaimer};
+pub use citation::{point_opening_citation_lines, point_opening_citation_text};
 pub use civil_time::{resolve_frozen_point_opening_at_local_civil_time, LocalCivilPointOpening};
 pub use corpus::{
     all_frozen_point_opening_records, frozen_point_opening_record, FrozenPointOpeningRecord,

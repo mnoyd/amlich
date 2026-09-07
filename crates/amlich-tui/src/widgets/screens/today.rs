@@ -1,3 +1,10 @@
+use crate::widgets::{
+    almanac::AlmanacGridWidget, direction_panel::DirectionPanelWidget,
+    event_summary::EventSummaryWidget, guidance::GuidanceWidget,
+    guidance_panel::GuidancePanelWidget, hero::HeroWidget, mini_calendar::MiniCalendarWidget,
+    point_opening::PointOpeningWidget, risk::RiskWidget, tietkhi::TietKhiWidget,
+    timeline::TimelineWidget, travel::TravelWidget,
+};
 use ratatui::{
     buffer::Buffer,
     layout::{Constraint, Layout, Rect},
@@ -7,12 +14,6 @@ use ratatui::{
     widgets::{Block, Borders, Paragraph, Wrap},
 };
 
-use crate::widgets::{
-    almanac::AlmanacGridWidget, direction_panel::DirectionPanelWidget,
-    event_summary::EventSummaryWidget, guidance::GuidanceWidget,
-    guidance_panel::GuidancePanelWidget, hero::HeroWidget, mini_calendar::MiniCalendarWidget,
-    risk::RiskWidget, tietkhi::TietKhiWidget, timeline::TimelineWidget, travel::TravelWidget,
-};
 use crate::{
     layout::LayoutMode,
     state::{ui_prefs::VerbosityMode, AppState},
@@ -53,6 +54,7 @@ fn render_small_compact(app: &AppState, area: Rect, buf: &mut Buffer) {
         Constraint::Length(10),
         Constraint::Length(8),
         Constraint::Min(8),
+        point_opening_constraint(app, true),
     ])
     .split(area);
 
@@ -63,6 +65,7 @@ fn render_small_compact(app: &AppState, area: Rect, buf: &mut Buffer) {
     GuidanceWidget::new(app, LayoutMode::Small).render(rows[4], buf);
     RiskWidget::new(app, LayoutMode::Small).render(rows[5], buf);
     render_direction_and_travel_compact(app, rows[6], buf);
+    render_point_opening(app, rows[7], buf);
 }
 
 fn render_small_verbose(app: &AppState, area: Rect, buf: &mut Buffer) {
@@ -78,6 +81,7 @@ fn render_small_verbose(app: &AppState, area: Rect, buf: &mut Buffer) {
         Constraint::Length(8),
         Constraint::Length(8),
         Constraint::Min(7),
+        point_opening_constraint(app, true),
     ])
     .split(area);
 
@@ -92,6 +96,7 @@ fn render_small_verbose(app: &AppState, area: Rect, buf: &mut Buffer) {
     DirectionPanelWidget::new(app, LayoutMode::Small).render(rows[8], buf);
     TravelWidget::new(app, LayoutMode::Small).render(rows[9], buf);
     render_detail_footer(app, rows[10], buf);
+    render_point_opening(app, rows[11], buf);
 }
 
 fn render_standard_compact(app: &AppState, mode: LayoutMode, area: Rect, buf: &mut Buffer) {
@@ -103,6 +108,7 @@ fn render_standard_compact(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
         Constraint::Length(10),
         Constraint::Length(8),
         Constraint::Min(10),
+        point_opening_constraint(app, mode == LayoutMode::Small),
     ])
     .split(area);
 
@@ -119,6 +125,7 @@ fn render_standard_compact(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
     GuidanceWidget::new(app, mode).render(rows[4], buf);
     RiskWidget::new(app, mode).render(rows[5], buf);
     GuidancePanelWidget::new(app, mode).render(rows[6], buf);
+    render_point_opening(app, rows[7], buf);
 }
 
 fn render_standard_verbose(app: &AppState, mode: LayoutMode, area: Rect, buf: &mut Buffer) {
@@ -130,6 +137,7 @@ fn render_standard_verbose(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
         Constraint::Length(8),
         Constraint::Length(9),
         Constraint::Min(7),
+        point_opening_constraint(app, mode == LayoutMode::Small),
     ])
     .split(area);
 
@@ -166,6 +174,28 @@ fn render_standard_verbose(app: &AppState, mode: LayoutMode, area: Rect, buf: &m
     TravelWidget::new(app, mode).render(application[1], buf);
 
     render_detail_footer(app, chunks[6], buf);
+    render_point_opening(app, chunks[7], buf);
+}
+
+/// The v1.11 point-opening citation section — rendered on the default
+/// Today surface with no opt-in (bead `amlich-xlag.2.3.2`). Absent
+/// context collapses to a zero-height spacer so the layout is
+/// unchanged for callers without the section.
+fn point_opening_constraint(app: &AppState, small: bool) -> Constraint {
+    match &app.point_opening {
+        Some(_) => Constraint::Min(crate::widgets::point_opening::point_opening_section_height(
+            small,
+        )),
+        None => Constraint::Length(0),
+    }
+}
+
+fn render_point_opening(app: &AppState, area: Rect, buf: &mut Buffer) {
+    if let Some(context) = &app.point_opening {
+        if area.height > 0 {
+            PointOpeningWidget::new(context).render(area, buf);
+        }
+    }
 }
 
 fn render_direction_and_travel_compact(app: &AppState, area: Rect, buf: &mut Buffer) {

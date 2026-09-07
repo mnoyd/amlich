@@ -1,0 +1,12 @@
+Tý Ngọ Lưu Chú — trích dẫn lịch sử (TY_NGO_LUU_CHU_POLICY_V1)
+Khung giờ Tý (23:00-01:00) · trụ giờ 甲子 · cơ sở thời gian local_civil_hour_branch
+Theo bảng Châm Cứu Đại Thành, giờ Tý ngày Giáp (甲) là ổ đóng (閉穴) — không huyệt nào được ghi cho khung giờ này.
+Lời gốc: 得時為之開，失時為之闔（論子午流注法）；闔者閉也，陽日遇陰時，陰日遇陽時，則前穴已閉（流注時日）
+Bảng đang chạy: gui, jia
+Chứng cứ: closed slot (閉穴): neither running day-table lists this hour block; the Xu-style tables as printed leave it without an assigned point (閉穴)
+Duyệt hàng bảng: ExternalReviewPending(reason="najia_xu_style_table_row_review_pending"; expected_review_date="2026-12-31"; assigned_to="classical_chinese_reviewer")
+Duyệt danh pháp: ExternalReviewPending(reason="vietnamese_nomenclature_and_code_gloss_pending"; expected_review_date="2026-12-31"; assigned_to="vietnamese_nomenclature_reviewer")
+Lớp an toàn: historical_procedural_citation
+Dị biệt đã ghi nhận: TNLC-DIV-01 · TNLC-DIV-02 · TNLC-DIV-03 · TNLC-DIV-05
+Miễn trừ (historical_procedural_citation_v1) · vi: Trích dẫn thuật ngữ y học cổ truyền từ văn bản Châm Cứu Đại Thành; chỉ mang tính văn hóa – lịch sử. Đây không phải hướng dẫn châm, bấm, cứu hay tự điều trị tại bất kỳ thời điểm nào. Không dùng để trì hoãn hoặc thay thế chăm sóc từ nhân viên y tế có chuyên môn.
+Miễn trừ (historical_procedural_citation_v1) · en: Citations of classical acupuncture terminology from Zhenjiu Dacheng; provided as historical and cultural information only. This is not instruction or encouragement to needle, press, moxibust, or self-treat at any time. Do not use it to delay or replace care from a qualified health professional.
