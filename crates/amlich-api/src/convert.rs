@@ -1293,6 +1293,7 @@ impl From<&amlich_core::DaySnapshot> for DayInfoDto {
                 .contextual_recommendations
                 .as_ref()
                 .map(DailyRecommendationsDto::from),
+            point_opening: value.point_opening.clone(),
         }
     }
 }

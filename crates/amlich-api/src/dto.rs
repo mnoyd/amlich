@@ -694,6 +694,14 @@ pub struct DayInfoDto {
     pub daily_recommendations: DailyRecommendationsDto,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub contextual_recommendations: Option<DailyRecommendationsDto>,
+    /// Additive v1.11 Tý Ngọ Lưu Chú point-opening citation context.
+    ///
+    /// Populated only by the explicit point-opening API path. Its canonical
+    /// core representation is preserved so transport cannot reinterpret the
+    /// frozen slot, disclosure, or evidence contract. Absent from legacy
+    /// payloads when not requested.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub point_opening: Option<amlich_core::point_opening::DayPointOpeningContext>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -70,11 +70,11 @@ struct MonthData {
     days: Vec<DayCell>,
 }
 
-/// User-facing projection of the additive v1.7/v1.10 snapshot surfaces.
+/// User-facing projection of the additive classical snapshot surfaces.
 ///
 /// The fields deliberately retain the canonical core DTOs so the desktop does
-/// not reinterpret or recompute I Ching, directional, or Traditional Wellness
-/// evidence.
+/// not reinterpret or recompute I Ching, directional, Traditional Wellness, or
+/// Tý Ngọ Lưu Chú evidence.
 #[derive(Debug, Serialize, Clone)]
 struct ClassicalSurfaceDto {
     iching_cast: Option<amlich_core::iching::IChingCastSummary>,
@@ -86,6 +86,11 @@ struct ClassicalSurfaceDto {
     /// alongside the other classical surfaces.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     traditional_wellness: Option<amlich_core::traditional_wellness::TraditionalWellnessContext>,
+    /// v1.11 `amlich-xlag.2.3.1` point-opening citation context. This is
+    /// independent from `traditional_wellness` and retains the canonical core
+    /// representation, including its explicit open-or-closed slot state.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    point_opening: Option<amlich_core::point_opening::DayPointOpeningContext>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -299,11 +304,16 @@ fn get_classical_surface(
     )
     .ok()
     .and_then(|s| s.traditional_wellness);
+    let point_opening =
+        amlich_core::enrich_day_snapshot_with_point_opening(&snapshot, local_hour, local_minute)
+            .ok()
+            .and_then(|s| s.point_opening);
 
     Ok(ClassicalSurfaceDto {
         iching_cast,
         direction_cross_link,
         traditional_wellness,
+        point_opening,
     })
 }
 
@@ -810,6 +820,26 @@ mod tests {
             .cells
             .iter()
             .any(|cell| cell.huyen_khong.is_some()));
+    }
+
+    #[test]
+    fn classical_surface_preserves_the_core_point_opening_context() {
+        let surface = get_classical_surface(10, 2, 2024, Some(10)).expect("classical surface");
+        let transported = surface
+            .point_opening
+            .expect("classical surface must expose point opening");
+
+        // Index 10 maps to the representative Tuất time, 19:30.
+        let snapshot = amlich_core::calculate_day_snapshot(10, 2, 2024);
+        let core = amlich_core::enrich_day_snapshot_with_point_opening(&snapshot, 19, 30)
+            .expect("core enrichment")
+            .point_opening
+            .expect("core point opening");
+        assert_eq!(
+            serde_json::to_string(&transported).unwrap(),
+            serde_json::to_string(&core).unwrap(),
+            "desktop transport must retain the canonical point-opening context"
+        );
     }
 
     #[test]

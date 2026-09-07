@@ -137,6 +137,28 @@ fn snake_to_pascal(s: &str) -> String {
 }
 
 pub fn get_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
+    let snapshot = calculate_day_snapshot_for_query(query)?;
+    Ok(DayInfoDto::from(&snapshot))
+}
+
+/// Build a day DTO with the additive v1.11 Tý Ngọ Lưu Chú point-opening
+/// citation context for one requested local civil time.
+///
+/// The existing [`get_day_info`] payload remains unchanged and omits
+/// `point_opening`; callers opt into this context explicitly so the time basis
+/// is always visible and no time is invented.
+pub fn get_day_info_with_point_opening(
+    query: &DateQuery,
+    local_hour: u8,
+    local_minute: u8,
+) -> Result<DayInfoDto, String> {
+    let snapshot = calculate_day_snapshot_for_query(query)?;
+    let enriched =
+        amlich_core::enrich_day_snapshot_with_point_opening(&snapshot, local_hour, local_minute)?;
+    Ok(DayInfoDto::from(&enriched))
+}
+
+fn calculate_day_snapshot_for_query(query: &DateQuery) -> Result<amlich_core::DaySnapshot, String> {
     if !(1..=12).contains(&query.month) {
         return Err("month must be 1-12".to_string());
     }
@@ -149,7 +171,7 @@ pub fn get_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
     let enabled_pack_ids = normalize_enabled_pack_ids(&query.enabled_pack_ids)?;
 
     let tz = query.timezone.unwrap_or(amlich_core::VIETNAM_TIMEZONE);
-    let snapshot = amlich_core::calculate_day_snapshot_with_recommendation_request(
+    amlich_core::calculate_day_snapshot_with_recommendation_request(
         query.day,
         query.month,
         query.year,
@@ -157,8 +179,7 @@ pub fn get_day_info(query: &DateQuery) -> Result<DayInfoDto, String> {
         normalized_ruleset_id.as_deref(),
         normalized_event_kind.as_deref(),
         &enabled_pack_ids,
-    )?;
-    Ok(DayInfoDto::from(&snapshot))
+    )
 }
 
 pub fn get_bazi_chart(query: &BaziQuery) -> Result<BaziChartDto, String> {
