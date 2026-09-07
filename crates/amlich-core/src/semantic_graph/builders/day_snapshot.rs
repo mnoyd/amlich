@@ -5,7 +5,8 @@ use crate::semantic_graph::{
 };
 use crate::sources::{
     SOURCE_HUANGDI_NEIJING_SUWEN, SOURCE_HUYEN_KHONG, SOURCE_KHCBPPT, SOURCE_KINH_DICH,
-    SOURCE_MAI_HOA_DICH_SO, SOURCE_SHI_ER_JING_NA_DI_ZHI, SOURCE_VN_FOLK_RITUAL,
+    SOURCE_MAI_HOA_DICH_SO, SOURCE_SHI_ER_JING_NA_DI_ZHI, SOURCE_TY_NGO_LUU_CHU,
+    SOURCE_VN_FOLK_RITUAL,
 };
 use crate::traditional_wellness::COMPOSITE_SEASONAL_WELLNESS;
 use crate::DaySnapshot;
@@ -49,6 +50,7 @@ impl DaySnapshotGraphBuilder {
         builder.add_iching_facts(snapshot);
         builder.add_direction_composite_facts(snapshot);
         builder.add_traditional_wellness_facts(snapshot);
+        builder.add_point_opening_facts(snapshot);
 
         builder
     }
@@ -1115,6 +1117,131 @@ impl DaySnapshotGraphBuilder {
 
     pub fn build(self) -> SemanticGraph {
         self.graph
+    }
+
+    /// v1.11 `amlich-xlag.2.2.6` (EXPLAIN-01) — emit the citation-only
+    /// point-opening graph fragments when the snapshot's additive
+    /// `point_opening` field is populated. Citation semantics only:
+    /// the graph records what the frozen classical tables print, never
+    /// physiological flow, organ performance, or treatment
+    /// suitability (ADR-0004). Wires:
+    ///
+    /// - open rows: one `ClassicallyCitedPoint` node per point
+    ///   identity triple of the resolved slot, each with one
+    ///   `ClassicallyCitedOpenAt` edge to the day root;
+    /// - closed rows: exactly one `ClassicallyCitedClosedSlot` node
+    ///   for the explicit 閉穴 state, with one
+    ///   `ClassicallyCitedClosedAt` edge to the day root;
+    /// - provenance entries on each node rebuilt from the context's
+    ///   method evidence (always the reserved TNLC primitive source
+    ///   constant), so the graph never re-resolves the corpus.
+    ///
+    /// Early-returns without modifying the graph when the additive
+    /// field is `None` (ordinary snapshots stay byte-equal).
+    fn add_point_opening_facts(&mut self, snapshot: &DaySnapshot) {
+        use crate::point_opening::PointOpeningSlotState;
+
+        let Some(ctx) = snapshot.point_opening.as_ref() else {
+            return;
+        };
+        let method_entries: Vec<ProvenanceEntry> = ctx
+            .method_evidence
+            .iter()
+            .filter_map(ProvenanceEntry::from_reasoning_evidence)
+            .collect();
+        let slot_tags = [
+            format!("day_stem_zh={}", ctx.day_stem_zh),
+            format!("hour_branch_zh={}", ctx.hour_branch_zh),
+            format!("hour_branch_vi={}", ctx.hour_branch_vi),
+            format!("time_range={}", ctx.hour_time_range),
+            format!("hour_pillar_zh={}", ctx.hour_pillar_zh),
+            "safety_class=historical_procedural_citation".to_string(),
+        ];
+
+        match &ctx.context.state {
+            PointOpeningSlotState::Open {
+                slot_class_zh_as_printed,
+                phase_annotation_as_printed,
+                points,
+                substitution,
+            } => {
+                for identity in points {
+                    let point_id_raw = SemanticId::classically_cited_point(
+                        SOURCE_TY_NGO_LUU_CHU,
+                        &ctx.day_stem_zh,
+                        &ctx.hour_branch_zh,
+                        &identity.point_key,
+                    );
+                    let point_id = point_id_raw.clone().to_node_id();
+                    let mut tags = vec![
+                        format!("point_key={}", identity.point_key),
+                        format!("xue_ming_zh={}", identity.xue_ming_zh),
+                        format!("huyet_danh_vi={}", identity.huyet_danh_vi),
+                        format!("code_gloss={}", identity.standard_code_gloss),
+                        format!("channel_zh={}", identity.channel_zh),
+                        format!("channel_vi={}", identity.channel_vi),
+                        format!("role={}", identity.role),
+                        format!("slot_class_zh={slot_class_zh_as_printed}"),
+                        format!("phase_annotation_zh={phase_annotation_as_printed}"),
+                    ];
+                    if let Some(marker) = substitution {
+                        tags.push(format!("substitution_zh={marker}"));
+                    }
+                    tags.extend(slot_tags.iter().cloned());
+
+                    let mut node = SemanticNode::new(
+                        point_id_raw,
+                        NodeConcept::ClassicallyCitedPoint,
+                        NodeOrigin::Fact,
+                        format!(
+                            "Huyệt {} ({}) — kinh {}",
+                            identity.xue_ming_zh, identity.huyet_danh_vi, identity.channel_vi
+                        ),
+                    )
+                    .with_tags(tags);
+                    for entry in &method_entries {
+                        node = node.with_provenance(entry.clone());
+                    }
+                    self.graph.add_node(node);
+                    self.graph.add_edge(SemanticEdge::new(
+                        &point_id,
+                        &self.day_root_id,
+                        EdgeConcept::ClassicallyCitedOpenAt,
+                    ));
+                }
+            }
+            PointOpeningSlotState::Closed {
+                running_tables,
+                doctrine_zh,
+                ..
+            } => {
+                let closed_id_raw = SemanticId::classically_cited_closed_slot(
+                    SOURCE_TY_NGO_LUU_CHU,
+                    &ctx.day_stem_zh,
+                    &ctx.hour_branch_zh,
+                );
+                let closed_id = closed_id_raw.clone().to_node_id();
+                let mut tags = vec![format!("running_tables={}", running_tables.join("+"))];
+                tags.extend(slot_tags.iter().cloned());
+
+                let mut node = SemanticNode::new(
+                    closed_id_raw,
+                    NodeConcept::ClassicallyCitedClosedSlot,
+                    NodeOrigin::Fact,
+                    format!("Ổ đóng (閉穴) — {}", doctrine_zh),
+                )
+                .with_tags(tags);
+                for entry in &method_entries {
+                    node = node.with_provenance(entry.clone());
+                }
+                self.graph.add_node(node);
+                self.graph.add_edge(SemanticEdge::new(
+                    &closed_id,
+                    &self.day_root_id,
+                    EdgeConcept::ClassicallyCitedClosedAt,
+                ));
+            }
+        }
     }
 }
 

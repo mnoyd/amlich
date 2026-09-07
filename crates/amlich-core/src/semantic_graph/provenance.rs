@@ -130,6 +130,34 @@ impl ProvenanceEntry {
             note: self.note.clone(),
         }
     }
+
+    /// Inverse of [`to_reasoning_evidence`]: rebuild a graph
+    /// provenance entry from a reasoning evidence envelope (v1.11
+    /// `amlich-xlag.2.2.6` — the additive point-opening context
+    /// carries its evidence as envelopes, and the day-snapshot graph
+    /// builder projects them back onto nodes without re-resolving the
+    /// corpus). Returns `None` for families with no
+    /// `ProvenanceSource` counterpart (`Axis`).
+    pub fn from_reasoning_evidence(envelope: &ReasoningEvidenceEnvelope) -> Option<Self> {
+        use crate::reasoning::ReasoningEvidenceSourceFamily as Family;
+        let source = match envelope.source_family {
+            Family::Snapshot => ProvenanceSource::Snapshot,
+            Family::Interaction => ProvenanceSource::Interaction,
+            Family::Bazi => ProvenanceSource::Bazi,
+            Family::AlmanacRule => ProvenanceSource::AlmanacRule,
+            Family::Insight => ProvenanceSource::Insight,
+            Family::Derived => ProvenanceSource::Derived,
+            Family::IChing => ProvenanceSource::IChing,
+            Family::Axis => return None,
+        };
+        Some(Self {
+            source,
+            source_id: envelope.source_id.clone(),
+            method: envelope.method.clone(),
+            profile: None,
+            note: envelope.note.clone(),
+        })
+    }
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]

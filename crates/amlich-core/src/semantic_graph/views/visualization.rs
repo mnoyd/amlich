@@ -134,6 +134,14 @@ fn shape_hint_for_node(concept: NodeConcept) -> Option<String> {
         // themes) ride the box shape so they stand out from the
         // surrounding canchi / pillar / tietkhi diamond cluster.
         NodeConcept::TraditionalChannel | NodeConcept::SeasonalProfile => Some("box".to_string()),
+
+        // amlich-xlag.2.2.6 (v1.11 EXPLAIN-01): point-opening
+        // citation nodes (open point identities and explicit closed
+        // slots) ride the same box treatment as the v1.10 traditional
+        // wellness primitives.
+        NodeConcept::ClassicallyCitedPoint | NodeConcept::ClassicallyCitedClosedSlot => {
+            Some("box".to_string())
+        }
     }
 }
 

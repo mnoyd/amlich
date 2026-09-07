@@ -69,6 +69,14 @@ pub fn cluster_for_node_id(_node_id: &str, concept: NodeConcept) -> String {
         // DayDeity, etc.) rather than the recommendation/summary
         // clusters.
         NodeConcept::TraditionalChannel | NodeConcept::SeasonalProfile => "day-core".to_string(),
+
+        // amlich-xlag.2.2.6 (v1.11 EXPLAIN-01): point-opening
+        // citation nodes are informational primitives of the same
+        // kind — classical citations of what the frozen tables print,
+        // never recommendations — so they join the day-core cluster.
+        NodeConcept::ClassicallyCitedPoint | NodeConcept::ClassicallyCitedClosedSlot => {
+            "day-core".to_string()
+        }
     }
 }
 

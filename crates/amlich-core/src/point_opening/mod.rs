@@ -21,12 +21,17 @@
 //! - [`provenance`] — per-row work and table evidence plus the
 //!   method/calendar evidence emission with strict source separation
 //!   (bead `amlich-xlag.2.2.5`).
+//! - [`snapshot`] — the additive `DaySnapshot` projection: the
+//!   serializable [`DayPointOpeningContext`] frozen from one local
+//!   civil moment (bead `amlich-xlag.2.2.6`).
 //!
-//! The DaySnapshot projection, semantic graph, and surface work belong
-//! to the later `amlich-xlag.2.2.*` beads. Until the four human
-//! review gates sign (`amlich-xlag.2.5`–`.2.8`), every corpus record
-//! stays `ExternalReviewPending` and every surfaced context carries
-//! disclaimer v2 with its review state visible.
+//! The semantic-graph citation projection rides the day-snapshot
+//! graph builder (`ClassicallyCitedPoint` /
+//! `ClassicallyCitedClosedSlot` nodes); the remaining surface work
+//! belongs to the later `amlich-xlag.2.2.*` / `.2.3` beads. Until the
+//! four human review gates sign (`amlich-xlag.2.5`–`.2.8`), every
+//! corpus record stays `ExternalReviewPending` and every surfaced
+//! context carries disclaimer v2 with its review state visible.
 
 pub mod civil_time;
 pub mod corpus;
@@ -35,6 +40,7 @@ pub mod divergence;
 pub mod policy;
 pub mod provenance;
 pub mod resolver;
+pub mod snapshot;
 pub mod state;
 pub use crate::traditional_wellness::disclaimer::{DisclaimerId, LocalizedDisclaimer};
 pub use civil_time::{resolve_frozen_point_opening_at_local_civil_time, LocalCivilPointOpening};
@@ -56,4 +62,5 @@ pub use provenance::{
     CALENDAR_ENGINE_SOURCE_ID,
 };
 pub use resolver::{resolve_frozen_point_opening, resolve_frozen_point_opening_slot};
+pub use snapshot::{resolve_day_point_opening_context, DayPointOpeningContext};
 pub use state::{PointOpeningContext, PointOpeningIdentity, PointOpeningSlotState};

@@ -64,6 +64,20 @@ pub enum NodeConcept {
     // the term-to-season join is the `JoinedByTermToSeason` composite
     // edge, never asserted as a 24-term regimen (LH-DIV-04).
     SeasonalProfile,
+    // v1.11 (amlich-xlag.2.2.6, EXPLAIN-01) — one classical citation
+    // of a point identity (穴名 as printed + signed huyệt danh +
+    // standard code gloss) from the frozen Najia open-point tables
+    // (source `SOURCE_TY_NGO_LUU_CHU`). Citation semantics only: the
+    // node records that the classical tables print this point for the
+    // slot — it never asserts physiological flow, organ performance,
+    // or treatment suitability (ADR-0004, TNLC-DIV-04).
+    ClassicallyCitedPoint,
+    // v1.11 (amlich-xlag.2.2.6, EXPLAIN-01) — the explicit closed
+    // (閉穴) slot citation from the frozen Najia tables: the
+    // Xu-style tables as printed leave the slot without an assigned
+    // point. Unavailability-by-tradition, never filled and never
+    // converted into a recommendation (TNLC-DIV-01).
+    ClassicallyCitedClosedSlot,
 }
 
 impl NodeConcept {
@@ -111,6 +125,8 @@ impl NodeConcept {
             Self::AssessmentDecision => ConceptLabel::AssessmentDecision,
             Self::TraditionalChannel => ConceptLabel::TraditionalChannel,
             Self::SeasonalProfile => ConceptLabel::SeasonalProfile,
+            Self::ClassicallyCitedPoint => ConceptLabel::ClassicallyCitedPoint,
+            Self::ClassicallyCitedClosedSlot => ConceptLabel::ClassicallyCitedClosedSlot,
         }
     }
 }
@@ -162,6 +178,19 @@ pub enum EdgeConcept {
     // LH-DIV-04). Carries the SourceFamily::Derived family on the
     // composite envelope.
     JoinedByTermToSeason,
+    // v1.11 (amlich-xlag.2.2.6, EXPLAIN-01) — citation edge from a
+    // `ClassicallyCitedPoint` to the day root: the frozen classical
+    // tables print this point identity for the slot. The label is
+    // `classically_cited_open_at` — classical-citation wording only,
+    // never `best_time`, `open_for_treatment`, or any physiological
+    // or treatment-suitability claim (ADR-0004).
+    ClassicallyCitedOpenAt,
+    // v1.11 (amlich-xlag.2.2.6, EXPLAIN-01) — citation edge from a
+    // `ClassicallyCitedClosedSlot` to the day root: the frozen
+    // classical tables leave the slot without an assigned point
+    // (閉穴). Unavailability-by-tradition, never a recommendation to
+    // act or avoid acting (TNLC-DIV-01).
+    ClassicallyCitedClosedAt,
 }
 
 impl EdgeConcept {
@@ -200,6 +229,8 @@ impl EdgeConcept {
             Self::Transforms => ConceptLabel::Transforms,
             Self::AssociatedWithHourBranch => ConceptLabel::AssociatedWithHourBranch,
             Self::JoinedByTermToSeason => ConceptLabel::JoinedByTermToSeason,
+            Self::ClassicallyCitedOpenAt => ConceptLabel::ClassicallyCitedOpenAt,
+            Self::ClassicallyCitedClosedAt => ConceptLabel::ClassicallyCitedClosedAt,
         }
     }
 }
@@ -282,6 +313,10 @@ pub enum ConceptLabel {
     SeasonalProfile,
     AssociatedWithHourBranch,
     JoinedByTermToSeason,
+    ClassicallyCitedPoint,
+    ClassicallyCitedClosedSlot,
+    ClassicallyCitedOpenAt,
+    ClassicallyCitedClosedAt,
 }
 
 impl ConceptLabel {
@@ -362,6 +397,10 @@ impl ConceptLabel {
             Self::SeasonalProfile => "seasonal_profile",
             Self::AssociatedWithHourBranch => "associated_with_hour_branch",
             Self::JoinedByTermToSeason => "joined_by_term_to_season",
+            Self::ClassicallyCitedPoint => "classically_cited_point",
+            Self::ClassicallyCitedClosedSlot => "classically_cited_closed_slot",
+            Self::ClassicallyCitedOpenAt => "classically_cited_open_at",
+            Self::ClassicallyCitedClosedAt => "classically_cited_closed_at",
         }
     }
 }
@@ -413,6 +452,8 @@ impl GraphOntology {
             NodeConcept::AssessmentDecision,
             NodeConcept::TraditionalChannel,
             NodeConcept::SeasonalProfile,
+            NodeConcept::ClassicallyCitedPoint,
+            NodeConcept::ClassicallyCitedClosedSlot,
         ]
     }
 
@@ -451,6 +492,8 @@ impl GraphOntology {
             EdgeConcept::Transforms,
             EdgeConcept::AssociatedWithHourBranch,
             EdgeConcept::JoinedByTermToSeason,
+            EdgeConcept::ClassicallyCitedOpenAt,
+            EdgeConcept::ClassicallyCitedClosedAt,
         ]
     }
 }
@@ -603,6 +646,54 @@ mod tests {
         assert_eq!(
             EdgeConcept::JoinedByTermToSeason.label().as_str(),
             "joined_by_term_to_season"
+        );
+    }
+
+    // amlich-xlag.2.2.6 (v1.11 EXPLAIN-01): ClassicallyCitedPoint +
+    // ClassicallyCitedClosedSlot node concepts and
+    // ClassicallyCitedOpenAt + ClassicallyCitedClosedAt edge concepts
+    // present in the ontology slices. These power the citation-only
+    // semantic-graph projection of the point-opening context per
+    // ADR-0004 — the ontology deliberately has no physiological-flow
+    // or treatment-suitability concept for point opening.
+    #[test]
+    fn v111_point_opening_concepts_present_in_ontology_slices() {
+        let nodes = GraphOntology::node_concepts();
+        assert!(
+            nodes.contains(&NodeConcept::ClassicallyCitedPoint),
+            "ClassicallyCitedPoint missing from node_concepts()"
+        );
+        assert!(
+            nodes.contains(&NodeConcept::ClassicallyCitedClosedSlot),
+            "ClassicallyCitedClosedSlot missing from node_concepts()"
+        );
+        let edges = GraphOntology::edge_concepts();
+        assert!(
+            edges.contains(&EdgeConcept::ClassicallyCitedOpenAt),
+            "ClassicallyCitedOpenAt missing from edge_concepts()"
+        );
+        assert!(
+            edges.contains(&EdgeConcept::ClassicallyCitedClosedAt),
+            "ClassicallyCitedClosedAt missing from edge_concepts()"
+        );
+        // Label round-trip sanity — schema contract for the public
+        // graph surface; consumers depend on these exact snake_case
+        // strings.
+        assert_eq!(
+            NodeConcept::ClassicallyCitedPoint.label().as_str(),
+            "classically_cited_point"
+        );
+        assert_eq!(
+            NodeConcept::ClassicallyCitedClosedSlot.label().as_str(),
+            "classically_cited_closed_slot"
+        );
+        assert_eq!(
+            EdgeConcept::ClassicallyCitedOpenAt.label().as_str(),
+            "classically_cited_open_at"
+        );
+        assert_eq!(
+            EdgeConcept::ClassicallyCitedClosedAt.label().as_str(),
+            "classically_cited_closed_at"
         );
     }
 }

@@ -244,6 +244,18 @@ pub struct DaySnapshot {
     /// callers that never request the Traditional Wellness Context.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub traditional_wellness: Option<crate::traditional_wellness::TraditionalWellnessContext>,
+    /// Additive optional v1.11 Point-Opening Context (Tý Ngọ Lưu Chú,
+    /// `amlich-xlag.2.2.6`). Populated only via the explicit
+    /// [`enrich_day_snapshot_with_point_opening`] helper. Ordinary
+    /// `calculate_day_snapshot` calls leave this as `None` — no
+    /// auto-resolution is invented. Separate from
+    /// `traditional_wellness` and never feeding Day Assessment, Hour
+    /// Ranking, or Direction Assessment (ADR-0003 / ADR-0004).
+    /// Absent from JSON when None so the v1.10 → v1.11 wire contract
+    /// stays byte-equal for callers that never request the
+    /// Point-Opening Context.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub point_opening: Option<crate::point_opening::DayPointOpeningContext>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -535,6 +547,43 @@ pub fn enrich_day_snapshot_with_traditional_wellness(
     Ok(enriched)
 }
 
+/// v1.11 `amlich-xlag.2.2.6` immutable enrichment entry point.
+/// Clones the existing `DaySnapshot`, freezes the point-opening
+/// context of the requested local civil moment through the existing
+/// hour-branch and day-pillar conventions (including the frozen 23:00
+/// day-attribution, TNLC-DIV-03), and attaches the resulting
+/// [`crate::point_opening::DayPointOpeningContext`] to the new
+/// `DaySnapshot.point_opening` field.
+///
+/// The civil date comes from the snapshot's own `context.jd` — no
+/// independent timezone, DST, or day-boundary arithmetic is
+/// introduced. `Err` exactly when the existing hour-branch contract
+/// rejects the time (`local_hour > 23` or `local_minute > 59`).
+///
+/// Tier 0 (BOUND-01): no `BirthInput`, sex/gender, symptom, location,
+/// or health history is consulted. Day Assessment / Hour Ranking /
+/// Direction Assessment are untouched, and the result stays separate
+/// from `traditional_wellness` (ADR-0003 / ADR-0004).
+pub fn enrich_day_snapshot_with_point_opening(
+    snapshot: &DaySnapshot,
+    local_hour: u8,
+    local_minute: u8,
+) -> Result<DaySnapshot, String> {
+    let context = crate::point_opening::resolve_day_point_opening_context(
+        snapshot.context.jd,
+        local_hour,
+        local_minute,
+    )
+    .ok_or_else(|| {
+        format!(
+            "local civil time {local_hour:02}:{local_minute:02} rejected by the existing hour-branch contract"
+        )
+    })?;
+    let mut enriched = snapshot.clone();
+    enriched.point_opening = Some(context);
+    Ok(enriched)
+}
+
 fn calculate_day_snapshot_internal(
     day: i32,
     month: i32,
@@ -603,6 +652,7 @@ fn calculate_day_snapshot_internal(
         direction_cross_link: None,
         iching_cast: None,
         traditional_wellness: None,
+        point_opening: None,
     };
 
     // Populate flying_stars from the combined Phi Tinh overlay.

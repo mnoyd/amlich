@@ -291,6 +291,45 @@ impl SemanticId {
     pub fn traditional_wellness_day_root(date: &str, tz: &str) -> Self {
         Self::new("traditional_wellness_day", format!("{}:{}", date, tz))
     }
+
+    /// Stable key for one classical point citation node (v1.11
+    /// `amlich-xlag.2.2.6`, EXPLAIN-01). Slot-scoped so the same
+    /// point identity cited by different frozen cells stays distinct,
+    /// and source-prefixed so the corpus identity
+    /// (`SOURCE_TY_NGO_LUU_CHU`) stays auditable.
+    ///   `concept_label = "classically_cited_point"`,
+    ///   `stable_key = "{source}:{day_stem_zh}:{hour_branch_zh}:{point_key}"`.
+    pub fn classically_cited_point(
+        source: &str,
+        day_stem_zh: &str,
+        hour_branch_zh: &str,
+        point_key: &str,
+    ) -> Self {
+        Self::new(
+            "classically_cited_point",
+            format!(
+                "{}:{}:{}:{}",
+                source, day_stem_zh, hour_branch_zh, point_key
+            ),
+        )
+    }
+
+    /// Stable key for one explicit closed-slot citation node (v1.11
+    /// `amlich-xlag.2.2.6`, EXPLAIN-01). The node records that the
+    /// frozen tables leave the (day stem × hour branch) cell without
+    /// an assigned point (閉穴).
+    ///   `concept_label = "classically_cited_closed_slot"`,
+    ///   `stable_key = "{source}:{day_stem_zh}:{hour_branch_zh}"`.
+    pub fn classically_cited_closed_slot(
+        source: &str,
+        day_stem_zh: &str,
+        hour_branch_zh: &str,
+    ) -> Self {
+        Self::new(
+            "classically_cited_closed_slot",
+            format!("{}:{}:{}", source, day_stem_zh, hour_branch_zh),
+        )
+    }
 }
 
 impl std::fmt::Display for SemanticId {
