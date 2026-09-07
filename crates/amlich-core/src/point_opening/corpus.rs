@@ -17,6 +17,9 @@ use crate::traditional_wellness::divergence::ExternalReviewState;
 
 use super::divergence::tnlc_divergence_by_id;
 use super::policy::{policy_contract, SAFETY_CLASS_HISTORICAL_PROCEDURAL_CITATION};
+use super::provenance::{
+    PointOpeningProvenance, PointOpeningSourceCitation, PointOpeningTableEvidence,
+};
 use super::state::{PointOpeningContext, PointOpeningIdentity, PointOpeningSlotState};
 
 const CORPUS_JSON: &str = include_str!("../../data/ty-ngo-luu-chu/najia-open-points.json");
@@ -28,12 +31,17 @@ const HOUR_BRANCHES: [&str; 12] = [
 
 /// A validated frozen grid record. `context.state` is copied from the exact
 /// referenced row or explicit closed evidence; it is never computed.
+/// `provenance` carries the per-row work and table evidence (bead
+/// `amlich-xlag.2.2.5`): open records cite the referenced row's
+/// validated `sources` and table identity; closed records keep their
+/// explicit unavailability without row evidence.
 #[derive(Debug, Clone, PartialEq)]
 pub struct FrozenPointOpeningRecord {
     pub day_stem_zh: String,
     pub hour_branch_zh: String,
     pub hour_pillar_zh: String,
     pub cross_day_spillover: bool,
+    pub provenance: PointOpeningProvenance,
     pub context: PointOpeningContext,
 }
 
@@ -485,7 +493,7 @@ fn validate_grid(
         validate_safety(&cell.safety_class, &cell_label(cell))?;
         validate_divergences(&cell.known_divergence_ids, &cell_label(cell))?;
 
-        let (state, spillover) = match cell.state.as_str() {
+        let (state, spillover, provenance) = match cell.state.as_str() {
             "open" => {
                 *open_by_stem.entry(&cell.day_stem_zh).or_default() += 1;
                 let reference = cell.resolves_to.as_ref().ok_or_else(|| {
@@ -552,6 +560,14 @@ fn validate_grid(
                         substitution: row.substitution.clone(),
                     },
                     spillover,
+                    PointOpeningProvenance {
+                        source_id: SOURCE_TY_NGO_LUU_CHU.to_string(),
+                        work_evidence: row.sources.iter().map(to_citation).collect(),
+                        table_evidence: Some(PointOpeningTableEvidence {
+                            table_id: reference.table.clone(),
+                            row_index: reference.row_index,
+                        }),
+                    },
                 )
             }
             "closed" => {
@@ -597,6 +613,15 @@ fn validate_grid(
                         note: evidence.note.clone(),
                     },
                     false,
+                    // Closed records carry no row evidence: their frozen
+                    // truth is the explicit closed state itself. The
+                    // method evidence (provenance_entries) summarizes it
+                    // under the corpus-level primitive source.
+                    PointOpeningProvenance {
+                        source_id: SOURCE_TY_NGO_LUU_CHU.to_string(),
+                        work_evidence: Vec::new(),
+                        table_evidence: None,
+                    },
                 )
             }
             other => {
@@ -611,6 +636,7 @@ fn validate_grid(
             hour_branch_zh: cell.hour_branch_zh.clone(),
             hour_pillar_zh: cell.hour_pillar_zh.clone(),
             cross_day_spillover: spillover,
+            provenance,
             context: PointOpeningContext::new(
                 state,
                 review_state,
@@ -753,6 +779,19 @@ fn to_identity(point: &RowPoint) -> PointOpeningIdentity {
     }
 }
 
+fn to_citation(source: &SourceEvidence) -> PointOpeningSourceCitation {
+    PointOpeningSourceCitation {
+        source_id: source.source_id.clone(),
+        work_title: source.work_title.clone(),
+        volume_or_chapter: source.volume_or_chapter.clone(),
+        passage_key: source.passage_key.clone(),
+        edition_or_facsimile_uri: source.edition_or_facsimile_uri.clone(),
+        transcription_uri: source.transcription_uri.clone(),
+        cross_reference_uri: source.cross_reference_uri.clone(),
+        translation_kind: source.translation_kind.clone(),
+    }
+}
+
 fn row_label(table: &DayTable, row: &TableRow) -> String {
     format!("table {:?} row {}", table.table_id, row.row_index)
 }
@@ -813,6 +852,42 @@ mod tests {
             PointOpeningSlotState::Closed { .. }
         ));
         assert!(frozen_point_opening_record("甲", "not-a-branch").is_none());
+    }
+
+    #[test]
+    fn open_records_carry_per_row_work_and_table_evidence() {
+        let record = frozen_point_opening_record("甲", "戌").unwrap();
+        assert_eq!(record.provenance.source_id, SOURCE_TY_NGO_LUU_CHU);
+        let table = record
+            .provenance
+            .table_evidence
+            .as_ref()
+            .expect("open records carry table evidence");
+        assert_eq!(table.table_id, "jia");
+        assert_eq!(table.row_index, 1);
+        assert!(!record.provenance.work_evidence.is_empty());
+        for citation in &record.provenance.work_evidence {
+            assert_eq!(citation.source_id, SOURCE_TY_NGO_LUU_CHU);
+            for field in [
+                &citation.work_title,
+                &citation.volume_or_chapter,
+                &citation.passage_key,
+                &citation.edition_or_facsimile_uri,
+                &citation.transcription_uri,
+                &citation.cross_reference_uri,
+                &citation.translation_kind,
+            ] {
+                assert!(!field.trim().is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn closed_records_carry_explicit_unavailability_without_row_evidence() {
+        let record = frozen_point_opening_record("甲", "子").unwrap();
+        assert_eq!(record.provenance.source_id, SOURCE_TY_NGO_LUU_CHU);
+        assert!(record.provenance.table_evidence.is_none());
+        assert!(record.provenance.work_evidence.is_empty());
     }
 
     #[test]

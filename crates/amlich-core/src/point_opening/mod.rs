@@ -18,6 +18,9 @@
 //! - [`civil_time`] — the local-civil boundary integration: existing
 //!   hour-branch and day-pillar conventions plus the frozen 23:00
 //!   day-attribution and cross-day spillover rule (TNLC-DIV-03).
+//! - [`provenance`] — per-row work and table evidence plus the
+//!   method/calendar evidence emission with strict source separation
+//!   (bead `amlich-xlag.2.2.5`).
 //!
 //! The DaySnapshot projection, semantic graph, and surface work belong
 //! to the later `amlich-xlag.2.2.*` beads. Until the four human
@@ -30,10 +33,14 @@ pub mod corpus;
 pub mod disclaimer;
 pub mod divergence;
 pub mod policy;
+pub mod provenance;
 pub mod resolver;
 pub mod state;
 pub use crate::traditional_wellness::disclaimer::{DisclaimerId, LocalizedDisclaimer};
 pub use civil_time::{resolve_frozen_point_opening_at_local_civil_time, LocalCivilPointOpening};
+pub use corpus::{
+    all_frozen_point_opening_records, frozen_point_opening_record, FrozenPointOpeningRecord,
+};
 pub use disclaimer::{
     disclaimer_id_historical_procedural_citation, historical_procedural_citation_disclaimer,
     DISCLAIMER_HISTORICAL_PROCEDURAL_CITATION_EN, DISCLAIMER_HISTORICAL_PROCEDURAL_CITATION_VN,
@@ -43,6 +50,10 @@ pub use divergence::{all_tnlc_divergences, tnlc_divergence_by_id, TnlcDivergence
 pub use policy::{
     policy_contract, PolicyContract, SAFETY_CLASS_HISTORICAL_PROCEDURAL_CITATION,
     TY_NGO_LUU_CHU_POLICY_ID,
+};
+pub use provenance::{
+    PointOpeningProvenance, PointOpeningSourceCitation, PointOpeningTableEvidence,
+    CALENDAR_ENGINE_SOURCE_ID,
 };
 pub use resolver::{resolve_frozen_point_opening, resolve_frozen_point_opening_slot};
 pub use state::{PointOpeningContext, PointOpeningIdentity, PointOpeningSlotState};

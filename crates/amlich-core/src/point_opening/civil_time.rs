@@ -24,10 +24,12 @@
 use crate::almanac::hour_pillar::{resolve_hour_branch_slot, HourBranchSlot};
 use crate::almanac::types::HeavenlyStem;
 use crate::canchi::get_day_canchi;
+use crate::reasoning::{ReasoningEvidenceEnvelope, ReasoningEvidenceSourceFamily};
 use crate::traditional_wellness::divergence::TimeBasis;
 use crate::types::CanChi;
 
 use super::corpus::FrozenPointOpeningRecord;
+use super::provenance::CALENDAR_ENGINE_SOURCE_ID;
 use super::resolver::resolve_frozen_point_opening_slot;
 use super::state::PointOpeningSlotState;
 
@@ -75,6 +77,57 @@ impl LocalCivilPointOpening {
     /// The resolved slot state — exactly one open or explicit closed.
     pub fn state(&self) -> &PointOpeningSlotState {
         &self.record.context.state
+    }
+
+    /// Calendar-engine evidence for this moment — the day pillar and
+    /// the hour-branch slot computed by the existing calendar
+    /// conventions, each cited under its own engine source and never
+    /// under the TNLC primitive source (bead `amlich-xlag.2.2.5`
+    /// source separation).
+    ///
+    /// Stable order:
+    ///
+    /// 1. the day-pillar envelope — `Snapshot` family,
+    ///    [`CALENDAR_ENGINE_SOURCE_ID`], method `get_day_canchi`,
+    ///    disclosing the frozen 23:00 day-attribution (TNLC-DIV-03)
+    ///    when it applies;
+    /// 2. the hour-branch envelope — `AlmanacRule` family, `khcbppt`,
+    ///    method `hour-pillar-seed-table` — the same rule evidence
+    ///    [`crate::almanac::hour_pillar::compute_hour_pillar`]
+    ///    already carries, restated here because the slot resolution
+    ///    is that rule's first half.
+    ///
+    /// The point-opening method evidence
+    /// ([`FrozenPointOpeningRecord::provenance_entries`]) is emitted
+    /// separately and never merged into this vector.
+    pub fn calendar_evidence(&self) -> Vec<ReasoningEvidenceEnvelope> {
+        let mut day_note = format!(
+            "civil day pillar {} computed by the existing amlich calendar engine",
+            self.civil_day_canchi.full
+        );
+        if self.late_night_day_transition {
+            day_note.push_str(&format!(
+                "; the 23:00–23:59 Tý block belongs to the upcoming civil date (slot day pillar {}), per the frozen day-attribution rule (TNLC-DIV-03)",
+                self.slot_day_canchi.full
+            ));
+        }
+        vec![
+            ReasoningEvidenceEnvelope {
+                source_family: ReasoningEvidenceSourceFamily::Snapshot,
+                source_id: CALENDAR_ENGINE_SOURCE_ID.to_string(),
+                method: "get_day_canchi".to_string(),
+                note: Some(day_note),
+            },
+            ReasoningEvidenceEnvelope {
+                source_family: ReasoningEvidenceSourceFamily::AlmanacRule,
+                source_id: crate::sources::SOURCE_KHCBPPT.to_string(),
+                method: "hour-pillar-seed-table".to_string(),
+                note: Some(format!(
+                    "hour branch {} ({}) from the existing hour-branch slot convention",
+                    self.hour_slot.branch, self.hour_slot.time_range
+                )),
+            },
+        ]
     }
 }
 
@@ -178,6 +231,63 @@ mod tests {
                     .is_none(),
                 "{hour}:{minute:02} must be rejected by the hour-branch contract"
             );
+        }
+    }
+
+    #[test]
+    fn calendar_evidence_keeps_existing_engine_sources_separate() {
+        use crate::sources::{SOURCE_KHCBPPT, SOURCE_TY_NGO_LUU_CHU};
+
+        for (hour, minute) in [(12u8, 30u8), (23, 30), (0, 30)] {
+            let result =
+                resolve_frozen_point_opening_at_local_civil_time(JD_GIAP_DAY, hour, minute)
+                    .expect("valid civil moment must resolve");
+            let evidence = result.calendar_evidence();
+            assert_eq!(evidence.len(), 2, "{hour}:{minute:02}");
+            assert_eq!(evidence[0].source_id, "amlich-calendar-engine");
+            assert_eq!(evidence[0].method, "get_day_canchi");
+            assert_eq!(evidence[1].source_id, SOURCE_KHCBPPT);
+            assert_eq!(evidence[1].method, "hour-pillar-seed-table");
+            for envelope in &evidence {
+                assert_ne!(
+                    envelope.source_id, SOURCE_TY_NGO_LUU_CHU,
+                    "calendar evidence never cites the TNLC primitive source"
+                );
+            }
+            for envelope in result.record.reasoning_evidence() {
+                assert_ne!(
+                    envelope.source_id, SOURCE_KHCBPPT,
+                    "method evidence never cites the calendar-engine rule source"
+                );
+                assert_ne!(
+                    envelope.source_id, "amlich-calendar-engine",
+                    "method evidence never cites the calendar engine"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn calendar_evidence_discloses_the_late_night_attribution_only_at_23() {
+        for hour in [0u8, 12, 22, 23] {
+            let result = resolve_frozen_point_opening_at_local_civil_time(JD_GIAP_DAY, hour, 30)
+                .expect("valid civil moment must resolve");
+            let note = result
+                .calendar_evidence()
+                .first()
+                .and_then(|envelope| envelope.note.clone())
+                .unwrap_or_default();
+            if hour == LATE_NIGHT_ROLLOVER_HOUR {
+                assert!(
+                    note.contains("TNLC-DIV-03"),
+                    "the frozen 23:00 day-attribution must be disclosed"
+                );
+            } else {
+                assert!(
+                    !note.contains("TNLC-DIV-03"),
+                    "ordinary hours carry no spillover disclosure"
+                );
+            }
         }
     }
 }
