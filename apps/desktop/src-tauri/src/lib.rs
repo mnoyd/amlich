@@ -91,6 +91,13 @@ struct ClassicalSurfaceDto {
     /// representation, including its explicit open-or-closed slot state.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     point_opening: Option<amlich_core::point_opening::DayPointOpeningContext>,
+    /// v1.11 `amlich-xlag.2.3.3` — the canonical point-opening citation
+    /// lines (`amlich_core::point_opening::point_opening_citation_lines`)
+    /// transported verbatim so the desktop inspector renders byte-identical
+    /// wording to the terminal (ADR-0004). Absent together with
+    /// `point_opening`; the desktop never recomposes the wording itself.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    point_opening_citation_lines: Option<Vec<String>>,
 }
 
 #[derive(Debug, Serialize, Clone)]
@@ -308,12 +315,16 @@ fn get_classical_surface(
         amlich_core::enrich_day_snapshot_with_point_opening(&snapshot, local_hour, local_minute)
             .ok()
             .and_then(|s| s.point_opening);
+    let point_opening_citation_lines = point_opening
+        .as_ref()
+        .map(amlich_core::point_opening::point_opening_citation_lines);
 
     Ok(ClassicalSurfaceDto {
         iching_cast,
         direction_cross_link,
         traditional_wellness,
         point_opening,
+        point_opening_citation_lines,
     })
 }
 
@@ -840,6 +851,80 @@ mod tests {
             serde_json::to_string(&core).unwrap(),
             "desktop transport must retain the canonical point-opening context"
         );
+    }
+
+    #[test]
+    fn classical_surface_transports_the_canonical_open_citation_verbatim() {
+        // Index 10 → Tuất 19:30 on the Giáp day: the frozen open slot
+        // (甲/戌 → 竅陰 GB44) shared with the core golden suite.
+        let surface = get_classical_surface(10, 2, 2024, Some(10)).expect("classical surface");
+        let context = surface.point_opening.as_ref().expect("point opening");
+        let lines = surface
+            .point_opening_citation_lines
+            .as_ref()
+            .expect("citation lines must ride the same surface");
+
+        // Byte-identical transport: the desktop renders exactly the
+        // core canonical lines, never a recomposed wording.
+        assert_eq!(
+            lines,
+            &amlich_core::point_opening::point_opening_citation_lines(context)
+        );
+
+        let text = lines.join("\n");
+        assert!(text.contains("trích dẫn lịch sử (TY_NGO_LUU_CHU_POLICY_V1)"));
+        assert!(text.contains("cơ sở thời gian local_civil_hour_branch"));
+        assert!(text.contains(
+            "được ghi tương ứng với huyệt 竅陰 (Kiếu âm) [GB44] — kinh Đởm, hạng 井 (井金)"
+        ));
+        assert!(text.contains("PENDING_CLASSICAL_REVIEW"));
+        assert!(text.contains("Vị trí bảng: jia · hàng 1"));
+        assert!(text.contains("Duyệt hàng bảng: ExternalReviewPending("));
+        assert!(text.contains("Duyệt danh pháp: ExternalReviewPending("));
+        assert!(text.contains("Lớp an toàn: historical_procedural_citation"));
+        assert!(text.contains("Dị biệt đã ghi nhận: TNLC-DIV-01"));
+        // Disclaimer v2 stays visible in both languages.
+        assert!(text.contains("Miễn trừ (historical_procedural_citation_v1) · vi:"));
+        assert!(text.contains("Miễn trừ (historical_procedural_citation_v1) · en:"));
+        assert!(text.contains("tự điều trị"));
+        assert!(text.contains("self-treat"));
+    }
+
+    #[test]
+    fn classical_surface_keeps_the_closed_citation_explicit_and_safe() {
+        // Index 2 → Dần 03:30 on the Giáp day: an explicit closed slot
+        // (甲/寅 閉穴) — closed slots are never filled (TNLC-DIV-01).
+        let surface = get_classical_surface(10, 2, 2024, Some(2)).expect("classical surface");
+        let context = surface.point_opening.as_ref().expect("point opening");
+        let lines = surface
+            .point_opening_citation_lines
+            .as_ref()
+            .expect("citation lines must ride the same surface");
+
+        assert!(matches!(
+            context.context.state,
+            amlich_core::point_opening::PointOpeningSlotState::Closed { .. }
+        ));
+        assert_eq!(
+            lines,
+            &amlich_core::point_opening::point_opening_citation_lines(context)
+        );
+
+        let text = lines.join("\n");
+        assert!(text.contains("là ổ đóng (閉穴) — không huyệt nào được ghi"));
+        assert!(text.contains("Lời gốc:"));
+        assert!(text.contains("Bảng đang chạy:"));
+        assert!(text.contains("Chứng cứ: closed slot (閉穴):"));
+        assert!(
+            !text.contains("được ghi tương ứng với huyệt"),
+            "closed slots never cite an open-point identity"
+        );
+        assert!(!text.contains("Vị trí bảng"));
+        // Review markers and disclaimer v2 stay visible on closed slots.
+        assert!(text.contains("Duyệt hàng bảng: ExternalReviewPending("));
+        assert!(text.contains("Duyệt danh pháp: ExternalReviewPending("));
+        assert!(text.contains("Miễn trừ (historical_procedural_citation_v1) · vi:"));
+        assert!(text.contains("Miễn trừ (historical_procedural_citation_v1) · en:"));
     }
 
     #[test]

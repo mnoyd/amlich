@@ -464,6 +464,48 @@
             {/if}
         </section>
 
+        <section class="card-dense mb-6" data-testid="classical-v111-point-opening-surface">
+            <div class="flex flex-wrap items-start justify-between gap-4 mb-5">
+                <div>
+                    <h3 class="text-xl font-mono font-bold">Tý Ngọ Lưu Chú</h3>
+                    <p class="mt-1 text-xs font-mono text-ink-light">
+                        子午流注 · 納甲法 · Châm Cứu Đại Thành — trích dẫn lịch sử
+                    </p>
+                </div>
+                {#if classicalSurface?.point_opening}
+                    <span
+                        class="badge-cothe"
+                        title={classicalSurface.point_opening.context.time_basis}
+                    >
+                        {reviewStateLabel(classicalSurface.point_opening.context.review_state)}
+                    </span>
+                {/if}
+            </div>
+
+            {#if !classicalSurface?.point_opening || !classicalSurface.point_opening_citation_lines}
+                <div class="text-sm text-ink-light italic">
+                    Không có dữ liệu Tý Ngọ Lưu Chú cho khung giờ này.
+                </div>
+            {:else}
+                {@const citationLines = classicalSurface.point_opening_citation_lines}
+                <div
+                    class="border border-ink-border bg-parchment-dark/30 p-4 font-mono text-sm leading-relaxed"
+                    data-testid="point-opening-citation-block"
+                >
+                    {#each citationLines as line, index}
+                        <div
+                            class="whitespace-pre-wrap break-words"
+                            class:font-bold={index === 0}
+                            class:text-ink-light={line.startsWith('Miễn trừ (')}
+                            data-testid="point-opening-citation-line"
+                        >
+                            {line}
+                        </div>
+                    {/each}
+                </div>
+            {/if}
+        </section>
+
         <div class="grid grid-cols-1 2xl:grid-cols-[minmax(0,1.35fr)_minmax(360px,0.65fr)] gap-6">
             <div class="space-y-6">
                 <section class="grid grid-cols-1 xl:grid-cols-3 gap-4">

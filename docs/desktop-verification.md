@@ -15,7 +15,7 @@ These run in CI (`.github/workflows/ci.yml`, `desktop` job) and locally via `jus
 
 | Gate | Command | What it checks |
 |------|---------|----------------|
-| Unit tests | `cargo test --package am-lich` | All `#[tauri::command]` wrappers return well-formed DTOs for representative inputs; validators reject out-of-range date parts; gender aliases resolve; install context reports platform/arch/version. 18 tests. |
+| Unit tests | `cargo test --package am-lich` | All `#[tauri::command]` wrappers return well-formed DTOs for representative inputs; validators reject out-of-range date parts; gender aliases resolve; install context reports platform/arch/version. 26 tests. |
 | Clippy | `cargo clippy --package am-lich --no-deps -- -D warnings` | The desktop crate is lint-clean. `--no-deps` isolates from pre-existing `amlich-core` lints tracked by `amlich-081`. |
 
 > **Why `--no-deps`?** `amlich-core` carries clippy warnings from newer toolchain lints
@@ -28,6 +28,7 @@ These run in CI (`.github/workflows/ci.yml`, `desktop` job) and locally via `jus
 - `get_day_detail` — decorated day cell + out-of-range rejection
 - `get_day_bundle` — full v2 bundle (canchi, tiet_khi, gio_hoang_dao)
 - `get_day_info` / `get_day_insight` — consistent solar/lunar anchor
+- `get_classical_surface` — v1.7 I Ching + directions; v1.10 Traditional Wellness context; v1.11 point-opening context with the canonical citation lines transported verbatim from core (open + closed fixtures, `amlich-xlag.2.3.3`)
 - `get_day_range` — multi-day bundle with include flags
 - `get_bazi_report` — summary, signals, actions; gender pass-through
 - `get_bazi_derived_report` — thai nguyen, menh cung, tier
@@ -120,6 +121,8 @@ ready, e.g. `1990-01-01 09:30 Nam`.
 - [ ] Taboos are merged from fortune + insight with severity tags.
 - [ ] Right aside shows Explanatory Insight (good_for / avoid_for) and the Rule Evidence provenance table.
 - [ ] Severity color-coding (cát vs. sát; hard vs. soft) is visually distinguishable.
+- [ ] **v1.11 Tý Ngọ Lưu Chú section** (`classical-v111-point-opening-surface`, separate from the v1.10 wellness surface) renders the canonical citation lines verbatim: policy header, hour slot with time basis, open or explicit closed (閉穴) state, evidence with `PENDING_CLASSICAL_REVIEW` visible, both review markers, safety class, divergences, and disclaimer v2 in both languages.
+- [ ] Casting the I Ching for a different chi hour re-resolves the point-opening citation for that hour (e.g. Tuất 19:30 → 竅陰 GB44 open; Dần 03:30 → closed).
 
 ### 2.5 Season Timeline (`season_timeline`)
 

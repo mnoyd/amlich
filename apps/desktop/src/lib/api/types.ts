@@ -1821,6 +1821,16 @@ export interface ClassicalSurfaceDto {
     // Context. Additive: absent from JSON when the snapshot has not
     // been enriched with `enrich_day_snapshot_with_traditional_wellness`.
     traditional_wellness?: TraditionalWellnessContextDto | null;
+    // v1.11 `amlich-xlag.2.3.1` point-opening citation context,
+    // independent from `traditional_wellness`. Additive: absent from
+    // JSON when the snapshot has not been enriched with
+    // `enrich_day_snapshot_with_point_opening`.
+    point_opening?: DayPointOpeningContextDto | null;
+    // v1.11 `amlich-xlag.2.3.3` — the canonical citation lines
+    // (`point_opening_citation_lines`) transported verbatim from the
+    // core so the desktop renders byte-identical wording to the
+    // terminal. Absent together with `point_opening`.
+    point_opening_citation_lines?: string[] | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -1908,6 +1918,108 @@ export interface LocalizedDisclaimerDto {
     id: string;
     vi: string;
     en: string;
+}
+
+// ---------------------------------------------------------------------------
+// v1.11 Point-Opening Context DTO surface (amlich-xlag.2.3.1 /
+// .2.3.3). Mirrors `amlich_core::point_opening::DayPointOpeningContext`
+// and the canonical citation lines so the desktop renders the same
+// open-or-closed citation, evidence, review state, time basis,
+// divergences, and disclaimer v2 as the terminal and the API
+// (ADR-0004). `ExternalReviewState` and `TimeBasis` serialize as
+// plain marker strings, mirroring the v1.10 vocabulary above.
+// ---------------------------------------------------------------------------
+
+export interface DayPointOpeningContextDto {
+    day_stem_zh: string;
+    hour_branch_zh: string;
+    hour_pillar_zh: string;
+    hour_branch_vi: string;
+    hour_time_range: string;
+    hour_slot_index: number;
+    civil_day_canchi: PointOpeningCanChiDto;
+    slot_day_canchi: PointOpeningCanChiDto;
+    late_night_day_transition: boolean;
+    cross_day_spillover: boolean;
+    context: PointOpeningContextDto;
+    provenance: PointOpeningProvenanceDto;
+    // `skip_serializing_if = "Vec::is_empty"` on the Rust side: the
+    // evidence arrays are absent, never null, when empty.
+    method_evidence?: ReasoningEvidenceEnvelopeDto[];
+    calendar_evidence?: ReasoningEvidenceEnvelopeDto[];
+}
+
+export interface PointOpeningCanChiDto {
+    can_index: number;
+    chi_index: number;
+    can: string;
+    chi: string;
+    full: string;
+    con_giap: string;
+    ngu_hanh: NguHanhDto;
+    sexagenary_index: number;
+}
+
+export interface PointOpeningContextDto {
+    policy_id: string;
+    state: PointOpeningSlotStateDto;
+    disclaimer: LocalizedDisclaimerDto;
+    review_state: string;
+    nomenclature_review_state: string;
+    safety_class: string;
+    time_basis: string;
+    known_divergence_ids: string[];
+}
+
+// Internally tagged on `"state"` (`"open"` / `"closed"`), mirroring
+// the frozen corpus grid-cell convention. The only nullable field in
+// the surface is `substitution` — `null` is the frozen-row truth.
+export type PointOpeningSlotStateDto =
+    | {
+          state: 'open';
+          slot_class_zh_as_printed: string;
+          phase_annotation_as_printed: string;
+          points: PointOpeningIdentityDto[];
+          substitution: string | null;
+      }
+    | {
+          state: 'closed';
+          running_tables: string[];
+          doctrine_zh: string;
+          note: string;
+      };
+
+export interface PointOpeningIdentityDto {
+    point_key: string;
+    xue_ming_zh: string;
+    huyet_danh_vi: string;
+    standard_code_gloss: string;
+    channel_zh: string;
+    channel_vi: string;
+    channel_en: string;
+    role: string;
+}
+
+export interface PointOpeningProvenanceDto {
+    source_id: string;
+    work_evidence?: PointOpeningSourceCitationDto[];
+    table_evidence?: PointOpeningTableEvidenceDto;
+}
+
+export interface PointOpeningSourceCitationDto {
+    source_id: string;
+    work_title: string;
+    volume_or_chapter: string;
+    passage_key: string;
+    edition_or_facsimile_uri: string;
+    transcription_uri: string;
+    cross_reference_uri: string;
+    translation_kind: string;
+}
+
+export interface PointOpeningTableEvidenceDto {
+    table_id: string;
+    row_index: number;
 }
 
 export interface DayRangeDto extends ApiMetaDto {
