@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.10
-milestone_name: Traditional Wellness Context (Tier 0)
-current_plan: Phase 01 (branch-channel core done, awaiting human review); Phase 02 (seasonal core done, awaiting human review); Phase 03 (unified explanation + graph projection, complete); Phase 04 (pre-flight audit complete — release blocked on the four human review gates)
+milestone: v1.11
+milestone_name: Tý Ngọ Lưu Chú Point-Opening Context (Tier 1)
+current_plan: Track 1 (Najia table freeze done, unsigned pending Gate 1); Track 2 (core engine + finite goldens complete); Track 3 (cross-surface projection complete); Track 4 (machine pre-flight audit complete — release blocked on the four human review gates)
 status: phase_in_progress
-last_updated: "2026-08-21T00:00:00+07:00"
-last_activity: 2026-08-21
+last_updated: "2026-09-16T00:00:00+07:00"
+last_activity: 2026-09-16
 progress:
   total_tracks: 4
   completed_tracks: 3
@@ -134,3 +134,23 @@ now), `.2.2` (core engine + goldens), `.2.3` (cross-surface projection),
 `.2.4` (audit/release), and four human review gates `.2.5`–`.2.8` (due
 2026-12-31). First emission of the reserved `ty-ngo-luu-chu` source_id
 happens only in Track 2, behind `TY_NGO_LUU_CHU_POLICY_V1`.
+
+**v1.11 pre-flight complete 2026-09-16 (bead `amlich-xlag.2.4.1`).** All
+delivery slices through cross-surface parity are closed (`2.1`, `2.2.x`,
+`2.3.1`–`2.3.4`); every machine gate passed on the first run at head
+`08cd32b`: fmt clean, clippy `-D warnings` clean (workspace excl. `am-lich`,
+`amlich-core --all-targets`, and `am-lich`), 2,038 workspace tests + 31
+`am-lich` tests with 0 failures, `pnpm check` 0/0, and a clean static
+production build. The finite golden suite pins all 120 slots (60 open / 60
+explicit closed / 30 spillovers), civil-time boundaries, nomenclature
+round-trips, provenance separation, additive compatibility, cross-surface
+byte-parity, and the extended prohibited-language guard over every serialized
+surface. The milestone audit is published as `pre_flight_passed` at
+`.planning/milestones/v1.11-MILESTONE-AUDIT.md` (8/8 requirements evidenced,
+0 findings). The four human review gates (`amlich-xlag.2.5` classical-Chinese
+table sign-off, `.2.6` Vietnamese nomenclature, `.2.7` health-safety on
+point-exposure scope, `.2.8` product/legal on disclaimer v2 — due 2026-12-31)
+are the sole critical path: until they sign, corpus records and the
+66-entry nomenclature registry remain `ExternalReviewPending`, every surfaced
+context emits disclaimer v2 (`historical_procedural_citation_v1`), and beads
+`2.3`/`2.4` stay open with `2.4.2` (reconcile gates and publish) blocked.
