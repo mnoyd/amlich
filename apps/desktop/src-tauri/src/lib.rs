@@ -927,6 +927,341 @@ mod tests {
         assert!(text.contains("Miễn trừ (historical_procedural_citation_v1) · en:"));
     }
 
+    // -------------------------------------------------------------------
+    // v1.11 `amlich-xlag.2.3.4` — cross-surface parity and safety locks
+    // -------------------------------------------------------------------
+
+    /// The committed canonical goldens — the single byte-locked citation
+    /// wording shared by the core, API, and terminal suites.
+    fn committed_golden(file: &str) -> String {
+        std::fs::read_to_string(format!(
+            "{}/../../../crates/amlich-core/data/ty-ngo-luu-chu/{file}",
+            env!("CARGO_MANIFEST_DIR")
+        ))
+        .unwrap_or_else(|error| panic!("committed golden {file} must be readable: {error}"))
+    }
+
+    /// The chi-hour index 10 maps to the frozen 19:30 Tuất slot, so the
+    /// desktop command must render the exact committed open golden —
+    /// the same bytes the core suite, the API transport, and the
+    /// terminal widget lock.
+    #[test]
+    fn classical_surface_open_citation_matches_the_committed_golden_byte_for_byte() {
+        let surface = get_classical_surface(10, 2, 2024, Some(10)).expect("classical surface");
+        let lines = surface
+            .point_opening_citation_lines
+            .as_ref()
+            .expect("citation lines");
+        assert_eq!(
+            lines.join("\n") + "\n",
+            committed_golden("terminal-citation-open.txt"),
+            "the desktop surface must render the exact committed open golden"
+        );
+    }
+
+    /// Extract a `export const <name>: string[] = [ ... ];` array from
+    /// the TypeScript fixture file, unescaping single-quoted strings.
+    fn extract_ts_string_array(source: &str, name: &str) -> Option<Vec<String>> {
+        let marker = format!("export const {name}: string[] = [");
+        let start = source.find(&marker)? + marker.len();
+        let end = source[start..].find("];")? + start;
+        let mut out = Vec::new();
+        for raw in source[start..end].lines() {
+            let line = raw.trim().trim_end_matches(',');
+            if line.is_empty() {
+                continue;
+            }
+            let inner = line.strip_prefix('\'')?.strip_suffix('\'')?;
+            out.push(inner.replace("\\'", "'").replace("\\\\", "\\"));
+        }
+        Some(out)
+    }
+
+    /// The hand-copied TypeScript golden fixtures in
+    /// `classical-surface.types.test.ts` mirror the committed core
+    /// goldens byte for byte — previously only a comment claimed it.
+    /// No TS test runner exists, so the desktop crate verifies the
+    /// mirror at test time (the REVIEWER-PACK `fs::read_to_string`
+    /// precedent).
+    #[test]
+    fn desktop_ts_golden_fixtures_mirror_the_committed_goldens_byte_for_byte() {
+        let ts = std::fs::read_to_string(format!(
+            "{}/../src/lib/api/classical-surface.types.test.ts",
+            env!("CARGO_MANIFEST_DIR")
+        ))
+        .expect("TS fixture file must be readable");
+        for (const_name, golden_file) in [
+            ("canonicalOpenCitationLines", "terminal-citation-open.txt"),
+            (
+                "canonicalClosedCitationLines",
+                "terminal-citation-closed.txt",
+            ),
+        ] {
+            let lines = extract_ts_string_array(&ts, const_name)
+                .unwrap_or_else(|| panic!("TS const {const_name} must exist"));
+            assert!(!lines.is_empty(), "TS const {const_name} must not be empty");
+            assert_eq!(
+                lines.join("\n") + "\n",
+                committed_golden(golden_file),
+                "TS fixture {const_name} must mirror the committed golden byte for byte"
+            );
+        }
+    }
+
+    /// The two v1.11 `ClassicalSurfaceDto` fields are exactly additive:
+    /// serialized keys grow by precisely `point_opening` and then
+    /// `point_opening_citation_lines` and nothing else.
+    #[test]
+    fn classical_surface_point_opening_fields_are_exactly_additive() {
+        use std::collections::BTreeSet;
+
+        let surface = get_classical_surface(10, 2, 2024, Some(10)).expect("classical surface");
+        let mut minimal = surface.clone();
+        minimal.iching_cast = None;
+        minimal.traditional_wellness = None;
+        minimal.point_opening = None;
+        minimal.point_opening_citation_lines = None;
+
+        let keys_of = |value: &ClassicalSurfaceDto| -> BTreeSet<String> {
+            serde_json::to_value(value)
+                .expect("serialize surface")
+                .as_object()
+                .expect("surface must serialize to an object")
+                .keys()
+                .cloned()
+                .collect()
+        };
+
+        let minimal_keys = keys_of(&minimal);
+        assert_eq!(
+            minimal_keys,
+            BTreeSet::from([
+                "direction_cross_link".to_string(),
+                "iching_cast".to_string()
+            ]),
+            "the pre-v1.11 surface carries only the direction summary (iching_cast always serializes)"
+        );
+
+        let mut with_context = minimal.clone();
+        with_context.point_opening = surface.point_opening.clone();
+        let mut expected = minimal_keys.clone();
+        expected.insert("point_opening".to_string());
+        assert_eq!(keys_of(&with_context), expected);
+
+        let mut with_lines = with_context.clone();
+        with_lines.point_opening_citation_lines = surface.point_opening_citation_lines.clone();
+        let mut expected = expected;
+        expected.insert("point_opening_citation_lines".to_string());
+        assert_eq!(keys_of(&with_lines), expected);
+    }
+
+    /// The extended clinical/technique field lexicon shared with the
+    /// core golden guards.
+    const FORBIDDEN_KEYS: &[&str] = &[
+        "technique",
+        "techniques",
+        "depth",
+        "needle_depth",
+        "depth_cun",
+        "manipulation",
+        "indication",
+        "indications",
+        "contraindication",
+        "contraindications",
+        "efficacy",
+        "effect",
+        "effects",
+        "recommended_point",
+        "best_time",
+        "best_time_to_treat",
+        "point_to_press",
+        "treats",
+        "cures",
+        "heals",
+        "diagnosis",
+        "prescription",
+        "dosage",
+        "moxa_protocol",
+        "physiological_flow",
+        "stimulation",
+        "needle_retention",
+        "needle",
+        "needles",
+        "needling",
+        "moxa",
+        "moxibustion",
+        "pressure_point",
+        "therapeutic",
+        "therapy",
+        "physiology",
+    ];
+
+    /// Action/efficacy phrasing forbidden on every surfaced string.
+    const FORBIDDEN_PHRASES: &[&str] = &[
+        "best time to treat",
+        "best hour to treat",
+        "best hour",
+        "should be needled",
+        "should be pressed",
+        "should needle",
+        "should stimulate",
+        "recommended point",
+        "optimal point",
+        "nên châm",
+        "nên bấm",
+        "nên cứu",
+        "nên kích thích",
+        "hãy châm",
+        "hãy bấm",
+        "điểm nên ",
+        "công dụng",
+        "chữa",
+        "điều trị",
+        "thải độc",
+        "liều lượng",
+        "hoạt động mạnh nhất",
+        "đạt đỉnh",
+    ];
+
+    fn collect_keys(value: &serde_json::Value, out: &mut Vec<String>) {
+        match value {
+            serde_json::Value::Object(map) => {
+                for (key, child) in map {
+                    out.push(key.clone());
+                    collect_keys(child, out);
+                }
+            }
+            serde_json::Value::Array(items) => {
+                for item in items {
+                    collect_keys(item, out);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    fn strip_disclaimers(value: &mut serde_json::Value) {
+        match value {
+            serde_json::Value::Object(map) => {
+                map.remove("disclaimer");
+                for child in map.values_mut() {
+                    strip_disclaimers(child);
+                }
+            }
+            serde_json::Value::Array(items) => {
+                for item in items {
+                    strip_disclaimers(item);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// The serialized desktop point-opening payload (context +
+    /// citation lines, open and closed states) stays free of clinical
+    /// field names and action/efficacy phrasing; the disclaimer v2
+    /// negation frames are byte-locked separately and stripped.
+    #[test]
+    fn classical_surface_point_opening_payload_is_free_of_clinical_or_action_language() {
+        for (label, index) in [("open", 10u8), ("closed", 2u8)] {
+            let surface =
+                get_classical_surface(10, 2, 2024, Some(index)).expect("classical surface");
+            let full = serde_json::to_value(&surface).expect("serialize surface");
+            let mut scoped = serde_json::Value::Object(serde_json::Map::new());
+            if let serde_json::Value::Object(map) = full {
+                let mut kept = serde_json::Map::new();
+                kept.insert(
+                    "point_opening".to_string(),
+                    map.get("point_opening").expect("context present").clone(),
+                );
+                kept.insert(
+                    "point_opening_citation_lines".to_string(),
+                    map.get("point_opening_citation_lines")
+                        .expect("citation lines present")
+                        .clone(),
+                );
+                scoped = serde_json::Value::Object(kept);
+            }
+
+            strip_disclaimers(&mut scoped);
+            if let Some(lines) = scoped
+                .get_mut("point_opening_citation_lines")
+                .and_then(serde_json::Value::as_array_mut)
+            {
+                lines.retain(|line| {
+                    line.as_str()
+                        .map(|text| !text.starts_with("Miễn trừ ("))
+                        .unwrap_or(true)
+                });
+            }
+
+            let mut keys = Vec::new();
+            collect_keys(&scoped, &mut keys);
+            for key in &keys {
+                assert!(
+                    !FORBIDDEN_KEYS.contains(&key.as_str()),
+                    "{label}: prohibited clinical field `{key}` on the desktop surface"
+                );
+            }
+            let text = scoped.to_string().to_lowercase();
+            for phrase in FORBIDDEN_PHRASES {
+                assert!(
+                    !text.contains(phrase),
+                    "{label}: prohibited action/efficacy phrasing `{phrase}` on the desktop surface"
+                );
+            }
+        }
+    }
+
+    /// The frontend-surfaced point-opening strings — the TypeScript
+    /// golden fixtures and the inspector's v1.11 section markup —
+    /// carry no action/efficacy language; the disclaimers are
+    /// byte-locked separately and stripped.
+    #[test]
+    fn desktop_frontend_point_opening_strings_are_free_of_action_language() {
+        fn strip_disclaimer_constants(text: &str) -> String {
+            text.replace(
+                amlich_core::point_opening::DISCLAIMER_HISTORICAL_PROCEDURAL_CITATION_VN,
+                "",
+            )
+            .replace(
+                amlich_core::point_opening::DISCLAIMER_HISTORICAL_PROCEDURAL_CITATION_EN,
+                "",
+            )
+            .to_lowercase()
+        }
+
+        let ts = std::fs::read_to_string(format!(
+            "{}/../src/lib/api/classical-surface.types.test.ts",
+            env!("CARGO_MANIFEST_DIR")
+        ))
+        .expect("TS fixture file must be readable");
+        let ts_scannable = strip_disclaimer_constants(&ts);
+
+        let svelte = std::fs::read_to_string(format!(
+            "{}/../src/lib/components/workspaces/AlmanacInspector.svelte",
+            env!("CARGO_MANIFEST_DIR")
+        ))
+        .expect("inspector component must be readable");
+        let start = svelte
+            .find("classical-v111-point-opening-surface")
+            .expect("the v1.11 section must exist");
+        let end = start + svelte[start..].find("</section>").expect("section end");
+        let section_scannable = strip_disclaimer_constants(&svelte[start..end]);
+
+        for phrase in FORBIDDEN_PHRASES {
+            let phrase = phrase.trim_end();
+            assert!(
+                !ts_scannable.contains(phrase),
+                "prohibited phrasing `{phrase}` in the TS golden fixtures"
+            );
+            assert!(
+                !section_scannable.contains(phrase),
+                "prohibited phrasing `{phrase}` in the inspector v1.11 section"
+            );
+        }
+    }
+
     #[test]
     fn classical_surface_casts_iching_only_for_an_explicit_hour() {
         let surface = get_classical_surface(10, 2, 2024, Some(0)).expect("classical surface");

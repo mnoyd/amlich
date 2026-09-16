@@ -319,11 +319,65 @@ fn every_branch_of_the_fixture_day_projects_exactly_one_state() {
 
 #[test]
 fn graph_json_carries_citation_labels_and_no_treatment_semantics() {
+    // The extended lexicon shared with the finite-core golden guard
+    // (`amlich-xlag.2.3.4`). It is applied to the point-opening
+    // subgraph — the `classically_cited_*` nodes, their edges, and
+    // their provenance — because the wider day graph legitimately
+    // carries pre-existing ritual wording (e.g. `recommends_offering`,
+    // `prescribed_for`, offering rationales) that is not TNLC surface.
+    const EXTENDED_FORBIDDEN: &[&str] = &[
+        "physiological",
+        "flow_through",
+        "best_time",
+        "peak_at",
+        "treats",
+        "cures",
+        "prescribes",
+        "should_be_needled",
+        "should_be_pressed",
+        "should_needle",
+        "should_stimulate",
+        "best_hour",
+        "optimal_point",
+        "point_to_press",
+        "needle_depth",
+        "depth_cun",
+        "moxa_protocol",
+        "physiological_flow",
+        "needle_retention",
+        "needling",
+        "moxibustion",
+        "pressure_point",
+        "stimulation",
+        "indication",
+        "contraindication",
+        "efficacy",
+        "dosage",
+        "nên châm",
+        "nên bấm",
+        "nên cứu",
+        "nên kích thích",
+        "hãy châm",
+        "hãy bấm",
+        "điểm nên",
+        "công dụng",
+        "chữa",
+        "điều trị",
+        "thải độc",
+        "liều lượng",
+        "hoạt động mạnh nhất",
+        "đạt đỉnh",
+    ];
+
     let snap = sample_snapshot();
+    let mut seen_point_opening_json = false;
     for &hour in &BRANCH_HOURS {
         let enriched = enrich_day_snapshot_with_point_opening(&snap, hour, 30).unwrap();
         let graph = build_day_snapshot_graph(&enriched);
         let json = serde_json::to_string(&graph).unwrap();
+
+        // Whole-graph regression: the pre-existing short list still
+        // holds everywhere.
         for forbidden in [
             "physiological",
             "flow_through",
@@ -341,7 +395,43 @@ fn graph_json_carries_citation_labels_and_no_treatment_semantics() {
                 "graph JSON must not carry treatment wording `{forbidden}`; got {json}"
             );
         }
+
+        // Extended lexicon over the point-opening subgraph.
+        let subgraph_nodes: Vec<_> = graph
+            .nodes()
+            .values()
+            .filter(|node| {
+                node.node_id.starts_with("classically_cited_point:")
+                    || node.node_id.starts_with("classically_cited_closed_slot:")
+            })
+            .collect();
+        let subgraph_edges: Vec<_> = graph
+            .edges()
+            .values()
+            .filter(|edge| {
+                edge.from_node_id.starts_with("classically_cited_point:")
+                    || edge
+                        .from_node_id
+                        .starts_with("classically_cited_closed_slot:")
+            })
+            .collect();
+        if !subgraph_nodes.is_empty() {
+            seen_point_opening_json = true;
+        }
+        let subset = serde_json::to_string(&(subgraph_nodes, subgraph_edges))
+            .expect("serialize point-opening subgraph");
+        let lowered = subset.to_lowercase();
+        for forbidden in EXTENDED_FORBIDDEN {
+            assert!(
+                !lowered.contains(forbidden),
+                "point-opening graph wording must not carry `{forbidden}`; got {subset}"
+            );
+        }
     }
+    assert!(
+        seen_point_opening_json,
+        "the fixture day must emit point-opening graph nodes"
+    );
 
     // The citation labels are the schema surface consumers depend on.
     let enriched = enrich_day_snapshot_with_point_opening(&snap, BRANCH_HOURS[0], 30).unwrap();
