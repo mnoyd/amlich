@@ -60,6 +60,10 @@ _Avoid_: recommended hour, winning hour
 The umbrella interface concept for an Intent and any optional Birth Profile or Location Context supplied to enrich the Day View. Personal Context may enable a Day Assessment or additional evidence but never replaces the anonymous Day Overview.
 _Avoid_: required account, universal profile
 
+**Progressive Enrichment**:
+Adding Intent, Birth Profile, or Location Context to the same Day View while preserving the anonymous Day Overview as the baseline. Each added layer makes its changed Results, Reasons, and Evidence explicit rather than silently rewriting calendar facts or historical context.
+_Avoid_: personalized dashboard replacement, hidden recomputation
+
 **Intent**:
 The activity or question whose suitability the user asks a Day Assessment to evaluate. An Intent is required for an assessment and does not alter anonymous calendar facts.
 _Avoid_: generic goal, hidden scoring mode
@@ -91,6 +95,14 @@ _Avoid_: evidence record, raw trace row
 **Evidence**:
 The inspectable support beneath a Reason: source provenance, rule or calculation identity, review state, divergence, caveat, and relevant trace detail. Evidence remains reachable but is not the default explanation copy.
 _Avoid_: reason label, unexplained citation list
+
+**Historical Context**:
+A clearly labeled, source-attributed cultural or historical layer within the Day View. It may provide contextual previews and deeper citations, but it never merges into Day Pattern Supports/Constraints or changes a Day Assessment or Hour Ranking.
+_Avoid_: recommendation, assessment input, treatment surface
+
+**Evidence Explorer**:
+The drill-down surface where a user follows a Reason into source-backed Evidence and, when desired, expert details such as graph relationships, calculation traces, policy versions, provenance, review state, and divergences. It explains a Result without becoming the default navigation model.
+_Avoid_: primary dashboard, raw debug dump
 
 **Disclosure**:
 A user-visible interpretive or safety boundary required to understand a Result responsibly. It is distinct from an Unknown input and remains visible wherever the affected content is surfaced.
