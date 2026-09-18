@@ -4,6 +4,106 @@ This context captures the project language for Vietnamese lunar-calendar assessm
 
 ## Language
 
+**Daily Workspace**:
+A date-and-time-centered product surface that starts with the user's current day, presents a concise state with reasons and confidence, and opens deeper hour, profile, and evidence views without changing the user's anchor.
+_Avoid_: module dashboard, workspace-per-engine navigation
+
+**Day View**:
+The complete product experience anchored to one selected civil date and, where relevant, one selected local time. It contains the Day Overview and may contain a Day Assessment, hour exploration, personal context, and evidence depth.
+_Avoid_: day verdict, module dashboard
+
+**Day Overview**:
+The anonymous, intent-free presentation of calendar identity, major context, and notable source-attributed signals for the selected date. It is useful without setup and does not claim that the day is universally suitable or unsuitable.
+_Avoid_: Day Assessment, lucky-day score, universal verdict
+
+**Day Pattern**:
+The non-verdict summary within a Day Overview. It groups notable signals as Supports, Constraints, and Unknowns without collapsing them into a universal Good/Bad label.
+_Avoid_: day score, anonymous verdict, auspiciousness grade
+
+**Support**:
+A source-attributed signal that may favor a declared activity or interpretation. In an anonymous Day Pattern it remains contextual and does not imply that the day is suitable for every intent or person.
+_Avoid_: bonus, universally good signal
+
+**Constraint**:
+A source-attributed caution, conflict, or limitation relevant to the selected date or context. It is not automatically a veto unless a Day Assessment's declared policy says so.
+_Avoid_: penalty, universally bad signal
+
+**Unknown**:
+An explicit capability or evidence gap caused by missing intent, time, profile, gender, location, external review, or source support. Unknown is neither neutral nor adverse.
+_Avoid_: zero score, no effect, failed result
+
+**Evidence Coverage**:
+The Day Overview's disclosure of how much relevant context and source-backed material is presently available. It describes coverage, including explicit Unknowns, and never expresses probability or scientific validity.
+_Avoid_: confidence score, truth probability, certainty
+
+**Day Assessment**:
+A suitability verdict for the selected date in the context of an intent and, when available, a personal birth profile. It appears within the Day View but is not synonymous with the anonymous Day Overview.
+_Avoid_: Day Overview, anonymous day summary, lucky score
+
+**Assessment Confidence**:
+The completeness of the required inputs and evidence dimensions for a particular Day Assessment. It explains capability limitations; it is not predictive certainty, truth probability, or scientific validation of a traditional system.
+_Avoid_: prediction probability, accuracy score, scientific confidence
+
+**Hour Timeline**:
+The ordered presentation of all twelve traditional hour windows for the selected date. It provides temporal navigation and does not imply that the windows are ranked.
+_Avoid_: Hour Ranking, best-hour list
+
+**Notable Hour**:
+An hour window highlighted in the anonymous Day View because it contains an unusual support, constraint, transition, or source-attributed historical context. Notability is not suitability and does not establish a best time.
+_Avoid_: best hour, lucky hour, ranked hour
+
+**Selected Hour**:
+The hour window currently in focus within the Day View. Changing it updates time-dependent context while preserving the selected date and does not itself request an assessment.
+_Avoid_: recommended hour, winning hour
+
+**Personal Context**:
+The umbrella interface concept for an Intent and any optional Birth Profile or Location Context supplied to enrich the Day View. Personal Context may enable a Day Assessment or additional evidence but never replaces the anonymous Day Overview.
+_Avoid_: required account, universal profile
+
+**Intent**:
+The activity or question whose suitability the user asks a Day Assessment to evaluate. An Intent is required for an assessment and does not alter anonymous calendar facts.
+_Avoid_: generic goal, hidden scoring mode
+
+**Birth Profile**:
+Optional birth-derived context used to enrich an intent-aware assessment when the required birth facts are available. The Day View remains useful without it.
+_Avoid_: required onboarding profile, account identity
+
+**Location Context**:
+Optional place-specific input that enables evidence explicitly declared as location-sensitive. Its absence is an Unknown, never a neutral or adverse signal.
+_Avoid_: implicit device location, global direction score
+
+**Surface Replacement**:
+The planned complete replacement of the current desktop app and TUI presentation layers. It preserves the stable core and API contracts while changing the product model, navigation, and rendering; the legacy surfaces remain available only as reference and rollback during migration.
+_Avoid_: core rewrite, incremental cosmetic refresh
+
+**Evidence Depth**:
+The deliberate progression from a daily state to its reasons, source provenance, caveats, and missing evidence. Expert detail is available on demand rather than presented as the default wall of data.
+_Avoid_: raw score, debug dump
+
+**Result**:
+A user-facing Day Pattern, Day Assessment verdict, or ordered-hour outcome. A result is presented with Reasons and may be inspected through Evidence Depth.
+_Avoid_: raw DTO, score dump
+
+**Reason**:
+A concise human explanation of what influenced a Result. A Reason names the relevant support, constraint, unknown, or precedence effect without reproducing its technical provenance record.
+_Avoid_: evidence record, raw trace row
+
+**Evidence**:
+The inspectable support beneath a Reason: source provenance, rule or calculation identity, review state, divergence, caveat, and relevant trace detail. Evidence remains reachable but is not the default explanation copy.
+_Avoid_: reason label, unexplained citation list
+
+**Disclosure**:
+A user-visible interpretive or safety boundary required to understand a Result responsibly. It is distinct from an Unknown input and remains visible wherever the affected content is surfaced.
+_Avoid_: fine print, hidden disclaimer
+
+**Review State**:
+The required human-review status of source material, corpus content, nomenclature, or safety wording. When required review is pending, the affected Result is explicitly pending or unavailable rather than presented normally with a minor badge.
+_Avoid_: confidence level, decorative status badge
+
+**Divergence**:
+A known disagreement, variant, or boundary between sources, editions, or interpretive schools. It is inspectable within Evidence Depth and is not silently merged into one authoritative claim.
+_Avoid_: error, implementation conflict
+
 **Traditional Wellness Context**:
 A source-attributed cultural account of seasonal or time-of-day wellness traditions. It is informational and never diagnoses, treats, predicts illness, or changes a Day Assessment or Hour Ranking.
 _Avoid_: health assessment, medical recommendation, treatment advice
