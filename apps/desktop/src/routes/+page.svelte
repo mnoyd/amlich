@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { dev } from '$app/environment';
+  import { page } from '$app/stores';
   import LeftRail from '$lib/components/layout/LeftRail.svelte';
   import RightRail from '$lib/components/layout/RightRail.svelte';
   import BottomStrip from '$lib/components/layout/BottomStrip.svelte';
@@ -9,36 +11,47 @@
   import PersonalLab from '$lib/components/workspaces/PersonalLab.svelte';
   import EvidenceGraph from '$lib/components/workspaces/EvidenceGraph.svelte';
   import SeasonTimeline from '$lib/components/workspaces/SeasonTimeline.svelte';
+  import DailyWorkspacePrototype from '$lib/components/prototype/DailyWorkspacePrototype.svelte';
   
   import { activeWorkspace } from '$lib/stores';
+
+  // PROTOTYPE: Three daily-workspace IA variants on the existing route, switchable via ?variant=.
+  $: requestedVariant = $page.url.searchParams.get('variant')?.toUpperCase() ?? null;
+  $: prototypeVariant = dev && requestedVariant && ['A', 'B', 'C'].includes(requestedVariant)
+    ? requestedVariant
+    : null;
 </script>
 
-<div class="flex-grow flex overflow-hidden">
-  <LeftRail />
-  
-  <main class="flex-grow overflow-y-auto">
-    {#if $activeWorkspace === 'day_console'}
-      <DayConsole />
-    {:else if $activeWorkspace === 'hour_studio'}
-      <HourStudio />
-    {:else if $activeWorkspace === 'almanac_inspector'}
-      <AlmanacInspector />
-    {:else if $activeWorkspace === 'bazi_lab'}
-      <BaziLab />
-    {:else if $activeWorkspace === 'personal_lab'}
-      <PersonalLab />
-    {:else if $activeWorkspace === 'season_timeline'}
-      <SeasonTimeline />
-    {:else if $activeWorkspace === 'evidence_graph'}
-      <EvidenceGraph />
-    {:else}
-      <div class="p-8 flex items-center justify-center h-full text-ink-light font-mono italic">
-        Workspace "{$activeWorkspace}" is under construction.
-      </div>
-    {/if}
-  </main>
-  
-  <RightRail />
-</div>
+{#if prototypeVariant}
+  <DailyWorkspacePrototype variant={prototypeVariant} />
+{:else}
+  <div class="flex-grow flex overflow-hidden">
+    <LeftRail />
 
-<BottomStrip />
+    <main class="flex-grow overflow-y-auto">
+      {#if $activeWorkspace === 'day_console'}
+        <DayConsole />
+      {:else if $activeWorkspace === 'hour_studio'}
+        <HourStudio />
+      {:else if $activeWorkspace === 'almanac_inspector'}
+        <AlmanacInspector />
+      {:else if $activeWorkspace === 'bazi_lab'}
+        <BaziLab />
+      {:else if $activeWorkspace === 'personal_lab'}
+        <PersonalLab />
+      {:else if $activeWorkspace === 'season_timeline'}
+        <SeasonTimeline />
+      {:else if $activeWorkspace === 'evidence_graph'}
+        <EvidenceGraph />
+      {:else}
+        <div class="p-8 flex items-center justify-center h-full text-ink-light font-mono italic">
+          Workspace "{$activeWorkspace}" is under construction.
+        </div>
+      {/if}
+    </main>
+
+    <RightRail />
+  </div>
+
+  <BottomStrip />
+{/if}
