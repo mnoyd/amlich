@@ -12,6 +12,7 @@
   import EvidenceGraph from '$lib/components/workspaces/EvidenceGraph.svelte';
   import SeasonTimeline from '$lib/components/workspaces/SeasonTimeline.svelte';
   import DailyWorkspacePrototype from '$lib/components/prototype/DailyWorkspacePrototype.svelte';
+  import InfluenceExplorerPrototype from '$lib/components/prototype/InfluenceExplorerPrototype.svelte';
   
   import { activeWorkspace } from '$lib/stores';
 
@@ -20,9 +21,13 @@
   $: prototypeVariant = dev && requestedVariant && ['A', 'B', 'C'].includes(requestedVariant)
     ? requestedVariant
     : null;
+  $: prototypeMode = dev && $page.url.searchParams.get('prototype') === 'influence';
+  $: influenceView = $page.url.searchParams.get('view')?.toLowerCase() ?? 'graph';
 </script>
 
-{#if prototypeVariant}
+{#if prototypeMode}
+  <InfluenceExplorerPrototype view={influenceView} />
+{:else if prototypeVariant}
   <DailyWorkspacePrototype variant={prototypeVariant} />
 {:else}
   <div class="flex-grow flex overflow-hidden">
