@@ -104,6 +104,10 @@ _Avoid_: recommendation, assessment input, treatment surface
 The drill-down surface where a user follows a Reason into source-backed Evidence and, when desired, expert details such as graph relationships, calculation traces, policy versions, provenance, review state, and divergences. It explains a Result without becoming the default navigation model.
 _Avoid_: primary dashboard, raw debug dump
 
+**Influence Explorer**:
+The expert drill-down where a user examines how Facts, Signals, Interactions, and Vetoes contribute through assessment axes to a Result. It presents complementary views of one core-owned assessment trace—relationships, contribution vectors, and evidence paths—without recalculating or altering the Result; each product surface gives those views interactions suited to its medium.
+_Avoid_: semantic-graph debugger, alternative evaluator, primary daily view
+
 **Disclosure**:
 A user-visible interpretive or safety boundary required to understand a Result responsibly. It is distinct from an Unknown input and remains visible wherever the affected content is surfaced.
 _Avoid_: fine print, hidden disclaimer
