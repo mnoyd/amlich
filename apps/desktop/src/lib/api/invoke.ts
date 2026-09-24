@@ -4,7 +4,8 @@ import type {
     BaziReportDto, BaziDerivedReportDto, HourSelectionReportDto,
     RulesetCatalogEntryDto, RecommendationPackCatalogEntryDto,
     HolidayDto, PersonalDayReportDto, PersonalDayMatrixReportDto,
-    TietKhiYearDto, DebugSemanticGraphResponseDto, ClassicalSurfaceDto, DayViewDto
+    TietKhiYearDto, DebugSemanticGraphResponseDto, ClassicalSurfaceDto, DayViewDto,
+    DayViewMonthDto
 } from './types';
 
 export type DayRangeRequest = {
@@ -21,9 +22,24 @@ export async function fetchDayView(
     day: number,
     month: number,
     year: number,
-    currentChiIndex?: number | null
+    currentChiIndex?: number | null,
+    selectedChiIndex?: number | null
 ): Promise<DayViewDto> {
-    return invoke('get_day_view', { day, month, year, currentChiIndex });
+    return invoke('get_day_view', { day, month, year, currentChiIndex, selectedChiIndex });
+}
+
+/**
+ * S2 (`amlich-b14l.8`) month-grid navigation projection. `today` and
+ * `selected` are this surface's own navigation state, passed through as
+ * solar `[day, month, year]` triples.
+ */
+export async function fetchDayViewMonth(
+    month: number,
+    year: number,
+    today?: [number, number, number] | null,
+    selected?: [number, number, number] | null
+): Promise<DayViewMonthDto> {
+    return invoke('get_day_view_month', { month, year, today, selected });
 }
 
 export async function fetchClassicalSurface(

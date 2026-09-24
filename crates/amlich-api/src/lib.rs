@@ -19,10 +19,11 @@ use amlich_core::insight_data::{
 };
 
 pub use day_view::{
-    current_chi_index_from_hour, get_day_view, get_day_view_for_date, DayViewCoverageDto,
-    DayViewCoverageEntryDto, DayViewCoverageFamilyDto, DayViewCoverageStateDto, DayViewDto,
-    DayViewHourDto, DayViewHourTimelineDto, DayViewPatternDto, DayViewPatternItemDto,
-    DayViewPatternItemKindDto, DayViewSignalSourceDto, DAY_VIEW_SCHEMA_VERSION,
+    current_chi_index_from_hour, get_day_view, get_day_view_for_date, get_day_view_month,
+    DayViewCoverageDto, DayViewCoverageEntryDto, DayViewCoverageFamilyDto, DayViewCoverageStateDto,
+    DayViewDto, DayViewHourDetailDto, DayViewHourDto, DayViewHourTimelineDto, DayViewMonthCellDto,
+    DayViewMonthDto, DayViewPatternDto, DayViewPatternItemDto, DayViewPatternItemKindDto,
+    DayViewSignalSourceDto, DAY_VIEW_MONTH_SCHEMA_VERSION, DAY_VIEW_SCHEMA_VERSION,
 };
 pub use dto::*;
 pub use dto::{NaAmErrorDto, NaAmLookupResultDto, NaAmResponseDto};

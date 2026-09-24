@@ -17,7 +17,7 @@ use amlich_api::{
     get_personal_day_report as api_get_personal_day_report,
     get_recommendation_pack_catalog as api_get_recommendation_pack_catalog,
     get_ruleset_catalog as api_get_ruleset_catalog, BaziDerivedReportDto, BaziQuery, BaziReportDto,
-    DateQuery, DayInfoDto, DayInsightDto, DayViewDto, DebugSemanticGraphQueryDto,
+    DateQuery, DayInfoDto, DayInsightDto, DayViewDto, DayViewMonthDto, DebugSemanticGraphQueryDto,
     DebugSemanticGraphResponseDto, HolidayDto, HourSelectionReportDto, PersonalDayMatrixReportDto,
     PersonalDayReportDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto,
 };
@@ -265,9 +265,23 @@ fn get_day_view(
     month: i32,
     year: i32,
     current_chi_index: Option<usize>,
+    selected_chi_index: Option<usize>,
 ) -> Result<DayViewDto, String> {
     validate_date_parts(day, month)?;
-    api_get_day_view_for_date(day, month, year, current_chi_index)
+    api_get_day_view_for_date(day, month, year, current_chi_index, selected_chi_index)
+}
+
+/// S2 (`amlich-b14l.8`) month-grid navigation projection. `today` and
+/// `selected` are the frontend's own navigation state, passed through as
+/// solar `[day, month, year]` triples; the projection only labels them.
+#[tauri::command]
+fn get_day_view_month(
+    month: i32,
+    year: i32,
+    today: Option<(i32, i32, i32)>,
+    selected: Option<(i32, i32, i32)>,
+) -> Result<DayViewMonthDto, String> {
+    amlich_api::get_day_view_month(month, year, today, selected)
 }
 
 #[tauri::command]
@@ -639,6 +653,7 @@ pub fn run() {
             get_day_info,
             get_day_bundle,
             get_day_view,
+            get_day_view_month,
             get_classical_surface,
             get_day_range,
             get_bazi_report,
@@ -805,9 +820,9 @@ mod tests {
 
     #[test]
     fn get_day_view_command_returns_the_projection() {
-        let view = get_day_view(10, 2, 2024, Some(3)).expect("day view");
+        let view = get_day_view(10, 2, 2024, Some(3), None).expect("day view");
 
-        assert_eq!(view.schema_version, "day-view-v1");
+        assert_eq!(view.schema_version, "day-view-v1.1");
         assert_eq!(view.solar.year, 2024);
         assert_eq!(view.hours.current_hour_index, Some(3));
         assert!(
@@ -819,7 +834,55 @@ mod tests {
                 == 1
         );
         assert_eq!(view.pattern.unknowns.len(), 3);
-        assert!(get_day_view(0, 2, 2024, None).is_err());
+        assert!(get_day_view(0, 2, 2024, None, None).is_err());
+    }
+
+    #[test]
+    fn get_day_view_command_carries_the_selected_hour_detail() {
+        // S2 (`amlich-b14l.8`): selecting an hour returns the hour detail
+        // with classification, ruling star, and hour-context reasons,
+        // anchored to the same date.
+        let view = get_day_view(10, 2, 2024, None, Some(4)).expect("day view");
+        let detail = view.hours.detail.as_ref().expect("selected hour detail");
+
+        assert_eq!(view.hours.selected_hour_index, Some(4));
+        assert_eq!(detail.hour_index, 4);
+        assert_eq!(detail.chi, "Thìn");
+        assert_eq!(detail.classification, "Hoàng Đạo");
+        assert_eq!(detail.star, "Thanh Long");
+        assert!(!detail.reasons.is_empty());
+        assert!(view.hours.hours.iter().all(|hour| !hour.is_current));
+    }
+
+    #[test]
+    fn get_day_view_month_command_builds_the_navigation_grid() {
+        // July 2025 contains lunar leap month 6; the grid must label it and
+        // mark today/selected without changing cell order.
+        let month =
+            get_day_view_month(7, 2025, Some((15, 7, 2025)), Some((25, 7, 2025))).expect("month");
+
+        assert_eq!(month.schema_version, "day-view-month-v1");
+        assert_eq!(month.year, 2025);
+        assert_eq!(month.month, 7);
+        assert_eq!(month.first_weekday, 2);
+        assert_eq!(month.cells.len(), 31);
+        assert!(month
+            .cells
+            .iter()
+            .enumerate()
+            .all(|(i, c)| c.day == i as i32 + 1));
+        let leap = month.cells.iter().find(|c| c.day == 25).expect("day 25");
+        assert!(leap.is_leap_lunar_month);
+        assert!(leap.lunar_label.contains("(nhuận)"));
+        assert!(month.cells.iter().any(|c| c.is_today && c.day == 15));
+        assert!(month.cells.iter().any(|c| c.is_selected && c.day == 25));
+        assert!(month.cells.iter().all(|c| !c.can_chi_day.is_empty()));
+    }
+
+    #[test]
+    fn get_day_view_month_command_rejects_invalid_month() {
+        assert!(get_day_view_month(0, 2025, None, None).is_err());
+        assert!(get_day_view_month(13, 2025, None, None).is_err());
     }
 
     #[test]

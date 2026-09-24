@@ -1731,10 +1731,29 @@ export interface DayViewHourDto {
     is_current: boolean;
 }
 
+// S2 (`amlich-b14l.8`): drill-down detail for the Selected Hour. Carries
+// the Hoàng Đạo classification, the ruling star, and hour-context
+// reasons — never a score, rank, or verdict. Selecting an hour updates
+// time-dependent context without moving the date anchor.
+export interface DayViewHourDetailDto {
+    hour_index: number;
+    chi: string;
+    time_range: string;
+    star: string;
+    classification: string;
+    is_hoang_dao: boolean;
+    is_notable: boolean;
+    notable_reason?: string | null;
+    is_current: boolean;
+    reasons: string[];
+}
+
 export interface DayViewHourTimelineDto {
     hours: DayViewHourDto[];
     current_hour_index?: number | null;
     notable_count: number;
+    selected_hour_index?: number | null;
+    detail?: DayViewHourDetailDto | null;
 }
 
 export type DayViewCoverageFamilyDto =
@@ -1775,6 +1794,27 @@ export interface DayViewDto {
     pattern: DayViewPatternDto;
     hours: DayViewHourTimelineDto;
     coverage: DayViewCoverageDto;
+}
+
+// S2 (`amlich-b14l.8`): month-grid navigation projection. Pure labels for
+// browsing; the grid navigates, the Day View explains.
+export interface DayViewMonthCellDto {
+    day: number;
+    lunar_day: number;
+    lunar_month: number;
+    is_leap_lunar_month: boolean;
+    lunar_label: string;
+    can_chi_day: string;
+    is_today: boolean;
+    is_selected: boolean;
+}
+
+export interface DayViewMonthDto {
+    schema_version: string;
+    year: number;
+    month: number;
+    first_weekday: number;
+    cells: DayViewMonthCellDto[];
 }
 
 // Canonical v1.7 snapshot surfaces exposed by the desktop command. These

@@ -1,5 +1,5 @@
 {
-  "schema_version": "day-view-v1",
+  "schema_version": "day-view-v1.1",
   "solar": {
     "day": 15,
     "month": 6,
@@ -248,7 +248,9 @@
       }
     ],
     "current_hour_index": null,
-    "notable_count": 6
+    "notable_count": 6,
+    "selected_hour_index": null,
+    "detail": null
   },
   "coverage": {
     "entries": [

@@ -172,6 +172,38 @@ ready, e.g. `1990-01-01 09:30 Nam`.
 
 ---
 
+## 2.9 Replacement surfaces (dev flags, Stage 0)
+
+The replacement desktop and TUI ship behind dev flags (`?surface=next`,
+`amlich tui --next`) until cutover Stage 1 (`docs/surface-replacement-cutover.md`
+§6–§7). Rows accumulate per slice (`docs/surface-replacement-slices.md` §4);
+run them with `just dev` + `http://localhost:1420/?surface=next` and
+`cargo run --package amlich-cli -- tui --next`.
+
+### S1 — Anonymous Today (`amlich-b14l.7`)
+
+- [ ] Desktop + TUI open on today, now: calendar identity (solar/lunar with leap-month
+      marker, Can Chi, Tiết Khí), anonymous Day Pattern, current hour, Evidence Coverage.
+- [ ] Stepping a day and returning to today keeps every section coherent; no universal
+      verdict appears anywhere.
+
+### S2 — Navigate & Hours (`amlich-b14l.8`)
+
+- [ ] Desktop: prev/next/today and jump-to-date (`G` or the date input) navigate; the
+      month grid browses months (`‹ ›`), marks today and the selected date, and labels
+      leap lunar months (`6n`). Selection state survives navigation.
+- [ ] Desktop: clicking (or `↑`/`↓`) an hour selects it — "đang chọn" is distinct from
+      "đang diễn ra"; the hour detail shows the Hoàng Đạo/Hắc Đạo classification, the
+      ruling star, and hour-context reasons; the date header does not move.
+- [ ] TUI: `[`/`]`/`t` and `/` search (`YYYY-MM-DD` or `DD/MM/YYYY`) navigate; invalid
+      search shows an error inside the overlay.
+- [ ] TUI: `h` opens the Hours drill-down; `j`/`k` move the cursor, `Enter` commits the
+      Selected Hour, `Esc` returns to Today with the selection retained; the detail pane
+      shows classification, ruling star, and reasons; the anchor date is unchanged.
+- [ ] Both surfaces: Notable Hours are labeled as notable, never ranked or scored.
+
+---
+
 ## 3. Known follow-ups (not blockers for this gate)
 
 | Issue | Note |
