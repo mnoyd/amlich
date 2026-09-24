@@ -80,6 +80,14 @@ _Avoid_: implicit device location, global direction score
 The planned complete replacement of the current desktop app and TUI presentation layers. It preserves the stable core and API contracts while changing the product model, navigation, and rendering; the legacy surfaces remain available only as reference and rollback during migration.
 _Avoid_: core rewrite, incremental cosmetic refresh
 
+**Vertical Slice**:
+One end-to-end tracer bullet of the Surface Replacement: an additive shared-model projection in `amlich-api`, rendered by both replacement surfaces behind dev flags, and locked by contract tests with golden fixtures. A slice closes only when its workflow is demonstrated on both desktop and TUI with every compatibility gate green.
+_Avoid_: module-sized work package, surface-only feature, permanently-open epic
+
+**Day View Model**:
+The versioned, pure projection in `amlich-api` that shapes existing API outputs into the shared Daily Workspace structure — calendar identity, Day Pattern groups, Hour Timeline summary, Evidence Coverage, and their drill-down states. Both surfaces render it; neither may extend it with surface-local assessment math.
+_Avoid_: new engine, DTO fork per surface, presentation-layer recomputation
+
 **Evidence Depth**:
 The deliberate progression from a daily state to its reasons, source provenance, caveats, and missing evidence. Expert detail is available on demand rather than presented as the default wall of data.
 _Avoid_: raw score, debug dump
