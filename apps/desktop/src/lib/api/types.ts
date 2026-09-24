@@ -1693,6 +1693,90 @@ export interface DayBundleDto extends ApiMetaDto {
     upcoming_events: UpcomingEventDto[];
 }
 
+// Day View Model v1 — the shared replacement-surface projection
+// (amlich-b14l.7, docs/surface-replacement-slices.md S1). Pure projection of
+// amlich-api outputs; surfaces render it and never recompute assessment math.
+export type DayViewPatternItemKindDto = 'support' | 'constraint' | 'unknown';
+export type DayViewSignalSourceDto =
+    | 'hoang_dao_hours'
+    | 'truc'
+    | 'cat_tinh'
+    | 'sat_tinh'
+    | 'day_deity'
+    | 'day_conflict'
+    | 'taboo'
+    | 'personal_context';
+
+export interface DayViewPatternItemDto {
+    kind: DayViewPatternItemKindDto;
+    title: string;
+    reason: string;
+    source: DayViewSignalSourceDto;
+}
+
+export interface DayViewPatternDto {
+    supports: DayViewPatternItemDto[];
+    constraints: DayViewPatternItemDto[];
+    unknowns: DayViewPatternItemDto[];
+}
+
+export interface DayViewHourDto {
+    hour_index: number;
+    chi: string;
+    time_range: string;
+    star: string;
+    is_hoang_dao: boolean;
+    is_notable: boolean;
+    notable_reason?: string | null;
+    is_current: boolean;
+}
+
+export interface DayViewHourTimelineDto {
+    hours: DayViewHourDto[];
+    current_hour_index?: number | null;
+    notable_count: number;
+}
+
+export type DayViewCoverageFamilyDto =
+    | 'canchi'
+    | 'tiet_khi'
+    | 'truc'
+    | 'stars'
+    | 'day_deity'
+    | 'taboos'
+    | 'day_conflict'
+    | 'hoang_dao_hours'
+    | 'day_element'
+    | 'recommendations'
+    | 'intent'
+    | 'birth_profile'
+    | 'location';
+
+export type DayViewCoverageStateDto = 'present' | 'unknown' | 'pending';
+
+export interface DayViewCoverageEntryDto {
+    family: DayViewCoverageFamilyDto;
+    state: DayViewCoverageStateDto;
+}
+
+export interface DayViewCoverageDto {
+    entries: DayViewCoverageEntryDto[];
+    present_count: number;
+    unknown_count: number;
+    pending_count: number;
+}
+
+export interface DayViewDto {
+    schema_version: string;
+    solar: SolarDateDto;
+    lunar: LunarDateDto;
+    canchi: CanChiInfoDto;
+    tiet_khi: TietKhiDto;
+    pattern: DayViewPatternDto;
+    hours: DayViewHourTimelineDto;
+    coverage: DayViewCoverageDto;
+}
+
 // Canonical v1.7 snapshot surfaces exposed by the desktop command. These
 // mirror amlich-core's IChingCastSummary and DirectionCrossLinkSummary without
 // recomputing or renaming evidence.

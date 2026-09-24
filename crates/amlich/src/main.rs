@@ -57,6 +57,10 @@ struct TuiArgs {
     /// Start TUI focused on a specific date in YYYY-MM-DD format
     #[arg(long, value_name = "DATE")]
     date: Option<String>,
+
+    /// Replacement Day View surface (amlich-b14l.7); legacy screens stay the default
+    #[arg(long)]
+    next: bool,
 }
 
 #[derive(Clone, Copy, Debug, ValueEnum)]
@@ -654,7 +658,11 @@ fn run(cli: Cli) -> Result<(), String> {
     match cli.command {
         Some(Command::Tui(args)) => {
             let date = args.date.as_deref().map(parse_date).transpose()?;
-            plain::run(date)?;
+            if args.next {
+                amlich_tui::next_day_view::run_next_day_view(date)?;
+            } else {
+                plain::run(date)?;
+            }
         }
         Some(Command::Day(args)) => run_day(args)?,
         Some(Command::Range(args)) => run_range(args)?,

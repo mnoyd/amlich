@@ -9,6 +9,7 @@ use amlich_api::v2::{
 use amlich_api::{
     get_bazi_derived_report as api_get_bazi_derived_report, get_bazi_report as api_get_bazi_report,
     get_day_info_for_date, get_day_insight_for_date,
+    get_day_view_for_date as api_get_day_view_for_date,
     get_debug_semantic_graph_inspection as api_get_debug_semantic_graph_inspection, get_holidays,
     get_hour_selection_report as api_get_hour_selection_report,
     get_hour_selection_report_full_profile_v2_4 as api_get_hour_selection_report_full_profile_v2_4,
@@ -16,7 +17,7 @@ use amlich_api::{
     get_personal_day_report as api_get_personal_day_report,
     get_recommendation_pack_catalog as api_get_recommendation_pack_catalog,
     get_ruleset_catalog as api_get_ruleset_catalog, BaziDerivedReportDto, BaziQuery, BaziReportDto,
-    DateQuery, DayInfoDto, DayInsightDto, DebugSemanticGraphQueryDto,
+    DateQuery, DayInfoDto, DayInsightDto, DayViewDto, DebugSemanticGraphQueryDto,
     DebugSemanticGraphResponseDto, HolidayDto, HourSelectionReportDto, PersonalDayMatrixReportDto,
     PersonalDayReportDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto,
 };
@@ -256,6 +257,17 @@ fn get_day_info(day: i32, month: i32, year: i32) -> Result<DayInfoDto, String> {
 fn get_day_bundle(day: i32, month: i32, year: i32) -> Result<DayBundleDto, String> {
     validate_date_parts(day, month)?;
     get_day_bundle_for_date(day, month, year, &[], None)
+}
+
+#[tauri::command]
+fn get_day_view(
+    day: i32,
+    month: i32,
+    year: i32,
+    current_chi_index: Option<usize>,
+) -> Result<DayViewDto, String> {
+    validate_date_parts(day, month)?;
+    api_get_day_view_for_date(day, month, year, current_chi_index)
 }
 
 #[tauri::command]
@@ -626,6 +638,7 @@ pub fn run() {
             get_day_insight,
             get_day_info,
             get_day_bundle,
+            get_day_view,
             get_classical_surface,
             get_day_range,
             get_bazi_report,
@@ -788,6 +801,25 @@ mod tests {
         assert!(get_day_detail(32, 2, 2024).is_err());
         assert!(get_day_detail(10, 0, 2024).is_err());
         assert!(get_day_detail(10, 13, 2024).is_err());
+    }
+
+    #[test]
+    fn get_day_view_command_returns_the_projection() {
+        let view = get_day_view(10, 2, 2024, Some(3)).expect("day view");
+
+        assert_eq!(view.schema_version, "day-view-v1");
+        assert_eq!(view.solar.year, 2024);
+        assert_eq!(view.hours.current_hour_index, Some(3));
+        assert!(
+            view.hours
+                .hours
+                .iter()
+                .filter(|hour| hour.is_current)
+                .count()
+                == 1
+        );
+        assert_eq!(view.pattern.unknowns.len(), 3);
+        assert!(get_day_view(0, 2, 2024, None).is_err());
     }
 
     #[test]

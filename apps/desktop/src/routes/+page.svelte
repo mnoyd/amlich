@@ -13,9 +13,12 @@
   import SeasonTimeline from '$lib/components/workspaces/SeasonTimeline.svelte';
   import DailyWorkspacePrototype from '$lib/components/prototype/DailyWorkspacePrototype.svelte';
   import InfluenceExplorerPrototype from '$lib/components/prototype/InfluenceExplorerPrototype.svelte';
-  
+  import NextDayView from '$lib/components/next/NextDayView.svelte';
+
   import { activeWorkspace } from '$lib/stores';
 
+  // REPLACEMENT S1 (amlich-b14l.7): live Day View Model behind ?surface=next, dev only.
+  $: nextSurface = dev && $page.url.searchParams.get('surface') === 'next';
   // PROTOTYPE: Three daily-workspace IA variants on the existing route, switchable via ?variant=.
   $: requestedVariant = $page.url.searchParams.get('variant')?.toUpperCase() ?? null;
   $: prototypeVariant = dev && requestedVariant && ['A', 'B', 'C'].includes(requestedVariant)
@@ -25,7 +28,9 @@
   $: influenceView = $page.url.searchParams.get('view')?.toLowerCase() ?? 'graph';
 </script>
 
-{#if prototypeMode}
+{#if nextSurface}
+  <NextDayView />
+{:else if prototypeMode}
   <InfluenceExplorerPrototype view={influenceView} />
 {:else if prototypeVariant}
   <DailyWorkspacePrototype variant={prototypeVariant} />

@@ -1,0 +1,318 @@
+{
+  "schema_version": "day-view-v1",
+  "solar": {
+    "day": 10,
+    "month": 2,
+    "year": 2024,
+    "day_of_week": 6,
+    "day_of_week_name": "Thứ Bảy",
+    "date_string": "2024-02-10"
+  },
+  "lunar": {
+    "day": 1,
+    "month": 1,
+    "year": 2024,
+    "is_leap_month": false,
+    "date_string": "1/1/2024"
+  },
+  "canchi": {
+    "day": {
+      "can_index": 0,
+      "chi_index": 4,
+      "can": "Giáp",
+      "chi": "Thìn",
+      "full": "Giáp Thìn",
+      "con_giap": "Thìn (Rồng)",
+      "ngu_hanh": {
+        "can": "Mộc",
+        "chi": "Thổ"
+      }
+    },
+    "month": {
+      "can_index": 2,
+      "chi_index": 2,
+      "can": "Bính",
+      "chi": "Dần",
+      "full": "Bính Dần",
+      "con_giap": "Dần (Hổ)",
+      "ngu_hanh": {
+        "can": "Hỏa",
+        "chi": "Mộc"
+      }
+    },
+    "year": {
+      "can_index": 0,
+      "chi_index": 4,
+      "can": "Giáp",
+      "chi": "Thìn",
+      "full": "Giáp Thìn",
+      "con_giap": "Thìn (Rồng)",
+      "ngu_hanh": {
+        "can": "Mộc",
+        "chi": "Thổ"
+      }
+    },
+    "full": "Giáp Thìn, tháng Bính Dần, năm Giáp Thìn"
+  },
+  "tiet_khi": {
+    "index": 21,
+    "name": "Lập Xuân",
+    "description": "Start of Spring (Lập Xuân)",
+    "longitude": 315,
+    "current_longitude": 320.44,
+    "season": "Đông (Winter)"
+  },
+  "pattern": {
+    "supports": [
+      {
+        "kind": "support",
+        "title": "Giờ Hoàng Đạo",
+        "reason": "Ngày chi Thìn có 6 giờ Hoàng Đạo theo truyền thống: Dần, Thìn, Tỵ, Thân, Dậu, Hợi.",
+        "source": "hoang_dao_hours"
+      },
+      {
+        "kind": "support",
+        "title": "Cát tinh",
+        "reason": "Các sao được ghi nhận là cát: Bạch Hổ, Thiên Quý.",
+        "source": "cat_tinh"
+      },
+      {
+        "kind": "support",
+        "title": "Ngày Kim Quỹ (Hoàng Đạo)",
+        "reason": "Ngày Kim Quỹ được xếp vào nhóm hoang_dao theo truyền thống.",
+        "source": "day_deity"
+      }
+    ],
+    "constraints": [
+      {
+        "kind": "constraint",
+        "title": "Trực Mãn",
+        "reason": "Trực Mãn được phân loại 'hung' theo nguồn truyền thống.",
+        "source": "truc"
+      },
+      {
+        "kind": "constraint",
+        "title": "Sát tinh",
+        "reason": "Các sao được ghi nhận là hung: Phúc Sinh, Tiểu Hao.",
+        "source": "sat_tinh"
+      },
+      {
+        "kind": "constraint",
+        "title": "Xung chi Tuất",
+        "reason": "Chi ngày xung với chi Tuất theo lục xung. Tuổi xung: Giáp Tuất, Tuất (Chó).",
+        "source": "day_conflict"
+      },
+      {
+        "kind": "constraint",
+        "title": "Thọ Tử",
+        "reason": "Chi ngày Thìn trùng chi Thọ Tử của tháng âm lịch 1",
+        "source": "taboo"
+      }
+    ],
+    "unknowns": [
+      {
+        "kind": "unknown",
+        "title": "Chưa có mục đích",
+        "reason": "Tổng quan ngày là ẩn danh; thêm mục đích để mở Đánh giá Ngày.",
+        "source": "personal_context"
+      },
+      {
+        "kind": "unknown",
+        "title": "Chưa có hồ sơ sinh",
+        "reason": "Tương thích cá nhân với ngày chưa được xét.",
+        "source": "personal_context"
+      },
+      {
+        "kind": "unknown",
+        "title": "Chưa có vị trí",
+        "reason": "Chứng cứ phụ thuộc vị trí chưa khả dụng.",
+        "source": "personal_context"
+      }
+    ]
+  },
+  "hours": {
+    "hours": [
+      {
+        "hour_index": 0,
+        "chi": "Tý",
+        "time_range": "23:00-01:00",
+        "star": "Thiên Lao",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 1,
+        "chi": "Sửu",
+        "time_range": "01:00-03:00",
+        "star": "Nguyên Vũ",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 2,
+        "chi": "Dần",
+        "time_range": "03:00-05:00",
+        "star": "Tư Mệnh",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Tư Mệnh (Hoàng Đạo).",
+        "is_current": false
+      },
+      {
+        "hour_index": 3,
+        "chi": "Mão",
+        "time_range": "05:00-07:00",
+        "star": "Câu Trận",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 4,
+        "chi": "Thìn",
+        "time_range": "07:00-09:00",
+        "star": "Thanh Long",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Thanh Long (Hoàng Đạo).",
+        "is_current": false
+      },
+      {
+        "hour_index": 5,
+        "chi": "Tỵ",
+        "time_range": "09:00-11:00",
+        "star": "Minh Đường",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Minh Đường (Hoàng Đạo).",
+        "is_current": false
+      },
+      {
+        "hour_index": 6,
+        "chi": "Ngọ",
+        "time_range": "11:00-13:00",
+        "star": "Thiên Hình",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 7,
+        "chi": "Mùi",
+        "time_range": "13:00-15:00",
+        "star": "Chu Tước",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 8,
+        "chi": "Thân",
+        "time_range": "15:00-17:00",
+        "star": "Kim Quỹ",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Kim Quỹ (Hoàng Đạo).",
+        "is_current": false
+      },
+      {
+        "hour_index": 9,
+        "chi": "Dậu",
+        "time_range": "17:00-19:00",
+        "star": "Bảo Quang",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Bảo Quang (Hoàng Đạo).",
+        "is_current": false
+      },
+      {
+        "hour_index": 10,
+        "chi": "Tuất",
+        "time_range": "19:00-21:00",
+        "star": "Bạch Hổ",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 11,
+        "chi": "Hợi",
+        "time_range": "21:00-23:00",
+        "star": "Ngọc Đường",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Ngọc Đường (Hoàng Đạo).",
+        "is_current": false
+      }
+    ],
+    "current_hour_index": null,
+    "notable_count": 6
+  },
+  "coverage": {
+    "entries": [
+      {
+        "family": "canchi",
+        "state": "present"
+      },
+      {
+        "family": "tiet_khi",
+        "state": "present"
+      },
+      {
+        "family": "truc",
+        "state": "present"
+      },
+      {
+        "family": "stars",
+        "state": "present"
+      },
+      {
+        "family": "day_deity",
+        "state": "present"
+      },
+      {
+        "family": "taboos",
+        "state": "present"
+      },
+      {
+        "family": "day_conflict",
+        "state": "present"
+      },
+      {
+        "family": "day_element",
+        "state": "present"
+      },
+      {
+        "family": "hoang_dao_hours",
+        "state": "present"
+      },
+      {
+        "family": "recommendations",
+        "state": "present"
+      },
+      {
+        "family": "intent",
+        "state": "unknown"
+      },
+      {
+        "family": "birth_profile",
+        "state": "unknown"
+      },
+      {
+        "family": "location",
+        "state": "unknown"
+      }
+    ],
+    "present_count": 10,
+    "unknown_count": 3,
+    "pending_count": 0
+  }
+}

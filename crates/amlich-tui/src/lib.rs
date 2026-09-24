@@ -1,5 +1,6 @@
 pub mod events;
 pub mod layout;
+pub mod next_day_view;
 pub mod state;
 pub mod theme;
 pub mod view_models;
