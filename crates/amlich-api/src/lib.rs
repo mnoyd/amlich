@@ -19,11 +19,15 @@ use amlich_core::insight_data::{
 };
 
 pub use day_view::{
-    current_chi_index_from_hour, get_day_view, get_day_view_for_date, get_day_view_month,
-    DayViewCoverageDto, DayViewCoverageEntryDto, DayViewCoverageFamilyDto, DayViewCoverageStateDto,
-    DayViewDto, DayViewHourDetailDto, DayViewHourDto, DayViewHourTimelineDto, DayViewMonthCellDto,
+    current_chi_index_from_hour, day_view_intent_label, get_day_view,
+    get_day_view_enriched_for_date, get_day_view_for_date, get_day_view_month,
+    DayViewAssessmentConfidenceDto, DayViewAssessmentDto, DayViewAssessmentReasonDto,
+    DayViewAssessmentResultDto, DayViewCoverageDto, DayViewCoverageEntryDto,
+    DayViewCoverageFamilyDto, DayViewCoverageStateDto, DayViewDto, DayViewEnrichmentLayerDto,
+    DayViewHourDetailDto, DayViewHourDto, DayViewHourTimelineDto, DayViewMonthCellDto,
     DayViewMonthDto, DayViewPatternDto, DayViewPatternItemDto, DayViewPatternItemKindDto,
-    DayViewSignalSourceDto, DAY_VIEW_MONTH_SCHEMA_VERSION, DAY_VIEW_SCHEMA_VERSION,
+    DayViewPersonalContextInput, DayViewSignalSourceDto, DAY_VIEW_INTENTS,
+    DAY_VIEW_MONTH_SCHEMA_VERSION, DAY_VIEW_SCHEMA_VERSION,
 };
 pub use dto::*;
 pub use dto::{NaAmErrorDto, NaAmLookupResultDto, NaAmResponseDto};
@@ -1037,7 +1041,7 @@ fn personal_birth_input_full(
     })
 }
 
-fn parse_gender(gender: &str) -> Option<amlich_core::almanac::tu_menh::Gender> {
+pub(crate) fn parse_gender(gender: &str) -> Option<amlich_core::almanac::tu_menh::Gender> {
     match gender.to_lowercase().as_str() {
         "male" | "nam" => Some(amlich_core::almanac::tu_menh::Gender::Male),
         "female" | "nữ" | "nu" => Some(amlich_core::almanac::tu_menh::Gender::Female),
@@ -1604,7 +1608,7 @@ fn build_personal_birth_profile(
 /// supplied intent. Single seam so every surface consumes the same
 /// snapshot bytes — used by `get_personal_day_report` to dedupe the
 /// ~9x rebuilds that previously happened along the request path.
-fn build_personal_day_snapshot(
+pub(crate) fn build_personal_day_snapshot(
     query: &DateQuery,
     intent: amlich_core::ConsultationIntent,
 ) -> Result<amlich_core::DaySnapshot, String> {

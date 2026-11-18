@@ -3,7 +3,8 @@
   import type {
     DayViewDto,
     DayViewMonthDto,
-    DayViewPatternItemDto
+    DayViewPatternItemDto,
+    DayViewPersonalContextInput
   } from '$lib/api/types';
 
   let view: DayViewDto | null = null;
@@ -14,6 +15,28 @@
   let selectedHour: number | null = null;
   let showGrid = true;
   let jumpInput: HTMLInputElement | null = null;
+
+  // S3 (`amlich-b14l.9`): Personal Context — Progressive Enrichment over
+  // the same Day View. Intent is the gate; birth profile and location are
+  // optional layers that make their changes explicit.
+  let showContext = false;
+  let intent = '';
+  let birthDate = '';
+  let birthTime = '';
+  let gender = '';
+  let location = '';
+
+  const INTENTS: { key: string; label: string }[] = [
+    { key: 'wedding', label: 'Cưới hỏi' },
+    { key: 'moving_house', label: 'Chuyển nhà' },
+    { key: 'opening_business', label: 'Khai trương' },
+    { key: 'contract_signing', label: 'Ký kết hợp đồng' },
+    { key: 'travel', label: 'Xuất hành' },
+    { key: 'burial', label: 'An táng' },
+    { key: 'renovation', label: 'Tu tạo' },
+    { key: 'medical_checkup', label: 'Khám bệnh' },
+    { key: 'prayer', label: 'Cầu nguyện' }
+  ];
 
   const WEEKDAYS = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
 
@@ -30,10 +53,35 @@
     return Math.floor(((date.getHours() + 1) % 24) / 2);
   }
 
+  /** S3: build the Personal Context input from the form. No intent →
+   * `null` → the anonymous non-verdict view. */
+  function personalContext(): DayViewPersonalContextInput | null {
+    if (!intent) return null;
+    const [by, bm, bd] = birthDate ? birthDate.split('-').map(Number) : [];
+    const [bh, bmin] = birthTime ? birthTime.split(':').map(Number) : [];
+    return {
+      intent,
+      birth_year: bd ? by : null,
+      birth_month: bd ? bm : null,
+      birth_day: bd ? bd : null,
+      birth_hour: bmin !== undefined ? bh : null,
+      birth_minute: bmin !== undefined ? bmin : null,
+      gender: gender || null,
+      location_name: location.trim() || null
+    };
+  }
+
   async function load() {
     error = null;
     try {
-      view = await fetchDayView(day, month, year, currentChiIndex(new Date()), selectedHour);
+      view = await fetchDayView(
+        day,
+        month,
+        year,
+        currentChiIndex(new Date()),
+        selectedHour,
+        personalContext()
+      );
     } catch (e) {
       error = e instanceof Error ? e.message : String(e);
     }
@@ -85,9 +133,13 @@
       jumpInput?.focus();
       jumpInput?.showPicker?.();
     } else if (event.key === 'm' || event.key === 'M') showGrid = !showGrid;
+    else if (event.key === 'p' || event.key === 'P') {
+      event.preventDefault();
+      showContext = !showContext;
+    }
   }
 
-  $: day, month, year, load();
+  $: day, month, year, intent, birthDate, birthTime, gender, location, load();
   $: month, year, day, loadMonth();
 
   const patternGroups: { key: 'supports' | 'constraints' | 'unknowns'; label: string }[] = [
@@ -291,6 +343,152 @@
             {/if}
           </section>
 
+          <section class="mb-6">
+            <button
+              class="flex w-full items-center justify-between rounded border border-ink-border bg-white px-3 py-2 text-left hover:bg-parchment-dark"
+              aria-expanded={showContext}
+              on:click={() => (showContext = !showContext)}
+            >
+              <span class="font-mono text-xs uppercase tracking-widest text-ink-light">
+                Bối cảnh cá nhân · bổ sung tầng, tổng quan ẩn danh giữ nguyên
+              </span>
+              <span class="text-xs text-ink-light">{showContext ? '▾' : '▸'} P</span>
+            </button>
+            {#if showContext}
+              <div class="mt-2 grid grid-cols-1 gap-3 rounded border border-ink-border bg-white p-3 md:grid-cols-2">
+                <label class="text-xs">
+                  Mục đích (bắt buộc để mở Đánh giá Ngày)
+                  <select
+                    class="mt-1 w-full rounded border border-ink-border bg-white px-2 py-1 text-sm"
+                    bind:value={intent}
+                  >
+                    <option value="">— chưa chọn —</option>
+                    {#each INTENTS as item (item.key)}
+                      <option value={item.key}>{item.label}</option>
+                    {/each}
+                  </select>
+                </label>
+                <label class="text-xs">
+                  Ngày sinh
+                  <input
+                    class="mt-1 w-full rounded border border-ink-border bg-white px-2 py-1 text-sm"
+                    type="date"
+                    bind:value={birthDate}
+                  />
+                </label>
+                <label class="text-xs">
+                  Giờ sinh (tùy chọn)
+                  <input
+                    class="mt-1 w-full rounded border border-ink-border bg-white px-2 py-1 text-sm"
+                    type="time"
+                    bind:value={birthTime}
+                  />
+                </label>
+                <label class="text-xs">
+                  Giới tính
+                  <select
+                    class="mt-1 w-full rounded border border-ink-border bg-white px-2 py-1 text-sm"
+                    bind:value={gender}
+                  >
+                    <option value="">— chưa chọn —</option>
+                    <option value="nam">Nam</option>
+                    <option value="nữ">Nữ</option>
+                  </select>
+                </label>
+                <label class="text-xs md:col-span-2">
+                  Vị trí (tùy chọn)
+                  <input
+                    class="mt-1 w-full rounded border border-ink-border bg-white px-2 py-1 text-sm"
+                    type="text"
+                    placeholder="ví dụ: Hà Nội"
+                    bind:value={location}
+                  />
+                </label>
+              </div>
+            {/if}
+          </section>
+
+          {#if view.assessment}
+            {@const assessment = view.assessment}
+            <section class="mb-6">
+              <p class="mb-2 font-mono text-xs uppercase tracking-widest text-ink-light">
+                Đánh giá Ngày · theo mục đích {assessment.intent_label}, không phải phán quyết
+                phổ quát
+              </p>
+              <article class="rounded border border-ink bg-white p-3">
+                <header class="mb-2 flex flex-wrap items-center gap-2">
+                  <span
+                    class={`rounded-full px-3 py-1 text-sm font-bold ${
+                      assessment.result.bucket === 'favorable'
+                        ? 'bg-nen/20'
+                        : assessment.result.bucket === 'avoid'
+                          ? 'bg-tranh/20'
+                          : 'bg-parchment-dark'
+                    }`}
+                  >
+                    {assessment.result.bucket_label}
+                  </span>
+                  <span class="text-xs text-ink-light">
+                    độ tin cậy đánh giá: {assessment.confidence.level_label} · mức phủ input, không
+                    phải xác suất
+                  </span>
+                </header>
+                <p class="mb-3 text-sm">{assessment.result.primary_conclusion}</p>
+
+                <div class="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                  <div>
+                    <h4 class="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-light">
+                      Lý do ({assessment.reasons.length})
+                    </h4>
+                    <ul class="list-inside list-disc space-y-1 text-xs text-ink-light">
+                      {#each assessment.reasons as reason (reason.text)}
+                        <li>{reason.text}</li>
+                      {/each}
+                    </ul>
+                    <h4 class="mb-1 mt-3 text-xs font-semibold uppercase tracking-wide text-ink-light">
+                      Vì sao độ tin cậy ở mức này
+                    </h4>
+                    <ul class="list-inside list-disc space-y-1 text-xs text-ink-light">
+                      {#each assessment.confidence.reasons as reason (reason)}
+                        <li>{reason}</li>
+                      {/each}
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 class="mb-1 text-xs font-semibold uppercase tracking-wide text-ink-light">
+                      Tầng bổ sung · mỗi tầng nêu rõ thay đổi
+                    </h4>
+                    <ol class="space-y-2 text-xs">
+                      {#each assessment.layers as layer, index (layer.layer)}
+                        <li class="rounded border border-ink-border p-2">
+                          <b>{index + 1}. {layer.layer_label}</b>
+                          <span class={`ml-1 ${layer.applied ? 'text-nen' : 'text-cothe'}`}>
+                            {layer.applied ? '✓ đã bổ sung' : '○ chưa bổ sung'}
+                          </span>
+                          <p class="text-ink-light">{layer.summary}</p>
+                          <ul class="mt-1 list-inside list-disc text-ink-light">
+                            {#each layer.changes as change (change)}
+                              <li>{change}</li>
+                            {/each}
+                          </ul>
+                        </li>
+                      {/each}
+                    </ol>
+                    {#if assessment.unknowns.length > 0}
+                      <p class="mt-2 text-xs italic text-cothe">
+                        Còn chưa biết: {assessment.unknowns.map((u) => u.title).join(', ')}.
+                      </p>
+                    {/if}
+                  </div>
+                </div>
+              </article>
+            </section>
+          {:else if intent}
+            <p class="mb-6 text-xs italic text-ink-light">
+              Chọn mục đích hợp lệ để mở Đánh giá Ngày.
+            </p>
+          {/if}
+
           <section>
             <p class="mb-2 font-mono text-xs uppercase tracking-widest text-ink-light">
               Phủ chứng cứ · mức độ sẵn có, không phải độ chắc chắn
@@ -376,6 +574,7 @@
   </main>
 
   <footer class="border-t border-ink-border px-6 py-2 font-mono text-[10px] text-ink-light">
-    ← / → đổi ngày · ↑ / ↓ chọn giờ · T về hôm nay · G đến ngày · M lưới tháng · day-view {view?.schema_version}
+    ← / → đổi ngày · ↑ / ↓ chọn giờ · T về hôm nay · G đến ngày · M lưới tháng · P bối cảnh cá nhân ·
+    day-view {view?.schema_version}
   </footer>
 </div>

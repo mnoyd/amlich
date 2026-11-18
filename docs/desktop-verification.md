@@ -202,6 +202,30 @@ run them with `just dev` + `http://localhost:1420/?surface=next` and
       shows classification, ruling star, and reasons; the anchor date is unchanged.
 - [ ] Both surfaces: Notable Hours are labeled as notable, never ranked or scored.
 
+### S3 — Assessment on demand (`amlich-b14l.9`)
+
+- [ ] Desktop: `P` (or the panel button) opens Bối cảnh cá nhân; choosing an Intent
+      (e.g. Khai trương) opens the Đánh giá Ngày section — Result badge, primary
+      conclusion, Reasons with sources, Assessment Confidence (labeled as input
+      coverage, not probability), and the three enrichment layers with explicit
+      changes; the anonymous overview, Day Pattern, and hour strip do not move.
+- [ ] Desktop: entering the sample profile `1990-01-01` + `09:30` + Nam flips the
+      Hồ sơ sinh coverage chip to ✓ and the layer to "đã bổ sung"; only
+      "Chưa có vị trí" remains in Chưa biết; adding a location resolves the last
+      unknown; clearing the Intent returns the anonymous non-verdict view.
+- [ ] Desktop: Evidence Coverage chips for Mục đích / Hồ sơ sinh / Vị trí track the
+      supplied layers exactly.
+- [ ] TUI: `p` opens the Bối cảnh cá nhân overlay; `←`/`→` pick the Intent,
+      `Tab`/`j`/`k` move rows, typing edits Hồ sơ sinh (`YYYY-MM-DD [HH:MM] [nam|nữ]`)
+      and Vị trí; `Enter` commits, `Esc` cancels without losing the committed context.
+- [ ] TUI: with the sample profile `1990-01-01 09:30 nam` committed, the Today view
+      renders the Đánh giá Ngày block — Kết quả, độ tin cậy, the layer ladder
+      (✓/○ with per-layer changes), and Reasons; the anonymous sections still render.
+- [ ] TUI: invalid birth input (e.g. `xấu`) keeps the overlay open with an explicit
+      error and does not commit.
+- [ ] Both surfaces: no universal verdict — the assessment always names its Intent,
+      and the anonymous view never grows an assessment block.
+
 ---
 
 ## 3. Known follow-ups (not blockers for this gate)

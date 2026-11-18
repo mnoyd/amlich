@@ -1,9 +1,12 @@
-//! Replacement TUI surface (`amlich-b14l.7` S1, `amlich-b14l.8` S2):
-//! the anonymous Today anchor rendered from the Day View Model, plus the
-//! Navigate & Hours loop — `[`/`]`/`t`/`/` date navigation with search,
-//! and the `h` Hours drill-down where a Selected Hour updates
-//! time-dependent context without moving the date anchor. Legacy surfaces
-//! are untouched; this entry is opt-in via `amlich tui --next`.
+//! Replacement TUI surface (`amlich-b14l.7` S1, `amlich-b14l.8` S2,
+//! `amlich-b14l.9` S3): the anonymous Today anchor rendered from the Day
+//! View Model, the Navigate & Hours loop — `[`/`]`/`t`/`/` date navigation
+//! with search, and the `h` Hours drill-down where a Selected Hour updates
+//! time-dependent context without moving the date anchor — plus the `p`
+//! Personal Context overlay whose committed Intent [+ Birth Profile]
+//! [+ Location] renders the Day Assessment (Result + Reasons + Assessment
+//! Confidence) with explicit enrichment layers. Legacy surfaces are
+//! untouched; this entry is opt-in via `amlich tui --next`.
 //!
 //! Keyboard map follows the `amlich-b14l.4` resolution: global keys are
 //! `[`/`]` previous/next date, `t` today, `/` date search, `?` help,
@@ -28,7 +31,10 @@ use ratatui::{
     Frame, Terminal,
 };
 
-use amlich_api::{get_day_view_for_date, DayViewDto, DayViewHourDetailDto, DayViewPatternItemDto};
+use amlich_api::{
+    get_day_view_enriched_for_date, get_day_view_for_date, DayViewAssessmentDto, DayViewDto,
+    DayViewHourDetailDto, DayViewPatternItemDto, DayViewPersonalContextInput, DAY_VIEW_INTENTS,
+};
 
 use crate::theme::Theme;
 
@@ -52,6 +58,93 @@ enum Overlay {
     None,
     Search,
     Help,
+    /// S3 (`amlich-b14l.9`): Personal Context editor — Progressive
+    /// Enrichment (Intent [+ Birth Profile][+ Location]).
+    Personal,
+}
+
+/// Editing state of the Personal Context overlay. Edits are draft until
+/// `Enter` commits them to the App's committed context.
+#[derive(Clone, Debug, Default)]
+struct PersonalForm {
+    /// 0 = no intent; otherwise 1-based index into [`DAY_VIEW_INTENTS`].
+    intent: usize,
+    birth: String,
+    location: String,
+    /// Active row inside the overlay: 0 intent · 1 birth · 2 location.
+    row: usize,
+    error: Option<String>,
+}
+
+impl PersonalForm {
+    fn intent_key(&self) -> Option<&'static str> {
+        if self.intent == 0 {
+            None
+        } else {
+            Some(DAY_VIEW_INTENTS[self.intent - 1].0)
+        }
+    }
+
+    fn intent_label(&self) -> String {
+        match self.intent_key() {
+            Some(_) => DAY_VIEW_INTENTS[self.intent - 1].1.to_string(),
+            None => "— chưa chọn —".to_string(),
+        }
+    }
+
+    /// Parse the draft into a committed context. Empty intent → anonymous
+    /// (`None`); malformed birth input keeps the overlay open with an
+    /// explicit error.
+    fn build_context(&self) -> Result<Option<DayViewPersonalContextInput>, String> {
+        let intent = self.intent_key().map(str::to_string);
+        let mut context = DayViewPersonalContextInput {
+            intent,
+            ..Default::default()
+        };
+        let birth = self.birth.trim();
+        if !birth.is_empty() {
+            let mut parts = birth.split_whitespace();
+            let date = parts.next().unwrap_or_default();
+            let parsed = parse_search(date).ok_or_else(|| {
+                format!("không hiểu ngày sinh '{date}' (YYYY-MM-DD hoặc DD/MM/YYYY)")
+            })?;
+            context.birth_year = Some(parsed.year());
+            context.birth_month = Some(parsed.month() as i32);
+            context.birth_day = Some(parsed.day() as i32);
+            if let Some(time) = parts.next() {
+                let (hour, minute) = time
+                    .split_once(':')
+                    .ok_or_else(|| format!("không hiểu giờ sinh '{time}' (HH:MM)"))?;
+                let hour: u8 = hour
+                    .parse()
+                    .map_err(|_| format!("giờ không hợp lệ '{hour}'"))?;
+                let minute: u8 = minute
+                    .parse()
+                    .map_err(|_| format!("phút không hợp lệ '{minute}'"))?;
+                if hour > 23 || minute > 59 {
+                    return Err(format!("giờ sinh ngoài phạm vi {time}"));
+                }
+                context.birth_hour = Some(hour);
+                context.birth_minute = Some(minute);
+            }
+            if let Some(gender) = parts.next() {
+                match gender.to_lowercase().as_str() {
+                    "nam" | "male" | "nữ" | "nu" | "female" => {
+                        context.gender = Some(gender.to_string());
+                    }
+                    other => return Err(format!("không hiểu giới tính '{other}' (nam/nữ)")),
+                }
+            }
+        }
+        let location = self.location.trim();
+        if !location.is_empty() {
+            context.location_name = Some(location.to_string());
+        }
+        if context.intent.is_none() {
+            return Ok(None);
+        }
+        Ok(Some(context))
+    }
 }
 
 struct App {
@@ -65,6 +158,10 @@ struct App {
     search_error: Option<String>,
     /// Browsing cursor inside the Hours drill-down.
     hour_cursor: usize,
+    /// S3 draft state of the Personal Context overlay.
+    personal: PersonalForm,
+    /// S3 committed Personal Context: `None` keeps the anonymous view.
+    personal_context: Option<DayViewPersonalContextInput>,
 }
 
 impl App {
@@ -77,7 +174,39 @@ impl App {
             search_input: String::new(),
             search_error: None,
             hour_cursor: 0,
+            personal: PersonalForm::default(),
+            personal_context: None,
         }
+    }
+
+    /// Reset the draft form from the committed context (cancel path).
+    fn reset_personal_form(&mut self) {
+        let committed = self.personal_context.clone().unwrap_or_default();
+        self.personal = PersonalForm {
+            intent: committed
+                .intent
+                .and_then(|key| DAY_VIEW_INTENTS.iter().position(|(k, _)| *k == key))
+                .map(|index| index + 1)
+                .unwrap_or(0),
+            birth: match (
+                committed.birth_year,
+                committed.birth_month,
+                committed.birth_day,
+            ) {
+                (Some(year), Some(month), Some(day)) => {
+                    match (committed.birth_hour, committed.birth_minute) {
+                        (Some(hour), Some(minute)) => {
+                            format!("{year:04}-{month:02}-{day:02} {hour:02}:{minute:02}")
+                        }
+                        _ => format!("{year:04}-{month:02}-{day:02}"),
+                    }
+                }
+                _ => String::new(),
+            },
+            location: committed.location_name.clone().unwrap_or_default(),
+            row: 0,
+            error: None,
+        };
     }
 }
 
@@ -96,7 +225,11 @@ pub fn run_next_day_view(initial_date: Option<NaiveDate>) -> Result<(), String> 
         if app.mode == Mode::Hours {
             app.selected_hour = Some(app.hour_cursor);
         }
-        let view = load_view(app.selected_date, app.selected_hour)?;
+        let view = load_view(
+            app.selected_date,
+            app.selected_hour,
+            app.personal_context.clone(),
+        )?;
         terminal
             .draw(|frame| draw(frame, &app, &view))
             .map_err(|e| e.to_string())?;
@@ -116,7 +249,12 @@ fn handle_key(app: &mut App, code: KeyCode, modifiers: KeyModifiers) -> bool {
     }
     if app.overlay != Overlay::None {
         match (app.overlay, code) {
-            (_, KeyCode::Esc) => app.overlay = Overlay::None,
+            (_, KeyCode::Esc) => {
+                if app.overlay == Overlay::Personal {
+                    app.reset_personal_form();
+                }
+                app.overlay = Overlay::None;
+            }
             (Overlay::Search, KeyCode::Enter) => {
                 if let Some(date) = parse_search(&app.search_input) {
                     app.selected_date = date;
@@ -135,6 +273,45 @@ fn handle_key(app: &mut App, code: KeyCode, modifiers: KeyModifiers) -> bool {
             {
                 app.search_input.push(c);
                 app.search_error = None;
+            }
+            (Overlay::Personal, KeyCode::Enter) => match app.personal.build_context() {
+                Ok(context) => {
+                    app.personal_context = context;
+                    app.personal.error = None;
+                    app.overlay = Overlay::None;
+                }
+                Err(error) => app.personal.error = Some(error),
+            },
+            (Overlay::Personal, KeyCode::Tab | KeyCode::Down | KeyCode::Char('j')) => {
+                app.personal.row = (app.personal.row + 1).min(2);
+            }
+            (Overlay::Personal, KeyCode::Up | KeyCode::Char('k')) => {
+                app.personal.row = app.personal.row.saturating_sub(1);
+            }
+            (Overlay::Personal, KeyCode::Left) if app.personal.row == 0 => {
+                app.personal.intent = app.personal.intent.saturating_sub(1);
+            }
+            (Overlay::Personal, KeyCode::Right) if app.personal.row == 0 => {
+                app.personal.intent = (app.personal.intent + 1).min(DAY_VIEW_INTENTS.len());
+            }
+            (Overlay::Personal, KeyCode::Backspace) if app.personal.row > 0 => {
+                if app.personal.row == 1 {
+                    app.personal.birth.pop();
+                } else {
+                    app.personal.location.pop();
+                }
+            }
+            (Overlay::Personal, KeyCode::Char(c))
+                if !modifiers.contains(KeyModifiers::CONTROL)
+                    && !modifiers.contains(KeyModifiers::ALT)
+                    && app.personal.row > 0 =>
+            {
+                if app.personal.row == 1 {
+                    app.personal.birth.push(c);
+                } else {
+                    app.personal.location.push(c);
+                }
+                app.personal.error = None;
             }
             _ => {}
         }
@@ -165,6 +342,10 @@ fn handle_key(app: &mut App, code: KeyCode, modifiers: KeyModifiers) -> bool {
         }
         KeyCode::Char('?') => {
             app.overlay = Overlay::Help;
+        }
+        KeyCode::Char('p') => {
+            app.reset_personal_form();
+            app.overlay = Overlay::Personal;
         }
         KeyCode::Char('h') => {
             app.mode = Mode::Hours;
@@ -215,16 +396,30 @@ fn parse_search(input: &str) -> Option<NaiveDate> {
     None
 }
 
-fn load_view(date: NaiveDate, selected_hour: Option<usize>) -> Result<DayViewDto, String> {
+fn load_view(
+    date: NaiveDate,
+    selected_hour: Option<usize>,
+    context: Option<DayViewPersonalContextInput>,
+) -> Result<DayViewDto, String> {
     let now = Local::now();
     let current_chi = ((now.hour() + 1) % 24) / 2;
-    get_day_view_for_date(
-        date.day() as i32,
-        date.month() as i32,
-        date.year(),
-        Some(current_chi as usize),
-        selected_hour,
-    )
+    match context {
+        Some(context) => get_day_view_enriched_for_date(
+            date.day() as i32,
+            date.month() as i32,
+            date.year(),
+            Some(current_chi as usize),
+            selected_hour,
+            &context,
+        ),
+        None => get_day_view_for_date(
+            date.day() as i32,
+            date.month() as i32,
+            date.year(),
+            Some(current_chi as usize),
+            selected_hour,
+        ),
+    }
 }
 
 fn draw(frame: &mut Frame, app: &App, view: &DayViewDto) {
@@ -235,6 +430,7 @@ fn draw(frame: &mut Frame, app: &App, view: &DayViewDto) {
     match app.overlay {
         Overlay::Search => draw_search_overlay(frame, app),
         Overlay::Help => draw_help_overlay(frame, app),
+        Overlay::Personal => draw_personal_overlay(frame, app),
         Overlay::None => {}
     }
 }
@@ -246,9 +442,15 @@ fn draw(frame: &mut Frame, app: &App, view: &DayViewDto) {
 fn draw_today(frame: &mut Frame, app: &App, view: &DayViewDto) {
     let detail = view.hours.detail.as_ref();
     let detail_height = if detail.is_some() { 8 } else { 0 };
+    let assessment_lines = view.assessment.as_ref().map(assessment_lines);
+    let assessment_height = assessment_lines
+        .as_ref()
+        .map(|lines| (lines.len() as u16 + 2).min(20))
+        .unwrap_or(0);
     let constraints = [
         Constraint::Length(5),
-        Constraint::Min(10),
+        Constraint::Min(6),
+        Constraint::Length(assessment_height),
         Constraint::Length(3),
         Constraint::Length(detail_height),
         Constraint::Length(1),
@@ -257,14 +459,17 @@ fn draw_today(frame: &mut Frame, app: &App, view: &DayViewDto) {
 
     draw_header(frame, view, chunks[0]);
     draw_body(frame, view, chunks[1]);
-    draw_hour_strip(frame, view, chunks[2]);
+    if let (Some(assessment), Some(lines)) = (&view.assessment, &assessment_lines) {
+        draw_assessment(frame, assessment, lines, chunks[2]);
+    }
+    draw_hour_strip(frame, view, chunks[3]);
     if let Some(detail) = detail {
-        draw_hour_detail(frame, app, view, detail, chunks[3]);
+        draw_hour_detail(frame, app, view, detail, chunks[4]);
     }
     draw_footer(
         frame,
-        chunks[4],
-        " [/] ngày trước/sau · t hôm nay · / tìm ngày · h giờ · ? trợ giúp · q thoát ",
+        chunks[5],
+        " [/] ngày trước/sau · t hôm nay · / tìm ngày · h giờ · p bối cảnh · ? trợ giúp · q thoát ",
     );
 }
 
@@ -460,6 +665,172 @@ fn draw_footer(frame: &mut Frame, area: Rect, text: &str) {
 }
 
 // ---------------------------------------------------------------------
+// S3 (`amlich-b14l.9`): Day Assessment block and Personal Context
+// overlay.
+// ---------------------------------------------------------------------
+
+/// Result + Reasons + Assessment Confidence + the enrichment ladder,
+/// rendered from the projection only — the TUI never recomputes.
+fn assessment_lines(assessment: &DayViewAssessmentDto) -> Vec<Line<'static>> {
+    let mut lines = vec![Line::from(vec![
+        Span::styled(
+            format!(" Kết quả: {} ", assessment.result.bucket_label),
+            Style::default()
+                .fg(if assessment.result.bucket == "favorable" {
+                    Theme::GREEN
+                } else if assessment.result.bucket == "avoid" {
+                    Theme::RED
+                } else {
+                    Theme::GOLD
+                })
+                .add_modifier(Modifier::BOLD),
+        ),
+        Span::raw(format!("theo mục đích {} · ", assessment.intent_label)),
+        Span::styled(
+            format!(
+                "độ tin cậy {} (mức phủ input)",
+                assessment.confidence.level_label
+            ),
+            Style::default().fg(Theme::CYAN),
+        ),
+    ])];
+    lines.push(Line::from(Span::styled(
+        format!("  {}", assessment.result.primary_conclusion),
+        Style::default().fg(Color::Gray),
+    )));
+    for layer in &assessment.layers {
+        let marker = if layer.applied { "✓" } else { "○" };
+        let style = if layer.applied {
+            Style::default().fg(Theme::GREEN)
+        } else {
+            Style::default().fg(Color::DarkGray)
+        };
+        lines.push(Line::from(vec![
+            Span::styled(format!("  {marker} "), style),
+            Span::styled(format!("{}: ", layer.layer_label), style),
+            Span::raw(layer.summary.clone()),
+        ]));
+        for change in layer.changes.iter().take(2) {
+            lines.push(Line::from(Span::styled(
+                format!("      · {change}"),
+                Style::default().fg(Color::DarkGray),
+            )));
+        }
+    }
+    if !assessment.reasons.is_empty() {
+        lines.push(Line::from(Span::styled(
+            format!("  Lý do ({}):", assessment.reasons.len()),
+            Style::default().fg(Theme::CYAN),
+        )));
+        for reason in assessment.reasons.iter().take(4) {
+            lines.push(Line::from(Span::styled(
+                format!("   – {}", reason.text),
+                Style::default().fg(Color::Gray),
+            )));
+        }
+        let hidden = assessment.reasons.len().saturating_sub(4);
+        if hidden > 0 {
+            lines.push(Line::from(Span::styled(
+                format!("   … và {hidden} lý do khác"),
+                Style::default().fg(Color::DarkGray),
+            )));
+        }
+    }
+    for reason in assessment.confidence.reasons.iter().take(2) {
+        lines.push(Line::from(Span::styled(
+            format!("  ? {reason}"),
+            Style::default().fg(Color::DarkGray),
+        )));
+    }
+    lines
+}
+
+fn draw_assessment(
+    frame: &mut Frame,
+    assessment: &DayViewAssessmentDto,
+    lines: &[Line<'static>],
+    area: Rect,
+) {
+    let block = Block::default()
+        .borders(Borders::ALL)
+        .border_style(Theme::secondary_border())
+        .title(format!(
+            " Đánh giá Ngày · theo mục đích {}, không phải phán quyết phổ quát ",
+            assessment.intent_label
+        ));
+    let inner = block.inner(area);
+    frame.render_widget(block, area);
+    frame.render_widget(
+        Paragraph::new(lines.to_vec()).wrap(Wrap { trim: true }),
+        inner,
+    );
+}
+
+fn draw_personal_overlay(frame: &mut Frame, app: &App) {
+    let area = centered_rect(frame.area(), 62, 10);
+    frame.render_widget(Clear, area);
+    let form = &app.personal;
+    let row_marker = |row: usize| {
+        if form.row == row {
+            "▶ "
+        } else {
+            "  "
+        }
+    };
+    let intent_hint = if form.row == 0 {
+        "  ←/→ đổi mục đích"
+    } else {
+        ""
+    };
+    let lines = vec![
+        Line::from(vec![
+            Span::raw(row_marker(0)),
+            Span::raw("Mục đích: "),
+            Span::styled(form.intent_label(), Style::default().fg(Theme::GOLD)),
+            Span::styled(intent_hint, Style::default().fg(Color::DarkGray)),
+        ]),
+        Line::from(vec![
+            Span::raw(row_marker(1)),
+            Span::raw("Hồ sơ sinh: "),
+            Span::styled(
+                format!("{}█", form.birth),
+                Style::default().fg(Color::Yellow),
+            ),
+        ]),
+        Line::from(Span::styled(
+            "            (YYYY-MM-DD [HH:MM] [nam|nữ])",
+            Style::default().fg(Color::DarkGray),
+        )),
+        Line::from(vec![
+            Span::raw(row_marker(2)),
+            Span::raw("Vị trí: "),
+            Span::styled(
+                format!("{}█", form.location),
+                Style::default().fg(Color::Yellow),
+            ),
+        ]),
+        Line::from(Span::styled(
+            " Tab/j/k đổi dòng · Enter chốt · Esc hủy",
+            Style::default().fg(Color::DarkGray),
+        )),
+    ];
+    let mut lines = lines;
+    if let Some(error) = &form.error {
+        lines.push(Line::from(Span::styled(
+            format!(" ! {error}"),
+            Style::default().fg(Theme::RED),
+        )));
+    }
+    let block = Block::default()
+        .title(" Bối cảnh cá nhân · bổ sung tầng, không thay ngày ")
+        .title_alignment(Alignment::Center)
+        .borders(Borders::ALL)
+        .border_style(Style::default().fg(Theme::CYAN));
+    let paragraph = Paragraph::new(lines).block(block).wrap(Wrap { trim: true });
+    frame.render_widget(paragraph, area);
+}
+
+// ---------------------------------------------------------------------
 // Hours drill-down (b14l.4: `h` opens the full-screen twelve-window list)
 // ---------------------------------------------------------------------
 
@@ -590,7 +961,7 @@ fn draw_search_overlay(frame: &mut Frame, app: &App) {
 }
 
 fn draw_help_overlay(frame: &mut Frame, _app: &App) {
-    let area = centered_rect(frame.area(), 52, 12);
+    let area = centered_rect(frame.area(), 52, 14);
     frame.render_widget(Clear, area);
     let lines = vec![
         Line::from(Span::styled(
@@ -603,6 +974,7 @@ fn draw_help_overlay(frame: &mut Frame, _app: &App) {
         Line::from(" h    mở danh sách Giờ trong ngày"),
         Line::from(" j/k  di chuyển chọn giờ"),
         Line::from(" Ent  chốt giờ đang chọn (ngày không đổi)"),
+        Line::from(" p    bối cảnh cá nhân (mục đích, hồ sơ sinh, vị trí)"),
         Line::from(" Esc  quay lại / đóng"),
         Line::from(" ?    trợ giúp · q thoát"),
         Line::from(""),
@@ -819,5 +1191,163 @@ mod tests {
             app.selected_date,
             NaiveDate::from_ymd_opt(2025, 7, 25).unwrap()
         );
+    }
+
+    // -----------------------------------------------------------------
+    // S3 (`amlich-b14l.9`): Personal Context overlay + Day Assessment.
+    // -----------------------------------------------------------------
+
+    fn sample_profile_context() -> DayViewPersonalContextInput {
+        DayViewPersonalContextInput {
+            intent: Some("opening_business".to_string()),
+            birth_year: Some(1990),
+            birth_month: Some(1),
+            birth_day: Some(1),
+            birth_hour: Some(9),
+            birth_minute: Some(30),
+            gender: Some("nam".to_string()),
+            location_name: None,
+        }
+    }
+
+    #[test]
+    fn personal_form_builds_the_sample_profile_context() {
+        let form = PersonalForm {
+            intent: 3, // opening_business
+            birth: "1990-01-01 09:30 nam".to_string(),
+            location: String::new(),
+            row: 0,
+            error: None,
+        };
+        let context = form.build_context().expect("context").expect("intent set");
+        assert_eq!(context.intent.as_deref(), Some("opening_business"));
+        assert_eq!(context.birth_year, Some(1990));
+        assert_eq!(context.birth_month, Some(1));
+        assert_eq!(context.birth_day, Some(1));
+        assert_eq!(context.birth_hour, Some(9));
+        assert_eq!(context.birth_minute, Some(30));
+        assert_eq!(context.gender.as_deref(), Some("nam"));
+        assert_eq!(context.location_name, None);
+
+        // Empty intent → anonymous (None), even with a birth profile.
+        let anonymous = PersonalForm {
+            intent: 0,
+            birth: "01/01/1990".to_string(),
+            location: String::new(),
+            row: 0,
+            error: None,
+        };
+        assert!(anonymous.build_context().expect("context").is_none());
+    }
+
+    #[test]
+    fn personal_form_rejects_bad_birth_input_loudly() {
+        let form = PersonalForm {
+            intent: 1,
+            birth: "ngày mai".to_string(),
+            location: String::new(),
+            row: 0,
+            error: None,
+        };
+        let error = form.build_context().expect_err("bad date");
+        assert!(error.contains("không hiểu ngày sinh"));
+
+        let form = PersonalForm {
+            intent: 1,
+            birth: "1990-01-01 25:00".to_string(),
+            location: String::new(),
+            row: 0,
+            error: None,
+        };
+        assert!(form.build_context().is_err());
+    }
+
+    #[test]
+    fn today_view_renders_the_day_assessment_from_the_sample_profile() {
+        let view =
+            get_day_view_enriched_for_date(25, 7, 2025, Some(5), None, &sample_profile_context())
+                .expect("enriched day view");
+        let app = App::new(NaiveDate::from_ymd_opt(2025, 7, 25).unwrap());
+        let content = rendered(&app, &view, 120, 44);
+
+        assert!(content.contains("Đánh giá Ngày"));
+        assert!(content.contains("Kết quả:"));
+        assert!(content.contains("theo mục đích Khai trương"));
+        assert!(content.contains("độ tin cậy"));
+        assert!(content.contains("Hồ sơ sinh: 01/01/1990 09:30 · Nam."));
+        assert!(content.contains("Vị trí"));
+        assert!(content.contains("Lý do"));
+        // The anonymous sections still render below.
+        assert!(content.contains("Hỗ trợ"));
+        assert!(content.contains("Giới hạn"));
+        assert!(content.contains("Chưa có vị trí"));
+    }
+
+    #[test]
+    fn personal_overlay_edits_and_commits_progressive_layers() {
+        let mut app = App::new(NaiveDate::from_ymd_opt(2025, 7, 25).unwrap());
+        handle_key(&mut app, KeyCode::Char('p'), KeyModifiers::NONE);
+        assert_eq!(app.overlay, Overlay::Personal);
+
+        // Row 0: cycle intent to Khai trương (index 3).
+        for _ in 0..3 {
+            handle_key(&mut app, KeyCode::Right, KeyModifiers::NONE);
+        }
+        assert_eq!(app.personal.intent, 3);
+        // Row 1: birth profile text.
+        handle_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+        for c in "1990-01-01 09:30 nam".chars() {
+            handle_key(&mut app, KeyCode::Char(c), KeyModifiers::NONE);
+        }
+        // Row 2: location text.
+        handle_key(&mut app, KeyCode::Down, KeyModifiers::NONE);
+        for c in "Hà Nội".chars() {
+            handle_key(&mut app, KeyCode::Char(c), KeyModifiers::NONE);
+        }
+        handle_key(&mut app, KeyCode::Enter, KeyModifiers::NONE);
+        assert_eq!(app.overlay, Overlay::None);
+        let context = app.personal_context.as_ref().expect("committed");
+        assert_eq!(context.intent.as_deref(), Some("opening_business"));
+        assert_eq!(context.birth_year, Some(1990));
+        assert_eq!(context.location_name.as_deref(), Some("Hà Nội"));
+
+        // Reopening the overlay restores the committed draft; Esc cancels.
+        handle_key(&mut app, KeyCode::Char('p'), KeyModifiers::NONE);
+        assert_eq!(app.personal.intent, 3);
+        assert_eq!(app.personal.birth, "1990-01-01 09:30");
+        handle_key(&mut app, KeyCode::Esc, KeyModifiers::NONE);
+        assert_eq!(app.overlay, Overlay::None);
+        // The committed context survives the cancel.
+        assert!(app.personal_context.is_some());
+    }
+
+    #[test]
+    fn personal_overlay_keeps_the_overlay_open_on_invalid_input() {
+        let mut app = App::new(NaiveDate::from_ymd_opt(2025, 7, 25).unwrap());
+        handle_key(&mut app, KeyCode::Char('p'), KeyModifiers::NONE);
+        handle_key(&mut app, KeyCode::Right, KeyModifiers::NONE);
+        handle_key(&mut app, KeyCode::Tab, KeyModifiers::NONE);
+        for c in "xấu".chars() {
+            handle_key(&mut app, KeyCode::Char(c), KeyModifiers::NONE);
+        }
+        handle_key(&mut app, KeyCode::Enter, KeyModifiers::NONE);
+        assert_eq!(app.overlay, Overlay::Personal);
+        assert!(app.personal.error.is_some());
+        assert!(app.personal_context.is_none());
+    }
+
+    #[test]
+    fn anonymous_today_view_stays_free_of_assessment_blocks() {
+        let view = get_day_view_for_date(15, 6, 2024, Some(5), None).expect("day view");
+        let app = App::new(NaiveDate::from_ymd_opt(2024, 6, 15).unwrap());
+        let content = rendered(&app, &view, 120, 40);
+
+        assert!(view.assessment.is_none());
+        assert!(!content.contains("Đánh giá Ngày"));
+        assert!(!content.contains("Kết quả:"));
+        // The three personal unknowns still render.
+        assert!(content.contains("Chưa có mục đích"));
+        assert!(content.contains("Chưa có hồ sơ sinh"));
+        assert!(content.contains("Chưa có vị trí"));
     }
 }

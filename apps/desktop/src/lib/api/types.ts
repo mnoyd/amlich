@@ -1794,6 +1794,72 @@ export interface DayViewDto {
     pattern: DayViewPatternDto;
     hours: DayViewHourTimelineDto;
     coverage: DayViewCoverageDto;
+    /** S3 (`amlich-b14l.9`): absent while no Intent is supplied — the
+     * anonymous view stays non-verdict. */
+    assessment?: DayViewAssessmentDto | null;
+}
+
+// S3 (`amlich-b14l.9`): Assessment on demand. The Personal Context input
+// (Progressive Enrichment: Intent [+ Birth Profile][+ Location]) and the
+// Day Assessment projection (Result + Reasons + Assessment Confidence,
+// Unknowns, per-layer enrichment diff). Pure projection of the canonical
+// PersonalDayAssessment — never re-evaluated on the surface.
+export interface DayViewPersonalContextInput {
+    intent?: string | null;
+    birth_year?: number | null;
+    birth_month?: number | null;
+    birth_day?: number | null;
+    birth_hour?: number | null;
+    birth_minute?: number | null;
+    gender?: string | null;
+    location_name?: string | null;
+}
+
+export interface DayViewAssessmentResultDto {
+    bucket: 'favorable' | 'mixed' | 'cautious' | 'avoid';
+    bucket_label: string;
+    semantic: string;
+    primary_conclusion: string;
+}
+
+export interface DayViewAssessmentReasonDto {
+    axis: string;
+    axis_label: string;
+    polarity: 'favorable' | 'avoid' | 'neutral' | 'info';
+    polarity_label: string;
+    text: string;
+    source_family: string;
+    source_id: string;
+    method: string;
+}
+
+export interface DayViewAssessmentConfidenceDto {
+    level: 'low' | 'medium' | 'high';
+    level_label: string;
+    reasons: string[];
+}
+
+export interface DayViewEnrichmentLayerDto {
+    layer: 'intent' | 'birth_profile' | 'location';
+    layer_label: string;
+    applied: boolean;
+    summary: string;
+    changes: string[];
+}
+
+export interface DayViewAssessmentDto {
+    intent: string;
+    intent_label: string;
+    profile_tier: 'anonymous' | 'date' | 'datetime';
+    result: DayViewAssessmentResultDto;
+    reasons: DayViewAssessmentReasonDto[];
+    confidence: DayViewAssessmentConfidenceDto;
+    unknowns: DayViewPatternItemDto[];
+    layers: DayViewEnrichmentLayerDto[];
+    ruleset_id: string;
+    ruleset_version: string;
+    policy_id: string;
+    policy_version: string;
 }
 
 // S2 (`amlich-b14l.8`): month-grid navigation projection. Pure labels for

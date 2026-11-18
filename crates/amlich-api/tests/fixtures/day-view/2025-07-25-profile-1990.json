@@ -1,0 +1,519 @@
+{
+  "schema_version": "day-view-v1.2",
+  "solar": {
+    "day": 25,
+    "month": 7,
+    "year": 2025,
+    "day_of_week": 5,
+    "day_of_week_name": "Thứ Sáu",
+    "date_string": "2025-07-25"
+  },
+  "lunar": {
+    "day": 1,
+    "month": 6,
+    "year": 2025,
+    "is_leap_month": true,
+    "date_string": "1/6/2025 (nhuận)"
+  },
+  "canchi": {
+    "day": {
+      "can_index": 1,
+      "chi_index": 7,
+      "can": "Ất",
+      "chi": "Mùi",
+      "full": "Ất Mùi",
+      "con_giap": "Mùi (Dê)",
+      "ngu_hanh": {
+        "can": "Mộc",
+        "chi": "Thổ"
+      }
+    },
+    "month": {
+      "can_index": 9,
+      "chi_index": 7,
+      "can": "Quý",
+      "chi": "Mùi",
+      "full": "Quý Mùi (nhuận)",
+      "con_giap": "Mùi (Dê)",
+      "ngu_hanh": {
+        "can": "Thủy",
+        "chi": "Thổ"
+      }
+    },
+    "year": {
+      "can_index": 1,
+      "chi_index": 5,
+      "can": "Ất",
+      "chi": "Tỵ",
+      "full": "Ất Tỵ",
+      "con_giap": "Tỵ (Rắn)",
+      "ngu_hanh": {
+        "can": "Mộc",
+        "chi": "Hỏa"
+      }
+    },
+    "full": "Ất Mùi, tháng Quý Mùi (nhuận), năm Ất Tỵ"
+  },
+  "tiet_khi": {
+    "index": 8,
+    "name": "Đại Thử",
+    "description": "Great Heat (Đại Thử)",
+    "longitude": 120,
+    "current_longitude": 122.06,
+    "season": "Hạ (Summer)"
+  },
+  "pattern": {
+    "supports": [
+      {
+        "kind": "support",
+        "title": "Giờ Hoàng Đạo",
+        "reason": "Ngày chi Mùi có 6 giờ Hoàng Đạo theo truyền thống: Dần, Mão, Tỵ, Thân, Tuất, Hợi.",
+        "source": "hoang_dao_hours"
+      },
+      {
+        "kind": "support",
+        "title": "Trực Kiến",
+        "reason": "Trực Kiến được phân loại 'cat' theo nguồn truyền thống.",
+        "source": "truc"
+      },
+      {
+        "kind": "support",
+        "title": "Cát tinh",
+        "reason": "Các sao được ghi nhận là cát: Phúc Sinh, Thiên Quý.",
+        "source": "cat_tinh"
+      },
+      {
+        "kind": "support",
+        "title": "Ngày Kim Đường (Hoàng Đạo)",
+        "reason": "Ngày Kim Đường được xếp vào nhóm hoang_dao theo truyền thống.",
+        "source": "day_deity"
+      }
+    ],
+    "constraints": [
+      {
+        "kind": "constraint",
+        "title": "Sát tinh",
+        "reason": "Các sao được ghi nhận là hung: Bạch Hổ, Tiểu Hao.",
+        "source": "sat_tinh"
+      },
+      {
+        "kind": "constraint",
+        "title": "Xung chi Sửu",
+        "reason": "Chi ngày xung với chi Sửu theo lục xung. Tuổi xung: Ất Sửu, Sửu (Trâu).",
+        "source": "day_conflict"
+      }
+    ],
+    "unknowns": [
+      {
+        "kind": "unknown",
+        "title": "Chưa có vị trí",
+        "reason": "Chứng cứ phụ thuộc vị trí chưa khả dụng.",
+        "source": "personal_context"
+      }
+    ]
+  },
+  "hours": {
+    "hours": [
+      {
+        "hour_index": 0,
+        "chi": "Tý",
+        "time_range": "23:00-01:00",
+        "star": "Thiên Hình",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 1,
+        "chi": "Sửu",
+        "time_range": "01:00-03:00",
+        "star": "Chu Tước",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 2,
+        "chi": "Dần",
+        "time_range": "03:00-05:00",
+        "star": "Kim Quỹ",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Kim Quỹ (Hoàng Đạo).",
+        "is_current": false
+      },
+      {
+        "hour_index": 3,
+        "chi": "Mão",
+        "time_range": "05:00-07:00",
+        "star": "Bảo Quang",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Bảo Quang (Hoàng Đạo).",
+        "is_current": false
+      },
+      {
+        "hour_index": 4,
+        "chi": "Thìn",
+        "time_range": "07:00-09:00",
+        "star": "Bạch Hổ",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 5,
+        "chi": "Tỵ",
+        "time_range": "09:00-11:00",
+        "star": "Ngọc Đường",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Ngọc Đường (Hoàng Đạo).",
+        "is_current": true
+      },
+      {
+        "hour_index": 6,
+        "chi": "Ngọ",
+        "time_range": "11:00-13:00",
+        "star": "Thiên Lao",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 7,
+        "chi": "Mùi",
+        "time_range": "13:00-15:00",
+        "star": "Nguyên Vũ",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 8,
+        "chi": "Thân",
+        "time_range": "15:00-17:00",
+        "star": "Tư Mệnh",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Tư Mệnh (Hoàng Đạo).",
+        "is_current": false
+      },
+      {
+        "hour_index": 9,
+        "chi": "Dậu",
+        "time_range": "17:00-19:00",
+        "star": "Câu Trận",
+        "is_hoang_dao": false,
+        "is_notable": false,
+        "notable_reason": null,
+        "is_current": false
+      },
+      {
+        "hour_index": 10,
+        "chi": "Tuất",
+        "time_range": "19:00-21:00",
+        "star": "Thanh Long",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Thanh Long (Hoàng Đạo).",
+        "is_current": false
+      },
+      {
+        "hour_index": 11,
+        "chi": "Hợi",
+        "time_range": "21:00-23:00",
+        "star": "Minh Đường",
+        "is_hoang_dao": true,
+        "is_notable": true,
+        "notable_reason": "Giờ Minh Đường (Hoàng Đạo).",
+        "is_current": false
+      }
+    ],
+    "current_hour_index": 5,
+    "notable_count": 6,
+    "selected_hour_index": null,
+    "detail": null
+  },
+  "coverage": {
+    "entries": [
+      {
+        "family": "canchi",
+        "state": "present"
+      },
+      {
+        "family": "tiet_khi",
+        "state": "present"
+      },
+      {
+        "family": "truc",
+        "state": "present"
+      },
+      {
+        "family": "stars",
+        "state": "present"
+      },
+      {
+        "family": "day_deity",
+        "state": "present"
+      },
+      {
+        "family": "taboos",
+        "state": "unknown"
+      },
+      {
+        "family": "day_conflict",
+        "state": "present"
+      },
+      {
+        "family": "day_element",
+        "state": "present"
+      },
+      {
+        "family": "hoang_dao_hours",
+        "state": "present"
+      },
+      {
+        "family": "recommendations",
+        "state": "present"
+      },
+      {
+        "family": "intent",
+        "state": "present"
+      },
+      {
+        "family": "birth_profile",
+        "state": "present"
+      },
+      {
+        "family": "location",
+        "state": "unknown"
+      }
+    ],
+    "present_count": 11,
+    "unknown_count": 2,
+    "pending_count": 0
+  },
+  "assessment": {
+    "intent": "opening_business",
+    "intent_label": "Khai trương",
+    "profile_tier": "datetime",
+    "result": {
+      "bucket": "avoid",
+      "bucket_label": "Nên tránh",
+      "semantic": "override_avoid",
+      "primary_conclusion": "Không nên Khai trương hôm nay; đã đối chiếu theo tuổi và hướng cung mệnh."
+    },
+    "reasons": [
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "favorable",
+        "polarity_label": "thuận",
+        "text": "Chất lượng ngày chung: đóng góp thuận (độ mạnh 0.70) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Gặp gỡ.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "favorable",
+        "polarity_label": "thuận",
+        "text": "Chất lượng ngày chung: đóng góp thuận (độ mạnh 0.70) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Khai mở.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "favorable",
+        "polarity_label": "thuận",
+        "text": "Chất lượng ngày chung: đóng góp thuận (độ mạnh 0.70) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Xuất hành.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "neutral",
+        "polarity_label": "trung tính",
+        "text": "Chất lượng ngày chung: đóng góp trung tính (độ mạnh 0.40) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Cưới hỏi.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "neutral",
+        "polarity_label": "trung tính",
+        "text": "Chất lượng ngày chung: đóng góp trung tính (độ mạnh 0.40) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Ký kết.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "neutral",
+        "polarity_label": "trung tính",
+        "text": "Chất lượng ngày chung: đóng góp trung tính (độ mạnh 0.40) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Nhập trạch.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "neutral",
+        "polarity_label": "trung tính",
+        "text": "Chất lượng ngày chung: đóng góp trung tính (độ mạnh 0.40) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Tài chính lớn.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "neutral",
+        "polarity_label": "trung tính",
+        "text": "Chất lượng ngày chung: đóng góp trung tính (độ mạnh 0.40) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Động thổ.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "avoid",
+        "polarity_label": "tránh",
+        "text": "Chất lượng ngày chung: đóng góp tránh (độ mạnh 0.60) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: An táng.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "avoid",
+        "polarity_label": "tránh",
+        "text": "Chất lượng ngày chung: đóng góp tránh (độ mạnh 0.60) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Chữa bệnh.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "generic_day_quality",
+        "axis_label": "Chất lượng ngày chung",
+        "polarity": "avoid",
+        "polarity_label": "tránh",
+        "text": "Chất lượng ngày chung: đóng góp tránh (độ mạnh 0.60) — nguồn almanac_rule/khcbppt, phương pháp recommendation_synthesis. Ghi chú: Kiện tụng.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "recommendation_synthesis"
+      },
+      {
+        "axis": "intent_fit",
+        "axis_label": "Phù hợp mục đích",
+        "polarity": "favorable",
+        "polarity_label": "thuận",
+        "text": "Phù hợp mục đích: đóng góp thuận (độ mạnh 0.80) — nguồn almanac_rule/khcbppt, phương pháp intent_fit_lookup. Ghi chú: Khai mở.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "intent_fit_lookup"
+      },
+      {
+        "axis": "personal_alignment",
+        "axis_label": "Tương thích cá nhân",
+        "polarity": "favorable",
+        "polarity_label": "thuận",
+        "text": "Tương thích cá nhân: đóng góp thuận (độ mạnh 0.40) — nguồn interaction/vn-folk, phương pháp kua_favorable_match.",
+        "source_family": "interaction",
+        "source_id": "vn-folk",
+        "method": "kua_favorable_match"
+      },
+      {
+        "axis": "intent_fit",
+        "axis_label": "Phù hợp mục đích",
+        "polarity": "favorable",
+        "polarity_label": "thuận",
+        "text": "Phù hợp mục đích: đóng góp thuận (độ mạnh 0.50) — nguồn almanac_rule/khcbppt, phương pháp gio_hoang_dao_ratio.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "gio_hoang_dao_ratio"
+      },
+      {
+        "axis": "annual_pressure",
+        "axis_label": "Áp lực theo năm",
+        "polarity": "avoid",
+        "polarity_label": "tránh",
+        "text": "Áp lực theo năm: đóng góp tránh (độ mạnh 1.00) — nguồn almanac_rule/khcbppt, phương pháp yearly_han.",
+        "source_family": "almanac_rule",
+        "source_id": "khcbppt",
+        "method": "yearly_han"
+      }
+    ],
+    "confidence": {
+      "level": "medium",
+      "level_label": "Trung bình",
+      "reasons": [
+        "Cấp dữ liệu hồ sơ: ngày và giờ sinh.",
+        "Mọi phần đánh giá đều có đủ dữ liệu đầu vào theo chính sách hiện hành."
+      ]
+    },
+    "unknowns": [
+      {
+        "kind": "unknown",
+        "title": "Chưa có vị trí",
+        "reason": "Chứng cứ phụ thuộc vị trí chưa khả dụng.",
+        "source": "personal_context"
+      }
+    ],
+    "layers": [
+      {
+        "layer": "intent",
+        "layer_label": "Mục đích",
+        "applied": true,
+        "summary": "Mục đích: Khai trương.",
+        "changes": [
+          "Đánh giá Ngày mở theo mục đích Khai trương; tổng quan ẩn danh và các tín hiệu lịch không đổi.",
+          "Trục Phù hợp mục đích: favorable.",
+          "2 đóng góp quyết định đến từ trục Phù hợp mục đích."
+        ]
+      },
+      {
+        "layer": "birth_profile",
+        "layer_label": "Hồ sơ sinh",
+        "applied": true,
+        "summary": "Hồ sơ sinh: 01/01/1990 09:30 · Nam.",
+        "changes": [
+          "Cấp dữ liệu hồ sơ: ngày và giờ sinh.",
+          "Trục Tương thích cá nhân: favorable.",
+          "Trục Áp lực theo năm: avoid.",
+          "Bối cảnh Kua được đưa vào đánh giá."
+        ]
+      },
+      {
+        "layer": "location",
+        "layer_label": "Vị trí",
+        "applied": false,
+        "summary": "Vị trí: chưa cung cấp.",
+        "changes": [
+          "Chưa cung cấp vị trí — chứng cứ phụ thuộc vị trí giữ trạng thái Chưa biết."
+        ]
+      }
+    ],
+    "ruleset_id": "vn_baseline_v1",
+    "ruleset_version": "v1",
+    "policy_id": "personal-day-assessment",
+    "policy_version": "v1"
+  }
+}

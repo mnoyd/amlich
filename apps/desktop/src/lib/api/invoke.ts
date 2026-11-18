@@ -5,7 +5,7 @@ import type {
     RulesetCatalogEntryDto, RecommendationPackCatalogEntryDto,
     HolidayDto, PersonalDayReportDto, PersonalDayMatrixReportDto,
     TietKhiYearDto, DebugSemanticGraphResponseDto, ClassicalSurfaceDto, DayViewDto,
-    DayViewMonthDto
+    DayViewMonthDto, DayViewPersonalContextInput
 } from './types';
 
 export type DayRangeRequest = {
@@ -23,9 +23,14 @@ export async function fetchDayView(
     month: number,
     year: number,
     currentChiIndex?: number | null,
-    selectedChiIndex?: number | null
+    selectedChiIndex?: number | null,
+    /** S3 (`amlich-b14l.9`): Personal Context for Progressive Enrichment.
+     * `null`/`undefined` keeps the anonymous non-verdict view. */
+    personalContext?: DayViewPersonalContextInput | null
 ): Promise<DayViewDto> {
-    return invoke('get_day_view', { day, month, year, currentChiIndex, selectedChiIndex });
+    return invoke('get_day_view', {
+        day, month, year, currentChiIndex, selectedChiIndex, personalContext
+    });
 }
 
 /**

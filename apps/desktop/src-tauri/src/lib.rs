@@ -9,6 +9,7 @@ use amlich_api::v2::{
 use amlich_api::{
     get_bazi_derived_report as api_get_bazi_derived_report, get_bazi_report as api_get_bazi_report,
     get_day_info_for_date, get_day_insight_for_date,
+    get_day_view_enriched_for_date as api_get_day_view_enriched_for_date,
     get_day_view_for_date as api_get_day_view_for_date,
     get_debug_semantic_graph_inspection as api_get_debug_semantic_graph_inspection, get_holidays,
     get_hour_selection_report as api_get_hour_selection_report,
@@ -17,9 +18,10 @@ use amlich_api::{
     get_personal_day_report as api_get_personal_day_report,
     get_recommendation_pack_catalog as api_get_recommendation_pack_catalog,
     get_ruleset_catalog as api_get_ruleset_catalog, BaziDerivedReportDto, BaziQuery, BaziReportDto,
-    DateQuery, DayInfoDto, DayInsightDto, DayViewDto, DayViewMonthDto, DebugSemanticGraphQueryDto,
-    DebugSemanticGraphResponseDto, HolidayDto, HourSelectionReportDto, PersonalDayMatrixReportDto,
-    PersonalDayReportDto, RecommendationPackCatalogEntryDto, RulesetCatalogEntryDto,
+    DateQuery, DayInfoDto, DayInsightDto, DayViewDto, DayViewMonthDto, DayViewPersonalContextInput,
+    DebugSemanticGraphQueryDto, DebugSemanticGraphResponseDto, HolidayDto, HourSelectionReportDto,
+    PersonalDayMatrixReportDto, PersonalDayReportDto, RecommendationPackCatalogEntryDto,
+    RulesetCatalogEntryDto,
 };
 
 #[derive(Debug, Serialize, Clone)]
@@ -266,9 +268,22 @@ fn get_day_view(
     year: i32,
     current_chi_index: Option<usize>,
     selected_chi_index: Option<usize>,
+    personal_context: Option<DayViewPersonalContextInput>,
 ) -> Result<DayViewDto, String> {
     validate_date_parts(day, month)?;
-    api_get_day_view_for_date(day, month, year, current_chi_index, selected_chi_index)
+    match &personal_context {
+        // S3 (`amlich-b14l.9`): Progressive Enrichment over the same Day
+        // View — the projection itself enforces the Intent-first order.
+        Some(context) => api_get_day_view_enriched_for_date(
+            day,
+            month,
+            year,
+            current_chi_index,
+            selected_chi_index,
+            context,
+        ),
+        None => api_get_day_view_for_date(day, month, year, current_chi_index, selected_chi_index),
+    }
 }
 
 /// S2 (`amlich-b14l.8`) month-grid navigation projection. `today` and
@@ -820,9 +835,9 @@ mod tests {
 
     #[test]
     fn get_day_view_command_returns_the_projection() {
-        let view = get_day_view(10, 2, 2024, Some(3), None).expect("day view");
+        let view = get_day_view(10, 2, 2024, Some(3), None, None).expect("day view");
 
-        assert_eq!(view.schema_version, "day-view-v1.1");
+        assert_eq!(view.schema_version, "day-view-v1.2");
         assert_eq!(view.solar.year, 2024);
         assert_eq!(view.hours.current_hour_index, Some(3));
         assert!(
@@ -834,7 +849,8 @@ mod tests {
                 == 1
         );
         assert_eq!(view.pattern.unknowns.len(), 3);
-        assert!(get_day_view(0, 2, 2024, None, None).is_err());
+        assert!(view.assessment.is_none());
+        assert!(get_day_view(0, 2, 2024, None, None, None).is_err());
     }
 
     #[test]
@@ -842,7 +858,7 @@ mod tests {
         // S2 (`amlich-b14l.8`): selecting an hour returns the hour detail
         // with classification, ruling star, and hour-context reasons,
         // anchored to the same date.
-        let view = get_day_view(10, 2, 2024, None, Some(4)).expect("day view");
+        let view = get_day_view(10, 2, 2024, None, Some(4), None).expect("day view");
         let detail = view.hours.detail.as_ref().expect("selected hour detail");
 
         assert_eq!(view.hours.selected_hour_index, Some(4));
@@ -852,6 +868,53 @@ mod tests {
         assert_eq!(detail.star, "Thanh Long");
         assert!(!detail.reasons.is_empty());
         assert!(view.hours.hours.iter().all(|hour| !hour.is_current));
+    }
+
+    #[test]
+    fn get_day_view_command_enriches_with_personal_context() {
+        // S3 (`amlich-b14l.9`): the sample profile (1990-01-01 09:30 Nam)
+        // with an Intent attaches the Day Assessment; the anonymous
+        // sections stay non-verdict and unchanged.
+        let context = DayViewPersonalContextInput {
+            intent: Some("opening_business".to_string()),
+            birth_year: Some(1990),
+            birth_month: Some(1),
+            birth_day: Some(1),
+            birth_hour: Some(9),
+            birth_minute: Some(30),
+            gender: Some("nam".to_string()),
+            location_name: None,
+        };
+        let view = get_day_view(25, 7, 2025, None, None, Some(context)).expect("day view");
+        let assessment = view.assessment.as_ref().expect("assessment attached");
+
+        assert_eq!(assessment.intent, "opening_business");
+        assert_eq!(assessment.intent_label, "Khai trương");
+        assert_eq!(assessment.profile_tier, "datetime");
+        assert!(!assessment.result.primary_conclusion.is_empty());
+        assert!(!assessment.reasons.is_empty());
+        assert!(!assessment.confidence.reasons.is_empty());
+        let layers: Vec<(&str, bool)> = assessment
+            .layers
+            .iter()
+            .map(|layer| (layer.layer.as_str(), layer.applied))
+            .collect();
+        assert_eq!(
+            layers,
+            [
+                ("intent", true),
+                ("birth_profile", true),
+                ("location", false)
+            ]
+        );
+        assert_eq!(view.pattern.unknowns.len(), 1);
+
+        // Unknown intents are rejected loudly instead of downgrading.
+        let bad = DayViewPersonalContextInput {
+            intent: Some("skydiving".to_string()),
+            ..Default::default()
+        };
+        assert!(get_day_view(25, 7, 2025, None, None, Some(bad)).is_err());
     }
 
     #[test]
